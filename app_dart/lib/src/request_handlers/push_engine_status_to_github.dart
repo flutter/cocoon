@@ -59,9 +59,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     final RepositorySlug slug = config.engineSlug;
     final Commit engineTipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(engineTipOfTreeCommit);
-    final List<Target> postsubmitTargets = scheduler.getPostSubmitTargets(engineTipOfTreeCommit, schedulerConfig);
     final List<LuciBuilder> postsubmitBuilders =
-        postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, engineTipOfTreeCommit.slug)).toList();
+        await scheduler.getPostSubmitBuilders(engineTipOfTreeCommit, schedulerConfig);
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 

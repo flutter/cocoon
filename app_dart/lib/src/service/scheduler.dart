@@ -217,6 +217,19 @@ class Scheduler {
     return _filterEnabledTargets(commit, config, postsubmitTargets);
   }
 
+  /// Get all [LuciBuilder] run on postsubmit for [Commit].
+  ///
+  /// Get an aggregate of LUCI presubmit builders from .ci.yaml and prod_builders.json.
+  Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
+    // Filter targets to only those run in postsubmit.
+    final List<Target> postsubmitTargets = schedulerConfig.targets.where((Target target) => target.postsubmit).toList();
+    final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitTargets);
+    final List<LuciBuilder> postsubmitBuilders =
+        filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+    postsubmitBuilders.addAll(await config.luciBuilders('prod', commit.slug, commitSha: commit.sha));
+    return postsubmitBuilders;
+  }
+
   /// Get all targets run on presubmit for [Commit].
   ///
   /// Filter [SchedulerConfig] to only the targets expected to run for the branch,

@@ -32,6 +32,8 @@ void main() {
     FakeTabledataResourceApi tabledataResourceApi;
     MockLuciBuildService mockLuciBuildService;
 
+    Commit commit;
+
     setUp(() {
       branchHttpClient = FakeHttpClient();
       tabledataResourceApi = FakeTabledataResourceApi();
@@ -51,17 +53,40 @@ void main() {
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
         scheduler: scheduler,
       );
+      commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/abc'),
+        sha: 'abc',
+        branch: config.defaultBranch,
+        repository: config.flutterSlug.fullName,
+      );
     });
 
     group('without builder rerun', () {
       setUp(() {
+        branchHttpClient = FakeHttpClient();
+        tabledataResourceApi = FakeTabledataResourceApi();
+        config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
+        config.flutterBranchesValue = <String>[config.defaultBranch];
+        tester = ApiRequestHandlerTester();
+        mockLuciService = MockLuciService();
+        mockLuciBuildService = MockLuciBuildService();
+        scheduler = FakeScheduler(config: config);
+        handler = RefreshChromebotStatus(
+          config,
+          FakeAuthenticationProvider(),
+          mockLuciBuildService,
+          luciServiceProvider: (_) => mockLuciService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+          branchHttpClientProvider: () => branchHttpClient,
+          gitHubBackoffCalculator: (int attempt) => Duration.zero,
+          scheduler: scheduler,
+        );
         when(mockLuciBuildService.checkRerunBuilder(
                 commitSha: anyNamed('commitSha'), luciTask: anyNamed('luciTask'), retries: anyNamed('retries')))
             .thenAnswer((_) => Future<bool>.value(false));
       });
 
       test('do not update task status when SHA does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -91,10 +116,6 @@ void main() {
       });
 
       test('do not update task status when commitSha/ref is unknown', () async {
-        final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          sha: 'abc',
-        );
         final Task task = Task(
           key: commit.key.append(Task, id: 123),
           commitKey: commit.key,
@@ -128,9 +149,15 @@ void main() {
       });
 
       test('do not update task status when branch does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
-        final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
-        config.flutterBranchesValue = <String>['test'];
+        final Commit branchCommit = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/test/abc'),
+          sha: 'abc',
+          branch: 'test',
+          repository: config.flutterSlug.fullName,
+        );
+        final Task task =
+            Task(key: branchCommit.key.append(Task, id: 123), commitKey: branchCommit.key, status: Task.statusNew);
+        config.db.values[branchCommit.key] = branchCommit;
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
@@ -158,7 +185,6 @@ void main() {
       });
 
       test('update task status and buildNumber when buildNumberList does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -189,7 +215,6 @@ void main() {
       });
 
       test('save data to BigQuery when task finishes', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -218,7 +243,6 @@ void main() {
       });
 
       test('update task status and buildNumber when status does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
@@ -248,7 +272,6 @@ void main() {
       });
 
       test('update task status with latest status when multilple reruns exist', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
@@ -285,8 +308,6 @@ void main() {
       });
 
       test('update task status with latest status when ci yaml targets exist', () async {
-        final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: config.flutterSlug.fullName);
         final Task task = Task(
             key: commit.key.append(Task, id: 123),
             commitKey: commit.key,
@@ -325,10 +346,17 @@ void main() {
       });
 
       test('update task status for non master branch', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
-        final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
+        final Commit branchCommit = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/test/def'),
+          sha: 'def',
+          branch: 'test',
+          repository: config.flutterSlug.fullName,
+        );
+        final Task task =
+            Task(key: branchCommit.key.append(Task, id: 456), commitKey: branchCommit.key, status: Task.statusNew);
         config.flutterBranchesValue = <String>[config.defaultBranch, 'test'];
         config.db.values[commit.key] = commit;
+        config.db.values[branchCommit.key] = branchCommit;
         config.db.values[task.key] = task;
         final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
@@ -378,7 +406,6 @@ void main() {
 
       test('rerun Mac builder when hiting recipe infra failure', () async {
         config.maxTaskRetriesValue = 2;
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
             key: commit.key.append(Task, id: 123),
             commitKey: commit.key,

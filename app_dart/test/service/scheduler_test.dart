@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
@@ -378,6 +379,16 @@ targets:
         expect(retriedBuildRequests.length, 1);
         final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
         expect(retryRequest.builderId.builder, 'Linux A');
+      });
+    });
+
+    group('postsubmit', () {
+      test('adds both prod_builders and .ci.yaml builds', () async {
+        final Commit commit = Commit(repository: config.flutterSlug.fullName);
+        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(commit);
+        final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(commit, schedulerConfig);
+        expect(postsubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
+            <String>['Linux A', 'Linux', 'Mac', 'Windows', 'Linux Coverage']);
       });
     });
   });

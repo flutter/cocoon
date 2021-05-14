@@ -60,9 +60,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
-    final List<Target> postsubmitTargets = scheduler.getPostSubmitTargets(latestCommit, schedulerConfig);
-    final List<LuciBuilder> postsubmitBuilders =
-        postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, latestCommit.slug)).toList();
+    final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(latestCommit, schedulerConfig);
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = await luciService.getBranchRecentTasks(
       builders: postsubmitBuilders,
       requireTaskName: true,
