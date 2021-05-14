@@ -63,24 +63,6 @@ void main() {
 
     group('without builder rerun', () {
       setUp(() {
-        branchHttpClient = FakeHttpClient();
-        tabledataResourceApi = FakeTabledataResourceApi();
-        config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
-        config.flutterBranchesValue = <String>[config.defaultBranch];
-        tester = ApiRequestHandlerTester();
-        mockLuciService = MockLuciService();
-        mockLuciBuildService = MockLuciBuildService();
-        scheduler = FakeScheduler(config: config);
-        handler = RefreshChromebotStatus(
-          config,
-          FakeAuthenticationProvider(),
-          mockLuciBuildService,
-          luciServiceProvider: (_) => mockLuciService,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-          branchHttpClientProvider: () => branchHttpClient,
-          gitHubBackoffCalculator: (int attempt) => Duration.zero,
-          scheduler: scheduler,
-        );
         when(mockLuciBuildService.checkRerunBuilder(
                 commitSha: anyNamed('commitSha'), luciTask: anyNamed('luciTask'), retries: anyNamed('retries')))
             .thenAnswer((_) => Future<bool>.value(false));
