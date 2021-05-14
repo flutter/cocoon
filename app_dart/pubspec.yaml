@@ -13,7 +13,7 @@ environment:
 dependencies:
   appengine: ^0.11.0
   cocoon_scheduler:
-    path: ../scheduler
+    path: scheduler
   collection: ^1.14.11
   corsac_jwt: ^0.2.2
   crypto: ^2.0.6

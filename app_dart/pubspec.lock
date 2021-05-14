@@ -151,7 +151,7 @@ packages:
   cocoon_scheduler:
     dependency: "direct main"
     description:
-      path: "../scheduler"
+      path: scheduler
       relative: true
     source: path
     version: "1.0.0"
