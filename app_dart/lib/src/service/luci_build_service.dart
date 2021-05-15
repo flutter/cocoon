@@ -456,6 +456,7 @@ class LuciBuildService {
     @required String builderName,
     String branch = 'master',
     String repo = 'flutter',
+    String encodedTaskKey,
   }) async {
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
@@ -474,7 +475,8 @@ class LuciBuildService {
           'commit/git/$commitSha',
           'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
         ],
-        'user_agent': const <String>['luci-scheduler'],
+        if (encodedTaskKey != null) 'cocoon_task': <String>[encodedTaskKey],
+        'user_agent': const <String>['cocoon-scheduler'],
       },
       properties: <String, String>{
         'git_ref': commitSha,

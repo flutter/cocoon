@@ -3,20 +3,16 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:github/github.dart';
-import 'package:googleapis/oauth2/v2.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
+import '../request_handling/api_request_handler.dart';
+import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
-import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
@@ -32,26 +28,24 @@ import '../service/luci_build_service.dart';
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
 ///
-/// This endpoing is responsible for updating GitHub with the status of
+/// This endpoint is responsible for updating GitHub with the status of
 /// completed builds.
-///
-/// This currently uses the GitHub Status API, but could be refactored at some
-/// point to use the Checks API, which may offer some more knobs to turn
-/// on the GitHub page. In particular, it might offer a nice way to retry a
-/// failed build - which right now would require removing and re-applying the
-/// label, or pushing a new commit.
 @immutable
-class LuciStatusHandler extends RequestHandler<Body> {
+class LuciStatusHandler extends ApiRequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
   const LuciStatusHandler(
     Config config,
+    AuthenticationProvider authenticationProvider,
     this.buildBucketClient,
     this.luciBuildService,
     this.githubChecksService, {
     LoggingProvider loggingProvider,
   })  : assert(buildBucketClient != null),
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        super(config: config);
+        super(
+          config: config,
+          authenticationProvider: authenticationProvider,
+        );
 
   final BuildBucketClient buildBucketClient;
   final LoggingProvider loggingProvider;
@@ -60,15 +54,10 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    RepositorySlug slug;
-
     // Set logger in all the service classes.
     luciBuildService.setLogger(log);
     githubChecksService.setLogger(log);
 
-    if (!await _authenticateRequest(request.headers)) {
-      throw const Unauthorized();
-    }
     final String requestString = await utf8.decodeStream(request);
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString) as Map<String, dynamic>,
@@ -89,7 +78,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       // Message is coming from a github checks api enabled repo. We need to
       // create the slug from the data in the message and send the check status
       // update.
-      slug = RepositorySlug(
+      final RepositorySlug slug = RepositorySlug(
         userData['repo_owner'] as String,
         userData['repo_name'] as String,
       );
@@ -102,22 +91,5 @@ class LuciStatusHandler extends RequestHandler<Body> {
       log.error('This repo does not support checks API');
     }
     return Body.empty;
-  }
-
-  Future<bool> _authenticateRequest(HttpHeaders headers) async {
-    final http.Client client = httpClient;
-    final Oauth2Api oauth2api = Oauth2Api(client);
-    final String idToken = headers.value(HttpHeaders.authorizationHeader);
-    if (idToken == null || !idToken.startsWith('Bearer ')) {
-      return false;
-    }
-    final Tokeninfo info = await oauth2api.tokeninfo(
-      idToken: idToken.substring('Bearer '.length),
-    );
-    if (info.expiresIn == null || info.expiresIn < 1) {
-      return false;
-    }
-    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
-    return info.email == devicelabServiceAccount.email;
   }
 }

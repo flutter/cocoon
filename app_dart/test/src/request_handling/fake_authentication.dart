@@ -33,7 +33,12 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   }
 
   @override
-  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateIdToken(
+    String idToken, {
+    ClientContext clientContext,
+    Logging log,
+    String expectedAccount,
+  }) async {
     if (authenticated) {
       return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext);
     } else {
