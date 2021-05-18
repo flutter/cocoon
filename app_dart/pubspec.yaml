@@ -11,33 +11,40 @@ environment:
   sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
+  analyzer: ^1.0.0
   appengine: ^0.11.0
   cocoon_scheduler:
     path: ../scheduler
   collection: ^1.14.11
-  corsac_jwt: ^0.2.2
-  crypto: ^2.0.6
+  corsac_jwt:
+    git: 
+      url: https://github.com/Jjagg/jwt
+      ref: 4d3578e7beb3fb797dd5f8f235adbe41d62e3dca
+  crypto: ^3.0.0
   dbcrypt: ^1.0.0
   file: ^5.1.0
   fixnum: ^0.10.9
-  gcloud: ^0.7.3
+  gcloud:
+    git: https://github.com/dart-lang/gcloud
   github: ^7.0.1
-  googleapis: ^0.56.0
-  googleapis_auth: ^0.2.10
+  googleapis: ^2.0.0
+  googleapis_auth: ^1.0.0
   graphql: <2.0.0
-  http: ^0.12.0
+  http: ^0.13.3
   json_annotation: ^3.0.0
   meta: ^1.1.7
-  metrics_center: 0.0.9
+  metrics_center:
+    path: ../../packages/packages/metrics_center
   mime: ^0.9.0
-  neat_cache: ^1.0.1
+  neat_cache:
+    path: ../../dart-neats/neat-cache
   protobuf: ^1.0.0
   truncate: ^2.1.2
 
 dev_dependencies:
   build_runner: ^1.0.0
   fake_async: ^1.1.0
-  json_serializable: ^3.3.0
+  json_serializable: ^4.0.0
   mockito: ^4.1.0
   test: ^1.16.0
 

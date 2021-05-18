@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   protobuf: ^1.0.0
-  yaml: ^2.1.16
+  yaml: ^3.0.0
 
 dev_dependencies:
   pedantic: ^1.10.0
