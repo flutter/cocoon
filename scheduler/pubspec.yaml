@@ -1,7 +1,7 @@
 name: cocoon_scheduler
 description: Flutter infrastructure scheduler
+repository: https://github.com/flutter/cocoon/tree/master/scheduler
 version: 1.0.0
-publish_to: none
 
 environment:
   sdk: '>=2.10.0 <3.0.0'
