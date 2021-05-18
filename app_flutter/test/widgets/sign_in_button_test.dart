@@ -7,7 +7,6 @@ import 'package:app_flutter/widgets/sign_in_button.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
