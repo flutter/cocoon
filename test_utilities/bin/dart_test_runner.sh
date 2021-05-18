@@ -12,6 +12,7 @@ set -ex
 echo "Running tests from $1"
 pushd "$1" > /dev/null
 flutter clean
+flutter channel stable
 dart pub get
 
 echo "############# files that require formatting ###########"
