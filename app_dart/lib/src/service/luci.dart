@@ -76,9 +76,9 @@ class LuciService {
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
-      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+      final LuciBuilder builder = builders.where((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
-      });
+      }).first;
       final String branch = ref == 'unknown' ? 'unknown' : ref.split('/')[2];
       final BranchLuciBuilder branchLuciBuilder = BranchLuciBuilder(
         luciBuilder: builder,
@@ -149,9 +149,9 @@ class LuciService {
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
-      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+      final LuciBuilder builder = builders.where((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
-      });
+      }).first;
       results[builder] ??= <LuciTask>[];
       results[builder].add(LuciTask(
         commitSha: commit,

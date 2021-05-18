@@ -388,7 +388,7 @@ targets:
         final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(commit);
         final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(commit, schedulerConfig);
         expect(postsubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
-            <String>['Linux A', 'Linux', 'Mac', 'Windows', 'Linux Coverage']);
+            <String>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
       });
     });
   });
