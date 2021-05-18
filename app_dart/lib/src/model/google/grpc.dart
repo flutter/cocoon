@@ -35,5 +35,8 @@ class GrpcStatus extends JsonBody {
   final dynamic details;
 
   @override
+  String toString() => 'Response #$code: $message, $details';
+
+  @override
   Map<String, dynamic> toJson() => _$GrpcStatusToJson(this);
 }

@@ -132,6 +132,21 @@ class Response extends JsonBody {
   final GrpcStatus error;
 
   @override
+  String toString() {
+    if (getBuild != null) {
+      return 'getBuild: $getBuild; status: $error';
+    } else if (searchBuilds != null) {
+      return 'searchBuilds: $searchBuilds; status: $error';
+    } else if (scheduleBuild != null) {
+      return 'scheduleBuild: $scheduleBuild; status: $error';
+    } else if (cancelBuild != null) {
+      return 'cancelBuild: $cancelBuild; status: $error';
+    }
+
+    return 'No response';
+  }
+
+  @override
   Map<String, dynamic> toJson() => _$ResponseToJson(this);
 }
 
@@ -319,6 +334,9 @@ class SearchBuildsResponse extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$SearchBuildsResponseToJson(this);
+
+  @override
+  String toString() => builds.toString();
 }
 
 /// A request object for the ScheduleBuild RPC.
@@ -502,6 +520,14 @@ class Build extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BuildToJson(this);
+
+  @override
+  String toString() => '''
+    id: $id
+    builderId: $builderId
+    number: $number
+    status: $status
+  ''';
 }
 
 /// A unique handle to a builder on BuildBucket.
@@ -534,6 +560,9 @@ class BuilderId extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BuilderIdToJson(this);
+
+  @override
+  String toString() => '$project/$bucket/$builder';
 }
 
 /// Specifies a Cloud PubSub topic to send notification updates to from a
