@@ -18,12 +18,14 @@ Future<void> main() async {
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
+    final ServiceAccountInfo serviceAccountInfo = await config.deviceLabServiceAccount;
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
+    final AuthenticationProvider pubsubAuthProvider =
+        ServiceAccountAuthenticationProvider(config, serviceAccountInfo.email);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
-    final ServiceAccountInfo serviceAccountInfo = await config.deviceLabServiceAccount;
 
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
@@ -64,6 +66,7 @@ Future<void> main() async {
       '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
       '/api/luci-status-handler': LuciStatusHandler(
         config,
+        pubsubAuthProvider,
         buildBucketClient,
         luciBuildService,
         githubChecksService,

@@ -8,13 +8,13 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_test;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
@@ -47,6 +47,7 @@ void main() {
     mockGithubChecksService = MockGithubChecksService();
     handler = LuciStatusHandler(
       config,
+      FakeAuthenticationProvider(),
       buildbucket,
       FakeLuciBuildService(config),
       mockGithubChecksService,
@@ -86,14 +87,6 @@ void main() {
     config.githubClient = mockGitHubClient;
     config.deviceLabServiceAccountValue = const ServiceAccountInfo(
       email: deviceLabEmail,
-    );
-  });
-
-  test('Rejects unauthorized requests', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
-    await expectLater(
-      () => tester.post(handler),
-      throwsA(const TypeMatcher<Unauthorized>()),
     );
   });
 
