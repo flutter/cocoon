@@ -40,7 +40,7 @@ class QualifiedTask {
   String get sourceConfigurationUrl {
     assert(isLuci || isCirrus);
     if (isCirrus) {
-        return '$_cirrusUrl/master';
+      return '$_cirrusUrl/master';
     } else if (isLuci) {
       return '$_luciUrl/builders/luci.flutter.prod/$builder';
     }
