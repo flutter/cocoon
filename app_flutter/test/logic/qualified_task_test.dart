@@ -28,23 +28,6 @@ void main() {
     expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
   });
 
-  test('logUrl() for devicelab tasks redirects to cocoon backend', () {
-    final Task devicelabTask = Task()
-      ..stageName = 'devicelab'
-      ..name = 'test';
-
-    expect(logUrl(devicelabTask), 'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
-  });
-
-  test('QualifiedTask.sourceConfigurationUrl for devicelab', () {
-    final Task devicelabTask = Task()
-      ..stageName = 'devicelab'
-      ..name = 'test';
-
-    expect(QualifiedTask.fromTask(devicelabTask).sourceConfigurationUrl,
-        'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/test.dart');
-  });
-
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
     final Task luciTask = Task()
       ..stageName = 'chromebot'
@@ -62,9 +45,10 @@ void main() {
         'https://cirrus-ci.com/github/flutter/flutter/master');
   });
 
-  test('QualifiedTask.isDevicelab', () {
-    expect(const QualifiedTask(stage: 'devicelab', task: 'abc').isDevicelab, true);
-    expect(const QualifiedTask(stage: 'devicelab_win', task: 'abc').isDevicelab, true);
-    expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isDevicelab, false);
+  test('QualifiedTask.isLuci', () {
+    expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
+    expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
+    expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
+    expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isLuci, false);
   });
 }

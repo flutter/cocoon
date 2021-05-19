@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 import 'package:app_flutter/widgets/now.dart';
@@ -38,7 +39,7 @@ class TestGrid extends StatelessWidget {
               ..author = 'Fats Domino'
               ..sha = '24e8c0a2')
             ..stages.add(Stage()
-              ..name = 'Stage'
+              ..name = StageName.luci
               ..tasks.addAll(<Task>[task])),
         ],
       ),
@@ -59,7 +60,7 @@ void main() {
 
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = 'devicelab'
+      ..stageName = 'luci'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
@@ -116,7 +117,7 @@ void main() {
     await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..isFlaky = true // This is the point of this test.
       ..status = TaskBox.statusFailed
@@ -166,7 +167,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
       ..createTimestamp = _int64FromDateTime(createTime)
@@ -206,7 +207,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusInProgress
       ..isFlaky = false
@@ -245,7 +246,7 @@ void main() {
 
     final Task timeTask = Task()
       ..attempts = 1
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusNew
       ..isFlaky = false
@@ -278,7 +279,6 @@ void main() {
 
   testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
-    const String expectedTaskInfoString = 'Task was run outside of devicelab';
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -295,13 +295,11 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text(expectedTaskInfoString), findsNothing);
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
 
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
-    expect(find.text(expectedTaskInfoString), findsOneWidget);
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
   });
 
@@ -333,7 +331,7 @@ void main() {
   testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
@@ -378,7 +376,7 @@ void main() {
   testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = 'devicelab'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false
@@ -446,7 +444,7 @@ void main() {
     await tester.pump();
 
     // View log
-    await tester.tap(find.text('DOWNLOAD ALL LOGS'));
+    await tester.tap(find.text('VIEW LOGS'));
     await tester.pump();
 
     expect(
