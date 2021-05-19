@@ -122,9 +122,7 @@ class AppEngineCocoonService implements CocoonService {
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     String postResetTaskUrl;
-    if (qualifiedTask.isDevicelab) {
-      postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
-    } else if (qualifiedTask.isLuci) {
+    if (qualifiedTask.isLuci) {
       postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     } else {
       assert(false);
@@ -265,7 +263,7 @@ class AppEngineCocoonService implements CocoonService {
       ..stageName = taskData['StageName']
       ..status = taskData['Status'];
 
-    if (taskData['StageName'] == StageName.luci) {
+    if (taskData['StageName'] != StageName.cirrus) {
       task
         ..buildNumberList = taskData['BuildNumberList'] ?? ''
         ..builderName = taskData['BuilderName'] ?? ''

@@ -25,9 +25,6 @@ void main() {
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.devicelab)), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.devicelabIOs)), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.devicelabWin)), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.cirrus)), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
 
@@ -141,33 +138,6 @@ void main() {
     expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
     expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
   }
-
-  test('matches devicelab android stage', () {
-    testStage(
-      stageName: StageName.devicelab,
-      fieldName: 'showAndroid',
-      trueFilter: TaskGridFilter()..showAndroid = true,
-      falseFilter: TaskGridFilter()..showAndroid = false,
-    );
-  });
-
-  test('matches devicelab iOS stage', () {
-    testStage(
-      stageName: StageName.devicelabIOs,
-      fieldName: 'showIos',
-      trueFilter: TaskGridFilter()..showIos = true,
-      falseFilter: TaskGridFilter()..showIos = false,
-    );
-  });
-
-  test('matches devicelab Windows stage', () {
-    testStage(
-      stageName: StageName.devicelabWin,
-      fieldName: 'showWindows',
-      trueFilter: TaskGridFilter()..showWindows = true,
-      falseFilter: TaskGridFilter()..showWindows = false,
-    );
-  });
 
   test('matches Cirrus stage', () {
     testStage(

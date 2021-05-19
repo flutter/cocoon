@@ -133,9 +133,6 @@ class TaskGridFilter extends FilterPropertySource {
 
   static Map<String, String> _stagePropertiesMap;
   Map<String, String> get _stageProperties => _stagePropertiesMap ??= <String, String>{
-        StageName.devicelab: _androidProperty.fieldName,
-        StageName.devicelabIOs: _iosProperty.fieldName,
-        StageName.devicelabWin: _windowsProperty.fieldName,
         StageName.cirrus: _cirrusProperty.fieldName,
         StageName.luci: _luciProperty.fieldName,
       };

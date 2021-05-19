@@ -10,15 +10,12 @@ import 'package:flutter/foundation.dart';
 // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
 class StageName {
   static const String cirrus = 'cirrus';
-  static const String luci = 'chromebot';
-  static const String devicelab = 'devicelab';
-  static const String devicelabWin = 'devicelab_win';
-  static const String devicelabIOs = 'devicelab_ios';
+  static const String cocoon = 'cocoon';
+  static const String legacyLuci = 'chromebot';
+  static const String luci = 'luci';
 }
 
 /// Base URLs for various endpoints that can relate to a [Task].
-const String _flutterGithubSourceUrl = 'https://github.com/flutter/flutter/blob/master';
-const String _flutterDashboardUrl = 'https://flutter-dashboard.appspot.com';
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String _cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
@@ -38,37 +35,23 @@ class QualifiedTask {
 
   /// Get the URL for the configuration of this task.
   ///
-  /// Devicelab tasks are stored in the flutter/flutter Github repository.
   /// Luci tasks are stored on Luci.
   /// Cirrus tasks are stored on Cirrus.
-  ///
-  /// Throws [Exception] if [stage] does not match any of the above sources.
   String get sourceConfigurationUrl {
-    if (isLuci || isCirrus) {
-      return _externalSourceConfigurationUrl;
-    }
-    return '$_flutterGithubSourceUrl/dev/devicelab/bin/tasks/$task.dart';
-  }
-
-  String get _externalSourceConfigurationUrl {
     assert(isLuci || isCirrus);
-    switch (stage) {
-      case StageName.cirrus:
+    if (isCirrus) {
         return '$_cirrusUrl/master';
-      case StageName.luci:
-        return '$_luciUrl/builders/luci.flutter.prod/$builder';
+    } else if (isLuci) {
+      return '$_luciUrl/builders/luci.flutter.prod/$builder';
     }
     throw Exception('Failed to get source configuration url for $stage.');
   }
-
-  /// Whether this task is run in the devicelab or not.
-  bool get isDevicelab => stage.contains(StageName.devicelab);
 
   /// Whether this task was run on Cirrus CI.
   bool get isCirrus => stage == StageName.cirrus;
 
   /// Whether the task was run on the LUCI infrastructre.
-  bool get isLuci => stage == StageName.luci;
+  bool get isLuci => stage == StageName.cocoon || stage == StageName.legacyLuci || stage == StageName.luci;
 
   @override
   bool operator ==(Object other) {
@@ -84,9 +67,8 @@ class QualifiedTask {
 
 /// Get the URL for [Task] to view its log.
 ///
-/// Devicelab tasks can be retrieved via an authenticated API endpoint.
 /// Cirrus logs are located via their [Commit.sha].
-/// Otherwise, we can redirect to the page that is closest to the logs for [Task].
+/// Otherwise, we can redirect to the LUCI build page for [Task].
 String logUrl(Task task, {Commit commit}) {
   if (task.stageName == StageName.cirrus) {
     if (commit != null) {
@@ -94,8 +76,6 @@ String logUrl(Task task, {Commit commit}) {
     } else {
       return '$_cirrusUrl/master';
     }
-  } else if (QualifiedTask.fromTask(task).isLuci) {
-    return QualifiedTask.fromTask(task).sourceConfigurationUrl;
   }
-  return '$_flutterDashboardUrl/api/get-log?ownerKey=${task.key.child.name}';
+  return QualifiedTask.fromTask(task).sourceConfigurationUrl;
 }
