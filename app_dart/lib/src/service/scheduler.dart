@@ -172,8 +172,7 @@ class Scheduler {
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders =
-        await LuciBuilder.getProdBuilders(commit.slug, config, commitSha: commit.sha);
+    final List<LuciBuilder> prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
     for (LuciBuilder builder in prodBuilders) {
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
     }
@@ -216,6 +215,19 @@ class Scheduler {
     // Filter targets to only those run in postsubmit.
     final List<Target> postsubmitTargets = config.targets.where((Target target) => target.postsubmit).toList();
     return _filterEnabledTargets(commit, config, postsubmitTargets);
+  }
+
+  /// Get all [LuciBuilder] run on postsubmit for [Commit].
+  ///
+  /// Get an aggregate of LUCI presubmit builders from .ci.yaml and prod_builders.json.
+  Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
+    // 1. Get prod_builders.json builders
+    final List<LuciBuilder> postsubmitBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
+    // 2. Get ci.yaml builders (filter to only those that are relevant)
+    final List<Target> postsubmitTargets = schedulerConfig.targets.where((Target target) => target.postsubmit).toList();
+    final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitTargets);
+    postsubmitBuilders.addAll(filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
+    return postsubmitBuilders;
   }
 
   /// Get all targets run on presubmit for [Commit].

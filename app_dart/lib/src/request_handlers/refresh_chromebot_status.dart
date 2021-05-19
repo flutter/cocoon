@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -18,6 +20,7 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
 import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
 
 @immutable
 class RefreshChromebotStatus extends ApiRequestHandler<Body> {
@@ -25,6 +28,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
+    @required this.scheduler,
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
@@ -40,6 +44,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider branchHttpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
+  final Scheduler scheduler;
 
   static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
@@ -53,8 +58,11 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
+    final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
+    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
+    final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(latestCommit, schedulerConfig);
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = await luciService.getBranchRecentTasks(
-      slug: config.flutterSlug,
+      builders: postsubmitBuilders,
       requireTaskName: true,
     );
 

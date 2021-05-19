@@ -46,3 +46,15 @@ class FakeScheduler extends Scheduler {
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async =>
       schedulerConfig ?? _defaultConfig;
 }
+
+SchedulerConfig oneTargetConfig = SchedulerConfig(enabledBranches: <String>[
+  'master'
+], targets: <Target>[
+  Target(
+    bringup: false,
+    name: 'Linux A',
+    builder: 'Linux A',
+    presubmit: true,
+    postsubmit: true,
+  ),
+]);

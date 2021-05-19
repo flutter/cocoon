@@ -65,7 +65,7 @@ class Commit extends Model<String> {
   String branch;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug(repository.split('/').first, repository.split('/').last);
+  RepositorySlug get slug => RepositorySlug.full(repository);
 
   @override
   String toString() {
