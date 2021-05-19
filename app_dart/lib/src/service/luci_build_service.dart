@@ -451,6 +451,8 @@ class LuciBuildService {
   /// Reschedules a prod build using [commitSha], [builderName], [branch] and
   /// [repo]. Default value for [branch] is "master" and default value for
   /// [repo] is "flutter".
+  /// 
+  /// [encodedTaskKey] is passed to allow for quicker lookups in Cocoon's datastore.
   Future<void> rescheduleProdBuild({
     @required String commitSha,
     @required String builderName,
