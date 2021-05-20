@@ -451,14 +451,11 @@ class LuciBuildService {
   /// Reschedules a prod build using [commitSha], [builderName], [branch] and
   /// [repo]. Default value for [branch] is "master" and default value for
   /// [repo] is "flutter".
-  ///
-  /// [encodedTaskKey] is passed to allow for quicker lookups in Cocoon's datastore.
   Future<void> rescheduleProdBuild({
     @required String commitSha,
     @required String builderName,
     String branch = 'master',
     String repo = 'flutter',
-    String encodedTaskKey,
   }) async {
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
@@ -477,8 +474,7 @@ class LuciBuildService {
           'commit/git/$commitSha',
           'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
         ],
-        if (encodedTaskKey != null) 'cocoon_task': <String>[encodedTaskKey],
-        'user_agent': const <String>['cocoon-scheduler'],
+        'user_agent': const <String>['luci-scheduler'],
       },
       properties: <String, String>{
         'git_ref': commitSha,
