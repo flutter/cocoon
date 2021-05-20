@@ -345,6 +345,7 @@ class Scheduler {
         commitSha: commitSha,
       );
     } catch (e) {
+      log.info(e.toString());
       exception = e;
     }
 
