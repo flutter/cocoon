@@ -305,6 +305,9 @@ class Scheduler {
   /// Schedule presubmit targets against a pull request.
   ///
   /// Cancels all existing targets then schedules the targets.
+  ///
+  /// Schedules a `ci.yaml validation` check to validate [SchedulerConfig] is valid
+  /// and all builds were able to be triggered.
   Future<void> triggerPresubmitTargets(
       {String branch,
       int prNumber,
@@ -322,17 +325,54 @@ class Scheduler {
       commitSha: commitSha,
       reason: reason,
     );
+    final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
+      config,
+      slug,
+      'ci.yaml validation',
+      commitSha,
+    );
+    dynamic exception;
     final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
-    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
-      commit: presubmitCommit,
-      prNumber: prNumber,
-    );
-    await luciBuildService.scheduleTryBuilds(
-      builders: presubmitBuilders,
-      slug: slug,
-      prNumber: prNumber,
-      commitSha: commitSha,
-    );
+    try {
+      final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
+        commit: presubmitCommit,
+        prNumber: prNumber,
+      );
+      await luciBuildService.scheduleTryBuilds(
+        builders: presubmitBuilders,
+        slug: slug,
+        prNumber: prNumber,
+        commitSha: commitSha,
+      );
+    } catch (e) {
+      exception = e;
+    }
+
+    // Update validate ci.yaml check
+    if (exception == null) {
+      // Success in validating ci.yaml
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        ciValidationCheckRun,
+        status: github.CheckRunStatus.completed,
+        conclusion: github.CheckRunConclusion.success,
+      );
+    } else {
+      // Failure when validating ci.yaml
+      await githubChecksService.githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        ciValidationCheckRun,
+        status: github.CheckRunStatus.completed,
+        conclusion: github.CheckRunConclusion.failure,
+        output: github.CheckRunOutput(
+          title: 'ci.yaml validation',
+          summary: '.ci.yaml has failures',
+          text: exception.toString(),
+        ),
+      );
+    }
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
