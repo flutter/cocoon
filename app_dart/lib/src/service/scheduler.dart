@@ -333,23 +333,21 @@ class Scheduler {
     );
     dynamic exception;
     final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
-    List<LuciBuilder> presubmitBuilders = <LuciBuilder>[];
     try {
-      presubmitBuilders = await getPresubmitBuilders(
+      final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
         commit: presubmitCommit,
         prNumber: prNumber,
+      );
+      await luciBuildService.scheduleTryBuilds(
+        builders: presubmitBuilders,
+        slug: slug,
+        prNumber: prNumber,
+        commitSha: commitSha,
       );
     } on FormatException catch (e) {
       log.info(e.toString());
       exception = e;
     }
-
-    await luciBuildService.scheduleTryBuilds(
-      builders: presubmitBuilders,
-      slug: slug,
-      prNumber: prNumber,
-      commitSha: commitSha,
-    );
 
     // Update validate ci.yaml check
     if (exception == null) {
