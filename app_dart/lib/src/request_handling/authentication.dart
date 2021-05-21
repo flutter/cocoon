@@ -161,11 +161,6 @@ class AuthenticationProvider {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
 
-      // Check token is recent
-      if (token.expiration == null || token.expiration.isBefore(DateTime.now())) {
-        throw const Unauthenticated('Token expired');
-      }
-
       // Authenticate service accounts
       if (expectedAccount != null) {
         if (token.email == expectedAccount) {
