@@ -24,7 +24,8 @@ import 'exceptions.dart';
 /// will be authenticated as a LUCI bot. This token is validated against
 /// Google Auth APIs.
 ///
-/// Otherwise the request is unauthenticated, and any call to
+/// If none of the above authentication methods yield an authenticated
+/// request, then the request is unauthenticated, and any call to
 /// [authenticate] will throw an [Unauthenticated] exception.
 @immutable
 class SwarmingAuthenticationProvider extends AuthenticationProvider {

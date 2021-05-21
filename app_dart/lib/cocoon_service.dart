@@ -28,7 +28,6 @@ export 'src/request_handling/body.dart';
 export 'src/request_handling/cache_request_handler.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
-export 'src/request_handling/service_account_authentication.dart';
 export 'src/request_handling/static_file_handler.dart';
 export 'src/request_handling/swarming_authentication.dart';
 export 'src/service/access_token_provider.dart';
