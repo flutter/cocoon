@@ -326,7 +326,77 @@ targets:
           commitSha: 'abc',
         );
         expect(verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc')).captured,
-            <dynamic>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
+            <dynamic>['ci.yaml validation', 'Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
+      });
+
+      test('ci.yaml validation passes with default config', () async {
+        await scheduler.triggerPresubmitTargets(
+          branch: config.defaultBranch,
+          prNumber: 42,
+          slug: config.flutterSlug,
+          commitSha: 'abc',
+        );
+        expect(
+            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
+                    status: captureAnyNamed('status'),
+                    conclusion: captureAnyNamed('conclusion'),
+                    output: anyNamed('output')))
+                .captured,
+            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success]);
+      });
+
+      test('ci.yaml validation fails with empty config', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.path.contains('.ci.yaml')) {
+            httpClient.request.response.body = '';
+          } else {
+            throw Exception('Failed to find ${request.uri.path}');
+          }
+        });
+        await scheduler.triggerPresubmitTargets(
+          branch: config.defaultBranch,
+          prNumber: 42,
+          slug: config.flutterSlug,
+          commitSha: 'abc',
+        );
+        expect(
+            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
+                    status: captureAnyNamed('status'),
+                    conclusion: captureAnyNamed('conclusion'),
+                    output: anyNamed('output')))
+                .captured,
+            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure]);
+      });
+
+      test('ci.yaml validation fails with config with unknown dependencies', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.path.contains('.ci.yaml')) {
+            httpClient.request.response.body = '''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    builder: Linux A
+    dependencies:
+      - B
+          ''';
+          } else {
+            throw Exception('Failed to find ${request.uri.path}');
+          }
+        });
+        await scheduler.triggerPresubmitTargets(
+          branch: config.defaultBranch,
+          prNumber: 42,
+          slug: config.flutterSlug,
+          commitSha: 'abc',
+        );
+        expect(
+            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
+                    status: anyNamed('status'), conclusion: anyNamed('conclusion'), output: captureAnyNamed('output')))
+                .captured
+                .first
+                .text,
+            'FormatException: ERROR: A depends on B which does not exist');
       });
 
       test('retries only triggers failed builds only', () async {

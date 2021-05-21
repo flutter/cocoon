@@ -904,35 +904,6 @@ void main() {
         request.headers.set('X-GitHub-Event', 'pull_request');
       });
 
-      test('Exception is raised when no builders available', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'Random Label',
-          ]);
-        });
-
-        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
-          const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
-              ),
-            ],
-          ),
-        );
-
-        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName,
-            repoFullName: 'flutter/packages', repoName: 'packages');
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        expect(tester.post(webhook), throwsA(isA<InternalServerError>()));
-      });
-
       Future<void> _testActions(String action, {bool never = false}) async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
