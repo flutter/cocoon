@@ -60,6 +60,67 @@ void main() {
         );
       });
 
+      test('auth succeeds with authenticated cookie but unauthenticated header', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.queryParameters['id_token'] == 'bad-header') {
+            return verifyTokenResponse
+              ..statusCode = HttpStatus.unauthorized
+              ..body = 'Invalid token: bad-header';
+          }
+          return verifyTokenResponse
+            ..statusCode = HttpStatus.ok
+            ..body = '{"aud": "client-id", "hd": "google.com"}';
+        });
+        verifyTokenResponse = httpClient.request.response;
+        auth = AuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        config.oauthClientIdValue = 'client-id';
+
+        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'authenticated'));
+        request.headers.add('X-Flutter-IdToken', 'bad-header');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.clientContext, same(clientContext));
+
+        // check log to ensure auth was not run on header token
+        expect(log.records, hasLength(0));
+      });
+
+      test('auth succeeds with authenticated header but unauthenticated cookie', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.queryParameters['id_token'] == 'bad-cookie') {
+            return verifyTokenResponse
+              ..statusCode = HttpStatus.unauthorized
+              ..body = 'Invalid token: bad-cookie';
+          }
+          return verifyTokenResponse
+            ..statusCode = HttpStatus.ok
+            ..body = '{"aud": "client-id", "hd": "google.com"}';
+        });
+        verifyTokenResponse = httpClient.request.response;
+        auth = AuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        config.oauthClientIdValue = 'client-id';
+
+        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'bad-cookie'));
+        request.headers.add('X-Flutter-IdToken', 'authenticated');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.clientContext, same(clientContext));
+
+        // check log for debug statement
+        expect(log.records, hasLength(2));
+        expect(log.records.first.message, contains('Token verification failed: 401; Invalid token: bad-cookie'));
+      });
+
       test('fails if token verification fails', () async {
         verifyTokenResponse.statusCode = HttpStatus.badRequest;
         verifyTokenResponse.body = 'Invalid token: abc123';
@@ -125,32 +186,6 @@ void main() {
         final AuthenticatedContext result =
             await auth.authenticateIdToken('abc123', clientContext: clientContext, log: log);
         expect(result.clientContext, same(clientContext));
-      });
-
-      test('succeeds for expected service account', () async {
-        verifyTokenResponse.body = '{"aud": "client-id", "email": "test@developer.gserviceaccount.com"}';
-        config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateIdToken(
-          'abc123',
-          clientContext: clientContext,
-          log: log,
-          expectedAccount: 'test@developer.gserviceaccount.com',
-        );
-        expect(result.clientContext, same(clientContext));
-      });
-
-      test('fails if service account does not match expected account', () async {
-        verifyTokenResponse.body = '{"aud": "client-id", "email": "wrong-account@developer.gserviceaccount.com"}';
-        config.oauthClientIdValue = 'client-id';
-        await expectLater(
-            auth.authenticateIdToken(
-              'abc123',
-              clientContext: clientContext,
-              log: log,
-              expectedAccount: 'test@developer.gserviceaccount.com',
-            ),
-            throwsA(isA<Unauthenticated>()));
-        expect(httpClient.requestCount, 1);
       });
     });
   });
