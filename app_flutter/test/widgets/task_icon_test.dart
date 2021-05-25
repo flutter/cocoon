@@ -41,13 +41,13 @@ void main() {
     final List<MethodCall> log = <MethodCall>[];
     urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
-    const QualifiedTask devicelabTask = QualifiedTask(stage: 'devicelab', task: 'test');
+    const QualifiedTask luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
 
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: devicelabTask,
+            qualifiedTask: luciTask,
           ),
         ),
       ),
@@ -61,7 +61,7 @@ void main() {
       log,
       <Matcher>[
         isMethodCall('launch', arguments: <String, Object>{
-          'url': devicelabTask.sourceConfigurationUrl,
+          'url': luciTask.sourceConfigurationUrl,
           'useSafariVC': true,
           'useWebView': false,
           'enableJavaScript': false,

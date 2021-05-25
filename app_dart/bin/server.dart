@@ -81,8 +81,18 @@ Future<void> main() async {
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
-      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
-      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
+      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(
+        config,
+        authProvider,
+        luciBuildService,
+        scheduler: scheduler,
+      ),
+      '/api/refresh-chromebot-status': RefreshChromebotStatus(
+        config,
+        authProvider,
+        luciBuildService,
+        scheduler: scheduler,
+      ),
       '/api/reset-prod-task': ResetProdTask(
         config,
         authProvider,
@@ -228,6 +238,9 @@ Future<void> main() async {
         ttl: const Duration(minutes: 1),
         delegate: GithubRateLimitStatus(config),
       ),
+
+      /// Handler for AppEngine to identify when dart server is ready to serve requests.
+      '/readiness_check': ReadinessCheck(),
     };
 
     return await runAppEngine((HttpRequest request) async {

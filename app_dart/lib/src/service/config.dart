@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
@@ -316,7 +317,7 @@ class Config {
     final Link link = _authLink.concat(httpLink);
 
     return GraphQLClient(
-      cache: InMemoryCache(),
+      cache: InMemoryCache(storageProvider: () => Directory.systemTemp.createTempSync('graphql')),
       link: link,
     );
   }
@@ -327,7 +328,7 @@ class Config {
     );
 
     return GraphQLClient(
-      cache: InMemoryCache(),
+      cache: InMemoryCache(storageProvider: () => Directory.systemTemp.createTempSync('graphql')),
       link: httpLink,
     );
   }

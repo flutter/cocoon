@@ -16,7 +16,11 @@ import './common.dart';
 /// These will be prepended by 'https://raw.githubusercontent.com/'. Should be
 /// of the form '<GITHUB_ORG>/<REPO_NAME>/<BRANCH>/<PATH_TO_FILE>'.
 const List<String> configFiles = <String>[
+  'flutter/cocoon/master/.ci.yaml',
+  'flutter/engine/master/.ci.yaml',
   'flutter/flutter/master/.ci.yaml',
+  'flutter/packages/master/.ci.yaml',
+  'flutter/plugins/master/.ci.yaml',
 ];
 
 Future<void> main() async {

@@ -5,17 +5,17 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
+import '../foundation/github_checks_util.dart';
 import '../model/appengine/service_account_info.dart';
+import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import '../request_handling/exceptions.dart';
 import 'buildbucket.dart';
 import 'luci.dart';
 
