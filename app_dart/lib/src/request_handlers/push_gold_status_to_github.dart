@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -18,6 +17,7 @@ import '../model/appengine/github_gold_status_update.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 

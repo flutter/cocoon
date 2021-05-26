@@ -1,0 +1,30 @@
+enabled_branches:
+  - master
+
+targets:
+  - name: Cocoon
+    builder: Cocoon
+    postsubmit: false
+    scheduler: luci
+
+  - name: Linux device_doctor
+    builder: Linux device_doctor
+    postsubmit: false
+    scheduler: luci
+    runIf:
+      - device_doctor/**
+
+  - name: Mac device_doctor
+    builder: Mac device_doctor
+    postsubmit: false
+    scheduler: luci
+    runIf:
+      - device_doctor/**
+
+  - name: Windows device_doctor
+    builder: Windows device_doctor
+    postsubmit: false
+    scheduler: luci
+    runIf:
+      - device_doctor/**
+

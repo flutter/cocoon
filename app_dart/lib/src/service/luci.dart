@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -13,7 +14,6 @@ import 'package:retry/retry.dart';
 
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
-import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import 'buildbucket.dart';
 import 'config.dart';
@@ -65,11 +65,10 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>> getBranchRecentTasks({
-    RepositorySlug slug,
+    @required List<LuciBuilder> builders,
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(slug, config);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
@@ -77,9 +76,9 @@ class LuciService {
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
-      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+      final LuciBuilder builder = builders.where((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
-      });
+      }).first;
       final String branch = ref == 'unknown' ? 'unknown' : ref.split('/')[2];
       final BranchLuciBuilder branchLuciBuilder = BranchLuciBuilder(
         luciBuilder: builder,
@@ -140,20 +139,19 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
-    RepositorySlug slug,
+    @required List<LuciBuilder> builders,
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(slug, config);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
-      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+      final LuciBuilder builder = builders.where((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
-      });
+      }).first;
       results[builder] ??= <LuciTask>[];
       results[builder].add(LuciTask(
         commitSha: commit,
@@ -283,12 +281,6 @@ class LuciBuilder {
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
-
-  /// Loads and returns the list of known builders from the Cocoon [config] for [commitSha].
-  static Future<List<LuciBuilder>> getProdBuilders(RepositorySlug slug, Config config,
-      {String commitSha = 'master'}) async {
-    return await config.luciBuilders('prod', slug, commitSha: commitSha);
-  }
 }
 
 @immutable

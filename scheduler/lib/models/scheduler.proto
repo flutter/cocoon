@@ -19,7 +19,7 @@ message Target {
     // Names of other targets required to succeed before triggering this target.
     repeated string dependencies = 2;
     // Whether this target is stable and can be used to gate commits.
-    // Defaults to false which blocks builds.
+    // Defaults to false which blocks builds and does not run in presubmit.
     optional bool bringup = 3 [default = false];
     // Number of minutes this target is allowed to run before being marked as failed.
     optional int32 timeout = 4 [default = 30];
@@ -33,9 +33,9 @@ message Target {
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
-    // Whether target should run pre-submit.
+    // Whether target should run pre-submit. Defaults to true, will run in presubmit.
     optional bool presubmit = 9 [default = true];
-    // Whether target should run post-submit.
+    // Whether target should run post-submit. Defaults to true, will run in postsubmit.
     optional bool postsubmit = 10 [default = true];
     // List of paths that trigger this target in presubmit when there is a diff.
     // If no paths are given, it will always run.

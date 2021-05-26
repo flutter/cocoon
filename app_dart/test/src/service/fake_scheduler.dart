@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_scheduler/models/scheduler.pb.dart';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -46,3 +46,15 @@ class FakeScheduler extends Scheduler {
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async =>
       schedulerConfig ?? _defaultConfig;
 }
+
+SchedulerConfig oneTargetConfig = SchedulerConfig(enabledBranches: <String>[
+  'master'
+], targets: <Target>[
+  Target(
+    bringup: false,
+    name: 'Linux A',
+    builder: 'Linux A',
+    presubmit: true,
+    postsubmit: true,
+  ),
+]);

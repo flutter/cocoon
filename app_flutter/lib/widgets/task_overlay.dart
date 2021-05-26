@@ -276,16 +276,10 @@ class TaskOverlayContents extends StatelessWidget {
                             task.name,
                             style: Theme.of(context).textTheme.bodyText1,
                           ),
-                          if (qualifiedTask.isDevicelab)
-                            Text(
-                              summaryText,
-                              style: Theme.of(context).textTheme.bodyText2,
-                            )
-                          else
-                            Text(
-                              'Task was run outside of devicelab',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
+                          Text(
+                            summaryText,
+                            style: Theme.of(context).textTheme.bodyText2,
+                          ),
                           if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
                       ),
@@ -299,11 +293,11 @@ class TaskOverlayContents extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ProgressButton(
-                      child: const Text('DOWNLOAD ALL LOGS'),
+                      child: const Text('VIEW LOGS'),
                       onPressed: () => launch(logUrl(task, commit: commit)),
                     ),
                   ),
-                  if (qualifiedTask.isDevicelab || qualifiedTask.isLuci)
+                  if (qualifiedTask.isLuci)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: ProgressButton(

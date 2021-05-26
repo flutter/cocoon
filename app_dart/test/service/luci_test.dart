@@ -59,7 +59,9 @@ void main() {
     });
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTaskBranchMap =
-        await service.getBranchRecentTasks(slug: config.flutterSlug);
+        await service.getBranchRecentTasks(builders: <LuciBuilder>[
+      const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
+    ]);
     // There's no branch logic so there is only one entry
     expect(luciTaskBranchMap.keys.length, 1);
     final Map<String, List<LuciTask>> luciTaskMap = luciTaskBranchMap.values.first;

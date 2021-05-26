@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -15,6 +14,7 @@ import '../foundation/typedefs.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import 'check_for_waiting_pull_requests_queries.dart';
 import 'refresh_cirrus_status.dart';
@@ -23,6 +23,11 @@ import 'refresh_cirrus_status.dart';
 /// This should be kept reasonably low to avoid flooding infra when the tree
 /// goes green.
 const int _kMergeCountPerCycle = 2;
+
+/// Injected latency per repository. Engine and Flutter use an injected latency of 1h meaning
+/// that the bot skips any commits younger than 1h. However 1h is too long for some repositories
+/// whose builds are faster. Use this constant to override the default 1h latency for a given repository.
+const Map<String, Duration> _kInjectedLatencies = <String, Duration>{'cocoon': Duration(minutes: 10)};
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
@@ -187,7 +192,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
       final DateTime utcDate =
           DateTime.parse(commit['pushedDate'] as String ?? commit['committedDate'] as String).toUtc();
-      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
+      final Duration injectedDuration = _kInjectedLatencies[name] ?? const Duration(hours: 1);
+      if (utcDate.add(injectedDuration).isAfter(DateTime.now().toUtc())) {
         continue;
       }
       final String author = pullRequest['author']['login'] as String;

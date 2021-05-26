@@ -10,7 +10,7 @@ set -ex
 
 # Build and analyze
 echo "Running config tests on $1"
-pushd app_dart > /dev/null
+pushd scheduler > /dev/null
 flutter clean
 pub get
 

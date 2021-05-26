@@ -7,6 +7,7 @@ import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -208,6 +209,47 @@ void main() {
       );
       service.setLogger(FakeLogging());
       slug = RepositorySlug('flutter', 'cocoon');
+    });
+
+    test('schedule try build set build url in check run', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              error: GrpcStatus(code: 0),
+              scheduleBuild: Build(
+                id: 998,
+                builderId: BuilderId(
+                  project: 'flutter',
+                  bucket: 'prod',
+                  builder: 'Linux',
+                ),
+                tags: <String, List<String>>{
+                  'github_checkrun': <String>['1'],
+                },
+                status: Status.started,
+              ),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async {
+        return CheckRun.fromJson(const <String, dynamic>{
+          'id': 1,
+          'started_at': '2020-05-10T02:49:31Z',
+          'check_suite': <String, dynamic>{'id': 2}
+        });
+      });
+      final bool result = await service.scheduleTryBuilds(
+        builders: builders,
+        prNumber: 1,
+        commitSha: 'abc',
+        slug: config.flutterSlug,
+      );
+      expect(result, isTrue);
+      verify(mockGithubChecksUtil.updateCheckRun(any, config.flutterSlug, any,
+              detailsUrl: 'https://ci.chromium.org/ui/b/998'))
+          .called(1);
     });
     test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {

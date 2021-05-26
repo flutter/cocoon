@@ -21,6 +21,7 @@ set -ex
 echo "Running flutter tests from $1"
 pushd "$1" > /dev/null
 
+flutter channel master
 flutter packages get
 flutter analyze
 dartfmt --line-length=120 --set-exit-if-changed --dry-run lib/ test/

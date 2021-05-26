@@ -177,11 +177,8 @@ void main() {
 
     // QualifiedTask (column) filters
     await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 30);
-    await testGrid(tester, TaskGridFilter()..showAndroid = false, 27, 61);
-    await testGrid(tester, TaskGridFilter()..showIos = false, 27, 81);
-    await testGrid(tester, TaskGridFilter()..showWindows = false, 27, 86);
     await testGrid(tester, TaskGridFilter()..showCirrus = false, 27, 109);
-    await testGrid(tester, TaskGridFilter()..showLuci = false, 27, 108);
+    await testGrid(tester, TaskGridFilter()..showLuci = false, 27, 111);
 
     // CommitStatus (row) filters
     await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 111);

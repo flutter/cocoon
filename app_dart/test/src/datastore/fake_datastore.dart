@@ -107,7 +107,10 @@ class FakeDatastoreDB implements DatastoreDB {
 
   @override
   FakeQuery<T> query<T extends Model<dynamic>>({Partition partition, Key<dynamic> ancestorKey}) {
-    final List<T> results = values.values.whereType<T>().toList();
+    List<T> results = values.values.whereType<T>().toList();
+    if (ancestorKey != null) {
+      results = results.where((T entity) => entity?.parentKey == ancestorKey).toList();
+    }
     return FakeQuery<T>._(this, results);
   }
 

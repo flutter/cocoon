@@ -46,6 +46,17 @@ Future<void> main() async {
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+      /// Check+merge waiting github pull requests.
+      ///
+      /// Check if any github pull requests are marked with label
+      /// "waiting for tree to go green" and merge up to the number
+      /// specified within the handler.
+      ///
+      /// This api is called via cron job.
+      ///
+      /// GET: /api/check-waiting-pull-requests
+      ///
+      /// Response: Status 200 OK
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
@@ -70,8 +81,18 @@ Future<void> main() async {
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
-      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
-      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
+      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(
+        config,
+        authProvider,
+        luciBuildService,
+        scheduler: scheduler,
+      ),
+      '/api/refresh-chromebot-status': RefreshChromebotStatus(
+        config,
+        authProvider,
+        luciBuildService,
+        scheduler: scheduler,
+      ),
       '/api/reset-prod-task': ResetProdTask(
         config,
         authProvider,
@@ -82,35 +103,144 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+
+      /// Updates task related details.
+      ///
+      /// This API updates task status in datastore and
+      /// pushes performance metrics to skia-perf.
+      ///
+      /// POST: /api-update-status
+      ///
+      /// Parameters:
+      ///   CommitBranch: (string in body). Branch of commit.
+      ///   CommitSha: (string in body). Sha of commit.
+      ///   BuilderName: (string in body). Name of the luci builder.
+      ///   NewStatus: (string in body) required. Status of the task.
+      ///   ResultData: (string in body) optional. Benchmark data.
+      ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
+      ///
+      /// Response: Status 200 OK
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,
         scheduler: scheduler,
       ),
+
+      /// Returns status of the framework tree.
+      ///
+      /// Returns serialized proto with enum representing the
+      /// status of the tree and list of offending tasks.
+      ///
+      /// GET: /api/public/build-status
+      ///
+      /// Parameters:
+      ///   branch: (string in query) default: 'master'. Name of the repo branch.
+      ///
+      /// Response: Status 200 OK
+      /// Returns [BuildStatusResponse]:
+      ///  {
+      ///    1: 2,
+      ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
+      ///   }
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
         delegate: GetBuildStatus(config),
         ttl: const Duration(seconds: 15),
       ),
+
+      /// Returns task results for commits.
+      ///
+      /// Returns result details about each task in each checklist for every commit.
+      ///
+      /// GET: /api/public/get-status
+      ///
+      /// Parameters:
+      ///   branch: (string in query) default: 'master'. Name of the repo branch.
+      ///   lastCommitKey: (string in query) optional. Encoded commit key for the last commit to return resutls.
+      ///
+      /// Response: Status: 200 OK
+      ///   {"Statuses":[
+      ///     {"Checklist":{
+      ///        "Key":"ah..jgM",
+      ///        "Checklist":{"FlutterRepositoryPath":"flutter/flutter",
+      ///        "CreateTimestamp":1620134239000,
+      ///        "Commit":{"Sha":"7f1d1414cc5f0b0317272ced49a9c0b44e5c3af8",
+      ///        "Message":"Revert \"Migrate to ChannelBuffers.push\"",
+      ///        "Author":{"Login":"renyou","avatar_url":"https://avatars.githubusercontent.com/u/666474?v=4"}},"Branch":"master"}},
+      ///        "Stages":[{"Name":"chromebot",
+      ///          "Tasks":[
+      ///            {"Task":{
+      ///            "ChecklistKey":"ahF..jgM",
+      ///            "CreateTimestamp":1620134239000,
+      ///            "StartTimestamp":0,
+      ///            "EndTimestamp":1620136203757,
+      ///            "Name":"linux_cubic_bezier_perf__e2e_summary",
+      ///            "Attempts":1,
+      ///            "Flaky":false,
+      ///            "TimeoutInMinutes":0,
+      ///            "Reason":"",
+      ///            "BuildNumber":null,
+      ///            "BuildNumberList":"1279",
+      ///            "BuilderName":"Linux cubic_bezier_perf__e2e_summary",
+      ///            "luciBucket":"luci.flutter.prod",
+      ///            "RequiredCapabilities":["can-update-github"],
+      ///            "ReservedForAgentID":"",
+      ///            "StageName":"chromebot",
+      ///            "Status":"Succeeded"
+      ///            },
+      ///          ],
+      ///          "Status": "InProgress",
+      ///        ]},
+      ///       },
+      ///     }
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
         delegate: GetStatus(config),
       ),
+
+      /// Get supported branches for the framework repo.
+      ///
+      /// Get list of supported branches to run infrastructure
+      /// tasks on the framework repo.
+      ///
+      /// GET: /api/public/get-branches
+      ///
+      /// Response: Status 200 OK
+      /// {Branches: [
+      ///   "flutter-1.26-candidate.17",
+      ///   "flutter-2.2-candidate.10",
+      ///   "master"
+      ///   ]
+      /// }
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
         delegate: GetBranches(config),
         ttl: const Duration(minutes: 15),
       ),
+
+      /// Record GitHub API quota usage in BigQuery.
+      ///
+      /// Pushes data to BigQuery for metric collection to
+      /// analyze usage over time.
+      ///
+      /// This api is called via cron job.
+      ///
+      /// GET: /api/public/github-rate-limit-status
+      ///
+      /// Response: Status 200 OK
       '/api/public/github-rate-limit-status': CacheRequestHandler<Body>(
         config: config,
         cache: cache,
         ttl: const Duration(minutes: 1),
         delegate: GithubRateLimitStatus(config),
       ),
+
+      /// Handler for AppEngine to identify when dart server is ready to serve requests.
+      '/readiness_check': ReadinessCheck(),
     };
 
     return await runAppEngine((HttpRequest request) async {

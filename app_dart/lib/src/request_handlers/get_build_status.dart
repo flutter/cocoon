@@ -9,10 +9,12 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
+import '../service/datastore.dart';
 
 @immutable
 class GetBuildStatus extends RequestHandler<Body> {

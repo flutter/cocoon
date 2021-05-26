@@ -21,7 +21,7 @@ void main() {
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(jsonGetStatsResponse, 200);
+        return Response(luciJsonGetStatsResponse, 200);
       }));
     });
 
@@ -43,22 +43,25 @@ void main() {
           ..repository = 'flutter/cocoon'
           ..branch = 'master')
         ..stages.add(Stage()
-          ..name = 'devicelab'
+          ..name = 'chromebot'
           ..taskStatus = 'Succeeded'
           ..tasks.add(Task()
             ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
-            ..name = 'complex_layout_semantics_perf'
+            ..name = 'linux'
             ..attempts = 1
             ..isFlaky = false
             ..timeoutInMinutes = 0
             ..reason = ''
-            ..requiredCapabilities.add('[linux/android]')
-            ..reservedForAgentId = 'linux2'
-            ..stageName = 'devicelab'
-            ..status = 'Succeeded'));
+            ..requiredCapabilities.add('[linux]')
+            ..reservedForAgentId = ''
+            ..stageName = 'chromebot'
+            ..status = 'Succeeded'
+            ..buildNumberList = '123'
+            ..builderName = 'Linux'
+            ..luciBucket = 'luci.flutter.try'));
 
       expect(statuses.data.length, 1);
       expect(statuses.data.first, expectedStatus);
@@ -122,54 +125,6 @@ void main() {
 
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
-    });
-  });
-
-  group('AppEngine CocoonService fetchCommitStatus - luci', () {
-    AppEngineCocoonService service;
-
-    setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(luciJsonGetStatsResponse, 200);
-      }));
-    });
-
-    test('should return expected List<CommitStatus> - luci', () async {
-      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
-
-      final CommitStatus expectedStatus = CommitStatus()
-        ..branch = 'master'
-        ..commit = (Commit()
-          ..timestamp = Int64(123456789)
-          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
-          ..sha = 'ShaShankHash'
-          ..author = 'ShaSha'
-          ..authorAvatarUrl = 'https://flutter.dev'
-          ..repository = 'flutter/cocoon'
-          ..branch = 'master')
-        ..stages.add(Stage()
-          ..name = 'chromebot'
-          ..taskStatus = 'Succeeded'
-          ..tasks.add(Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
-            ..attempts = 1
-            ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
-            ..stageName = 'chromebot'
-            ..status = 'Succeeded'
-            ..buildNumberList = '123'
-            ..builderName = 'Linux'
-            ..luciBucket = 'luci.flutter.try'));
-
-      expect(statuses.data.length, 1);
-      expect(statuses.data.first, expectedStatus);
     });
   });
 
@@ -256,7 +211,7 @@ void main() {
       }));
       task = Task()
         ..key = RootKey()
-        ..stageName = StageName.devicelab;
+        ..stageName = StageName.luci;
     });
 
     test('should return true if request succeeds', () async {
@@ -277,7 +232,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
+      when(mockClient.post(argThat(endsWith('/api/reset-prod-task')),
               headers: captureAnyNamed('headers'), body: captureAnyNamed('body')))
           .thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
@@ -286,13 +241,13 @@ void main() {
 
       if (kIsWeb) {
         verify(mockClient.post(
-          '/api/reset-devicelab-task',
+          '/api/reset-prod-task',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
       } else {
         verify(mockClient.post(
-          '$baseApiUrl/api/reset-devicelab-task',
+          '$baseApiUrl/api/reset-prod-task',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
