@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildStatus;
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
