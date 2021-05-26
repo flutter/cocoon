@@ -300,44 +300,6 @@ void main() {
       });
 
       test('update task status for non master branch', () async {
-        final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'def'),
-            sha: 'def',
-            branch: 'test',
-            repository: 'flutter/flutter');
-        final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
-        config.db.values[commit.key] = commit;
-        config.db.values[task.key] = task;
-        scheduler.schedulerConfig = oneTargetConfig;
-        final List<Target> targets = scheduler.getPostSubmitTargets(commit, await scheduler.getSchedulerConfig(commit));
-        final List<LuciBuilder> builders =
-            targets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 2,
-                          builderName: 'Linux A',
-                        ),
-                      ],
-                    });
-        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
-            .thenAnswer((Invocation invocation) {
-          return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
-        });
-
-        expect(task.status, Task.statusNew);
-        await tester.get(handler);
-        expect(task.status, Task.statusSucceeded);
-        expect(task.buildNumberList, '2');
-      });
-
-      test('update task status for non master branch', () async {
         final Commit branchCommit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/test/def'),
           sha: 'def',
