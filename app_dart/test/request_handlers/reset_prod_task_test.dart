@@ -49,6 +49,7 @@ void main() {
     FakeClientContext clientContext;
     ResetProdTask handler;
     FakeConfig config;
+    FakeKeyHelper keyHelper;
     MockLuciBuildService mockLuciBuildService;
     FakeAuthenticatedContext authContext;
     ApiRequestHandlerTester tester;
@@ -56,9 +57,10 @@ void main() {
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
-      config = FakeConfig(dbValue: datastoreDB);
       clientContext = FakeClientContext();
       clientContext.isDevelopmentEnvironment = false;
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      config = FakeConfig(dbValue: datastoreDB, keyHelperValue: keyHelper);
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
