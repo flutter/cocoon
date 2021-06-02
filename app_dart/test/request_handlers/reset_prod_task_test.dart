@@ -82,12 +82,12 @@ void main() {
     });
     test('Schedule new task', () async {
       final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          attempts: 0,
-          status: 'Failed',
-          name: 'windows_bot',
-          );
+        key: commit.key.append(Task, id: 4590522719010816),
+        commitKey: commit.key,
+        attempts: 0,
+        status: 'Failed',
+        name: 'windows_bot',
+      );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
@@ -147,7 +147,13 @@ void main() {
           repo: captureAnyNamed('repo'),
           properties: captureAnyNamed('properties'),
         )).captured,
-        <dynamic>['commitSha', 'Windows', 'master', 'engine', <String, String>{'myproperty': 'myvalue'}],
+        <dynamic>[
+          'commitSha',
+          'Windows',
+          'master',
+          'engine',
+          <String, String>{'myproperty': 'myvalue'}
+        ],
       );
     });
 
