@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -48,8 +47,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String encodedKey = requestData[taskKeyParam] as String ?? '';
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = config.keyHelper;
     final String owner = requestData[ownerParam] as String ?? 'flutter';
     final String repo = requestData[repoParam] as String ?? 'flutter';
     String commitSha = requestData[commitShaParam] as String ?? '';
