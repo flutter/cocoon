@@ -448,15 +448,18 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
-  /// Reschedules a prod build using [commitSha], [builderName], [branch] and
-  /// [repo]. Default value for [branch] is "master" and default value for
-  /// [repo] is "flutter".
+  /// Reschedules a prod build using [commitSha], [builderName], [branch],
+  /// [repo] and [properties]. Default value for [branch] is "master", default value for
+  /// [repo] is "flutter", and default for [properties] is an empty map.
   Future<void> rescheduleProdBuild({
     @required String commitSha,
     @required String builderName,
     String branch = 'master',
     String repo = 'flutter',
+    Map<String, String> properties = const <String, String>{},
   }) async {
+    final Map<String, String> localProperties = Map<String, String>.from(properties);
+    localProperties['git_ref'] = commitSha;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
@@ -476,9 +479,7 @@ class LuciBuildService {
         ],
         'user_agent': const <String>['luci-scheduler'],
       },
-      properties: <String, String>{
-        'git_ref': commitSha,
-      },
+      properties: localProperties,
       // Run manual retries with higher priority to ensure tasks that can
       // potentially open the tree are not wating for ~30 mins in the queue.
       priority: 29,
