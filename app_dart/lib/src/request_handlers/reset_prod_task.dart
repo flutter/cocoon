@@ -54,7 +54,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String owner = requestData[ownerParam] as String ?? 'flutter';
     final String repo = requestData[repoParam] as String ?? 'flutter';
     String commitSha = requestData[commitShaParam] as String ?? '';
-    final Map<String, String> properties = requestData[propertiesParam] as Map<String, String> ?? <String, String>{};
+    final Map<String, String> properties =
+        (requestData[propertiesParam] as Map<String, dynamic>)?.cast<String, String>() ?? <String, String>{};
 
     RepositorySlug slug;
     String builder = requestData[builderParam] as String ?? '';
