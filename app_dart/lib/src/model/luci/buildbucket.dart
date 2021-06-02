@@ -400,7 +400,7 @@ class ScheduleBuildRequest extends JsonBody {
   /// * ["blamelist""]
   /// * ["$recipe_engine/runtime", "is_luci"]
   /// * ["$recipe_engine/runtime", "is_experimental"]
-  final Map<String, String> properties;
+  final Map<String, dynamic> properties;
 
   /// The value for Build.input.gitiles_commit.
   ///

@@ -456,9 +456,9 @@ class LuciBuildService {
     @required String builderName,
     String branch = 'master',
     String repo = 'flutter',
-    Map<String, String> properties = const <String, String>{},
+    Map<String, dynamic> properties = const <String, dynamic>{},
   }) async {
-    final Map<String, String> localProperties = Map<String, String>.from(properties);
+    final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
     localProperties['git_ref'] = commitSha;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(

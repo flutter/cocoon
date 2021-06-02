@@ -133,7 +133,7 @@ void main() {
         'Commit': 'commitSha',
         'Builder': 'Windows',
         'Repo': 'engine',
-        'Properties': <String, String>{'myproperty': 'myvalue'},
+        'Properties': <String, dynamic>{'myproperty': true},
       };
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
@@ -152,7 +152,7 @@ void main() {
           'Windows',
           'master',
           'engine',
-          <String, String>{'myproperty': 'myvalue'}
+          <String, dynamic>{'myproperty': true}
         ],
       );
     });
