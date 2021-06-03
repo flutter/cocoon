@@ -113,7 +113,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     if (build != null) {
       throw const ConflictException();
     }
-    await luciBuildService.rescheduleProdBuild(
+    final Build buildResult = await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
       builderName: builder,
       repo: repo,
@@ -127,6 +127,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         ..attempts += 1;
       await datastore.insert(<Task>[task]);
     }
-    return Body.empty;
+    final String buildUrl = 'https://ci.chromium.org/ui/b/${buildResult.id}';
+    return Body.forString('Build url: $buildUrl');
   }
 }
