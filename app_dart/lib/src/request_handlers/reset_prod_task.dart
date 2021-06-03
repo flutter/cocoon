@@ -42,6 +42,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
   static const String builderParam = 'Builder';
+  static const String propertiesParam = 'Properties';
 
   @override
   Future<Body> post() async {
@@ -51,6 +52,9 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String owner = requestData[ownerParam] as String ?? 'flutter';
     final String repo = requestData[repoParam] as String ?? 'flutter';
     String commitSha = requestData[commitShaParam] as String ?? '';
+    final Map<String, dynamic> properties =
+        (requestData[propertiesParam] as Map<String, dynamic>) ?? <String, dynamic>{};
+
     RepositorySlug slug;
     String builder = requestData[builderParam] as String ?? '';
     Task task;
@@ -113,6 +117,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       commitSha: commit.sha,
       builderName: builder,
       repo: repo,
+      properties: properties,
     );
     if (task != null) {
       // Only try to update task when it really exists.

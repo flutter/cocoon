@@ -135,6 +135,7 @@ void main() {
         'Commit': 'commitSha',
         'Builder': 'Windows',
         'Repo': 'engine',
+        'Properties': <String, dynamic>{'myproperty': true},
       };
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
@@ -146,8 +147,15 @@ void main() {
           builderName: captureAnyNamed('builderName'),
           branch: captureAnyNamed('branch'),
           repo: captureAnyNamed('repo'),
+          properties: captureAnyNamed('properties'),
         )).captured,
-        <dynamic>['commitSha', 'Windows', 'master', 'engine'],
+        <dynamic>[
+          'commitSha',
+          'Windows',
+          'master',
+          'engine',
+          <String, dynamic>{'myproperty': true}
+        ],
       );
     });
 
