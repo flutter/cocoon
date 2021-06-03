@@ -377,7 +377,7 @@ class LuciBuildService {
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
     userData['user_agent'] = 'flutter-cocoon';
-    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
+    final Build scheduleBuild = await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
         bucket: 'try',
@@ -397,6 +397,8 @@ class LuciBuildService {
         userData: json.encode(userData),
       ),
     ));
+    final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+    await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return true;
   }
 
