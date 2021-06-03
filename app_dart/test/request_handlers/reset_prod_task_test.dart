@@ -95,6 +95,14 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -118,6 +126,14 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -139,6 +155,14 @@ void main() {
       };
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
+      });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
       });
       await tester.post(handler);
       expect(
@@ -184,6 +208,14 @@ void main() {
       config.db.values[commit.key] = commit;
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
+      });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
       });
       await tester.post(handler);
       expect(
@@ -269,6 +301,14 @@ void main() {
       config.db.values[commit.key] = commit;
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
+      });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
       });
       await tester.post(handler);
       expect(

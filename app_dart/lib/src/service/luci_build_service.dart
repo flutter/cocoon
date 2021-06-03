@@ -451,7 +451,7 @@ class LuciBuildService {
   /// Reschedules a prod build using [commitSha], [builderName], [branch],
   /// [repo] and [properties]. Default value for [branch] is "master", default value for
   /// [repo] is "flutter", and default for [properties] is an empty map.
-  Future<void> rescheduleProdBuild({
+  Future<Build> rescheduleProdBuild({
     @required String commitSha,
     @required String builderName,
     String branch = 'master',
@@ -460,7 +460,7 @@ class LuciBuildService {
   }) async {
     final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
     localProperties['git_ref'] = commitSha;
-    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
+    return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
         bucket: 'prod',
