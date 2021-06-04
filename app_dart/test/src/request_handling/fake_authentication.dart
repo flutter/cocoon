@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
+import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -33,17 +34,12 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   }
 
   @override
-  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext clientContext, Logging log}) async {
     if (authenticated) {
       return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }
-  }
-
-  @override
-  bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
-    throw UnimplementedError();
   }
 
   @override
@@ -57,6 +53,11 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 
   @override
   LoggingProvider get loggingProvider => throw UnimplementedError();
+
+  @override
+  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging log, String tokenType = 'id_token'}) async {
+    return const TokenInfo(email: 'abc@gmail.com');
+  }
 }
 
 // ignore: must_be_immutable

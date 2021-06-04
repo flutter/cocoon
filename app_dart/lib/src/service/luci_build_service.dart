@@ -452,15 +452,22 @@ class LuciBuildService {
 
   /// Reschedules a prod build using [commitSha], [builderName], [branch],
   /// [repo] and [properties]. Default value for [branch] is "master", default value for
-  /// [repo] is "flutter", and default for [properties] is an empty map.
+  /// [repo] is "flutter", default for [properties] is an empty map and default for [tags] is null.
   Future<Build> rescheduleProdBuild({
     @required String commitSha,
     @required String builderName,
     String branch = 'master',
     String repo = 'flutter',
     Map<String, dynamic> properties = const <String, dynamic>{},
+    Map<String, List<String>> tags,
   }) async {
     final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
+    tags ??= <String, List<String>>{};
+    tags['buildset'] = <String>[
+      'commit/git/$commitSha',
+      'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
+    ];
+    tags['user_agent'] = <String>['luci-scheduler'];
     localProperties['git_ref'] = commitSha;
     return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
@@ -474,13 +481,7 @@ class LuciBuildService {
         ref: 'refs/heads/$branch',
         hash: commitSha,
       ),
-      tags: <String, List<String>>{
-        'buildset': <String>[
-          'commit/git/$commitSha',
-          'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
-        ],
-        'user_agent': const <String>['luci-scheduler'],
-      },
+      tags: tags,
       properties: localProperties,
       // Run manual retries with higher priority to ensure tasks that can
       // potentially open the tree are not wating for ~30 mins in the queue.

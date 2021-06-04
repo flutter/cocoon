@@ -12,6 +12,7 @@ import '../../cocoon_service.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
+import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -54,6 +55,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     String commitSha = requestData[commitShaParam] as String ?? '';
     final Map<String, dynamic> properties =
         (requestData[propertiesParam] as Map<String, dynamic>) ?? <String, dynamic>{};
+    final TokenInfo token = await tokenInfo(request);
 
     RepositorySlug slug;
     String builder = requestData[builderParam] as String ?? '';
@@ -113,11 +115,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     if (build != null) {
       throw const ConflictException();
     }
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'triggered_by': <String>[token.email],
+      'trigger_type': <String>['manual'],
+    };
     final Build buildResult = await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
       builderName: builder,
       repo: repo,
       properties: properties,
+      tags: tags,
     );
     if (task != null) {
       // Only try to update task when it really exists.
