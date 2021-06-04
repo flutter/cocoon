@@ -66,10 +66,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 
   Widget _settingsDialog(BuildContext context, BuildState _buildState) {
+    final ThemeData theme = Theme.of(context);
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).dialogBackgroundColor.withAlpha(0xe0),
+          color: theme.dialogBackgroundColor.withAlpha(0xe0),
           borderRadius: BorderRadius.circular(20.0),
         ),
         child: Material(
@@ -94,7 +95,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value),
+                      child: Text(value, style: theme.primaryTextTheme.bodyText1),
                     );
                   }).toList(),
                 ),
