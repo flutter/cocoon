@@ -100,6 +100,7 @@ void main() {
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
       )).thenAnswer((_) async {
         return const Build(builderId: BuilderId(), id: 123);
       });
@@ -108,6 +109,9 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -131,6 +135,7 @@ void main() {
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
       )).thenAnswer((_) async {
         return const Build(builderId: BuilderId(), id: 123);
       });
@@ -139,6 +144,9 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -161,6 +169,7 @@ void main() {
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
       )).thenAnswer((_) async {
         return const Build(builderId: BuilderId(), id: 123);
       });
@@ -169,16 +178,19 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
-          branch: captureAnyNamed('branch'),
           repo: captureAnyNamed('repo'),
           properties: captureAnyNamed('properties'),
+          tags: captureAnyNamed('tags'),
         )).captured,
         <dynamic>[
           'commitSha',
           'Windows',
-          'master',
           'engine',
-          <String, dynamic>{'myproperty': true}
+          <String, dynamic>{'myproperty': true},
+          <String, List<String>>{
+            'triggered_by': <String>['abc@gmail.com'],
+            'trigger_type': <String>['manual']
+          },
         ],
       );
     });
@@ -214,6 +226,7 @@ void main() {
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
       )).thenAnswer((_) async {
         return const Build(builderId: BuilderId(), id: 123);
       });
@@ -222,6 +235,9 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -307,6 +323,7 @@ void main() {
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
       )).thenAnswer((_) async {
         return const Build(builderId: BuilderId(), id: 123);
       });
@@ -315,6 +332,9 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
