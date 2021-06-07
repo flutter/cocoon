@@ -109,6 +109,22 @@ Future<bool> _deployToAppEngine() async {
   return await process.exitCode == 0;
 }
 
+/// Run [args] in bash shell and validate it finshes with exit code 0.
+Future<void> shellCommand(List<String> args) async {
+  final ProcessResult result = await Process.run(
+    'bash',
+    args,
+    workingDirectory: workspaceDirectory,
+  );
+
+  if (result.exitCode != 0) {
+    print('$args failed with exit code ${result.exitCode}');
+    print('stdout: ${result.stdout}');
+    print('stderr: ${result.stderr}');
+    exit(1);
+  }
+}
+
 Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
@@ -130,17 +146,8 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  await Process.run(
-    'bash',
-    <String>['$cloudbuildDirectory/app_flutter_build.sh'],
-    workingDirectory: workspaceDirectory,
-  );
-
-  await Process.run(
-    'bash',
-    <String>['$cloudbuildDirectory/repo_dash_build.sh'],
-    workingDirectory: workspaceDirectory,
-  );
+  await shellCommand(<String>['$cloudbuildDirectory/app_flutter_build.sh']);
+  await shellCommand(<String>['$cloudbuildDirectory/repo_dash_build.sh']);
 
   if (!await _deployToAppEngine()) {
     stderr.writeln('Failed to deploy to AppEngine');
