@@ -3,9 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:app_flutter/logic/qualified_task.dart';
+import 'package:app_flutter/model/build_status_response.pb.dart';
+import 'package:app_flutter/model/commit.pb.dart';
+import 'package:app_flutter/model/commit_status.pb.dart';
+import 'package:app_flutter/model/key.pb.dart';
+import 'package:app_flutter/model/stage.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/cocoon.dart';
-import 'package:cocoon_service/protos.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';

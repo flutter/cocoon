@@ -5,11 +5,11 @@
 import 'dart:async';
 
 import 'package:app_flutter/logic/brooks.dart';
+import 'package:app_flutter/model/commit_status.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/build.dart';
-
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
 import 'package:flutter/foundation.dart';
 

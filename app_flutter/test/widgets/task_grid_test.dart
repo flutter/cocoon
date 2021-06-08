@@ -5,6 +5,10 @@
 import 'dart:typed_data';
 
 import 'package:app_flutter/logic/task_grid_filter.dart';
+import 'package:app_flutter/model/commit.pb.dart';
+import 'package:app_flutter/model/commit_status.pb.dart';
+import 'package:app_flutter/model/stage.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/commit_box.dart';
@@ -13,9 +17,6 @@ import 'package:app_flutter/widgets/state_provider.dart';
 import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_icon.dart';
-
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';

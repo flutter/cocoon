@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Task, Commit;
-
 import 'package:flutter/foundation.dart';
+
+import '../model/commit.pb.dart';
+import '../model/task.pb.dart';
 
 /// [Task.stageName] that maps to StageName enums.
 // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441

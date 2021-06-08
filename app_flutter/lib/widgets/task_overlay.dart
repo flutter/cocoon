@@ -4,11 +4,12 @@
 
 import 'dart:math' as math;
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
+import '../model/commit.pb.dart';
+import '../model/task.pb.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';

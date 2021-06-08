@@ -2,13 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/qualified_task.dart';
 import '../logic/task_grid_filter.dart';
+import '../model/commit.pb.dart';
+import '../model/commit_status.pb.dart';
+import '../model/stage.pb.dart';
+import '../model/task.pb.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
 import 'lattice.dart';
