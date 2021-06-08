@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../model/commit.pb.dart';
 import 'commit_author_avatar.dart';
 
 // TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,

@@ -4,12 +4,14 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/protos.dart'
-    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
-
 import 'package:flutter/foundation.dart';
 
 import '../logic/brooks.dart';
+import '../model/build_status_response.pb.dart';
+import '../model/commit.pb.dart';
+import '../model/commit_status.pb.dart';
+import '../model/key.pb.dart';
+import '../model/task.pb.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 

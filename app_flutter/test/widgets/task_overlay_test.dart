@@ -3,13 +3,16 @@
 // found in the LICENSE file.
 
 import 'package:app_flutter/logic/qualified_task.dart';
+import 'package:app_flutter/model/commit.pb.dart';
+import 'package:app_flutter/model/commit_status.pb.dart';
+import 'package:app_flutter/model/stage.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 import 'package:app_flutter/widgets/now.dart';
 import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

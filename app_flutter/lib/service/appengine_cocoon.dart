@@ -5,12 +5,17 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/protos.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../logic/qualified_task.dart';
+import '../model/build_status_response.pb.dart';
+import '../model/commit.pb.dart';
+import '../model/commit_status.pb.dart';
+import '../model/key.pb.dart';
+import '../model/stage.pb.dart';
+import '../model/task.pb.dart';
 import 'cocoon.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.

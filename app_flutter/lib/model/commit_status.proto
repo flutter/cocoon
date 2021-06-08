@@ -1,0 +1,14 @@
+// Copyright 2019 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+import "lib/src/model/proto/internal/commit.proto";
+import "lib/src/model/proto/internal/stage.proto";
+
+message CommitStatus {
+    optional Commit commit = 1;
+    repeated Stage stages = 2;
+    optional string branch = 3;
+}

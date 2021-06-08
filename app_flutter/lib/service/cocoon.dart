@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task, BuildStatusResponse;
 import 'package:flutter/foundation.dart';
 
+import '../model/build_status_response.pb.dart';
+import '../model/commit_status.pb.dart';
+import '../model/task.pb.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
 
