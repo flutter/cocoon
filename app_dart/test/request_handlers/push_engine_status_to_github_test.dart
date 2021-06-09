@@ -55,7 +55,8 @@ void main() {
           pr: pr.number,
           head: pr.head.sha,
           updates: 0,
-          repository: 'flutter/engine');
+          repository: config.engineSlug.fullName,
+        );
     }
 
     setUp(() {
