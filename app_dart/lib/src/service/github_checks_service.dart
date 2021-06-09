@@ -16,7 +16,7 @@ import 'luci_build_service.dart';
 import 'scheduler.dart';
 
 const String kGithubSummary = '''
-**[Triaging a LUCI build failure](https://github.com/flutter/flutter/wiki/Triaging-a-LUCI-build-failure)**
+**[Understanding a LUCI build failure](https://github.com/flutter/flutter/wiki/Understanding-a-LUCI-build-failure)**
 
 ''';
 
