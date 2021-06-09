@@ -112,7 +112,7 @@ class BuildStatusService {
     return tasks;
   }
 
-  /// Retrieves the comprehensive status of every task that runs per commit.
+  /// Retrieves the comprehensive status of every task that runs per commit per repository.
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
