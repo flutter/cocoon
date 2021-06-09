@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -30,7 +29,7 @@ import 'exceptions.dart';
 ///     runtime if the request originated from anything other than a cron job.
 ///     Thus, the header is safe to trust as an authentication indicator.
 ///
-///  2. If the request has the `'X-Flutter-IdToken'` HTTP cookie or HTTP header
+///  2. If the request has the `'X-Flutter-IdToken'` HTTP header
 ///     set to a valid encrypted JWT token, then the request will be authenticated
 ///     as a user account.
 ///
@@ -89,10 +88,6 @@ class AuthenticationProvider {
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String idTokenFromCookie = request.cookies
-        .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
-        .map<String>((Cookie cookie) => cookie.value)
-        .followedBy(<String>[null]).first;
     final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final ClientContext clientContext = clientContextProvider();
     final Logging log = loggingProvider();
@@ -100,40 +95,31 @@ class AuthenticationProvider {
     if (isCron) {
       // Authenticate cron requests
       return AuthenticatedContext(clientContext: clientContext);
-    } else if (idTokenFromCookie != null || idTokenFromHeader != null) {
-      /// There are two possible sources for an id token:
-      ///
-      /// 1. Angular Dart app sends it as a Cookie
-      /// 2. Flutter app sends it as an HTTP header
-      ///
-      /// As long as one of these two id tokens are authenticated, the
-      /// request is authenticated.
-      if (idTokenFromCookie != null) {
-        /// The case where [idTokenFromCookie] is not valid but [idTokenFromHeader]
-        /// is requires us to catch the thrown [Unauthenticated] exception.
-        try {
-          return await authenticateIdToken(idTokenFromCookie, clientContext: clientContext, log: log);
-        } on Unauthenticated {
-          log.debug('Failed to authenticate cookie id token');
-        }
+    } else if (idTokenFromHeader != null) {
+      TokenInfo token;
+      try {
+        token = await tokenInfo(request);
+      } on Unauthenticated {
+        token = await tokenInfo(request, tokenType: 'access_token');
       }
-      if (idTokenFromHeader != null) {
-        return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
-      }
+      return authenticateToken(token, clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('User is not signed in');
   }
 
-  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
-    // Authenticate as a signed-in Google account via OAuth id token.
+  /// Gets oauth token information. This method requires the token to be stored in
+  /// X-Flutter-IdToken header.
+  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging log, String tokenType = 'id_token'}) async {
+    final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final HttpClient client = httpClientProvider();
+    final Logging log = loggingProvider();
     try {
       final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
         <String, String>{
-          'id_token': idToken,
+          tokenType: idTokenFromHeader,
         },
       ));
       final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
@@ -147,31 +133,32 @@ class AuthenticationProvider {
       }
 
       final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
-      TokenInfo token;
       try {
-        token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+        return TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
       } on FormatException {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
-
-      final String clientId = await config.oauthClientId;
-      assert(clientId != null);
-      if (token.audience != clientId && !token.email.endsWith('@google.com')) {
-        log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
-        throw const Unauthenticated('Invalid ID token');
-      }
-
-      if (token.hostedDomain != 'google.com') {
-        final bool isAllowed = await _isAllowed(token.email);
-        if (!isAllowed) {
-          throw Unauthenticated('${token.email} is not authorized to access the dashboard');
-        }
-      }
-
-      return AuthenticatedContext(clientContext: clientContext);
     } finally {
       client.close();
     }
+  }
+
+  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext clientContext, Logging log}) async {
+    // Authenticate as a signed-in Google account via OAuth id token.
+    final String clientId = await config.oauthClientId;
+    assert(clientId != null);
+    if (token.audience != clientId && !token.email.endsWith('@google.com')) {
+      log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
+      throw const Unauthenticated('Invalid ID token');
+    }
+
+    if (token.hostedDomain != 'google.com') {
+      final bool isAllowed = await _isAllowed(token.email);
+      if (!isAllowed) {
+        throw Unauthenticated('${token.email} is not authorized to access the dashboard');
+      }
+    }
+    return AuthenticatedContext(clientContext: clientContext);
   }
 
   Future<bool> _isAllowed(String email) async {
@@ -180,21 +167,6 @@ class AuthenticationProvider {
       ..limit(20);
 
     return !(await query.run().isEmpty);
-  }
-
-  // This method is expensive (run time of ~1,500ms!). If the server starts
-  // handling any meaningful API traffic, we should move request processing
-  // to dedicated isolates in a pool.
-  // TODO(chillers): Remove when DeviceLab has migrated to LUCI, https://github.com/flutter/flutter/projects/151#card-47536851
-  bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
-    final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
-    final DBCrypt crypt = DBCrypt();
-    try {
-      return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
-    } on String catch (error) {
-      // The bcrypt password hash in the cloud datastore is invalid.
-      throw InternalServerError(error);
-    }
   }
 }
 

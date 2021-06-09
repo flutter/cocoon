@@ -61,7 +61,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Build Dashboard',
-      theme: ThemeData(),
+      theme: ThemeData(
+        primaryTextTheme: const TextTheme(
+          bodyText1: TextStyle(color: Colors.black87),
+        ),
+      ),
       darkTheme: ThemeData.dark(),
       initialRoute: '/',
       routes: <String, WidgetBuilder>{

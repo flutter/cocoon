@@ -4,10 +4,15 @@
 
 import 'dart:math' as math;
 
-import 'package:cocoon_service/protos.dart';
 import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
+import '../model/build_status_response.pb.dart';
+import '../model/commit.pb.dart';
+import '../model/commit_status.pb.dart';
+import '../model/key.pb.dart';
+import '../model/stage.pb.dart';
+import '../model/task.pb.dart';
 import 'cocoon.dart';
 
 /// [CocoonService] for local development purposes.

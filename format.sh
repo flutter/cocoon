@@ -5,4 +5,4 @@
 
 set -e
 
-dartfmt -n --line-length=120 .
+dart format --set-exit-if-changed --line-length=120 .

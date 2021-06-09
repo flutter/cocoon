@@ -15,6 +15,11 @@ import 'config.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
 
+const String kGithubSummary = '''
+**[Triaging a LUCI build failure](https://github.com/flutter/flutter/wiki/Triaging-a-LUCI-build-failure)**
+
+''';
+
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksService {
   GithubChecksService(this.config, {GithubChecksUtil githubChecksUtil})
@@ -104,7 +109,7 @@ class GithubChecksService {
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
           await luciBuildService.getTryBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
-      output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown ?? 'Empty summaryMarkdown');
+      output = github.CheckRunOutput(title: checkRun.name, summary: getGithubSummary(build.summaryMarkdown));
     }
     await githubChecksUtil.updateCheckRun(
       config,
@@ -116,6 +121,12 @@ class GithubChecksService {
       output: output,
     );
     return true;
+  }
+
+  /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
+  /// reference from github check run page.
+  String getGithubSummary(String summary) {
+    return kGithubSummary + (summary ?? 'Empty summaryMarkdown');
   }
 
   /// Transforms a [push_message.Result] to a [github.CheckRunConclusion].

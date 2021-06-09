@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -13,6 +12,7 @@ import '../../cocoon_service.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
+import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -43,16 +43,20 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
   static const String builderParam = 'Builder';
+  static const String propertiesParam = 'Properties';
 
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String encodedKey = requestData[taskKeyParam] as String ?? '';
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = config.keyHelper;
     final String owner = requestData[ownerParam] as String ?? 'flutter';
     final String repo = requestData[repoParam] as String ?? 'flutter';
     String commitSha = requestData[commitShaParam] as String ?? '';
+    final Map<String, dynamic> properties =
+        (requestData[propertiesParam] as Map<String, dynamic>) ?? <String, dynamic>{};
+    final TokenInfo token = await tokenInfo(request);
+
     RepositorySlug slug;
     String builder = requestData[builderParam] as String ?? '';
     Task task;
@@ -111,10 +115,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     if (build != null) {
       throw const ConflictException();
     }
-    await luciBuildService.rescheduleProdBuild(
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'triggered_by': <String>[token.email],
+      'trigger_type': <String>['manual'],
+    };
+    final Build buildResult = await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
       builderName: builder,
       repo: repo,
+      properties: properties,
+      tags: tags,
     );
     if (task != null) {
       // Only try to update task when it really exists.
@@ -124,6 +134,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
         ..attempts += 1;
       await datastore.insert(<Task>[task]);
     }
-    return Body.empty;
+    final String buildUrl = 'https://ci.chromium.org/ui/b/${buildResult.id}';
+    return Body.forString('Build url: $buildUrl');
   }
 }

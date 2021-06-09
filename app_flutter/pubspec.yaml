@@ -22,11 +22,12 @@ environment:
   sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
-  cocoon_service:
-    path: ../app_dart
+  fixnum: ^1.0.0
   flutter:
     sdk: flutter
   google_sign_in: ^4.5.3
+  http: ^0.12.0
+  protobuf: ^2.0.0
   provider: ^4.0.0
   url_launcher: ^5.4.1
 

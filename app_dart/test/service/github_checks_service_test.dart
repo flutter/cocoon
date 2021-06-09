@@ -103,6 +103,19 @@ void main() {
           <github.CheckRun>[checkRun]);
     });
   });
+
+  group('getGithubSummary', () {
+    test('nonempty summaryMarkdown', () async {
+      const String summaryMarkdown = 'test';
+      const String expectedSummary = '$kGithubSummary$summaryMarkdown';
+      expect(githubChecksService.getGithubSummary(summaryMarkdown), expectedSummary);
+    });
+
+    test('empty summaryMarkdown', () async {
+      const String expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
+      expect(githubChecksService.getGithubSummary(null), expectedSummary);
+    });
+  });
 }
 
 String buildPushMessageJsonTemplate(String jsonUserData) => '''{

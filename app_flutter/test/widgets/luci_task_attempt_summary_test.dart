@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/model/key.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
-
-import 'package:cocoon_service/protos.dart' show Key, RootKey, Task;
 
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';

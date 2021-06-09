@@ -49,6 +49,7 @@ void main() {
     FakeClientContext clientContext;
     ResetProdTask handler;
     FakeConfig config;
+    FakeKeyHelper keyHelper;
     MockLuciBuildService mockLuciBuildService;
     FakeAuthenticatedContext authContext;
     ApiRequestHandlerTester tester;
@@ -56,9 +57,10 @@ void main() {
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
-      config = FakeConfig(dbValue: datastoreDB);
       clientContext = FakeClientContext();
       clientContext.isDevelopmentEnvironment = false;
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      config = FakeConfig(dbValue: datastoreDB, keyHelperValue: keyHelper);
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
@@ -93,11 +95,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -116,11 +130,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -133,19 +159,39 @@ void main() {
         'Commit': 'commitSha',
         'Builder': 'Windows',
         'Repo': 'engine',
+        'Properties': <String, dynamic>{'myproperty': true},
       };
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
+      });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
       });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
-          branch: captureAnyNamed('branch'),
           repo: captureAnyNamed('repo'),
+          properties: captureAnyNamed('properties'),
+          tags: captureAnyNamed('tags'),
         )).captured,
-        <dynamic>['commitSha', 'Windows', 'master', 'engine'],
+        <dynamic>[
+          'commitSha',
+          'Windows',
+          'engine',
+          <String, dynamic>{'myproperty': true},
+          <String, List<String>>{
+            'triggered_by': <String>['abc@gmail.com'],
+            'trigger_type': <String>['manual']
+          },
+        ],
       );
     });
 
@@ -175,11 +221,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -260,11 +318,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
+      when(mockLuciBuildService.rescheduleProdBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+      )).thenAnswer((_) async {
+        return const Build(builderId: BuilderId(), id: 123);
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );

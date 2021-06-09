@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 
+import '../model/commit.pb.dart';
 import 'web_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.

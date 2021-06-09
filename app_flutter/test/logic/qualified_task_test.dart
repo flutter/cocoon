@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:app_flutter/logic/qualified_task.dart';
-
-import 'package:cocoon_service/protos.dart' show Commit, Task;
+import 'package:app_flutter/model/commit.pb.dart';
+import 'package:app_flutter/model/task.pb.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
