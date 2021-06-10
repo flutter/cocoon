@@ -46,7 +46,7 @@ class AppEngineCocoonService implements CocoonService {
       if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
       'branch': branch ?? _defaultBranch,
     };
-    final String getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
+    final Uri getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
@@ -70,7 +70,7 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, String> queryParameters = <String, String>{
       'branch': branch ?? _defaultBranch,
     };
-    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status', queryParameters: queryParameters);
+    final Uri getBuildStatusUrl = apiEndpoint('/api/public/build-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
@@ -90,7 +90,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    final String getBranchesUrl = apiEndpoint('/api/public/get-branches');
+    final Uri getBranchesUrl = apiEndpoint('/api/public/get-branches');
 
     /// This endpoint returns JSON {"Branches": List<String>}
     final http.Response response = await _client.get(getBranchesUrl);
@@ -111,7 +111,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> vacuumGitHubCommits(String idToken) async {
     assert(idToken != null);
-    final String refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
+    final Uri refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final http.Response response = await _client.get(
       refreshGitHubCommitsUrl,
       headers: <String, String>{
@@ -125,15 +125,14 @@ class AppEngineCocoonService implements CocoonService {
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
 
+
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
-    String postResetTaskUrl;
-    if (qualifiedTask.isLuci) {
-      postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
-    } else {
+    if (!qualifiedTask.isLuci) {
       assert(false);
     }
 
     /// This endpoint only returns a status code.
+    final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
           'X-Flutter-IdToken': idToken,
@@ -161,14 +160,14 @@ class AppEngineCocoonService implements CocoonService {
   ///
   /// [queryParameters] are appended to the url and are url encoded.
   @visibleForTesting
-  String apiEndpoint(
+  Uri apiEndpoint(
     String urlSuffix, {
     Map<String, String> queryParameters,
   }) {
-    final Uri uri = Uri.https(_baseApiUrl, urlSuffix, queryParameters);
-    final String url = uri.toString();
-
-    return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
+    if (kIsWeb) {
+      return Uri.base.replace(path: urlSuffix, queryParameters: queryParameters);
+    }
+    return Uri.https(_baseApiUrl, urlSuffix, queryParameters);
   }
 
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
