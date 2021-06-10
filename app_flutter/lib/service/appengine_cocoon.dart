@@ -125,7 +125,6 @@ class AppEngineCocoonService implements CocoonService {
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
 
-
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     if (!qualifiedTask.isLuci) {
       assert(false);

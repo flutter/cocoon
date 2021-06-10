@@ -232,12 +232,14 @@ void main() {
     });
 
     test('multiple query parameters', () {
-      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}).toString(),
+      expect(
+          service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}).toString(),
           '$baseApiUrl/test?key=value&another=test');
     });
 
     test('query parameter with null value', () {
-      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}).toString(), '$baseApiUrl/test?key');
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}).toString(),
+          '$baseApiUrl/test?key');
     });
 
     /// This test requires runs on different platforms.
