@@ -126,9 +126,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
-    if (!qualifiedTask.isLuci) {
-      assert(false);
-    }
+    assert(qualifiedTask.isLuci);
 
     /// This endpoint only returns a status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
