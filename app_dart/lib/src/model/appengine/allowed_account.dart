@@ -15,8 +15,8 @@ import 'package:gcloud/db.dart';
 class AllowedAccount extends Model<int> {
   /// Creates a new [AllowedAccount].
   AllowedAccount({
-    Key<int> key,
-    this.email,
+    Key<int>? key,
+    required this.email,
   }) {
     parentKey = key?.parent;
     id = key?.id;

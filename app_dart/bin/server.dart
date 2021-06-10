@@ -243,12 +243,12 @@ Future<void> main() async {
       ),
 
       /// Handler for AppEngine to identify when dart server is ready to serve requests.
-      '/readiness_check': ReadinessCheck(),
+      '/readiness_check': ReadinessCheck(config: config),
     };
 
     return await runAppEngine((HttpRequest request) async {
-      final RequestHandler<dynamic> handler = handlers[request.uri.path];
-      if (handler != null) {
+      if (!handlers.containsKey(request.uri.path)) {
+        final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
         await handler.service(request);
       } else {
         /// Requests with query parameters and anchors need to be trimmed to get the file path.
@@ -269,7 +269,7 @@ Future<void> main() async {
         };
         if (redirects.containsKey(filePath)) {
           request.response.statusCode = HttpStatus.permanentRedirect;
-          return await request.response.redirect(Uri.parse(redirects[filePath]));
+          return await request.response.redirect(Uri.parse(redirects[filePath]!));
         }
 
         await StaticFileHandler(filePath, config: config).service(request);

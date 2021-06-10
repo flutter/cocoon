@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
@@ -14,6 +14,8 @@ import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -30,19 +32,19 @@ void main() {
   const String kGoldenFileLabel = 'will affect goldens';
 
   group('PushGoldStatusToGithub', () {
-    FakeConfig config;
-    FakeClientContext clientContext;
+    late FakeConfig config;
+    late FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
-    FakeAuthenticationProvider auth;
-    FakeDatastoreDB db;
-    FakeLogging log;
-    ApiRequestHandlerTester tester;
-    PushGoldStatusToGithub handler;
+    late FakeAuthenticationProvider auth;
+    late FakeDatastoreDB db;
+    late FakeLogging log;
+    late ApiRequestHandlerTester tester;
+    late PushGoldStatusToGithub handler;
     FakeGraphQLClient githubGraphQLClient;
     List<dynamic> checkRuns = <dynamic>[];
-    MockHttpClient mockHttpClient;
-    RepositorySlug slug;
-    RetryOptions retryOptions;
+    late MockClient mockHttpClient;
+    late RepositorySlug slug;
+    late RetryOptions retryOptions;
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -55,14 +57,16 @@ void main() {
       );
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
-      mockHttpClient = MockHttpClient();
+      mockHttpClient = MockClient((_) async => http.Response('{}', HttpStatus.ok));
       retryOptions = const RetryOptions(
-        delayFactor: Duration(milliseconds: 1),
-        maxDelay: Duration(milliseconds: 2),
+        delayFactor: Duration(microseconds: 1),
+        maxDelay: Duration(microseconds: 2),
         maxAttempts: 2,
       );
 
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult(
+            source: QueryResultSource.network,
+          );
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createGithubQueryResult(checkRuns);
       };
@@ -81,7 +85,7 @@ void main() {
         auth,
         datastoreProvider: (DatastoreDB db) {
           return DatastoreService(
-            config.db,
+            db,
             5,
             retryOptions: retryOptions,
           );
@@ -114,9 +118,9 @@ void main() {
     group('in non-development environment', () {
       MockGitHub github;
       MockPullRequestsService pullRequestsService;
-      MockIssuesService issuesService;
-      MockRepositoriesService repositoriesService;
-      List<PullRequest> prsFromGitHub;
+      late MockIssuesService issuesService;
+      late MockRepositoriesService repositoriesService;
+      late List<PullRequest> prsFromGitHub;
 
       setUp(() {
         github = MockGitHub();
@@ -129,6 +133,9 @@ void main() {
         when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
         });
+        when(repositoriesService.createStatus(any, any, any)).thenAnswer((_) async => RepositoryStatus());
+        when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
+        when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
         config.githubClient = github;
         clientContext.isDevelopmentEnvironment = false;
       });
@@ -137,7 +144,7 @@ void main() {
         return GithubGoldStatusUpdate(
           key: db.emptyKey.append(GithubGoldStatusUpdate),
           status: statusUpdate,
-          pr: pr.number,
+          pr: pr.number!,
           head: sha,
           updates: 0,
           description: description,
@@ -145,7 +152,7 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false, DateTime updated}) {
+      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false, DateTime? updated}) {
         return PullRequest()
           ..number = 123
           ..head = (PullRequestHead()..sha = 'abc')
@@ -185,7 +192,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -193,7 +200,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -206,7 +213,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            config.flutterGoldPendingValue,
+            config.flutterGoldPendingValue!,
           );
           db.values[status.key] = status;
 
@@ -224,7 +231,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -232,7 +239,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -245,7 +252,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusCompleted,
             'abc',
-            config.flutterGoldSuccessValue,
+            config.flutterGoldSuccessValue!,
           );
           db.values[status.key] = status;
 
@@ -263,7 +270,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -271,7 +278,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -285,7 +292,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            config.flutterGoldChangesValue,
+            config.flutterGoldChangesValue!,
           );
           db.values[status.key] = status;
 
@@ -295,15 +302,29 @@ void main() {
           ];
 
           // Gold status is running
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobDigests(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
           // Already commented for this commit.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldCommentID(pr),
             ),
@@ -318,7 +339,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -326,7 +347,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -352,7 +373,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -360,7 +381,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -386,7 +407,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -394,7 +415,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             any,
           ));
         });
@@ -420,7 +441,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -428,7 +449,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             any,
           ));
         });
@@ -447,7 +468,7 @@ void main() {
           ];
 
           // Have not already commented for this commit.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -462,7 +483,7 @@ void main() {
           // Should not apply labels, should comment to update
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -470,7 +491,7 @@ void main() {
 
           verify(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldStalePRValue)),
           )).called(1);
         });
@@ -489,7 +510,7 @@ void main() {
           ];
 
           // Already commented to update.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldStalePRValue,
             ),
@@ -504,7 +525,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -512,7 +533,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             any,
           ));
         });
@@ -531,7 +552,7 @@ void main() {
           ];
 
           // Already commented to update.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -546,7 +567,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -554,7 +575,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             any,
           ));
         });
@@ -583,7 +604,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -591,7 +612,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -618,7 +639,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -626,7 +647,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -644,12 +665,26 @@ void main() {
           ];
 
           // Change detected by Gold
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -661,7 +696,7 @@ void main() {
           // Should not label or comment
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -669,7 +704,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -687,15 +722,29 @@ void main() {
           ];
 
           // Change detected by Gold
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobDigests(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
           // Have not already commented for this commit.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -711,7 +760,7 @@ void main() {
           // Should label and comment
           verify(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -719,7 +768,7 @@ void main() {
 
           verify(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           )).called(1);
         });
@@ -730,7 +779,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks complete
@@ -739,15 +788,29 @@ void main() {
           ];
 
           // Gold status is running
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobDigests(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
           // Have not already commented for this commit.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -762,7 +825,7 @@ void main() {
           // Should apply labels and make comment
           verify(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -770,7 +833,7 @@ void main() {
 
           verify(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           )).called(1);
         });
@@ -780,7 +843,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks complete
@@ -789,15 +852,29 @@ void main() {
           ];
 
           // Gold status is running
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobDigests(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
           // Have not already commented for this commit.
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldInitialAlertValue,
             ),
@@ -812,7 +889,7 @@ void main() {
           // Should apply labels and make comment
           verify(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -820,17 +897,17 @@ void main() {
 
           verify(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldFollowUpAlertValue)),
           )).called(1);
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldInitialAlertValue)),
           ));
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldAlertConstantValue)),
           ));
         });
@@ -840,7 +917,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
@@ -849,14 +926,28 @@ void main() {
           ];
 
           // New status: completed/triaged/no changes
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            loggingProvider: () => log,
+            goldClient: mockHttpClient,
+          );
 
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -872,7 +963,7 @@ void main() {
           // Should not label or comment
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -880,7 +971,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -890,14 +981,14 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -912,7 +1003,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -920,7 +1011,7 @@ void main() {
 
           verify(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldDraftChangeValue)),
           )).called(1);
         });
@@ -930,14 +1021,14 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldDraftChangeValue,
             ),
@@ -952,7 +1043,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -960,7 +1051,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldDraftChangeValue)),
           ));
         });
@@ -987,7 +1078,7 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number,
+            pr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -995,7 +1086,7 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number,
+            pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
@@ -1008,8 +1099,8 @@ void main() {
           completedPR,
           followUpPR,
         ];
-        final GithubGoldStatusUpdate completedStatus =
-            newStatusUpdate(completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue);
+        final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
+            completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue!);
         final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
@@ -1020,17 +1111,32 @@ void main() {
         ];
 
         // New status: completed/triaged/no changes
-        final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-        final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-        when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
-            .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-        when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
-            .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-        when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+        mockHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'http://flutter-gold.skia.org/json/v1/changelist/github/${completedPR.number}/${completedPR.head!.sha}/untriaged') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          if (request.url.toString() ==
+              'http://flutter-gold.skia.org/json/v1/changelist/github/${followUpPR.number}/${followUpPR.head!.sha}/untriaged') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
+        });
+        handler = PushGoldStatusToGithub(
+          config,
+          auth,
+          datastoreProvider: (DatastoreDB db) {
+            return DatastoreService(
+              config.db,
+              5,
+              retryOptions: retryOptions,
+            );
+          },
+          loggingProvider: () => log,
+          goldClient: mockHttpClient,
+        );
 
-        when(issuesService.listCommentsByIssue(slug, completedPR.number)).thenAnswer(
+        when(issuesService.listCommentsByIssue(slug, completedPR.number!)).thenAnswer(
           (_) => Stream<IssueComment>.value(
             IssueComment()..body = 'some other comment',
           ),
@@ -1054,13 +1160,13 @@ void main() {
           pr,
           GithubGoldStatusUpdate.statusRunning,
           'abc',
-          config.flutterGoldPendingValue,
+          config.flutterGoldPendingValue!,
         );
         db.values[status.key] = status;
 
         // null status for luci build
         checkRuns = <dynamic>[
-          <String, String>{
+          <String, String?>{
             'name': 'framework',
             'status': null,
             'conclusion': null,
@@ -1076,7 +1182,7 @@ void main() {
         // Should not apply labels or make comments
         verifyNever(issuesService.addLabelsToIssue(
           slug,
-          pr.number,
+          pr.number!,
           <String>[
             kGoldenFileLabel,
           ],
@@ -1084,7 +1190,7 @@ void main() {
 
         verifyNever(issuesService.createComment(
           slug,
-          pr.number,
+          pr.number!,
           argThat(contains(config.flutterGoldCommentID(pr))),
         ));
       });
@@ -1093,7 +1199,6 @@ void main() {
 }
 
 QueryResult createGithubQueryResult(List<dynamic> statuses) {
-  assert(statuses != null);
   return QueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
@@ -1116,6 +1221,7 @@ QueryResult createGithubQueryResult(List<dynamic> statuses) {
         },
       },
     },
+    source: QueryResultSource.network,
   );
 }
 

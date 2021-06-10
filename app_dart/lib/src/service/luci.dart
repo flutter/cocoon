@@ -44,12 +44,10 @@ class LuciService {
   ///
   /// The [buildBucketClient], [config], and [clientContext] arguments must not be null.
   const LuciService({
-    @required this.buildBucketClient,
-    @required this.config,
-    @required this.clientContext,
-  })  : assert(buildBucketClient != null),
-        assert(config != null),
-        assert(clientContext != null);
+    required this.buildBucketClient,
+    required this.config,
+    required this.clientContext,
+  });
 
   /// Client for making buildbucket requests to.
   final BuildBucketClient buildBucketClient;
@@ -65,10 +63,9 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>> getBranchRecentTasks({
-    @required List<LuciBuilder> builders,
+    required List<LuciBuilder> builders,
     bool requireTaskName = false,
   }) async {
-    assert(requireTaskName != null);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
@@ -85,13 +82,13 @@ class LuciService {
         branch: branch,
       );
       results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
-      results[branchLuciBuilder][commit] ??= <LuciTask>[];
-      results[branchLuciBuilder][commit].add(LuciTask(
+      results[branchLuciBuilder]![commit] ??= <LuciTask>[];
+      results[branchLuciBuilder]![commit]!.add(LuciTask(
         commitSha: commit,
         ref: ref,
-        status: luciStatusToTaskStatus[build.status],
-        buildNumber: build.number,
-        builderName: build.builderId.builder,
+        status: luciStatusToTaskStatus[build.status!]!,
+        buildNumber: build.number!,
+        builderName: build.builderId.builder!,
         summaryMarkdown: build.summaryMarkdown,
       ));
     }
@@ -112,7 +109,7 @@ class LuciService {
   /// retries for [repo] including the task name or not.
   Future<List<Build>> getBuildsForBuilderList(
     List<LuciBuilder> builders, {
-    String repo,
+    String? repo,
     bool requireTaskName = false,
   }) async {
     final List<Build> builds = <Build>[];
@@ -139,10 +136,9 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
-    @required List<LuciBuilder> builders,
+    required List<LuciBuilder> builders,
     bool requireTaskName = false,
   }) async {
-    assert(requireTaskName != null);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
@@ -153,12 +149,12 @@ class LuciService {
         return builder.name == build.builderId.builder;
       }).first;
       results[builder] ??= <LuciTask>[];
-      results[builder].add(LuciTask(
+      results[builder]!.add(LuciTask(
         commitSha: commit,
         ref: ref,
-        status: luciStatusToTaskStatus[build.status],
-        buildNumber: build.number,
-        builderName: build.builderId.builder,
+        status: luciStatusToTaskStatus[build.status!]!,
+        buildNumber: build.number!,
+        builderName: build.builderId.builder!,
         summaryMarkdown: build.summaryMarkdown,
       ));
     }
@@ -169,7 +165,7 @@ class LuciService {
   /// predefined in cocoon config.
   ///
   /// Latest builds of each builder will be returned from new to old.
-  Future<Iterable<Build>> getBuilds(String repo, bool requireTaskName, List<LuciBuilder> builders) async {
+  Future<Iterable<Build>> getBuilds(String? repo, bool requireTaskName, List<LuciBuilder> builders) async {
     bool includeBuilder(LuciBuilder builder) {
       if (repo != null && builder.repo != repo) {
         return false;
@@ -196,10 +192,10 @@ class LuciService {
     }).toList();
     final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
     final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
-    final Iterable<Build> builds = batchResponse.responses
-        .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
-        .where((SearchBuildsResponse response) => response.builds != null)
-        .expand<Build>((SearchBuildsResponse response) => response.builds);
+    final Iterable<Build> builds = batchResponse.responses!
+        .map<SearchBuildsResponse?>((Response response) => response.searchBuilds)
+        .where((SearchBuildsResponse? response) => response!.builds != null)
+        .expand<Build>((SearchBuildsResponse? response) => response!.builds!);
     return builds;
   }
 }
@@ -211,8 +207,8 @@ class BranchLuciBuilder {
     this.branch,
   });
 
-  final String branch;
-  final LuciBuilder luciBuilder;
+  final String? branch;
+  final LuciBuilder? luciBuilder;
 
   @override
   int get hashCode => '${luciBuilder.toString()},$branch'.hashCode;
@@ -220,23 +216,23 @@ class BranchLuciBuilder {
   @override
   bool operator ==(Object other) =>
       other is BranchLuciBuilder &&
-      other.luciBuilder.name == luciBuilder.name &&
-      other.luciBuilder.taskName == luciBuilder.taskName &&
-      other.luciBuilder.repo == luciBuilder.repo &&
-      other.luciBuilder.flaky == luciBuilder.flaky;
+      other.luciBuilder!.name == luciBuilder!.name &&
+      other.luciBuilder!.taskName == luciBuilder!.taskName &&
+      other.luciBuilder!.repo == luciBuilder!.repo &&
+      other.luciBuilder!.flaky == luciBuilder!.flaky;
 }
 
 @immutable
 @JsonSerializable()
 class LuciBuilder {
   const LuciBuilder({
-    @required this.name,
-    @required this.repo,
-    @required this.flaky,
+    required this.name,
+    required this.repo,
+    required this.flaky,
     this.enabled,
     this.runIf,
     this.taskName,
-  }) : assert(name != null);
+  });
 
   /// Create a new [LuciBuilder] object from its JSON representation.
   // TODO(chillers): Remove once *_builder.json is removed. https://github.com/flutter/flutter/issues/76140
@@ -259,42 +255,61 @@ class LuciBuilder {
 
   /// The name of the repository for which this builder runs.
   @JsonKey(required: true, disallowNullValue: true)
-  final String repo;
+  final String? repo;
 
   /// Flag the result of this builder as blocker or not.
   @JsonKey()
-  final bool flaky;
+  final bool? flaky;
 
   /// Flag if this builder is enabled or not.
   @JsonKey(name: 'enabled')
-  final bool enabled;
+  final bool? enabled;
 
   /// Globs to filter changed files to trigger builders.
   @JsonKey(name: 'run_if')
-  final List<String> runIf;
+  final List<String>? runIf;
 
   /// The name of the devicelab task associated with this builder.
   @JsonKey(name: 'task_name')
-  final String taskName;
+  final String? taskName;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! LuciBuilder) {
+      return false;
+    }
+    return name == other.name && repo == other.repo;
+  }
+
+  @override
+  String toString() {
+    return '''LuciBuilder(
+      name: $name
+      repo: $repo
+      flaky: $flaky
+      enabled: $enabled
+      runIf: $runIf
+      taskName: $taskName
+    )''';
+  }
+
+  @override
+  int get hashCode => name.hashCode ^ repo.hashCode;
 }
 
 @immutable
 class LuciTask {
-  const LuciTask(
-      {@required this.commitSha,
-      @required this.ref,
-      @required this.status,
-      @required this.buildNumber,
-      @required this.builderName,
-      this.summaryMarkdown})
-      : assert(commitSha != null),
-        assert(ref != null),
-        assert(status != null),
-        assert(buildNumber != null),
-        assert(builderName != null);
+  const LuciTask({
+    required this.commitSha,
+    required this.ref,
+    required this.status,
+    required this.buildNumber,
+    required this.builderName,
+    this.summaryMarkdown,
+  });
 
   /// The GitHub commit at which this task is being run.
   final String commitSha;
@@ -312,5 +327,5 @@ class LuciTask {
   final String builderName;
 
   /// The builder name of this task.
-  final String summaryMarkdown;
+  final String? summaryMarkdown;
 }

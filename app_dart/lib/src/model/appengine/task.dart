@@ -4,7 +4,6 @@
 
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import '../../service/luci.dart';
 import '../proto/internal/scheduler.pb.dart';
@@ -22,12 +21,12 @@ part 'task.g.dart';
 class Task extends Model<int> {
   /// Creates a new [Task].
   Task({
-    Key<int> key,
-    this.commitKey,
+    required Key<int>? key,
+    required this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
     this.endTimestamp = 0,
-    this.name,
+    required this.name,
     this.attempts = 0,
     this.isFlaky = false,
     this.isTestFlaky = false,
@@ -40,9 +39,9 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
-    String status,
+    required String status,
   }) : _status = status {
-    if (status != null && !legalStatusValues.contains(status)) {
+    if (!legalStatusValues.contains(status)) {
       throw ArgumentError('Invalid state: "$status"');
     }
     parentKey = key?.parent;
@@ -51,9 +50,9 @@ class Task extends Model<int> {
 
   /// Construct [Task] from a [LuciBuilder].
   factory Task.chromebot({
-    @required Key<String> commitKey,
-    @required int createTimestamp,
-    @required LuciBuilder builder,
+    required Key<String> commitKey,
+    required int createTimestamp,
+    required LuciBuilder builder,
   }) {
     assert(builder.flaky != null);
     return Task(
@@ -64,7 +63,7 @@ class Task extends Model<int> {
       isFlaky: builder.flaky ?? false,
       key: commitKey.append(Task),
       // The task name of a builder is what Cocoon uses for the name.
-      name: builder.taskName,
+      name: builder.taskName!,
       requiredCapabilities: <String>['can-update-github'],
       stageName: 'chromebot',
       status: Task.statusNew,
@@ -74,16 +73,14 @@ class Task extends Model<int> {
 
   /// Construct [Task] from a [Target].
   factory Task.fromTarget({
-    @required Commit commit,
-    @required Target target,
+    required Commit commit,
+    required Target target,
   }) {
-    assert(commit != null);
-    assert(target != null);
     return Task(
       attempts: 1,
       builderName: target.name,
       commitKey: commit.key,
-      createTimestamp: commit.timestamp,
+      createTimestamp: commit.timestamp!,
       isFlaky: target.bringup,
       key: commit.key.append(Task),
       name: target.name,
@@ -194,7 +191,7 @@ class Task extends Model<int> {
   /// The timeout of the task, or zero if the task has no timeout.
   @IntProperty(propertyName: 'TimeoutInMinutes', required: true)
   @JsonKey(name: 'TimeoutInMinutes')
-  int timeoutInMinutes;
+  int? timeoutInMinutes;
 
   /// Currently unset and unused.
   @StringProperty(propertyName: 'Reason')
@@ -204,7 +201,7 @@ class Task extends Model<int> {
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   @IntProperty(propertyName: 'BuildNumber')
   @JsonKey(name: 'BuildNumber')
-  int buildNumber;
+  int? buildNumber;
 
   /// The build number list of luci builds: comma joined string of
   /// different build numbers.
@@ -214,17 +211,17 @@ class Task extends Model<int> {
   /// [buildNumberList] = '123,456,789'.
   @StringProperty(propertyName: 'BuildNumberList')
   @JsonKey(name: 'BuildNumberList')
-  String buildNumberList;
+  String? buildNumberList;
 
   /// The builder name of luci build.
   @StringProperty(propertyName: 'BuilderName')
   @JsonKey(name: 'BuilderName')
-  String builderName;
+  String? builderName;
 
   /// The luci pool where the luci task runs.
   @StringProperty(propertyName: 'LuciBucket')
   @JsonKey(name: 'luciBucket')
-  String luciBucket;
+  String? luciBucket;
 
   /// The list of capabilities that agents are required to have to run this
   /// task.
@@ -234,7 +231,7 @@ class Task extends Model<int> {
   ///  * [Agent.capabilities], which list the capabilities of an agent.
   @StringListProperty(propertyName: 'RequiredCapabilities')
   @JsonKey(name: 'RequiredCapabilities')
-  List<String> requiredCapabilities;
+  List<String>? requiredCapabilities;
 
   /// Set to the ID of the agent that's responsible for running this task.
   ///
@@ -247,7 +244,7 @@ class Task extends Model<int> {
   /// related to it.
   @StringProperty(propertyName: 'StageName', required: true)
   @JsonKey(name: 'StageName')
-  String stageName;
+  String? stageName;
 
   /// The status of the task.
   ///
@@ -276,7 +273,7 @@ class Task extends Model<int> {
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')
       ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', commitKey: ${commitKey?.id}')
+      ..write(', commitKey: ${commitKey.id}')
       ..write(', createTimestamp: $createTimestamp')
       ..write(', startTimestamp: $startTimestamp')
       ..write(', endTimestamp: $endTimestamp')
@@ -328,9 +325,7 @@ class SerializableTask {
 /// and would like to pass both the task its commit around.
 class FullTask {
   /// Creates a new [FullTask].
-  const FullTask(this.task, this.commit)
-      : assert(task != null),
-        assert(commit != null);
+  const FullTask(this.task, this.commit);
 
   /// The [Task] object.
   final Task task;

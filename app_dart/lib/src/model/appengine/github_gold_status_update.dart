@@ -9,13 +9,13 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'GithubGoldStatusUpdate')
 class GithubGoldStatusUpdate extends Model<int> {
   GithubGoldStatusUpdate({
-    Key<int> key,
-    this.pr,
+    Key<int>? key,
+    required this.pr,
     this.head,
-    this.status,
-    this.description,
-    this.updates,
-    this.repository,
+    required this.status,
+    required this.description,
+    required this.updates,
+    required this.repository,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -35,7 +35,7 @@ class GithubGoldStatusUpdate extends Model<int> {
   int pr;
 
   @StringProperty(propertyName: 'Head')
-  String head;
+  String? head;
 
   @StringProperty(propertyName: 'Status', required: true)
   String status;

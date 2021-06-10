@@ -10,11 +10,11 @@ import '../proto/protos.dart' as pb;
 import 'key_helper.dart';
 
 class KeyWrapper {
-  const KeyWrapper(this.key) : assert(key != null);
+  const KeyWrapper(this.key);
 
   factory KeyWrapper.fromProto(pb.RootKey root) {
     Key<dynamic> result = Key<dynamic>.emptyKey(Partition(root.namespace));
-    for (pb.Key key = root.child; key != null; key = key.child) {
+    for (pb.Key key = root.child; key.hasChild(); key = key.child) {
       final Type type = _typeFromString(key.type);
       switch (key.whichId()) {
         case pb.Key_Id.uid:
@@ -35,13 +35,13 @@ class KeyWrapper {
   final Key<dynamic> key;
 
   pb.RootKey toProto() {
-    pb.Key previous;
-    for (Key<dynamic> slice = key; slice != null; slice = key.parent) {
+    pb.Key? previous;
+    for (Key<dynamic>? slice = key; slice != null; slice = key.parent) {
       final pb.Key current = pb.Key();
       if (slice.type != null) {
         current.type = slice.type.toString();
       }
-      final Object id = slice.id;
+      final Object? id = slice.id;
       if (id is String) {
         current.name = id;
       } else if (id is int) {
@@ -54,12 +54,12 @@ class KeyWrapper {
 
       if (slice.isEmpty) {
         return pb.RootKey()
-          ..namespace = slice.partition.namespace
+          ..namespace = slice.partition.namespace!
           ..child = previous;
       }
     }
 
-    return pb.RootKey()..child = previous;
+    return pb.RootKey()..child = previous!;
   }
 
   static Type _typeFromString(String value) {

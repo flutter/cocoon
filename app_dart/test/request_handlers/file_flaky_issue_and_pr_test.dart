@@ -29,19 +29,19 @@ const String kCurrentUserEmail = 'login@email.com';
 
 void main() {
   group('Check flaky', () {
-    FileFlakyIssueAndPR handler;
-    ApiRequestHandlerTester tester;
-    FakeHttpRequest request;
-    FakeConfig config;
-    FakeClientContext clientContext;
-    FakeAuthenticationProvider auth;
-    MockBigqueryService mockBigqueryService;
-    MockGitHub mockGitHubClient;
-    MockRepositoriesService mockRepositoriesService;
-    MockPullRequestsService mockPullRequestsService;
-    MockIssuesService mockIssuesService;
-    MockGitService mockGitService;
-    MockUsersService mockUsersService;
+    late FileFlakyIssueAndPR handler;
+    late ApiRequestHandlerTester tester;
+    late FakeHttpRequest request;
+    late FakeConfig config;
+    late FakeClientContext clientContext;
+    late FakeAuthenticationProvider auth;
+    late MockBigqueryService mockBigqueryService;
+    late MockGitHub mockGitHubClient;
+    late MockRepositoriesService mockRepositoriesService;
+    late MockPullRequestsService mockPullRequestsService;
+    late MockIssuesService mockIssuesService;
+    late MockGitService mockGitService;
+    late MockUsersService mockUsersService;
 
     setUp(() {
       request = FakeHttpRequest(
@@ -69,6 +69,7 @@ void main() {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
       });
+      when(mockIssuesService.create(any, any)).thenAnswer((_) async => Issue());
       // when gets existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
           .thenAnswer((Invocation invocation) {
@@ -100,6 +101,7 @@ void main() {
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
         bigqueryService: mockBigqueryService,
+        githubClient: mockGitHubClient,
       );
       tester = ApiRequestHandlerTester(request: request);
 
@@ -128,14 +130,14 @@ void main() {
       });
       // When creates git reference
       when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -158,11 +160,11 @@ void main() {
       expect(captured[1], isA<CreateGitTree>());
       final CreateGitTree tree = captured[1] as CreateGitTree;
       expect(tree.baseTree, kCurrentMasterSHA);
-      expect(tree.entries.length, 1);
-      expect(tree.entries[0].content, expectedSemanticsIntegrationTestCiYamlContent);
-      expect(tree.entries[0].path, kCiYamlPath);
-      expect(tree.entries[0].mode, kModifyMode);
-      expect(tree.entries[0].type, kModifyType);
+      expect(tree.entries!.length, 1);
+      expect(tree.entries![0].content, expectedSemanticsIntegrationTestCiYamlContent);
+      expect(tree.entries![0].path, kCiYamlPath);
+      expect(tree.entries![0].mode, kModifyMode);
+      expect(tree.entries![0].type, kModifyType);
 
       // Verify commit is created correctly.
       captured = verify(mockGitService.createCommit(captureAny, captureAny)).captured;
@@ -171,20 +173,20 @@ void main() {
       expect(captured[1], isA<CreateGitCommit>());
       final CreateGitCommit commit = captured[1] as CreateGitCommit;
       expect(commit.message, expectedSemanticsIntegrationTestPullRequestTitle);
-      expect(commit.author.name, kCurrentUserName);
-      expect(commit.author.email, kCurrentUserEmail);
-      expect(commit.committer.name, kCurrentUserName);
-      expect(commit.committer.email, kCurrentUserEmail);
+      expect(commit.author!.name, kCurrentUserName);
+      expect(commit.author!.email, kCurrentUserEmail);
+      expect(commit.committer!.name, kCurrentUserName);
+      expect(commit.committer!.email, kCurrentUserEmail);
       expect(commit.tree, expectedSemanticsIntegrationTestTreeSha);
-      expect(commit.parents.length, 1);
-      expect(commit.parents[0], kCurrentMasterSHA);
+      expect(commit.parents!.length, 1);
+      expect(commit.parents![0], kCurrentMasterSHA);
 
       // Verify reference is created correctly.
       captured = verify(mockGitService.createReference(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
       expect(captured[2], expectedSemanticsIntegrationTestTreeSha);
-      final String ref = captured[1] as String;
+      final String? ref = captured[1] as String?;
 
       // Verify pr is created correctly.
       captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
@@ -219,14 +221,14 @@ void main() {
       });
       // When creates git reference
       when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -258,7 +260,7 @@ void main() {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -286,7 +288,7 @@ void main() {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -324,14 +326,14 @@ void main() {
       });
       // When creates git reference
       when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
       // Verify no issue is created.
@@ -366,14 +368,14 @@ void main() {
       });
       // When creates git reference
       when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
       // Verify no issue is created.
@@ -408,14 +410,14 @@ void main() {
       });
       // When creates git reference
       when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
       // Verify issue is created correctly.
@@ -445,7 +447,7 @@ void main() {
       });
 
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
       // Verify no pr is created.
@@ -471,7 +473,7 @@ void main() {
       });
 
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
       // Verify no pr is created.
@@ -479,12 +481,12 @@ void main() {
 
       expect(result['Status'], 'success');
     });
-  });
+  }, skip: 'https://github.com/flutter/flutter/issues/90139');
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {
     const String differentNewline =
         '<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\r\n{"name": "Mac_android android_semantics_integration_test"}\r\n-->';
-    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(differentNewline);
+    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(differentNewline)!;
     expect(metaTags['name'], 'Mac_android android_semantics_integration_test');
   });
 }

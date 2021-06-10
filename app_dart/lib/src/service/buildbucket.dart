@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../model/luci/buildbucket.dart';
@@ -25,9 +26,8 @@ class BuildBucketClient {
   BuildBucketClient({
     this.buildBucketUri = kDefaultBuildBucketUri,
     this.accessTokenService,
-    HttpClient httpClient,
-  })  : assert(buildBucketUri != null),
-        httpClient = httpClient ?? HttpClient();
+    http.Client? httpClient,
+  }) : httpClient = httpClient ?? http.Client();
 
   /// Garbage to prevent browser/JSON parsing exploits.
   static const String kRpcResponseGarbage = ")]}'";
@@ -44,40 +44,31 @@ class BuildBucketClient {
   ///
   /// If this is non-null, an access token will be attached to any outbound
   /// HTTP requests issued by this client.
-  final AccessTokenService accessTokenService;
+  final AccessTokenService? accessTokenService;
 
-  /// The [HttpClient] to use for requests.
+  /// The [http.Client] to use for requests.
   ///
   /// Defaults to `HttpClient()`.
-  final HttpClient httpClient;
+  final http.Client httpClient;
 
   Future<T> _postRequest<S extends JsonBody, T>(
     String path,
     S request,
-    T responseFromJson(Map<String, dynamic> rawResponse),
+    T responseFromJson(Map<String, dynamic>? rawResponse),
   ) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
-    final HttpClientRequest httpRequest = await httpClient.postUrl(url);
+    final AccessToken? token = await accessTokenService?.createAccessToken();
+    final http.Response response = await httpClient.post(url, headers: <String, String>{
+      HttpHeaders.contentTypeHeader: 'application/json',
+      HttpHeaders.acceptHeader: 'application/json',
+      if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
+    });
 
-    httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
-    httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
-
-    if (accessTokenService != null) {
-      final AccessToken token = await accessTokenService.createAccessToken();
-      if (token != null) {
-        httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
-      }
-    }
-
-    httpRequest.write(json.encode(request.toJson()));
-    await httpRequest.flush();
-    final HttpClientResponse response = await httpRequest.close();
-
-    final String rawResponse = await utf8.decodeStream(response);
     if (response.statusCode < 300) {
-      return responseFromJson(json.decode(rawResponse.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>);
+      return responseFromJson(
+          json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
     }
-    throw BuildBucketException(response.statusCode, rawResponse);
+    throw BuildBucketException(response.statusCode, response.body);
   }
 
   /// The RPC request to schedule a build.
@@ -109,7 +100,7 @@ class BuildBucketClient {
       request,
       BatchResponse.fromJson,
     );
-    if (response.responses.length != request.requests.length) {
+    if (response.responses!.length != request.requests!.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
     return response;
@@ -140,8 +131,8 @@ class BuildBucketClient {
   /// requests to finish before closing.
   ///
   /// Once this call completes, additional RPC requests will throw an exception.
-  void close({bool force = false}) {
-    httpClient.close(force: force);
+  void close() {
+    httpClient.close();
   }
 }
 

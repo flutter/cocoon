@@ -29,23 +29,23 @@ class ResetTryTask extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String owner = request.uri.queryParameters['owner'] ?? 'flutter';
-    final String repo = request.uri.queryParameters['repo'] ?? '';
-    final String pr = request.uri.queryParameters['pr'] ?? '';
-    final String commitSha = request.uri.queryParameters['commitSha'] ?? '';
+    final String owner = request!.uri.queryParameters['owner'] ?? 'flutter';
+    final String repo = request!.uri.queryParameters['repo'] ?? '';
+    final String pr = request!.uri.queryParameters['pr'] ?? '';
+    final String commitSha = request!.uri.queryParameters['commitSha'] ?? '';
 
     // Set logger for service classes.
-    scheduler.setLogger(log);
+    scheduler.setLogger(log!);
 
-    final int prNumber = int.tryParse(pr);
+    final int? prNumber = int.tryParse(pr);
+    if (prNumber == null) {
+      throw const BadRequestException('pr must be a number');
+    }
     final RepositorySlug slug = RepositorySlug(owner, repo);
     final GitHub github = await config.createGitHubClient(slug);
     final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
-    if (pullRequest == null) {
-      throw BadRequestException('Could not find GitHub PR for $slug #$prNumber');
-    }
     await scheduler.triggerPresubmitTargets(
-        branch: pullRequest.base.ref, prNumber: prNumber, commitSha: commitSha, slug: slug);
+        branch: pullRequest.base!.ref!, prNumber: prNumber, commitSha: commitSha, slug: slug);
     return Body.empty;
   }
 }

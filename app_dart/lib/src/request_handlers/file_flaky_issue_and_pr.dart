@@ -37,15 +37,15 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
-    final YamlMap ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
+    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-    final Map<String, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
-    final Map<String, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
+    final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
+    final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      final BuilderType type = getTypeForBuilder(statistic.name, ci);
+      final BuilderType type = getTypeForBuilder(statistic.name, ci!);
       await _fileIssueAndPR(
         gitHub,
         slug,
@@ -63,20 +63,20 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     });
   }
 
-  double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
+  double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
   Future<void> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
-    @required _BuilderDetail builderDetail,
+    required _BuilderDetail builderDetail,
   }) async {
-    Issue issue = builderDetail.existingIssue;
+    Issue? issue = builderDetail.existingIssue;
     // Don't create a new issue if there is a recent closed issue within
     // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
     if (issue == null ||
         (issue.state == 'closed' &&
-            DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
+            DateTime.now().difference(issue.closedAt!) > const Duration(days: kGracePeriodForClosedFlake))) {
       final IssueBuilder issueBuilder =
           IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
       issue = await gitHub.createIssue(
@@ -88,8 +88,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       );
     }
 
-    if (issue == null ||
-        builderDetail.type == BuilderType.shard ||
+    if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||
         builderDetail.existingPullRequest != null ||
         builderDetail.isMarkedFlaky) {
@@ -118,10 +117,10 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-    final YamlMap target = targets.firstWhere(
+    final YamlMap? target = targets.firstWhere(
       (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
       orElse: () => null,
-    ) as YamlMap;
+    ) as YamlMap?;
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
@@ -142,22 +141,22 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   Future<RepositorySlug> getSlugFor(GitHub client, String repository) async {
-    return RepositorySlug((await client.users.getCurrentUser()).login, repository);
+    return RepositorySlug((await client.users.getCurrentUser()).login!, repository);
   }
 }
 
 class _BuilderDetail {
   const _BuilderDetail({
-    @required this.statistic,
-    @required this.existingIssue,
-    @required this.existingPullRequest,
-    @required this.isMarkedFlaky,
-    @required this.ownership,
-    @required this.type,
+    required this.statistic,
+    required this.existingIssue,
+    required this.existingPullRequest,
+    required this.isMarkedFlaky,
+    required this.ownership,
+    required this.type,
   });
   final BuilderStatistic statistic;
-  final Issue existingIssue;
-  final PullRequest existingPullRequest;
+  final Issue? existingIssue;
+  final PullRequest? existingPullRequest;
   final TestOwnership ownership;
   final bool isMarkedFlaky;
   final BuilderType type;

@@ -24,19 +24,19 @@ import '../src/utilities/mocks.dart';
 
 void main() {
   group('PushStatusToGithub', () {
-    FakeConfig config;
-    FakeDatastoreDB db;
-    ApiRequestHandlerTester tester;
+    late FakeConfig config;
+    late FakeDatastoreDB db;
+    late ApiRequestHandlerTester tester;
     FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
-    FakeTabledataResourceApi tabledataResourceApi;
-    MockLuciService mockLuciService;
-    PushBuildStatusToGithub handler;
+    FakeTabledataResource tabledataResourceApi;
+    late MockLuciService mockLuciService;
+    late PushBuildStatusToGithub handler;
     MockGitHub github;
     MockPullRequestsService pullRequestsService;
     MockIssuesService issuesService;
     MockRepositoriesService repositoriesService;
-    List<PullRequest> prsFromGitHub;
+    late List<PullRequest> prsFromGitHub;
     FakeGithubService githubService;
     MockLuciBuildService mockLuciBuildService;
 
@@ -51,9 +51,10 @@ void main() {
     GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
       return GithubBuildStatusUpdate(
         key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
+        repository: config.flutterSlug.fullName,
         status: status.githubStatus,
-        pr: pr.number,
-        head: pr.head.sha,
+        pr: pr.number!,
+        head: pr.head!.sha,
         updates: 0,
       );
     }
@@ -63,7 +64,7 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       clientContext.isDevelopmentEnvironment = false;
       githubService = FakeGithubService();
-      tabledataResourceApi = FakeTabledataResourceApi();
+      tabledataResourceApi = FakeTabledataResource();
       db = FakeDatastoreDB();
       github = MockGitHub();
       pullRequestsService = MockPullRequestsService();
@@ -71,7 +72,7 @@ void main() {
       repositoriesService = MockRepositoriesService();
       mockLuciBuildService = MockLuciBuildService();
       config = FakeConfig(
-        tabledataResourceApi: tabledataResourceApi,
+        tabledataResource: tabledataResourceApi,
         githubService: githubService,
         dbValue: db,
         githubClient: github,
@@ -94,7 +95,7 @@ void main() {
         return Stream<PullRequest>.fromIterable(prsFromGitHub);
       });
       when(repositoriesService.createStatus(any, any, any)).thenAnswer(
-        (_) => Future<RepositoryStatus>.value(),
+        (_) async => RepositoryStatus(),
       );
     });
 
@@ -105,7 +106,7 @@ void main() {
 
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -129,7 +130,7 @@ void main() {
       config.supportedBranchesValue = <String>['master'];
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -161,7 +162,7 @@ void main() {
 
       config.db.values[status.key] = status;
 
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -192,7 +193,7 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -236,9 +237,9 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-      config.luciBuildersValue = (await config.luciBuilders('prod', config.engineSlug))
+      config.luciBuildersValue = (await config.luciBuilders('prod', config.engineSlug))!
         ..add(LuciBuilder(name: 'flaky', repo: config.engineSlug.name, flaky: true));
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -278,7 +279,7 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
 
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -303,12 +304,3 @@ void main() {
     });
   });
 }
-
-// ignore: must_be_immutable
-class MockLuciService extends Mock implements LuciService {}
-
-class MockIssuesService extends Mock implements IssuesService {}
-
-class MockPullRequestsService extends Mock implements PullRequestsService {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}

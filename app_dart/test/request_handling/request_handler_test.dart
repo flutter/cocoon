@@ -17,9 +17,9 @@ import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('RequestHandler', () {
-    HttpServer server;
-    FakeLogging log;
-    RequestHandler<dynamic> handler;
+    late HttpServer server;
+    late FakeLogging log;
+    late RequestHandler<dynamic> handler;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -29,7 +29,7 @@ void main() {
             log.debug(line);
           },
         );
-        return runZoned<Future<void>>(() {
+        return runZoned<dynamic>(() {
           return ss.fork(() {
             ss.register(#appengine.logging, log);
             return handler.service(request);
@@ -186,7 +186,7 @@ class AccessesRequestAndResponseDirectly extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-Path', request.uri.path);
+    response!.headers.add('X-Test-Path', request!.uri.path);
     return Body.empty;
   }
 }
@@ -196,13 +196,13 @@ class ImplementsBothGetAndPost extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-Get', 'true');
+    response!.headers.add('X-Test-Get', 'true');
     return Body.empty;
   }
 
   @override
   Future<Body> post() async {
-    response.headers.add('X-Test-Post', 'true');
+    response!.headers.add('X-Test-Post', 'true');
     return Body.empty;
   }
 }

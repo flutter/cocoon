@@ -24,8 +24,8 @@ import 'exceptions.dart';
 abstract class RequestHandler<T extends Body> {
   /// Creates a new [RequestHandler].
   const RequestHandler({
-    @required this.config,
-  }) : assert(config != null);
+    required this.config,
+  });
 
   /// The global configuration of this AppEngine server.
   final Config config;
@@ -51,14 +51,13 @@ abstract class RequestHandler<T extends Body> {
             default:
               throw MethodNotAllowed(request.method);
           }
-          assert(body != null);
           await _respond(body: body);
           httpClient?.close();
           return;
         } on HttpStatusException {
           rethrow;
         } catch (error, stackTrace) {
-          log.error('$error\n$stackTrace');
+          log!.error('$error\n$stackTrace');
           throw InternalServerError('$error\n$stackTrace');
         }
       } on HttpStatusException catch (error) {
@@ -82,12 +81,10 @@ abstract class RequestHandler<T extends Body> {
   ///
   /// Returns a future that completes when [response] has been closed.
   Future<void> _respond({int status = HttpStatus.ok, Body body = Body.empty}) async {
-    assert(status != null);
-    assert(body != null);
-    response.statusCode = status;
-    await response.addStream(body.serialize());
-    await response.flush();
-    await response.close();
+    response!.statusCode = status;
+    await response!.addStream(body.serialize() as Stream<List<int>>);
+    await response!.flush();
+    await response!.close();
   }
 
   /// Gets the value associated with the specified [key] in the request
@@ -100,8 +97,8 @@ abstract class RequestHandler<T extends Body> {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  T getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
-    final T value = Zone.current[key] as T;
+  T? getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
+    final T? value = Zone.current[key] as T?;
     if (!allowNull && value == null) {
       throw StateError('Attempt to access ${key.name} while not in a request context');
     }
@@ -113,21 +110,21 @@ abstract class RequestHandler<T extends Body> {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  HttpRequest get request => getValue<HttpRequest>(RequestKey.request);
+  HttpRequest? get request => getValue<HttpRequest>(RequestKey.request);
 
   /// Gets the current [HttpResponse].
   ///
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  HttpResponse get response => getValue<HttpResponse>(RequestKey.response);
+  HttpResponse? get response => getValue<HttpResponse>(RequestKey.response);
 
   /// Gets the current [Logging] instance.
   ///
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  Logging get log => getValue<Logging>(RequestKey.log);
+  Logging? get log => getValue<Logging>(RequestKey.log);
 
   /// Services an HTTP GET.
   ///
@@ -149,7 +146,7 @@ abstract class RequestHandler<T extends Body> {
 
   /// The package:http Client to use for googleapis requests.
   @protected
-  http.Client get httpClient => getValue<http.Client>(
+  http.Client? get httpClient => getValue<http.Client>(
         RequestKey.httpClient,
         allowNull: true,
       );

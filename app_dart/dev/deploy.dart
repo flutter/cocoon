@@ -19,10 +19,10 @@ const String gcloudProjectVersionAbbrFlag = 'v';
 const String ignoreVersionFlag = 'ignore-version-check';
 const String helpFlag = 'help';
 
-String _gcloudProjectId;
-String _gcloudProjectVersion;
+String? _gcloudProjectId;
+String? _gcloudProjectVersion;
 
-bool _ignoreVersion;
+late bool _ignoreVersion;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -35,8 +35,8 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
     return false;
   }
 
-  _gcloudProjectId = args[gcloudProjectIdFlag] as String;
-  _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String;
+  _gcloudProjectId = args[gcloudProjectIdFlag] as String?;
+  _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String?;
   _ignoreVersion = args[ignoreVersionFlag] as bool;
 
   if (_gcloudProjectId == null) {
@@ -69,7 +69,7 @@ Future<bool> _checkDependencies() async {
   // This makes an assumption that only the framework will have its version
   // printed out with the date in YYYY-MM-DD format.
   final RegExp dateRegExp = RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
-  final String flutterVersionDateRaw = dateRegExp.allMatches(flutterVersionOutput).first.group(0);
+  final String flutterVersionDateRaw = dateRegExp.allMatches(flutterVersionOutput).first.group(0)!;
 
   final DateTime flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
   final DateTime now = DateTime.now();
@@ -91,9 +91,9 @@ Future<bool> _deployToAppEngine() async {
       'app',
       'deploy',
       '--project',
-      _gcloudProjectId,
+      _gcloudProjectId!,
       '--version',
-      _gcloudProjectVersion,
+      _gcloudProjectVersion!,
       '--no-promote',
       '--no-stop-previous-version',
       '--quiet'
