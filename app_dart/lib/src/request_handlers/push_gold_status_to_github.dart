@@ -231,7 +231,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 
   String _getTriageUrl(int number) {
-    return 'https://flutter-gold.skia.org/search?issue=$number&new_clstore=true';
+    return 'https://flutter-gold.skia.org/cl/github/$number';
   }
 
   /// Creates a comment on a given pull request identified to have golden file
