@@ -22,10 +22,6 @@ import '../service/datastore.dart';
 import 'buildbucket.dart';
 import 'luci.dart';
 
-/// List of Mac builders that have shards, and hit -9 retcode issue:
-/// https://github.com/flutter/flutter/issues/68322
-const List<String> kMacBuildersWithShards = <String>['Mac build_tests', 'Mac framework_tests', 'Mac tool_tests'];
-
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
