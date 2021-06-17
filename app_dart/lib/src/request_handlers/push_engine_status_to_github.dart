@@ -126,8 +126,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
           log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           final int retries = tasks.where((LuciTask element) => element.commitSha == task.commitSha).length - 1;
           log.debug('markdown: ${task.summaryMarkdown}, builderName: ${task.builderName}, retries: $retries');
-          await luciBuildService.checkRerunBuilder(
-              commitSha: task.commitSha, luciTask: task, retries: retries, repo: 'engine');
+          await luciBuildService.checkRerunBuilder(commit: Commit(), luciTask: task, retries: retries, repo: 'engine');
           return GithubBuildStatusUpdate.statusFailure;
         case Task.statusSucceeded:
           log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');

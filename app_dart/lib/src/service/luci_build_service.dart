@@ -11,11 +11,14 @@ import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/service_account_info.dart';
+import '../model/appengine/task.dart';
 import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
+import '../service/datastore.dart';
 import 'buildbucket.dart';
 import 'luci.dart';
 
@@ -489,19 +492,18 @@ class LuciBuildService {
     ));
   }
 
-  /// Check to auto-rerun Mac builders with `infra failure`.
-  ///
-  /// This is a workaround for -9 retcode issue: https://github.com/flutter/flutter/issues/68322.
+  /// Check to auto-rerun TOT test failures.
   Future<bool> checkRerunBuilder({
-    @required String commitSha,
+    @required Commit commit,
     @required LuciTask luciTask,
     @required int retries,
     String repo = 'flutter',
+    DatastoreService datastore,
   }) async {
-    if (_shouldRerunBuilder(luciTask, repo) && retries < config.maxLuciTaskRetries) {
-      log.info('Rerun Mac builder: ${luciTask.builderName} for commit $commitSha');
+    if (await _shouldRerunBuilder(luciTask, retries, commit, datastore)) {
+      log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
       await rescheduleProdBuild(
-        commitSha: commitSha,
+        commitSha: commit.sha,
         builderName: luciTask.builderName,
         repo: repo,
       );
@@ -510,19 +512,14 @@ class LuciBuildService {
     return false;
   }
 
-  bool _shouldRerunBuilder(LuciTask luciTask, String repo) {
-    if (luciTask.summaryMarkdown == null || !luciTask.builderName.contains('Mac')) {
+  /// Only blocking failures on framework TOT will be triggered.
+  Future<bool> _shouldRerunBuilder(LuciTask luciTask, int retries, Commit commit, DatastoreService datastore) async {
+    if ((luciTask.status != Task.statusFailed && luciTask.status != Task.statusInfraFailure) ||
+        retries >= config.maxLuciTaskRetries ||
+        !Config.schedulerSupportedRepos.contains(commit.slug)) {
       return false;
     }
-    switch (repo) {
-      case 'flutter':
-        return luciTask.summaryMarkdown.contains('retcode: -9') ||
-            (kMacBuildersWithShards.contains(luciTask.builderName) &&
-                luciTask.summaryMarkdown ==
-                    'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
-      case 'engine':
-        return luciTask.summaryMarkdown.contains('retcode: -9');
-    }
-    return false;
+    final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
+    return latestCommit.sha != commit.sha;
   }
 }

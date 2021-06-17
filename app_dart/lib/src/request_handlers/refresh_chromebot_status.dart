@@ -105,7 +105,10 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
         /// Use `update.attempts - 1` as the `retries` to skip the initial run.
         if (await luciBuildService.checkRerunBuilder(
-            commitSha: commitSha, luciTask: latestLuciTask, retries: update.attempts - 1)) {
+            commit: datastoreTask.commit,
+            luciTask: latestLuciTask,
+            retries: update.attempts - 1,
+            datastore: datastore)) {
           update.status = Task.statusNew;
           update.attempts += 1;
         }
