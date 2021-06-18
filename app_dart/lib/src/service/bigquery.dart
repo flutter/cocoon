@@ -22,4 +22,12 @@ class BigqueryService {
     );
     return BigqueryApi(client).tabledata;
   }
+
+  /// Return a [TabledataResourceApi] with an authenticated [client]
+  Future<JobsResourceApi> defaultJobs() async {
+    final Client client = await accessClientProvider.createAccessClient(
+      scopes: const <String>[BigqueryApi.BigqueryScope],
+    );
+    return BigqueryApi(client).jobs;
+  }
 }

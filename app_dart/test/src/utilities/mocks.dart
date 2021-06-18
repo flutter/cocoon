@@ -26,6 +26,8 @@ class MockRepositoriesService extends Mock implements RepositoriesService {}
 
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}
 
+class MockJobsResourceApi extends Mock implements JobsResourceApi {}
+
 class MockAccessTokenService extends Mock implements AccessTokenService {}
 
 // ignore: must_be_immutable
@@ -34,6 +36,10 @@ class MockLuciService extends Mock implements LuciService {}
 class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}
+
+class MockGitService extends Mock implements GitService {}
+
+class MockUsersService extends Mock implements UsersService {}
 
 class MockHttpClient extends Mock implements HttpClient {}
 

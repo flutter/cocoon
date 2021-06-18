@@ -30,6 +30,7 @@ class FakeConfig implements Config {
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
+    this.githubFlakyBotOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
     this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
@@ -38,6 +39,7 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
+    this.jobsResourceApi,
     this.githubService,
     this.githubGraphQLClient,
     this.cirrusGraphQLClient,
@@ -65,6 +67,7 @@ class FakeConfig implements Config {
   GraphQLClient githubGraphQLClient;
   GraphQLClient cirrusGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
+  JobsResourceApi jobsResourceApi;
   GithubService githubService;
   FlutterDestination metricsDestination;
   FakeDatastoreDB dbValue;
@@ -75,6 +78,7 @@ class FakeConfig implements Config {
   FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
+  String githubFlakyBotOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
   String wrongBaseBranchPullRequestMessageValue;
@@ -104,6 +108,9 @@ class FakeConfig implements Config {
   Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
 
   @override
+  Future<GitHub> createGitHubClientWithToken(String token) async => githubClient;
+
+  @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
 
   @override
@@ -111,6 +118,9 @@ class FakeConfig implements Config {
 
   @override
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
+
+  @override
+  Future<JobsResourceApi> createJobsResourceApi() async => jobsResourceApi;
 
   @override
   Future<GithubService> createGithubService(RepositorySlug slug) async => githubService;
@@ -177,6 +187,9 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
+
+  @override
+  Future<String> get githubFlakyBotOAuthToken async => githubFlakyBotOAuthTokenValue;
 
   @override
   String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;

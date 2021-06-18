@@ -57,6 +57,7 @@ Future<void> main() async {
       /// GET: /api/check-waiting-pull-requests
       ///
       /// Response: Status 200 OK
+      '/api/check-flaky-tests-and-update-github': CheckForFlakyTestAndUpdateGithub(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
