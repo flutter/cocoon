@@ -126,6 +126,8 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
+  Future<String> get githubFlakyBotOAuthToken => _getSingleValue('GitHubFlakyBotToken');
+
   String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
       '_${kDefaultBranchName}_. Since Flutter pull requests should not '
       'normally be opened against branches other than $kDefaultBranchName, I '
@@ -243,7 +245,9 @@ class Config {
       'PR unless it contains a fix for the tree.';
 
   RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+  // TODO(chunhtai): change back to flutter once ready to deployed
+  RepositorySlug get flutterSlug => RepositorySlug('chunhtai', 'flutter');
+  RepositorySlug get flutterflakybotSlug => RepositorySlug('flutterflakybot', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
@@ -297,7 +301,11 @@ class Config {
 
   Future<GitHub> createGitHubClient(RepositorySlug slug) async {
     final String githubToken = await generateGithubToken(slug);
-    return GitHub(auth: Authentication.withToken(githubToken));
+    return createGitHubClientWithToken(githubToken);
+  }
+
+  Future<GitHub> createGitHubClientWithToken(String token) async {
+    return GitHub(auth: Authentication.withToken(token));
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
@@ -335,6 +343,11 @@ class Config {
   Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
     return await BigqueryService(accessClientProvider).defaultTabledata();
+  }
+
+  Future<bigquery.JobsResourceApi> createJobsResourceApi() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
+    return await BigqueryService(accessClientProvider).defaultJobs();
   }
 
   /// Default GitHub service when the repository does not matter.
