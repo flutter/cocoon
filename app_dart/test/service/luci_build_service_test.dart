@@ -507,14 +507,14 @@ void main() {
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
+          commitSha: 'def',
           ref: 'refs/heads/master',
           status: Task.statusFailed,
           buildNumber: 1,
           builderName: 'Mac abc',
           summaryMarkdown: 'summary');
       final bool rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
+        commit: totCommit,
         luciTask: luciTask,
         retries: 0,
         repo: 'flutter',
@@ -527,14 +527,14 @@ void main() {
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
+          commitSha: 'def',
           ref: 'refs/heads/master',
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc',
           summaryMarkdown: 'summary');
       final bool rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
+        commit: totCommit,
         luciTask: luciTask,
         retries: 0,
         repo: 'flutter',
@@ -547,36 +547,16 @@ void main() {
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
+          commitSha: 'def',
           ref: 'refs/heads/master',
           status: Task.statusSucceeded,
           buildNumber: 1,
           builderName: 'Mac abc');
       final bool rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
+        commit: totCommit,
         luciTask: luciTask,
         retries: 0,
         repo: 'flutter',
-        datastore: datastore,
-      );
-      expect(rerunFlag, false);
-    });
-
-    test('Do not rerun a non-supported repo builder', () async {
-      commit.repository = 'flutter/engine';
-      config.db.values[totCommit.key] = totCommit;
-      config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
-          ref: 'refs/heads/master',
-          status: Task.statusInfraFailure,
-          buildNumber: 1,
-          builderName: 'Mac abc');
-      final bool rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: 'engine',
         datastore: datastore,
       );
       expect(rerunFlag, false);
@@ -586,13 +566,13 @@ void main() {
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
+          commitSha: 'def',
           ref: 'refs/heads/master',
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc');
       final bool rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
+        commit: totCommit,
         luciTask: luciTask,
         retries: 1,
         repo: 'flutter',
@@ -602,8 +582,8 @@ void main() {
     });
 
     test('Do not rerun a flutter builder when not blocking the tree', () async {
-      totCommit.sha = 'abc';
       config.db.values[totCommit.key] = totCommit;
+      config.db.values[commit.key] = commit;
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
           commitSha: 'abc',
@@ -614,7 +594,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: commit,
         luciTask: luciTask,
-        retries: 1,
+        retries: 0,
         repo: 'flutter',
         datastore: datastore,
       );
