@@ -12,7 +12,8 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 13
+// A unit of work for infrastructure to run.
+// Next ID: 14
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -42,6 +43,8 @@ message Target {
     repeated string run_if = 11;
     // Override of enabled_branches for this target (for release targets).
     repeated string enabled_branches = 12;
+    // Name of the LUCI recipe to use for the builder.
+    optional string recipe = 13;
 }
 
 // Schedulers supported in SchedulerConfig.
