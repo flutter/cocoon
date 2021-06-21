@@ -5,11 +5,13 @@ targets:
   - name: Cocoon
     builder: Cocoon
     postsubmit: false
+    recipe: cocoon/cocoon
     scheduler: luci
 
   - name: Linux device_doctor
     builder: Linux device_doctor
     postsubmit: false
+    recipe: cocoon/device_doctor
     scheduler: luci
     runIf:
       - device_doctor/**
@@ -17,6 +19,7 @@ targets:
   - name: Mac device_doctor
     builder: Mac device_doctor
     postsubmit: false
+    recipe: cocoon/device_doctor
     scheduler: luci
     runIf:
       - device_doctor/**
@@ -24,6 +27,7 @@ targets:
   - name: Windows device_doctor
     builder: Windows device_doctor
     postsubmit: false
+    recipe: cocoon/device_doctor
     scheduler: luci
     runIf:
       - device_doctor/**
