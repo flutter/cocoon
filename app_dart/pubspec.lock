@@ -151,10 +151,10 @@ packages:
   cocoon_scheduler:
     dependency: "direct main"
     description:
-      name: cocoon_scheduler
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
+      path: scheduler
+      relative: true
+    source: path
+    version: "1.1.1"
   code_builder:
     dependency: transitive
     description:
