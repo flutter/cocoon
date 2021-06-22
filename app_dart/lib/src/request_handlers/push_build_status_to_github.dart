@@ -43,22 +43,34 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   final BuildStatusServiceProvider buildStatusServiceProvider;
   final HttpClientProvider branchHttpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
+  static const String repoParam = 'repo';
 
   @override
   Future<Body> get() async {
+    final String repo = request.uri.queryParameters[repoParam] ?? 'flutter';
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
-    final RepositorySlug slug = config.flutterSlug;
-    final GithubService githubService = await config.createGithubService(slug);
+    // TODO(godofredoc): find a better way to create the map of repo to repository slug.
+    final Map<String, RepositorySlug> slugMap = <String, RepositorySlug>{'flutter': config.flutterSlug, 'engine': config.engineSlug};
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
     }
 
+    await _processRepositoryStatus(slugMap[repo], buildStatusService, datastore, log);
+    //await _processRepositoryStatus(slugMap['engine'], buildStatusService, datastore, log);
+    return Body.empty;
+  }
+
+  Future<void> _processRepositoryStatus(
+      RepositorySlug slug, BuildStatusService buildStatusService, DatastoreService datastore, Logging log) async {
+    final GithubService githubService = await config.createGithubService(slug);
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
-    for (String branch in await config.flutterBranches) {
+    // only flutter/flutter repo currently supports branching.
+    final List<String> branches = slug.fullName == 'flutter/flutter' ? await config.flutterBranches : <String>['master'];
+    for (String branch in branches) {
       final BuildStatus buildStatus = await buildStatusService.calculateCumulativeStatus(branch: branch);
       final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
@@ -94,8 +106,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       await datastore.insert(updates);
       log.debug('Committed all updates');
     }
-
-    return Body.empty;
   }
 
   Future<void> _insertBigquery(BuildStatus buildStatus, String branch) async {

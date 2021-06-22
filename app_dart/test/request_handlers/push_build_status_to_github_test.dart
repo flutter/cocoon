@@ -43,10 +43,21 @@ void main() {
     List<int> githubPullRequestsMaster;
     List<int> githubPullRequestsOther;
     MockRepositoriesService repositoriesService;
+    FakeGithubService githubService;
 
     List<PullRequest> pullRequestList(String branch) {
       final List<PullRequest> pullRequests = <PullRequest>[];
       for (int pr in (branch == 'master') ? githubPullRequestsMaster : githubPullRequestsOther) {
+        pullRequests.add(PullRequest()
+          ..number = pr
+          ..head = (PullRequestHead()..sha = pr.toString()));
+      }
+      return pullRequests;
+    }
+
+    List<PullRequest> enginePullRequestList() {
+      final List<PullRequest> pullRequests = <PullRequest>[];
+      for (int pr in githubPullRequestsOther) {
         pullRequests.add(PullRequest()
           ..number = pr
           ..head = (PullRequestHead()..sha = pr.toString()));
@@ -61,7 +72,7 @@ void main() {
       buildStatusService = FakeBuildStatusService();
       tabledataResourceApi = FakeTabledataResourceApi();
       branchHttpClient = FakeHttpClient();
-      final FakeGithubService githubService = FakeGithubService();
+      githubService = FakeGithubService();
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       log = FakeLogging();
@@ -184,6 +195,29 @@ void main() {
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
           db.values[status.key] = status;
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.updateTimeMillis, isNotNull);
+          expect(status.status, BuildStatus.success().githubStatus);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        });
+
+        test('if engine status has changed since last update', () async {
+          githubService.listPullRequestsBranch = (String branch) {
+            return enginePullRequestList();
+          };
+          githubPullRequestsOther = <int>[1];
+          final PullRequest pr = newPullRequest(id: 1, sha: '1');
+          config.flutterBranchesValue = <String>['master'];
+          buildStatusService.cumulativeStatus = BuildStatus.success();
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
+          db.values[status.key] = status;
+          tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
+            'repo': 'engine',
+          });
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);

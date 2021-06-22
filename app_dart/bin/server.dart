@@ -81,12 +81,6 @@ Future<void> main() async {
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
-      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(
-        config,
-        authProvider,
-        luciBuildService,
-        scheduler: scheduler,
-      ),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(
         config,
         authProvider,

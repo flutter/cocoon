@@ -8,13 +8,13 @@ cron:
   url: /api/vacuum-github-commits
   schedule: every 1 hours
 - description: sends build status to GitHub to annotate PRs and commits
-  url: /api/push-build-status-to-github
+  url: /api/push-build-status-to-github?repo=flutter
   schedule: every 1 minutes
 - description: sends pr-specific gold status to GitHub to annotate PRs and commits
   url: /api/push-gold-status-to-github
   schedule: every 5 minutes
 - description: sends build status to GitHub to annotate engine PRs and commits
-  url: /api/push-engine-build-status-to-github
+  url: /api/push-build-status-to-github?repo=engine
   schedule: every 2 minutes
 - description: check for mergeable commits waiting for the tree to go green
   url: /api/check-waiting-pull-requests
