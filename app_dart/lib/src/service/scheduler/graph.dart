@@ -4,9 +4,7 @@
 
 import 'package:yaml/yaml.dart';
 
-import 'models/scheduler.pb.dart';
-
-export 'models/scheduler.pb.dart';
+import '../../model/proto/internal/scheduler.pb.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
 SchedulerConfig schedulerConfigFromYaml(YamlMap yamlConfig) {

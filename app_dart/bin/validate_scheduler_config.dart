@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:cocoon_scheduler/scheduler.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:yaml/yaml.dart';
 
 void main(List<String> args) {

@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package scheduler;
+
 // Next ID: 3
 message SchedulerConfig {
     // Targets to run from this config.

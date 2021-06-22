@@ -4,11 +4,11 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';

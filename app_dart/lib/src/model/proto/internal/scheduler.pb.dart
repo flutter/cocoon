@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: scheduler/lib/src/models/scheduler.proto
+//  source: lib/src/model/proto/internal/scheduler.proto
 //
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
@@ -16,6 +16,8 @@ export 'scheduler.pbenum.dart';
 class SchedulerConfig extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig',
+      package:
+          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..pc<Target>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'targets', $pb.PbFieldType.PM,
         subBuilder: Target.create)
@@ -71,6 +73,8 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 class Target extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target',
+      package:
+          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dependencies')
@@ -80,13 +84,15 @@ class Target extends $pb.GeneratedMessage {
     ..a<$core.String>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
         defaultOrMaker: 'linux-vm')
     ..m<$core.String, $core.String>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
-        entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
+        entryClassName: 'Target.PropertiesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
     ..e<SchedulerSystem>(
         8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
         defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
-    ..a<$core.bool>(
-        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit', $pb.PbFieldType.OB,
+    ..a<$core.bool>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit', $pb.PbFieldType.OB,
         defaultOrMaker: true)
     ..a<$core.bool>(
         10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,

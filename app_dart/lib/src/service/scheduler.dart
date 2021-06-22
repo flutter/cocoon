@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 import 'package:googleapis/bigquery/v2.dart';
@@ -22,6 +21,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
+import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/exceptions.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -30,6 +30,9 @@ import 'github_checks_service.dart';
 import 'github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
+import 'scheduler/graph.dart';
+
+export 'scheduler/graph.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///

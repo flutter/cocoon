@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: scheduler/lib/src/models/scheduler.proto
+//  source: lib/src/model/proto/internal/scheduler.proto
 //
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields,deprecated_member_use_from_same_package
@@ -25,14 +25,14 @@ final $typed_data.Uint8List schedulerSystemDescriptor =
 const SchedulerConfig$json = const {
   '1': 'SchedulerConfig',
   '2': const [
-    const {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.Target', '10': 'targets'},
+    const {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.scheduler.Target', '10': 'targets'},
     const {'1': 'enabled_branches', '3': 2, '4': 3, '5': 9, '10': 'enabledBranches'},
   ],
 };
 
 /// Descriptor for `SchedulerConfig`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List schedulerConfigDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJDb25maWcSIQoHdGFyZ2V0cxgBIAMoCzIHLlRhcmdldFIHdGFyZ2V0cxIpChBlbmFibGVkX2JyYW5jaGVzGAIgAygJUg9lbmFibGVkQnJhbmNoZXM=');
+    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVz');
 @$core.Deprecated('Use targetDescriptor instead')
 const Target$json = const {
   '1': 'Target',
@@ -42,9 +42,17 @@ const Target$json = const {
     const {'1': 'bringup', '3': 3, '4': 1, '5': 8, '7': 'false', '10': 'bringup'},
     const {'1': 'timeout', '3': 4, '4': 1, '5': 5, '7': '30', '10': 'timeout'},
     const {'1': 'testbed', '3': 5, '4': 1, '5': 9, '7': 'linux-vm', '10': 'testbed'},
-    const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.Target.PropertiesEntry', '10': 'properties'},
+    const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.scheduler.Target.PropertiesEntry', '10': 'properties'},
     const {'1': 'builder', '3': 7, '4': 1, '5': 9, '10': 'builder'},
-    const {'1': 'scheduler', '3': 8, '4': 1, '5': 14, '6': '.SchedulerSystem', '7': 'cocoon', '10': 'scheduler'},
+    const {
+      '1': 'scheduler',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.scheduler.SchedulerSystem',
+      '7': 'cocoon',
+      '10': 'scheduler'
+    },
     const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
     const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
     const {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
@@ -66,4 +74,4 @@ const Target_PropertiesEntry$json = const {
 
 /// Descriptor for `Target`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
-    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBI3Cgpwcm9wZXJ0aWVzGAYgAygLMhcuVGFyZ2V0LlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxIYCgdidWlsZGVyGAcgASgJUgdidWlsZGVyEjYKCXNjaGVkdWxlchgIIAEoDjIQLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJlc3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZVIKcG9zdHN1Ym1pdBIVCgZydW5faWYYCyADKAlSBXJ1bklmEikKEGVuYWJsZWRfYnJhbmNoZXMYDCADKAlSD2VuYWJsZWRCcmFuY2hlcxIWCgZyZWNpcGUYDSABKAlSBnJlY2lwZRo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
+    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCgpwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnByb3BlcnRpZXMSGAoHYnVpbGRlchgHIAEoCVIHYnVpbGRlchJACglzY2hlZHVsZXIYCCABKA4yGi5zY2hlZHVsZXIuU2NoZWR1bGVyU3lzdGVtOgZjb2Nvb25SCXNjaGVkdWxlchIiCglwcmVzdWJtaXQYCSABKAg6BHRydWVSCXByZXN1Ym1pdBIkCgpwb3N0c3VibWl0GAogASgIOgR0cnVlUgpwb3N0c3VibWl0EhUKBnJ1bl9pZhgLIAMoCVIFcnVuSWYSKQoQZW5hYmxlZF9icmFuY2hlcxgMIAMoCVIPZW5hYmxlZEJyYW5jaGVzEhYKBnJlY2lwZRgNIAEoCVIGcmVjaXBlGj0KD1Byb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
