@@ -32,6 +32,8 @@ import 'luci.dart';
 import 'luci_build_service.dart';
 import 'scheduler/graph.dart';
 
+export 'scheduler/graph.dart';
+
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
 /// Scheduler responsibilties include:
