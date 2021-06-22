@@ -52,7 +52,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
     // TODO(godofredoc): find a better way to create the map of repo to repository slug.
-    final Map<String, RepositorySlug> slugMap = <String, RepositorySlug>{'flutter': config.flutterSlug, 'engine': config.engineSlug};
+    final Map<String, RepositorySlug> slugMap = <String, RepositorySlug>{
+      'flutter': config.flutterSlug,
+      'engine': config.engineSlug
+    };
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
@@ -69,7 +72,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final GithubService githubService = await config.createGithubService(slug);
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
     // only flutter/flutter repo currently supports branching.
-    final List<String> branches = slug.fullName == 'flutter/flutter' ? await config.flutterBranches : <String>['master'];
+    final List<String> branches =
+        slug.fullName == 'flutter/flutter' ? await config.flutterBranches : <String>['master'];
     for (String branch in branches) {
       final BuildStatus buildStatus = await buildStatusService.calculateCumulativeStatus(branch: branch);
       final GitHub github = githubService.github;
