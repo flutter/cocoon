@@ -20,9 +20,8 @@ import 'check_flaky_tests_and_update_github_utils.dart';
 
 @immutable
 class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
-  const CheckForFlakyTestAndUpdateGithub(
-    Config config,
-    AuthenticationProvider authenticationProvider) : super(config: config, authenticationProvider: authenticationProvider);
+  const CheckForFlakyTestAndUpdateGithub(Config config, AuthenticationProvider authenticationProvider)
+      : super(config: config, authenticationProvider: authenticationProvider);
 
   static const String _thresholdKey = 'threshold';
   static const String _ciYamlPath = '.ci.yaml';
@@ -50,12 +49,11 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       // the test flaky.
       for (String builderName in importantFlakes) {
         await _updateFlakes(
-          client: client,
-          newStats: nameToStats[builderName],
-          existingIssues: nameToExistingIssue,
-          existingPRs: nameToExistingPR,
-          isImportant: true
-        );
+            client: client,
+            newStats: nameToStats[builderName],
+            existingIssues: nameToExistingIssue,
+            existingPRs: nameToExistingPR,
+            isImportant: true);
       }
       // For existing issues that are not important flakes, update them with the
       // newest metrics or close them if they are no longer flaky.
@@ -90,8 +88,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   String _generateNewRef() {
     const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     final Random rnd = Random();
-    final String randomString = String.fromCharCodes(Iterable<int>.generate(
-        10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+    final String randomString =
+        String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
     return '${_refsPrefix}marks-flaky-$randomString';
   }
 
@@ -99,10 +97,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     const String projectId = 'flutter-dashboard';
 
     final JobsResourceApi jobsResourceApi = await config.createJobsResourceApi();
-    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
-      'query': getFlakyRateQuery,
-      'useLegacySql': false
-    });
+    final QueryRequest query =
+        QueryRequest.fromJson(<String, Object>{'query': getFlakyRateQuery, 'useLegacySql': false});
     final QueryResponse response = await jobsResourceApi.query(query, projectId);
     if (!response.jobComplete) {
       throw 'job does not complete';
@@ -128,22 +124,21 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       }
       final String testName = target[_ciYamlTargetNameKey] as String;
       nameToStats[builder] = BuilderStats(
-        name: builder,
-        flakyRate: double.parse(row.f[7].v as String),
-        failedBuilds: failedBuilds ?? const <String>[],
-        succeededBuilds: succeededBuilds ?? const <String>[],
-        recentCommit: row.f[5].v as String,
-        failedBuildOfRecentCommit: row.f[6].v as String,
-        testOwner: await _findTestOwner(testName, testOwnerContent)
-      );
+          name: builder,
+          flakyRate: double.parse(row.f[7].v as String),
+          failedBuilds: failedBuilds ?? const <String>[],
+          succeededBuilds: succeededBuilds ?? const <String>[],
+          recentCommit: row.f[5].v as String,
+          failedBuildOfRecentCommit: row.f[6].v as String,
+          testOwner: await _findTestOwner(testName, testOwnerContent));
     }
     return nameToStats;
   }
 
   Future<Map<String, ExistingGithubIssue>> _getExistingGithubIssues(GitHub client) async {
     final Map<String, ExistingGithubIssue> nameToExistingIssue = <String, ExistingGithubIssue>{};
-    await for (final Issue issue in client.issues.listByRepo(
-        config.flutterSlug, state:'all', labels: <String>[kFlakeLabel])) {
+    await for (final Issue issue
+        in client.issues.listByRepo(config.flutterSlug, state: 'all', labels: <String>[kFlakeLabel])) {
       final RegExpMatch match = IssueBuilder.issueTitleRegex.firstMatch(issue.title);
       if (match != null) {
         if (!nameToExistingIssue.containsKey(match.namedGroup('name')) ||
@@ -163,10 +158,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     await for (final PullRequest pr in client.pullRequests.list(config.flutterSlug)) {
       final RegExpMatch match = pullRequestTitleRegex.firstMatch(pr.title);
       if (match != null) {
-        nameToExistingPRs[match.namedGroup('name')] = ExistingGithubPR(
-          match.namedGroup('name'),
-          pr
-        );
+        nameToExistingPRs[match.namedGroup('name')] = ExistingGithubPR(match.namedGroup('name'), pr);
       }
     }
     return nameToExistingPRs;
@@ -190,8 +182,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       }
     }
     return <String>{
-      if (mostImportant != null)
-        mostImportant.name,
+      if (mostImportant != null) mostImportant.name,
     };
   }
 
@@ -208,7 +199,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     Issue issue;
     if (!existingIssues.containsKey(newStats.name) ||
         (existingIssues[newStats.name].issue.state == 'closed' &&
-         existingIssues[newStats.name].issue.closedAt.difference(DateTime.now())> const Duration(days: _kGracePeriodForClosedFlake))) {
+            existingIssues[newStats.name].issue.closedAt.difference(DateTime.now()) >
+                const Duration(days: _kGracePeriodForClosedFlake))) {
       if (!isImportant) {
         throw 'This handler should only create new issues for important flakes, something went wrong!';
       }
@@ -216,13 +208,9 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         stats: newStats,
         client: client,
       );
-    } else if(existingIssues.containsKey(newStats.name) && existingIssues[newStats.name].issue.state == 'open') {
+    } else if (existingIssues.containsKey(newStats.name) && existingIssues[newStats.name].issue.state == 'open') {
       issue = await _updateIssue(
-        stats: newStats,
-        existingIssue: existingIssues[newStats.name],
-        client: client,
-        isImportant: isImportant
-      );
+          stats: newStats, existingIssue: existingIssues[newStats.name], client: client, isImportant: isImportant);
     } else {
       // Do nothing if there is a closed issue within _kGracePeriodForClosedFlake days.
       return;
@@ -232,10 +220,10 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         throw 'This issue not be null for important flake, something went wrong!';
       }
       await _fileNewPullRequestIfNeeded(
-          stats:newStats,
-          issue: issue,
-          existingPRs: existingPRs,
-          client: client,
+        stats: newStats,
+        issue: issue,
+        existingPRs: existingPRs,
+        client: client,
       );
     }
   }
@@ -268,12 +256,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     );
   }
 
-  Future<Issue> _updateIssue({
-    BuilderStats stats,
-    ExistingGithubIssue existingIssue,
-    GitHub client,
-    bool isImportant
-  }) async {
+  Future<Issue> _updateIssue(
+      {BuilderStats stats, ExistingGithubIssue existingIssue, GitHub client, bool isImportant}) async {
     final IssueBuilder issueBuilder = IssueBuilder(stats: stats, threshold: _threshold, isImportant: isImportant);
     return await client.issues.edit(
       config.flutterSlug,
@@ -312,19 +296,18 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     final String ref = _generateNewRef();
     final GitReference masterRef = await client.git.getReference(config.flutterSlug, _masterRefs);
     final GitTree tree = await client.git.createTree(
-      config.flutterflakybotSlug,
-      CreateGitTree(
-        <CreateGitTreeEntry>[
-          CreateGitTreeEntry(
-            _ciYamlPath,
-            _modifyMode,
-            _modifyType,
-            content: modifiedContent,
-          )
-        ],
-        baseTree: masterRef.object.sha,
-      )
-    );
+        config.flutterflakybotSlug,
+        CreateGitTree(
+          <CreateGitTreeEntry>[
+            CreateGitTreeEntry(
+              _ciYamlPath,
+              _modifyMode,
+              _modifyType,
+              content: modifiedContent,
+            )
+          ],
+          baseTree: masterRef.object.sha,
+        ));
     final CurrentUser currentUser = await client.users.getCurrentUser();
     final GitCommitUser commitUser = GitCommitUser(currentUser.name, currentUser.email, DateTime.now());
     final PullRequestBuilder prBuilder = PullRequestBuilder(stats: stats, issue: issue);
@@ -417,7 +400,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     final int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder'));
     // Takes care the case if is _ciYamlTargetIsFlakyKey is already defined to false
     int nextLine = builderLineNumber + 1;
-    while(!lines[nextLine].contains('builder:')) {
+    while (!lines[nextLine].contains('builder:')) {
       if (lines[nextLine].contains('$_ciYamlTargetIsFlakyKey:')) {
         lines[nextLine] = lines[nextLine].replaceFirst('false', 'true');
         return lines.join('\n');
@@ -446,4 +429,3 @@ class ExistingGithubPR {
   final String name;
   final PullRequest pr;
 }
-

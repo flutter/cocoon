@@ -75,28 +75,23 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
   List<String> get issueLabels {
     return <String>[
       kFlakeLabel,
-      if (isImportant && isBelow)
-        kP2Label,
-      if (isImportant && !isBelow)
-        kP1Label,
+      if (isImportant && isBelow) kP2Label,
+      if (isImportant && !isBelow) kP1Label,
     ];
   }
 
   String updateIssueBody(String oldBody) {
     return oldBody
-      .replaceFirst(_issueSummaryPattern, _issueSummary)
-      .replaceFirst(_issueFailedBuildOfCommitPattern, _issueFailedBuildOfCommit)
-      .replaceFirst(_issueCommitPattern, _issueCommit)
-      .replaceFirst(_issueFailedBuildsPattern, _issueFailedBuilds)
-      .replaceFirst(_issueSucceededBuildsPattern, _issueSucceededBuilds);
+        .replaceFirst(_issueSummaryPattern, _issueSummary)
+        .replaceFirst(_issueFailedBuildOfCommitPattern, _issueFailedBuildOfCommit)
+        .replaceFirst(_issueCommitPattern, _issueCommit)
+        .replaceFirst(_issueFailedBuildsPattern, _issueFailedBuilds)
+        .replaceFirst(_issueSucceededBuildsPattern, _issueSucceededBuilds);
   }
 
   List<String> updateIssueLabels(List<IssueLabel> oldLabel) {
-    final List<String> result = List<String>.from(
-      oldLabel.map<String>((IssueLabel l) => l.name)
-    );
-    result..remove(kP2Label)
-          ..remove(kP1Label);
+    final List<String> result = List<String>.from(oldLabel.map<String>((IssueLabel l) => l.name));
+    result..remove(kP2Label)..remove(kP1Label);
     if (isImportant) {
       if (isBelow) {
         result.add(kP2Label);
@@ -110,9 +105,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
   String get _issueSummary {
     return '''
 <!-- summary-->
-The post-submit test builder `${stats.name}` had a flaky ratio ${_formatRate(stats.flakyRate)}% for the past 15 days, ${isBelow
-        ? 'which is the flakist test below ${_formatRate(threshold)}% threshold'
-        : 'which is above our ${_formatRate(threshold)}% threshold'}.
+The post-submit test builder `${stats.name}` had a flaky ratio ${_formatRate(stats.flakyRate)}% for the past 15 days, ${isBelow ? 'which is the flakist test below ${_formatRate(threshold)}% threshold' : 'which is above our ${_formatRate(threshold)}% threshold'}.
 <!-- /summary-->
     ''';
   }
@@ -151,11 +144,11 @@ String _issueBuildLink({String builder, String build}) {
 }
 
 final RegExp _issueSummaryPattern = RegExp(r'<!-- summary-->.+<!-- /summary-->', dotAll: true);
-final RegExp _issueFailedBuildOfCommitPattern = RegExp(r'<!-- failedBuildOfCommit-->.+<!-- /failedBuildOfCommit-->', dotAll: true);
+final RegExp _issueFailedBuildOfCommitPattern =
+    RegExp(r'<!-- failedBuildOfCommit-->.+<!-- /failedBuildOfCommit-->', dotAll: true);
 final RegExp _issueCommitPattern = RegExp(r'<!-- commit-->.+<!-- /commit-->', dotAll: true);
 final RegExp _issueFailedBuildsPattern = RegExp(r'<!-- failedBuilds-->.+<!-- /failedBuilds-->', dotAll: true);
 final RegExp _issueSucceededBuildsPattern = RegExp(r'<!-- succeededBuilds-->.+<!-- /succeededBuilds-->', dotAll: true);
-
 
 // Pull Request
 class PullRequestBuilder {
