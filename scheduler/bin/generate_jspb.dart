@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 
 Future<void> main(List<String> args) async {
   if (args.length != 2) {
-    print('generate_builder_config.dart \$repo \$sha');
+    print('generate_jspb.dart \$repo \$sha');
     exit(1);
   }
   final String repo = args.first;
@@ -28,7 +28,5 @@ Future<void> main(List<String> args) async {
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
-  const JsonEncoder encoder = JsonEncoder.withIndent('  ');
-  final String prettyJson = encoder.convert(schedulerConfig.writeToJsonMap());
-  print(prettyJson);
+  print(jsonEncode(schedulerConfig.toProto3Json()));
 }
