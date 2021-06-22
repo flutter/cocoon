@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_scheduler/models/scheduler.pb.dart';
 import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';

@@ -1,8 +1,8 @@
 ///
 //  Generated code. Do not modify.
-//  source: lib/src/model/proto/internal/scheduler.proto
+//  source: scheduler/lib/src/models/scheduler.proto
 //
-// @dart = 2.7
+// @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -24,8 +24,8 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 
   SchedulerConfig._() : super();
   factory SchedulerConfig({
-    $core.Iterable<Target> targets,
-    $core.Iterable<$core.String> enabledBranches,
+    $core.Iterable<Target>? targets,
+    $core.Iterable<$core.String>? enabledBranches,
   }) {
     final _result = create();
     if (targets != null) {
@@ -49,7 +49,8 @@ class SchedulerConfig extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   SchedulerConfig copyWith(void Function(SchedulerConfig) updates) =>
-      super.copyWith((message) => updates(message as SchedulerConfig)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as SchedulerConfig))
+          as SchedulerConfig; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SchedulerConfig create() => SchedulerConfig._();
@@ -58,7 +59,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static SchedulerConfig getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig>(create);
-  static SchedulerConfig _defaultInstance;
+  static SchedulerConfig? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<Target> get targets => $_getList(0);
@@ -92,22 +93,24 @@ class Target extends $pb.GeneratedMessage {
         defaultOrMaker: true)
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
+    ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
     ..hasRequiredFields = false;
 
   Target._() : super();
   factory Target({
-    $core.String name,
-    $core.Iterable<$core.String> dependencies,
-    $core.bool bringup,
-    $core.int timeout,
-    $core.String testbed,
-    $core.Map<$core.String, $core.String> properties,
-    $core.String builder,
-    SchedulerSystem scheduler,
-    $core.bool presubmit,
-    $core.bool postsubmit,
-    $core.Iterable<$core.String> runIf,
-    $core.Iterable<$core.String> enabledBranches,
+    $core.String? name,
+    $core.Iterable<$core.String>? dependencies,
+    $core.bool? bringup,
+    $core.int? timeout,
+    $core.String? testbed,
+    $core.Map<$core.String, $core.String>? properties,
+    $core.String? builder,
+    SchedulerSystem? scheduler,
+    $core.bool? presubmit,
+    $core.bool? postsubmit,
+    $core.Iterable<$core.String>? runIf,
+    $core.Iterable<$core.String>? enabledBranches,
+    $core.String? recipe,
   }) {
     final _result = create();
     if (name != null) {
@@ -146,6 +149,9 @@ class Target extends $pb.GeneratedMessage {
     if (enabledBranches != null) {
       _result.enabledBranches.addAll(enabledBranches);
     }
+    if (recipe != null) {
+      _result.recipe = recipe;
+    }
     return _result;
   }
   factory Target.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -160,7 +166,7 @@ class Target extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Target copyWith(void Function(Target) updates) =>
-      super.copyWith((message) => updates(message as Target)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Target)) as Target; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Target create() => Target._();
@@ -168,7 +174,7 @@ class Target extends $pb.GeneratedMessage {
   static $pb.PbList<Target> createRepeated() => $pb.PbList<Target>();
   @$core.pragma('dart2js:noInline')
   static Target getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Target>(create);
-  static Target _defaultInstance;
+  static Target? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -277,4 +283,16 @@ class Target extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(12)
   $core.List<$core.String> get enabledBranches => $_getList(11);
+
+  @$pb.TagNumber(13)
+  $core.String get recipe => $_getSZ(12);
+  @$pb.TagNumber(13)
+  set recipe($core.String v) {
+    $_setString(12, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasRecipe() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearRecipe() => clearField(13);
 }
