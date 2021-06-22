@@ -191,15 +191,4 @@ class BuilderStats {
   final String recentCommit;
   final String failedBuildOfRecentCommit;
   final String testOwner;
-
-  Map toJson() {
-    return <String, dynamic>{
-      'name': name,
-      'flakyRate': flakyRate,
-    };
-  }
-  @override
-  String toString() {
-    return 'name= $name, ratio = $flakyRate';
-  }
 }
