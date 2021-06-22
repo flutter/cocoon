@@ -46,8 +46,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       final Map<String, ExistingGithubIssue> nameToExistingIssue = await _getExistingGithubIssues(client);
       final Map<String, ExistingGithubPR> nameToExistingPR = await _getExistingGithubPRs(client);
       final Set<String> importantFlakes = _getImportantFlakes(nameToStats.values.toList(), _threshold);
-      // Makes sure every the important flake has an github issue and a pr to
-      // make the test flaky.
+      // Makes sure every important flake has an github issue and a pr to mark
+      // the test flaky.
       for (String builderName in importantFlakes) {
         await _updateFlakes(
           client: client,
@@ -182,6 +182,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     if (importantFlakes.isNotEmpty) {
       return importantFlakes;
     }
+    // No flake is above 2.0%.
     BuilderStats mostImportant;
     for (final BuilderStats stats in statsList) {
       if (mostImportant == null || mostImportant.flakyRate < stats.flakyRate) {
@@ -203,13 +204,13 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   }) async {
     // Don't create a new issue if there is a recent closed issue within
     // _kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
-    // down after the fixed is merged.
+    // down after the fix is merged.
     Issue issue;
     if (!existingIssues.containsKey(newStats.name) ||
         (existingIssues[newStats.name].issue.state == 'closed' &&
          existingIssues[newStats.name].issue.closedAt.difference(DateTime.now())> const Duration(days: _kGracePeriodForClosedFlake))) {
       if (!isImportant) {
-        throw 'This handler should only create new issue for important flake, something went wrong!';
+        throw 'This handler should only create new issues for important flakes, something went wrong!';
       }
       issue = await _fileNewIssue(
         stats: newStats,
@@ -307,8 +308,6 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       // Already marked as flaky.
       return;
     }
-    // await client.repositories.deleteRepository(config.flutterflakybotSlug);
-    // await client.repositories.createFork(RepositorySlug('flutter', 'flutter'));
     final String modifiedContent = _marksBuildFlakyInContent(contentRaw, stats.name);
     final String ref = _generateNewRef();
     final GitReference masterRef = await client.git.getReference(config.flutterSlug, _masterRefs);
@@ -339,7 +338,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         committer: commitUser,
       ),
     );
-    final GitReference changeRef = await client.git.createReference(config.flutterflakybotSlug, ref, commit.sha);
+    await client.git.createReference(config.flutterflakybotSlug, ref, commit.sha);
     final PullRequest pr = await client.pullRequests.create(
       config.flutterSlug,
       CreatePullRequest(
