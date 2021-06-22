@@ -2,8 +2,8 @@ enabled_branches:
   - master
 
 targets:
-  - name: Cocoon
-    builder: Cocoon
+  - name: Linux Cocoon
+    builder: Linux Cocoon
     postsubmit: false
     recipe: cocoon/cocoon
     scheduler: luci
