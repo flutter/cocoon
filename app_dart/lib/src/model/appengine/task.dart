@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_scheduler/scheduler.dart' as pb;
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../service/luci.dart';
+import '../proto/internal/scheduler.pb.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -74,7 +74,7 @@ class Task extends Model<int> {
   /// Construct [Task] from a [Target].
   factory Task.fromTarget({
     @required Commit commit,
-    @required pb.Target target,
+    @required Target target,
   }) {
     assert(commit != null);
     assert(target != null);
@@ -285,8 +285,8 @@ class Task extends Model<int> {
   }
 }
 
-Iterable<Task> targetsToTask(Commit commit, List<pb.Target> targets) =>
-    targets.map((pb.Target target) => Task.fromTarget(commit: commit, target: target));
+Iterable<Task> targetsToTask(Commit commit, List<Target> targets) =>
+    targets.map((Target target) => Task.fromTarget(commit: commit, target: target));
 
 /// The serialized representation of a [Task].
 // TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.
