@@ -73,7 +73,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           status = GithubBuildStatusUpdate.statusFailure;
         }
       }
-
       await _insertBigquery(slug, status, branch, log, config);
       final DatastoreService datastore = datastoreProvider(config.db);
       await _updatePRs(slug, status, datastore);
