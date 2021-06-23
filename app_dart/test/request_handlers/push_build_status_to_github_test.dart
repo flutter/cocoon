@@ -2,17 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/github_build_status_update.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -21,235 +18,255 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
-import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  group('PushBuildStatusToGithub', () {
+  group('PushStatusToGithub', () {
     FakeConfig config;
+    FakeDatastoreDB db;
+    ApiRequestHandlerTester tester;
     FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
-    FakeAuthenticationProvider auth;
-    FakeDatastoreDB db;
-    FakeLogging log;
-    FakeBuildStatusService buildStatusService;
-    ApiRequestHandlerTester tester;
-    PushBuildStatusToGithub handler;
     FakeTabledataResourceApi tabledataResourceApi;
-    FakeHttpClient branchHttpClient;
-    List<int> githubPullRequestsMaster;
-    List<int> githubPullRequestsOther;
+    MockLuciService mockLuciService;
+    PushBuildStatusToGithub handler;
+    MockGitHub github;
+    MockPullRequestsService pullRequestsService;
+    MockIssuesService issuesService;
     MockRepositoriesService repositoriesService;
+    List<PullRequest> prsFromGitHub;
     FakeGithubService githubService;
+    MockLuciBuildService mockLuciBuildService;
 
-    List<PullRequest> pullRequestList(String branch) {
-      final List<PullRequest> pullRequests = <PullRequest>[];
-      for (int pr in (branch == 'master') ? githubPullRequestsMaster : githubPullRequestsOther) {
-        pullRequests.add(PullRequest()
-          ..number = pr
-          ..head = (PullRequestHead()..sha = pr.toString()));
-      }
-      return pullRequests;
+    PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
+      return PullRequest()
+        ..number = 123
+        ..head = (PullRequestHead()..sha = 'abc')
+        ..base = (PullRequestHead()..ref = baseRef)
+        ..draft = draft;
     }
 
-    List<PullRequest> enginePullRequestList() {
-      final List<PullRequest> pullRequests = <PullRequest>[];
-      for (int pr in githubPullRequestsOther) {
-        pullRequests.add(PullRequest()
-          ..number = pr
-          ..head = (PullRequestHead()..sha = pr.toString()));
-      }
-      return pullRequests;
+    GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
+      return GithubBuildStatusUpdate(
+        key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
+        status: status.githubStatus,
+        pr: pr.number,
+        head: pr.head.sha,
+        updates: 0,
+      );
     }
 
     setUp(() {
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
-      auth = FakeAuthenticationProvider(clientContext: clientContext);
-      buildStatusService = FakeBuildStatusService();
-      tabledataResourceApi = FakeTabledataResourceApi();
-      branchHttpClient = FakeHttpClient();
+      clientContext.isDevelopmentEnvironment = false;
       githubService = FakeGithubService();
+      tabledataResourceApi = FakeTabledataResourceApi();
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
-      log = FakeLogging();
+      github = MockGitHub();
+      pullRequestsService = MockPullRequestsService();
+      issuesService = MockIssuesService();
+      repositoriesService = MockRepositoriesService();
+      mockLuciBuildService = MockLuciBuildService();
+      config = FakeConfig(
+        tabledataResourceApi: tabledataResourceApi,
+        githubService: githubService,
+        dbValue: db,
+        githubClient: github,
+      );
       tester = ApiRequestHandlerTester(context: authContext);
+      mockLuciService = MockLuciService();
       handler = PushBuildStatusToGithub(
         config,
-        auth,
+        FakeAuthenticationProvider(clientContext: clientContext),
+        mockLuciBuildService,
+        luciServiceProvider: (_) => mockLuciService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        loggingProvider: () => log,
-        buildStatusServiceProvider: (_) => buildStatusService,
-        branchHttpClientProvider: () => branchHttpClient,
-        gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        scheduler: FakeScheduler(config: config),
       );
 
-      githubPullRequestsMaster = <int>[];
-      githubPullRequestsOther = <int>[];
-      githubService.listPullRequestsBranch = (String branch) {
-        return pullRequestList(branch);
-      };
-
-      repositoriesService = MockRepositoriesService();
-      when(githubService.github.repositories).thenReturn(repositoriesService);
+      when(github.pullRequests).thenReturn(pullRequestsService);
+      when(github.issues).thenReturn(issuesService);
+      when(github.repositories).thenReturn(repositoriesService);
+      when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
+        return Stream<PullRequest>.fromIterable(prsFromGitHub);
+      });
+      when(repositoriesService.createStatus(any, any, any)).thenAnswer(
+        (_) => Future<RepositoryStatus>.value(),
+      );
     });
 
-    group('in development environment', () {
-      setUp(() {
-        clientContext.isDevelopmentEnvironment = true;
-      });
+    test('Update status in datastore - success to failure', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
 
-      test('Does nothing', () async {
-        config.githubClient = ThrowingGitHub();
-        db.onCommit =
-            (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
-        db.addOnQuery<GithubBuildStatusUpdate>((Iterable<GithubBuildStatusUpdate> results) {
-          throw AssertionError();
-        });
-        final Body body = await tester.get<Body>(handler);
-        expect(body, same(Body.empty));
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
+      config.db.values[status.key] = status;
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1, builderName: 'abc')
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
+      expect(status.status, 'success');
+      await tester.get(handler);
+      expect(status.status, 'failure');
+      expect(status.updateTimeMillis, isNotNull);
     });
 
-    group('in non-development environment', () {
-      setUp(() {
-        clientContext.isDevelopmentEnvironment = false;
+    test('update engine status in datastore for infra failure - success to failure', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
+      config.db.values[status.key] = status;
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusInfraFailure,
+              buildNumber: 1,
+              builderName: 'abc')
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
-      GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
-        return GithubBuildStatusUpdate(
-          key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
-          status: status.githubStatus,
-          pr: pr.number,
-          head: pr.head.sha,
-          updates: 0,
-        );
-      }
+      expect(status.status, 'success');
+      await tester.get(handler);
+      expect(status.status, 'failure');
+      expect(status.updateTimeMillis, isNotNull);
+    });
 
-      PullRequest newPullRequest({@required int id, @required String sha}) {
-        return PullRequest()
-          ..number = id
-          ..head = (PullRequestHead()..sha = sha);
-      }
+    test('update engine status in datastore with - failure to success', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
 
-      group('does not update anything', () {
-        setUp(() {
-          db.onCommit =
-              (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
-          when(repositoriesService.createStatus(any, any, any)).thenThrow(AssertionError());
-        });
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
-        test('if there are no PRs', () async {
-          config.flutterBranchesValue = <String>['master'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final Body body = await tester.get<Body>(handler);
-          final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
-          expect(body, same(Body.empty));
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+      config.db.values[status.key] = status;
 
-          /// Test for [BigQuery] insert
-          expect(tableDataList.totalRows, '1');
-        });
-
-        test('if status has not changed since last update', () async {
-          githubPullRequestsMaster = <int>[1];
-          final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          config.flutterBranchesValue = <String>['master'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
-          db.values[status.key] = status;
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
-
-        test('if there is no pr found for a targeted branch', () async {
-          githubPullRequestsMaster = <int>[1];
-          final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final GithubBuildStatusUpdate status =
-              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_task_1']));
-          db.values[status.key] = status;
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 0);
-          expect(status.status, BuildStatus.failure().githubStatus);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc')
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
-      group('updates GitHub and datastore', () {
-        test('if status has changed since last update', () async {
-          githubPullRequestsOther = <int>[1];
-          final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final GithubBuildStatusUpdate status =
-              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
-          db.values[status.key] = status;
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.updateTimeMillis, isNotNull);
-          expect(status.status, BuildStatus.success().githubStatus);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
+      expect(status.status, 'failure');
+      await tester.get(handler);
+      expect(status.status, 'success');
+      expect(status.updateTimeMillis, isNotNull);
+    });
 
-        test('if engine status has changed since last update', () async {
-          githubService.listPullRequestsBranch = (String branch) {
-            return enginePullRequestList();
-          };
-          githubPullRequestsOther = <int>[1];
-          final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          config.flutterBranchesValue = <String>['master'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final GithubBuildStatusUpdate status =
-              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
-          db.values[status.key] = status;
-          tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-            'repo': 'engine',
-          });
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.updateTimeMillis, isNotNull);
-          expect(status.status, BuildStatus.success().githubStatus);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
+    test('update engine status in datastore with - with several tasks', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
 
-        test('update if statuses have changed since last update - multiple branches', () async {
-          githubPullRequestsMaster = <int>[11111];
-          githubPullRequestsOther = <int>[22222];
-          final PullRequest prMaster = newPullRequest(id: 11111, sha: 'abcd');
-          final PullRequest prOther = newPullRequest(id: 22222, sha: 'efgh');
-          config.flutterBranchesValue = <String>['flutter-0.0-candidate.0', 'master'];
-          buildStatusService.cumulativeStatus = BuildStatus.success();
-          final GithubBuildStatusUpdate statusOther =
-              newStatusUpdate(prOther, BuildStatus.failure(const <String>['failed_test_1']));
-          db.values[statusOther.key] = statusOther;
-          final GithubBuildStatusUpdate statusMaster =
-              newStatusUpdate(prMaster, BuildStatus.failure(const <String>['failed_test_1']));
-          db.values[statusMaster.key] = statusMaster;
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(statusMaster.updates, 1);
-          expect(statusOther.updates, 1);
-          expect(statusMaster.status, BuildStatus.success().githubStatus);
-          expect(statusOther.status, BuildStatus.success().githubStatus);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
+
+      config.db.values[status.key] = status;
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc'),
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusFailed,
+              buildNumber: 2,
+              builderName: 'abc'),
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 3,
+              builderName: 'efg'),
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
+
+      expect(status.status, 'failure');
+      await tester.get(handler);
+      // Last build is successful.
+      expect(status.status, 'success');
+      expect(status.updateTimeMillis, isNotNull);
+    });
+
+    test('non master tasks are ignored', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
+
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
+
+      config.db.values[status.key] = status;
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/dev',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc'),
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
+      });
+
+      expect(status.status, 'success');
+      await tester.get(handler);
+      // Because the task was ignored and we didn't have an update report a failure status.
+      expect(status.status, 'failure');
+      expect(status.updateTimeMillis, isNotNull);
     });
   });
 }
+
+// ignore: must_be_immutable
+class MockLuciService extends Mock implements LuciService {}
+
+class MockIssuesService extends Mock implements IssuesService {}
+
+class MockPullRequestsService extends Mock implements PullRequestsService {}
+
+class MockRepositoriesService extends Mock implements RepositoriesService {}
