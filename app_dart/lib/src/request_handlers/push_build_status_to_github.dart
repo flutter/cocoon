@@ -64,25 +64,23 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
 
-    for (String branch in await config.getSupportedBranches(slug)) {
-      final Commit tipOfTreeCommit = Commit(sha: branch, repository: slug.fullName);
-      final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(tipOfTreeCommit);
-      final List<LuciBuilder> postsubmitBuilders =
-          await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
-      final LuciService luciService = luciServiceProvider(this);
-      final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
+    final Commit tipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
+    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(tipOfTreeCommit);
+    final List<LuciBuilder> postsubmitBuilders =
+        await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    final LuciService luciService = luciServiceProvider(this);
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 
-      String status = GithubBuildStatusUpdate.statusSuccess;
-      for (List<LuciTask> tasks in luciTasks.values) {
-        final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
-        if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
-          status = GithubBuildStatusUpdate.statusFailure;
-        }
+    String status = GithubBuildStatusUpdate.statusSuccess;
+    for (List<LuciTask> tasks in luciTasks.values) {
+      final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
+      if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
+        status = GithubBuildStatusUpdate.statusFailure;
       }
-      await _insertBigquery(slug, status, branch, log, config);
-      await _updatePRs(slug, status, datastore);
-      log.debug('All the PRs for $repo have been updated with $status');
     }
+    await _insertBigquery(slug, status, config.defaultBranch, log, config);
+    await _updatePRs(slug, status, datastore);
+    log.debug('All the PRs for $repo have been updated with $status');
 
     return Body.empty;
   }
