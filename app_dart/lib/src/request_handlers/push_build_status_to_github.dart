@@ -12,11 +12,11 @@ import '../../cocoon_service.dart';
 import '../../src/service/luci.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
-import '../model/appengine/task.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 
@@ -29,12 +29,15 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     this.scheduler,
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    @visibleForTesting BuildStatusServiceProvider buildStatusServiceProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
         datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciBuildService luciBuildService;
   final LuciServiceProvider luciServiceProvider;
+  final BuildStatusServiceProvider buildStatusServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
   static const String fullNameRepoParam = 'repo';
@@ -54,9 +57,12 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
     luciBuildService.setLogger(log);
+    scheduler.setLogger(log);
 
     final String repo = request.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
     final RepositorySlug slug = RepositorySlug.full(repo);
+    final DatastoreService datastore = datastoreProvider(config.db);
+    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
 
     for (String branch in await config.getSupportedBranches(slug)) {
       final Commit tipOfTreeCommit = Commit(sha: branch, repository: slug.fullName);
@@ -68,13 +74,12 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
       String status = GithubBuildStatusUpdate.statusSuccess;
       for (List<LuciTask> tasks in luciTasks.values) {
-        final String latestStatus = await _getLatestStatus(tasks);
+        final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
         if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
           status = GithubBuildStatusUpdate.statusFailure;
         }
       }
       await _insertBigquery(slug, status, branch, log, config);
-      final DatastoreService datastore = datastoreProvider(config.db);
       await _updatePRs(slug, status, datastore);
       log.debug('All the PRs for $repo have been updated with $status');
     }
@@ -107,29 +112,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     await datastore.insert(updates);
-  }
-
-  /// This function gets called with the last 40 builds fo a given builder ordered
-  /// by creation time starting with the last one first.
-  Future<String> _getLatestStatus(List<LuciTask> tasks) async {
-    for (LuciTask task in tasks) {
-      if (task.ref != 'refs/heads/master') {
-        log.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
-        continue;
-      }
-      switch (task.status) {
-        case Task.statusFailed:
-        case Task.statusInfraFailure:
-          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
-          return GithubBuildStatusUpdate.statusFailure;
-        case Task.statusSucceeded:
-          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
-          return GithubBuildStatusUpdate.statusSuccess;
-      }
-    }
-    // No state means we don't have a state for the last 40 commits which should
-    // close the tree.
-    return GithubBuildStatusUpdate.statusFailure;
   }
 
   Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Logging log, Config config) async {
