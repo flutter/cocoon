@@ -502,7 +502,7 @@ class LuciBuildService {
       log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
       final Map<String, List<String>> tags = <String, List<String>>{
         'triggered_by': <String>['cocoon'],
-        'trigger_type': <String>['auto'],
+        'trigger_type': <String>['retry'],
       };
       await rescheduleProdBuild(
         commitSha: commit.sha,
