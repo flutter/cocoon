@@ -6,122 +6,120 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
-import '../foundation/utils.dart';
+import '../../cocoon_service.dart';
+import '../../src/service/luci.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
+import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
-import '../service/github_service.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   const PushBuildStatusToGithub(
     Config config,
-    AuthenticationProvider authenticationProvider, {
+    AuthenticationProvider authenticationProvider,
+    this.luciBuildService, {
+    this.scheduler,
+    @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-    @visibleForTesting LoggingProvider loggingProvider,
     @visibleForTesting BuildStatusServiceProvider buildStatusServiceProvider,
-    @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
+  })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
+        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
-        assert(branchHttpClientProvider != null),
-        assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
-  final DatastoreServiceProvider datastoreProvider;
-  final LoggingProvider loggingProvider;
+  final LuciBuildService luciBuildService;
+  final LuciServiceProvider luciServiceProvider;
   final BuildStatusServiceProvider buildStatusServiceProvider;
-  final HttpClientProvider branchHttpClientProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
+  final DatastoreServiceProvider datastoreProvider;
+  final Scheduler scheduler;
+  static const String fullNameRepoParam = 'repo';
+
+  static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
+    return LuciService(
+      buildBucketClient: BuildBucketClient(),
+      config: handler.config,
+      clientContext: handler.authContext.clientContext,
+    );
+  }
 
   @override
   Future<Body> get() async {
-    final Logging log = loggingProvider();
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
-    final RepositorySlug slug = config.flutterSlug;
-    final GithubService githubService = await config.createGithubService(slug);
-
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
     }
+    luciBuildService.setLogger(log);
+    scheduler.setLogger(log);
 
-    // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
-    for (String branch in await config.flutterBranches) {
-      final BuildStatus buildStatus = await buildStatusService.calculateCumulativeStatus(branch: branch);
-      final GitHub github = githubService.github;
-      final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-      log.debug('Computed build result of $buildStatus');
-      // Insert build status to bigquery.
-      await _insertBigquery(buildStatus, branch);
-      final List<PullRequest> pullRequests = await githubService.listPullRequests(slug, branch);
-      for (PullRequest pr in pullRequests) {
-        final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
-        if (update.status != buildStatus.githubStatus) {
-          log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
-          final CreateStatus request = CreateStatus(buildStatus.githubStatus);
-          request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build';
-          request.context = config.flutterBuild;
-          if (!buildStatus.succeeded) {
-            request.description = config.flutterBuildDescription;
-          }
+    final String repo = request.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
+    final RepositorySlug slug = RepositorySlug.full(repo);
+    final DatastoreService datastore = datastoreProvider(config.db);
+    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
 
-          try {
-            await github.repositories.createStatus(slug, pr.head.sha, request);
-            update.status = buildStatus.githubStatus;
-            update.updates += 1;
-            update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
-            updates.add(update);
-          } catch (error) {
-            log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
-          }
-        }
+    final Commit tipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
+    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(tipOfTreeCommit);
+    final List<LuciBuilder> postsubmitBuilders =
+        await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    final LuciService luciService = luciServiceProvider(this);
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
+
+    String status = GithubBuildStatusUpdate.statusSuccess;
+    for (List<LuciTask> tasks in luciTasks.values) {
+      final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
+      if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
+        status = GithubBuildStatusUpdate.statusFailure;
       }
-
-      /// Whenever github status is updated, [update.updates] will be synchronized in
-      /// datastore [GithubBuildStatusUpdate].
-      await datastore.insert(updates);
-      log.debug('Committed all updates');
     }
+    await _insertBigquery(slug, status, config.defaultBranch, log, config);
+    await _updatePRs(slug, status, datastore);
+    log.debug('All the PRs for $repo have been updated with $status');
 
     return Body.empty;
   }
 
-  Future<void> _insertBigquery(BuildStatus buildStatus, String branch) async {
-    // Define const variables for [BigQuery] operations.
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'BuildStatus';
-
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
-
-    requestRows.add(<String, Object>{
-      'json': <String, Object>{
-        'Timestamp': DateTime.now().millisecondsSinceEpoch,
-        'Status': buildStatus.value,
-        'Branch': branch,
-      },
-    });
-
-    // Obtain [rows] to be inserted to [BigQuery].
-    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
-
-    try {
-      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } on ApiRequestError {
-      log.warning('Failed to add build status to BigQuery: $ApiRequestError');
+  Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
+    final GitHub github = await config.createGitHubClient(slug);
+    final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
+    await for (PullRequest pr in github.pullRequests.list(slug)) {
+      final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
+      if (update.status != status) {
+        log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
+        final CreateStatus request = CreateStatus(status);
+        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/engine/console';
+        request.context = 'luci-${slug.name}';
+        if (status != GithubBuildStatusUpdate.statusSuccess) {
+          request.description = config.flutterBuildDescription;
+        }
+        try {
+          await github.repositories.createStatus(slug, pr.head.sha, request);
+          update.status = status;
+          update.updates += 1;
+          update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
+          updates.add(update);
+        } catch (error) {
+          log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+        }
+      }
     }
+    await datastore.insert(updates);
+  }
+
+  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Logging log, Config config) async {
+    const String bigqueryTableName = 'BuildStatus';
+    final Map<String, dynamic> bigqueryData = <String, dynamic>{
+      'Timestamp': DateTime.now().millisecondsSinceEpoch,
+      'Status': status,
+      'Branch': branch,
+      'Repo': slug.name,
+    };
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
   }
 }

@@ -4,8 +4,10 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:meta/meta.dart';
 
+import '../../src/service/luci.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
@@ -120,6 +122,31 @@ class BuildStatusService {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
+  }
+
+  /// This function gets called with the last 40 builds fo a given builder ordered
+  /// by creation time starting with the last one first. [tasks] has a list of tasks
+  /// retrieved from BuildBucket using RPCs and [log] is the AppEngine logger to be
+  /// able to logging messages.
+  Future<String> latestLUCIStatus(List<LuciTask> tasks, Logging log) async {
+    for (LuciTask task in tasks) {
+      if (task.ref != 'refs/heads/master') {
+        log.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+        continue;
+      }
+      switch (task.status) {
+        case Task.statusFailed:
+        case Task.statusInfraFailure:
+          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          return GithubBuildStatusUpdate.statusFailure;
+        case Task.statusSucceeded:
+          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          return GithubBuildStatusUpdate.statusSuccess;
+      }
+    }
+    // No state means we don't have a state for the last 40 commits which should
+    // close the tree.
+    return GithubBuildStatusUpdate.statusFailure;
   }
 
   bool _isFailed(Task task) {
