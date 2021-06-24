@@ -966,8 +966,8 @@ class StatusHelper {
 
   static const StatusHelper cirrusSuccess = StatusHelper('Cirrus CI', 'SUCCESS');
   static const StatusHelper cirrusFailure = StatusHelper('Cirrus CI', 'FAILURE');
-  static const StatusHelper flutterBuildSuccess = StatusHelper('flutter-build', 'SUCCESS');
-  static const StatusHelper flutterBuildFailure = StatusHelper('flutter-build', 'FAILURE');
+  static const StatusHelper flutterBuildSuccess = StatusHelper('luci-flutter', 'SUCCESS');
+  static const StatusHelper flutterBuildFailure = StatusHelper('luci-flutter', 'FAILURE');
   static const StatusHelper otherStatusFailure = StatusHelper('other status', 'FAILURE');
   static const StatusHelper luciEngineBuildSuccess = StatusHelper('luci-engine', 'SUCCESS');
   static const StatusHelper luciEngineBuildFailure = StatusHelper('luci-engine', 'FAILURE');

@@ -262,7 +262,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     // The status checks that are not related to changes in this PR.
     const Set<String> notInAuthorsControl = <String>{
-      'flutter-build', // flutter repo
+      'luci-flutter', // flutter repo
       'luci-engine', // engine repo
       'submit-queue', // plugins repo
     };
