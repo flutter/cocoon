@@ -500,10 +500,15 @@ class LuciBuildService {
   }) async {
     if (await _shouldRerunBuilder(luciTask, retries, commit, datastore)) {
       log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
+      final Map<String, List<String>> tags = <String, List<String>>{
+        'triggered_by': <String>['cocoon'],
+        'trigger_type': <String>['auto'],
+      };
       await rescheduleProdBuild(
         commitSha: commit.sha,
         builderName: luciTask.builderName,
         repo: repo,
+        tags: tags,
       );
       return true;
     }
