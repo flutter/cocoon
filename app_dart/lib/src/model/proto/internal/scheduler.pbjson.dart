@@ -15,12 +15,13 @@ const SchedulerSystem$json = const {
   '2': const [
     const {'1': 'cocoon', '2': 1},
     const {'1': 'luci', '2': 2},
+    const {'1': 'google_internal', '2': 3},
   ],
 };
 
 /// Descriptor for `SchedulerSystem`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List schedulerSystemDescriptor =
-    $convert.base64Decode('Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRAC');
+    $convert.base64Decode('Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRACEhMKD2dvb2dsZV9pbnRlcm5hbBAD');
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
 const SchedulerConfig$json = const {
   '1': 'SchedulerConfig',

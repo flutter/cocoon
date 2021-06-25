@@ -22,7 +22,7 @@ import '../service/datastore.dart';
 /// This handler requires (1) task identifier and (2) task status information.
 ///
 /// 1. Tasks are identified by:
-///  [gitBranchParam], [gitShaParam], [builderNameParam] (LUCI bots)
+///  [gitBranchParam], [gitShaParam], [builderNameParam]
 ///
 /// 2. Task status information
 ///  A. Required: [newStatusParam], either [Task.statusSucceeded] or [Task.statusFailed].
@@ -126,7 +126,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final List<Task> tasks = <Task>[];
     log.debug('Searching for task with builderName=$builderName');
     for (Task task in initialTasks) {
-      if (task.builderName == builderName) {
+      if (task.builderName == builderName || task.name == builderName) {
         tasks.add(task);
       }
     }
