@@ -513,7 +513,7 @@ void main() {
       ));
     });
 
-    test('Engine labels PRs, comment if no tests', () async {
+    test('Engine labels PRs, comment and labels if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
@@ -553,6 +553,12 @@ void main() {
         slug,
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['needs tests'],
       )).called(1);
     });
 

@@ -22,6 +22,7 @@ import '../service/scheduler.dart';
 const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
 
 final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
+final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -315,6 +316,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.issues.createComment(slug, pr.number, body);
+        await gitHubClient.issues.addLabelsToIssue(slug, pr.number, kNeedsTestsLabels);
       }
     }
   }
