@@ -47,14 +47,23 @@ class FakeScheduler extends Scheduler {
       schedulerConfig ?? _defaultConfig;
 }
 
-SchedulerConfig oneTargetConfig = SchedulerConfig(enabledBranches: <String>[
+SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
   'master'
 ], targets: <Target>[
   Target(
     bringup: false,
     name: 'Linux A',
     builder: 'Linux A',
+    scheduler: SchedulerSystem.luci,
     presubmit: true,
     postsubmit: true,
+  ),
+  Target(
+    bringup: false,
+    name: 'Google Internal Roll',
+    builder: 'Google Internal Roll',
+    presubmit: false,
+    postsubmit: true,
+    scheduler: SchedulerSystem.google_internal,
   ),
 ]);

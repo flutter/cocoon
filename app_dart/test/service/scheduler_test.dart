@@ -38,12 +38,18 @@ targets:
     builder: Linux A
     postsubmit: true
     presubmit: true
+    scheduler: luci
   - name: B
     builder: Linux B
     enabled_branches:
       - stable
     postsubmit: true
     presubmit: true
+    scheduler: luci
+  - name: Google Internal Roll
+    postsubmit: true
+    presubmit: false
+    scheduler: google_internal
 ''';
 
 void main() {
@@ -165,7 +171,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 5);
+        expect(db.values.values.whereType<Task>().length, 2 * 6);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -187,7 +193,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 5);
+        expect(db.values.values.whereType<Task>().length, 2 * 6);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -215,7 +221,7 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 5);
+        expect(db.values.values.whereType<Task>().length, 6);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -296,13 +302,21 @@ targets:
   - name: A
     builder: Linux A
     presubmit: true
+    scheduler: luci
   - name: B
     builder: Linux B
+    scheduler: luci
     enabled_branches:
       - stable
     presubmit: true
   - name: C
     builder: Linux C
+    scheduler: luci
+    enabled_branches:
+      - master
+    presubmit: true
+  - name: Google-internal roll
+    scheduler: google_internal
     enabled_branches:
       - master
     presubmit: true

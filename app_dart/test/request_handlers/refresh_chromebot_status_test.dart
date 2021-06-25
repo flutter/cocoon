@@ -301,7 +301,7 @@ void main() {
             buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        scheduler.schedulerConfig = oneTargetConfig;
+        scheduler.schedulerConfig = exampleConfig;
         final List<Target> targets = scheduler.getPostSubmitTargets(commit, await scheduler.getSchedulerConfig(commit));
         final List<LuciBuilder> builders =
             targets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();

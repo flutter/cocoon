@@ -227,8 +227,10 @@ class Scheduler {
     // 1. Get prod_builders.json builders
     final List<LuciBuilder> postsubmitBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
     // 2. Get ci.yaml builders (filter to only those that are relevant)
-    final List<Target> postsubmitTargets = schedulerConfig.targets.where((Target target) => target.postsubmit).toList();
-    final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitTargets);
+    final List<Target> postsubmitLuciTargets = schedulerConfig.targets
+        .where((Target target) => target.postsubmit && target.scheduler == SchedulerSystem.luci)
+        .toList();
+    final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitLuciTargets);
     postsubmitBuilders.addAll(filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
     return postsubmitBuilders;
   }
@@ -427,9 +429,10 @@ class Scheduler {
     );
     //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
-    final Iterable<Target> presubmitTargets = getPreSubmitTargets(commit, schedulerConfig);
+    final Iterable<Target> presubmitLuciTargets =
+        getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
     final Iterable<LuciBuilder> ciYamlBuilders =
-        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
+        presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
     builders.addAll(ciYamlBuilders);
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
