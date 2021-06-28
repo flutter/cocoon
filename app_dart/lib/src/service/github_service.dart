@@ -74,7 +74,7 @@ class GithubService {
     }).toList();
   }
 
-  /// List all pull requests in the repository.
+  /// List pull requests in the repository.
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) {
     ArgumentError.checkNotNull(slug);
     return github.pullRequests
@@ -127,7 +127,7 @@ class GithubService {
     );
   }
 
-  /// Assign a reviewer to the pull request in the repository.
+  /// Assigns a reviewer to the pull request in the repository.
   ///
   /// The `reviewer` contains the github login of the reviewer.
   Future<void> assignReviewer(
@@ -145,9 +145,9 @@ class GithubService {
     );
   }
 
-  /// Retrieve all issues from the repository
+  /// Retrieves issues from the repository.
   ///
-  /// Uses the `labels` to return the issues that contains the labels.
+  /// Uses the `labels` to return the issues that have the labels.
   ///
   /// The `state` can be set `open`, `closed, or `all`. If it is set to `open`,
   /// this method only returns issues that are currently open. If it is set to

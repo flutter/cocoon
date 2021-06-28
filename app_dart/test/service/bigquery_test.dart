@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';

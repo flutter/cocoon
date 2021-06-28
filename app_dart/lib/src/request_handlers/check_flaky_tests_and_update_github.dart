@@ -3,8 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
