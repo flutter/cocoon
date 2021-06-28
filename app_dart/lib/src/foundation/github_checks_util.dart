@@ -95,8 +95,9 @@ class GithubChecksUtil {
     Config cocoonConfig,
     github.RepositorySlug slug,
     String name,
-    String headSha,
-  ) async {
+    String headSha, {
+    github.CheckRunOutput output,
+  }) async {
     const RetryOptions r = RetryOptions(
       maxAttempts: 3,
       delayFactor: Duration(seconds: 2),
@@ -107,6 +108,7 @@ class GithubChecksUtil {
         slug,
         name,
         headSha,
+        output: output,
       );
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
@@ -115,13 +117,15 @@ class GithubChecksUtil {
     Config cocoonConfig,
     github.RepositorySlug slug,
     String name,
-    String headSha,
-  ) async {
+    String headSha, {
+    github.CheckRunOutput output,
+  }) async {
     final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
       slug,
       name: name,
       headSha: headSha,
+      output: output,
     );
   }
 }
