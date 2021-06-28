@@ -2,17 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert' show json;
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
 class GithubService {
-  const GithubService(this.github);
+  GithubService(this.github);
 
   final GitHub github;
   static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
-
+  static const String kRefsPrefix = 'refs/heads/';
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
   /// found and only the branched commit will be returned for now, though the
@@ -72,53 +73,132 @@ class GithubService {
     }).toList();
   }
 
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
+  /// List all pull requests in the repository.
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) {
     ArgumentError.checkNotNull(slug);
-    final PaginationHelper paginationHelper = PaginationHelper(github);
+    return github.pullRequests.list(slug,
+      base: branch,
+      direction: 'desc',
+      sort: 'created',
+      state: 'open',
+    ).toList();
+  }
 
-    final List<Map<String, dynamic>> pullRequests = <Map<String, dynamic>>[];
+  /// Creates a pull request against the `baseRef` in the `slug` repository.
+  ///
+  /// The `entries` contains the file changes in the created pull request. This
+  /// method creates a branch in the current user's forked repository to create
+  /// the pull request. The current user must have a forked repository from the
+  /// targeted slug, and the targeted slug must not be belong to current user.
+  Future<PullRequest> createPullRequest(
+    RepositorySlug slug, {
+    String title,
+    String body,
+    String commitMessage,
+    GitReference baseRef,
+    List<CreateGitTreeEntry> entries,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(title);
 
-    headers['Authorization'] = 'Bearer ${github.auth.token}';
-    await for (Response response in paginationHelper.fetchStreamed(
-      'GET',
-      '/repos/${slug.fullName}/pulls',
-      params: <String, dynamic>{
-        'base': branch,
-        'direction': 'desc',
-        'sort': 'created',
-        'state': 'open',
-      },
-      headers: headers,
-    )) {
-      pullRequests.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
-    }
+    final RepositorySlug clientSlug = await _getCurrentUserSlug(slug.name);
+    final GitTree tree = await github.git.createTree(clientSlug, CreateGitTree(entries, baseTree: baseRef.object.sha));
+    final CurrentUser currentUser = await _getCurrentUser();
+    final GitCommitUser commitUser = GitCommitUser(currentUser.name, currentUser.email, DateTime.now());
+    final GitCommit commit = await github.git.createCommit(
+      clientSlug,
+      CreateGitCommit(
+        commitMessage,
+        tree.sha,
+        parents: <String>[baseRef.object.sha],
+        author: commitUser,
+        committer: commitUser,
+      ),
+    );
+    final GitReference headRef = await github.git.createReference(clientSlug, '$kRefsPrefix${_generateNewRef()}', commit.sha);
+    return github.pullRequests.create(
+      slug,
+      CreatePullRequest(title, '${clientSlug.owner}:${headRef.ref}', baseRef.ref, body: body),
+    );
+  }
 
-    return pullRequests.map((dynamic commit) {
-      return PullRequest()
-        ..number = commit['number'] as int
-        ..head = (PullRequestHead()..sha = commit['head']['sha'] as String);
+  /// Assign a reviewer to the pull request in the repository.
+  ///
+  /// The `reviewer` contains the github login of the reviewer.
+  Future<void> assignReviewer(
+    RepositorySlug slug, {
+    int pullRequestNumber,
+    String reviewer,
+  }) async {
+    const JsonEncoder encoder = JsonEncoder();
+    await github.postJSON<Map<String, dynamic>, PullRequest>(
+      '/repos/${slug.fullName}/pulls/$pullRequestNumber/requested_reviewers',
+      convert: (Map<String, dynamic> i) => PullRequest.fromJson(i),
+      body: encoder.convert(<String, dynamic>{
+        'reviewers': <String>[reviewer],
+      }),
+    );
+  }
+
+  /// Retrieve all issues from the repository
+  ///
+  /// Uses the `labels` to return the issues that contains the labels.
+  ///
+  /// The `state` can be set `open`, `closed, or `all`. If it is set to `open`,
+  /// this method only returns issues that are currently open. If it is set to
+  /// `closed`, this method returns issues that are currently closed. The `all`
+  /// returns both closed and open issues. Defaults to `open`.
+  Future<List<Issue>> listIssues(
+    RepositorySlug slug, {
+    List<String> labels,
+    String state = 'open',
+  }) {
+    ArgumentError.checkNotNull(slug);
+    return github.issues.listByRepo(slug, labels: labels, state: state).toList();
+  }
+
+  Future<Issue> createIssue(
+    RepositorySlug slug, {
+    String title,
+    String body,
+    List<String> labels,
+    String assignee,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    return await github.issues.create(
+      slug,
+      IssueRequest(title: title, body: body, labels: labels, assignee: assignee),
+    );
+  }
+
+  /// Returns changed files of [slug] and [prNumber].
+  /// https://developer.github.com/v3/pulls/#list-pull-requests-files
+  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+    ArgumentError.checkNotNull(slug);
+    final List<PullRequestFile> files = await github.pullRequests.listFiles(slug, prNumber).toList();
+    return files.map((dynamic file) {
+      return file.filename as String;
     }).toList();
   }
 
-  // Returns changed files of [slug] and [prNumber].
-  // https://developer.github.com/v3/pulls/#list-pull-requests-files
-  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+  /// Gets the file content as UTF8 string of the file specified by the `path`
+  /// in the repository.
+  Future<String> getFileContent(RepositorySlug slug, String path) async {
     ArgumentError.checkNotNull(slug);
-    final PaginationHelper paginationHelper = PaginationHelper(github);
-    final List<Map<String, dynamic>> files = <Map<String, dynamic>>[];
-
-    headers['Authorization'] = 'Bearer ${github.auth.token}';
-    await for (Response response in paginationHelper.fetchStreamed(
-      'GET',
-      '/repos/${slug.fullName}/pulls/$prNumber/files',
-      headers: headers,
-    )) {
-      files.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
+    ArgumentError.checkNotNull(path);
+    final RepositoryContents contents = await github.repositories.getContents(slug, path);
+    if (!contents.isFile) {
+      throw 'The path $path should point to a file, but it is not!';
     }
+    final String content = utf8.decode(base64.decode(contents.file.content.replaceAll('\n', '')));
+    return content;
+  }
 
-    return files.map((dynamic file) {
-      return file['filename'] as String;
-    }).toList();
+  /// Gets the reference of a specific branch in the repository.
+  Future<GitReference> getReference(RepositorySlug slug, String ref) {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(ref);
+    return github.git.getReference(slug, ref);
   }
 
   /// Returns JSON of the current GitHub API quota usage.
@@ -127,5 +207,22 @@ class GithubService {
   ///
   /// Reference:
   ///   * https://docs.github.com/en/rest/reference/rate-limit
-  Future<RateLimit> getRateLimit() => MiscService(github).getRateLimit();
+  Future<RateLimit> getRateLimit() => github.misc.getRateLimit();
+
+  CurrentUser _currentUser;
+
+  Future<CurrentUser> _getCurrentUser() async {
+    _currentUser ??= await github.users.getCurrentUser();
+    return _currentUser;
+  }
+
+  Future<RepositorySlug> _getCurrentUserSlug(String repository) async {
+    return RepositorySlug((await _getCurrentUser()).login, repository);
+  }
+
+  String _generateNewRef() {
+    const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    final Random rnd = Random();
+    return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+  }
 }

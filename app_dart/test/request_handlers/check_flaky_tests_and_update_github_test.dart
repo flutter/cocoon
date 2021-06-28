@@ -5,9 +5,10 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +18,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/utilities/mocks.dart';
 
-import 'check_flaky_test_and_update_github_test_data.dart';
+import 'check_flaky_tests_and_update_github_test_data.dart';
 
 const String kThreshold = '0.02';
 const String kCurrentMasterSHA = 'b6156fc8d1c6e992fe4ea0b9128f9aef10443bdb';
@@ -33,7 +34,7 @@ void main() {
     FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    MockJobsResourceApi mockJobsResourceApi;
+    MockBigqueryService mockBigqueryService;
     MockGitHub mockGitHubClient;
     MockRepositoriesService mockRepositoriesService;
     MockPullRequestsService mockPullRequestsService;
@@ -50,7 +51,7 @@ void main() {
 
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
-      mockJobsResourceApi = MockJobsResourceApi();
+      mockBigqueryService = MockBigqueryService();
       mockGitHubClient = MockGitHub();
       mockRepositoriesService = MockRepositoriesService();
       mockIssuesService = MockIssuesService();
@@ -82,7 +83,10 @@ void main() {
       when(mockGitService.getReference(captureAny, CheckForFlakyTestAndUpdateGithub.kMasterRefs))
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
-          GitReference(object: GitObject('', kCurrentMasterSHA, '')),
+          GitReference(
+            ref: 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}',
+            object: GitObject('', kCurrentMasterSHA, '')
+          ),
         );
       });
       // when gets the current user.
@@ -99,8 +103,8 @@ void main() {
       when(mockGitHubClient.git).thenReturn(mockGitService);
       when(mockGitHubClient.users).thenReturn(mockUsersService);
       config = FakeConfig(
-        githubClient: mockGitHubClient,
-        jobsResourceApi: mockJobsResourceApi,
+        githubService: GithubService(mockGitHubClient),
+        bigqueryService: mockBigqueryService,
       );
       tester = ApiRequestHandlerTester(request: request);
 
@@ -110,26 +114,11 @@ void main() {
       );
     });
 
-    test('Can handle unsuccessful job query', () async {
-      // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(jobNotCompleteResponse) as Map<dynamic, dynamic>));
-      });
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
-      expect(result['Statuses'], 'job does not complete');
-    });
-
     test('Can file issue and pr', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // When creates issue
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
@@ -144,8 +133,8 @@ void main() {
         return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
       });
       // When creates git reference
-      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitReference>.value(GitReference());
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
@@ -211,18 +200,17 @@ void main() {
       final CreatePullRequest pr = captured[1] as CreatePullRequest;
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
-      expect(pr.head, '$kCurrentUserLogin:${ref.replaceFirst(CheckForFlakyTestAndUpdateGithub.kRefsPrefix, '')}');
-      expect(pr.base, 'master');
+      expect(pr.head, '$kCurrentUserLogin:$ref');
+      expect(pr.base, 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}');
 
       expect(result['Statuses'], 'success');
     });
 
     test('Do not create issue if there is already one', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
@@ -238,8 +226,8 @@ void main() {
         return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
       });
       // When creates git reference
-      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitReference>.value(GitReference());
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
@@ -256,10 +244,9 @@ void main() {
 
     test('Do not create issue if there is a recently closed one', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when get existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
@@ -282,8 +269,8 @@ void main() {
         return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
       });
       // When creates git reference
-      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitReference>.value(GitReference());
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
@@ -300,10 +287,9 @@ void main() {
 
     test('Do create issue if there is a closed one outside the grace period', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when get existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
@@ -326,8 +312,8 @@ void main() {
         return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
       });
       // When creates git reference
-      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitReference>.value(GitReference());
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
       });
       // When creates pr to mark test flaky
       when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
@@ -354,10 +340,9 @@ void main() {
 
     test('Do not create PR if the test is already flaky', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets the content of .ci.yaml
       when(mockRepositoriesService.getContents(captureAny, CheckForFlakyTestAndUpdateGithub.kCiYamlPath))
@@ -378,10 +363,9 @@ void main() {
 
     test('Do not create PR if there is already an opened one', () async {
       // When queries flaky data from BigQuery.
-      when(mockJobsResourceApi.query(captureAny, CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
-        return Future<QueryResponse>.value(
-            QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets existing marks flaky prs.
       when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {

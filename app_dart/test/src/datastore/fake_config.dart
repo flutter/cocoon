@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -39,8 +40,8 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
-    this.jobsResourceApi,
     this.githubService,
+    this.bigqueryService,
     this.githubGraphQLClient,
     this.cirrusGraphQLClient,
     this.metricsDestination,
@@ -67,7 +68,7 @@ class FakeConfig implements Config {
   GraphQLClient githubGraphQLClient;
   GraphQLClient cirrusGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
-  JobsResourceApi jobsResourceApi;
+  BigqueryService bigqueryService;
   GithubService githubService;
   FlutterDestination metricsDestination;
   FakeDatastoreDB dbValue;
@@ -108,7 +109,7 @@ class FakeConfig implements Config {
   Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
 
   @override
-  Future<GitHub> createGitHubClientWithToken(String token) async => githubClient;
+  GitHub createGitHubClientWithToken(String token) => githubClient;
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
@@ -120,10 +121,13 @@ class FakeConfig implements Config {
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
-  Future<JobsResourceApi> createJobsResourceApi() async => jobsResourceApi;
+  Future<BigqueryService> createBigQueryService() async => bigqueryService;
 
   @override
   Future<GithubService> createGithubService(RepositorySlug slug) async => githubService;
+
+  @override
+  GithubService createGithubServiceWithToken(String token) => githubService;
 
   @override
   Future<FlutterDestination> createMetricsDestination() async => metricsDestination;

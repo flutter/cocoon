@@ -6,28 +6,10 @@ import 'dart:core';
 
 import 'package:github/github.dart';
 
+import '../service/bigquery.dart';
+
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
-
-const String getFlakyRateQuery = r'''
-select builder_name,
-       sum(is_flaky) as flaky_number,
-       count(*) as total_number,
-       string_agg(case when is_flaky = 1 then failed_builds end, ', ') as failed_builds,
-       string_agg(succeeded_builds, ', ') as succeeded_builds,
-       array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
-       array_agg(case when is_flaky = 1 then failed_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as failure_of_recent_flaky_commit,
-       sum(is_flaky)/count(*) as flaky_ratio
-from `flutter-dashboard.datasite.luci_prod_build_status`
-where date>=date_sub(current_date(), interval 14 day) and
-      date<=current_date() and
-      builder_name not like '%Drone' and
-      repo='flutter' and
-      branch='master' and
-      pool = 'luci.flutter.prod' and
-      builder_name not like '%Beta%'
-group by builder_name;
-''';
 
 // Issue
 const String kCloseIssueComment = '''
@@ -43,18 +25,18 @@ const String kP2Label = 'P2';
 
 class IssueBuilder {
   IssueBuilder({
-    this.stats,
+    this.statistic,
     this.threshold,
     this.isImportant,
   });
 
-  final BuilderStats stats;
+  final BuilderStatistic statistic;
   final double threshold;
   final bool isImportant;
   static final RegExp issueTitleRegex = RegExp(r'(?<name>.+) is (?<rate>.+)% flaky');
 
   String get issueTitle {
-    return '${stats.name} is ${_formatRate(stats.flakyRate)}% flaky';
+    return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
   }
 
   String get issueBody {
@@ -71,7 +53,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 ''';
   }
 
-  bool get isBelow => stats.flakyRate < threshold;
+  bool get isBelow => statistic.flakyRate < threshold;
 
   List<String> get issueLabels {
     return <String>[
@@ -85,21 +67,21 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
   String get _issueSummary {
     return '''
 <!-- summary-->
-The post-submit test builder `${stats.name}` had a flaky ratio ${_formatRate(stats.flakyRate)}% for the past 15 days, ${isBelow ? 'which is the flakist test below ${_formatRate(threshold)}% threshold' : 'which is above our ${_formatRate(threshold)}% threshold'}.
+The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, ${isBelow ? 'which is the flakist test below ${_formatRate(threshold)}% threshold' : 'which is above our ${_formatRate(threshold)}% threshold'}.
 <!-- /summary-->
     ''';
   }
 
   String get _issueFailedBuildOfCommit {
-    return '<!-- failedBuildOfCommit-->${_issueBuildLink(builder: stats.name, build: stats.failedBuildOfRecentCommit)}<!-- /failedBuildOfCommit-->';
+    return '<!-- failedBuildOfCommit-->${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}<!-- /failedBuildOfCommit-->';
   }
 
-  String get _issueCommit => '<!-- commit-->$_commitPrefix${stats.recentCommit}<!-- /commit-->';
+  String get _issueCommit => '<!-- commit-->$_commitPrefix${statistic.recentCommit}<!-- /commit-->';
 
   String get _issueFailedBuilds {
     return '''
 <!-- failedBuilds-->
-${_issueBuildLinks(builder: stats.name, builds: stats.failedBuilds)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
 <!-- /failedBuilds-->
     ''';
   }
@@ -107,7 +89,7 @@ ${_issueBuildLinks(builder: stats.name, builds: stats.failedBuilds)}
   String get _issueSucceededBuilds {
     return '''
 <!-- succeededBuilds-->
-${_issueBuildLinks(builder: stats.name, builds: stats.succeededBuilds.sublist(0, 3))}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
 <!-- /succeededBuilds-->
     ''';
   }
@@ -126,35 +108,15 @@ String _issueBuildLink({String builder, String build}) {
 // Pull Request
 class PullRequestBuilder {
   PullRequestBuilder({
-    this.stats,
+    this.statistic,
     this.issue,
   });
 
-  final BuilderStats stats;
+  final BuilderStatistic statistic;
   final Issue issue;
 
-  String get pullRequestTitle => 'Marks ${stats.name} to be flaky';
+  String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
   String get pullRequestBody => 'Issue link: ${issue.htmlUrl}';
 }
 
 final RegExp pullRequestTitleRegex = RegExp(r'Marks (?<name>.+) to be flaky');
-
-class BuilderStats {
-  BuilderStats({
-    this.name,
-    this.flakyRate,
-    this.failedBuilds,
-    this.succeededBuilds,
-    this.recentCommit,
-    this.failedBuildOfRecentCommit,
-    this.testOwner,
-  });
-
-  final String name;
-  final double flakyRate;
-  final List<String> failedBuilds;
-  final List<String> succeededBuilds;
-  final String recentCommit;
-  final String failedBuildOfRecentCommit;
-  final String testOwner;
-}

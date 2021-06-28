@@ -302,7 +302,7 @@ class Config {
     return createGitHubClientWithToken(githubToken);
   }
 
-  Future<GitHub> createGitHubClientWithToken(String token) async {
+  GitHub createGitHubClientWithToken(String token) {
     return GitHub(auth: Authentication.withToken(token));
   }
 
@@ -338,14 +338,13 @@ class Config {
     );
   }
 
-  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+  Future<BigqueryService> createBigQueryService() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
-    return await BigqueryService(accessClientProvider).defaultTabledata();
+    return BigqueryService(accessClientProvider);
   }
 
-  Future<bigquery.JobsResourceApi> createJobsResourceApi() async {
-    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
-    return await BigqueryService(accessClientProvider).defaultJobs();
+  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+    return (await createBigQueryService()).defaultTabledata();
   }
 
   /// Default GitHub service when the repository does not matter.
@@ -357,6 +356,11 @@ class Config {
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGitHubClient(slug);
+    return GithubService(github);
+  }
+
+  GithubService createGithubServiceWithToken(String token) {
+    final GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);
   }
 

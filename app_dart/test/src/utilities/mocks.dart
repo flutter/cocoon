@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -25,6 +26,8 @@ class MockGithubService extends Mock implements GithubService {}
 class MockRepositoriesService extends Mock implements RepositoriesService {}
 
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}
+
+class MockBigqueryService extends Mock implements BigqueryService {}
 
 class MockJobsResourceApi extends Mock implements JobsResourceApi {}
 

@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/bigquery.dart';
+
 const String ciYamlContent = '''
 # Describes the targets run in continuous integration environment.
 #
@@ -67,24 +69,16 @@ const String expectedSemanticsIntegrationTestNewIssueURL = 'https://something.so
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
 
-const String semanticsIntegrationTestResponse = '''
-{
-  "jobComplete" : true,
-  "rows": [
-    { "f": [
-        { "v": "Mac_android android_semantics_integration_test"},
-        { "v": "1" },
-        { "v": "2" },
-        { "v": "101, 102, 103" },
-        { "v": "201, 202, 203" },
-        { "v": "abc" },
-        { "v": "103" },
-        { "v": "0.5"}
-      ]
-    }
-  ]
-}
-''';
+final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    failedBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    failedBuildOfRecentCommit: '103',
+  )
+];
 
 const String expectedSemanticsIntegrationTestResponseTitle =
     'Mac_android android_semantics_integration_test is 50.00% flaky';
