@@ -62,10 +62,12 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
 7. Add a target to `.ci.yaml`
 ```yaml
 # .ci.yaml
+# Name is an arbitrary string that will show on the build dashboard
 - name: my_external_test_a
   # External tests should not block the tree
   bringup: true
   presubmit: false
+  # Scheduler must match what was added to scheduler.proto (any unique name works)
   scheduler: my_external_location
 ```
 9. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
