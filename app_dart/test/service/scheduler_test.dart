@@ -339,8 +339,26 @@ targets:
           slug: config.flutterSlug,
           commitSha: 'abc',
         );
-        expect(verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc')).captured,
-            <dynamic>['ci.yaml validation', 'Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
+        expect(
+          verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc', output: captureAnyNamed('output')))
+              .captured,
+          <dynamic>[
+            'ci.yaml validation',
+            const CheckRunOutput(
+                title: '.ci.yaml validation',
+                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+            'Linux',
+            null,
+            'Mac',
+            null,
+            'Windows',
+            null,
+            'Linux Coverage',
+            null,
+            'Linux A',
+            null,
+          ],
+        );
       });
 
       test('ci.yaml validation passes with default config', () async {

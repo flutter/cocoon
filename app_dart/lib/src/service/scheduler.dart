@@ -335,6 +335,10 @@ class Scheduler {
       slug,
       'ci.yaml validation',
       commitSha,
+      output: const github.CheckRunOutput(
+        title: '.ci.yaml validation',
+        summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+      ),
     );
     dynamic exception;
     final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
