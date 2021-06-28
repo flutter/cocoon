@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
+import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -45,6 +46,8 @@ class MockGitService extends Mock implements GitService {}
 class MockUsersService extends Mock implements UsersService {}
 
 class MockHttpClient extends Mock implements HttpClient {}
+
+class MockAccessClientProvider extends Mock implements AccessClientProvider {}
 
 class MockHttpClientRequest extends Mock implements HttpClientRequest {
   final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();

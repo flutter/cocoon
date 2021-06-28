@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart';
 
@@ -44,14 +43,19 @@ class BigqueryService {
     return BigqueryApi(client).tabledata;
   }
 
-  /// Return a [TabledataResourceApi] with an authenticated [client]
-  Future<List<BuilderStatistic>> listBuilderStatistic(String projectId) async {
+  /// Return a [JobsResourceApi] with an authenticated [client]
+  Future<JobsResourceApi> defaultJobs() async {
     final Client client = await accessClientProvider.createAccessClient(
       scopes: const <String>[BigqueryApi.BigqueryScope],
     );
-    final JobsResourceApi jobsResourceApi = BigqueryApi(client).jobs;
+    return BigqueryApi(client).jobs;
+  }
+
+  /// Return the list of current builder statistic;
+  Future<List<BuilderStatistic>> listBuilderStatistic(String projectId) async {
+    final JobsResourceApi jobsResourceApi = await defaultJobs();
     final QueryRequest query =
-    QueryRequest.fromJson(<String, Object>{'query': getBuilderStatisticQuery, 'useLegacySql': false});
+        QueryRequest.fromJson(<String, Object>{'query': getBuilderStatisticQuery, 'useLegacySql': false});
     final QueryResponse response = await jobsResourceApi.query(query, projectId);
     if (!response.jobComplete) {
       throw 'job does not complete';

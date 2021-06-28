@@ -14,6 +14,7 @@ class GithubService {
   final GitHub github;
   static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
   static const String kRefsPrefix = 'refs/heads/';
+
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
   /// found and only the branched commit will be returned for now, though the
@@ -76,12 +77,15 @@ class GithubService {
   /// List all pull requests in the repository.
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) {
     ArgumentError.checkNotNull(slug);
-    return github.pullRequests.list(slug,
-      base: branch,
-      direction: 'desc',
-      sort: 'created',
-      state: 'open',
-    ).toList();
+    return github.pullRequests
+        .list(
+          slug,
+          base: branch,
+          direction: 'desc',
+          sort: 'created',
+          state: 'open',
+        )
+        .toList();
   }
 
   /// Creates a pull request against the `baseRef` in the `slug` repository.
@@ -115,7 +119,8 @@ class GithubService {
         committer: commitUser,
       ),
     );
-    final GitReference headRef = await github.git.createReference(clientSlug, '$kRefsPrefix${_generateNewRef()}', commit.sha);
+    final GitReference headRef =
+        await github.git.createReference(clientSlug, '$kRefsPrefix${_generateNewRef()}', commit.sha);
     return github.pullRequests.create(
       slug,
       CreatePullRequest(title, '${clientSlug.owner}:${headRef.ref}', baseRef.ref, body: body),

@@ -84,9 +84,8 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(
-            ref: 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}',
-            object: GitObject('', kCurrentMasterSHA, '')
-          ),
+              ref: 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}',
+              object: GitObject('', kCurrentMasterSHA, '')),
         );
       });
       // when gets the current user.

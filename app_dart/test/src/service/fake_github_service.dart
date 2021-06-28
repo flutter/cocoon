@@ -26,16 +26,16 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<void> assignReviewer(RepositorySlug slug, { int pullRequestNumber, String reviewer }) async {}
+  Future<void> assignReviewer(RepositorySlug slug, {int pullRequestNumber, String reviewer}) async {}
 
   @override
   Future<Issue> createIssue(
-      RepositorySlug slug, {
-        String title,
-        String body,
-        List<String> labels,
-        String assignee,
-      }) async {
+    RepositorySlug slug, {
+    String title,
+    String body,
+    List<String> labels,
+    String assignee,
+  }) async {
     return Issue();
   }
 

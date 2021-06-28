@@ -46,7 +46,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       final BigqueryService bigquery = await config.createBigQueryService();
       final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
       final Map<String, String> builderNameToOwner =
-        await _findTestOwners(gitHub, slug, builderStatisticList.map((BuilderStatistic s) => s.name).toList());
+          await _findTestOwners(gitHub, slug, builderStatisticList.map((BuilderStatistic s) => s.name).toList());
       final Map<String, Issue> nameToExistingIssue = await _getExistingIssues(gitHub, slug);
       final Map<String, PullRequest> nameToExistingPR = await _getExistingPRs(gitHub, slug);
       // Finds the important flakes whose flaky rate > threshold or the most flaky test
@@ -76,7 +76,6 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       'Statuses': 'success',
     });
   }
-
 
   double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
 
@@ -151,7 +150,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     Issue issue = existingIssues;
     if (issue == null ||
         (issue.state == 'closed' &&
-         DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
+            DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
       final IssueBuilder issueBuilder = IssueBuilder(statistic: statistic, threshold: _threshold, isImportant: true);
       issue = await gitHub.createIssue(
         slug,
@@ -162,17 +161,12 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       );
     }
     if (issue != null) {
-      if (!hasExistingPR &&
-          !await _isAlreadyMarkedFlaky(gitHub, slug, statistic.name)) {
-        final String modifiedContent = _marksBuildFlakyInContent(
-            await gitHub.getFileContent(slug, kCiYamlPath),
-            statistic.name,
-            issue.htmlUrl
-        );
+      if (!hasExistingPR && !await _isAlreadyMarkedFlaky(gitHub, slug, statistic.name)) {
+        final String modifiedContent =
+            _marksBuildFlakyInContent(await gitHub.getFileContent(slug, kCiYamlPath), statistic.name, issue.htmlUrl);
         final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
         final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: statistic, issue: issue);
-        final PullRequest pullRequest = await gitHub.createPullRequest(
-            slug,
+        final PullRequest pullRequest = await gitHub.createPullRequest(slug,
             title: prBuilder.pullRequestTitle,
             body: prBuilder.pullRequestBody,
             commitMessage: prBuilder.pullRequestTitle,
@@ -184,8 +178,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
                 kModifyType,
                 content: modifiedContent,
               )
-            ]
-        );
+            ]);
         await gitHub.assignReviewer(slug, reviewer: owner, pullRequestNumber: pullRequest.number);
       }
     }
@@ -195,7 +188,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     final YamlMap content = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
     final YamlList targets = content[_ciYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
-          (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
     ) as YamlMap;
     return target[_ciYamlTargetIsFlakyKey] == true;
   }
