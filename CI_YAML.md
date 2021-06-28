@@ -48,3 +48,26 @@ targets:
    properties:
      - analyze: license
 ```
+
+## External Tests
+
+Cocoon supports tests that are not owned by Flutter infrastructure. By default, these should not block the tree but act as FYI to the gardeners.
+
+1. Contact flutter-infra@ with your request
+2. Add your system to SchedulerSystem (https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/model/proto/internal/scheduler.proto)
+3. Add your service account to https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handling/swarming_authentication.dart
+4. Add a custom frontend icon - https://github.com/flutter/cocoon/blob/master/app_flutter/lib/widgets/task_icon.dart
+5. Add a custom log link - https://github.com/flutter/cocoon/blob/master/app_flutter/lib/logic/qualified_task.dart
+6. Wait for the next prod roll (every weekday)
+7. Add a target to `.ci.yaml`
+```yaml
+# .ci.yaml
+# Name is an arbitrary string that will show on the build dashboard
+- name: my_external_test_a
+  # External tests should not block the tree
+  bringup: true
+  presubmit: false
+  # Scheduler must match what was added to scheduler.proto (any unique name works)
+  scheduler: my_external_location
+```
+9. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
