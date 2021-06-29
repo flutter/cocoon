@@ -15,7 +15,7 @@ message SchedulerConfig {
 }
 
 // A unit of work for infrastructure to run.
-// Next ID: 14
+// Next ID: 15
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -47,6 +47,8 @@ message Target {
     repeated string enabled_branches = 12;
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
+    // Additional tag for the target.
+    repeated string tags = 14;
 }
 
 // Schedulers supported in SchedulerConfig.

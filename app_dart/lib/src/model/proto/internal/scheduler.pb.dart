@@ -100,6 +100,7 @@ class Target extends $pb.GeneratedMessage {
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
+    ..pPS(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tags')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -117,6 +118,7 @@ class Target extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? runIf,
     $core.Iterable<$core.String>? enabledBranches,
     $core.String? recipe,
+    $core.Iterable<$core.String>? tags,
   }) {
     final _result = create();
     if (name != null) {
@@ -157,6 +159,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (recipe != null) {
       _result.recipe = recipe;
+    }
+    if (tags != null) {
+      _result.tags.addAll(tags);
     }
     return _result;
   }
@@ -301,4 +306,7 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasRecipe() => $_has(12);
   @$pb.TagNumber(13)
   void clearRecipe() => clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.List<$core.String> get tags => $_getList(13);
 }
