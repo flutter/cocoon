@@ -210,6 +210,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..startTimestamp = Int64(commitTimestamp + index + 10000)
       ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
       ..name = 'task $index'
+      ..builderName = 'task $index'
       ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13
       ..requiredCapabilities.add('[linux/android]')

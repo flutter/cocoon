@@ -27,7 +27,7 @@ class QualifiedTask {
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
-        task = task.name,
+        task = task.builderName,
         builder = task.builderName;
 
   final String stage;

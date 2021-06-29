@@ -24,7 +24,7 @@ void main() {
     expect(filter.showLuci, true);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
+    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.cirrus)), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
@@ -102,9 +102,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'blah foo blah')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'fo')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah foo blah')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
     }
   });
 
@@ -115,10 +115,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z bc')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z bc z')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'z b c')), false);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..name = 'foo')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z bc')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z bc z')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'z b c')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), false);
     }
   });
 
