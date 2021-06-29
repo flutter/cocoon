@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use keyDescriptor instead')
 const Key$json = const {
   '1': 'Key',
@@ -23,7 +24,8 @@ const Key$json = const {
 };
 
 /// Descriptor for `Key`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List keyDescriptor = $convert.base64Decode('CgNLZXkSEgoEdHlwZRgBIAEoCVIEdHlwZRISCgN1aWQYAiABKANIAFIDdWlkEhQKBG5hbWUYAyABKAlIAFIEbmFtZRIaCgVjaGlsZBgEIAEoCzIELktleVIFY2hpbGRCBAoCaWQ=');
+final $typed_data.Uint8List keyDescriptor = $convert.base64Decode(
+    'CgNLZXkSEgoEdHlwZRgBIAEoCVIEdHlwZRISCgN1aWQYAiABKANIAFIDdWlkEhQKBG5hbWUYAyABKAlIAFIEbmFtZRIaCgVjaGlsZBgEIAEoCzIELktleVIFY2hpbGRCBAoCaWQ=');
 @$core.Deprecated('Use rootKeyDescriptor instead')
 const RootKey$json = const {
   '1': 'RootKey',
@@ -34,4 +36,5 @@ const RootKey$json = const {
 };
 
 /// Descriptor for `RootKey`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List rootKeyDescriptor = $convert.base64Decode('CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEhoKBWNoaWxkGAIgASgLMgQuS2V5UgVjaGlsZA==');
+final $typed_data.Uint8List rootKeyDescriptor = $convert
+    .base64Decode('CgdSb290S2V5EhwKCW5hbWVzcGFjZRgBIAEoCVIJbmFtZXNwYWNlEhoKBWNoaWxkGAIgASgLMgQuS2V5UgVjaGlsZA==');

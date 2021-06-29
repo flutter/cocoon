@@ -119,8 +119,7 @@ class DevelopmentCocoonService implements CocoonService {
     final List<Task> tasks = <Task>[];
     for (int stage = 0; stage < _stages.length; stage += 1) {
       tasks.addAll(List<Task>.generate(
-              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))
-      );
+          _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random)));
     }
     return tasks;
   }

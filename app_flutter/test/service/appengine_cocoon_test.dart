@@ -47,22 +47,22 @@ void main() {
           ..repository = 'flutter/cocoon'
           ..branch = 'master')
         ..tasks.add(Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
-            ..attempts = 1
-            ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
-            ..stageName = 'chromebot'
-            ..status = 'Succeeded'
-            ..buildNumberList = '123'
-            ..builderName = 'Linux'
-            ..luciBucket = 'luci.flutter.try');
+          ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+          ..createTimestamp = Int64(1569353940885)
+          ..startTimestamp = Int64(1569354594672)
+          ..endTimestamp = Int64(1569354700642)
+          ..name = 'linux'
+          ..attempts = 1
+          ..isFlaky = false
+          ..timeoutInMinutes = 0
+          ..reason = ''
+          ..requiredCapabilities.add('[linux]')
+          ..reservedForAgentId = ''
+          ..stageName = 'chromebot'
+          ..status = 'Succeeded'
+          ..buildNumberList = '123'
+          ..builderName = 'Linux'
+          ..luciBucket = 'luci.flutter.try');
 
       expect(statuses.data.length, 1);
       expect(statuses.data.first, expectedStatus);

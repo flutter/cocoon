@@ -40,7 +40,7 @@ class TestGrid extends StatelessWidget {
             ..commit = (Commit()
               ..author = 'Fats Domino'
               ..sha = '24e8c0a2')
-              ..tasks.addAll(<Task>[task]),
+            ..tasks.addAll(<Task>[task]),
         ],
       ),
     );

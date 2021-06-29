@@ -201,28 +201,34 @@ void main() {
     final List<CommitStatus> statusesWithSkips = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-          ..tasks.addAll(<Task>[
+        ..tasks.addAll(
+          <Task>[
             Task()
               ..stageName = 'A'
               ..name = '1'
               ..status = TaskBox.statusSucceeded
-          ],),
+          ],
+        ),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-          ..tasks.addAll(<Task>[
+        ..tasks.addAll(
+          <Task>[
             Task()
               ..stageName = 'A'
               ..name = '2'
               ..status = TaskBox.statusSucceeded
-          ],),
+          ],
+        ),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-          ..tasks.addAll(<Task>[
+        ..tasks.addAll(
+          <Task>[
             Task()
               ..stageName = 'A'
               ..name = '3'
               ..status = TaskBox.statusSucceeded
-          ],)
+          ],
+        )
     ];
 
     await tester.pumpWidget(
@@ -243,18 +249,18 @@ void main() {
     final List<CommitStatus> commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..name = 'Task Name'
-                  ..stageName = 'Stage Nome 1'
-                  ..status = TaskBox.statusSucceeded,
-                Task()
-                  ..name = 'Task Name'
-                  ..stageName = 'Stage Nome 2'
-                  ..status = TaskBox.statusFailed
-              ],
-            ),
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..name = 'Task Name'
+              ..stageName = 'Stage Nome 1'
+              ..status = TaskBox.statusSucceeded,
+            Task()
+              ..name = 'Task Name'
+              ..stageName = 'Stage Nome 2'
+              ..status = TaskBox.statusFailed
+          ],
+        ),
     ];
 
     await tester.pumpWidget(
@@ -277,14 +283,14 @@ void main() {
     final List<CommitStatus> commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..name = 'Task Name'
-                  ..stageName = 'Stage Nome'
-                  ..status = TaskBox.statusSucceeded
-              ],
-            ),
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..name = 'Task Name'
+              ..stageName = 'Stage Nome'
+              ..status = TaskBox.statusSucceeded
+          ],
+        ),
     ];
 
     await tester.pumpWidget(
@@ -326,14 +332,14 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                    ..tasks.addAll(
-                      <Task>[
-                        Task()
-                          ..stageName = 'A'
-                          ..status = 'Succeeded'
-                          ..attempts = 2
-                      ],
-                    ),
+                ..tasks.addAll(
+                  <Task>[
+                    Task()
+                      ..stageName = 'A'
+                      ..status = 'Succeeded'
+                      ..attempts = 2
+                  ],
+                ),
             ],
           ),
         ),
@@ -351,13 +357,13 @@ void main() {
             commitStatuses: <CommitStatus>[
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
-                    ..tasks.addAll(
-                      <Task>[
-                        Task()
-                          ..stageName = 'A'
-                          ..status = 'Succeeded'
-                          ..attempts = 1
-                      ],
+                ..tasks.addAll(
+                  <Task>[
+                    Task()
+                      ..stageName = 'A'
+                      ..status = 'Succeeded'
+                      ..attempts = 1
+                  ],
                 ),
             ],
           ),
@@ -372,135 +378,132 @@ void main() {
     final List<CommitStatus> statuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..stageName = 'A'
-                  ..name = '1'
-                  ..status = TaskBox.statusFailed,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '2'
-                  ..status = TaskBox.statusNew,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '3'
-                  ..status = TaskBox.statusSkipped,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '4'
-                  ..status = TaskBox.statusSucceeded,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '5'
-                  ..status = TaskBox.statusInProgress,
-                Task()..status = 'Invalid value'
-              ],
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = 'A'
+              ..name = '1'
+              ..status = TaskBox.statusFailed,
+            Task()
+              ..stageName = 'A'
+              ..name = '2'
+              ..status = TaskBox.statusNew,
+            Task()
+              ..stageName = 'A'
+              ..name = '3'
+              ..status = TaskBox.statusSkipped,
+            Task()
+              ..stageName = 'A'
+              ..name = '4'
+              ..status = TaskBox.statusSucceeded,
+            Task()
+              ..stageName = 'A'
+              ..name = '5'
+              ..status = TaskBox.statusInProgress,
+            Task()..status = 'Invalid value'
+          ],
         ),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..stageName = 'A'
-                  ..name = '1'
-                  ..attempts = 2
-                  ..status = TaskBox.statusFailed,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '2'
-                  ..attempts = 2
-                  ..status = TaskBox.statusNew,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '3'
-                  ..attempts = 2
-                  ..status = TaskBox.statusSkipped,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '4'
-                  ..attempts = 2
-                  ..status = TaskBox.statusSucceeded,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '5'
-                  ..attempts = 2
-                  ..status = TaskBox.statusInProgress,
-                Task()..status = 'Invalid value'
-              ],
-            
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = 'A'
+              ..name = '1'
+              ..attempts = 2
+              ..status = TaskBox.statusFailed,
+            Task()
+              ..stageName = 'A'
+              ..name = '2'
+              ..attempts = 2
+              ..status = TaskBox.statusNew,
+            Task()
+              ..stageName = 'A'
+              ..name = '3'
+              ..attempts = 2
+              ..status = TaskBox.statusSkipped,
+            Task()
+              ..stageName = 'A'
+              ..name = '4'
+              ..attempts = 2
+              ..status = TaskBox.statusSucceeded,
+            Task()
+              ..stageName = 'A'
+              ..name = '5'
+              ..attempts = 2
+              ..status = TaskBox.statusInProgress,
+            Task()..status = 'Invalid value'
+          ],
         ),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..stageName = 'A'
-                  ..name = '1'
-                  ..isFlaky = true
-                  ..status = TaskBox.statusFailed,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '2'
-                  ..isFlaky = true
-                  ..status = TaskBox.statusNew,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '3'
-                  ..isFlaky = true
-                  ..status = TaskBox.statusSkipped,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '4'
-                  ..isFlaky = true
-                  ..status = TaskBox.statusSucceeded,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '5'
-                  ..isFlaky = true
-                  ..status = TaskBox.statusInProgress,
-                Task()..status = 'Invalid value'
-              ],
-          
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = 'A'
+              ..name = '1'
+              ..isFlaky = true
+              ..status = TaskBox.statusFailed,
+            Task()
+              ..stageName = 'A'
+              ..name = '2'
+              ..isFlaky = true
+              ..status = TaskBox.statusNew,
+            Task()
+              ..stageName = 'A'
+              ..name = '3'
+              ..isFlaky = true
+              ..status = TaskBox.statusSkipped,
+            Task()
+              ..stageName = 'A'
+              ..name = '4'
+              ..isFlaky = true
+              ..status = TaskBox.statusSucceeded,
+            Task()
+              ..stageName = 'A'
+              ..name = '5'
+              ..isFlaky = true
+              ..status = TaskBox.statusInProgress,
+            Task()..status = 'Invalid value'
+          ],
         ),
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
-            ..tasks.addAll(
-              <Task>[
-                Task()
-                  ..stageName = 'A'
-                  ..name = '1'
-                  ..attempts = 2
-                  ..isFlaky = true
-                  ..status = TaskBox.statusFailed,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '2'
-                  ..attempts = 2
-                  ..isFlaky = true
-                  ..status = TaskBox.statusNew,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '3'
-                  ..attempts = 2
-                  ..isFlaky = true
-                  ..status = TaskBox.statusSkipped,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '4'
-                  ..attempts = 2
-                  ..isFlaky = true
-                  ..status = TaskBox.statusSucceeded,
-                Task()
-                  ..stageName = 'A'
-                  ..name = '5'
-                  ..attempts = 2
-                  ..isFlaky = true
-                  ..status = TaskBox.statusInProgress,
-                Task()..status = 'Invalid value'
-              ],
-            ),
-        
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = 'A'
+              ..name = '1'
+              ..attempts = 2
+              ..isFlaky = true
+              ..status = TaskBox.statusFailed,
+            Task()
+              ..stageName = 'A'
+              ..name = '2'
+              ..attempts = 2
+              ..isFlaky = true
+              ..status = TaskBox.statusNew,
+            Task()
+              ..stageName = 'A'
+              ..name = '3'
+              ..attempts = 2
+              ..isFlaky = true
+              ..status = TaskBox.statusSkipped,
+            Task()
+              ..stageName = 'A'
+              ..name = '4'
+              ..attempts = 2
+              ..isFlaky = true
+              ..status = TaskBox.statusSucceeded,
+            Task()
+              ..stageName = 'A'
+              ..name = '5'
+              ..attempts = 2
+              ..isFlaky = true
+              ..status = TaskBox.statusInProgress,
+            Task()..status = 'Invalid value'
+          ],
+        ),
     ];
 
     await tester.pumpWidget(
@@ -542,11 +545,9 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
                 commitStatuses: <CommitStatus>[
                   CommitStatus()
                     ..commit = (Commit()..author = 'Mathilda')
-
-                        ..tasks.addAll(
-                          <Task>[Task()..status = message],
-                        ),
-                    
+                    ..tasks.addAll(
+                      <Task>[Task()..status = message],
+                    ),
                 ],
               ),
             ),

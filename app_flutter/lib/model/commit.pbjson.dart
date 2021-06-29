@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use commitDescriptor instead')
 const Commit$json = const {
   '1': 'Commit',
@@ -24,4 +25,5 @@ const Commit$json = const {
 };
 
 /// Descriptor for `Commit`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitDescriptor = $convert.base64Decode('CgZDb21taXQSGgoDa2V5GAEgASgLMgguUm9vdEtleVIDa2V5EhwKCXRpbWVzdGFtcBgCIAEoA1IJdGltZXN0YW1wEhAKA3NoYRgDIAEoCVIDc2hhEhYKBmF1dGhvchgEIAEoCVIGYXV0aG9yEigKD2F1dGhvckF2YXRhclVybBgFIAEoCVIPYXV0aG9yQXZhdGFyVXJsEhgKB21lc3NhZ2UYCCABKAlSB21lc3NhZ2USHgoKcmVwb3NpdG9yeRgGIAEoCVIKcmVwb3NpdG9yeRIWCgZicmFuY2gYByABKAlSBmJyYW5jaA==');
+final $typed_data.Uint8List commitDescriptor = $convert.base64Decode(
+    'CgZDb21taXQSGgoDa2V5GAEgASgLMgguUm9vdEtleVIDa2V5EhwKCXRpbWVzdGFtcBgCIAEoA1IJdGltZXN0YW1wEhAKA3NoYRgDIAEoCVIDc2hhEhYKBmF1dGhvchgEIAEoCVIGYXV0aG9yEigKD2F1dGhvckF2YXRhclVybBgFIAEoCVIPYXV0aG9yQXZhdGFyVXJsEhgKB21lc3NhZ2UYCCABKAlSB21lc3NhZ2USHgoKcmVwb3NpdG9yeRgGIAEoCVIKcmVwb3NpdG9yeRIWCgZicmFuY2gYByABKAlSBmJyYW5jaA==');

@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use commitStatusDescriptor instead')
 const CommitStatus$json = const {
   '1': 'CommitStatus',
@@ -19,4 +20,5 @@ const CommitStatus$json = const {
 };
 
 /// Descriptor for `CommitStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List commitStatusDescriptor = $convert.base64Decode('CgxDb21taXRTdGF0dXMSHwoGY29tbWl0GAEgASgLMgcuQ29tbWl0UgZjb21taXQSGwoFdGFza3MYAiADKAsyBS5UYXNrUgV0YXNrcxIWCgZicmFuY2gYAyABKAlSBmJyYW5jaA==');
+final $typed_data.Uint8List commitStatusDescriptor = $convert.base64Decode(
+    'CgxDb21taXRTdGF0dXMSHwoGY29tbWl0GAEgASgLMgcuQ29tbWl0UgZjb21taXQSGwoFdGFza3MYAiADKAsyBS5UYXNrUgV0YXNrcxIWCgZicmFuY2gYAyABKAlSBmJyYW5jaA==');
