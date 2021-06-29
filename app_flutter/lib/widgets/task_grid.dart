@@ -9,7 +9,6 @@ import '../logic/qualified_task.dart';
 import '../logic/task_grid_filter.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
-import '../model/stage.pb.dart';
 import '../model/task.pb.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
@@ -200,8 +199,7 @@ class _TaskGridState extends State<TaskGrid> {
     int commitCount = 0;
     for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
-      for (final Stage stage in status.stages) {
-        for (final Task task in stage.tasks) {
+        for (final Task task in status.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
           if (!filter.matchesTask(qualifiedTask)) {
             continue;
@@ -239,7 +237,6 @@ class _TaskGridState extends State<TaskGrid> {
             onTap: _tapHandlerFor(status.commit, task),
           );
         }
-      }
     }
     // 3: SORT
     final List<QualifiedTask> tasks = scores.keys.toList()

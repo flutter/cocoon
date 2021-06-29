@@ -14,7 +14,6 @@ import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
-import '../model/stage.pb.dart';
 import '../model/task.pb.dart';
 import 'cocoon.dart';
 
@@ -178,7 +177,7 @@ class AppEngineCocoonService implements CocoonService {
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
         ..branch = _branchFromJson(checklist)
-        ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
+        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])));
     }
 
     return statuses;
@@ -213,23 +212,15 @@ class AppEngineCocoonService implements CocoonService {
     return result;
   }
 
-  List<Stage> _stagesFromJson(List<Object> json) {
+  List<Task> _tasksFromStagesJson(List<Object> json) {
     assert(json != null);
-    final List<Stage> stages = <Stage>[];
+    final List<Task> tasks = <Task>[];
 
-    for (final Object jsonStage in json) {
-      stages.add(_stageFromJson(jsonStage));
+    for (final Map<String, Object> jsonStage in json) {
+      tasks.addAll(_tasksFromJson(jsonStage['Tasks']));
     }
 
-    return stages;
-  }
-
-  Stage _stageFromJson(Map<String, Object> json) {
-    assert(json != null);
-    return Stage()
-      ..name = json['Name']
-      ..tasks.addAll(_tasksFromJson(json['Tasks']))
-      ..taskStatus = json['Status'];
+    return tasks;
   }
 
   List<Task> _tasksFromJson(List<Object> json) {

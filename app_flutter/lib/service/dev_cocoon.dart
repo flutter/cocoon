@@ -11,7 +11,6 @@ import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
 import '../model/key.pb.dart';
-import '../model/stage.pb.dart';
 import '../model/task.pb.dart';
 import 'cocoon.dart';
 
@@ -76,7 +75,7 @@ class DevelopmentCocoonService implements CocoonService {
       final CommitStatus status = CommitStatus()
         ..branch = 'master'
         ..commit = commit
-        ..stages.addAll(_createFakeStages(commitTimestamp, commit, random));
+        ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
     }
     return result;
@@ -116,19 +115,14 @@ class DevelopmentCocoonService implements CocoonService {
     30,
   ];
 
-  List<Stage> _createFakeStages(int commitTimestamp, Commit commit, math.Random random) {
-    final List<Stage> stages = <Stage>[];
-    assert(_stages.length == _stageCount.length);
+  List<Task> _createFakeTasks(int commitTimestamp, Commit commit, math.Random random) {
+    final List<Task> tasks = <Task>[];
     for (int stage = 0; stage < _stages.length; stage += 1) {
-      stages.add(
-        Stage()
-          ..commit = commit
-          ..name = _stages[stage]
-          ..tasks.addAll(List<Task>.generate(
-              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))),
+      tasks.addAll(List<Task>.generate(
+              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))
       );
     }
-    return stages;
+    return tasks;
   }
 
   static const List<String> _statuses = <String>[
