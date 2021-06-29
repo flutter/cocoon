@@ -4,7 +4,7 @@
 
 syntax = "proto2";
 
-import "lib/src/model/proto/internal/key.proto";
+import "lib/model/key.proto";
 
 message Commit {
     // Next ID: 9

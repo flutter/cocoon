@@ -5,7 +5,6 @@
 import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/model/commit.pb.dart';
 import 'package:app_flutter/model/commit_status.pb.dart';
-import 'package:app_flutter/model/stage.pb.dart';
 import 'package:app_flutter/model/task.pb.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
@@ -41,9 +40,7 @@ class TestGrid extends StatelessWidget {
             ..commit = (Commit()
               ..author = 'Fats Domino'
               ..sha = '24e8c0a2')
-            ..stages.add(Stage()
-              ..name = StageName.luci
-              ..tasks.addAll(<Task>[task])),
+            ..tasks.addAll(<Task>[task]),
         ],
       ),
     );
@@ -63,7 +60,7 @@ void main() {
 
     final Task expectedTask = Task()
       ..attempts = 3
-      ..stageName = 'luci'
+      ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
