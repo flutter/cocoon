@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: lib/src/model/proto/internal/scheduler.proto
+//  source: scheduler.proto
 //
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
@@ -14,13 +14,10 @@ class SchedulerSystem extends $pb.ProtobufEnum {
       SchedulerSystem._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'cocoon');
   static const SchedulerSystem luci =
       SchedulerSystem._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'luci');
-  static const SchedulerSystem google_internal =
-      SchedulerSystem._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'google_internal');
 
   static const $core.List<SchedulerSystem> values = <SchedulerSystem>[
     cocoon,
     luci,
-    google_internal,
   ];
 
   static final $core.Map<$core.int, SchedulerSystem> _byValue = $pb.ProtobufEnum.initByValue(values);

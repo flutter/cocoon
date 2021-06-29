@@ -15,7 +15,7 @@ message SchedulerConfig {
 }
 
 // A unit of work for infrastructure to run.
-// Next ID: 14
+// Next ID: 15
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -47,15 +47,15 @@ message Target {
     repeated string enabled_branches = 12;
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
+    // Additional tag for the target.
+    repeated string tags = 14;
 }
 
 // Schedulers supported in SchedulerConfig.
-// Next ID: 4
+// Next ID: 3
 enum SchedulerSystem {
     // Cocoon will handle all actions for the target (initial trigger, retries).
     cocoon = 1;
     // LUCI triggers the build when mirrored to GoB. Cocoon triggers retries.
     luci = 2;
-    // Google internally uses Flutter, and validates if tip-of-tree causes breakages.
-    google_internal = 3;
 }
