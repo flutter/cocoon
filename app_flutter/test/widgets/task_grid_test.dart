@@ -206,6 +206,7 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '1'
+              ..builderName = '1'
               ..status = TaskBox.statusSucceeded
           ],
         ),
@@ -216,6 +217,7 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '2'
+              ..builderName = '2'
               ..status = TaskBox.statusSucceeded
           ],
         ),
@@ -226,6 +228,7 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '3'
+              ..builderName = '3'
               ..status = TaskBox.statusSucceeded
           ],
         )
@@ -253,10 +256,12 @@ void main() {
           <Task>[
             Task()
               ..name = 'Task Name'
+              ..builderName = 'Task Name'
               ..stageName = 'Stage Nome 1'
               ..status = TaskBox.statusSucceeded,
             Task()
               ..name = 'Task Name'
+              ..builderName = 'Task Name'
               ..stageName = 'Stage Nome 2'
               ..status = TaskBox.statusFailed
           ],
@@ -286,6 +291,7 @@ void main() {
         ..tasks.addAll(
           <Task>[
             Task()
+              ..name = 'Task Name'
               ..name = 'Task Name'
               ..stageName = 'Stage Nome'
               ..status = TaskBox.statusSucceeded
@@ -383,22 +389,27 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '1'
+              ..builderName = '1'
               ..status = TaskBox.statusFailed,
             Task()
               ..stageName = 'A'
               ..name = '2'
+              ..builderName = '2'
               ..status = TaskBox.statusNew,
             Task()
               ..stageName = 'A'
               ..name = '3'
+              ..builderName = '3'
               ..status = TaskBox.statusSkipped,
             Task()
               ..stageName = 'A'
               ..name = '4'
+              ..builderName = '4'
               ..status = TaskBox.statusSucceeded,
             Task()
               ..stageName = 'A'
               ..name = '5'
+              ..builderName = '5'
               ..status = TaskBox.statusInProgress,
             Task()..status = 'Invalid value'
           ],
@@ -410,26 +421,31 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '1'
+              ..builderName = '1'
               ..attempts = 2
               ..status = TaskBox.statusFailed,
             Task()
               ..stageName = 'A'
               ..name = '2'
+              ..builderName = '2'
               ..attempts = 2
               ..status = TaskBox.statusNew,
             Task()
               ..stageName = 'A'
               ..name = '3'
+              ..builderName = '3'
               ..attempts = 2
               ..status = TaskBox.statusSkipped,
             Task()
               ..stageName = 'A'
               ..name = '4'
+              ..builderName = '4'
               ..attempts = 2
               ..status = TaskBox.statusSucceeded,
             Task()
               ..stageName = 'A'
               ..name = '5'
+              ..builderName = '5'
               ..attempts = 2
               ..status = TaskBox.statusInProgress,
             Task()..status = 'Invalid value'
@@ -442,26 +458,31 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '1'
+              ..builderName = '1'
               ..isFlaky = true
               ..status = TaskBox.statusFailed,
             Task()
               ..stageName = 'A'
               ..name = '2'
+              ..builderName = '2'
               ..isFlaky = true
               ..status = TaskBox.statusNew,
             Task()
               ..stageName = 'A'
               ..name = '3'
+              ..builderName = '3'
               ..isFlaky = true
               ..status = TaskBox.statusSkipped,
             Task()
               ..stageName = 'A'
               ..name = '4'
+              ..builderName = '4'
               ..isFlaky = true
               ..status = TaskBox.statusSucceeded,
             Task()
               ..stageName = 'A'
               ..name = '5'
+              ..builderName = '5'
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
             Task()..status = 'Invalid value'
@@ -474,30 +495,35 @@ void main() {
             Task()
               ..stageName = 'A'
               ..name = '1'
+              ..builderName = '1'
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusFailed,
             Task()
               ..stageName = 'A'
               ..name = '2'
+              ..builderName = '2'
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusNew,
             Task()
               ..stageName = 'A'
               ..name = '3'
+              ..builderName = '3'
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusSkipped,
             Task()
               ..stageName = 'A'
               ..name = '4'
+              ..builderName = '4'
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusSucceeded,
             Task()
               ..stageName = 'A'
               ..name = '5'
+              ..builderName = '5'
               ..attempts = 2
               ..isFlaky = true
               ..status = TaskBox.statusInProgress,
