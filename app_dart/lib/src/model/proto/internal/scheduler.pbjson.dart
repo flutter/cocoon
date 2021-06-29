@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: scheduler.proto
+//  source: lib/src/model/proto/internal/scheduler.proto
 //
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields,deprecated_member_use_from_same_package
@@ -15,12 +15,13 @@ const SchedulerSystem$json = const {
   '2': const [
     const {'1': 'cocoon', '2': 1},
     const {'1': 'luci', '2': 2},
+    const {'1': 'google_internal', '2': 3},
   ],
 };
 
 /// Descriptor for `SchedulerSystem`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List schedulerSystemDescriptor =
-    $convert.base64Decode('Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRAC');
+    $convert.base64Decode('Cg9TY2hlZHVsZXJTeXN0ZW0SCgoGY29jb29uEAESCAoEbHVjaRACEhMKD2dvb2dsZV9pbnRlcm5hbBAD');
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
 const SchedulerConfig$json = const {
   '1': 'SchedulerConfig',

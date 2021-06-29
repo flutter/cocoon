@@ -52,10 +52,12 @@ message Target {
 }
 
 // Schedulers supported in SchedulerConfig.
-// Next ID: 3
+// Next ID: 4
 enum SchedulerSystem {
     // Cocoon will handle all actions for the target (initial trigger, retries).
     cocoon = 1;
     // LUCI triggers the build when mirrored to GoB. Cocoon triggers retries.
     luci = 2;
+    // Google internally uses Flutter, and validates if tip-of-tree causes breakages.
+    google_internal = 3;
 }
