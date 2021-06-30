@@ -221,7 +221,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
       checkRuns ??= <Map<String, dynamic>>[];
-      final Set<String> failures = <String>{};
+      final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
         failures,
@@ -251,7 +251,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Also fills [failures] with the names of any status/check that has failed.
   Future<bool> _checkStatuses(
     String sha,
-    Set<String> failures,
+    Set<_FailureDetail> failures,
     List<Map<String, dynamic>> statuses,
     List<Map<String, dynamic>> checkRuns,
     String name,
@@ -273,7 +273,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       if (status['state'] != 'SUCCESS') {
         allSuccess = false;
         if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
-          failures.add(name);
+          failures.add(_FailureDetail(name, status['targetUrl'] as String));
         }
       }
     }
@@ -284,7 +284,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         allSuccess = false;
       } else if (checkRun['conclusion'] != 'SUCCESS') {
         allSuccess = false;
-        failures.add(name);
+        failures.add(_FailureDetail(name, checkRun['detailsUrl'] as String));
       }
     }
 
@@ -303,11 +303,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     for (Map<String, dynamic> runStatus in cirrusStatuses) {
       final String status = runStatus['status'] as String;
       final String name = runStatus['name'] as String;
+      final String id = runStatus['id'] as String;
       if (!_succeededStates.contains(status)) {
         allSuccess = false;
       }
       if (_failedStates.contains(status)) {
-        failures.add(name);
+        failures.add(_FailureDetail(name, 'https://cirrus-ci.com/task/$id'));
       }
     }
     return allSuccess;
@@ -395,7 +396,7 @@ class _AutoMergeQueryResult {
   final bool ciSuccessful;
 
   /// A set of status/check names that have failed.
-  final Set<String> failures;
+  final Set<_FailureDetail> failures;
 
   /// The pull request number.
   final int number;
@@ -434,8 +435,8 @@ class _AutoMergeQueryResult {
       buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
     }
-    for (String status in failures) {
-      buffer.writeln('- The status or check suite $status has failed. Please fix the '
+    for (_FailureDetail detail in failures) {
+      buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
     }
     if (emptyValidations) {
@@ -457,5 +458,29 @@ class _AutoMergeQueryResult {
         'labelId: $labelId, '
         'emptyValidations: $emptyValidations, '
         'shouldMerge: $shouldMerge}';
+  }
+}
+
+@override
+class _FailureDetail {
+  const _FailureDetail(this.name, this.url)
+      : assert(name != null),
+        assert(url != null);
+
+  final String /*!*/ name;
+  final String /*!*/ url;
+
+  String get markdownLink => '[$name]($url)';
+
+  // TODO(dnfield): use Object.hash when it is available
+  @override
+  int get hashCode => 17 * 31 + name.hashCode * 31 + url.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is _FailureDetail && other.name == name && other.url == url;
   }
 }

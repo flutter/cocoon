@@ -393,7 +393,7 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- The status or check suite Linux has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite [Linux](https://Linux) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
           },
         ),
@@ -579,7 +579,7 @@ This pull request is not suitable for automatic merging in its current state.
               'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- The status or check suite test1 has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite [test1](https://cirrus-ci.com/task/1) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
             },
           ),
@@ -762,8 +762,8 @@ This pull request is not suitable for automatic merging in its current state.
             'id': prRed.id,
             'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
-- The status or check suite test1 has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite [other status](https://other status) has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite [test1](https://cirrus-ci.com/task/1) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
             'labelId': base64LabelId,
           },
@@ -1045,6 +1045,7 @@ class PullRequestHelper {
                         return <String, dynamic>{
                           'context': status.name,
                           'state': status.state,
+                          'targetUrl': 'https://${status.name}',
                         };
                       }).toList()
                     : <dynamic>[]
@@ -1059,6 +1060,7 @@ class PullRequestHelper {
                                 'name': status.name,
                                 'status': status.status,
                                 'conclusion': status.conclusion,
+                                'detailsUrl': 'https://${status.name}',
                               };
                             }).toList(),
                           }
