@@ -27,6 +27,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                     contexts {
                       context
                       state
+                      targetUrl
                     }
                   }
                   # (appId: 64368) == flutter-dashbord. We only care about
@@ -38,6 +39,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                           name
                           status
                           conclusion
+                          detailsUrl
                         }
                       }
                     }
