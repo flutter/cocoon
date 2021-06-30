@@ -28,12 +28,57 @@ const SchedulerConfig$json = const {
   '2': const [
     const {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.scheduler.Target', '10': 'targets'},
     const {'1': 'enabled_branches', '3': 2, '4': 3, '5': 9, '10': 'enabledBranches'},
+    const {
+      '1': 'platform_properties',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformPropertiesEntry',
+      '10': 'platformProperties'
+    },
   ],
+  '3': const [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_Properties$json],
+};
+
+@$core.Deprecated('Use schedulerConfigDescriptor instead')
+const SchedulerConfig_PlatformPropertiesEntry$json = const {
+  '1': 'PlatformPropertiesEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.Properties', '10': 'value'},
+  ],
+  '7': const {'7': true},
+};
+
+@$core.Deprecated('Use schedulerConfigDescriptor instead')
+const SchedulerConfig_Properties$json = const {
+  '1': 'Properties',
+  '2': const [
+    const {
+      '1': 'properties',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.Properties.PropertiesEntry',
+      '10': 'properties'
+    },
+  ],
+  '3': const [SchedulerConfig_Properties_PropertiesEntry$json],
+};
+
+@$core.Deprecated('Use schedulerConfigDescriptor instead')
+const SchedulerConfig_Properties_PropertiesEntry$json = const {
+  '1': 'PropertiesEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': const {'7': true},
 };
 
 /// Descriptor for `SchedulerConfig`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List schedulerConfigDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVz');
+    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3BsYXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMabAoXUGxhdGZvcm1Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSOwoFdmFsdWUYAiABKAsyJS5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlByb3BlcnRpZXNSBXZhbHVlOgI4ARqiAQoKUHJvcGVydGllcxJVCgpwcm9wZXJ0aWVzGAEgAygLMjUuc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
 @$core.Deprecated('Use targetDescriptor instead')
 const Target$json = const {
   '1': 'Target',

@@ -1,8 +1,8 @@
 ///
 //  Generated code. Do not modify.
-//  source: build_status_response.proto
+//  source: lib/src/model/proto/internal/build_status_response.proto
 //
-// @dart = 2.7
+// @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -25,8 +25,8 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
 
   BuildStatusResponse._() : super();
   factory BuildStatusResponse({
-    EnumBuildStatus buildStatus,
-    $core.Iterable<$core.String> failingTasks,
+    EnumBuildStatus? buildStatus,
+    $core.Iterable<$core.String>? failingTasks,
   }) {
     final _result = create();
     if (buildStatus != null) {
@@ -50,7 +50,8 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BuildStatusResponse copyWith(void Function(BuildStatusResponse) updates) =>
-      super.copyWith((message) => updates(message as BuildStatusResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BuildStatusResponse))
+          as BuildStatusResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static BuildStatusResponse create() => BuildStatusResponse._();
@@ -59,7 +60,7 @@ class BuildStatusResponse extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static BuildStatusResponse getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<BuildStatusResponse>(create);
-  static BuildStatusResponse _defaultInstance;
+  static BuildStatusResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
   EnumBuildStatus get buildStatus => $_getN(0);

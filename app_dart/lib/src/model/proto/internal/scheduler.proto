@@ -6,12 +6,21 @@ syntax = "proto2";
 
 package scheduler;
 
-// Next ID: 3
+// Model of .ci.yaml.
+// Next ID: 4
 message SchedulerConfig {
     // Targets to run from this config.
     repeated Target targets = 1;
     // Git branches to run these targets against.
     repeated string enabled_branches = 2;
+    // Universal platform args passed to LUCI builders.
+    // Keys are the platform and values are the properties.
+    map<string, Properties> platform_properties = 3;
+    // Next ID: 2
+    message Properties {
+        // Generic key, value that can be passed anywhere.
+        map<string, string> properties = 1;
+    }
 }
 
 // A unit of work for infrastructure to run.
