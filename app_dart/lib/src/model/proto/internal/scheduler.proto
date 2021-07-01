@@ -57,7 +57,22 @@ message Target {
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
     // Additional tag for the target.
-    repeated string tags = 14;
+    optional Tags tags = 14;
+}
+
+// Tags for a specific infrastructure task
+// Next ID: 6
+message Tags {
+    // Whether this is a device lab test.
+    optional bool devicelab = 1;
+    // Whether this is a host only test.
+    optional bool hostonly = 2;
+    // Whether this is a framework test.
+    optional bool framework = 3;
+    // Whether this is a firebase lab test.
+    optional bool firebaselab = 4;
+    // Whether this is a shard test.
+    optional bool shard = 5;
 }
 
 // Schedulers supported in SchedulerConfig.

@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: lib/src/model/proto/internal/scheduler.proto
+//  source: scheduler.proto
 //
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields,deprecated_member_use_from_same_package
@@ -104,7 +104,7 @@ const Target$json = const {
     const {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
     const {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
     const {'1': 'recipe', '3': 13, '4': 1, '5': 9, '10': 'recipe'},
-    const {'1': 'tags', '3': 14, '4': 3, '5': 9, '10': 'tags'},
+    const {'1': 'tags', '3': 14, '4': 1, '5': 11, '6': '.scheduler.Tags', '10': 'tags'},
   ],
   '3': const [Target_PropertiesEntry$json],
 };
@@ -121,4 +121,19 @@ const Target_PropertiesEntry$json = const {
 
 /// Descriptor for `Target`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
-    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCgpwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnByb3BlcnRpZXMSGAoHYnVpbGRlchgHIAEoCVIHYnVpbGRlchJACglzY2hlZHVsZXIYCCABKA4yGi5zY2hlZHVsZXIuU2NoZWR1bGVyU3lzdGVtOgZjb2Nvb25SCXNjaGVkdWxlchIiCglwcmVzdWJtaXQYCSABKAg6BHRydWVSCXByZXN1Ym1pdBIkCgpwb3N0c3VibWl0GAogASgIOgR0cnVlUgpwb3N0c3VibWl0EhUKBnJ1bl9pZhgLIAMoCVIFcnVuSWYSKQoQZW5hYmxlZF9icmFuY2hlcxgMIAMoCVIPZW5hYmxlZEJyYW5jaGVzEhYKBnJlY2lwZRgNIAEoCVIGcmVjaXBlEhIKBHRhZ3MYDiADKAlSBHRhZ3MaPQoPUHJvcGVydGllc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
+    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCgpwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnByb3BlcnRpZXMSGAoHYnVpbGRlchgHIAEoCVIHYnVpbGRlchJACglzY2hlZHVsZXIYCCABKA4yGi5zY2hlZHVsZXIuU2NoZWR1bGVyU3lzdGVtOgZjb2Nvb25SCXNjaGVkdWxlchIiCglwcmVzdWJtaXQYCSABKAg6BHRydWVSCXByZXN1Ym1pdBIkCgpwb3N0c3VibWl0GAogASgIOgR0cnVlUgpwb3N0c3VibWl0EhUKBnJ1bl9pZhgLIAMoCVIFcnVuSWYSKQoQZW5hYmxlZF9icmFuY2hlcxgMIAMoCVIPZW5hYmxlZEJyYW5jaGVzEhYKBnJlY2lwZRgNIAEoCVIGcmVjaXBlEiMKBHRhZ3MYDiABKAsyDy5zY2hlZHVsZXIuVGFnc1IEdGFncxo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
+@$core.Deprecated('Use tagsDescriptor instead')
+const Tags$json = const {
+  '1': 'Tags',
+  '2': const [
+    const {'1': 'devicelab', '3': 1, '4': 1, '5': 8, '10': 'devicelab'},
+    const {'1': 'hostonly', '3': 2, '4': 1, '5': 8, '10': 'hostonly'},
+    const {'1': 'framework', '3': 3, '4': 1, '5': 8, '10': 'framework'},
+    const {'1': 'firebaselab', '3': 4, '4': 1, '5': 8, '10': 'firebaselab'},
+    const {'1': 'shard', '3': 5, '4': 1, '5': 8, '10': 'shard'},
+  ],
+};
+
+/// Descriptor for `Tags`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List tagsDescriptor = $convert.base64Decode(
+    'CgRUYWdzEhwKCWRldmljZWxhYhgBIAEoCFIJZGV2aWNlbGFiEhoKCGhvc3Rvbmx5GAIgASgIUghob3N0b25seRIcCglmcmFtZXdvcmsYAyABKAhSCWZyYW1ld29yaxIgCgtmaXJlYmFzZWxhYhgEIAEoCFILZmlyZWJhc2VsYWISFAoFc2hhcmQYBSABKAhSBXNoYXJk');
