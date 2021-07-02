@@ -57,22 +57,17 @@ message Target {
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
     // Additional tag for the target.
-    optional Tags tags = 14;
+    repeated StringPair tags = 14;
 }
 
-// Tags for a specific infrastructure task
-// Next ID: 6
-message Tags {
-    // Whether this is a device lab test.
-    optional bool devicelab = 1;
-    // Whether this is a host only test.
-    optional bool hostonly = 2;
-    // Whether this is a framework test.
-    optional bool framework = 3;
-    // Whether this is a firebase lab test.
-    optional bool firebaselab = 4;
-    // Whether this is a shard test.
-    optional bool shard = 5;
+// A string key-value pair. Typically used for tagging.
+//
+// This structure need to be in sync with the StringPair in LUCI infra.
+// See the `go/src/go.chromium.org/luci/buildbucket/proto/common.proto` in the
+// https://source.chromium.org
+message StringPair {
+  required string key = 1;
+  required string value = 2;
 }
 
 // Schedulers supported in SchedulerConfig.
