@@ -22,6 +22,9 @@ targets:
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
+    tags:
+      - key: devicelab
+        value: true
 ''';
 
 const String ciYamlContentAlreadyFlaky = '''
@@ -41,6 +44,9 @@ targets:
     bringup: true
     presubmit: false
     scheduler: luci
+    tags:
+      - key: devicelab
+        value: true
 ''';
 
 const String testOwnersContent = '''
@@ -129,6 +135,9 @@ targets:
     bringup: true // Flaky $expectedSemanticsIntegrationTestNewIssueURL
     presubmit: false
     scheduler: luci
+    tags:
+      - key: devicelab
+        value: true
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
     'Marks Mac_android android_semantics_integration_test to be flaky';

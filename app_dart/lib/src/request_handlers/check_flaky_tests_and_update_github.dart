@@ -14,7 +14,6 @@ import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
-
 import 'check_flaky_tests_and_update_github_utils.dart';
 
 @immutable
@@ -25,11 +24,19 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   static const String kBigQueryProjectId = 'flutter-dashboard';
 
   static const String kThresholdKey = 'threshold';
+
   static const String kCiYamlPath = '.ci.yaml';
   static const String _ciYamlTargetsKey = 'targets';
   static const String _ciYamlTargetBuilderKey = 'builder';
   static const String _ciYamlTargetIsFlakyKey = 'bringup';
+  static const String _ciYamlTargetTagsKey = 'tags';
+  static const String _ciYamlTargetTagsShardKey = 'shard';
+  static const String _ciYamlTargetTagsDevicelabKey = 'devicelab';
+  static const String _ciYamlTargetTagsFrameworkKey = 'framework';
+  static const String _ciYamlTargetTagsHostonlyKey = 'hostonly';
+
   static const String kTestOwnerPath = 'TESTOWNERS';
+
   static const String kMasterRefs = 'heads/master';
   static const String kModifyMode = '100755';
   static const String kModifyType = 'blob';
@@ -38,37 +45,34 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    try {
-      final RepositorySlug slug = config.flutterSlug;
-      final GithubService gitHub = config.createGithubServiceWithToken(await config.githubFlakyBotOAuthToken);
-      final BigqueryService bigquery = await config.createBigQueryService();
-      final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
-      final Map<String, String> builderNameToOwner =
-          await _findTestOwners(gitHub, slug, builderStatisticList.map((BuilderStatistic s) => s.name).toList());
-      final Map<String, Issue> nameToExistingIssue = await _getExistingIssues(gitHub, slug);
-      final Map<String, PullRequest> nameToExistingPR = await _getExistingPRs(gitHub, slug);
-      // Finds the important flakes whose flaky rate > threshold or the most flaky test
-      // if all of the flakes < threshold.
-      final Set<String> importantFlakes = _getImportantFlakes(builderStatisticList, _threshold);
-      // Makes sure every important flake has an github issue and a pr to mark
-      // the test flaky.
-      for (final BuilderStatistic statistic in builderStatisticList) {
-        if (importantFlakes.contains(statistic.name)) {
-          await _updateFlakes(
-            gitHub,
-            slug,
-            owner: builderNameToOwner[statistic.name],
-            existingIssues: nameToExistingIssue[statistic.name],
-            hasExistingPR: nameToExistingPR.containsKey(statistic.name),
-            statistic: statistic,
-          );
-        }
+    final RepositorySlug slug = config.flutterSlug;
+    final GithubService gitHub = config.createGithubServiceWithToken(await config.githubFlakyBotOAuthToken);
+    final BigqueryService bigquery = await config.createBigQueryService();
+    final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
+    final YamlMap ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
+    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
+    final List<_BuilderDetail> builderDetails = <_BuilderDetail>[];
+    final Map<String, Issue> nameToExistingIssue = await _getExistingIssues(gitHub, slug);
+    final Map<String, PullRequest> nameToExistingPR = await _getExistingPRs(gitHub, slug);
+    for (final BuilderStatistic statistic in builderStatisticList) {
+      final _BuilderType type = _getTypeFromTags(_getTags(statistic.name, ci));
+      builderDetails.add(_BuilderDetail(
+          statistic: statistic,
+          existingIssue: nameToExistingIssue[statistic.name],
+          existingPullRequest: nameToExistingPR[statistic.name],
+          isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci),
+          type: type,
+          owner: _getTestOwner(statistic.name, type, testOwnerContent)));
+    }
+    // Finds the important flakes whose flaky rate > threshold or the most flaky test
+    // if all of the flakes < threshold.
+    final Set<String> importantFlakes = _getImportantFlakes(builderStatisticList, _threshold);
+    // Makes sure every important flake has an github issue and a pr to mark
+    // the test flaky.
+    for (final _BuilderDetail detail in builderDetails) {
+      if (importantFlakes.contains(detail.statistic.name)) {
+        await _updateFlakes(gitHub, slug, builderDetail: detail);
       }
-    } catch (e, stack) {
-      return Body.forJson(<String, dynamic>{
-        'Statuses': e.toString(),
-        'stack': stack.toString(),
-      });
     }
     return Body.forJson(const <String, dynamic>{
       'Statuses': 'success',
@@ -76,16 +80,6 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   }
 
   double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
-
-  Future<Map<String, String>> _findTestOwners(GithubService gitHub, RepositorySlug slug, List<String> builders) async {
-    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-    final Map<String, String> result = <String, String>{};
-    for (final String builder in builders) {
-      final String testName = _getTestNameFromBuilderName(builder);
-      result[builder] = _findTestOwner(testName, testOwnerContent);
-    }
-    return result;
-  }
 
   Future<Map<String, Issue>> _getExistingIssues(GithubService gitHub, RepositorySlug slug) async {
     final Map<String, Issue> nameToExistingIssue = <String, Issue>{};
@@ -137,58 +131,90 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   Future<void> _updateFlakes(
     GithubService gitHub,
     RepositorySlug slug, {
-    @required BuilderStatistic statistic,
-    @required String owner,
-    @required Issue existingIssues,
-    @required bool hasExistingPR,
+    @required _BuilderDetail builderDetail,
   }) async {
     // Don't create a new issue if there is a recent closed issue within
     // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
-    Issue issue = existingIssues;
+    Issue issue = builderDetail.existingIssue;
     if (issue == null ||
         (issue.state == 'closed' &&
             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
-      final IssueBuilder issueBuilder = IssueBuilder(statistic: statistic, threshold: _threshold, isImportant: true);
+      final IssueBuilder issueBuilder =
+          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold, isImportant: true);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,
         body: issueBuilder.issueBody,
         labels: issueBuilder.issueLabels,
-        assignee: owner,
+        assignee: builderDetail.owner,
       );
     }
-    if (issue != null) {
-      if (!hasExistingPR && !await _isAlreadyMarkedFlaky(gitHub, slug, statistic.name)) {
-        final String modifiedContent =
-            _marksBuildFlakyInContent(await gitHub.getFileContent(slug, kCiYamlPath), statistic.name, issue.htmlUrl);
-        final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
-        final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: statistic, issue: issue);
-        final PullRequest pullRequest = await gitHub.createPullRequest(slug,
-            title: prBuilder.pullRequestTitle,
-            body: prBuilder.pullRequestBody,
-            commitMessage: prBuilder.pullRequestTitle,
-            baseRef: masterRef,
-            entries: <CreateGitTreeEntry>[
-              CreateGitTreeEntry(
-                kCiYamlPath,
-                kModifyMode,
-                kModifyType,
-                content: modifiedContent,
-              )
-            ]);
-        await gitHub.assignReviewer(slug, reviewer: owner, pullRequestNumber: pullRequest.number);
-      }
+    if (issue == null ||
+        builderDetail.type != _BuilderType.devicelab ||
+        builderDetail.existingPullRequest != null ||
+        builderDetail.isMarkedFlaky) {
+      return;
     }
+    final String modifiedContent = _marksBuildFlakyInContent(
+        await gitHub.getFileContent(slug, kCiYamlPath), builderDetail.statistic.name, issue.htmlUrl);
+    final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
+    final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: builderDetail.statistic, issue: issue);
+    final PullRequest pullRequest = await gitHub.createPullRequest(slug,
+        title: prBuilder.pullRequestTitle,
+        body: prBuilder.pullRequestBody,
+        commitMessage: prBuilder.pullRequestTitle,
+        baseRef: masterRef,
+        entries: <CreateGitTreeEntry>[
+          CreateGitTreeEntry(
+            kCiYamlPath,
+            kModifyMode,
+            kModifyType,
+            content: modifiedContent,
+          )
+        ]);
+    await gitHub.assignReviewer(slug, reviewer: builderDetail.owner, pullRequestNumber: pullRequest.number);
   }
 
-  Future<bool> _isAlreadyMarkedFlaky(GithubService gitHub, RepositorySlug slug, String builderName) async {
-    final YamlMap content = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
-    final YamlList targets = content[_ciYamlTargetsKey] as YamlList;
+  bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
+    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
       (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      orElse: () => null,
     ) as YamlMap;
-    return target[_ciYamlTargetIsFlakyKey] == true;
+    return target != null && target[_ciYamlTargetIsFlakyKey] == true;
+  }
+
+  YamlList _getTags(String builderName, YamlMap ci) {
+    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
+    final YamlMap target = targets.firstWhere(
+      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      orElse: () => null,
+    ) as YamlMap;
+    if (target == null) {
+      return null;
+    }
+    return target[_ciYamlTargetTagsKey] as YamlList;
+  }
+
+  _BuilderType _getTypeFromTags(YamlList tags) {
+    if (tags == null) {
+      return _BuilderType.unknown;
+    }
+    bool hasFrameworkTag = false;
+    bool hasHostOnlyTag = false;
+    for (dynamic tag in tags) {
+      if (tag['key'] == _ciYamlTargetTagsShardKey && tag['value'] == true) {
+        return _BuilderType.shard;
+      } else if (tag['key'] == _ciYamlTargetTagsDevicelabKey && tag['value'] == true) {
+        return _BuilderType.devicelab;
+      } else if (tag['key'] == _ciYamlTargetTagsFrameworkKey && tag['value'] == true) {
+        hasFrameworkTag = true;
+      } else if (tag['key'] == _ciYamlTargetTagsHostonlyKey && tag['value'] == true) {
+        hasHostOnlyTag = true;
+      }
+    }
+    return hasFrameworkTag && hasHostOnlyTag ? _BuilderType.frameworkHostOnly : _BuilderType.unknown;
   }
 
   bool _isOtherIssueMoreImportant(Issue original, Issue other) {
@@ -211,20 +237,88 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     return words.length < 2 ? words[0] : words[1];
   }
 
-  String _findTestOwner(String testName, String testOwnersContent) {
-    final List<String> lines = testOwnersContent.split('\n');
+  String _getTestOwner(String builderName, _BuilderType type, String testOwnersContent) {
+    final String testName = _getTestNameFromBuilderName(builderName);
     String owner;
-    for (final String line in lines) {
-      if (line.startsWith('#')) {
-        continue;
-      }
-      if (line.trim().isEmpty) {
-        continue;
-      }
-      final List<String> words = line.trim().split(' ');
-      if (words[0].contains(testName)) {
-        owner = words[1].substring(1); // Strip out the lead '@'
-      }
+    switch (type) {
+      case _BuilderType.shard:
+        {
+          // The format looks like this:
+          //   # build_tests @zanderso @flutter/tool
+          final RegExpMatch match = shardTestOwners.firstMatch(testOwnersContent);
+          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+            final List<String> lines =
+                match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
+
+            for (final String line in lines) {
+              final List<String> words = line.trim().split(' ');
+              // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
+              if (testName.contains(words[1])) {
+                owner = words[2].substring(1); // Strip out the lead '@'
+                break;
+              }
+            }
+          }
+          break;
+        }
+      case _BuilderType.devicelab:
+        {
+          // The format looks like this:
+          //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
+          final RegExpMatch match = devicelabTestOwners.firstMatch(testOwnersContent);
+          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+            final List<String> lines = match
+                .namedGroup(kOwnerGroupName)
+                .split('\n')
+                .where((String line) => line.isNotEmpty || !line.startsWith('#'))
+                .toList();
+
+            for (final String line in lines) {
+              final List<String> words = line.trim().split(' ');
+              // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
+              if (words[0].endsWith('$testName.dart')) {
+                owner = words[1].substring(1); // Strip out the lead '@'
+                break;
+              }
+            }
+          }
+          break;
+        }
+      case _BuilderType.frameworkHostOnly:
+        {
+          // The format looks like this:
+          //   # Linux analyze
+          //   /dev/bots/analyze.dart @HansMuller @flutter/framework
+          final RegExpMatch match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
+          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+            final List<String> lines =
+                match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
+            int index = 0;
+            while (index < lines.length) {
+              if (lines[index].startsWith('#') && index + 1 < lines.length) {
+                final List<String> commentWords = lines[index].trim().split(' ');
+                // e.g. commentWords = ['#', 'Linux' 'analyze']
+                index += 1;
+                if (lines[index].startsWith('#')) {
+                  // The next line should not be a comment. This can happen if
+                  // someone adds an additional comment to framework host only
+                  // session.
+                  continue;
+                }
+                if (testName.contains(commentWords[2])) {
+                  final List<String> ownerWords = lines[index].trim().split(' ');
+                  // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
+                  owner = ownerWords[1].substring(1); // Strip out the lead '@'
+                  break;
+                }
+              }
+              index += 1;
+            }
+          }
+          break;
+        }
+      case _BuilderType.unknown:
+        break;
     }
     return owner;
   }
@@ -248,4 +342,28 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   Future<RepositorySlug> getSlugFor(GitHub client, String repository) async {
     return RepositorySlug((await client.users.getCurrentUser()).login, repository);
   }
+}
+
+class _BuilderDetail {
+  const _BuilderDetail({
+    @required this.statistic,
+    @required this.existingIssue,
+    @required this.existingPullRequest,
+    @required this.isMarkedFlaky,
+    @required this.owner,
+    @required this.type,
+  });
+  final BuilderStatistic statistic;
+  final Issue existingIssue;
+  final PullRequest existingPullRequest;
+  final String owner;
+  final bool isMarkedFlaky;
+  final _BuilderType type;
+}
+
+enum _BuilderType {
+  devicelab,
+  frameworkHostOnly,
+  shard,
+  unknown,
 }

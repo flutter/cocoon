@@ -120,3 +120,12 @@ class PullRequestBuilder {
 }
 
 final RegExp pullRequestTitleRegex = RegExp(r'Marks (?<name>.+) to be flaky');
+
+// TESTOWNER Regex
+
+const String kOwnerGroupName = 'owners';
+final RegExp devicelabTestOwners =
+    RegExp('## Linux Android DeviceLab tests\n(?<$kOwnerGroupName>.+)## Host only framework tests', dotAll: true);
+final RegExp frameworkHostOnlyTestOwners =
+    RegExp('## Host only framework tests\n(?<$kOwnerGroupName>.+)## Shards tests', dotAll: true);
+final RegExp shardTestOwners = RegExp('## Shards tests\n(?<$kOwnerGroupName>.+)', dotAll: true);
