@@ -51,9 +51,7 @@ targets:
 
 #
 # Tags example:
-# Linux licenses will run on postsubmit based on the LUCI builder `Linux analyze`,
-# but it also passes the properties `analyze=true` to the builder. Since `bringup=true`,
-# presubmit is not run, and postsubmit runs will not block the tree.
+# This test will be categorize as host only framework test.
  - name: Linux analyze
    builder: Linux analyze
    tags:
