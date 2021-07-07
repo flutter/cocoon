@@ -32,6 +32,7 @@ targets:
 #         If none are passed, will always run in presubmit.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
+# tags: List of key-value pairs to categorize this builder.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit based on the LUCI builder `Linux analyze`.
@@ -47,6 +48,19 @@ targets:
    bringup: true
    properties:
      - analyze: license
+
+#
+# Tags example:
+# Linux licenses will run on postsubmit based on the LUCI builder `Linux analyze`,
+# but it also passes the properties `analyze=true` to the builder. Since `bringup=true`,
+# presubmit is not run, and postsubmit runs will not block the tree.
+ - name: Linux analyze
+   builder: Linux analyze
+   tags:
+     - key: hostonly
+       value: true
+     - key: framework
+       value: true
 ```
 
 ## External Tests
