@@ -51,7 +51,7 @@ targets:
 
 #
 # Tags example:
-# This test will be categorize as host only framework test.
+# This test will be categorized as host only framework test.
  - name: Linux analyze
    builder: Linux analyze
    tags:
