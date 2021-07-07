@@ -82,8 +82,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
         valueCreator: SchedulerConfig_Properties.create,
-        packageName: const $pb.PackageName('scheduler'))
-    ..hasRequiredFields = false;
+        packageName: const $pb.PackageName('scheduler'));
 
   SchedulerConfig._() : super();
   factory SchedulerConfig({
@@ -139,8 +138,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 }
 
 class Target extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target',
       package:
           const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
@@ -157,19 +155,17 @@ class Target extends $pb.GeneratedMessage {
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
-    ..e<SchedulerSystem>(
-        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
+    ..e<SchedulerSystem>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
         defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
     ..a<$core.bool>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit', $pb.PbFieldType.OB,
         defaultOrMaker: true)
-    ..a<$core.bool>(
-        10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
+    ..a<$core.bool>(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
         defaultOrMaker: true)
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
-    ..pPS(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tags')
-    ..hasRequiredFields = false;
+    ..pc<StringPair>(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tags', $pb.PbFieldType.PM,
+        subBuilder: StringPair.create);
 
   Target._() : super();
   factory Target({
@@ -186,7 +182,7 @@ class Target extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? runIf,
     $core.Iterable<$core.String>? enabledBranches,
     $core.String? recipe,
-    $core.Iterable<$core.String>? tags,
+    $core.Iterable<StringPair>? tags,
   }) {
     final _result = create();
     if (name != null) {
@@ -376,5 +372,75 @@ class Target extends $pb.GeneratedMessage {
   void clearRecipe() => clearField(13);
 
   @$pb.TagNumber(14)
-  $core.List<$core.String> get tags => $_getList(13);
+  $core.List<StringPair> get tags => $_getList(13);
+}
+
+class StringPair extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'StringPair',
+      package:
+          const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
+      createEmptyInstance: create)
+    ..aQS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key')
+    ..aQS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'value');
+
+  StringPair._() : super();
+  factory StringPair({
+    $core.String? key,
+    $core.String? value,
+  }) {
+    final _result = create();
+    if (key != null) {
+      _result.key = key;
+    }
+    if (value != null) {
+      _result.value = value;
+    }
+    return _result;
+  }
+  factory StringPair.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory StringPair.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  StringPair clone() => StringPair()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  StringPair copyWith(void Function(StringPair) updates) =>
+      super.copyWith((message) => updates(message as StringPair)) as StringPair; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static StringPair create() => StringPair._();
+  StringPair createEmptyInstance() => create();
+  static $pb.PbList<StringPair> createRepeated() => $pb.PbList<StringPair>();
+  @$core.pragma('dart2js:noInline')
+  static StringPair getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StringPair>(create);
+  static StringPair? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get key => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set key($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKey() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get value => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set value($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasValue() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearValue() => clearField(2);
 }

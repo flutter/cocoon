@@ -56,8 +56,19 @@ message Target {
     repeated string enabled_branches = 12;
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
-    // Additional tag for the target.
-    repeated string tags = 14;
+    // Additional tags for the target.
+    // The tags is list of key-value pairs that can be used to categorize different targets.
+    repeated StringPair tags = 14;
+}
+
+// A string key-value pair. Typically used for tagging.
+//
+// This structure must not be changed and need to be in sync with the StringPair in LUCI infra.
+// See the `go/src/go.chromium.org/luci/buildbucket/proto/common.proto` in the
+// https://source.chromium.org
+message StringPair {
+  required string key = 1;
+  required string value = 2;
 }
 
 // Schedulers supported in SchedulerConfig.
