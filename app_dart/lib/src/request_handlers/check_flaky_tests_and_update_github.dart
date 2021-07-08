@@ -204,13 +204,13 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     bool hasFrameworkTag = false;
     bool hasHostOnlyTag = false;
     for (dynamic tag in tags) {
-      if (tag['key'] == _ciYamlTargetTagsShardKey && tag['value'] == true) {
+      if (tag['key'] == _ciYamlTargetTagsShardKey && tag['value'] == 'true') {
         return _BuilderType.shard;
-      } else if (tag['key'] == _ciYamlTargetTagsDevicelabKey && tag['value'] == true) {
+      } else if (tag['key'] == _ciYamlTargetTagsDevicelabKey && tag['value'] == 'true') {
         return _BuilderType.devicelab;
-      } else if (tag['key'] == _ciYamlTargetTagsFrameworkKey && tag['value'] == true) {
+      } else if (tag['key'] == _ciYamlTargetTagsFrameworkKey && tag['value'] == 'true') {
         hasFrameworkTag = true;
-      } else if (tag['key'] == _ciYamlTargetTagsHostonlyKey && tag['value'] == true) {
+      } else if (tag['key'] == _ciYamlTargetTagsHostonlyKey && tag['value'] == 'true') {
         hasHostOnlyTag = true;
       }
     }

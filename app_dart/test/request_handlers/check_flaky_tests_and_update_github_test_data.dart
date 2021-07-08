@@ -24,7 +24,22 @@ targets:
     scheduler: luci
     tags:
       - key: devicelab
-        value: true
+        value: "true"
+  - name: Linux analyze
+    builder: Linux analyze
+    scheduler: luci
+    tags:
+      - key: framework
+        value: "true"
+      - key: hostonly
+        value: "true"
+  - name: win_framework_tests_misc
+    builder: Windows framework_tests_misc
+    presubmit: false
+    scheduler: luci
+    tags:
+      - key: shard
+        value: "true"
 ''';
 
 const String ciYamlContentAlreadyFlaky = '''
@@ -46,7 +61,22 @@ targets:
     scheduler: luci
     tags:
       - key: devicelab
-        value: true
+        value: "true"
+  - name: Linux analyze
+    builder: Linux analyze
+    scheduler: luci
+    tags:
+      - key: framework
+        value: "true"
+      - key: hostonly
+        value: "true"
+  - name: win_framework_tests_misc
+    builder: Windows framework_tests_misc
+    presubmit: false
+    scheduler: luci
+    tags:
+      - key: shard
+        value: "true"
 ''';
 
 const String testOwnersContent = '''
@@ -61,6 +91,17 @@ const String testOwnersContent = '''
 # the TL will be assigned and the sub-team will be labeled by default
 # for further triage.
 
+## Linux Android DeviceLab tests
+/dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
+
+## Host only framework tests
+# Linux analyze
+/dev/bots/analyze.dart @HansMuller @flutter/framework
+
+## Shards tests
+# framework_tests @HansMuller @flutter/framework
+
+
 /dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
 ''';
 
@@ -70,7 +111,6 @@ const String jobNotCompleteResponse = '''
 }
 ''';
 
-//
 const String expectedSemanticsIntegrationTestNewIssueURL = 'https://something.something';
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
@@ -137,12 +177,61 @@ targets:
     scheduler: luci
     tags:
       - key: devicelab
-        value: true
+        value: "true"
+  - name: Linux analyze
+    builder: Linux analyze
+    scheduler: luci
+    tags:
+      - key: framework
+        value: "true"
+      - key: hostonly
+        value: "true"
+  - name: win_framework_tests_misc
+    builder: Windows framework_tests_misc
+    presubmit: false
+    scheduler: luci
+    tags:
+      - key: shard
+        value: "true"
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
     'Marks Mac_android android_semantics_integration_test to be flaky';
 const String expectedSemanticsIntegrationTestPullRequestBody =
     'Issue link: $expectedSemanticsIntegrationTestNewIssueURL';
+
+final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Linux analyze',
+    flakyRate: 0.01,
+    failedBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    failedBuildOfRecentCommit: '103',
+  )
+];
+const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
+const List<String> expectedAnalyzeTestResponseLabels = <String>[
+  'team: flakes',
+  'severe: flake',
+  'P2',
+];
+
+final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Windows framework_tests_misc',
+    flakyRate: 0.01,
+    failedBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    failedBuildOfRecentCommit: '103',
+  )
+];
+const String expectedFrameworkTestResponseAssignee = 'HansMuller';
+const List<String> expectedFrameworkTestResponseLabels = <String>[
+  'team: flakes',
+  'severe: flake',
+  'P2',
+];
 
 String gitHubEncode(String source) {
   final List<int> utf8Characters = utf8.encode(source);

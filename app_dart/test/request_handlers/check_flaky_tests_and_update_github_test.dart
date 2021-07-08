@@ -113,7 +113,7 @@ void main() {
       );
     });
 
-    test('Can file issue and pr', () async {
+    test('Can file issue and pr for devicelab test', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
@@ -201,6 +201,66 @@ void main() {
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
       expect(pr.head, '$kCurrentUserLogin:$ref');
       expect(pr.base, 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}');
+
+      expect(result['Statuses'], 'success');
+    });
+
+    test('Can file issue but not pr for framework host-only test', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(analyzeTestResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], isA<IssueRequest>());
+      final IssueRequest issueRequest = captured[1] as IssueRequest;
+      expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
+      expect(const ListEquality<String>().equals(issueRequest.labels, expectedAnalyzeTestResponseLabels),
+          isTrue);
+      // Verify no pr is created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      expect(result['Statuses'], 'success');
+    });
+
+    test('Can file issue but not pr for shard test', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(frameworkTestResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], isA<IssueRequest>());
+      final IssueRequest issueRequest = captured[1] as IssueRequest;
+      expect(issueRequest.assignee, expectedFrameworkTestResponseAssignee);
+      expect(const ListEquality<String>().equals(issueRequest.labels, expectedFrameworkTestResponseLabels),
+          isTrue);
+      // Verify no pr is created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Statuses'], 'success');
     });
