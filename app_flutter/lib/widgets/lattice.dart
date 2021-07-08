@@ -567,6 +567,7 @@ class _RenderLatticeBody extends RenderBox {
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
+    _clipLayerHandle = LayerHandle<Layer>();
     _horizontalOffset.addListener(_handleOffsetChange);
     _verticalOffset.addListener(_handleOffsetChange);
     _tap = TapGestureRecognizer(debugOwner: this)
@@ -580,6 +581,8 @@ class _RenderLatticeBody extends RenderBox {
   @override
   void detach() {
     super.detach();
+    _clipLayerHandle.layer = null;
+    _clipLayerHandle = null;
     _horizontalOffset.removeListener(_handleOffsetChange);
     _verticalOffset.removeListener(_handleOffsetChange);
     _tap.dispose();
@@ -705,12 +708,12 @@ class _RenderLatticeBody extends RenderBox {
     );
   }
 
-  Layer _clipLayer;
+  LayerHandle<Layer> _clipLayerHandle;
 
   @override
   void paint(PaintingContext context, Offset offset) {
     assert(needsCompositing);
-    _clipLayer = context.pushClipRect(
+    _clipLayerHandle.layer = context.pushClipRect(
       needsCompositing,
       offset,
       Offset.zero & size,
@@ -747,7 +750,7 @@ class _RenderLatticeBody extends RenderBox {
           }
         }
       },
-      oldLayer: _clipLayer,
+      oldLayer: _clipLayerHandle.layer,
     );
   }
 
