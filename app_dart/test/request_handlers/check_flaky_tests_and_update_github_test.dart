@@ -227,8 +227,7 @@ void main() {
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
-      expect(const ListEquality<String>().equals(issueRequest.labels, expectedAnalyzeTestResponseLabels),
-          isTrue);
+      expect(const ListEquality<String>().equals(issueRequest.labels, expectedAnalyzeTestResponseLabels), isTrue);
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
@@ -257,8 +256,7 @@ void main() {
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedFrameworkTestResponseAssignee);
-      expect(const ListEquality<String>().equals(issueRequest.labels, expectedFrameworkTestResponseLabels),
-          isTrue);
+      expect(const ListEquality<String>().equals(issueRequest.labels, expectedFrameworkTestResponseLabels), isTrue);
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
