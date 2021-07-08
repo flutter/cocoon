@@ -151,7 +151,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       );
     }
     if (issue == null ||
-        builderDetail.type != _BuilderType.devicelab ||
+        builderDetail.type == _BuilderType.shard ||
         builderDetail.existingPullRequest != null ||
         builderDetail.isMarkedFlaky) {
       return;

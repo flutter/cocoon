@@ -205,7 +205,7 @@ void main() {
       expect(result['Statuses'], 'success');
     });
 
-    test('Can file issue but not pr for framework host-only test', () async {
+    test('Can file issue and pr for framework host-only test', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
           .thenAnswer((Invocation invocation) {
@@ -215,21 +215,41 @@ void main() {
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
       });
+      // When creates git tree
+      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
+      });
+      // When creates git commit
+      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
+      });
+      // When creates git reference
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String));
+      });
+      // When creates pr to mark test flaky
+      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
+      });
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
       expect(const ListEquality<String>().equals(issueRequest.labels, expectedAnalyzeTestResponseLabels), isTrue);
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      // Verify pr is created correctly.
+      captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], isA<CreatePullRequest>());
 
       expect(result['Statuses'], 'success');
     });

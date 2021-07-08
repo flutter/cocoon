@@ -9,6 +9,23 @@ import 'package:http/http.dart';
 
 import 'access_client_provider.dart';
 
+/// The sql query to query the build statistic from the
+/// `flutter-dashboard.datasite.luci_prod_build_status`.
+///
+/// The schema of the `luci_prod_build_status` table:
+/// time	            TIMESTAMP
+/// date	            DATE
+/// sha	              STRING
+/// failed_builds	    STRING
+/// succeeded_builds	STRING
+/// branch	          STRING
+/// device_os       	STRING
+/// pool	            STRING
+/// repo	            STRING
+/// builder_name	    STRING
+/// success_count	    INTEGER
+/// failure_count	    INTEGER
+/// is_flaky	        INTEGER
 const String getBuilderStatisticQuery = r'''
 select builder_name,
        sum(is_flaky) as flaky_number,
@@ -51,7 +68,10 @@ class BigqueryService {
     return BigqueryApi(client).jobs;
   }
 
-  /// Return the list of current builder statistic;
+  /// Return the list of current builder statistic.
+  ///
+  /// See getBuilderStatisticQuery to get the detail information about the table
+  /// schema
   Future<List<BuilderStatistic>> listBuilderStatistic(String projectId) async {
     final JobsResourceApi jobsResourceApi = await defaultJobs();
     final QueryRequest query =
