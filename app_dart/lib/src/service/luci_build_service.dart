@@ -517,7 +517,7 @@ class LuciBuildService {
 
   /// Check if a builder should be rerun.
   ///
-  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build
+  /// A rerun happens when a build fails, the retry number hasn't reached the limit and the build
   /// is on TOT.
   Future<bool> _shouldRerunBuilder(LuciTask luciTask, int retries, Commit commit, DatastoreService datastore) async {
     if (!taskFailStatusSet.contains(luciTask.status) || retries >= config.maxLuciTaskRetries) {
