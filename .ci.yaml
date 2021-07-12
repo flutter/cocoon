@@ -1,17 +1,40 @@
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/master/CI_YAML.md
 enabled_branches:
   - master
+
+platform_properties:
+  linux:
+    properties:
+      caches: dart_pub_cache:.pub_cache
+      os: Linux
+  mac:
+    properties:
+      os: Mac-10.15
+  windows:
+    properties:
+      os: Windows
 
 targets:
   - name: Linux Cocoon
     builder: Linux Cocoon
     postsubmit: false
     recipe: cocoon/cocoon
+    properties:
+      add_recipes_cq: "true"
     scheduler: luci
 
   - name: Linux device_doctor
     builder: Linux device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
+    properties:
+      add_recipes_cq: "true"
     scheduler: luci
     runIf:
       - device_doctor/**
@@ -20,6 +43,8 @@ targets:
     builder: Mac device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
+    properties:
+      add_recipes_cq: "true"
     scheduler: luci
     runIf:
       - device_doctor/**
@@ -28,6 +53,8 @@ targets:
     builder: Windows device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
+    properties:
+      add_recipes_cq: "true"
     scheduler: luci
     runIf:
       - device_doctor/**
