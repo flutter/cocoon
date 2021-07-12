@@ -589,6 +589,12 @@ class _RenderLatticeBody extends RenderBox {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _clipLayerHandle.layer = null;
+  }
+
+  @override
   void redepthChildren() {
     _childrenByCoordinate.values.forEach(redepthChild);
   }
@@ -705,12 +711,12 @@ class _RenderLatticeBody extends RenderBox {
     );
   }
 
-  Layer _clipLayer;
+  final LayerHandle<ClipRectLayer> _clipLayerHandle = LayerHandle<ClipRectLayer>();
 
   @override
   void paint(PaintingContext context, Offset offset) {
     assert(needsCompositing);
-    _clipLayer = context.pushClipRect(
+    _clipLayerHandle.layer = context.pushClipRect(
       needsCompositing,
       offset,
       Offset.zero & size,
@@ -747,7 +753,7 @@ class _RenderLatticeBody extends RenderBox {
           }
         }
       },
-      oldLayer: _clipLayer,
+      oldLayer: _clipLayerHandle.layer,
     );
   }
 
