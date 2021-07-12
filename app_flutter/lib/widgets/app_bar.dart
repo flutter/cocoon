@@ -31,7 +31,7 @@ class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
         ...?actions,
         if (actions != null && actions.isNotEmpty) const SizedBox(width: 8),
         SignInButton(
-          colorBrightness: theme.appBarTheme.brightness ?? theme.primaryColorBrightness,
+          colorBrightness: theme.appBarTheme.systemOverlayStyle ?? theme.primaryColorBrightness,
         ),
       ],
     );
