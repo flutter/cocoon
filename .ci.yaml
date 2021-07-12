@@ -11,7 +11,10 @@ enabled_branches:
 platform_properties:
   linux:
     properties:
-      caches: "[{\"name\": \"dart_pub_cache\", \"path\": \".pub_cache\"}]"
+      caches: >-
+        [
+          {"name": "dart_pub_cache", "path": ".pub_cache"}
+        ]
       os: Linux
   mac:
     properties:
