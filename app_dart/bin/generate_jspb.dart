@@ -20,7 +20,6 @@ Future<String> getRemoteConfigContent(String repo, String ref) async {
   final String configContent = await utf8.decoder.bind(clientResponse).join();
   client.close(force: true);
   return configContent;
-
 }
 
 String getLocalConfigContent(String path) {
