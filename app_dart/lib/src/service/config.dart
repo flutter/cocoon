@@ -126,6 +126,8 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
+  Future<String> get githubFlakyBotOAuthToken => _getSingleValue('GitHubFlakyBotToken');
+
   String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
       '_${kDefaultBranchName}_. Since Flutter pull requests should not '
       'normally be opened against branches other than $kDefaultBranchName, I '
@@ -297,7 +299,11 @@ class Config {
 
   Future<GitHub> createGitHubClient(RepositorySlug slug) async {
     final String githubToken = await generateGithubToken(slug);
-    return GitHub(auth: Authentication.withToken(githubToken));
+    return createGitHubClientWithToken(githubToken);
+  }
+
+  GitHub createGitHubClientWithToken(String token) {
+    return GitHub(auth: Authentication.withToken(token));
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
@@ -332,9 +338,13 @@ class Config {
     );
   }
 
-  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+  Future<BigqueryService> createBigQueryService() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
-    return await BigqueryService(accessClientProvider).defaultTabledata();
+    return BigqueryService(accessClientProvider);
+  }
+
+  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+    return (await createBigQueryService()).defaultTabledata();
   }
 
   /// Default GitHub service when the repository does not matter.
@@ -346,6 +356,11 @@ class Config {
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGitHubClient(slug);
+    return GithubService(github);
+  }
+
+  GithubService createGithubServiceWithToken(String token) {
+    final GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);
   }
 

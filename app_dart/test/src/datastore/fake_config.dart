@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -30,6 +31,7 @@ class FakeConfig implements Config {
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
+    this.githubFlakyBotOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
     this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
@@ -39,6 +41,7 @@ class FakeConfig implements Config {
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
+    this.bigqueryService,
     this.githubGraphQLClient,
     this.cirrusGraphQLClient,
     this.metricsDestination,
@@ -65,6 +68,7 @@ class FakeConfig implements Config {
   GraphQLClient githubGraphQLClient;
   GraphQLClient cirrusGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
+  BigqueryService bigqueryService;
   GithubService githubService;
   FlutterDestination metricsDestination;
   FakeDatastoreDB dbValue;
@@ -75,6 +79,7 @@ class FakeConfig implements Config {
   FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
+  String githubFlakyBotOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
   String wrongBaseBranchPullRequestMessageValue;
@@ -104,6 +109,9 @@ class FakeConfig implements Config {
   Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
 
   @override
+  GitHub createGitHubClientWithToken(String token) => githubClient;
+
+  @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
 
   @override
@@ -113,7 +121,13 @@ class FakeConfig implements Config {
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
+  Future<BigqueryService> createBigQueryService() async => bigqueryService;
+
+  @override
   Future<GithubService> createGithubService(RepositorySlug slug) async => githubService;
+
+  @override
+  GithubService createGithubServiceWithToken(String token) => githubService;
 
   @override
   Future<FlutterDestination> createMetricsDestination() async => metricsDestination;
@@ -177,6 +191,9 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
+
+  @override
+  Future<String> get githubFlakyBotOAuthToken async => githubFlakyBotOAuthTokenValue;
 
   @override
   String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;

@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
+import 'package:cocoon_service/src/service/access_client_provider.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -26,6 +28,10 @@ class MockRepositoriesService extends Mock implements RepositoriesService {}
 
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}
 
+class MockBigqueryService extends Mock implements BigqueryService {}
+
+class MockJobsResourceApi extends Mock implements JobsResourceApi {}
+
 class MockAccessTokenService extends Mock implements AccessTokenService {}
 
 // ignore: must_be_immutable
@@ -35,7 +41,13 @@ class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}
 
+class MockGitService extends Mock implements GitService {}
+
+class MockUsersService extends Mock implements UsersService {}
+
 class MockHttpClient extends Mock implements HttpClient {}
+
+class MockAccessClientProvider extends Mock implements AccessClientProvider {}
 
 class MockHttpClientRequest extends Mock implements HttpClientRequest {
   final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();

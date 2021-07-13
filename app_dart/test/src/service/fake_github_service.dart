@@ -26,8 +26,53 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<void> assignReviewer(RepositorySlug slug, {int pullRequestNumber, String reviewer}) async {}
+
+  @override
+  Future<Issue> createIssue(
+    RepositorySlug slug, {
+    String title,
+    String body,
+    List<String> labels,
+    String assignee,
+  }) async {
+    return Issue();
+  }
+
+  @override
+  Future<PullRequest> createPullRequest(
+    RepositorySlug slug, {
+    String title,
+    String body,
+    String commitMessage,
+    GitReference baseRef,
+    List<CreateGitTreeEntry> entries,
+  }) async {
+    return PullRequest();
+  }
+
+  @override
+  Future<String> getFileContent(RepositorySlug slug, String path) async {
+    return '';
+  }
+
+  @override
   Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
     return <String>['abc/def'];
+  }
+
+  @override
+  Future<GitReference> getReference(RepositorySlug slug, String ref) async {
+    return GitReference();
+  }
+
+  @override
+  Future<List<Issue>> listIssues(
+    RepositorySlug slug, {
+    List<String> labels,
+    String state = 'open',
+  }) async {
+    return <Issue>[];
   }
 
   @override
