@@ -47,7 +47,9 @@ void writeYaml(SchedulerConfig config) {
       for (MapEntry<String, String> entry in target.properties.entries) {
         configYaml.add('      ${entry.key}: ${entry.value}');
       }
-      final List<String> tags = target.tags.map((StringPair tag) => tag.key).toList()..sort()..reversed;
+      final List<String> tags = target.tags.map((StringPair tag) => tag.key).toList()
+        ..sort()
+        ..reversed;
       final String tagsJson = jsonEncode(tags);
       configYaml.add('      tags: >');
       configYaml.add('        $tagsJson');
