@@ -13,7 +13,7 @@ platform_properties:
     properties:
       caches: >-
         [
-          {"name": "dart_pub_cache", "path": ".pub_cache"}
+          {"name": "dart_pub_cache", "path": ".pub-cache"}
         ]
       os: Linux
   mac:
