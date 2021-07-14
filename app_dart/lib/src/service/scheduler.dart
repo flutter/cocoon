@@ -356,6 +356,9 @@ class Scheduler {
     } on FormatException catch (e) {
       log.info(e.toString());
       exception = e;
+    } catch (e) {
+      log.warning(e.toString());
+      exception = e;
     }
 
     // Update validate ci.yaml check
@@ -433,6 +436,9 @@ class Scheduler {
     );
     //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
+    if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
+      throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+    }
     final Iterable<Target> presubmitLuciTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
     final Iterable<LuciBuilder> ciYamlBuilders =
