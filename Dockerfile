@@ -13,7 +13,8 @@ FROM debian:stretch
 RUN apt update -y
 RUN apt install -y \
   curl \
-  git
+  git \
+  unzip
   
 # Install Flutter.
 ENV FLUTTER_ROOT="/opt/flutter"
