@@ -400,6 +400,22 @@ targets:
             <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure]);
       });
 
+      test('ci.yaml validation fails on not enabled branch', () async {
+        await scheduler.triggerPresubmitTargets(
+          branch: 'abc',
+          prNumber: 42,
+          slug: config.flutterSlug,
+          commitSha: 'abc',
+        );
+        expect(
+            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
+                    status: captureAnyNamed('status'),
+                    conclusion: captureAnyNamed('conclusion'),
+                    output: anyNamed('output')))
+                .captured,
+            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure]);
+      });
+
       test('ci.yaml validation fails with config with unknown dependencies', () async {
         httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
           if (request.uri.path.contains('.ci.yaml')) {
