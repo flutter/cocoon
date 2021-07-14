@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -29,11 +30,12 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   static const String _ciYamlTargetsKey = 'targets';
   static const String _ciYamlTargetBuilderKey = 'builder';
   static const String _ciYamlTargetIsFlakyKey = 'bringup';
+  static const String _ciYamlPropertiesKey = 'properties';
   static const String _ciYamlTargetTagsKey = 'tags';
-  static const String _ciYamlTargetTagsShardKey = 'shard';
-  static const String _ciYamlTargetTagsDevicelabKey = 'devicelab';
-  static const String _ciYamlTargetTagsFrameworkKey = 'framework';
-  static const String _ciYamlTargetTagsHostonlyKey = 'hostonly';
+  static const String _ciYamlTargetTagsShard = 'shard';
+  static const String _ciYamlTargetTagsDevicelab = 'devicelab';
+  static const String _ciYamlTargetTagsFramework = 'framework';
+  static const String _ciYamlTargetTagsHostonly = 'hostonly';
 
   static const String kTestOwnerPath = 'TESTOWNERS';
 
@@ -84,11 +86,12 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   Future<Map<String, Issue>> _getExistingIssues(GithubService gitHub, RepositorySlug slug) async {
     final Map<String, Issue> nameToExistingIssue = <String, Issue>{};
     for (final Issue issue in await gitHub.listIssues(slug, state: 'all', labels: <String>[kTeamFlakeLabel])) {
-      final RegExpMatch match = IssueBuilder.issueTitleRegex.firstMatch(issue.title);
-      if (match != null) {
-        if (!nameToExistingIssue.containsKey(match.namedGroup('name')) ||
-            _isOtherIssueMoreImportant(nameToExistingIssue[match.namedGroup('name')], issue)) {
-          nameToExistingIssue[match.namedGroup('name')] = issue;
+      final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
+      if (metaTags != null) {
+        final String name = metaTags['name'] as String;
+        if (!nameToExistingIssue.containsKey(name) ||
+            _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
+          nameToExistingIssue[name] = issue;
         }
       }
     }
@@ -98,9 +101,9 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   Future<Map<String, PullRequest>> _getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
     final Map<String, PullRequest> nameToExistingPRs = <String, PullRequest>{};
     for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-      final RegExpMatch match = pullRequestTitleRegex.firstMatch(pr.title);
-      if (match != null) {
-        nameToExistingPRs[match.namedGroup('name')] = pr;
+      final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(pr.body);
+      if (metaTags != null) {
+        nameToExistingPRs[metaTags['name'] as String] = pr;
       }
     }
     return nameToExistingPRs;
@@ -185,7 +188,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     return target != null && target[_ciYamlTargetIsFlakyKey] == true;
   }
 
-  YamlList _getTags(String builderName, YamlMap ci) {
+  List<dynamic> _getTags(String builderName, YamlMap ci) {
     final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
       (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
@@ -194,23 +197,27 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     if (target == null) {
       return null;
     }
-    return target[_ciYamlTargetTagsKey] as YamlList;
+    return jsonDecode(target[_ciYamlPropertiesKey][_ciYamlTargetTagsKey] as String) as List<dynamic>;
   }
 
-  _BuilderType _getTypeFromTags(YamlList tags) {
+  _BuilderType _getTypeFromTags(List<dynamic> tags) {
     if (tags == null) {
       return _BuilderType.unknown;
     }
     bool hasFrameworkTag = false;
     bool hasHostOnlyTag = false;
+    // If tags contains 'shard', it must be a shard test.
+    // If tags contains 'devicelab', it must be a devicelab test.
+    // Otherwise, it is framework host only test if its tags contains both
+    // 'framework' and 'hostonly'.
     for (dynamic tag in tags) {
-      if (tag['key'] == _ciYamlTargetTagsShardKey && tag['value'] == 'true') {
+      if (tag == _ciYamlTargetTagsShard) {
         return _BuilderType.shard;
-      } else if (tag['key'] == _ciYamlTargetTagsDevicelabKey && tag['value'] == 'true') {
+      } else if (tag == _ciYamlTargetTagsDevicelab) {
         return _BuilderType.devicelab;
-      } else if (tag['key'] == _ciYamlTargetTagsFrameworkKey && tag['value'] == 'true') {
+      } else if (tag == _ciYamlTargetTagsFramework) {
         hasFrameworkTag = true;
-      } else if (tag['key'] == _ciYamlTargetTagsHostonlyKey && tag['value'] == 'true') {
+      } else if (tag == _ciYamlTargetTagsHostonly) {
         hasHostOnlyTag = true;
       }
     }
@@ -219,7 +226,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
 
   bool _isOtherIssueMoreImportant(Issue original, Issue other) {
     // Open issues are always more important than closed issues. If both issue
-    // are closed, the one that is most recent created is more important.
+    // are closed, the one that is most recently created is more important.
     if (original.isOpen && other.isOpen) {
       throw 'There should not be two open issues for the same test';
     } else if (original.isOpen && other.isClosed) {

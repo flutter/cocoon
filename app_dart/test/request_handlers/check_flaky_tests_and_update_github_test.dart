@@ -292,7 +292,7 @@ void main() {
       // when gets existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
           .thenAnswer((Invocation invocation) {
-        return Stream<Issue>.fromIterable(<Issue>[Issue(title: expectedSemanticsIntegrationTestResponseTitle)]);
+        return Stream<Issue>.fromIterable(<Issue>[Issue(title: expectedSemanticsIntegrationTestResponseTitle, body: expectedSemanticsIntegrationTestResponseBody)]);
       });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
@@ -331,6 +331,7 @@ void main() {
         return Stream<Issue>.fromIterable(<Issue>[
           Issue(
             title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
             closedAt: DateTime.now()
                 .subtract(const Duration(days: CheckForFlakyTestAndUpdateGithub.kGracePeriodForClosedFlake - 1)),
@@ -374,6 +375,7 @@ void main() {
         return Stream<Issue>.fromIterable(<Issue>[
           Issue(
             title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
             closedAt: DateTime.now()
                 .subtract(const Duration(days: CheckForFlakyTestAndUpdateGithub.kGracePeriodForClosedFlake + 1)),
@@ -449,6 +451,7 @@ void main() {
         return Stream<PullRequest>.fromIterable(<PullRequest>[
           PullRequest(
             title: expectedSemanticsIntegrationTestPullRequestTitle,
+            body: expectedSemanticsIntegrationTestPullRequestBody,
             state: 'open',
           )
         ]);

@@ -22,24 +22,22 @@ targets:
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
-    tags:
-      - key: devicelab
-        value: "true"
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
-    tags:
-      - key: framework
-        value: "true"
-      - key: hostonly
-        value: "true"
+    properties:
+      tags: >
+        ["framework","hostonly"]
   - name: win_framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
-    tags:
-      - key: shard
-        value: "true"
+    properties:
+      tags: >
+        ["shard"]
 ''';
 
 const String ciYamlContentAlreadyFlaky = '''
@@ -59,24 +57,22 @@ targets:
     bringup: true
     presubmit: false
     scheduler: luci
-    tags:
-      - key: devicelab
-        value: "true"
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
-    tags:
-      - key: framework
-        value: "true"
-      - key: hostonly
-        value: "true"
+    properties:
+      tags: >
+        ["framework","hostonly"]
   - name: win_framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
-    tags:
-      - key: shard
-        value: "true"
+    properties:
+      tags: >
+        ["shard"]
 ''';
 
 const String testOwnersContent = '''
@@ -129,26 +125,25 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
 const String expectedSemanticsIntegrationTestResponseTitle =
     'Mac_android android_semantics_integration_test is 50.00% flaky';
 const String expectedSemanticsIntegrationTestResponseBody = '''
-<!-- summary-->
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "Mac_android android_semantics_integration_test"
+}
+-->
+
 The post-submit test builder `Mac_android android_semantics_integration_test` had a flaky ratio 50.00% for the past 15 days, which is above our 2.00% threshold.
-<!-- /summary-->
-    
-One recent flaky example for a same commit: <!-- failedBuildOfCommit-->https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103<!-- /failedBuildOfCommit-->
-Commit: <!-- commit-->https://github.com/flutter/flutter/commit/abc<!-- /commit-->
+
+One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
+Commit: https://github.com/flutter/flutter/commit/abc
 Failed build:
-<!-- failedBuilds-->
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
-<!-- /failedBuilds-->
-    
+
 Succeeded build (3 most recent):
-<!-- succeededBuilds-->
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/203
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/202
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
-<!-- /succeededBuilds-->
-    
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -175,29 +170,34 @@ targets:
     bringup: true // Flaky $expectedSemanticsIntegrationTestNewIssueURL
     presubmit: false
     scheduler: luci
-    tags:
-      - key: devicelab
-        value: "true"
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
-    tags:
-      - key: framework
-        value: "true"
-      - key: hostonly
-        value: "true"
+    properties:
+      tags: >
+        ["framework","hostonly"]
   - name: win_framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
-    tags:
-      - key: shard
-        value: "true"
+    properties:
+      tags: >
+        ["shard"]
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
     'Marks Mac_android android_semantics_integration_test to be flaky';
 const String expectedSemanticsIntegrationTestPullRequestBody =
-    'Issue link: $expectedSemanticsIntegrationTestNewIssueURL';
+    '''
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "Mac_android android_semantics_integration_test"
+}
+-->
+Issue link: $expectedSemanticsIntegrationTestNewIssueURL
+''';
 
 final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
   BuilderStatistic(
