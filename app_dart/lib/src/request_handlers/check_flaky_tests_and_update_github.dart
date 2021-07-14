@@ -205,9 +205,9 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     }
     bool hasFrameworkTag = false;
     bool hasHostOnlyTag = false;
-    // If tags contains 'shard', it must be a shard test.
-    // If tags contains 'devicelab', it must be a devicelab test.
-    // Otherwise, it is framework host only test if its tags contains both
+    // If tags contain 'shard', it must be a shard test.
+    // If tags contain 'devicelab', it must be a devicelab test.
+    // Otherwise, it is framework host only test if its tags contain both
     // 'framework' and 'hostonly'.
     for (dynamic tag in tags) {
       if (tag == _ciYamlTargetTagsShard) {
