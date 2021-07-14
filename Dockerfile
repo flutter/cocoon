@@ -41,7 +41,7 @@ ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
 ENV ANDROID_HOME="${ANDROID_TOOLS_ROOT}"
 
 # Switch to dev channel
-RUN flutter channel dev
+RUN flutter channel master
 
 # Disable analytics and crash reporting on the builder.
 RUN flutter config  --no-analytics
