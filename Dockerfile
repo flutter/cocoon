@@ -11,7 +11,9 @@ FROM debian:stretch
 
 # Install Dependencies.
 RUN apt update -y
-RUN apt install -y git
+RUN apt install -y \
+  curl \
+  git
   
 # Install Flutter.
 ENV FLUTTER_ROOT="/opt/flutter"
