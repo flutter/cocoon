@@ -30,6 +30,7 @@ class Task extends Model<int> {
     this.name,
     this.attempts = 0,
     this.isFlaky = false,
+    this.isTestRunFlaky = false,
     this.timeoutInMinutes,
     this.reason = '',
     this.requiredCapabilities,
@@ -178,6 +179,13 @@ class Task extends Model<int> {
   @JsonKey(name: 'Flaky')
   bool isFlaky;
 
+  /// Whether the test run of this task is flaky.
+  ///
+  /// Test runner supports rerun, and this flag tracks if a flake happens.
+  @BoolProperty(propertyName: 'TestRunFlaky')
+  @JsonKey(name: 'TestRunFlaky')
+  bool isTestRunFlaky;
+
   /// The timeout of the task, or zero if the task has no timeout.
   @IntProperty(propertyName: 'TimeoutInMinutes', required: true)
   @JsonKey(name: 'TimeoutInMinutes')
@@ -270,6 +278,7 @@ class Task extends Model<int> {
       ..write(', name: $name')
       ..write(', attempts: $attempts')
       ..write(', isFlaky: $isFlaky')
+      ..write(', isTestRunFlaky: $isTestRunFlaky')
       ..write(', timeoutInMinutes: $timeoutInMinutes')
       ..write(', reason: $reason')
       ..write(', requiredCapabilities: $requiredCapabilities')
