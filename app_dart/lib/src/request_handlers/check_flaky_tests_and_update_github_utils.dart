@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:core';
 
 import 'package:github/github.dart';
@@ -23,6 +24,27 @@ const String kSevereFlakeLabel = 'severe: flake';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
 
+String _buildHiddenMetaTags(BuilderStatistic statistic) {
+  return '''
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "${statistic.name}"
+}
+-->
+''';
+}
+
+final RegExp _issueHiddenMetaTagsRegex =
+    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\n(?<meta>.+)\n-->', dotAll: true);
+
+Map<String, dynamic> retrieveMetaTagsFromContent(String content) {
+  final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
+  if (match == null) {
+    return null;
+  }
+  return jsonDecode(match.namedGroup('meta')) as Map<String, dynamic>;
+}
+
 class IssueBuilder {
   IssueBuilder({
     this.statistic,
@@ -33,7 +55,6 @@ class IssueBuilder {
   final BuilderStatistic statistic;
   final double threshold;
   final bool isImportant;
-  static final RegExp issueTitleRegex = RegExp(r'(?<name>.+) is (?<rate>.+)% flaky');
 
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
@@ -41,13 +62,16 @@ class IssueBuilder {
 
   String get issueBody {
     return '''
-$_issueSummary
-One recent flaky example for a same commit: $_issueFailedBuildOfCommit
-Commit: $_issueCommit
+${_buildHiddenMetaTags(statistic)}
+The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, ${isBelow ? 'which is the flakist test below ${_formatRate(threshold)}% threshold' : 'which is above our ${_formatRate(threshold)}% threshold'}.
+
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+Commit: $_commitPrefix${statistic.recentCommit}
 Failed build:
-$_issueFailedBuilds
+${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+
 Succeeded build (3 most recent):
-$_issueSucceededBuilds
+${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -62,36 +86,6 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
       if (isImportant && isBelow) kP2Label,
       if (isImportant && !isBelow) kP1Label,
     ];
-  }
-
-  String get _issueSummary {
-    return '''
-<!-- summary-->
-The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, ${isBelow ? 'which is the flakist test below ${_formatRate(threshold)}% threshold' : 'which is above our ${_formatRate(threshold)}% threshold'}.
-<!-- /summary-->
-    ''';
-  }
-
-  String get _issueFailedBuildOfCommit {
-    return '<!-- failedBuildOfCommit-->${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}<!-- /failedBuildOfCommit-->';
-  }
-
-  String get _issueCommit => '<!-- commit-->$_commitPrefix${statistic.recentCommit}<!-- /commit-->';
-
-  String get _issueFailedBuilds {
-    return '''
-<!-- failedBuilds-->
-${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
-<!-- /failedBuilds-->
-    ''';
-  }
-
-  String get _issueSucceededBuilds {
-    return '''
-<!-- succeededBuilds-->
-${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
-<!-- /succeededBuilds-->
-    ''';
   }
 }
 
@@ -116,10 +110,8 @@ class PullRequestBuilder {
   final Issue issue;
 
   String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
-  String get pullRequestBody => 'Issue link: ${issue.htmlUrl}';
+  String get pullRequestBody => '${_buildHiddenMetaTags(statistic)}Issue link: ${issue.htmlUrl}\n';
 }
-
-final RegExp pullRequestTitleRegex = RegExp(r'Marks (?<name>.+) to be flaky');
 
 // TESTOWNER Regex
 
