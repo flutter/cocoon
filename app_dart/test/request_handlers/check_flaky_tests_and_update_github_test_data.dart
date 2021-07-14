@@ -189,8 +189,7 @@ targets:
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
     'Marks Mac_android android_semantics_integration_test to be flaky';
-const String expectedSemanticsIntegrationTestPullRequestBody =
-    '''
+const String expectedSemanticsIntegrationTestPullRequestBody = '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
   "name": "Mac_android android_semantics_integration_test"

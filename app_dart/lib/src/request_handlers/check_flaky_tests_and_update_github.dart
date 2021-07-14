@@ -89,8 +89,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
       if (metaTags != null) {
         final String name = metaTags['name'] as String;
-        if (!nameToExistingIssue.containsKey(name) ||
-            _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
+        if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
           nameToExistingIssue[name] = issue;
         }
       }

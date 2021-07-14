@@ -292,7 +292,10 @@ void main() {
       // when gets existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
           .thenAnswer((Invocation invocation) {
-        return Stream<Issue>.fromIterable(<Issue>[Issue(title: expectedSemanticsIntegrationTestResponseTitle, body: expectedSemanticsIntegrationTestResponseBody)]);
+        return Stream<Issue>.fromIterable(<Issue>[
+          Issue(
+              title: expectedSemanticsIntegrationTestResponseTitle, body: expectedSemanticsIntegrationTestResponseBody)
+        ]);
       });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
