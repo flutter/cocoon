@@ -30,6 +30,7 @@ class Task extends Model<int> {
     this.name,
     this.attempts = 0,
     this.isFlaky = false,
+    this.isTestFlaky = false,
     this.timeoutInMinutes,
     this.reason = '',
     this.requiredCapabilities,
@@ -169,14 +170,26 @@ class Task extends Model<int> {
   @JsonKey(name: 'Attempts')
   int attempts;
 
-  /// Whether this task has been marked flaky by the devicelab manifest.
+  /// Whether this task has been marked flaky by .ci.yaml.
   ///
   /// See also:
   ///
-  ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/manifest.yaml>
+  ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
+  ///
+  /// A flaky (`bringup: true`) task will not block the tree.
   @BoolProperty(propertyName: 'Flaky')
   @JsonKey(name: 'Flaky')
   bool isFlaky;
+
+  /// Whether the test execution of this task shows flake.
+  ///
+  /// Test runner supports rerun, and this flag tracks if a flake happens.
+  ///
+  /// See also:
+  ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
+  @BoolProperty(propertyName: 'TestFlaky')
+  @JsonKey(name: 'TestFlaky')
+  bool isTestFlaky;
 
   /// The timeout of the task, or zero if the task has no timeout.
   @IntProperty(propertyName: 'TimeoutInMinutes', required: true)
@@ -270,6 +283,7 @@ class Task extends Model<int> {
       ..write(', name: $name')
       ..write(', attempts: $attempts')
       ..write(', isFlaky: $isFlaky')
+      ..write(', isTestRunFlaky: $isTestFlaky')
       ..write(', timeoutInMinutes: $timeoutInMinutes')
       ..write(', reason: $reason')
       ..write(', requiredCapabilities: $requiredCapabilities')
