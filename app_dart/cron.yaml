@@ -22,6 +22,6 @@ cron:
 - description: push github rate limit history to bigquery
   url: /api/public/github-rate-limit-status
   schedule: every 1 minutes
-- description: detect and flag tests with high flaky rate
+- description: detect and flag tests with high flaky rates
   url: /api/check-flaky-tests-and-update-github?threshold=0.02
-  schedule: every 7 days
+  schedule: every monday 09:00
