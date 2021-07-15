@@ -43,6 +43,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
   static const String builderNameParam = 'BuilderName';
+  static const String testFlayParam = 'TestFlaky';
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
@@ -50,6 +51,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final String newStatus = requestData[newStatusParam] as String;
+    final bool isTestFlaky = (requestData[testFlayParam] as bool) ?? false;
     final Map<String, dynamic> resultData =
         requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
     final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
@@ -66,6 +68,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     task.status = newStatus;
     task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+    task.isTestFlaky = isTestFlaky;
 
     await datastore.insert(<Task>[task]);
 
