@@ -48,7 +48,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final RepositorySlug slug = config.flutterSlug;
-    final GithubService gitHub = config.createGithubServiceWithToken(await config.githubFlakyBotOAuthToken);
+    final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
@@ -86,6 +86,10 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
   Future<Map<String, Issue>> _getExistingIssues(GithubService gitHub, RepositorySlug slug) async {
     final Map<String, Issue> nameToExistingIssue = <String, Issue>{};
     for (final Issue issue in await gitHub.listIssues(slug, state: 'all', labels: <String>[kTeamFlakeLabel])) {
+      if (issue.htmlUrl?.contains('pull') == true) {
+        // For some reason, this github api may also return pull requests.
+        continue;
+      }
       final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
       if (metaTags != null) {
         final String name = metaTags['name'] as String;

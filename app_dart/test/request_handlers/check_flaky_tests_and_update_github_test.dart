@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/check_flaky_tests_and_update_github_utils.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:collection/collection.dart';
@@ -469,5 +470,12 @@ void main() {
 
       expect(result['Statuses'], 'success');
     });
+  });
+
+  test('retrieveMetaTagsFromContent can work with different newlines', () async {
+    const String differentNewline =
+        '<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\r\n{"name": "Mac_android android_semantics_integration_test"}\r\n-->';
+    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(differentNewline);
+    expect(metaTags['name'], 'Mac_android android_semantics_integration_test');
   });
 }

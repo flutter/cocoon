@@ -25,8 +25,7 @@ const String kP1Label = 'P1';
 const String kP2Label = 'P2';
 
 String _buildHiddenMetaTags(BuilderStatistic statistic) {
-  return '''
-<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+  return '''<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
   "name": "${statistic.name}"
 }
@@ -35,7 +34,7 @@ String _buildHiddenMetaTags(BuilderStatistic statistic) {
 }
 
 final RegExp _issueHiddenMetaTagsRegex =
-    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\n(?<meta>.+)\n-->', dotAll: true);
+    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
 
 Map<String, dynamic> retrieveMetaTagsFromContent(String content) {
   final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
