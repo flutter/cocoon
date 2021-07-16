@@ -473,7 +473,8 @@ void main() {
   });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {
-    const String differentNewline = '<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\r\n{"name": "Mac_android android_semantics_integration_test"}\r\n-->';
+    const String differentNewline =
+        '<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\r\n{"name": "Mac_android android_semantics_integration_test"}\r\n-->';
     final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(differentNewline);
     expect(metaTags['name'], 'Mac_android android_semantics_integration_test');
   });
