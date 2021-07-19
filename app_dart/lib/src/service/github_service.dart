@@ -176,6 +176,31 @@ class GithubService {
     );
   }
 
+  Future<IssueComment> createComment(
+    RepositorySlug slug, {
+    int issueNumber,
+    String body,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    return await github.issues.createComment(slug, issueNumber, body);
+  }
+
+  Future<List<IssueLabel>> replaceLabelsForIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    List<String> labels,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    final Response response = await github
+        .request('PUT', '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: GitHubJson.encode(labels));
+    final List<dynamic> body = jsonDecode(response.body) as List<dynamic>;
+    return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
+
+  }
+
   /// Returns changed files of [slug] and [prNumber].
   /// https://developer.github.com/v3/pulls/#list-pull-requests-files
   Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {

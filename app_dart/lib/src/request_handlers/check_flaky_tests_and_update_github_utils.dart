@@ -48,12 +48,12 @@ class IssueBuilder {
   IssueBuilder({
     this.statistic,
     this.threshold,
-    this.isImportant,
+    this.openedIssue,
   });
 
   final BuilderStatistic statistic;
   final double threshold;
-  final bool isImportant;
+  final Issue openedIssue;
 
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
@@ -79,12 +79,41 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
   bool get isBelow => statistic.flakyRate < threshold;
 
   List<String> get issueLabels {
+    if (openedIssue != null) {
+      final List<String> existingLabels = openedIssue.labels?.map<String>((IssueLabel label) => label.name)?.toList() ?? <String>[];
+      if (statistic.flakyRate == 0.0) {
+        return existingLabels;
+      }
+      // Only update the labels if there is already a priority label.
+      if (existingLabels.contains(kP1Label) && !existingLabels.contains(kP2Label) && isBelow) {
+        existingLabels.remove(kP1Label);
+        existingLabels.add(kP2Label);
+      } else if (!existingLabels.contains(kP1Label) && existingLabels.contains(kP2Label) && !isBelow) {
+        existingLabels.remove(kP2Label);
+        existingLabels.add(kP1Label);
+      }
+      return existingLabels;
+    }
     return <String>[
       kTeamFlakeLabel,
       kSevereFlakeLabel,
-      if (isImportant && isBelow) kP2Label,
-      if (isImportant && !isBelow) kP1Label,
+      if (isBelow) kP2Label,
+      if (!isBelow) kP1Label,
     ];
+  }
+
+  String get issueUpdateComment {
+    String result = 'Current flaky ratio for the past 15 days is ${_formatRate(statistic.flakyRate)}%.\n';
+    if (statistic.flakyRate > 0.0) {
+      result = result +
+'''
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+Commit: $_commitPrefix${statistic.recentCommit}
+Failed build:
+${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+''';
+    }
+    return result;
   }
 }
 

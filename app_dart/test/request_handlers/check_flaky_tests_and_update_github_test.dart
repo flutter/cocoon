@@ -6,12 +6,13 @@ import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_flaky_tests_and_update_github_utils.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:http/http.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -470,6 +471,145 @@ void main() {
 
       expect(result['Statuses'], 'success');
     });
+
+    test('Can add existing issue comment', () async {
+      const int existingIssueNumber = 1234;
+      final List<IssueLabel> existingLabels = <IssueLabel>[
+        IssueLabel(name: 'some random label'),
+        IssueLabel(name: 'P2'),
+      ];
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
+      });
+      // when gets existing flaky issues.
+      when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
+          .thenAnswer((Invocation invocation) {
+        return Stream<Issue>.fromIterable(<Issue>[
+          Issue(
+            number: existingIssueNumber,
+            state: 'open',
+            labels: existingLabels,
+            title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
+          )
+        ]);
+      });
+      // when firing github request.
+      // This is for replacing labels.
+      when(mockGitHubClient.request(
+        captureAny,
+        captureAny,
+        body: captureAnyNamed('body'),
+      )).thenAnswer((Invocation invocation) {
+        return Future<Response>.value(Response('[]', 200));
+      });
+      // when gets existing marks flaky prs.
+      when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
+        return Stream<PullRequest>.fromIterable(<PullRequest>[
+          PullRequest(
+            title: expectedSemanticsIntegrationTestPullRequestTitle,
+            body: expectedSemanticsIntegrationTestPullRequestBody,
+            state: 'open',
+          )
+        ]);
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], existingIssueNumber);
+      expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
+
+      // Verify labels are applied correctly.
+      captured = verify(mockGitHubClient.request(
+        captureAny,
+        captureAny,
+        body: captureAnyNamed('body'),
+      )).captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), 'PUT');
+      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
+      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
+
+      expect(result['Statuses'], 'success');
+    });
+
+    test('Can add existing issue comment case 0.0', () async {
+      const int existingIssueNumber = 1234;
+      final List<IssueLabel> existingLabels = <IssueLabel>[
+        IssueLabel(name: 'some random label'),
+        IssueLabel(name: 'P2'),
+      ];
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponseZeroFlake);
+      });
+      // when gets existing flaky issues.
+      when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
+          .thenAnswer((Invocation invocation) {
+        return Stream<Issue>.fromIterable(<Issue>[
+          Issue(
+            number: existingIssueNumber,
+            state: 'open',
+            labels: existingLabels,
+            title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
+          )
+        ]);
+      });
+      // when firing github request.
+      // This is for replacing labels.
+      when(mockGitHubClient.request(
+        captureAny,
+        captureAny,
+        body: captureAnyNamed('body'),
+      )).thenAnswer((Invocation invocation) {
+        return Future<Response>.value(Response('[]', 200));
+      });
+      // when gets existing marks flaky prs.
+      when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
+        return Stream<PullRequest>.fromIterable(<PullRequest>[
+          PullRequest(
+            title: expectedSemanticsIntegrationTestPullRequestTitle,
+            body: expectedSemanticsIntegrationTestPullRequestBody,
+            state: 'open',
+          )
+        ]);
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], existingIssueNumber);
+      expect(captured[2], expectedSemanticsIntegrationTestZeroFlakeIssueComment);
+
+      // Verify labels are the same.
+      captured = verify(mockGitHubClient.request(
+        captureAny,
+        captureAny,
+        body: captureAnyNamed('body'),
+      )).captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), 'PUT');
+      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
+      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P2']));
+
+      expect(result['Statuses'], 'success');
+    });
+
   });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {

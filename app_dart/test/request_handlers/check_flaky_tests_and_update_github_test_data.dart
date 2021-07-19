@@ -122,6 +122,17 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   )
 ];
 
+final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.0,
+    failedBuilds: <String>[],
+    succeededBuilds: <String>[],
+    recentCommit: '',
+    failedBuildOfRecentCommit: '',
+  )
+];
+
 const String expectedSemanticsIntegrationTestResponseTitle =
     'Mac_android android_semantics_integration_test is 50.00% flaky';
 const String expectedSemanticsIntegrationTestResponseBody = '''
@@ -147,6 +158,21 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
+
+const String expectedSemanticsIntegrationTestIssueComment= '''
+Current flaky ratio for the past 15 days is 50.00%.
+One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
+Commit: https://github.com/flutter/flutter/commit/abc
+Failed build:
+https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
+https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
+https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
+''';
+
+const String expectedSemanticsIntegrationTestZeroFlakeIssueComment= '''
+Current flaky ratio for the past 15 days is 0.00%.
+''';
+
 const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',

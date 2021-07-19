@@ -72,9 +72,12 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     // Makes sure every important flake has an github issue and a pr to mark
     // the test flaky.
     for (final _BuilderDetail detail in builderDetails) {
-      if (importantFlakes.contains(detail.statistic.name)) {
-        await _updateFlakes(gitHub, slug, builderDetail: detail);
-      }
+      await _updateFlakes(
+        gitHub,
+        slug,
+        builderDetail: detail,
+        isImportant: importantFlakes.contains(detail.statistic.name)
+      );
     }
     return Body.forJson(const <String, dynamic>{
       'Statuses': 'success',
@@ -138,16 +141,18 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     GithubService gitHub,
     RepositorySlug slug, {
     @required _BuilderDetail builderDetail,
+    @required bool isImportant,
   }) async {
     // Don't create a new issue if there is a recent closed issue within
     // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
     Issue issue = builderDetail.existingIssue;
-    if (issue == null ||
-        (issue.state == 'closed' &&
-            DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
+    if (isImportant &&
+        (issue == null ||
+         (issue.state == 'closed' &&
+             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake)))) {
       final IssueBuilder issueBuilder =
-          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold, isImportant: true);
+          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,
@@ -155,8 +160,14 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         labels: issueBuilder.issueLabels,
         assignee: builderDetail.owner,
       );
+    } else if (issue?.isOpen == true) {
+      final IssueBuilder issueBuilder =
+          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold, openedIssue: issue);
+      await gitHub.createComment(slug, issueNumber: issue.number, body: issueBuilder.issueUpdateComment);
+      await gitHub.replaceLabelsForIssue(slug, issueNumber: issue.number, labels: issueBuilder.issueLabels);
     }
-    if (issue == null ||
+    if (!isImportant ||
+        issue == null ||
         builderDetail.type == _BuilderType.shard ||
         builderDetail.existingPullRequest != null ||
         builderDetail.isMarkedFlaky) {
