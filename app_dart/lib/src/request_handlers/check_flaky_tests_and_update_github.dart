@@ -340,12 +340,12 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     int nextLine = builderLineNumber + 1;
     while (nextLine < lines.length && !lines[nextLine].contains('builder:')) {
       if (lines[nextLine].contains('$_ciYamlTargetIsFlakyKey:')) {
-        lines[nextLine] = lines[nextLine].replaceFirst('false', 'true // Flaky $issueUrl');
+        lines[nextLine] = lines[nextLine].replaceFirst('false', 'true # Flaky $issueUrl');
         return lines.join('\n');
       }
       nextLine += 1;
     }
-    lines.insert(builderLineNumber + 1, '    $_ciYamlTargetIsFlakyKey: true // Flaky $issueUrl');
+    lines.insert(builderLineNumber + 1, '    $_ciYamlTargetIsFlakyKey: true # Flaky $issueUrl');
     return lines.join('\n');
   }
 

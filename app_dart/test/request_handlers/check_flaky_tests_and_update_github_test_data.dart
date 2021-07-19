@@ -167,7 +167,7 @@ enabled_branches:
 targets:
   - name: mac_android_android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
-    bringup: true // Flaky $expectedSemanticsIntegrationTestNewIssueURL
+    bringup: true # Flaky $expectedSemanticsIntegrationTestNewIssueURL
     presubmit: false
     scheduler: luci
     properties:
