@@ -72,12 +72,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     // Makes sure every important flake has an github issue and a pr to mark
     // the test flaky.
     for (final _BuilderDetail detail in builderDetails) {
-      await _updateFlakes(
-        gitHub,
-        slug,
-        builderDetail: detail,
-        isImportant: importantFlakes.contains(detail.statistic.name)
-      );
+      await _updateFlakes(gitHub, slug,
+          builderDetail: detail, isImportant: importantFlakes.contains(detail.statistic.name));
     }
     return Body.forJson(const <String, dynamic>{
       'Statuses': 'success',
@@ -149,10 +145,9 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     // down after the fix is merged.
     if (isImportant &&
         (issue == null ||
-         (issue.state == 'closed' &&
-             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake)))) {
-      final IssueBuilder issueBuilder =
-          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold);
+            (issue.state == 'closed' &&
+                DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake)))) {
+      final IssueBuilder issueBuilder = IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,

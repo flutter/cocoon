@@ -80,7 +80,8 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 
   List<String> get issueLabels {
     if (openedIssue != null) {
-      final List<String> existingLabels = openedIssue.labels?.map<String>((IssueLabel label) => label.name)?.toList() ?? <String>[];
+      final List<String> existingLabels =
+          openedIssue.labels?.map<String>((IssueLabel label) => label.name)?.toList() ?? <String>[];
       if (statistic.flakyRate == 0.0) {
         return existingLabels;
       }
@@ -106,7 +107,7 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
     String result = 'Current flaky ratio for the past 15 days is ${_formatRate(statistic.flakyRate)}%.\n';
     if (statistic.flakyRate > 0.0) {
       result = result +
-'''
+          '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Failed build:

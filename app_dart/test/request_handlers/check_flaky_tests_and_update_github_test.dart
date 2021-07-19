@@ -609,7 +609,6 @@ void main() {
 
       expect(result['Statuses'], 'success');
     });
-
   });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {

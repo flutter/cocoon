@@ -159,7 +159,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
-const String expectedSemanticsIntegrationTestIssueComment= '''
+const String expectedSemanticsIntegrationTestIssueComment = '''
 Current flaky ratio for the past 15 days is 50.00%.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
@@ -169,7 +169,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 ''';
 
-const String expectedSemanticsIntegrationTestZeroFlakeIssueComment= '''
+const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
 Current flaky ratio for the past 15 days is 0.00%.
 ''';
 

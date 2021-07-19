@@ -193,12 +193,10 @@ class GithubService {
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
-    final Response response = await github
-        .request('PUT', '/repos/${slug.fullName}/issues/$issueNumber/labels',
+    final Response response = await github.request('PUT', '/repos/${slug.fullName}/issues/$issueNumber/labels',
         body: GitHubJson.encode(labels));
     final List<dynamic> body = jsonDecode(response.body) as List<dynamic>;
     return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
-
   }
 
   /// Returns changed files of [slug] and [prNumber].
