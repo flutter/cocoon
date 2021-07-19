@@ -143,10 +143,10 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     @required _BuilderDetail builderDetail,
     @required bool isImportant,
   }) async {
+    Issue issue = builderDetail.existingIssue;
     // Don't create a new issue if there is a recent closed issue within
     // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
-    Issue issue = builderDetail.existingIssue;
     if (isImportant &&
         (issue == null ||
          (issue.state == 'closed' &&
@@ -161,6 +161,8 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         assignee: builderDetail.owner,
       );
     } else if (issue?.isOpen == true) {
+      // If there is already an opened issue, post update comment and adjust
+      // labels if needed.
       final IssueBuilder issueBuilder =
           IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold, openedIssue: issue);
       await gitHub.createComment(slug, issueNumber: issue.number, body: issueBuilder.issueUpdateComment);
