@@ -16,7 +16,7 @@ flutter channel stable
 dart pub get
 
 echo "############# files that require formatting ###########"
-dartfmt --dry-run --line-length=120 --set-exit-if-changed .
+dart format --dry-run --line-length=120 --set-exit-if-changed .
 echo "#######################################################"
 
 # agent doesn't use build_runner as of this writing.
