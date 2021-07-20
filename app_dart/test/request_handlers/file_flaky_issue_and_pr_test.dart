@@ -5,14 +5,13 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/check_flaky_tests_and_update_github_utils.dart';
+import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:http/http.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -20,7 +19,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/utilities/mocks.dart';
 
-import 'check_flaky_tests_and_update_github_test_data.dart';
+import 'file_flaky_issue_and_pr_test_data.dart';
 
 const String kThreshold = '0.02';
 const String kCurrentMasterSHA = 'b6156fc8d1c6e992fe4ea0b9128f9aef10443bdb';
@@ -30,7 +29,7 @@ const String kCurrentUserEmail = 'login@email.com';
 
 void main() {
   group('Check flaky', () {
-    CheckForFlakyTestAndUpdateGithub handler;
+    FileFlakyIssueAndPR handler;
     ApiRequestHandlerTester tester;
     FakeHttpRequest request;
     FakeConfig config;
@@ -47,7 +46,7 @@ void main() {
     setUp(() {
       request = FakeHttpRequest(
         queryParametersValue: <String, dynamic>{
-          CheckForFlakyTestAndUpdateGithub.kThresholdKey: kThreshold,
+          FileFlakyIssueAndPR.kThresholdKey: kThreshold,
         },
       );
 
@@ -61,13 +60,13 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, CheckForFlakyTestAndUpdateGithub.kCiYamlPath))
+      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kCiYamlPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, CheckForFlakyTestAndUpdateGithub.kTestOwnerPath))
+      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kTestOwnerPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
@@ -82,12 +81,10 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
-      when(mockGitService.getReference(captureAny, CheckForFlakyTestAndUpdateGithub.kMasterRefs))
+      when(mockGitService.getReference(captureAny, FileFlakyIssueAndPR.kMasterRefs))
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
-          GitReference(
-              ref: 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}',
-              object: GitObject('', kCurrentMasterSHA, '')),
+          GitReference(ref: 'refs/${FileFlakyIssueAndPR.kMasterRefs}', object: GitObject('', kCurrentMasterSHA, '')),
         );
       });
       // when gets the current user.
@@ -109,7 +106,7 @@ void main() {
       );
       tester = ApiRequestHandlerTester(request: request);
 
-      handler = CheckForFlakyTestAndUpdateGithub(
+      handler = FileFlakyIssueAndPR(
         config,
         auth,
       );
@@ -117,8 +114,7 @@ void main() {
 
     test('Can file issue and pr for devicelab test', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // When creates issue
@@ -167,9 +163,9 @@ void main() {
       expect(tree.baseTree, kCurrentMasterSHA);
       expect(tree.entries.length, 1);
       expect(tree.entries[0].content, expectedSemanticsIntegrationTestCiYamlContent);
-      expect(tree.entries[0].path, CheckForFlakyTestAndUpdateGithub.kCiYamlPath);
-      expect(tree.entries[0].mode, CheckForFlakyTestAndUpdateGithub.kModifyMode);
-      expect(tree.entries[0].type, CheckForFlakyTestAndUpdateGithub.kModifyType);
+      expect(tree.entries[0].path, FileFlakyIssueAndPR.kCiYamlPath);
+      expect(tree.entries[0].mode, FileFlakyIssueAndPR.kModifyMode);
+      expect(tree.entries[0].type, FileFlakyIssueAndPR.kModifyType);
 
       // Verify commit is created correctly.
       captured = verify(mockGitService.createCommit(captureAny, captureAny)).captured;
@@ -202,15 +198,14 @@ void main() {
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
       expect(pr.head, '$kCurrentUserLogin:$ref');
-      expect(pr.base, 'refs/${CheckForFlakyTestAndUpdateGithub.kMasterRefs}');
+      expect(pr.base, 'refs/${FileFlakyIssueAndPR.kMasterRefs}');
 
       expect(result['Statuses'], 'success');
     });
 
     test('Can file issue and pr for framework host-only test', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(analyzeTestResponse);
       });
       // When creates issue
@@ -258,8 +253,7 @@ void main() {
 
     test('Can file issue but not pr for shard test', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(frameworkTestResponse);
       });
       // When creates issue
@@ -287,8 +281,7 @@ void main() {
 
     test('Do not create issue if there is already one', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets existing flaky issues.
@@ -326,8 +319,7 @@ void main() {
 
     test('Do not create issue if there is a recently closed one', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when get existing flaky issues.
@@ -338,8 +330,7 @@ void main() {
             title: expectedSemanticsIntegrationTestResponseTitle,
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
-            closedAt: DateTime.now()
-                .subtract(const Duration(days: CheckForFlakyTestAndUpdateGithub.kGracePeriodForClosedFlake - 1)),
+            closedAt: DateTime.now().subtract(const Duration(days: FileFlakyIssueAndPR.kGracePeriodForClosedFlake - 1)),
           )
         ]);
       });
@@ -370,8 +361,7 @@ void main() {
 
     test('Do create issue if there is a closed one outside the grace period', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when get existing flaky issues.
@@ -382,8 +372,7 @@ void main() {
             title: expectedSemanticsIntegrationTestResponseTitle,
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
-            closedAt: DateTime.now()
-                .subtract(const Duration(days: CheckForFlakyTestAndUpdateGithub.kGracePeriodForClosedFlake + 1)),
+            closedAt: DateTime.now().subtract(const Duration(days: FileFlakyIssueAndPR.kGracePeriodForClosedFlake + 1)),
           )
         ]);
       });
@@ -424,12 +413,11 @@ void main() {
 
     test('Do not create PR if the test is already flaky', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, CheckForFlakyTestAndUpdateGithub.kCiYamlPath))
+      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kCiYamlPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky))));
@@ -447,8 +435,7 @@ void main() {
 
     test('Do not create PR if there is already an opened one', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets existing marks flaky prs.
@@ -468,144 +455,6 @@ void main() {
           .single as Map<String, dynamic>;
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
-
-      expect(result['Statuses'], 'success');
-    });
-
-    test('Can add existing issue comment', () async {
-      const int existingIssueNumber = 1234;
-      final List<IssueLabel> existingLabels = <IssueLabel>[
-        IssueLabel(name: 'some random label'),
-        IssueLabel(name: 'P2'),
-      ];
-      // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
-      });
-      // when gets existing flaky issues.
-      when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
-          .thenAnswer((Invocation invocation) {
-        return Stream<Issue>.fromIterable(<Issue>[
-          Issue(
-            number: existingIssueNumber,
-            state: 'open',
-            labels: existingLabels,
-            title: expectedSemanticsIntegrationTestResponseTitle,
-            body: expectedSemanticsIntegrationTestResponseBody,
-          )
-        ]);
-      });
-      // when firing github request.
-      // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response('[]', 200));
-      });
-      // when gets existing marks flaky prs.
-      when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
-        return Stream<PullRequest>.fromIterable(<PullRequest>[
-          PullRequest(
-            title: expectedSemanticsIntegrationTestPullRequestTitle,
-            body: expectedSemanticsIntegrationTestPullRequestBody,
-            state: 'open',
-          )
-        ]);
-      });
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
-
-      // Verify issue is created correctly.
-      List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
-      expect(captured[1], existingIssueNumber);
-      expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
-
-      // Verify labels are applied correctly.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
-
-      expect(result['Statuses'], 'success');
-    });
-
-    test('Can add existing issue comment case 0.0', () async {
-      const int existingIssueNumber = 1234;
-      final List<IssueLabel> existingLabels = <IssueLabel>[
-        IssueLabel(name: 'some random label'),
-        IssueLabel(name: 'P2'),
-      ];
-      // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(CheckForFlakyTestAndUpdateGithub.kBigQueryProjectId))
-          .thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponseZeroFlake);
-      });
-      // when gets existing flaky issues.
-      when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
-          .thenAnswer((Invocation invocation) {
-        return Stream<Issue>.fromIterable(<Issue>[
-          Issue(
-            number: existingIssueNumber,
-            state: 'open',
-            labels: existingLabels,
-            title: expectedSemanticsIntegrationTestResponseTitle,
-            body: expectedSemanticsIntegrationTestResponseBody,
-          )
-        ]);
-      });
-      // when firing github request.
-      // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response('[]', 200));
-      });
-      // when gets existing marks flaky prs.
-      when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
-        return Stream<PullRequest>.fromIterable(<PullRequest>[
-          PullRequest(
-            title: expectedSemanticsIntegrationTestPullRequestTitle,
-            body: expectedSemanticsIntegrationTestPullRequestBody,
-            state: 'open',
-          )
-        ]);
-      });
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
-
-      // Verify issue is created correctly.
-      List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
-      expect(captured[1], existingIssueNumber);
-      expect(captured[2], expectedSemanticsIntegrationTestZeroFlakeIssueComment);
-
-      // Verify labels are the same.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
-      expect(captured[2], GitHubJson.encode(<String>['some random label', 'P2']));
 
       expect(result['Statuses'], 'success');
     });
