@@ -24,7 +24,7 @@ pushd "$1" > /dev/null
 flutter channel master
 flutter packages get
 flutter analyze
-dart format --line-length=120 --set-exit-if-changed --dry-run lib/ test/
+dart format --set-exit-if-changed --line-length=120 . lib/ test/
 flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 popd > /dev/null
