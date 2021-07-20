@@ -21,26 +21,6 @@ const String kBigQueryProjectId = 'flutter-dashboard';
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
 
-String _buildHiddenMetaTags(BuilderStatistic statistic) {
-  return '''<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
-{
-  "name": "${statistic.name}"
-}
--->
-''';
-}
-
-final RegExp _issueHiddenMetaTagsRegex =
-    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
-
-Map<String, dynamic> retrieveMetaTagsFromContent(String content) {
-  final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
-  if (match == null) {
-    return null;
-  }
-  return jsonDecode(match.namedGroup('meta')) as Map<String, dynamic>;
-}
-
 class IssueBuilder {
   IssueBuilder({
     @required this.statistic,
@@ -125,16 +105,6 @@ ${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
   }
 }
 
-String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
-
-String _issueBuildLinks({String builder, List<String> builds}) {
-  return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build)).join('\n')}';
-}
-
-String _issueBuildLink({String builder, String build}) {
-  return Uri.encodeFull('$_buildPrefix$builder/$build');
-}
-
 // Pull Request
 class PullRequestBuilder {
   PullRequestBuilder({
@@ -167,7 +137,7 @@ Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlu
       // For some reason, this github api may also return pull requests.
       continue;
     }
-    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
+    final Map<String, dynamic> metaTags = _retrieveMetaTagsFromContent(issue.body);
     if (metaTags != null) {
       final String name = metaTags['name'] as String;
       if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
@@ -181,7 +151,7 @@ Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlu
 Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
   final Map<String, PullRequest> nameToExistingPRs = <String, PullRequest>{};
   for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(pr.body);
+    final Map<String, dynamic> metaTags = _retrieveMetaTagsFromContent(pr.body);
     if (metaTags != null) {
       nameToExistingPRs[metaTags['name'] as String] = pr;
     }
@@ -201,4 +171,34 @@ bool _isOtherIssueMoreImportant(Issue original, Issue other) {
   } else {
     return other.createdAt.isAfter(original.createdAt);
   }
+}
+
+String _buildHiddenMetaTags(BuilderStatistic statistic) {
+  return '''<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "${statistic.name}"
+}
+-->
+''';
+}
+
+final RegExp _issueHiddenMetaTagsRegex =
+RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
+
+Map<String, dynamic> _retrieveMetaTagsFromContent(String content) {
+  final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
+  if (match == null) {
+    return null;
+  }
+  return jsonDecode(match.namedGroup('meta')) as Map<String, dynamic>;
+}
+
+String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
+
+String _issueBuildLinks({String builder, List<String> builds}) {
+  return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build)).join('\n')}';
+}
+
+String _issueBuildLink({String builder, String build}) {
+  return Uri.encodeFull('$_buildPrefix$builder/$build');
 }
