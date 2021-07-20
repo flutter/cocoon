@@ -292,7 +292,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   WidgetBuilder _builderFor(Task task) {
-    if (task.attempts > 1) {
+    if (task.attempts > 1 || task.isTestFlaky) {
       return (BuildContext context) => const Padding(
             padding: EdgeInsets.all(4.0),
             child: Icon(Icons.priority_high),
