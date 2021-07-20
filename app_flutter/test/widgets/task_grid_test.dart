@@ -379,6 +379,61 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(
+              authService: MockGoogleSignInService(),
+              cocoonService: MockCocoonService(),
+            ),
+            commitStatuses: <CommitStatus>[
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[
+                    Task()
+                      ..stageName = 'A'
+                      ..status = 'Succeeded'
+                      ..attempts = 1
+                      ..isTestFlaky = true
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.priority_high), findsOneWidget);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(
+              authService: MockGoogleSignInService(),
+              cocoonService: MockCocoonService(),
+            ),
+            commitStatuses: <CommitStatus>[
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[
+                    Task()
+                      ..stageName = 'A'
+                      ..status = 'Succeeded'
+                      ..attempts = 1
+                      ..isTestFlaky = false
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.priority_high), findsNothing);
+  });
+
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[
