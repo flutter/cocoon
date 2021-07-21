@@ -89,7 +89,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
     final GitHub github = await config.createGitHubClient(slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
+    await for (PullRequest pr in github.pullRequests.list(slug, base: config.defaultBranch)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
         log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
