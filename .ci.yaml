@@ -26,7 +26,6 @@ platform_properties:
 targets:
   - name: Linux Cocoon
     builder: Linux Cocoon
-    postsubmit: false
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
@@ -62,3 +61,9 @@ targets:
     runIf:
       - device_doctor/**
 
+  - name: Linux ci_yaml roller
+    builder: Linux ci_yaml roller
+    bringup: true
+    presubmit: false
+    recipe: infra/ci_yaml
+    scheduler: luci
