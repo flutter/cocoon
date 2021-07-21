@@ -71,7 +71,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       );
     }
     return Body.forJson(const <String, dynamic>{
-      'Statuses': 'success',
+      'Status': 'success',
     });
   }
 

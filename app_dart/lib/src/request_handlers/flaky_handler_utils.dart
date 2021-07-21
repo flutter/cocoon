@@ -183,7 +183,7 @@ String _buildHiddenMetaTags(BuilderStatistic statistic) {
 }
 
 final RegExp _issueHiddenMetaTagsRegex =
-RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
+    RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
 
 Map<String, dynamic> _retrieveMetaTagsFromContent(String content) {
   final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);

@@ -21,7 +21,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       : super(config: config, authenticationProvider: authenticationProvider);
 
   static const String kThresholdKey = 'threshold';
-  static const int kFreshPeriodForOpenFlake = 4; // days
+  static const int kFreshPeriodForOpenFlake = 7; // days
 
   @override
   Future<Body> get() async {
@@ -37,7 +37,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       }
     }
     return Body.forJson(const <String, dynamic>{
-      'Statuses': 'success',
+      'Status': 'success',
     });
   }
 
