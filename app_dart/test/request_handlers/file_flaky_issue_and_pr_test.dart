@@ -200,7 +200,7 @@ void main() {
       expect(pr.head, '$kCurrentUserLogin:$ref');
       expect(pr.base, 'refs/${FileFlakyIssueAndPR.kMasterRefs}');
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Can file issue and pr for framework host-only test', () async {
@@ -248,7 +248,7 @@ void main() {
       expect(captured[0].toString(), config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Can file issue but not pr for shard test', () async {
@@ -276,7 +276,7 @@ void main() {
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Do not create issue if there is already one', () async {
@@ -314,7 +314,7 @@ void main() {
           .single as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Do not create issue if there is a recently closed one', () async {
@@ -356,7 +356,7 @@ void main() {
           .single as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Do create issue if there is a closed one outside the grace period', () async {
@@ -408,7 +408,7 @@ void main() {
       expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestResponseLabels),
           isTrue);
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Do not create PR if the test is already flaky', () async {
@@ -430,7 +430,7 @@ void main() {
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Do not create PR if there is already an opened one', () async {
@@ -456,7 +456,7 @@ void main() {
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
   });
 

@@ -124,7 +124,7 @@ void main() {
       expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Can add existing issue comment case 0.0', () async {
@@ -185,7 +185,7 @@ void main() {
       expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P2']));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
 
     test('Does not add comment if the issue is still fresh', () async {
@@ -228,7 +228,7 @@ void main() {
         body: captureAnyNamed('body'),
       ));
 
-      expect(result['Statuses'], 'success');
+      expect(result['Status'], 'success');
     });
   });
 }
