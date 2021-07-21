@@ -15,14 +15,17 @@ import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
-import 'check_flaky_tests_and_update_github_utils.dart';
+import 'flaky_handler_utils.dart';
 
+/// A handler that queries build statistics from luci and file issues and pull
+/// requests for tests that have high flaky ratios.
+///
+/// The query parameter kThresholdKey is required for this handler to use it as
+/// the standard when compares the flaky ratios.
 @immutable
-class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
-  const CheckForFlakyTestAndUpdateGithub(Config config, AuthenticationProvider authenticationProvider)
+class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
+  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider)
       : super(config: config, authenticationProvider: authenticationProvider);
-
-  static const String kBigQueryProjectId = 'flutter-dashboard';
 
   static const String kThresholdKey = 'threshold';
 
@@ -53,101 +56,45 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap;
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-    final List<_BuilderDetail> builderDetails = <_BuilderDetail>[];
-    final Map<String, Issue> nameToExistingIssue = await _getExistingIssues(gitHub, slug);
-    final Map<String, PullRequest> nameToExistingPR = await _getExistingPRs(gitHub, slug);
+    final Map<String, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
+    final Map<String, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
-      final _BuilderType type = _getTypeFromTags(_getTags(statistic.name, ci));
-      builderDetails.add(_BuilderDetail(
-          statistic: statistic,
-          existingIssue: nameToExistingIssue[statistic.name],
-          existingPullRequest: nameToExistingPR[statistic.name],
-          isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci),
-          type: type,
-          owner: _getTestOwner(statistic.name, type, testOwnerContent)));
-    }
-    // Finds the important flakes whose flaky rate > threshold or the most flaky test
-    // if all of the flakes < threshold.
-    final Set<String> importantFlakes = _getImportantFlakes(builderStatisticList, _threshold);
-    // Makes sure every important flake has an github issue and a pr to mark
-    // the test flaky.
-    for (final _BuilderDetail detail in builderDetails) {
-      if (importantFlakes.contains(detail.statistic.name)) {
-        await _updateFlakes(gitHub, slug, builderDetail: detail);
+      if (statistic.flakyRate < _threshold) {
+        continue;
       }
+      final _BuilderType type = _getTypeFromTags(_getTags(statistic.name, ci));
+      await _fileIssueAndPR(
+        gitHub,
+        slug,
+        builderDetail: _BuilderDetail(
+            statistic: statistic,
+            existingIssue: nameToExistingIssue[statistic.name],
+            existingPullRequest: nameToExistingPR[statistic.name],
+            isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci),
+            type: type,
+            owner: _getTestOwner(statistic.name, type, testOwnerContent)),
+      );
     }
     return Body.forJson(const <String, dynamic>{
-      'Statuses': 'success',
+      'Status': 'success',
     });
   }
 
   double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
 
-  Future<Map<String, Issue>> _getExistingIssues(GithubService gitHub, RepositorySlug slug) async {
-    final Map<String, Issue> nameToExistingIssue = <String, Issue>{};
-    for (final Issue issue in await gitHub.listIssues(slug, state: 'all', labels: <String>[kTeamFlakeLabel])) {
-      if (issue.htmlUrl?.contains('pull') == true) {
-        // For some reason, this github api may also return pull requests.
-        continue;
-      }
-      final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
-      if (metaTags != null) {
-        final String name = metaTags['name'] as String;
-        if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
-          nameToExistingIssue[name] = issue;
-        }
-      }
-    }
-    return nameToExistingIssue;
-  }
-
-  Future<Map<String, PullRequest>> _getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
-    final Map<String, PullRequest> nameToExistingPRs = <String, PullRequest>{};
-    for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-      final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(pr.body);
-      if (metaTags != null) {
-        nameToExistingPRs[metaTags['name'] as String] = pr;
-      }
-    }
-    return nameToExistingPRs;
-  }
-
-  Set<String> _getImportantFlakes(List<BuilderStatistic> statisticList, double threshold) {
-    final Set<String> importantFlakes = <String>{};
-    for (final BuilderStatistic statistic in statisticList) {
-      if (statistic.flakyRate > threshold) {
-        importantFlakes.add(statistic.name);
-      }
-    }
-    if (importantFlakes.isNotEmpty) {
-      return importantFlakes;
-    }
-    // No flake is above threshold.
-    BuilderStatistic mostImportant;
-    for (final BuilderStatistic statistic in statisticList) {
-      if (mostImportant == null || mostImportant.flakyRate < statistic.flakyRate) {
-        mostImportant = statistic;
-      }
-    }
-    return <String>{
-      if (mostImportant != null) mostImportant.name,
-    };
-  }
-
-  Future<void> _updateFlakes(
+  Future<void> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
     @required _BuilderDetail builderDetail,
   }) async {
+    Issue issue = builderDetail.existingIssue;
     // Don't create a new issue if there is a recent closed issue within
     // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
-    Issue issue = builderDetail.existingIssue;
     if (issue == null ||
         (issue.state == 'closed' &&
             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
-      final IssueBuilder issueBuilder =
-          IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold, isImportant: true);
+      final IssueBuilder issueBuilder = IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,
@@ -156,6 +103,7 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
         assignee: builderDetail.owner,
       );
     }
+
     if (issue == null ||
         builderDetail.type == _BuilderType.shard ||
         builderDetail.existingPullRequest != null ||
@@ -225,20 +173,6 @@ class CheckForFlakyTestAndUpdateGithub extends ApiRequestHandler<Body> {
       }
     }
     return hasFrameworkTag && hasHostOnlyTag ? _BuilderType.frameworkHostOnly : _BuilderType.unknown;
-  }
-
-  bool _isOtherIssueMoreImportant(Issue original, Issue other) {
-    // Open issues are always more important than closed issues. If both issue
-    // are closed, the one that is most recently created is more important.
-    if (original.isOpen && other.isOpen) {
-      throw 'There should not be two open issues for the same test';
-    } else if (original.isOpen && other.isClosed) {
-      return false;
-    } else if (original.isClosed && other.isOpen) {
-      return true;
-    } else {
-      return other.createdAt.isAfter(original.createdAt);
-    }
   }
 
   String _getTestNameFromBuilderName(String builderName) {

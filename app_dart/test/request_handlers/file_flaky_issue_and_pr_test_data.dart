@@ -147,6 +147,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
+
 const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
@@ -201,7 +202,7 @@ Issue link: $expectedSemanticsIntegrationTestNewIssueURL
 final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Linux analyze',
-    flakyRate: 0.01,
+    flakyRate: 0.03,
     failedBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
@@ -212,13 +213,13 @@ const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P2',
+  'P1',
 ];
 
 final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Windows framework_tests_misc',
-    flakyRate: 0.01,
+    flakyRate: 0.03,
     failedBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
@@ -229,7 +230,7 @@ const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P2',
+  'P1',
 ];
 
 String gitHubEncode(String source) {

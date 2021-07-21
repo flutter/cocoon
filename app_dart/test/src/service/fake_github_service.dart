@@ -76,6 +76,24 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<IssueComment> createComment(
+    RepositorySlug slug, {
+    int issueNumber,
+    String body,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<List<IssueLabel>> replaceLabelsForIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    List<String> labels,
+  }) async {
+    return <IssueLabel>[];
+  }
+
+  @override
   Future<RateLimit> getRateLimit() {
     throw UnimplementedError();
   }
