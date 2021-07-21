@@ -137,7 +137,7 @@ Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlu
       // For some reason, this github api may also return pull requests.
       continue;
     }
-    final Map<String, dynamic> metaTags = _retrieveMetaTagsFromContent(issue.body);
+    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
     if (metaTags != null) {
       final String name = metaTags['name'] as String;
       if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
@@ -151,7 +151,7 @@ Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlu
 Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
   final Map<String, PullRequest> nameToExistingPRs = <String, PullRequest>{};
   for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-    final Map<String, dynamic> metaTags = _retrieveMetaTagsFromContent(pr.body);
+    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(pr.body);
     if (metaTags != null) {
       nameToExistingPRs[metaTags['name'] as String] = pr;
     }
@@ -185,7 +185,7 @@ String _buildHiddenMetaTags(BuilderStatistic statistic) {
 final RegExp _issueHiddenMetaTagsRegex =
     RegExp(r'<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY\.(?<meta>.+)-->', dotAll: true);
 
-Map<String, dynamic> _retrieveMetaTagsFromContent(String content) {
+Map<String, dynamic> retrieveMetaTagsFromContent(String content) {
   final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
   if (match == null) {
     return null;
