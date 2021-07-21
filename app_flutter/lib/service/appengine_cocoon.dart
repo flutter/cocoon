@@ -254,7 +254,7 @@ class AppEngineCocoonService implements CocoonService {
       ..reservedForAgentId = taskData['ReservedForAgentID']
       ..stageName = taskData['StageName']
       ..status = taskData['Status']
-      ..isTestFlaky = taskData['TestFlaky'];
+      ..isTestFlaky = taskData['TestFlaky'] ?? false;
 
     if (taskData['StageName'] != StageName.cirrus) {
       task
