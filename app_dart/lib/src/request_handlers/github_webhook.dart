@@ -56,6 +56,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
+      log.debug('Processing $gitHubEvent');
       switch (gitHubEvent) {
         case 'pull_request':
           await _handlePullRequest(stringRequest);
@@ -89,6 +90,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
+    log.debug('Processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
         // If it was closed without merging, cancel any outstanding tryjobs.
