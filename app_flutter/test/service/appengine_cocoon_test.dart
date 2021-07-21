@@ -60,6 +60,7 @@ void main() {
           ..reservedForAgentId = ''
           ..stageName = 'chromebot'
           ..status = 'Succeeded'
+          ..isTestFlaky = false
           ..buildNumberList = '123'
           ..builderName = 'Linux'
           ..luciBucket = 'luci.flutter.try');
