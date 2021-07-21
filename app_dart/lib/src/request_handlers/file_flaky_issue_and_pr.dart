@@ -17,6 +17,11 @@ import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
 
+/// A handler that queries build statistics from luci and file issues and pull
+/// requests for tests that have high flaky ratios.
+///
+/// The query parameter kThresholdKey is required for this handler to use it as
+/// the standard when compares the flaky ratios.
 @immutable
 class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider)

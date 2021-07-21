@@ -15,6 +15,11 @@ import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
 
+/// This handler updates existing open flaky issues with the latest build
+/// statistics.
+///
+/// The query parameter kThresholdKey is required in order for the handler to
+/// properly adjusts the priority labels.
 @immutable
 class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   const UpdateExistingFlakyIssue(Config config, AuthenticationProvider authenticationProvider)
@@ -43,6 +48,11 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
 
   double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
 
+  /// Adds an update comment and adjusts the labels of the existing issue based
+  /// on the latest statistics.
+  ///
+  /// This method skips issues that are created within kFreshPeriodForOpenFlake
+  /// days.
   Future<void> _addCommentToExistingIssue(
     GithubService gitHub,
     RepositorySlug slug, {
