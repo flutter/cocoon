@@ -28,7 +28,7 @@ String getLocalConfigContent(String path) {
 }
 
 Future<void> main(List<String> args) async {
-  if (args.length != 1 || args.length != 2) {
+  if (args.length != 1 && args.length != 2) {
     print('generate_jspb.dart \$local_ci_yaml');
     print('generate_jspb.dart \$repo \$sha');
     exit(1);
