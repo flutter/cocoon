@@ -17,6 +17,21 @@ const String kSevereFlakeLabel = 'severe: flake';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
 const String kBigQueryProjectId = 'flutter-dashboard';
+const String kCiYamlPath = '.ci.yaml';
+const String kTestOwnerPath = 'TESTOWNERS';
+const String kCiYamlTargetsKey = 'targets';
+const String kCiYamlTargetBuilderKey = 'builder';
+const String kCiYamlTargetIsFlakyKey = 'bringup';
+const String kCiYamlPropertiesKey = 'properties';
+const String kCiYamlTargetTagsKey = 'tags';
+const String kCiYamlTargetTagsShard = 'shard';
+const String kCiYamlTargetTagsDevicelab = 'devicelab';
+const String kCiYamlTargetTagsFramework = 'framework';
+const String kCiYamlTargetTagsHostonly = 'hostonly';
+
+const String kMasterRefs = 'heads/master';
+const String kModifyMode = '100755';
+const String kModifyType = 'blob';
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';

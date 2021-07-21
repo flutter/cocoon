@@ -29,23 +29,6 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   static const String kThresholdKey = 'threshold';
 
-  static const String kCiYamlPath = '.ci.yaml';
-  static const String _ciYamlTargetsKey = 'targets';
-  static const String _ciYamlTargetBuilderKey = 'builder';
-  static const String _ciYamlTargetIsFlakyKey = 'bringup';
-  static const String _ciYamlPropertiesKey = 'properties';
-  static const String _ciYamlTargetTagsKey = 'tags';
-  static const String _ciYamlTargetTagsShard = 'shard';
-  static const String _ciYamlTargetTagsDevicelab = 'devicelab';
-  static const String _ciYamlTargetTagsFramework = 'framework';
-  static const String _ciYamlTargetTagsHostonly = 'hostonly';
-
-  static const String kTestOwnerPath = 'TESTOWNERS';
-
-  static const String kMasterRefs = 'heads/master';
-  static const String kModifyMode = '100755';
-  static const String kModifyType = 'blob';
-
   static const int kGracePeriodForClosedFlake = 15; // days
 
   @override
@@ -131,24 +114,24 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
-    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
+    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
-      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
       orElse: () => null,
     ) as YamlMap;
-    return target != null && target[_ciYamlTargetIsFlakyKey] == true;
+    return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
   List<dynamic> _getTags(String builderName, YamlMap ci) {
-    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
+    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
-      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
       orElse: () => null,
     ) as YamlMap;
     if (target == null) {
       return null;
     }
-    return jsonDecode(target[_ciYamlPropertiesKey][_ciYamlTargetTagsKey] as String) as List<dynamic>;
+    return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>;
   }
 
   _BuilderType _getTypeFromTags(List<dynamic> tags) {
@@ -162,13 +145,13 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     // Otherwise, it is framework host only test if its tags contain both
     // 'framework' and 'hostonly'.
     for (dynamic tag in tags) {
-      if (tag == _ciYamlTargetTagsShard) {
+      if (tag == kCiYamlTargetTagsShard) {
         return _BuilderType.shard;
-      } else if (tag == _ciYamlTargetTagsDevicelab) {
+      } else if (tag == kCiYamlTargetTagsDevicelab) {
         return _BuilderType.devicelab;
-      } else if (tag == _ciYamlTargetTagsFramework) {
+      } else if (tag == kCiYamlTargetTagsFramework) {
         hasFrameworkTag = true;
-      } else if (tag == _ciYamlTargetTagsHostonly) {
+      } else if (tag == kCiYamlTargetTagsHostonly) {
         hasHostOnlyTag = true;
       }
     }
@@ -270,16 +253,16 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
     final List<String> lines = content.split('\n');
     final int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder'));
-    // Takes care the case if is _ciYamlTargetIsFlakyKey is already defined to false
+    // Takes care the case if is kCiYamlTargetIsFlakyKey is already defined to false
     int nextLine = builderLineNumber + 1;
     while (nextLine < lines.length && !lines[nextLine].contains('builder:')) {
-      if (lines[nextLine].contains('$_ciYamlTargetIsFlakyKey:')) {
+      if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
         lines[nextLine] = lines[nextLine].replaceFirst('false', 'true # Flaky $issueUrl');
         return lines.join('\n');
       }
       nextLine += 1;
     }
-    lines.insert(builderLineNumber + 1, '    $_ciYamlTargetIsFlakyKey: true # Flaky $issueUrl');
+    lines.insert(builderLineNumber + 1, '    $kCiYamlTargetIsFlakyKey: true # Flaky $issueUrl');
     return lines.join('\n');
   }
 

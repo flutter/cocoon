@@ -60,13 +60,13 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kCiYamlPath))
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kTestOwnerPath))
+      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
@@ -81,10 +81,10 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
-      when(mockGitService.getReference(captureAny, FileFlakyIssueAndPR.kMasterRefs))
+      when(mockGitService.getReference(captureAny, kMasterRefs))
           .thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
-          GitReference(ref: 'refs/${FileFlakyIssueAndPR.kMasterRefs}', object: GitObject('', kCurrentMasterSHA, '')),
+          GitReference(ref: 'refs/$kMasterRefs', object: GitObject('', kCurrentMasterSHA, '')),
         );
       });
       // when gets the current user.
@@ -163,9 +163,9 @@ void main() {
       expect(tree.baseTree, kCurrentMasterSHA);
       expect(tree.entries.length, 1);
       expect(tree.entries[0].content, expectedSemanticsIntegrationTestCiYamlContent);
-      expect(tree.entries[0].path, FileFlakyIssueAndPR.kCiYamlPath);
-      expect(tree.entries[0].mode, FileFlakyIssueAndPR.kModifyMode);
-      expect(tree.entries[0].type, FileFlakyIssueAndPR.kModifyType);
+      expect(tree.entries[0].path, kCiYamlPath);
+      expect(tree.entries[0].mode, kModifyMode);
+      expect(tree.entries[0].type, kModifyType);
 
       // Verify commit is created correctly.
       captured = verify(mockGitService.createCommit(captureAny, captureAny)).captured;
@@ -198,7 +198,7 @@ void main() {
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
       expect(pr.head, '$kCurrentUserLogin:$ref');
-      expect(pr.base, 'refs/${FileFlakyIssueAndPR.kMasterRefs}');
+      expect(pr.base, 'refs/${kMasterRefs}');
 
       expect(result['Status'], 'success');
     });
@@ -417,7 +417,7 @@ void main() {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, FileFlakyIssueAndPR.kCiYamlPath))
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky))));
