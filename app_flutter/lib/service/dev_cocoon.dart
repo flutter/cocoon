@@ -216,7 +216,8 @@ class DevelopmentCocoonService implements CocoonService {
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'
       ..stageName = stageName
-      ..status = status;
+      ..status = status
+      ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
 
     if (stageName == StageName.luci) {
       task

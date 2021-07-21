@@ -285,7 +285,7 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.attempts > 1) {
+      if (task.attempts > 1 || task.isTestFlaky) {
         canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
       }
     };
