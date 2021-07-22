@@ -42,17 +42,11 @@ void writeYaml(SchedulerConfig config) {
     if (target.timeout != kDefaultTimeout) {
       configYaml.add('    timeout: ${target.timeout}');
     }
-    if (target.properties.isNotEmpty || target.tags.isNotEmpty) {
+    if (target.properties.isNotEmpty) {
       configYaml.add('    properties:');
       for (MapEntry<String, String> entry in target.properties.entries) {
         configYaml.add('      ${entry.key}: ${entry.value}');
       }
-      final List<String> tags = target.tags.map((StringPair tag) => tag.key).toList()
-        ..sort()
-        ..reversed;
-      final String tagsJson = jsonEncode(tags);
-      configYaml.add('      tags: >');
-      configYaml.add('        $tagsJson');
     }
     if (target.scheduler != SchedulerSystem.cocoon) {
       configYaml.add('    scheduler: ${target.scheduler}');
