@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/prologic/bitcask"
+	"git.mills.io/prologic/bitcask"
 )
 
 var want = Edge{

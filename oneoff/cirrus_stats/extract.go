@@ -14,7 +14,7 @@ import (
 	"flutter.dev/cirrus_stats/model"
 	badger "github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
-	"github.com/prologic/bitcask"
+	"git.mills.io/prologic/bitcask"
 )
 
 var (
