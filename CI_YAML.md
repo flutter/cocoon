@@ -32,7 +32,6 @@ targets:
 #         If none are passed, will always run in presubmit.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
-# tags: List of key-value pairs to categorize this builder.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit based on the LUCI builder `Linux analyze`.
@@ -54,11 +53,9 @@ targets:
 # This test will be categorized as host only framework test.
  - name: Linux analyze
    builder: Linux analyze
-   tags:
-     - key: hostonly
-       value: true
-     - key: framework
-       value: true
+   properties:
+     tags: >-
+       ["framework", "hostonly"]
 ```
 
 ## External Tests
