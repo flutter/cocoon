@@ -117,20 +117,19 @@ class BigqueryService {
     int limit,
   }) async {
     final JobsResourceApi jobsResourceApi = await defaultJobs();
-    final QueryRequest query =
-    QueryRequest.fromJson(<String, Object>{
+    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
       'query': getRecordsQuery,
       'parameterMode': 'NAMED',
       'queryParameters': <Map<String, Object>>[
         <String, Object>{
           'name': 'BUILDER_NAME',
-          'parameterType': <String, Object> { 'type': 'STRING' },
-          'parameterValue': <String, Object> {'value': builder},
+          'parameterType': <String, Object>{'type': 'STRING'},
+          'parameterValue': <String, Object>{'value': builder},
         },
         <String, Object>{
           'name': 'LIMIT',
-          'parameterType': <String, Object> { 'type': 'INT64' },
-          'parameterValue': <String, Object> {'value': '$limit'},
+          'parameterType': <String, Object>{'type': 'INT64'},
+          'parameterValue': <String, Object>{'value': '$limit'},
         },
       ],
       'useLegacySql': false

@@ -36,7 +36,8 @@ const String kModifyType = 'blob';
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
-const String _flakeRecordPrefix = 'https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:';
+const String _flakeRecordPrefix =
+    'https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:';
 
 /// A builder to build a new issue for a flake.
 class IssueBuilder {
@@ -155,9 +156,11 @@ class DeflakePullRequestBuilder {
   String get pullRequestBody {
     String body = _buildHiddenMetaTags(name: name);
     if (issue != null) {
-      body += 'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+      body +=
+          'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
     } else {
-      body += 'The test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+      body +=
+          'The test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
     }
     body += 'This test can be marked as not flaky.\n';
     return body;
@@ -219,7 +222,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
         final RegExpMatch match = shardTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines =
-          match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
+              match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
 
           for (final String line in lines) {
             final List<String> words = line.trim().split(' ');
@@ -263,7 +266,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
         final RegExpMatch match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines =
-          match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
+              match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
           int index = 0;
           while (index < lines.length) {
             if (lines[index].startsWith('#') && index + 1 < lines.length) {
@@ -322,7 +325,7 @@ BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
 List<dynamic> _getTags(String builderName, YamlMap ci) {
   final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
   final YamlMap target = targets.firstWhere(
-        (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
+    (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
     orElse: () => null,
   ) as YamlMap;
   if (target == null) {

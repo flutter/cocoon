@@ -59,14 +59,12 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
       });
@@ -75,8 +73,7 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
-      when(mockGitService.getReference(captureAny, kMasterRefs))
-          .thenAnswer((Invocation invocation) {
+      when(mockGitService.getReference(captureAny, kMasterRefs)).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$kMasterRefs', object: GitObject('', kCurrentMasterSHA, '')),
         );
@@ -108,7 +105,9 @@ void main() {
 
     test('Can create pr if the flaky test is no longer flaky', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When get issue
@@ -138,7 +137,9 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).captured;
+      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
@@ -201,13 +202,14 @@ void main() {
 
     test('Can create pr if the flaky test is no longer flaky - No Issue attached', () async {
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentNoIssue))));
       });
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When creates git tree
@@ -233,7 +235,9 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).captured;
+      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
@@ -293,7 +297,9 @@ void main() {
 
     test('Do not create pr if the issue is still open', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When get issue
@@ -320,7 +326,9 @@ void main() {
 
     test('Do not create pr if the records do no pass', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFailed);
       });
       // When get issue
@@ -334,7 +342,9 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).captured;
+      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
@@ -354,7 +364,9 @@ void main() {
 
     test('Do not create pr if there is an open one', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit'))).thenAnswer((Invocation invocation) {
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // when gets existing marks flaky prs.

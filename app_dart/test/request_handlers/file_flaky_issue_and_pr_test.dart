@@ -60,14 +60,12 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
       });
@@ -81,8 +79,7 @@ void main() {
         return const Stream<PullRequest>.empty();
       });
       // when gets the current head of master branch
-      when(mockGitService.getReference(captureAny, kMasterRefs))
-          .thenAnswer((Invocation invocation) {
+      when(mockGitService.getReference(captureAny, kMasterRefs)).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
           GitReference(ref: 'refs/$kMasterRefs', object: GitObject('', kCurrentMasterSHA, '')),
         );
@@ -417,8 +414,7 @@ void main() {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath))
-          .thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky))));
       });
