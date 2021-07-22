@@ -46,6 +46,13 @@ where date>=date_sub(current_date(), interval 14 day) and
 group by builder_name;
 ''';
 
+const String getRecordsQuery = r'''
+select sha, is_flaky from `flutter-dashboard.datasite.luci_prod_build_status`
+where builder_name=@BUILDER_NAME
+order by time desc
+limit @LIMIT
+''';
+
 class BigqueryService {
   const BigqueryService(this.accessClientProvider) : assert(accessClientProvider != null);
 
@@ -99,6 +106,58 @@ class BigqueryService {
     }
     return result;
   }
+
+  /// Return the list of current builder statistic.
+  ///
+  /// See getBuilderStatisticQuery to get the detail information about the table
+  /// schema
+  Future<List<BuilderRecord>> listRecentBuildRecordsForBuilder(
+    String projectId, {
+    String builder,
+    int limit,
+  }) async {
+    final JobsResourceApi jobsResourceApi = await defaultJobs();
+    final QueryRequest query =
+    QueryRequest.fromJson(<String, Object>{
+      'query': getRecordsQuery,
+      'parameterMode': 'NAMED',
+      'queryParameters': <Map<String, Object>>[
+        <String, Object>{
+          'name': 'BUILDER_NAME',
+          'parameterType': <String, Object> { 'type': 'STRING' },
+          'parameterValue': <String, Object> {'value': builder},
+        },
+        <String, Object>{
+          'name': 'LIMIT',
+          'parameterType': <String, Object> { 'type': 'INT64' },
+          'parameterValue': <String, Object> {'value': '$limit'},
+        },
+      ],
+      'useLegacySql': false
+    });
+    final QueryResponse response = await jobsResourceApi.query(query, projectId);
+    if (!response.jobComplete) {
+      throw 'job does not complete';
+    }
+    final List<BuilderRecord> result = <BuilderRecord>[];
+    for (final TableRow row in response.rows) {
+      result.add(BuilderRecord(
+        commit: row.f[0].v as String,
+        isFlaky: row.f[1].v as String != '0',
+      ));
+    }
+    return result;
+  }
+}
+
+class BuilderRecord {
+  BuilderRecord({
+    this.commit,
+    this.isFlaky,
+  });
+
+  final String commit;
+  final bool isFlaky;
 }
 
 class BuilderStatistic {

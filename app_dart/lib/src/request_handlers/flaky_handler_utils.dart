@@ -7,6 +7,7 @@ import 'dart:core';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
@@ -35,6 +36,7 @@ const String kModifyType = 'blob';
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
+const String _flakeRecordPrefix = 'https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:';
 
 /// A builder to build a new issue for a flake.
 class IssueBuilder {
@@ -52,7 +54,7 @@ class IssueBuilder {
 
   String get issueBody {
     return '''
-${_buildHiddenMetaTags(statistic)}
+${_buildHiddenMetaTags(name: statistic.name)}
 The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, which is above our ${_formatRate(threshold)}% threshold.
 
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
@@ -134,7 +136,32 @@ class PullRequestBuilder {
   final Issue issue;
 
   String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
-  String get pullRequestBody => '${_buildHiddenMetaTags(statistic)}Issue link: ${issue.htmlUrl}\n';
+  String get pullRequestBody => '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
+}
+
+/// A builder to build the pull request title and body for marking test flaky
+class DeflakePullRequestBuilder {
+  DeflakePullRequestBuilder({
+    @required this.name,
+    @required this.recordsAmount,
+    this.issue,
+  });
+
+  final String name;
+  final Issue issue;
+  final int recordsAmount;
+
+  String get pullRequestTitle => 'Marks $name to be not flaky';
+  String get pullRequestBody {
+    String body = _buildHiddenMetaTags(name: name);
+    if (issue != null) {
+      body += 'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+    } else {
+      body += 'The test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+    }
+    body += 'This test can be marked as not flaky.\n';
+    return body;
+  }
 }
 
 // TESTOWNER Regex
@@ -181,6 +208,135 @@ Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, Repository
   return nameToExistingPRs;
 }
 
+String getTestOwner(String builderName, BuilderType type, String testOwnersContent) {
+  final String testName = _getTestNameFromBuilderName(builderName);
+  String owner;
+  switch (type) {
+    case BuilderType.shard:
+      {
+        // The format looks like this:
+        //   # build_tests @zanderso @flutter/tool
+        final RegExpMatch match = shardTestOwners.firstMatch(testOwnersContent);
+        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+          final List<String> lines =
+          match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
+
+          for (final String line in lines) {
+            final List<String> words = line.trim().split(' ');
+            // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
+            if (testName.contains(words[1])) {
+              owner = words[2].substring(1); // Strip out the lead '@'
+              break;
+            }
+          }
+        }
+        break;
+      }
+    case BuilderType.devicelab:
+      {
+        // The format looks like this:
+        //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
+        final RegExpMatch match = devicelabTestOwners.firstMatch(testOwnersContent);
+        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+          final List<String> lines = match
+              .namedGroup(kOwnerGroupName)
+              .split('\n')
+              .where((String line) => line.isNotEmpty || !line.startsWith('#'))
+              .toList();
+
+          for (final String line in lines) {
+            final List<String> words = line.trim().split(' ');
+            // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
+            if (words[0].endsWith('$testName.dart')) {
+              owner = words[1].substring(1); // Strip out the lead '@'
+              break;
+            }
+          }
+        }
+        break;
+      }
+    case BuilderType.frameworkHostOnly:
+      {
+        // The format looks like this:
+        //   # Linux analyze
+        //   /dev/bots/analyze.dart @HansMuller @flutter/framework
+        final RegExpMatch match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
+        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
+          final List<String> lines =
+          match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
+          int index = 0;
+          while (index < lines.length) {
+            if (lines[index].startsWith('#') && index + 1 < lines.length) {
+              final List<String> commentWords = lines[index].trim().split(' ');
+              // e.g. commentWords = ['#', 'Linux' 'analyze']
+              index += 1;
+              if (lines[index].startsWith('#')) {
+                // The next line should not be a comment. This can happen if
+                // someone adds an additional comment to framework host only
+                // session.
+                continue;
+              }
+              if (testName.contains(commentWords[2])) {
+                final List<String> ownerWords = lines[index].trim().split(' ');
+                // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
+                owner = ownerWords[1].substring(1); // Strip out the lead '@'
+                break;
+              }
+            }
+            index += 1;
+          }
+        }
+        break;
+      }
+    case BuilderType.unknown:
+      break;
+  }
+  return owner;
+}
+
+BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
+  final List<dynamic> tags = _getTags(builderName, ci);
+  if (tags == null) {
+    return BuilderType.unknown;
+  }
+  bool hasFrameworkTag = false;
+  bool hasHostOnlyTag = false;
+  // If tags contain 'shard', it must be a shard test.
+  // If tags contain 'devicelab', it must be a devicelab test.
+  // Otherwise, it is framework host only test if its tags contain both
+  // 'framework' and 'hostonly'.
+  for (dynamic tag in tags) {
+    if (tag == kCiYamlTargetTagsShard) {
+      return BuilderType.shard;
+    } else if (tag == kCiYamlTargetTagsDevicelab) {
+      return BuilderType.devicelab;
+    } else if (tag == kCiYamlTargetTagsFramework) {
+      hasFrameworkTag = true;
+    } else if (tag == kCiYamlTargetTagsHostonly) {
+      hasHostOnlyTag = true;
+    }
+  }
+  return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
+}
+
+List<dynamic> _getTags(String builderName, YamlMap ci) {
+  final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
+  final YamlMap target = targets.firstWhere(
+        (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
+    orElse: () => null,
+  ) as YamlMap;
+  if (target == null) {
+    return null;
+  }
+  return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>;
+}
+
+String _getTestNameFromBuilderName(String builderName) {
+  // The builder names is in the format '<platform> <test name>'.
+  final List<String> words = builderName.split(' ');
+  return words.length < 2 ? words[0] : words[1];
+}
+
 bool _isOtherIssueMoreImportant(Issue original, Issue other) {
   // Open issues are always more important than closed issues. If both issue
   // are closed, the one that is most recently created is more important.
@@ -195,10 +351,10 @@ bool _isOtherIssueMoreImportant(Issue original, Issue other) {
   }
 }
 
-String _buildHiddenMetaTags(BuilderStatistic statistic) {
+String _buildHiddenMetaTags({String name}) {
   return '''<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
-  "name": "${statistic.name}"
+  "name": "$name"
 }
 -->
 ''';
@@ -229,4 +385,11 @@ String _issueBuildLinks({String builder, List<String> builds}) {
 
 String _issueBuildLink({String builder, String build}) {
   return Uri.encodeFull('$_buildPrefix$builder/$build');
+}
+
+enum BuilderType {
+  devicelab,
+  frameworkHostOnly,
+  shard,
+  unknown,
 }

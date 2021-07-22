@@ -76,6 +76,14 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<Issue> getIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+  }) {
+    return null;
+  }
+
+  @override
   Future<IssueComment> createComment(
     RepositorySlug slug, {
     int issueNumber,

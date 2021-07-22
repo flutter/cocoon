@@ -198,7 +198,7 @@ void main() {
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
       expect(pr.head, '$kCurrentUserLogin:$ref');
-      expect(pr.base, 'refs/${kMasterRefs}');
+      expect(pr.base, 'refs/$kMasterRefs');
 
       expect(result['Status'], 'success');
     });

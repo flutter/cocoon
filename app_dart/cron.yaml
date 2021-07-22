@@ -25,6 +25,9 @@ cron:
 - description: detect and flag tests with high flaky rates
   url: /api/file_flaky_issue_and_pr?threshold=0.02
   schedule: every monday 09:00
-- description: Update existing flake issues with latest statistics
+- description: update existing flake issues with latest statistics
   url: /api/update_existing_flaky_issues?threshold=0.02
+  schedule: every monday 09:00
+- description: mark builders to be not flaky if they are no longer flaky
+  url: /api/deflake_flaky_builders
   schedule: every monday 09:00
