@@ -5,6 +5,7 @@
 export 'src/foundation/utils.dart';
 export 'src/model/appengine/service_account_info.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
+export 'src/request_handlers/deflake_flaky_builders.dart';
 export 'src/request_handlers/file_flaky_issue_and_pr.dart';
 export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_authentication_status.dart';

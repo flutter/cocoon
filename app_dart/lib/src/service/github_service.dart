@@ -162,6 +162,16 @@ class GithubService {
     return github.issues.listByRepo(slug, labels: labels, state: state).toList();
   }
 
+  /// Get an issue with the issue number
+  Future<Issue> getIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+  }) {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    return github.issues.get(slug, issueNumber);
+  }
+
   Future<Issue> createIssue(
     RepositorySlug slug, {
     String title,

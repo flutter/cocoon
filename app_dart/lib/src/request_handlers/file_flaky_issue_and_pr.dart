@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -29,23 +28,6 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   static const String kThresholdKey = 'threshold';
 
-  static const String kCiYamlPath = '.ci.yaml';
-  static const String _ciYamlTargetsKey = 'targets';
-  static const String _ciYamlTargetBuilderKey = 'builder';
-  static const String _ciYamlTargetIsFlakyKey = 'bringup';
-  static const String _ciYamlPropertiesKey = 'properties';
-  static const String _ciYamlTargetTagsKey = 'tags';
-  static const String _ciYamlTargetTagsShard = 'shard';
-  static const String _ciYamlTargetTagsDevicelab = 'devicelab';
-  static const String _ciYamlTargetTagsFramework = 'framework';
-  static const String _ciYamlTargetTagsHostonly = 'hostonly';
-
-  static const String kTestOwnerPath = 'TESTOWNERS';
-
-  static const String kMasterRefs = 'heads/master';
-  static const String kModifyMode = '100755';
-  static const String kModifyType = 'blob';
-
   static const int kGracePeriodForClosedFlake = 15; // days
 
   @override
@@ -62,7 +44,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      final _BuilderType type = _getTypeFromTags(_getTags(statistic.name, ci));
+      final BuilderType type = getTypeForBuilder(statistic.name, ci);
       await _fileIssueAndPR(
         gitHub,
         slug,
@@ -72,7 +54,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
             existingPullRequest: nameToExistingPR[statistic.name],
             isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci),
             type: type,
-            owner: _getTestOwner(statistic.name, type, testOwnerContent)),
+            owner: getTestOwner(statistic.name, type, testOwnerContent)),
       );
     }
     return Body.forJson(const <String, dynamic>{
@@ -105,7 +87,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     }
 
     if (issue == null ||
-        builderDetail.type == _BuilderType.shard ||
+        builderDetail.type == BuilderType.shard ||
         builderDetail.existingPullRequest != null ||
         builderDetail.isMarkedFlaky) {
       return;
@@ -131,155 +113,27 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
-    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
+    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
-      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
+      (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
       orElse: () => null,
     ) as YamlMap;
-    return target != null && target[_ciYamlTargetIsFlakyKey] == true;
-  }
-
-  List<dynamic> _getTags(String builderName, YamlMap ci) {
-    final YamlList targets = ci[_ciYamlTargetsKey] as YamlList;
-    final YamlMap target = targets.firstWhere(
-      (dynamic element) => element[_ciYamlTargetBuilderKey] == builderName,
-      orElse: () => null,
-    ) as YamlMap;
-    if (target == null) {
-      return null;
-    }
-    return jsonDecode(target[_ciYamlPropertiesKey][_ciYamlTargetTagsKey] as String) as List<dynamic>;
-  }
-
-  _BuilderType _getTypeFromTags(List<dynamic> tags) {
-    if (tags == null) {
-      return _BuilderType.unknown;
-    }
-    bool hasFrameworkTag = false;
-    bool hasHostOnlyTag = false;
-    // If tags contain 'shard', it must be a shard test.
-    // If tags contain 'devicelab', it must be a devicelab test.
-    // Otherwise, it is framework host only test if its tags contain both
-    // 'framework' and 'hostonly'.
-    for (dynamic tag in tags) {
-      if (tag == _ciYamlTargetTagsShard) {
-        return _BuilderType.shard;
-      } else if (tag == _ciYamlTargetTagsDevicelab) {
-        return _BuilderType.devicelab;
-      } else if (tag == _ciYamlTargetTagsFramework) {
-        hasFrameworkTag = true;
-      } else if (tag == _ciYamlTargetTagsHostonly) {
-        hasHostOnlyTag = true;
-      }
-    }
-    return hasFrameworkTag && hasHostOnlyTag ? _BuilderType.frameworkHostOnly : _BuilderType.unknown;
-  }
-
-  String _getTestNameFromBuilderName(String builderName) {
-    // The builder names is in the format '<platform> <test name>'.
-    final List<String> words = builderName.split(' ');
-    return words.length < 2 ? words[0] : words[1];
-  }
-
-  String _getTestOwner(String builderName, _BuilderType type, String testOwnersContent) {
-    final String testName = _getTestNameFromBuilderName(builderName);
-    String owner;
-    switch (type) {
-      case _BuilderType.shard:
-        {
-          // The format looks like this:
-          //   # build_tests @zanderso @flutter/tool
-          final RegExpMatch match = shardTestOwners.firstMatch(testOwnersContent);
-          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-            final List<String> lines =
-                match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
-
-            for (final String line in lines) {
-              final List<String> words = line.trim().split(' ');
-              // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
-              if (testName.contains(words[1])) {
-                owner = words[2].substring(1); // Strip out the lead '@'
-                break;
-              }
-            }
-          }
-          break;
-        }
-      case _BuilderType.devicelab:
-        {
-          // The format looks like this:
-          //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
-          final RegExpMatch match = devicelabTestOwners.firstMatch(testOwnersContent);
-          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-            final List<String> lines = match
-                .namedGroup(kOwnerGroupName)
-                .split('\n')
-                .where((String line) => line.isNotEmpty || !line.startsWith('#'))
-                .toList();
-
-            for (final String line in lines) {
-              final List<String> words = line.trim().split(' ');
-              // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
-              if (words[0].endsWith('$testName.dart')) {
-                owner = words[1].substring(1); // Strip out the lead '@'
-                break;
-              }
-            }
-          }
-          break;
-        }
-      case _BuilderType.frameworkHostOnly:
-        {
-          // The format looks like this:
-          //   # Linux analyze
-          //   /dev/bots/analyze.dart @HansMuller @flutter/framework
-          final RegExpMatch match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
-          if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-            final List<String> lines =
-                match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
-            int index = 0;
-            while (index < lines.length) {
-              if (lines[index].startsWith('#') && index + 1 < lines.length) {
-                final List<String> commentWords = lines[index].trim().split(' ');
-                // e.g. commentWords = ['#', 'Linux' 'analyze']
-                index += 1;
-                if (lines[index].startsWith('#')) {
-                  // The next line should not be a comment. This can happen if
-                  // someone adds an additional comment to framework host only
-                  // session.
-                  continue;
-                }
-                if (testName.contains(commentWords[2])) {
-                  final List<String> ownerWords = lines[index].trim().split(' ');
-                  // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
-                  owner = ownerWords[1].substring(1); // Strip out the lead '@'
-                  break;
-                }
-              }
-              index += 1;
-            }
-          }
-          break;
-        }
-      case _BuilderType.unknown:
-        break;
-    }
-    return owner;
+    return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
     final List<String> lines = content.split('\n');
     final int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder'));
-    // Takes care the case if is _ciYamlTargetIsFlakyKey is already defined to false
+    // Takes care the case if is kCiYamlTargetIsFlakyKey is already defined to false
     int nextLine = builderLineNumber + 1;
     while (nextLine < lines.length && !lines[nextLine].contains('builder:')) {
-      if (lines[nextLine].contains('$_ciYamlTargetIsFlakyKey:')) {
+      if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
         lines[nextLine] = lines[nextLine].replaceFirst('false', 'true # Flaky $issueUrl');
         return lines.join('\n');
       }
       nextLine += 1;
     }
-    lines.insert(builderLineNumber + 1, '    $_ciYamlTargetIsFlakyKey: true # Flaky $issueUrl');
+    lines.insert(builderLineNumber + 1, '    $kCiYamlTargetIsFlakyKey: true # Flaky $issueUrl');
     return lines.join('\n');
   }
 
@@ -302,12 +156,5 @@ class _BuilderDetail {
   final PullRequest existingPullRequest;
   final String owner;
   final bool isMarkedFlaky;
-  final _BuilderType type;
-}
-
-enum _BuilderType {
-  devicelab,
-  frameworkHostOnly,
-  shard,
-  unknown,
+  final BuilderType type;
 }
