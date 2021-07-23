@@ -75,12 +75,12 @@ void main() {
     expect(statisticList[0].succeededBuilds[0], '203');
     expect(statisticList[0].succeededBuilds[1], '202');
     expect(statisticList[0].succeededBuilds[2], '201');
-    expect(statisticList[0].failedBuilds.length, 3);
-    expect(statisticList[0].failedBuilds[0], '103');
-    expect(statisticList[0].failedBuilds[1], '102');
-    expect(statisticList[0].failedBuilds[2], '101');
+    expect(statisticList[0].flakyBuilds.length, 3);
+    expect(statisticList[0].flakyBuilds[0], '103');
+    expect(statisticList[0].flakyBuilds[1], '102');
+    expect(statisticList[0].flakyBuilds[2], '101');
     expect(statisticList[0].recentCommit, 'abc');
-    expect(statisticList[0].failedBuildOfRecentCommit, '103');
+    expect(statisticList[0].flakyBuildOfRecentCommit, '103');
   });
 }
 

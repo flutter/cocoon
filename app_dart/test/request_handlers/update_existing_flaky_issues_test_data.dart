@@ -8,7 +8,7 @@ const String expectedSemanticsIntegrationTestIssueComment = '''
 Current flaky ratio for the past 15 days is 50.00%.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
-Failed build:
+Flaky builds:
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
@@ -22,10 +22,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.0,
-    failedBuilds: <String>[],
+    flakyBuilds: <String>[],
     succeededBuilds: <String>[],
     recentCommit: '',
-    failedBuildOfRecentCommit: '',
+    flakyBuildOfRecentCommit: '',
   )
 ];
 
@@ -33,10 +33,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 
@@ -53,12 +53,12 @@ The post-submit test builder `Mac_android android_semantics_integration_test` ha
 
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
-Failed build:
+Flaky builds:
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded build (3 most recent):
+Succeeded builds (3 most recent):
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/203
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/202
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201

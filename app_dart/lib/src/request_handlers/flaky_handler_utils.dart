@@ -40,12 +40,12 @@ class IssueBuilder {
 ${_buildHiddenMetaTags(statistic)}
 The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, which is above our ${_formatRate(threshold)}% threshold.
 
-One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
-Failed build:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+Flaky builds:
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 
-Succeeded build (3 most recent):
+Succeeded builds (3 most recent):
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
@@ -98,10 +98,10 @@ class IssueUpdateBuilder {
     if (statistic.flakyRate > 0.0) {
       result = result +
           '''
-One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
-Failed build:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+Flaky builds:
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 ''';
     }
     return result;
