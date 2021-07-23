@@ -90,7 +90,7 @@ void main() {
       when(github.pullRequests).thenReturn(pullRequestsService);
       when(github.issues).thenReturn(issuesService);
       when(github.repositories).thenReturn(repositoriesService);
-      when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
+      when(pullRequestsService.list(any, base: config.defaultBranch)).thenAnswer((Invocation _) {
         return Stream<PullRequest>.fromIterable(prsFromGitHub);
       });
       when(repositoriesService.createStatus(any, any, any)).thenAnswer(
