@@ -115,10 +115,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 
@@ -203,10 +203,10 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Linux analyze',
     flakyRate: 0.03,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
@@ -220,10 +220,10 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Windows framework_tests_misc',
     flakyRate: 0.03,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';

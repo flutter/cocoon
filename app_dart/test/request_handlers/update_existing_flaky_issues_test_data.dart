@@ -22,10 +22,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.0,
-    failedBuilds: <String>[],
+    flakyBuilds: <String>[],
     succeededBuilds: <String>[],
     recentCommit: '',
-    failedBuildOfRecentCommit: '',
+    flakyBuildOfRecentCommit: '',
   )
 ];
 
@@ -33,10 +33,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 

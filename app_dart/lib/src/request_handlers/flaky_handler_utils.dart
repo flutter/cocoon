@@ -40,10 +40,10 @@ class IssueBuilder {
 ${_buildHiddenMetaTags(statistic)}
 The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, which is above our ${_formatRate(threshold)}% threshold.
 
-One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 
 Succeeded builds (3 most recent):
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
@@ -98,10 +98,10 @@ class IssueUpdateBuilder {
     if (statistic.flakyRate > 0.0) {
       result = result +
           '''
-One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 ''';
     }
     return result;

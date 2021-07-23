@@ -16,7 +16,7 @@ import 'access_client_provider.dart';
 /// time	            TIMESTAMP
 /// date	            DATE
 /// sha	              STRING
-/// failed_builds	    STRING
+/// flaky_builds	    STRING
 /// succeeded_builds	STRING
 /// branch	          STRING
 /// device_os       	STRING
@@ -33,7 +33,7 @@ select builder_name,
        string_agg(case when is_flaky = 1 then flaky_builds end, ', ') as flaky_builds,
        string_agg(succeeded_builds, ', ') as succeeded_builds,
        array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
-       array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as failure_of_recent_flaky_commit,
+       array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as flaky_build_of_recent_flaky_commit,
        sum(is_flaky)/count(*) as flaky_ratio
 from `flutter-dashboard.datasite.luci_prod_build_status`
 where date>=date_sub(current_date(), interval 14 day) and
@@ -83,19 +83,19 @@ class BigqueryService {
     final List<BuilderStatistic> result = <BuilderStatistic>[];
     for (final TableRow row in response.rows) {
       final String builder = row.f[0].v as String;
-      List<String> failedBuilds = (row.f[3].v as String)?.split(', ');
-      failedBuilds?.sort();
-      failedBuilds = failedBuilds?.reversed?.toList();
+      List<String> flakyBuilds = (row.f[3].v as String)?.split(', ');
+      flakyBuilds?.sort();
+      flakyBuilds = flakyBuilds?.reversed?.toList();
       List<String> succeededBuilds = (row.f[4].v as String)?.split(', ');
       succeededBuilds?.sort();
       succeededBuilds = succeededBuilds?.reversed?.toList();
       result.add(BuilderStatistic(
           name: builder,
           flakyRate: double.parse(row.f[7].v as String),
-          failedBuilds: failedBuilds ?? const <String>[],
+          flakyBuilds: flakyBuilds ?? const <String>[],
           succeededBuilds: succeededBuilds ?? const <String>[],
           recentCommit: row.f[5].v as String,
-          failedBuildOfRecentCommit: row.f[6].v as String));
+          flakyBuildOfRecentCommit: row.f[6].v as String));
     }
     return result;
   }
@@ -105,16 +105,16 @@ class BuilderStatistic {
   BuilderStatistic({
     this.name,
     this.flakyRate,
-    this.failedBuilds,
+    this.flakyBuilds,
     this.succeededBuilds,
     this.recentCommit,
-    this.failedBuildOfRecentCommit,
+    this.flakyBuildOfRecentCommit,
   });
 
   final String name;
   final double flakyRate;
-  final List<String> failedBuilds;
+  final List<String> flakyBuilds;
   final List<String> succeededBuilds;
   final String recentCommit;
-  final String failedBuildOfRecentCommit;
+  final String flakyBuildOfRecentCommit;
 }
