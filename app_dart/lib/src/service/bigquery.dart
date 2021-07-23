@@ -30,10 +30,10 @@ const String getBuilderStatisticQuery = r'''
 select builder_name,
        sum(is_flaky) as flaky_number,
        count(*) as total_number,
-       string_agg(case when is_flaky = 1 then failed_builds end, ', ') as failed_builds,
+       string_agg(case when is_flaky = 1 then flaky_builds end, ', ') as flaky_builds,
        string_agg(succeeded_builds, ', ') as succeeded_builds,
        array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
-       array_agg(case when is_flaky = 1 then failed_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as failure_of_recent_flaky_commit,
+       array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as failure_of_recent_flaky_commit,
        sum(is_flaky)/count(*) as flaky_ratio
 from `flutter-dashboard.datasite.luci_prod_build_status`
 where date>=date_sub(current_date(), interval 14 day) and

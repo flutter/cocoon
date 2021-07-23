@@ -42,10 +42,10 @@ The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate
 
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
-Failed build:
+Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
 
-Succeeded build (3 most recent):
+Succeeded builds (3 most recent):
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
@@ -100,7 +100,7 @@ class IssueUpdateBuilder {
           '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.failedBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
-Failed build:
+Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.failedBuilds)}
 ''';
     }
