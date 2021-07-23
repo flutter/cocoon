@@ -79,6 +79,28 @@ targets:
         ["shard"]
 ''';
 
+const String ciYamlContentFlakyInIgnoreList = '''
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+enabled_branches:
+  - master
+
+targets:
+  - name: mac_ios_flutter_gallery__transition_perf_e2e_ios32
+    builder: Mac_ios flutter_gallery__transition_perf_e2e_ios32
+    presubmit: false
+    bringup: true
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+''';
+
 const String testOwnersContent = '''
 
 # Below is a list of Flutter team members' GitHub handles who are
@@ -165,7 +187,7 @@ targets:
         ["shard"]
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
-    'Marks Mac_android android_semantics_integration_test to be not flaky';
+    'Marks Mac_android android_semantics_integration_test to be unflaky';
 const String expectedSemanticsIntegrationTestPullRequestBody = '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
@@ -173,7 +195,7 @@ const String expectedSemanticsIntegrationTestPullRequestBody = '''
 }
 -->
 The issue $existingIssueURL has been closed, and the test has been passing for [50 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
-This test can be marked as not flaky.
+This test can be marked as unflaky.
 ''';
 const String expectedSemanticsIntegrationTestPullRequestBodyNoIssue = '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
@@ -182,7 +204,7 @@ const String expectedSemanticsIntegrationTestPullRequestBodyNoIssue = '''
 }
 -->
 The test has been passing for [50 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
-This test can be marked as not flaky.
+This test can be marked as unflaky.
 ''';
 
 String gitHubEncode(String source) {

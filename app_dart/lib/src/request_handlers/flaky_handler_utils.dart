@@ -140,29 +140,29 @@ class PullRequestBuilder {
   String get pullRequestBody => '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
 }
 
-/// A builder to build the pull request title and body for marking test flaky
+/// A builder to build the pull request title and body for marking test unflaky
 class DeflakePullRequestBuilder {
   DeflakePullRequestBuilder({
     @required this.name,
-    @required this.recordsAmount,
+    @required this.recordNumber,
     this.issue,
   });
 
   final String name;
   final Issue issue;
-  final int recordsAmount;
+  final int recordNumber;
 
-  String get pullRequestTitle => 'Marks $name to be not flaky';
+  String get pullRequestTitle => 'Marks $name to be unflaky';
   String get pullRequestBody {
     String body = _buildHiddenMetaTags(name: name);
     if (issue != null) {
       body +=
-          'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+          'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
     } else {
       body +=
-          'The test has been passing for [$recordsAmount consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+          'The test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
     }
-    body += 'This test can be marked as not flaky.\n';
+    body += 'This test can be marked as unflaky.\n';
     return body;
   }
 }
@@ -211,6 +211,7 @@ Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, Repository
   return nameToExistingPRs;
 }
 
+/// Looks up the owner of a builder in TESTOWNERS file.
 String getTestOwner(String builderName, BuilderType type, String testOwnersContent) {
   final String testName = _getTestNameFromBuilderName(builderName);
   String owner;
@@ -297,6 +298,8 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
   return owner;
 }
 
+/// Gets the [BuilderType] of the builder by looking up the information in the
+/// ci.yaml.
 BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
   final List<dynamic> tags = _getTags(builderName, ci);
   if (tags == null) {

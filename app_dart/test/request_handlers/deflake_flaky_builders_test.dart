@@ -103,7 +103,7 @@ void main() {
       );
     });
 
-    test('Can create pr if the flaky test is no longer flaky', () async {
+    test('Can create pr if the flaky test is no longer flaky with a closed issue', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
               builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
@@ -143,7 +143,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordAmount);
+      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
@@ -200,7 +200,7 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Can create pr if the flaky test is no longer flaky - No Issue attached', () async {
+    test('Can create pr if the flaky test is no longer flaky without a issue', () async {
       // when gets the content of .ci.yaml
       when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
@@ -241,7 +241,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordAmount);
+      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordNumber);
 
       // Verify it does not get issue.
       verifyNever(mockIssuesService.get(captureAny, captureAny));
@@ -291,6 +291,24 @@ void main() {
       expect(pr.body, expectedSemanticsIntegrationTestPullRequestBodyNoIssue);
       expect(pr.head, '$kCurrentUserLogin:$ref');
       expect(pr.base, 'refs/$kMasterRefs');
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Do not create PR if the builder is in the ignored list', () async {
+      // when gets the content of .ci.yaml
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
+      });
+
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify pr is not called correctly.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny)).captured;
 
       expect(result['Status'], 'success');
     });
@@ -348,7 +366,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordAmount);
+      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
