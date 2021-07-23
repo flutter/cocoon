@@ -200,7 +200,7 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Can create pr if the flaky test is no longer flaky without a issue', () async {
+    test('Can create pr if the flaky test is no longer flaky without an issue', () async {
       // when gets the content of .ci.yaml
       when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(

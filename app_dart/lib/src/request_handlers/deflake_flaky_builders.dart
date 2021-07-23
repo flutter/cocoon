@@ -65,7 +65,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     });
   }
 
-  /// Gets the builders that matches conditions:
+  /// Gets the builders that match conditions:
   /// 1. The builder is flaky
   /// 2. The builder is not in [ignoredBuilders].
   /// 3. The flaky issue of the builder is closed if there is one.
