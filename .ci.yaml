@@ -66,6 +66,4 @@ targets:
     bringup: true
     presubmit: false
     recipe: infra/ci_yaml
-    properties:
-      example: "property"
     scheduler: luci
