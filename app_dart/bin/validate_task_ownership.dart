@@ -22,7 +22,7 @@ void main(List<String> args) {
     print('validate_task_ownership.dart ciYamlPath testOwnersPath repo');
     exit(1);
   }
-  final List<String> builderNoOwner = <String>[];
+  final List<String> noOwnerBuilders = <String>[];
   final YamlMap ciYaml = loadYaml(ciYamlFile.readAsStringSync()) as YamlMap;
   final YamlList yamlList = ciYaml['targets'] as YamlList;
   final List<YamlMap> targets = yamlList.map<YamlMap>((dynamic target) => target as YamlMap).toList();
@@ -31,13 +31,13 @@ void main(List<String> args) {
     final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersFile.readAsStringSync());
     print('$builder: $owner');
     if (owner == null) {
-      builderNoOwner.add(builder);
+      noOwnerBuilders.add(builder);
     }
   }
 
-  if (builderNoOwner.isNotEmpty) {
+  if (noOwnerBuilders.isNotEmpty) {
     print('# Test ownership check failed.');
-    print('Builders missing owner: $builderNoOwner');
+    print('Builders missing owner: $noOwnerBuilders');
     print('Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS');
     exit(1);
   }
