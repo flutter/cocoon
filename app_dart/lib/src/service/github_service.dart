@@ -233,10 +233,10 @@ class GithubService {
 
   /// Gets the file content as UTF8 string of the file specified by the `path`
   /// in the repository.
-  Future<String> getFileContent(RepositorySlug slug, String path, {String ref}) async {
+  Future<String> getFileContent(RepositorySlug slug, String path) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(path);
-    final RepositoryContents contents = await github.repositories.getContents(slug, path, ref: ref);
+    final RepositoryContents contents = await github.repositories.getContents(slug, path);
     if (!contents.isFile) {
       throw 'The path $path should point to a file, but it is not!';
     }
