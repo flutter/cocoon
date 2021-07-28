@@ -9,8 +9,8 @@ import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:yaml/yaml.dart';
 
 /// Remote check based on flutter `repo` and the commit `ref`.
-/// 
-/// This currently support `flutter/flutter` only.
+///
+/// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
   final HttpClient client = HttpClient();
   final Uri ciYamlUrl = Uri.https('raw.githubusercontent.com', 'flutter/$repo/$ref/.ci.yaml');
@@ -38,7 +38,7 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
   final File ciYamlFile = File(ciYamlPath);
   final File testOwnersFile = File(testOwnersPath);
   if (!ciYamlFile.existsSync() || !testOwnersFile.existsSync()) {
-    print('validate_task_ownership.dart ciYamlPath testOwnersPath repo');
+    print('Make sure ciYamlPath and testOwnersPath exist.');
     exit(1);
   }
   final List<String> noOwnerBuilders =
@@ -86,5 +86,7 @@ Future<void> main(List<String> args) async {
     print('Builders missing owner: $noOwnerBuilders');
     print('Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS');
     exit(1);
+  } else {
+    print('# Test ownership check succeeded.');
   }
 }
