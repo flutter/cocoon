@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -66,5 +67,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         IssueUpdateBuilder(statistic: statistic, threshold: _threshold, existingIssue: existingIssue);
     await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
     await gitHub.replaceLabelsForIssue(slug, issueNumber: existingIssue.number, labels: updateBuilder.issueLabels);
+    if (existingIssue.assignee == null && !updateBuilder.isBelow) {
+      final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
+      final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
+      final String testOwner = getTestOwner(
+          statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent);
+      if (testOwner != null) {
+        await gitHub.assignIssue(slug, issueNumber: existingIssue.number, assignee: testOwner);
+      }
+    }
   }
 }

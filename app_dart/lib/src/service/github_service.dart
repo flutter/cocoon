@@ -172,6 +172,18 @@ class GithubService {
     return github.issues.get(slug, issueNumber);
   }
 
+  /// Assign the issue to the assignee.
+  Future<void> assignIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    String assignee,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    ArgumentError.checkNotNull(assignee);
+    await github.issues.edit(slug, issueNumber, IssueRequest(assignee: assignee));
+  }
+
   Future<Issue> createIssue(
     RepositorySlug slug, {
     String title,

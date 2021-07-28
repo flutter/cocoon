@@ -34,6 +34,7 @@ void main() {
     MockBigqueryService mockBigqueryService;
     MockGitHub mockGitHubClient;
     MockIssuesService mockIssuesService;
+    MockRepositoriesService mockRepositoriesService;
 
     setUp(() {
       request = FakeHttpRequest(
@@ -47,6 +48,7 @@ void main() {
       mockBigqueryService = MockBigqueryService();
       mockGitHubClient = MockGitHub();
       mockIssuesService = MockIssuesService();
+      mockRepositoriesService = MockRepositoriesService();
 
       // when gets existing flaky issues.
       when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
@@ -54,6 +56,18 @@ void main() {
         return const Stream<Issue>.empty();
       });
 
+      // when gets the content of .ci.yaml
+      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
+      });
+      // when gets the content of TESTOWNERS
+      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+            RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
+      });
+
+      when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockGitHubClient.issues).thenReturn(mockIssuesService);
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
@@ -82,6 +96,7 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Stream<Issue>.fromIterable(<Issue>[
           Issue(
+            assignee: User(login: 'some dude'),
             number: existingIssueNumber,
             state: 'open',
             labels: existingLabels,
@@ -123,6 +138,56 @@ void main() {
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Can assign test owner', () async {
+      const int existingIssueNumber = 1234;
+      final List<IssueLabel> existingLabels = <IssueLabel>[
+        IssueLabel(name: 'some random label'),
+        IssueLabel(name: 'P2'),
+      ];
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
+      });
+      // when gets existing flaky issues.
+      when(mockIssuesService.listByRepo(captureAny, state: captureAnyNamed('state'), labels: captureAnyNamed('labels')))
+          .thenAnswer((Invocation invocation) {
+        return Stream<Issue>.fromIterable(<Issue>[
+          Issue(
+            number: existingIssueNumber,
+            state: 'open',
+            labels: existingLabels,
+            title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
+            createdAt:
+                DateTime.now().subtract(const Duration(days: UpdateExistingFlakyIssue.kFreshPeriodForOpenFlake + 1)),
+          )
+        ]);
+      });
+      // when firing github request.
+      // This is for replacing labels.
+      when(mockGitHubClient.request(
+        captureAny,
+        captureAny,
+        body: captureAnyNamed('body'),
+      )).thenAnswer((Invocation invocation) {
+        return Future<Response>.value(Response('[]', 200));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify comment is created correctly.
+      final List<dynamic> captured = verify(mockIssuesService.edit(captureAny, captureAny, captureAny)).captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], existingIssueNumber);
+      final IssueRequest request = captured[2] as IssueRequest;
+      expect(request.assignee, 'HansMuller');
 
       expect(result['Status'], 'success');
     });

@@ -17,6 +17,10 @@ const String kTeamFlakeLabel = 'team: flakes';
 const String kSevereFlakeLabel = 'severe: flake';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
+const String kP3Label = 'P3';
+const String kP4Label = 'P4';
+const String kP5Label = 'P5';
+const String kP6Label = 'P6';
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlPath = '.ci.yaml';
 const String kTestOwnerPath = 'TESTOWNERS';
@@ -97,15 +101,13 @@ class IssueUpdateBuilder {
   List<String> get issueLabels {
     final List<String> existingLabels =
         existingIssue.labels?.map<String>((IssueLabel label) => label.name)?.toList() ?? <String>[];
-    if (statistic.flakyRate == 0.0) {
-      return existingLabels;
-    }
-    // Only update the labels if there is already a priority label.
-    if (existingLabels.contains(kP1Label) && !existingLabels.contains(kP2Label) && isBelow) {
-      existingLabels.remove(kP1Label);
-      existingLabels.add(kP2Label);
-    } else if (!existingLabels.contains(kP1Label) && existingLabels.contains(kP2Label) && !isBelow) {
+    // Update the priority.
+    if (!existingLabels.contains(kP1Label) && !isBelow) {
       existingLabels.remove(kP2Label);
+      existingLabels.remove(kP3Label);
+      existingLabels.remove(kP4Label);
+      existingLabels.remove(kP5Label);
+      existingLabels.remove(kP6Label);
       existingLabels.add(kP1Label);
     }
     return existingLabels;
