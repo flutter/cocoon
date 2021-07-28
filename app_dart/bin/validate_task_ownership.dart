@@ -35,9 +35,9 @@ void main(List<String> args) {
     }
   }
 
-  print('# Test ownership check summary');
   if (builderNoOwner.isNotEmpty) {
-    print('Builder list missing owner: $builderNoOwner');
+    print('# Test ownership check failed.');
+    print('Builders missing owner: $builderNoOwner');
     print('Please define ownership in https://github.com/flutter/flutter/blob/master/TESTOWNERS');
     exit(1);
   }
