@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -19,9 +18,9 @@ import 'package:yaml/yaml.dart';
 Future<List<String>> remoteCheck(String repo, String ref) async {
   const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
   final String ciYamlContent =
-      await githubFileContent('flutter/$repo/$ref/.ci.yaml', httpClientProvider: httpClientProvider);
+      await githubFileContent('flutter/$repo/$ref/$kCiYamlPath', httpClientProvider: httpClientProvider);
   final String testOwnersContent =
-      await githubFileContent('flutter/$repo/$ref/TESTOWNERS', httpClientProvider: httpClientProvider);
+      await githubFileContent('flutter/$repo/$ref/$kTestOwnerPath', httpClientProvider: httpClientProvider);
   
   final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);
   return noOwnerBuilders;
