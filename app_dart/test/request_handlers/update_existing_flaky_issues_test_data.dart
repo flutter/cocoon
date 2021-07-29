@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/service/bigquery.dart';
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
@@ -65,3 +67,56 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
+
+const String ciYamlContent = '''
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+enabled_branches:
+  - master
+
+targets:
+  - name: mac_android_android_semantics_integration_test
+    builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+''';
+
+const String testOwnersContent = '''
+
+# Below is a list of Flutter team members' GitHub handles who are
+# test owners of this repository.
+#
+# These owners are mainly team leaders and their sub-teams. Please feel
+# free to claim ownership by adding your handle to corresponding tests.
+#
+# This file will be used as a reference when new flaky bugs are filed and
+# the TL will be assigned and the sub-team will be labeled by default
+# for further triage.
+
+## Linux Android DeviceLab tests
+/dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
+
+## Host only framework tests
+# Linux analyze
+/dev/bots/analyze.dart @HansMuller @flutter/framework
+
+## Shards tests
+# framework_tests @HansMuller @flutter/framework
+
+
+/dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
+''';
+
+String gitHubEncode(String source) {
+  final List<int> utf8Characters = utf8.encode(source);
+  final String base64encoded = base64Encode(utf8Characters);
+  return base64encoded;
+}

@@ -40,6 +40,15 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<void> assignIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    String assignee,
+  }) async {
+    return;
+  }
+
+  @override
   Future<PullRequest> createPullRequest(
     RepositorySlug slug, {
     String title,
