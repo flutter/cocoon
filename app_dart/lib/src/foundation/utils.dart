@@ -63,11 +63,7 @@ Future<String> githubFileContent(
 FutureOr<String> getUrl(
   Uri url,
   HttpClientProvider httpClientProvider, {
-<<<<<<< HEAD
-  Logging log,
-=======
   Logging log, 
->>>>>>> acfc1c60 (refactor)
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final HttpClient client = httpClientProvider();
