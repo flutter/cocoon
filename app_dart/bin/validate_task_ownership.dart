@@ -5,23 +5,21 @@
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/protos.dart';
-import 'package:cocoon_service/src/foundation/providers.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
-import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
-import 'package:yaml/yaml.dart';
 
 /// Remote check based on flutter `repo` and the commit `ref`.
 ///
 /// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
-  const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
-  final String ciYamlContent =
-      await githubFileContent('flutter/$repo/$ref/$kCiYamlPath', httpClientProvider: httpClientProvider);
-  final String testOwnersContent =
-      await githubFileContent('flutter/$repo/$ref/$kTestOwnerPath', httpClientProvider: httpClientProvider);
-  
+  final String ciYamlContent = await githubFileContent(
+    'flutter/$repo/$ref/$kCiYamlPath',
+    httpClientProvider: () => HttpClient(),
+  );
+  final String testOwnersContent = await githubFileContent(
+    'flutter/$repo/$ref/$kTestOwnerPath',
+    httpClientProvider: () => HttpClient(),
+  );
+
   final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);
   return noOwnerBuilders;
 }
@@ -36,22 +34,6 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
   }
   final List<String> noOwnerBuilders =
       validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync());
-  return noOwnerBuilders;
-}
-
-/// Validate test ownership defined in `testOwnersContenct` for tests configured in `ciYamlContent`.
-List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
-  final List<String> noOwnerBuilders = <String>[];
-  final YamlMap ciYaml = loadYaml(ciYamlContent) as YamlMap;
-  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
-  for (Target target in schedulerConfig.targets) {
-    final String builder = target.name;
-    final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct);
-    print('$builder: $owner');
-    if (owner == null) {
-      noOwnerBuilders.add(builder);
-    }
-  }
   return noOwnerBuilders;
 }
 
