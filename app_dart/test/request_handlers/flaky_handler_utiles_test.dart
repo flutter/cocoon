@@ -48,5 +48,30 @@ abc_test.sh @ghi @flutter/jkl
         expect(owner, 'def');
       });
     });
+
+    group('devicelab tests', () {
+      test('returns correct owner', () async {
+        testOwnersContent = '''
+## Linux Android DeviceLab tests
+/dev/devicelab/bin/tasks/abc.dart @def @flutter/ghi
+
+## Host only framework tests
+''';
+        final String owner = getTestOwner('Linux abc', BuilderType.devicelab, testOwnersContent);
+        expect(owner, 'def');
+      });
+    });
+
+    group('shards tests', () {
+      test('returns correct owner', () async {
+        testOwnersContent = '''
+## Shards tests
+#
+# abc @def @flutter/ghi
+''';
+        final String owner = getTestOwner('Linux abc', BuilderType.shard, testOwnersContent);
+        expect(owner, 'def');
+      });
+    });
   });
 }
