@@ -34,7 +34,7 @@ Duration twoSecondLinearBackoff(int attempt) {
 Future<String> githubFileContent(
   String filePath, {
   @required HttpClientProvider httpClientProvider,
-  @required Logging log,
+  Logging log,
   Duration timeout = const Duration(seconds: 5),
   RetryOptions retryOptions,
 }) async {
@@ -44,7 +44,7 @@ Future<String> githubFileContent(
   );
   final Uri url = Uri.https('raw.githubusercontent.com', filePath);
   return retryOptions.retry(
-    () async => await getUrl(url, httpClientProvider, log, timeout: timeout),
+    () async => await getUrl(url, httpClientProvider, log: log, timeout: timeout),
     retryIf: (Exception e) => e is HttpException,
   );
 }
@@ -55,8 +55,8 @@ Future<String> githubFileContent(
 /// Otherwise, throws [HttpException].
 FutureOr<String> getUrl(
   Uri url,
-  HttpClientProvider httpClientProvider,
-  Logging log, {
+  HttpClientProvider httpClientProvider, {
+  Logging log, 
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final HttpClient client = httpClientProvider();
@@ -70,7 +70,7 @@ FutureOr<String> getUrl(
     } else if (status == HttpStatus.notFound) {
       throw NotFoundException('HTTP $status: $url');
     } else {
-      log.warning('HTTP $status: $url');
+      log?.warning('HTTP $status: $url');
       throw HttpException('HTTP $status: $url');
     }
   } finally {
