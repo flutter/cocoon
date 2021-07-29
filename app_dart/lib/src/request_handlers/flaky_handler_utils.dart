@@ -312,7 +312,6 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
 
           for (final String line in lines) {
             final List<String> words = line.trim().split(' ');
-            // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
             final List<String> dirs = words[0].split('/').toList();
             if (testName.contains(dirs.last)) {
               owner = words[1].substring(1); // Strip out the lead '@'
