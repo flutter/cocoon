@@ -16,12 +16,12 @@ const List<String> repos = <String>[
 Future<void> main() async {
   for (final String repo in repos) {
     test('validate test ownership in repo $repo', () async {
-      final String ciYamlFile = 'flutter/$repo/master/.ci.yaml';
+      final String ciYamlFile = 'flutter/$repo/master/$kCiYamlPath';
       final String ciYamlContent = await githubFileContent(
         ciYamlFile,
         httpClientProvider: () => io.HttpClient(),
       );
-      final String testOwnerFile = 'flutter/$repo/master/TESTOWNER';
+      final String testOwnerFile = 'flutter/$repo/master/$kTestOwnerPath';
       final String testOwnersContent = await githubFileContent(
         testOwnerFile,
         httpClientProvider: () => io.HttpClient(),
