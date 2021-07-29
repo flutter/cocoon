@@ -339,6 +339,7 @@ BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
   bool hasHostOnlyTag = false;
   // If tags contain 'shard', it must be a shard test.
   // If tags contain 'devicelab', it must be a devicelab test.
+  // If tags contain 'firebaselab`, it must be a firebase tests.
   // Otherwise, it is framework host only test if its tags contain both
   // 'framework' and 'hostonly'.
   for (dynamic tag in tags) {
