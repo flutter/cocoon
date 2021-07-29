@@ -5,6 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/protos.dart';
+import 'package:cocoon_service/src/foundation/providers.dart';
+import 'package:cocoon_service/src/foundation/typedefs.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:yaml/yaml.dart';
 
@@ -12,23 +17,12 @@ import 'package:yaml/yaml.dart';
 ///
 /// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
-  final HttpClient client = HttpClient();
-  final Uri ciYamlUrl = Uri.https('raw.githubusercontent.com', 'flutter/$repo/$ref/.ci.yaml');
-  final HttpClientRequest ciYamlRequest = await client.getUrl(ciYamlUrl);
-  final HttpClientResponse ciYamlResponse = await ciYamlRequest.close();
-  final Uri testOwnersUrl = Uri.https('raw.githubusercontent.com', 'flutter/$repo/$ref/TESTOWNERS');
-  final HttpClientRequest testOwnersRequest = await client.getUrl(testOwnersUrl);
-  final HttpClientResponse testOwnersResponse = await testOwnersRequest.close();
-  if (ciYamlResponse.statusCode != HttpStatus.ok) {
-    throw HttpException('HTTP ${ciYamlResponse.statusCode}: $ciYamlUrl');
-  }
-  if (testOwnersResponse.statusCode != HttpStatus.ok) {
-    throw HttpException('HTTP ${testOwnersResponse.statusCode}: $testOwnersUrl');
-  }
-  final String ciYamlContent = await utf8.decoder.bind(ciYamlResponse).join();
-  final String testOwnersContent = await utf8.decoder.bind(testOwnersResponse).join();
-  client.close(force: true);
-
+  const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
+  final String ciYamlContent =
+      await githubFileContent('flutter/$repo/$ref/.ci.yaml', httpClientProvider: httpClientProvider);
+  final String testOwnersContent =
+      await githubFileContent('flutter/$repo/$ref/TESTOWNERS', httpClientProvider: httpClientProvider);
+  
   final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);
   return noOwnerBuilders;
 }
@@ -50,10 +44,9 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
 List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap ciYaml = loadYaml(ciYamlContent) as YamlMap;
-  final YamlList yamlList = ciYaml['targets'] as YamlList;
-  final List<YamlMap> targets = yamlList.map<YamlMap>((dynamic target) => target as YamlMap).toList();
-  for (final YamlMap target in targets) {
-    final String builder = target['builder'] as String;
+  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
+  for (Target target in schedulerConfig.targets) {
+    final String builder = target.name;
     final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct);
     print('$builder: $owner');
     if (owner == null) {
