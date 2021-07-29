@@ -41,12 +41,12 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
 ///
 /// It expects two parameters for remote validation: the flutter `repo` and the `commit`.
 ///
-/// It expects three parameters for remote validation: `local` arg, the full path to the config
+/// It expects three parameters for local validation: `local` arg, the full path to the config
 /// file (`.ci.yaml`), and the full pathto the `TESTOWNERS` file.
 Future<void> main(List<String> args) async {
   if (args.length != 2 && args.length != 3) {
     print('validate_task_ownership.dart \$repo \$sha');
-    print('generate_jspb.dart local \$local_ci_yaml \$lcoal_TESTOWNERS');
+    print('validate_task_ownership.dart local \$local_ci_yaml \$lcoal_TESTOWNERS');
     exit(1);
   }
   List<String> noOwnerBuilders;
