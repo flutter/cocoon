@@ -12,10 +12,17 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
+import 'package:yaml/yaml.dart';
 
+import '../../protos.dart';
 import '../foundation/typedefs.dart';
+import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
 import '../service/luci.dart';
+import '../service/scheduler/graph.dart';
+
+const String kCiYamlPath = '.ci.yaml';
+const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -224,4 +231,20 @@ Future<void> insertBigquery(
   } on ApiRequestError catch (error) {
     log.warning('Failed to add to BigQuery: $error');
   }
+}
+
+/// Validate test ownership defined in `testOwnersContenct` for tests configured in `ciYamlContent`.
+List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
+  final List<String> noOwnerBuilders = <String>[];
+  final YamlMap ciYaml = loadYaml(ciYamlContent) as YamlMap;
+  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
+  for (Target target in schedulerConfig.targets) {
+    final String builder = target.name;
+    final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct);
+    print('$builder: $owner');
+    if (owner == null) {
+      noOwnerBuilders.add(builder);
+    }
+  }
+  return noOwnerBuilders;
 }
