@@ -8,6 +8,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
