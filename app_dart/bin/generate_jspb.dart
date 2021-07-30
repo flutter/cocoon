@@ -7,14 +7,18 @@ import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
-import 'package:cocoon_service/src/foundation/providers.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:yaml/yaml.dart';
 
 Future<String> getRemoteConfigContent(String repo, String ref) async {
-  const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
-  final String configContent =
-      await githubFileContent('flutter/$repo/$ref/.ci.yaml', httpClientProvider: httpClientProvider);
+  final Uri ciYamlUrl = Uri.https('raw.githubusercontent.com', 'flutter/$repo/$ref/.ci.yaml');
+  final HttpClient client = HttpClient();
+  final HttpClientRequest clientRequest = await client.getUrl(ciYamlUrl);
+  final HttpClientResponse clientResponse = await clientRequest.close();
+  if (clientResponse.statusCode != HttpStatus.ok) {
+    throw HttpException('HTTP ${clientResponse.statusCode}: $ciYamlUrl');
+  }
+  final String configContent = await utf8.decoder.bind(clientResponse).join();
+  client.close(force: true);
   return configContent;
 }
 

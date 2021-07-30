@@ -22,13 +22,14 @@ const String kP4Label = 'P4';
 const String kP5Label = 'P5';
 const String kP6Label = 'P6';
 const String kBigQueryProjectId = 'flutter-dashboard';
+const String kCiYamlPath = '.ci.yaml';
+const String kTestOwnerPath = 'TESTOWNERS';
 const String kCiYamlTargetsKey = 'targets';
 const String kCiYamlTargetBuilderKey = 'builder';
 const String kCiYamlTargetIsFlakyKey = 'bringup';
 const String kCiYamlPropertiesKey = 'properties';
 const String kCiYamlTargetTagsKey = 'tags';
 const String kCiYamlTargetTagsShard = 'shard';
-const String kCiYamlTargetTagsFirebaselab = 'firebaselab';
 const String kCiYamlTargetTagsDevicelab = 'devicelab';
 const String kCiYamlTargetTagsFramework = 'framework';
 const String kCiYamlTargetTagsHostonly = 'hostonly';
@@ -174,8 +175,7 @@ const String kOwnerGroupName = 'owners';
 final RegExp devicelabTestOwners =
     RegExp('## Linux Android DeviceLab tests\n(?<$kOwnerGroupName>.+)## Host only framework tests', dotAll: true);
 final RegExp frameworkHostOnlyTestOwners =
-    RegExp('## Host only framework tests\n(?<$kOwnerGroupName>.+)## Firebase tests', dotAll: true);
-final RegExp firebaselabTestOwners = RegExp('## Firebase tests\n(?<$kOwnerGroupName>.+)## Shards tests', dotAll: true);
+    RegExp('## Host only framework tests\n(?<$kOwnerGroupName>.+)## Shards tests', dotAll: true);
 final RegExp shardTestOwners = RegExp('## Shards tests\n(?<$kOwnerGroupName>.+)', dotAll: true);
 
 // Utils methods
@@ -247,7 +247,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
           final List<String> lines = match
               .namedGroup(kOwnerGroupName)
               .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+              .where((String line) => line.isNotEmpty || !line.startsWith('#'))
               .toList();
 
           for (final String line in lines) {
@@ -272,21 +272,17 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
               match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
           int index = 0;
           while (index < lines.length) {
-            if (lines[index].startsWith('#')) {
-              // Multiple tests can share same test file and ownership.
-              // e.g.
-              //   # Linux docs_test
-              //   # Linux docs_public
-              //   /dev/bots/docs.sh @HansMuller @flutter/framework
-              bool isTestDefined = false;
-              while (lines[index].startsWith('#') && index + 1 < lines.length) {
-                final List<String> commentWords = lines[index].trim().split(' ');
-                if (testName.contains(commentWords[2])) {
-                  isTestDefined = true;
-                }
-                index += 1;
+            if (lines[index].startsWith('#') && index + 1 < lines.length) {
+              final List<String> commentWords = lines[index].trim().split(' ');
+              // e.g. commentWords = ['#', 'Linux' 'analyze']
+              index += 1;
+              if (lines[index].startsWith('#')) {
+                // The next line should not be a comment. This can happen if
+                // someone adds an additional comment to framework host only
+                // session.
+                continue;
               }
-              if (isTestDefined) {
+              if (testName.contains(commentWords[2])) {
                 final List<String> ownerWords = lines[index].trim().split(' ');
                 // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
                 owner = ownerWords[1].substring(1); // Strip out the lead '@'
@@ -294,29 +290,6 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
               }
             }
             index += 1;
-          }
-        }
-        break;
-      }
-    case BuilderType.firebaselab:
-      {
-        // The format looks like this for builder `Linux firebase_abstrac_method_smoke_test`:
-        //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
-        final RegExpMatch match = firebaselabTestOwners.firstMatch(testOwnersContent);
-        if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-          final List<String> lines = match
-              .namedGroup(kOwnerGroupName)
-              .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-              .toList();
-
-          for (final String line in lines) {
-            final List<String> words = line.trim().split(' ');
-            final List<String> dirs = words[0].split('/').toList();
-            if (testName.contains(dirs.last)) {
-              owner = words[1].substring(1); // Strip out the lead '@'
-              break;
-            }
           }
         }
         break;
@@ -338,13 +311,10 @@ BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
   bool hasHostOnlyTag = false;
   // If tags contain 'shard', it must be a shard test.
   // If tags contain 'devicelab', it must be a devicelab test.
-  // If tags contain 'firebaselab`, it must be a firebase tests.
   // Otherwise, it is framework host only test if its tags contain both
   // 'framework' and 'hostonly'.
   for (dynamic tag in tags) {
-    if (tag == kCiYamlTargetTagsFirebaselab) {
-      return BuilderType.firebaselab;
-    } else if (tag == kCiYamlTargetTagsShard) {
+    if (tag == kCiYamlTargetTagsShard) {
       return BuilderType.shard;
     } else if (tag == kCiYamlTargetTagsDevicelab) {
       return BuilderType.devicelab;
@@ -429,6 +399,5 @@ enum BuilderType {
   devicelab,
   frameworkHostOnly,
   shard,
-  firebaselab,
   unknown,
 }
