@@ -11,6 +11,7 @@ import 'package:yaml/yaml.dart';
 const int kDefaultTimeout = 30;
 
 void writeYaml(SchedulerConfig config) {
+  // Header
   final List<String> configYaml = <String>[
     '# Describes the targets run in continuous integration environment.',
     '#',
@@ -24,6 +25,22 @@ void writeYaml(SchedulerConfig config) {
   for (String branch in config.enabledBranches) {
     configYaml.add('  - $branch');
   }
+  // Platform properties
+  configYaml.add('');
+  configYaml.add('platform_properties:');
+  for (final String platform in config.platformProperties.keys) {
+    configYaml.add('  $platform:');
+    configYaml.add('    properties:');
+    for (final MapEntry<String, String> entry in config.platformProperties[platform].properties.entries) {
+      if (entry.value.startsWith('[')) {
+        configYaml.add('      ${entry.key}: >-');
+        configYaml.add('          ${entry.value}');
+      } else {
+        configYaml.add('      ${entry.key}: ${entry.value}');
+      }
+    }
+  }
+  // Targets
   configYaml.add('');
   configYaml.add('targets:');
   for (Target target in config.targets) {
