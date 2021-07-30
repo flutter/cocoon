@@ -12,10 +12,17 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
+import 'package:yaml/yaml.dart';
 
+import '../../protos.dart';
 import '../foundation/typedefs.dart';
+import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
 import '../service/luci.dart';
+import '../service/scheduler/graph.dart';
+
+const String kCiYamlPath = '.ci.yaml';
+const String kTestOwnerPath = 'TESTOWNERS';
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -34,7 +41,7 @@ Duration twoSecondLinearBackoff(int attempt) {
 Future<String> githubFileContent(
   String filePath, {
   @required HttpClientProvider httpClientProvider,
-  @required Logging log,
+  Logging log,
   Duration timeout = const Duration(seconds: 5),
   RetryOptions retryOptions,
 }) async {
@@ -44,7 +51,7 @@ Future<String> githubFileContent(
   );
   final Uri url = Uri.https('raw.githubusercontent.com', filePath);
   return retryOptions.retry(
-    () async => await getUrl(url, httpClientProvider, log, timeout: timeout),
+    () async => await getUrl(url, httpClientProvider, log: log, timeout: timeout),
     retryIf: (Exception e) => e is HttpException,
   );
 }
@@ -55,8 +62,8 @@ Future<String> githubFileContent(
 /// Otherwise, throws [HttpException].
 FutureOr<String> getUrl(
   Uri url,
-  HttpClientProvider httpClientProvider,
-  Logging log, {
+  HttpClientProvider httpClientProvider, {
+  Logging log,
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final HttpClient client = httpClientProvider();
@@ -70,7 +77,7 @@ FutureOr<String> getUrl(
     } else if (status == HttpStatus.notFound) {
       throw NotFoundException('HTTP $status: $url');
     } else {
-      log.warning('HTTP $status: $url');
+      log?.warning('HTTP $status: $url');
       throw HttpException('HTTP $status: $url');
     }
   } finally {
@@ -224,4 +231,20 @@ Future<void> insertBigquery(
   } on ApiRequestError catch (error) {
     log.warning('Failed to add to BigQuery: $error');
   }
+}
+
+/// Validate test ownership defined in `testOwnersContenct` for tests configured in `ciYamlContent`.
+List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
+  final List<String> noOwnerBuilders = <String>[];
+  final YamlMap ciYaml = loadYaml(ciYamlContent) as YamlMap;
+  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
+  for (Target target in schedulerConfig.targets) {
+    final String builder = target.name;
+    final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct);
+    print('$builder: $owner');
+    if (owner == null) {
+      noOwnerBuilders.add(builder);
+    }
+  }
+  return noOwnerBuilders;
 }

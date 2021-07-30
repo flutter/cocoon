@@ -94,6 +94,9 @@ const String testOwnersContent = '''
 # Linux analyze
 /dev/bots/analyze.dart @HansMuller @flutter/framework
 
+## Firebase tests
+/dev/integration_tests/abstract_method_smoke_test @blasten @flutter/android
+
 ## Shards tests
 # framework_tests @HansMuller @flutter/framework
 
