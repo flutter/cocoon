@@ -58,9 +58,9 @@ class TestLogging implements Logging {
 
 /// Validates the local tree has no outstanding changes.
 void expectNoDiff(String path) {
-  final ProcessResult gitResult = Process.runSync('git', <String>['diff', path, '--exit-code']);
+  final ProcessResult gitResult = Process.runSync('git', <String>['diff', '--exit-code', path]);
   if (gitResult.exitCode != 0) {
-    final ProcessResult gitDiffOutput = Process.runSync('git', <String>['diff']);
+    final ProcessResult gitDiffOutput = Process.runSync('git', <String>['diff', path]);
     fail('The working tree has a diff. Ensure changes are checked in:\n${gitDiffOutput.stdout}');
   }
 }
