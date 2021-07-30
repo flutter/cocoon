@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -30,6 +29,15 @@ void writeYaml(SchedulerConfig config) {
   for (Target target in config.targets) {
     configYaml.add('  - name: ${target.name}');
     configYaml.add('    builder: ${target.builder}');
+    if (target.enabledBranches.isNotEmpty) {
+      configYaml.add('    enabled_branches:');
+      for (String branch in target.enabledBranches) {
+        configYaml.add('      - $branch');
+      }
+    }
+    if (target.recipe.isNotEmpty) {
+      configYaml.add('    recipe: ${target.recipe}');
+    }
     if (target.bringup) {
       configYaml.add('    bringup: ${target.bringup}');
     }
@@ -45,7 +53,17 @@ void writeYaml(SchedulerConfig config) {
     if (target.properties.isNotEmpty) {
       configYaml.add('    properties:');
       for (MapEntry<String, String> entry in target.properties.entries) {
-        configYaml.add('      ${entry.key}: ${entry.value}');
+        if (entry.key == 'tags') {
+          final String tags = entry.value.trimRight().trimLeft();
+          configYaml.add('      ${entry.key}: >');
+          configYaml.add('        $tags');
+        } else {
+          if (entry.value.startsWith(RegExp(r'\d|true|false'))) {
+            configYaml.add('      ${entry.key}: "${entry.value}"');
+          } else {
+            configYaml.add('      ${entry.key}: ${entry.value}');
+          }
+        }
       }
     }
     if (target.scheduler != SchedulerSystem.cocoon) {
@@ -63,27 +81,21 @@ void writeYaml(SchedulerConfig config) {
 }
 
 Future<void> main(List<String> args) async {
-  if (args.length != 2) {
-    print('generate_jspb.dart \$repo \$sha');
+  if (args.length != 1) {
+    print('yaml_converter.dart \$path');
     exit(1);
   }
-  final String repo = args.first;
-  final String sha = args[1];
-  final Uri ciYamlUrl = Uri.https('raw.githubusercontent.com', 'flutter/$repo/$sha/.ci.yaml');
-  final HttpClient client = HttpClient();
-  final HttpClientRequest clientRequest = await client.getUrl(ciYamlUrl);
-  final HttpClientResponse clientResponse = await clientRequest.close();
-  if (clientResponse.statusCode != HttpStatus.ok) {
-    throw HttpException('HTTP ${clientResponse.statusCode}: $ciYamlUrl');
-  }
-  final String configContent = await utf8.decoder.bind(clientResponse).join();
-  client.close(force: true);
-  final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  // There's an assumption that we're only generating builder configs from commits that
-  // have already landed with validation. Otherwise, this will fail.
+  final File ciYamlFile = File(args[0]);
+  final YamlMap configYaml = loadYaml(ciYamlFile.readAsStringSync()) as YamlMap;
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
-  for (Target target in schedulerConfig.targets) {
-    target.name = target.builder;
-  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //////////////////////// Large Scale Change Logic ////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+  
+  // Example LSC where we sort the ci.yaml alphabetically.
+  schedulerConfig.targets.sort((Target a, Target b) => a.name.compareTo(b.name));
+  //////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   writeYaml(schedulerConfig);
 }
