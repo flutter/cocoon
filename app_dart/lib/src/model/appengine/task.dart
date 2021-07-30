@@ -81,7 +81,7 @@ class Task extends Model<int> {
     assert(target != null);
     return Task(
       attempts: 1,
-      builderName: target.builder,
+      builderName: target.name,
       commitKey: commit.key,
       createTimestamp: commit.timestamp,
       isFlaky: target.bringup,
