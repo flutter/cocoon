@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -591,7 +592,9 @@ class _RenderLatticeBody extends RenderBox {
   @override
   void dispose() {
     super.dispose();
-    _clipLayerHandle.layer = null;
+    _clipLabelColumnHandle.layer = null;
+    _clipLabelRowHandle.layer = null;
+    _clipDataHandle.layer = null;
   }
 
   @override
@@ -683,7 +686,7 @@ class _RenderLatticeBody extends RenderBox {
     for (int y = 0; y < _cellHeightCount; y += 1) {
       for (int x = 0; x < _cellWidthCount; x += 1) {
         final _Coordinate here = _Coordinate(x, y);
-        final bool visible = x >= _firstX && x <= _lastX && y >= _firstY && y <= _lastY;
+        final bool visible = (x == 0 || x >= _firstX) && x <= _lastX && (y == 0 || y >= _firstY) && y <= _lastY;
         assert(y < cells.length);
         final _LatticeCell cell = x < cells[y].length ? cells[y][x] : _LatticeCell.empty;
         if (visible && cell.hasChild) {
@@ -711,56 +714,76 @@ class _RenderLatticeBody extends RenderBox {
     );
   }
 
-  final LayerHandle<ClipRectLayer> _clipLayerHandle = LayerHandle<ClipRectLayer>();
+  final LayerHandle<ClipRectLayer> _clipLabelRowHandle = LayerHandle<ClipRectLayer>();
+  final LayerHandle<ClipRectLayer> _clipLabelColumnHandle = LayerHandle<ClipRectLayer>();
+  final LayerHandle<ClipRectLayer> _clipDataHandle = LayerHandle<ClipRectLayer>();
+
+  void _paintCell(PaintingContext context, Offset offset, int x, int y) {
+    final _Coordinate here = _Coordinate(x, y);
+    assert(y < cells.length);
+    final _LatticeCell cell = x < cells[y].length ? cells[y][x] : _LatticeCell.empty;
+    final Offset topLeft = _coordinateToOffset(here) + offset;
+    final Painter painter = cell.painter;
+    final RenderBox child = cell.hasChild ? _childrenByCoordinate[here] : null;
+    assert(child == _childrenByCoordinate[here]);
+    assert(cell.hasChild == (child != null));
+    if (painter != null) {
+      painter(context.canvas, topLeft & cellSize);
+    }
+    if (child != null) {
+      context.paintChild(child, topLeft);
+    }
+  }
 
   @override
   void paint(PaintingContext context, Offset offset) {
     assert(needsCompositing);
-    _clipLayerHandle.layer = context.pushClipRect(
+    final Offset dataOffset = Offset(cellSize.width, cellSize.height);
+    final Size dataSize = size - dataOffset;
+    if (dataSize.isEmpty) {
+      return;
+    }
+    _clipLabelColumnHandle.layer = context.pushClipRect(
       needsCompositing,
       offset,
-      Offset.zero & size,
+      Rect.fromLTWH(0, dataOffset.dy, cellSize.width, dataSize.height),
       (PaintingContext context, Offset offset) {
-        for (int y = _firstY; y <= _lastY; y += 1) {
-          for (int x = _firstX; x <= _lastX; x += 1) {
-            final _Coordinate here = _Coordinate(x, y);
-            assert(y < cells.length);
-            final _LatticeCell cell = x < cells[y].length ? cells[y][x] : _LatticeCell.empty;
-            Offset topLeft;
-            switch (textDirection) {
-              case TextDirection.rtl:
-                final Offset hereAsOffset = here.asOffset(cellSize);
-                topLeft = Offset(
-                  size.width - (hereAsOffset.dx - _scrollOffset.dx) - cellSize.width,
-                  hereAsOffset.dy - _scrollOffset.dy,
-                );
-                break;
-              case TextDirection.ltr:
-                topLeft = here.asOffset(cellSize) - _scrollOffset;
-                break;
-            }
-            topLeft += offset;
-            final Painter painter = cell.painter;
-            final RenderBox child = cell.hasChild ? _childrenByCoordinate[here] : null;
-            assert(child == _childrenByCoordinate[here]);
-            assert(cell.hasChild == (child != null));
-            if (painter != null) {
-              painter(context.canvas, topLeft & cellSize);
-            }
-            if (child != null) {
-              context.paintChild(child, topLeft);
-            }
+        for (int y = max(1, _firstY); y <= _lastY; y += 1) {
+          _paintCell(context, offset, 0, y);
+        }
+      },
+      oldLayer: _clipLabelColumnHandle.layer,
+    );
+    _clipLabelRowHandle.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      Rect.fromLTWH(dataOffset.dx, 0, dataSize.width, cellSize.height),
+      (PaintingContext context, Offset offset) {
+        for (int x = max(1, _firstX); x <= _lastX; x += 1) {
+          _paintCell(context, offset, x, 0);
+        }
+      },
+      oldLayer: _clipLabelRowHandle.layer,
+    );
+    _clipDataHandle.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      dataOffset & dataSize,
+      (PaintingContext context, Offset offset) {
+        for (int y = _firstY + 1; y <= _lastY; y += 1) {
+          for (int x = _firstX + 1; x <= _lastX; x += 1) {
+            _paintCell(context, offset, x, y);
           }
         }
       },
-      oldLayer: _clipLayerHandle.layer,
+      oldLayer: _clipDataHandle.layer,
     );
   }
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
     final _LatticeParentData childParentData = child.parentData as _LatticeParentData;
-    final Offset offset = childParentData.coordinate.asOffset(cellSize) - _scrollOffset;
+    final Offset offset = _coordinateToOffset(childParentData.coordinate);
     transform.translate(offset.dx, offset.dy);
   }
 
@@ -803,31 +826,35 @@ class _RenderLatticeBody extends RenderBox {
     switch (textDirection) {
       case TextDirection.rtl:
         return _Coordinate(
-          (size.width - absolute.dx) ~/ cellSize.width,
-          absolute.dy ~/ cellSize.height,
+          position.dx + cellSize.width > size.width ? 0 : (size.width - absolute.dx) ~/ cellSize.width,
+          position.dy < cellSize.height ? 0 : absolute.dy ~/ cellSize.height,
         );
       case TextDirection.ltr:
         return _Coordinate(
-          absolute.dx ~/ cellSize.width,
-          absolute.dy ~/ cellSize.height,
+          position.dx < cellSize.width ? 0 : absolute.dx ~/ cellSize.width,
+          position.dy < cellSize.height ? 0 : absolute.dy ~/ cellSize.height,
         );
     }
     return null;
   }
 
   Offset _coordinateToOffset(_Coordinate coordinate) {
+    final Offset adjustedScroll = Offset(
+      coordinate.x == 0 ? 0 : _scrollOffset.dx,
+      coordinate.y == 0 ? 0 : _scrollOffset.dy,
+    );
     switch (textDirection) {
       case TextDirection.rtl:
         return Offset(
-          size.width - (coordinate.x * cellSize.width) - cellSize.width + _scrollOffset.dx,
-          coordinate.y * cellSize.height - _scrollOffset.dy,
+          size.width - (coordinate.x * cellSize.width) - cellSize.width + adjustedScroll.dx,
+          coordinate.y * cellSize.height - adjustedScroll.dy,
         );
       case TextDirection.ltr:
         return Offset(
               coordinate.x * cellSize.width,
               coordinate.y * cellSize.height,
             ) -
-            _scrollOffset;
+            adjustedScroll;
     }
     return null;
   }
@@ -838,7 +865,7 @@ class _RenderLatticeBody extends RenderBox {
     final RenderBox child = _childrenByCoordinate[coordinate];
     return child != null &&
         result.addWithPaintOffset(
-          offset: coordinate.asOffset(cellSize) - _scrollOffset,
+          offset: _coordinateToOffset(coordinate),
           position: position,
           hitTest: (BoxHitTestResult result, Offset transformed) {
             return child.hitTest(result, position: transformed);
