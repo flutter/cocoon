@@ -23,6 +23,6 @@ Future<void> main() async {
     final File jspbExpectationsFile = File('integration_test/data/cocoon_config.json');
     jspbExpectationsFile.writeAsStringSync(generateResult.stdout as String);
 
-    expectNoDiff();
+    expectNoDiff(jspbExpectationsFile.path);
   });
 }
