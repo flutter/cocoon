@@ -76,12 +76,12 @@ void main() {
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
 
     await tester.pumpWidget(Container());
@@ -124,12 +124,12 @@ void main() {
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
 
     await tester.pumpWidget(Container());
