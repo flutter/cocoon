@@ -43,8 +43,9 @@ void main() {
 
   testWidgets('TaskGridContainer with DevelopmentCocoonService', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
     final BuildState buildState = BuildState(
-      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      cocoonService: service,
       authService: MockGoogleSignInService(),
     );
     void listener1() {}
@@ -75,14 +76,20 @@ void main() {
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
 
     // Check if the LOADING... indicator appears.
+    service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
+    service.paused = false;
+    await tester.pumpAndSettle();
 
     // Check the right edge after the data comes in.
+    service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
+    service.paused = false;
+    await tester.pumpAndSettle();
 
     await tester.pumpWidget(Container());
     buildState.dispose();
@@ -90,8 +97,9 @@ void main() {
 
   testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
     final BuildState buildState = BuildState(
-      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      cocoonService: service,
       authService: MockGoogleSignInService(),
     );
     void listener1() {}
@@ -123,14 +131,20 @@ void main() {
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
 
     // Check if the LOADING... indicator appears.
+    service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
+    service.paused = false;
+    await tester.pumpAndSettle();
 
     // Check the right edge after the data comes in.
+    service.paused = true;
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
+    service.paused = false;
+    await tester.pumpAndSettle();
 
     await tester.pumpWidget(Container());
     buildState.dispose();
