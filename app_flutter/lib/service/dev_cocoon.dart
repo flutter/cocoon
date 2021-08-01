@@ -17,9 +17,9 @@ import 'cocoon.dart';
 
 class _PausedCommitStatus {
   _PausedCommitStatus(CocoonResponse<List<CommitStatus>> status)
-    : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
-      assert(status != null),
-      _pausedStatus = status;
+      : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
+        assert(status != null),
+        _pausedStatus = status;
 
   Completer<CocoonResponse<List<CommitStatus>>> _completer;
   CocoonResponse<List<CommitStatus>> _pausedStatus;
