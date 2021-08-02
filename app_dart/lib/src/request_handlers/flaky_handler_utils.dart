@@ -23,7 +23,7 @@ const String kP5Label = 'P5';
 const String kP6Label = 'P6';
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlTargetsKey = 'targets';
-const String kCiYamlTargetBuilderKey = 'builder';
+const String kCiYamlTargetNameKey = 'name';
 const String kCiYamlTargetIsFlakyKey = 'bringup';
 const String kCiYamlPropertiesKey = 'properties';
 const String kCiYamlTargetTagsKey = 'tags';
@@ -360,7 +360,7 @@ BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
 List<dynamic> _getTags(String builderName, YamlMap ci) {
   final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
   final YamlMap target = targets.firstWhere(
-    (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
+    (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
     orElse: () => null,
   ) as YamlMap;
   if (target == null) {
