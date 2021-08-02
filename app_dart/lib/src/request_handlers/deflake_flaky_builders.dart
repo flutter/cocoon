@@ -83,7 +83,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     final List<String> lines = content.split('\n');
     final Map<String, PullRequest> nameToExistingPRs = await getExistingPRs(gitHub, slug);
     for (final YamlMap flakyTarget in flakyTargets) {
-      final String builder = flakyTarget[kCiYamlTargetBuilderKey] as String;
+      final String builder = flakyTarget[kCiYamlTargetNameKey] as String;
       if (ignoredBuilders.contains(builder)) {
         continue;
       }

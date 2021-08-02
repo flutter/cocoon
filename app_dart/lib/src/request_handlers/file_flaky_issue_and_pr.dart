@@ -116,7 +116,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final YamlMap target = targets.firstWhere(
-      (dynamic element) => element[kCiYamlTargetBuilderKey] == builderName,
+      (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
       orElse: () => null,
     ) as YamlMap;
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
