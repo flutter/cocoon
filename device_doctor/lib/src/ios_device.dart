@@ -122,6 +122,13 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     }
     return healthCheckResult;
   }
+
+  @override
+  Future<void> prepareDevices() async {
+    for (Device device in await discoverDevices()) {
+      await device.prepare();
+    }
+  }
 }
 
 /// iOS device.
@@ -135,6 +142,11 @@ class IosDevice implements Device {
   Future<void> recover() async {
     await uninstall_applications();
     await restart_device();
+  }
+
+  @override
+  Future<void> prepare() async {
+    return;
   }
 
   /// Restart iOS device.

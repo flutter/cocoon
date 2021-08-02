@@ -36,6 +36,9 @@ abstract class DeviceDiscovery {
 
   /// Recovers the device.
   Future<void> recoverDevices();
+
+  /// Prepares the device.
+  Future<void> prepareDevices();
 }
 
 /// A proxy for one specific phone device.
@@ -45,4 +48,7 @@ abstract class Device {
 
   /// Recovers the device back to a healthy state.
   Future<void> recover();
+
+  /// Prepares the device before running tasks.
+  Future<void> prepare();
 }

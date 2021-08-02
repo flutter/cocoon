@@ -185,4 +185,61 @@ void main() {
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
+
+  group('AndroidDeviceKillProcesses', () {
+    AndroidDevice device;
+    MockProcessManager processManager;
+    Process listProcess;
+    Process killProcess;
+    List<List<int>> output;
+
+    setUp(() {
+      device = AndroidDevice(deviceId: 'abc');
+      processManager = MockProcessManager();
+    });
+
+    test('successfully killed running processes', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(listProcess));
+      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(killProcess));
+      output = <List<int>>[utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')];
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(0);
+
+      final bool result = await device.killProcesses(processManager: processManager);
+      expect(result, true);
+    });
+
+    test('no running processes', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(listProcess));
+      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(killProcess));
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(0);
+
+      final bool result = await device.killProcesses(processManager: processManager);
+      expect(result, true);
+    });
+
+    test('fails to kill running processes', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(listProcess));
+      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(killProcess));
+      output = <List<int>>[utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')];
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(1);
+
+      final bool result = await device.killProcesses(processManager: processManager);
+      expect(result, false);
+    });
+  });
 }
