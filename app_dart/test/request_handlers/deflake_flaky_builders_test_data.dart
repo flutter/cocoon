@@ -21,7 +21,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     bringup: true # Flaky $existingIssueURL
@@ -35,7 +35,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -56,7 +56,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     bringup: true
@@ -70,7 +70,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -91,7 +91,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_ios_flutter_gallery__transition_perf_e2e_ios32
+  - name: Mac_ios flutter_gallery__transition_perf_e2e_ios32
     builder: Mac_ios flutter_gallery__transition_perf_e2e_ios32
     presubmit: false
     bringup: true
@@ -165,7 +165,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
@@ -178,7 +178,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
