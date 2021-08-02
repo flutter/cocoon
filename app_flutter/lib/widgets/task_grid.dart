@@ -302,7 +302,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   static final List<String> _loadingMessage =
-      'LOADING... '.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
+      ' LOADING...'.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
 
   static const TextStyle loadingStyle = TextStyle(
     fontSize: TaskBox.cellSize * 0.9,
