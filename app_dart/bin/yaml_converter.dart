@@ -29,7 +29,6 @@ void writeYaml(SchedulerConfig config) {
   configYaml.add('targets:');
   for (Target target in config.targets) {
     configYaml.add('  - name: ${target.name}');
-    configYaml.add('    builder: ${target.builder}');
     if (target.bringup) {
       configYaml.add('    bringup: ${target.bringup}');
     }
@@ -82,8 +81,5 @@ Future<void> main(List<String> args) async {
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
-  for (Target target in schedulerConfig.targets) {
-    target.name = target.builder;
-  }
   writeYaml(schedulerConfig);
 }

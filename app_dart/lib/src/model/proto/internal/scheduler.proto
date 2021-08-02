@@ -41,7 +41,7 @@ message Target {
     // Properties to configure infrastructure tooling.
     map<string, string> properties = 6;
     // Name of the LUCI builder to trigger.
-    optional string builder = 7;
+    optional string builder = 7 [deprecated = true];
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
@@ -56,7 +56,7 @@ message Target {
     repeated string enabled_branches = 12;
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
-    reserved 14;
+    reserved 14; // tags
 }
 
 // Schedulers supported in SchedulerConfig.

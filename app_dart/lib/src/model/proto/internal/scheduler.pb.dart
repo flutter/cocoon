@@ -176,7 +176,7 @@ class Target extends $pb.GeneratedMessage {
     $core.int? timeout,
     $core.String? testbed,
     $core.Map<$core.String, $core.String>? properties,
-    $core.String? builder,
+    @$core.Deprecated('This field is deprecated.') $core.String? builder,
     SchedulerSystem? scheduler,
     $core.bool? presubmit,
     $core.bool? postsubmit,
@@ -204,6 +204,7 @@ class Target extends $pb.GeneratedMessage {
       _result.properties.addAll(properties);
     }
     if (builder != null) {
+      // ignore: deprecated_member_use_from_same_package
       _result.builder = builder;
     }
     if (scheduler != null) {
@@ -302,15 +303,19 @@ class Target extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.Map<$core.String, $core.String> get properties => $_getMap(5);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.String get builder => $_getSZ(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set builder($core.String v) {
     $_setString(6, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasBuilder() => $_has(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearBuilder() => clearField(7);
 

@@ -28,7 +28,6 @@ targets:
       expect(target.properties, <String, String>{
         'test': 'abc',
       });
-      expect(target.builder, 'builderA');
       expect(target.scheduler, SchedulerSystem.cocoon);
       expect(target.testbed, 'linux-vm');
       expect(target.timeout, 30);

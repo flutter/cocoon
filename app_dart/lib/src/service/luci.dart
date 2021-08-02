@@ -247,7 +247,7 @@ class LuciBuilder {
   /// Create a new [LuciBuilder] from a [Target].
   factory LuciBuilder.fromTarget(Target target, RepositorySlug slug) {
     return LuciBuilder(
-      name: target.builder,
+      name: target.name,
       repo: slug.name,
       runIf: target.runIf,
       taskName: target.name,
