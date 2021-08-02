@@ -73,8 +73,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 
     String status = GithubBuildStatusUpdate.statusSuccess;
-    for (LuciBuilder luciBuilder in luciTasks.keys) {
-      final List<LuciTask> tasks = luciTasks[luciBuilder];
+
+    luciTasks.forEach((LuciBuilder luciBuilder, List<LuciTask> tasks) async {
       if (tasks.isEmpty) {
         log.debug('No tasks returned for builder: ${luciBuilder.name}');
       }
@@ -82,7 +82,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
         status = GithubBuildStatusUpdate.statusFailure;
       }
-    }
+    });
     await _insertBigquery(slug, status, config.defaultBranch, log, config);
     await _updatePRs(slug, status, datastore);
     log.debug('All the PRs for $repo have been updated with $status');
