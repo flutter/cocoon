@@ -124,10 +124,10 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
     final List<String> lines = content.split('\n');
-    final int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder'));
+    final int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder'));
     // Takes care the case if is kCiYamlTargetIsFlakyKey is already defined to false
     int nextLine = builderLineNumber + 1;
-    while (nextLine < lines.length && !lines[nextLine].contains('builder:')) {
+    while (nextLine < lines.length && !lines[nextLine].contains('name:')) {
       if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
         lines[nextLine] = lines[nextLine].replaceFirst('false', 'true # Flaky $issueUrl');
         return lines.join('\n');
