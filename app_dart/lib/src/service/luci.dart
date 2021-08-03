@@ -185,11 +185,7 @@ class LuciService {
         searchBuilds: SearchBuildsRequest(
           pageSize: _maxResults,
           predicate: BuildPredicate(
-            builderId: BuilderId(
-              project: 'flutter',
-              bucket: 'prod',
-              builder: builder.name,
-            ),
+            tags: <String, List<String>>{'scheduler_job_id': <String>['flutter/${builder.name}']},
           ),
           fields:
               'builds.*.id,builds.*.input,builds.*.builder,builds.*.number,builds.*.status,builds.*.summaryMarkdown',
