@@ -18,7 +18,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
@@ -31,7 +31,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -52,7 +52,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     bringup: true
     presubmit: false
@@ -66,7 +66,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -169,9 +169,9 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
-    builder: Mac_android android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     bringup: true # Flaky $expectedSemanticsIntegrationTestNewIssueURL
+    builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
     properties:
@@ -183,7 +183,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci

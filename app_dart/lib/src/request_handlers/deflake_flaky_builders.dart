@@ -83,7 +83,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     final List<String> lines = content.split('\n');
     final Map<String, PullRequest> nameToExistingPRs = await getExistingPRs(gitHub, slug);
     for (final YamlMap flakyTarget in flakyTargets) {
-      final String builder = flakyTarget[kCiYamlTargetBuilderKey] as String;
+      final String builder = flakyTarget[kCiYamlTargetNameKey] as String;
       if (ignoredBuilders.contains(builder)) {
         continue;
       }
@@ -92,8 +92,8 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
       if (nameToExistingPRs.containsKey(builder)) {
         continue;
       }
-      int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder')) + 1;
-      while (builderLineNumber < lines.length && !lines[builderLineNumber].contains('builder:')) {
+      int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder')) + 1;
+      while (builderLineNumber < lines.length && !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
           final RegExpMatch match = _issueLinkRegex.firstMatch(lines[builderLineNumber]);
           if (match == null) {

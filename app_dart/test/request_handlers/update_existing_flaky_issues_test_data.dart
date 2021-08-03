@@ -80,7 +80,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
