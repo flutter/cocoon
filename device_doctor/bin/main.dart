@@ -30,7 +30,7 @@ String _output;
 /// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
 ///
 /// For `prepare`, it will prepare the device before running tasks, like kill running processes, etc.
-/// 
+///
 /// For `properties`, it will return device properties/dimensions, like manufacture, base_buildid, etc.
 ///
 /// Usage:

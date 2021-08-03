@@ -205,7 +205,9 @@ void main() {
       when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
-      output = <List<int>>[utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')];
+      output = <List<int>>[
+        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
+      ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(0);
 
@@ -234,7 +236,9 @@ void main() {
       when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
-      output = <List<int>>[utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')];
+      output = <List<int>>[
+        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
+      ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(1);
 
