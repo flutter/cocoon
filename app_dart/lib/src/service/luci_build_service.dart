@@ -470,7 +470,7 @@ class LuciBuildService {
     ];
     tags['user_agent'] = <String>['luci-scheduler'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags['scheduler_job_id'] = <String>[builderName];
+    tags['scheduler_job_id'] = <String>['flutter/$builderName'];
     localProperties['git_ref'] = commitSha;
     return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
