@@ -469,6 +469,8 @@ class LuciBuildService {
       'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
     ];
     tags['user_agent'] = <String>['luci-scheduler'];
+    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
+    tags['scheduler_job_id'] = <String>['flutter/$builderName'];
     localProperties['git_ref'] = commitSha;
     return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
