@@ -245,8 +245,8 @@ class AndroidDevice implements Device {
     // Example result:
     //
     // Proc # 0: fore  T/A/T  trm: 0 4544:com.google.android.googlequicksearchbox/u0a66 (top-activity)
-    final RegExp processRegExp = RegExp(' 0 [0-9]+:(?<process>.+)/');
-    final List<String> processes = results.map((e) => processRegExp.firstMatch(e).namedGroup('process')).toList();
+    final List<String> processes =
+        results.map((result) => result.substring(result.lastIndexOf(':') + 1, result.lastIndexOf('/'))).toList();
     try {
       for (String process in processes) {
         await eval('adb', <String>['shell', 'am', 'force-stop', process], processManager: processManager);
