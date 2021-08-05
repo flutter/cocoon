@@ -1,21 +1,73 @@
 # Provide instructions for google Cloud Build to auto-build flutter
 # dashboard to flutter-dashboard project. Auto-build will be triggered
-# by new commits to `master` branch.
+# by daily schedule on `master` branch.
+#
+# The auto-build will be skipped if no new commits since last deployment.
+#
+# For Monday, check if any new commits in last three days
+# For Tuesday through Friday, check if any new commits in last day.
+# 
+# When comparing `commit_time` with `last_deploy_time`, there is a 7-hour difference:
+# `commit_time` is PST whereas the `last_deploy_time` is UTC.
 
 steps:
   # Build app_flutter.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['cloud_build/app_flutter_build.sh']
+    args: 
+      - '-c'
+      - |-
+        commit_time=$(git show -s --date=format:'%Y%m%d %H:%M' --format=%cd)
+        days_diff=1
+        current_day_in_week=$(date +%u)
+        if [ "$current_day_in_week" = "1" ]; then
+          days_diff=3
+        fi
+        last_deploy_time=$(date --date="-$days_diff day 7 hours ago" +%Y%m%d%H)
+        echo $commit_time
+        echo $last_deploy_time
+        if [ $(date -d "$commit_time" +%Y%m%d%H) -ge $last_deploy_time ]; then
+          bash cloud_build/app_flutter_build.sh
+        else
+          echo "No updates since last deployment."
+        fi
 
     # Build repo_dashboard.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['cloud_build/repo_dash_build.sh']
+    args:  
+      - '-c'
+      - |-
+        commit_time=$(git show -s --date=format:'%Y%m%d %H:%M' --format=%cd)
+        days_diff=1
+        current_day_in_week=$(date +%u)
+        if [ "$current_day_in_week" = "1" ]; then
+          days_diff=3
+        fi
+        last_deploy_time=$(date --date="-$days_diff day 7 hours ago" +%Y%m%d%H)
+        if [ $(date -d "$commit_time" +%Y%m%d%H) -ge $last_deploy_time ]; then
+          bash cloud_build/repo_dash_build.sh
+        else
+          echo "No updates since last deployment."
+        fi
 
   # Deploy a new version to google cloud.
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: '/bin/bash'
-    args: ['cloud_build/deploy.sh', '$PROJECT_ID', '$SHORT_SHA', '$_GAE_PROMOTE']
+    args:  
+      - '-c'
+      - |-
+        commit_time=$(git show -s --date=format:'%Y%m%d %H:%M' --format=%cd)
+        days_diff=1
+        current_day_in_week=$(date +%u)
+        if [ "$current_day_in_week" = "1" ]; then
+          days_diff=3
+        fi
+        last_deploy_time=$(date --date="-$days_diff day 7 hours ago" +%Y%m%d%H)
+        if [ $(date -d "$commit_time" +%Y%m%d%H) -ge $last_deploy_time ]; then
+          bash cloud_build/deploy.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
+        else
+          echo "No updates since last deployment."
+        fi
 
 timeout: 1200s
