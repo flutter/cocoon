@@ -56,8 +56,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     for (final _BuilderInfo info in eligibleBuilders) {
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
-      if (builderRecords.length >= kRecordNumber &&
-          builderRecords.every((BuilderRecord record) => !record.isFlaky)) {
+      if (builderRecords.length >= kRecordNumber && builderRecords.every((BuilderRecord record) => !record.isFlaky)) {
         testOwnerContent ??= await gitHub.getFileContent(slug, kTestOwnerPath);
         await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnerContent: testOwnerContent);
       }

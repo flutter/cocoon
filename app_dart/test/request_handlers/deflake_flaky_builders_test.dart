@@ -414,7 +414,7 @@ void main() {
     test('Do not create pr if not enough records', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-          builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
@@ -431,7 +431,7 @@ void main() {
 
       // Verify BigQuery is called correctly.
       List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-          builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
           .captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
