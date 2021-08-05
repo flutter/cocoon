@@ -240,7 +240,7 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) 
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
   for (Target target in schedulerConfig.targets) {
     final String builder = target.name;
-    final String owner = getTestOwner(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct);
+    final String owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct).owner;
     print('$builder: $owner');
     if (owner == null) {
       noOwnerBuilders.add(builder);

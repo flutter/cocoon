@@ -71,8 +71,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
       final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
       final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-      final String testOwner = getTestOwner(
-          statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent);
+      final String testOwner = getTestOwnership(
+          statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent).owner;
       if (testOwner != null) {
         await gitHub.assignIssue(slug, issueNumber: existingIssue.number, assignee: testOwner);
       }

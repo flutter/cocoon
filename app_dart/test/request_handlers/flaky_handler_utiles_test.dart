@@ -17,7 +17,7 @@ void main() {
 abc_test.sh @ghi @flutter/jkl
 ## Firebase tests
 ''';
-        final String owner = getTestOwner('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+        final String owner = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent).owner;
         expect(owner, 'ghi');
       });
 
@@ -29,10 +29,10 @@ abc_test.sh @ghi @flutter/jkl
 abc_test.sh @ghi @flutter/jkl
 ## Firebase tests
 ''';
-        final String owner1 = getTestOwner('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+        final String owner1 = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent).owner;
         expect(owner1, 'ghi');
-        // final String owner2 = getTestOwner('Linux def', BuilderType.frameworkHostOnly, testOwnersContent);
-        // expect(owner2, 'ghi');
+        final String owner2 = getTestOwnership('Linux def', BuilderType.frameworkHostOnly, testOwnersContent).owner;
+        expect(owner2, 'ghi');
       });
     });
 
@@ -44,7 +44,7 @@ abc_test.sh @ghi @flutter/jkl
 /test/abc @def @flutter/ghi
 ## Shards tests
 ''';
-        final String owner = getTestOwner('Linux firebase_abc', BuilderType.firebaselab, testOwnersContent);
+        final String owner = getTestOwnership('Linux firebase_abc', BuilderType.firebaselab, testOwnersContent).owner;
         expect(owner, 'def');
       });
     });
@@ -57,7 +57,7 @@ abc_test.sh @ghi @flutter/jkl
 
 ## Host only framework tests
 ''';
-        final String owner = getTestOwner('Linux abc', BuilderType.devicelab, testOwnersContent);
+        final String owner = getTestOwnership('Linux abc', BuilderType.devicelab, testOwnersContent).owner;
         expect(owner, 'def');
       });
     });
@@ -69,7 +69,7 @@ abc_test.sh @ghi @flutter/jkl
 #
 # abc @def @flutter/ghi
 ''';
-        final String owner = getTestOwner('Linux abc', BuilderType.shard, testOwnersContent);
+        final String owner = getTestOwnership('Linux abc', BuilderType.shard, testOwnersContent).owner;
         expect(owner, 'def');
       });
     });

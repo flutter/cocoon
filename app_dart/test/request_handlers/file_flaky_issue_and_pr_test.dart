@@ -276,6 +276,31 @@ void main() {
       expect(result['Status'], 'success');
     });
 
+    test('Can file issue but not pr for test not found in ci.yaml', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(unknownTestResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], isA<IssueRequest>());
+      // Verify no pr is created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      expect(result['Status'], 'success');
+    });
+
     test('Do not create issue if there is already one', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {

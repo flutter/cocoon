@@ -15,12 +15,17 @@ import '../service/github_service.dart';
 // String constants.
 const String kTeamFlakeLabel = 'team: flakes';
 const String kSevereFlakeLabel = 'severe: flake';
+const String kFrameworkLabel = 'framework';
+const String kToolLabel = 'tool';
+const String kEngineLabel = 'engine';
+const String kWebLabel = 'platform-web';
 const String kP1Label = 'P1';
 const String kP2Label = 'P2';
 const String kP3Label = 'P3';
 const String kP4Label = 'P4';
 const String kP5Label = 'P5';
 const String kP6Label = 'P6';
+
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlTargetsKey = 'targets';
 const String kCiYamlTargetNameKey = 'name';
@@ -46,14 +51,20 @@ const String _flakeRecordPrefix =
 class IssueBuilder {
   IssueBuilder({
     @required this.statistic,
+    @required this.ownership,
     @required this.threshold,
   });
 
   final BuilderStatistic statistic;
+  final TestOwnership ownership;
   final double threshold;
 
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
+  }
+
+  String get issueAssignee {
+    return ownership.owner;
   }
 
   String get issueBody {
@@ -74,11 +85,16 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
   }
 
   List<String> get issueLabels {
-    return <String>[
+    final List<String> labels = <String>[
       kTeamFlakeLabel,
       kSevereFlakeLabel,
       kP1Label,
     ];
+    final String teamLabel = _getTeamLabelFromTeam(ownership.team);
+    if (teamLabel?.isNotEmpty == true) {
+      labels.add(teamLabel);
+    }
+    return labels;
   }
 }
 
@@ -130,15 +146,18 @@ ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 /// A builder to build the pull request title and body for marking test flaky
 class PullRequestBuilder {
   PullRequestBuilder({
-    this.statistic,
-    this.issue,
+    @required this.statistic,
+    @required this.ownership,
+    @required this.issue,
   });
 
   final BuilderStatistic statistic;
+  final TestOwnership ownership;
   final Issue issue;
 
   String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
   String get pullRequestBody => '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
+  String get pullRequestReviewer => ownership.owner;
 }
 
 /// A builder to build the pull request title and body for marking test unflaky
@@ -146,11 +165,13 @@ class DeflakePullRequestBuilder {
   DeflakePullRequestBuilder({
     @required this.name,
     @required this.recordNumber,
+    @required this.ownership,
     this.issue,
   });
 
   final String name;
   final Issue issue;
+  final TestOwnership ownership;
   final int recordNumber;
 
   String get pullRequestTitle => 'Marks $name to be unflaky';
@@ -166,6 +187,7 @@ class DeflakePullRequestBuilder {
     body += 'This test can be marked as unflaky.\n';
     return body;
   }
+  String get pullRequestReviewer => ownership.owner;
 }
 
 // TESTOWNER Regex
@@ -214,9 +236,10 @@ Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, Repository
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-String getTestOwner(String builderName, BuilderType type, String testOwnersContent) {
+TestOwnership getTestOwnership(String builderName, BuilderType type, String testOwnersContent) {
   final String testName = _getTestNameFromBuilderName(builderName);
   String owner;
+  Team team;
   switch (type) {
     case BuilderType.shard:
       {
@@ -232,6 +255,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
             // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
             if (testName.contains(words[1])) {
               owner = words[2].substring(1); // Strip out the lead '@'
+              team = _teamFromString(words[3].substring(1)); // Strip out the lead '@'
               break;
             }
           }
@@ -255,6 +279,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
             // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
             if (words[0].endsWith('$testName.dart')) {
               owner = words[1].substring(1); // Strip out the lead '@'
+              team = _teamFromString(words[2].substring(1));
               break;
             }
           }
@@ -290,6 +315,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
                 final List<String> ownerWords = lines[index].trim().split(' ');
                 // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
                 owner = ownerWords[1].substring(1); // Strip out the lead '@'
+                team = _teamFromString(ownerWords[2].substring(1));
                 break;
               }
             }
@@ -315,6 +341,7 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
             final List<String> dirs = words[0].split('/').toList();
             if (testName.contains(dirs.last)) {
               owner = words[1].substring(1); // Strip out the lead '@'
+              team = _teamFromString(words[2].substring(1));
               break;
             }
           }
@@ -322,9 +349,10 @@ String getTestOwner(String builderName, BuilderType type, String testOwnersConte
         break;
       }
     case BuilderType.unknown:
+      team = Team.unknown;
       break;
   }
-  return owner;
+  return TestOwnership(owner, team);
 }
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
@@ -425,10 +453,56 @@ String _issueBuildLink({String builder, String build}) {
   return Uri.encodeFull('$_buildPrefix$builder/$build');
 }
 
+Team _teamFromString(String teamString) {
+  switch(teamString) {
+    case 'flutter/framework':
+      return Team.framework;
+    case 'flutter/engine':
+      return Team.engine;
+    case 'flutter/tool':
+      return Team.tool;
+    case 'flutter/web':
+      return Team.web;
+  }
+  return Team.unknown;
+}
+
+String _getTeamLabelFromTeam(Team team) {
+  switch(team) {
+    case Team.framework:
+      return kFrameworkLabel;
+    case Team.engine:
+      return kEngineLabel;
+    case Team.tool:
+      return kToolLabel;
+    case Team.web:
+      return kWebLabel;
+    case Team.unknown:
+      return null;
+  }
+}
+
 enum BuilderType {
   devicelab,
   frameworkHostOnly,
   shard,
   firebaselab,
   unknown,
+}
+
+enum Team {
+  framework,
+  engine,
+  tool,
+  web,
+  unknown,
+}
+
+class TestOwnership {
+  TestOwnership(
+    this.owner,
+    this.team,
+  );
+  String owner;
+  Team team;
 }

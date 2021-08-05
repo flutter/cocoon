@@ -41,8 +41,8 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   /// Builders that are purposefully marked flaky and should be ignored by this
   /// handler.
   static const Set<String> ignoredBuilders = <String>{
-    'Mac_ios flutter_gallery__transition_perf_e2e_ios32',
-    'Mac_ios native_ui_tests_ios32',
+    'Mac_ios32 flutter_gallery__transition_perf_e2e_ios32',
+    'Mac_ios32 native_ui_tests_ios32',
   };
 
   @override
@@ -122,7 +122,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final DeflakePullRequestBuilder prBuilder =
-        DeflakePullRequestBuilder(name: info.name, recordNumber: kRecordNumber, issue: info.existingIssue);
+        DeflakePullRequestBuilder(name: info.name, recordNumber: kRecordNumber, ownership: getTestOwnership(info.name, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent), issue: info.existingIssue);
     final PullRequest pullRequest = await gitHub.createPullRequest(
       slug,
       title: prBuilder.pullRequestTitle,
@@ -139,8 +139,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
       ],
     );
     await gitHub.assignReviewer(slug,
-        reviewer:
-            getTestOwner(info.name, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent),
+        reviewer: prBuilder.pullRequestReviewer,
         pullRequestNumber: pullRequest.number);
   }
 

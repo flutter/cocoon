@@ -55,7 +55,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
             existingPullRequest: nameToExistingPR[statistic.name],
             isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci),
             type: type,
-            owner: getTestOwner(statistic.name, type, testOwnerContent)),
+            ownership: getTestOwnership(statistic.name, type, testOwnerContent)),
       );
     }
     return Body.forJson(const <String, dynamic>{
@@ -77,18 +77,19 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     if (issue == null ||
         (issue.state == 'closed' &&
             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
-      final IssueBuilder issueBuilder = IssueBuilder(statistic: builderDetail.statistic, threshold: _threshold);
+      final IssueBuilder issueBuilder = IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,
         body: issueBuilder.issueBody,
         labels: issueBuilder.issueLabels,
-        assignee: builderDetail.owner,
+        assignee: issueBuilder.issueAssignee,
       );
     }
 
     if (issue == null ||
         builderDetail.type == BuilderType.shard ||
+        builderDetail.type == BuilderType.unknown ||
         builderDetail.existingPullRequest != null ||
         builderDetail.isMarkedFlaky) {
       return;
@@ -96,7 +97,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final String modifiedContent = _marksBuildFlakyInContent(
         await gitHub.getFileContent(slug, kCiYamlPath), builderDetail.statistic.name, issue.htmlUrl);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: builderDetail.statistic, issue: issue);
+    final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
     final PullRequest pullRequest = await gitHub.createPullRequest(slug,
         title: prBuilder.pullRequestTitle,
         body: prBuilder.pullRequestBody,
@@ -110,7 +111,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
             content: modifiedContent,
           )
         ]);
-    await gitHub.assignReviewer(slug, reviewer: builderDetail.owner, pullRequestNumber: pullRequest.number);
+    await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
   }
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
@@ -149,13 +150,13 @@ class _BuilderDetail {
     @required this.existingIssue,
     @required this.existingPullRequest,
     @required this.isMarkedFlaky,
-    @required this.owner,
+    @required this.ownership,
     @required this.type,
   });
   final BuilderStatistic statistic;
   final Issue existingIssue;
   final PullRequest existingPullRequest;
-  final String owner;
+  final TestOwnership ownership;
   final bool isMarkedFlaky;
   final BuilderType type;
 }
