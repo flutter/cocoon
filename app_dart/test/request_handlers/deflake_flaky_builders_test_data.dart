@@ -194,7 +194,7 @@ const String expectedSemanticsIntegrationTestPullRequestBody = '''
   "name": "Mac_android android_semantics_integration_test"
 }
 -->
-The issue $existingIssueURL has been closed, and the test has been passing for [50 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
+The issue $existingIssueURL has been closed, and the test has been passing for [8 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
 This test can be marked as unflaky.
 ''';
 const String expectedSemanticsIntegrationTestPullRequestBodyNoIssue = '''
@@ -203,7 +203,7 @@ const String expectedSemanticsIntegrationTestPullRequestBodyNoIssue = '''
   "name": "Mac_android android_semantics_integration_test"
 }
 -->
-The test has been passing for [50 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
+The test has been passing for [8 consecutive runs](https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
 This test can be marked as unflaky.
 ''';
 

@@ -131,6 +131,7 @@ void main() {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
 
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
@@ -229,6 +230,7 @@ void main() {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
 
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
@@ -301,7 +303,7 @@ void main() {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
       });
-
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
@@ -324,7 +326,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(state: 'open', htmlUrl: existingIssueURL));
       });
-
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
@@ -354,6 +356,7 @@ void main() {
         return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
       });
 
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
@@ -396,10 +399,50 @@ void main() {
         return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
       });
 
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize())
           .transform(json.decoder)
           .single as Map<String, dynamic>;
+
+      // Verify pr is not created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Do not create pr if not enough records', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+          builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
+      });
+      // When get issue
+      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+      });
+
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize())
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify BigQuery is called correctly.
+      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
+          builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), kBigQueryProjectId);
+      expect(captured[1] as String, expectedSemanticsIntegrationTestBuilderName);
+      expect(captured[2] as int, DeflakeFlakyBuilders.kRecordNumber);
+
+      // Verify it gets the correct issue.
+      captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0], config.flutterSlug);
+      expect(captured[1] as int, existingIssueNumber);
 
       // Verify pr is not created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));

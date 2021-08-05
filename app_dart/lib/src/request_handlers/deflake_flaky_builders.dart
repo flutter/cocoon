@@ -34,7 +34,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   const DeflakeFlakyBuilders(Config config, AuthenticationProvider authenticationProvider)
       : super(config: config, authenticationProvider: authenticationProvider);
 
-  static const int kRecordNumber = 50;
+  static int kRecordNumber = 50;
 
   static final RegExp _issueLinkRegex = RegExp(r'https://github.com/flutter/flutter/issues/(?<id>[0-9]+)');
 
@@ -56,7 +56,8 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     for (final _BuilderInfo info in eligibleBuilders) {
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
-      if (builderRecords.every((BuilderRecord record) => !record.isFlaky)) {
+      if (builderRecords.length >= kRecordNumber &&
+          builderRecords.every((BuilderRecord record) => !record.isFlaky)) {
         testOwnerContent ??= await gitHub.getFileContent(slug, kTestOwnerPath);
         await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnerContent: testOwnerContent);
       }
