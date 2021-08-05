@@ -57,8 +57,9 @@ Future<void> main() async {
       /// GET: /api/check-waiting-pull-requests
       ///
       /// Response: Status 200 OK
-      '/api/check-flaky-tests-and-update-github': CheckForFlakyTestAndUpdateGithub(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
+      '/api/deflake_flaky_builders': DeflakeFlakyBuilders(config, authProvider),
+      '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
         authProvider,
@@ -102,6 +103,10 @@ Future<void> main() async {
         config,
         authProvider,
         scheduler,
+      ),
+      '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
+        config,
+        authProvider,
       ),
 
       /// Updates task related details.

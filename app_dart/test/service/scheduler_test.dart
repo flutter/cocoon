@@ -34,13 +34,11 @@ const String singleCiYaml = '''
 enabled_branches:
   - master
 targets:
-  - name: A
-    builder: Linux A
+  - name: Linux A
     postsubmit: true
     presubmit: true
     scheduler: luci
-  - name: B
-    builder: Linux B
+  - name: Linux B
     enabled_branches:
       - stable
     postsubmit: true
@@ -299,18 +297,15 @@ void main() {
 enabled_branches:
   - master
 targets:
-  - name: A
-    builder: Linux A
+  - name: Linux A
     presubmit: true
     scheduler: luci
-  - name: B
-    builder: Linux B
+  - name: Linux B
     scheduler: luci
     enabled_branches:
       - stable
     presubmit: true
-  - name: C
-    builder: Linux C
+  - name: Linux C
     scheduler: luci
     enabled_branches:
       - master

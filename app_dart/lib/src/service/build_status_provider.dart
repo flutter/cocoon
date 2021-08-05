@@ -144,6 +144,7 @@ class BuildStatusService {
           return GithubBuildStatusUpdate.statusSuccess;
       }
     }
+    log.debug('Found ${tasks.length} tasks in latest commits.');
     // No state means we don't have a state for the last 40 commits which should
     // close the tree.
     return GithubBuildStatusUpdate.statusFailure;

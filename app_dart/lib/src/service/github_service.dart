@@ -162,6 +162,28 @@ class GithubService {
     return github.issues.listByRepo(slug, labels: labels, state: state).toList();
   }
 
+  /// Get an issue with the issue number
+  Future<Issue> getIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+  }) {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    return github.issues.get(slug, issueNumber);
+  }
+
+  /// Assign the issue to the assignee.
+  Future<void> assignIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    String assignee,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    ArgumentError.checkNotNull(assignee);
+    await github.issues.edit(slug, issueNumber, IssueRequest(assignee: assignee));
+  }
+
   Future<Issue> createIssue(
     RepositorySlug slug, {
     String title,
@@ -174,6 +196,29 @@ class GithubService {
       slug,
       IssueRequest(title: title, body: body, labels: labels, assignee: assignee),
     );
+  }
+
+  Future<IssueComment> createComment(
+    RepositorySlug slug, {
+    int issueNumber,
+    String body,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    return await github.issues.createComment(slug, issueNumber, body);
+  }
+
+  Future<List<IssueLabel>> replaceLabelsForIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    List<String> labels,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    final Response response = await github.request('PUT', '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: GitHubJson.encode(labels));
+    final List<dynamic> body = jsonDecode(response.body) as List<dynamic>;
+    return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
   }
 
   /// Returns changed files of [slug] and [prNumber].

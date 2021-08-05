@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
@@ -14,6 +15,31 @@ import '../model/key.pb.dart';
 import '../model/task.pb.dart';
 import 'cocoon.dart';
 
+class _PausedCommitStatus {
+  _PausedCommitStatus(CocoonResponse<List<CommitStatus>> status)
+      : _completer = Completer<CocoonResponse<List<CommitStatus>>>(),
+        assert(status != null),
+        _pausedStatus = status;
+
+  Completer<CocoonResponse<List<CommitStatus>>> _completer;
+  CocoonResponse<List<CommitStatus>> _pausedStatus;
+
+  Future<CocoonResponse<List<CommitStatus>>> get future => _completer.future;
+
+  void update(CocoonResponse<List<CommitStatus>> newStatus) {
+    assert(_completer != null);
+    assert(_pausedStatus != null);
+    _pausedStatus = newStatus;
+  }
+
+  void complete() {
+    assert(_completer != null && _pausedStatus != null);
+    _completer.complete(_pausedStatus);
+    _completer = null;
+    _pausedStatus = null;
+  }
+}
+
 /// [CocoonService] for local development purposes.
 ///
 /// This creates fake data that mimicks what production will send.
@@ -24,12 +50,38 @@ class DevelopmentCocoonService implements CocoonService {
 
   final DateTime now;
 
+  _PausedCommitStatus _pausedStatus;
+  bool _paused = false;
+  bool get paused => _paused;
+  set paused(bool pause) {
+    if (_paused == pause) {
+      return;
+    }
+    assert(_paused || _pausedStatus == null);
+    if (_pausedStatus != null) {
+      _pausedStatus.complete();
+      _pausedStatus = null;
+    }
+    _paused = pause;
+  }
+
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
     String branch,
   }) async {
-    return CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus));
+    final CocoonResponse<List<CommitStatus>> data =
+        CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus));
+    if (!_paused) {
+      return data;
+    }
+
+    if (_pausedStatus == null) {
+      _pausedStatus = _PausedCommitStatus(data);
+    } else {
+      _pausedStatus.update(data);
+    }
+    return _pausedStatus.future;
   }
 
   @override
@@ -216,7 +268,8 @@ class DevelopmentCocoonService implements CocoonService {
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'
       ..stageName = stageName
-      ..status = status;
+      ..status = status
+      ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
 
     if (stageName == StageName.luci) {
       task

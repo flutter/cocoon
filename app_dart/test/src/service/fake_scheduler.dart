@@ -53,7 +53,6 @@ SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
   Target(
     bringup: false,
     name: 'Linux A',
-    builder: 'Linux A',
     scheduler: SchedulerSystem.luci,
     presubmit: true,
     postsubmit: true,
@@ -61,7 +60,6 @@ SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
   Target(
     bringup: false,
     name: 'Google Internal Roll',
-    builder: 'Google Internal Roll',
     presubmit: false,
     postsubmit: true,
     scheduler: SchedulerSystem.google_internal,

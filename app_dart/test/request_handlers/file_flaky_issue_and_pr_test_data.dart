@@ -18,7 +18,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
@@ -31,7 +31,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -52,7 +52,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     bringup: true
     presubmit: false
@@ -66,7 +66,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -94,6 +94,9 @@ const String testOwnersContent = '''
 # Linux analyze
 /dev/bots/analyze.dart @HansMuller @flutter/framework
 
+## Firebase tests
+/dev/integration_tests/abstract_method_smoke_test @blasten @flutter/android
+
 ## Shards tests
 # framework_tests @HansMuller @flutter/framework
 
@@ -115,10 +118,10 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 
@@ -135,18 +138,19 @@ The post-submit test builder `Mac_android android_semantics_integration_test` ha
 
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
-Failed build:
+Flaky builds:
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded build (3 most recent):
+Succeeded builds (3 most recent):
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/203
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/202
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
+
 const String expectedSemanticsIntegrationTestResponseAssignee = 'HansMuller';
 const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
@@ -165,9 +169,9 @@ enabled_branches:
   - master
 
 targets:
-  - name: mac_android_android_semantics_integration_test
+  - name: Mac_android android_semantics_integration_test
+    bringup: true # Flaky $expectedSemanticsIntegrationTestNewIssueURL
     builder: Mac_android android_semantics_integration_test
-    bringup: true // Flaky $expectedSemanticsIntegrationTestNewIssueURL
     presubmit: false
     scheduler: luci
     properties:
@@ -179,7 +183,7 @@ targets:
     properties:
       tags: >
         ["framework","hostonly"]
-  - name: win_framework_tests_misc
+  - name: Windows framework_tests_misc
     builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
@@ -201,35 +205,35 @@ Issue link: $expectedSemanticsIntegrationTestNewIssueURL
 final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Linux analyze',
-    flakyRate: 0.01,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyRate: 0.03,
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
 const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P2',
+  'P1',
 ];
 
 final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Windows framework_tests_misc',
-    flakyRate: 0.01,
-    failedBuilds: <String>['103', '102', '101'],
+    flakyRate: 0.03,
+    flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
-    failedBuildOfRecentCommit: '103',
+    flakyBuildOfRecentCommit: '103',
   )
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
-  'P2',
+  'P1',
 ];
 
 String gitHubEncode(String source) {

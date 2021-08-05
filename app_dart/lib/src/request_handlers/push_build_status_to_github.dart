@@ -66,18 +66,23 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     final Commit tipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(tipOfTreeCommit);
-    final List<LuciBuilder> postsubmitBuilders =
-        await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    // Filter the builders to only those that can block the tree
+    postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky).toList();
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 
     String status = GithubBuildStatusUpdate.statusSuccess;
-    for (List<LuciTask> tasks in luciTasks.values) {
+
+    luciTasks.forEach((LuciBuilder luciBuilder, List<LuciTask> tasks) async {
+      if (tasks.isEmpty) {
+        log.debug('No tasks returned for builder: ${luciBuilder.name}');
+      }
       final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
         status = GithubBuildStatusUpdate.statusFailure;
       }
-    }
+    });
     await _insertBigquery(slug, status, config.defaultBranch, log, config);
     await _updatePRs(slug, status, datastore);
     log.debug('All the PRs for $repo have been updated with $status');
@@ -88,12 +93,12 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
     final GitHub github = await config.createGitHubClient(slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
+    await for (PullRequest pr in github.pullRequests.list(slug, base: config.defaultBranch)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
         log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
         final CreateStatus request = CreateStatus(status);
-        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/engine/console';
+        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/${slug.name}/console';
         request.context = 'luci-${slug.name}';
         if (status != GithubBuildStatusUpdate.statusSuccess) {
           request.description = config.flutterBuildDescription;

@@ -25,15 +25,12 @@ platform_properties:
 
 targets:
   - name: Linux Cocoon
-    builder: Linux Cocoon
-    postsubmit: false
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
     scheduler: luci
 
   - name: Linux device_doctor
-    builder: Linux device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
     properties:
@@ -43,7 +40,6 @@ targets:
       - device_doctor/**
 
   - name: Mac device_doctor
-    builder: Mac device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
     properties:
@@ -53,7 +49,6 @@ targets:
       - device_doctor/**
 
   - name: Windows device_doctor
-    builder: Windows device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
     properties:
@@ -62,3 +57,8 @@ targets:
     runIf:
       - device_doctor/**
 
+  - name: Linux ci_yaml roller
+    bringup: true
+    presubmit: false
+    recipe: infra/ci_yaml
+    scheduler: luci

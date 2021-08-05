@@ -40,6 +40,15 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<void> assignIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    String assignee,
+  }) async {
+    return;
+  }
+
+  @override
   Future<PullRequest> createPullRequest(
     RepositorySlug slug, {
     String title,
@@ -73,6 +82,32 @@ class FakeGithubService implements GithubService {
     String state = 'open',
   }) async {
     return <Issue>[];
+  }
+
+  @override
+  Future<Issue> getIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+  }) {
+    return null;
+  }
+
+  @override
+  Future<IssueComment> createComment(
+    RepositorySlug slug, {
+    int issueNumber,
+    String body,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<List<IssueLabel>> replaceLabelsForIssue(
+    RepositorySlug slug, {
+    int issueNumber,
+    List<String> labels,
+  }) async {
+    return <IssueLabel>[];
   }
 
   @override

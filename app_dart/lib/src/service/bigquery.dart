@@ -16,7 +16,7 @@ import 'access_client_provider.dart';
 /// time	            TIMESTAMP
 /// date	            DATE
 /// sha	              STRING
-/// failed_builds	    STRING
+/// flaky_builds	    STRING
 /// succeeded_builds	STRING
 /// branch	          STRING
 /// device_os       	STRING
@@ -30,10 +30,10 @@ const String getBuilderStatisticQuery = r'''
 select builder_name,
        sum(is_flaky) as flaky_number,
        count(*) as total_number,
-       string_agg(case when is_flaky = 1 then failed_builds end, ', ') as failed_builds,
+       string_agg(case when is_flaky = 1 then flaky_builds end, ', ') as flaky_builds,
        string_agg(succeeded_builds, ', ') as succeeded_builds,
        array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
-       array_agg(case when is_flaky = 1 then failed_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as failure_of_recent_flaky_commit,
+       array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as flaky_build_of_recent_flaky_commit,
        sum(is_flaky)/count(*) as flaky_ratio
 from `flutter-dashboard.datasite.luci_prod_build_status`
 where date>=date_sub(current_date(), interval 14 day) and
@@ -44,6 +44,13 @@ where date>=date_sub(current_date(), interval 14 day) and
       pool = 'luci.flutter.prod' and
       builder_name not like '%Beta%'
 group by builder_name;
+''';
+
+const String getRecordsQuery = r'''
+select sha, is_flaky from `flutter-dashboard.datasite.luci_prod_build_status`
+where builder_name=@BUILDER_NAME
+order by time desc
+limit @LIMIT
 ''';
 
 class BigqueryService {
@@ -83,38 +90,89 @@ class BigqueryService {
     final List<BuilderStatistic> result = <BuilderStatistic>[];
     for (final TableRow row in response.rows) {
       final String builder = row.f[0].v as String;
-      List<String> failedBuilds = (row.f[3].v as String)?.split(', ');
-      failedBuilds?.sort();
-      failedBuilds = failedBuilds?.reversed?.toList();
+      List<String> flakyBuilds = (row.f[3].v as String)?.split(', ');
+      flakyBuilds?.sort();
+      flakyBuilds = flakyBuilds?.reversed?.toList();
       List<String> succeededBuilds = (row.f[4].v as String)?.split(', ');
       succeededBuilds?.sort();
       succeededBuilds = succeededBuilds?.reversed?.toList();
       result.add(BuilderStatistic(
           name: builder,
           flakyRate: double.parse(row.f[7].v as String),
-          failedBuilds: failedBuilds ?? const <String>[],
+          flakyBuilds: flakyBuilds ?? const <String>[],
           succeededBuilds: succeededBuilds ?? const <String>[],
           recentCommit: row.f[5].v as String,
-          failedBuildOfRecentCommit: row.f[6].v as String));
+          flakyBuildOfRecentCommit: row.f[6].v as String));
     }
     return result;
   }
+
+  /// Return the list of current builder statistic.
+  ///
+  /// See getBuilderStatisticQuery to get the detail information about the table
+  /// schema
+  Future<List<BuilderRecord>> listRecentBuildRecordsForBuilder(
+    String projectId, {
+    String builder,
+    int limit,
+  }) async {
+    final JobsResourceApi jobsResourceApi = await defaultJobs();
+    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
+      'query': getRecordsQuery,
+      'parameterMode': 'NAMED',
+      'queryParameters': <Map<String, Object>>[
+        <String, Object>{
+          'name': 'BUILDER_NAME',
+          'parameterType': <String, Object>{'type': 'STRING'},
+          'parameterValue': <String, Object>{'value': builder},
+        },
+        <String, Object>{
+          'name': 'LIMIT',
+          'parameterType': <String, Object>{'type': 'INT64'},
+          'parameterValue': <String, Object>{'value': '$limit'},
+        },
+      ],
+      'useLegacySql': false
+    });
+    final QueryResponse response = await jobsResourceApi.query(query, projectId);
+    if (!response.jobComplete) {
+      throw 'job does not complete';
+    }
+    final List<BuilderRecord> result = <BuilderRecord>[];
+    for (final TableRow row in response.rows) {
+      result.add(BuilderRecord(
+        commit: row.f[0].v as String,
+        isFlaky: row.f[1].v as String != '0',
+      ));
+    }
+    return result;
+  }
+}
+
+class BuilderRecord {
+  BuilderRecord({
+    this.commit,
+    this.isFlaky,
+  });
+
+  final String commit;
+  final bool isFlaky;
 }
 
 class BuilderStatistic {
   BuilderStatistic({
     this.name,
     this.flakyRate,
-    this.failedBuilds,
+    this.flakyBuilds,
     this.succeededBuilds,
     this.recentCommit,
-    this.failedBuildOfRecentCommit,
+    this.flakyBuildOfRecentCommit,
   });
 
   final String name;
   final double flakyRate;
-  final List<String> failedBuilds;
+  final List<String> flakyBuilds;
   final List<String> succeededBuilds;
   final String recentCommit;
-  final String failedBuildOfRecentCommit;
+  final String flakyBuildOfRecentCommit;
 }

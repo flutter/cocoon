@@ -29,7 +29,6 @@ void writeYaml(SchedulerConfig config) {
   configYaml.add('targets:');
   for (Target target in config.targets) {
     configYaml.add('  - name: ${target.name}');
-    configYaml.add('    builder: ${target.builder}');
     if (target.bringup) {
       configYaml.add('    bringup: ${target.bringup}');
     }
@@ -42,17 +41,11 @@ void writeYaml(SchedulerConfig config) {
     if (target.timeout != kDefaultTimeout) {
       configYaml.add('    timeout: ${target.timeout}');
     }
-    if (target.properties.isNotEmpty || target.tags.isNotEmpty) {
+    if (target.properties.isNotEmpty) {
       configYaml.add('    properties:');
       for (MapEntry<String, String> entry in target.properties.entries) {
         configYaml.add('      ${entry.key}: ${entry.value}');
       }
-      final List<String> tags = target.tags.map((StringPair tag) => tag.key).toList()
-        ..sort()
-        ..reversed;
-      final String tagsJson = jsonEncode(tags);
-      configYaml.add('      tags: >');
-      configYaml.add('        $tagsJson');
     }
     if (target.scheduler != SchedulerSystem.cocoon) {
       configYaml.add('    scheduler: ${target.scheduler}');
@@ -88,8 +81,5 @@ Future<void> main(List<String> args) async {
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
-  for (Target target in schedulerConfig.targets) {
-    target.name = target.builder;
-  }
   writeYaml(schedulerConfig);
 }

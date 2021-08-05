@@ -4,8 +4,9 @@
 
 export 'src/foundation/utils.dart';
 export 'src/model/appengine/service_account_info.dart';
-export 'src/request_handlers/check_flaky_tests_and_update_github.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
+export 'src/request_handlers/deflake_flaky_builders.dart';
+export 'src/request_handlers/file_flaky_issue_and_pr.dart';
 export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_authentication_status.dart';
 export 'src/request_handlers/get_branches.dart';
@@ -21,6 +22,7 @@ export 'src/request_handlers/readiness_check.dart';
 export 'src/request_handlers/refresh_chromebot_status.dart';
 export 'src/request_handlers/reset_prod_task.dart';
 export 'src/request_handlers/reset_try_task.dart';
+export 'src/request_handlers/update_existing_flaky_issues.dart';
 export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handlers/vacuum_github_commits.dart';
 export 'src/request_handling/authentication.dart';

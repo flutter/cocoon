@@ -90,7 +90,7 @@ void main() {
       when(github.pullRequests).thenReturn(pullRequestsService);
       when(github.issues).thenReturn(issuesService);
       when(github.repositories).thenReturn(repositoriesService);
-      when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
+      when(pullRequestsService.list(any, base: config.defaultBranch)).thenAnswer((Invocation _) {
         return Stream<PullRequest>.fromIterable(prsFromGitHub);
       });
       when(repositoriesService.createStatus(any, any, any)).thenAnswer(
@@ -215,6 +215,48 @@ void main() {
               status: Task.statusSucceeded,
               buildNumber: 3,
               builderName: 'efg'),
+        ],
+      );
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
+      });
+
+      expect(status.status, 'failure');
+      await tester.get(handler);
+      // Last build is successful.
+      expect(status.status, 'success');
+      expect(status.updateTimeMillis, isNotNull);
+    });
+
+    test('update engine status ignoring failing flaky build', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+      config.supportedBranchesValue = <String>['master'];
+
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
+
+      config.db.values[status.key] = status;
+      config.luciBuildersValue = (await config.luciBuilders('prod', config.engineSlug))
+        ..add(LuciBuilder(name: 'flaky', repo: config.engineSlug.name, flaky: true));
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        builders,
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+            commitSha: 'abc',
+            ref: 'refs/heads/master',
+            status: Task.statusSucceeded,
+            buildNumber: 1,
+            builderName: 'abc',
+          ),
+          const LuciTask(
+            commitSha: 'abc',
+            ref: 'refs/heads/master',
+            status: Task.statusFailed,
+            buildNumber: 1,
+            builderName: 'flaky',
+          ),
         ],
       );
       when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {

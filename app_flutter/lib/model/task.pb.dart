@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: lib/model/task.proto
 //
-// @dart = 2.12
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -44,28 +44,30 @@ class Task extends $pb.GeneratedMessage {
         protoName: 'builderName')
     ..aOS(18, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'luciBucket',
         protoName: 'luciBucket')
+    ..aOB(19, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isTestFlaky')
     ..hasRequiredFields = false;
 
   Task._() : super();
   factory Task({
-    $0.RootKey? key,
-    $0.RootKey? commitKey,
-    $fixnum.Int64? createTimestamp,
-    $fixnum.Int64? startTimestamp,
-    $fixnum.Int64? endTimestamp,
-    $core.String? name,
-    $core.int? attempts,
-    $core.bool? isFlaky,
-    $core.int? timeoutInMinutes,
-    $core.String? reason,
-    $core.Iterable<$core.String>? requiredCapabilities,
-    $core.String? reservedForAgentId,
-    $core.String? stageName,
-    $core.String? status,
-    $core.int? buildNumber,
-    $core.String? buildNumberList,
-    $core.String? builderName,
-    $core.String? luciBucket,
+    $0.RootKey key,
+    $0.RootKey commitKey,
+    $fixnum.Int64 createTimestamp,
+    $fixnum.Int64 startTimestamp,
+    $fixnum.Int64 endTimestamp,
+    $core.String name,
+    $core.int attempts,
+    $core.bool isFlaky,
+    $core.int timeoutInMinutes,
+    $core.String reason,
+    $core.Iterable<$core.String> requiredCapabilities,
+    $core.String reservedForAgentId,
+    $core.String stageName,
+    $core.String status,
+    $core.int buildNumber,
+    $core.String buildNumberList,
+    $core.String builderName,
+    $core.String luciBucket,
+    $core.bool isTestFlaky,
   }) {
     final _result = create();
     if (key != null) {
@@ -122,6 +124,9 @@ class Task extends $pb.GeneratedMessage {
     if (luciBucket != null) {
       _result.luciBucket = luciBucket;
     }
+    if (isTestFlaky != null) {
+      _result.isTestFlaky = isTestFlaky;
+    }
     return _result;
   }
   factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -144,7 +149,7 @@ class Task extends $pb.GeneratedMessage {
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')
   static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
-  static Task? _defaultInstance;
+  static Task _defaultInstance;
 
   @$pb.TagNumber(1)
   $0.RootKey get key => $_getN(0);
@@ -356,4 +361,16 @@ class Task extends $pb.GeneratedMessage {
   $core.bool hasLuciBucket() => $_has(17);
   @$pb.TagNumber(18)
   void clearLuciBucket() => clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.bool get isTestFlaky => $_getBF(18);
+  @$pb.TagNumber(19)
+  set isTestFlaky($core.bool v) {
+    $_setBool(18, v);
+  }
+
+  @$pb.TagNumber(19)
+  $core.bool hasIsTestFlaky() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearIsTestFlaky() => clearField(19);
 }
