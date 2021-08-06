@@ -24,7 +24,7 @@ abstract class CocoonService {
     if (useProductionService) {
       return AppEngineCocoonService();
     }
-    return DevelopmentCocoonService(DateTime.now());
+    return DevelopmentCocoonService(DateTime.now(), simulateLoadingDelays: true);
   }
 
   /// Gets build information on the most recent commits.

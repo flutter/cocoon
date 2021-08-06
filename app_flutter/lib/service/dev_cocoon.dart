@@ -21,8 +21,10 @@ class _PausedCommitStatus {
         assert(status != null),
         _pausedStatus = status;
 
-  Completer<CocoonResponse<List<CommitStatus>>> _completer;
+  final Completer<CocoonResponse<List<CommitStatus>>> _completer;
   CocoonResponse<List<CommitStatus>> _pausedStatus;
+
+  bool get isComplete => _pausedStatus == null;
 
   Future<CocoonResponse<List<CommitStatus>>> get future => _completer.future;
 
@@ -35,7 +37,6 @@ class _PausedCommitStatus {
   void complete() {
     assert(_completer != null && _pausedStatus != null);
     _completer.complete(_pausedStatus);
-    _completer = null;
     _pausedStatus = null;
   }
 }
@@ -44,11 +45,14 @@ class _PausedCommitStatus {
 ///
 /// This creates fake data that mimicks what production will send.
 class DevelopmentCocoonService implements CocoonService {
-  DevelopmentCocoonService(this.now) : _random = math.Random(now.millisecondsSinceEpoch);
+  DevelopmentCocoonService(this.now, {this.simulateLoadingDelays = false})
+      : _random = math.Random(now.millisecondsSinceEpoch);
 
   final math.Random _random;
 
   final DateTime now;
+
+  final bool simulateLoadingDelays;
 
   _PausedCommitStatus _pausedStatus;
   bool _paused = false;
@@ -57,8 +61,8 @@ class DevelopmentCocoonService implements CocoonService {
     if (_paused == pause) {
       return;
     }
-    assert(_paused || _pausedStatus == null);
-    if (_pausedStatus != null) {
+    assert(_paused || _pausedStatus == null || _pausedStatus.isComplete);
+    if (_pausedStatus != null && !_pausedStatus.isComplete) {
       _pausedStatus.complete();
       _pausedStatus = null;
     }
@@ -72,15 +76,25 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     final CocoonResponse<List<CommitStatus>> data =
         CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus));
-    if (!_paused) {
-      return data;
-    }
-
-    if (_pausedStatus == null) {
+    if (_pausedStatus == null || _pausedStatus.isComplete) {
       _pausedStatus = _PausedCommitStatus(data);
     } else {
       _pausedStatus.update(data);
     }
+
+    if (!_paused) {
+      if (simulateLoadingDelays) {
+        final _PausedCommitStatus delayedStatus = _pausedStatus;
+        Future<void>.delayed(const Duration(seconds: 2), () {
+          if (!_paused && !delayedStatus.isComplete) {
+            delayedStatus.complete();
+          }
+        });
+      } else {
+        _pausedStatus.complete();
+      }
+    }
+
     return _pausedStatus.future;
   }
 

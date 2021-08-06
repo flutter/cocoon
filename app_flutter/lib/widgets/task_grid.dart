@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,13 +23,15 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key key, this.filter}) : super(key: key);
+  const TaskGridContainer({Key key, this.filter, this.useAnimatedLoading = false}) : super(key: key);
 
   /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
   /// rows and columns of the task grid. This filter may be updated dynamically through
   /// this notifier from elsewhere if the user starts editing the filter parameters in
   /// the settings dialog.
   final TaskGridFilter filter;
+
+  final bool useAnimatedLoading;
 
   @visibleForTesting
   static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
@@ -55,6 +59,7 @@ class TaskGridContainer extends StatelessWidget {
           buildState: buildState,
           commitStatuses: commitStatuses,
           filter: filter,
+          useAnimatedLoading: useAnimatedLoading,
         );
       },
     );
@@ -73,6 +78,7 @@ class TaskGrid extends StatefulWidget {
     @required this.buildState,
     @required this.commitStatuses,
     this.filter,
+    this.useAnimatedLoading = false,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -80,6 +86,8 @@ class TaskGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
+
+  final bool useAnimatedLoading;
 
   /// A [TaskGridFilter] object to control the visibility of various rows and columns of
   /// the task grid. This filter may be updated dynamically from elsewhere if the user
@@ -268,7 +276,7 @@ class _TaskGridState extends State<TaskGrid> {
           ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
         ],
       ),
-      if (widget.buildState.moreStatusesExist) _generateLoadingRow(tasks.length + 1),
+      if (widget.buildState.moreStatusesExist) _generateLoadingRow(tasks.length),
     ];
   }
 
@@ -302,7 +310,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   static final List<String> _loadingMessage =
-      ' LOADING...'.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
+      'LOADING...'.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
 
   static const TextStyle loadingStyle = TextStyle(
     fontSize: TaskBox.cellSize * 0.9,
@@ -310,19 +318,32 @@ class _TaskGridState extends State<TaskGrid> {
   );
 
   List<LatticeCell> _generateLoadingRow(int length) {
-    return List<LatticeCell>.generate(length, (int index) {
-      final String character = _loadingMessage[index % _loadingMessage.length];
-      return LatticeCell(
+    return <LatticeCell>[
+      LatticeCell(
         builder: (BuildContext context) {
-          widget.buildState.fetchMoreCommitStatuses(); // This is safe to call many times.
-          return Text(
-            character,
-            style: loadingStyle,
-            textAlign: TextAlign.center,
+          return FittedBox(
+            fit: BoxFit.contain,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: widget.useAnimatedLoading
+                  ? const RepaintBoundary(child: CircularProgressIndicator())
+                  : const Icon(Icons.refresh),
+            ),
           );
-        },
-      );
-    });
+        }
+      ),
+      for (int index = 0; index < max(length, _loadingMessage.length); index++)
+        LatticeCell(
+          builder: (BuildContext context) {
+            widget.buildState.fetchMoreCommitStatuses(); // This is safe to call many times.
+            return Text(
+              _loadingMessage[index % _loadingMessage.length],
+              style: loadingStyle,
+              textAlign: TextAlign.center,
+            );
+          },
+        )
+    ];
   }
 
   OverlayEntry _taskOverlay;

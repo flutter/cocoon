@@ -249,7 +249,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           child: Stack(
             children: <Widget>[
               SizedBox.expand(
-                child: TaskGridContainer(filter: _filter),
+                child: TaskGridContainer(filter: _filter, useAnimatedLoading: true,),
               ),
               if (_settingsBasis != null) _settingsDialog(context, _buildState),
             ],
