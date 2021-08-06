@@ -121,8 +121,12 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   }) async {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final DeflakePullRequestBuilder prBuilder =
-        DeflakePullRequestBuilder(name: info.name, recordNumber: kRecordNumber, ownership: getTestOwnership(info.name, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent), issue: info.existingIssue);
+    final DeflakePullRequestBuilder prBuilder = DeflakePullRequestBuilder(
+        name: info.name,
+        recordNumber: kRecordNumber,
+        ownership:
+            getTestOwnership(info.name, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent),
+        issue: info.existingIssue);
     final PullRequest pullRequest = await gitHub.createPullRequest(
       slug,
       title: prBuilder.pullRequestTitle,
@@ -138,9 +142,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
         ),
       ],
     );
-    await gitHub.assignReviewer(slug,
-        reviewer: prBuilder.pullRequestReviewer,
-        pullRequestNumber: pullRequest.number);
+    await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
   }
 
   /// Removes the `bringup: true` for the builder in the ci.yaml.

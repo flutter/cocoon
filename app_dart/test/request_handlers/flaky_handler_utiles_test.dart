@@ -14,11 +14,12 @@ void main() {
         testOwnersContent = '''
 ## Host only framework tests
 # Linux abc
-abc_test.sh @ghi @flutter/jkl
+abc_test.sh @ghi @flutter/engine
 ## Firebase tests
 ''';
-        final String owner = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent).owner;
-        expect(owner, 'ghi');
+        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+        expect(ownership.owner, 'ghi');
+        expect(ownership.team, Team.engine);
       });
 
       test('returns correct owner when mulitple tests share the same file', () async {
@@ -26,13 +27,17 @@ abc_test.sh @ghi @flutter/jkl
 ## Host only framework tests
 # Linux abc
 # Linu def
-abc_test.sh @ghi @flutter/jkl
+abc_test.sh @ghi @flutter/framework
 ## Firebase tests
 ''';
-        final String owner1 = getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent).owner;
-        expect(owner1, 'ghi');
-        final String owner2 = getTestOwnership('Linux def', BuilderType.frameworkHostOnly, testOwnersContent).owner;
-        expect(owner2, 'ghi');
+        final TestOwnership ownership1 =
+            getTestOwnership('Linux abc', BuilderType.frameworkHostOnly, testOwnersContent);
+        expect(ownership1.owner, 'ghi');
+        expect(ownership1.team, Team.framework);
+        final TestOwnership ownership2 =
+            getTestOwnership('Linux def', BuilderType.frameworkHostOnly, testOwnersContent);
+        expect(ownership2.owner, 'ghi');
+        expect(ownership2.team, Team.framework);
       });
     });
 
@@ -41,11 +46,13 @@ abc_test.sh @ghi @flutter/jkl
         testOwnersContent = '''
 ## Firebase tests
 # Linux abc
-/test/abc @def @flutter/ghi
+/test/abc @def @flutter/tool
 ## Shards tests
 ''';
-        final String owner = getTestOwnership('Linux firebase_abc', BuilderType.firebaselab, testOwnersContent).owner;
-        expect(owner, 'def');
+        final TestOwnership ownership =
+            getTestOwnership('Linux firebase_abc', BuilderType.firebaselab, testOwnersContent);
+        expect(ownership.owner, 'def');
+        expect(ownership.team, Team.tool);
       });
     });
 
@@ -53,12 +60,13 @@ abc_test.sh @ghi @flutter/jkl
       test('returns correct owner', () async {
         testOwnersContent = '''
 ## Linux Android DeviceLab tests
-/dev/devicelab/bin/tasks/abc.dart @def @flutter/ghi
+/dev/devicelab/bin/tasks/abc.dart @def @flutter/web
 
 ## Host only framework tests
 ''';
-        final String owner = getTestOwnership('Linux abc', BuilderType.devicelab, testOwnersContent).owner;
-        expect(owner, 'def');
+        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.devicelab, testOwnersContent);
+        expect(ownership.owner, 'def');
+        expect(ownership.team, Team.web);
       });
     });
 
@@ -67,10 +75,11 @@ abc_test.sh @ghi @flutter/jkl
         testOwnersContent = '''
 ## Shards tests
 #
-# abc @def @flutter/ghi
+# abc @def @flutter/engine
 ''';
-        final String owner = getTestOwnership('Linux abc', BuilderType.shard, testOwnersContent).owner;
-        expect(owner, 'def');
+        final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.shard, testOwnersContent);
+        expect(ownership.owner, 'def');
+        expect(ownership.team, Team.engine);
       });
     });
   });

@@ -77,7 +77,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     if (issue == null ||
         (issue.state == 'closed' &&
             DateTime.now().difference(issue.closedAt) > const Duration(days: kGracePeriodForClosedFlake))) {
-      final IssueBuilder issueBuilder = IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
+      final IssueBuilder issueBuilder =
+          IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
       issue = await gitHub.createIssue(
         slug,
         title: issueBuilder.issueTitle,
@@ -97,7 +98,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final String modifiedContent = _marksBuildFlakyInContent(
         await gitHub.getFileContent(slug, kCiYamlPath), builderDetail.statistic.name, issue.htmlUrl);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final PullRequestBuilder prBuilder = PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
+    final PullRequestBuilder prBuilder =
+        PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
     final PullRequest pullRequest = await gitHub.createPullRequest(slug,
         title: prBuilder.pullRequestTitle,
         body: prBuilder.pullRequestBody,

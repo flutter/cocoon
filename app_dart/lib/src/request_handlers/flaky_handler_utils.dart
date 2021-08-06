@@ -187,6 +187,7 @@ class DeflakePullRequestBuilder {
     body += 'This test can be marked as unflaky.\n';
     return body;
   }
+
   String get pullRequestReviewer => ownership.owner;
 }
 
@@ -454,7 +455,7 @@ String _issueBuildLink({String builder, String build}) {
 }
 
 Team _teamFromString(String teamString) {
-  switch(teamString) {
+  switch (teamString) {
     case 'flutter/framework':
       return Team.framework;
     case 'flutter/engine':
@@ -468,7 +469,7 @@ Team _teamFromString(String teamString) {
 }
 
 String _getTeamLabelFromTeam(Team team) {
-  switch(team) {
+  switch (team) {
     case Team.framework:
       return kFrameworkLabel;
     case Team.engine:
