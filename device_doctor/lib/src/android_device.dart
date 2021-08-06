@@ -203,6 +203,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     }
     return healthCheckResult;
   }
+
+  @override
+  Future<void> prepareDevices() async {
+    for (Device device in await discoverDevices()) {
+      await device.prepare();
+    }
+  }
 }
 
 class AndroidDevice implements Device {
@@ -214,5 +221,41 @@ class AndroidDevice implements Device {
   @override
   Future<void> recover() async {
     await eval('adb', <String>['-s', deviceId, 'reboot'], canFail: false);
+  }
+
+  @override
+  Future<void> prepare() async {
+    await killProcesses();
+  }
+
+  /// Kill top running process if existing.
+  @visibleForTesting
+  Future<bool> killProcesses({ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
+    String result;
+    result = await eval('adb', <String>['shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+        canFail: true, processManager: processManager);
+
+    // Skip uninstalling process when no device is available or no application exists.
+    if (result == 'adb: no devices/emulators found' || result == null || result.isEmpty) {
+      stdout.write('no process is running');
+      return true;
+    }
+    final List<String> results = result.trim().split('\n');
+    // Example result:
+    //
+    // Proc # 0: fore  T/A/T  trm: 0 4544:com.google.android.googlequicksearchbox/u0a66 (top-activity)
+    final List<String> processes =
+        results.map((result) => result.substring(result.lastIndexOf(':') + 1, result.lastIndexOf('/'))).toList();
+    try {
+      for (String process in processes) {
+        await eval('adb', <String>['shell', 'am', 'force-stop', process], processManager: processManager);
+        stdout.write('adb stop process: $process');
+      }
+    } on BuildFailedError catch (error) {
+      stderr.write('uninstall applications fails: $error');
+      return false;
+    }
+    return true;
   }
 }

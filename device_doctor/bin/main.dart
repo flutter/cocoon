@@ -12,7 +12,7 @@ const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
 const String outputFlag = 'output';
-const List<String> supportedOptions = <String>['healthcheck', 'recovery', 'properties'];
+const List<String> supportedOptions = <String>['healthcheck', 'prepare', 'recovery', 'properties'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 const String defaultOutputPath = '.output';
 
@@ -22,12 +22,14 @@ String _action;
 String _deviceOS;
 String _output;
 
-/// Manage `healthcheck`, `recovery`, and `properties` for devices.
+/// Manage `healthcheck`, `prepare, `recovery`, and `properties` for devices.
 ///
 /// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
 /// and an exception will be thrown.
 ///
 /// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
+///
+/// For `prepare`, it will prepare the device before running tasks, like kill running processes, etc.
 ///
 /// For `properties`, it will return device properties/dimensions, like manufacture, base_buildid, etc.
 ///
@@ -63,6 +65,9 @@ Future<void> main(List<String> args) async {
   switch (_action) {
     case 'healthcheck':
       await deviceDiscovery.checkDevices();
+      break;
+    case 'prepare':
+      await deviceDiscovery.prepareDevices();
       break;
     case 'recovery':
       await deviceDiscovery.recoverDevices();

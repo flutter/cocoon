@@ -156,6 +156,7 @@ const List<String> expectedSemanticsIntegrationTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
   'P1',
+  'framework'
 ];
 const String expectedSemanticsIntegrationTestCiYamlContent = '''
 # Describes the targets run in continuous integration environment.
@@ -217,6 +218,7 @@ const List<String> expectedAnalyzeTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
   'P1',
+  'framework',
 ];
 
 final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
@@ -229,11 +231,23 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
     flakyBuildOfRecentCommit: '103',
   )
 ];
+
+final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Windows some_unknown_test',
+    flakyRate: 0.03,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';
 const List<String> expectedFrameworkTestResponseLabels = <String>[
   'team: flakes',
   'severe: flake',
   'P1',
+  'framework',
 ];
 
 String gitHubEncode(String source) {
