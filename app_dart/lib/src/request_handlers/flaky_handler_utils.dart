@@ -256,7 +256,7 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
             // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
             if (testName.contains(words[1])) {
               owner = words[2].substring(1); // Strip out the lead '@'
-              team = _teamFromString(words[3].substring(1)); // Strip out the lead '@'
+              team = words.length < 4 ? Team.unknown : _teamFromString(words[3].substring(1)); // Strip out the lead '@'
               break;
             }
           }
@@ -280,7 +280,7 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
             // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
             if (words[0].endsWith('$testName.dart')) {
               owner = words[1].substring(1); // Strip out the lead '@'
-              team = _teamFromString(words[2].substring(1));
+              team = words.length < 3 ? Team.unknown : _teamFromString(words[2].substring(1)); // Strip out the lead '@'
               break;
             }
           }
@@ -316,7 +316,9 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
                 final List<String> ownerWords = lines[index].trim().split(' ');
                 // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
                 owner = ownerWords[1].substring(1); // Strip out the lead '@'
-                team = _teamFromString(ownerWords[2].substring(1));
+                team = ownerWords.length < 3
+                    ? Team.unknown
+                    : _teamFromString(ownerWords[2].substring(1)); // Strip out the lead '@'
                 break;
               }
             }
@@ -342,7 +344,7 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
             final List<String> dirs = words[0].split('/').toList();
             if (testName.contains(dirs.last)) {
               owner = words[1].substring(1); // Strip out the lead '@'
-              team = _teamFromString(words[2].substring(1));
+              team = words.length < 3 ? Team.unknown : _teamFromString(words[2].substring(1)); // Strip out the lead '@'
               break;
             }
           }
