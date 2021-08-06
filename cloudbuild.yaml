@@ -5,45 +5,15 @@
 # The auto-build will be skipped if no new commits since last deployment.
 
 steps:
-  # Obtain latest version.
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: '/bin/bash'
-    args:  
-      - '-c'
-      - |-
-        gcloud config set project $PROJECT_ID
-        latest_version=$(gcloud app versions list --hide-no-traffic --format 'value(version.id)')
-        # Save latest version to default domain `/workspace`, for use in other steps.
-        echo "$latest_version" > /workspace/latest_version.txt
-
   # Build app_flutter.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: 
-      - '-c'
-      - |-
-        latest_version=$(cat /workspace/latest_version.txt)
-        current_version="version-$SHORT_SHA"
-        echo "latest_version: $latest_version"
-        echo "current_version: $current_version"
-        if [ "$latest_version" = "$current_version" ]; then
-          echo "No updates since last deployment."
-        else
-          bash cloud_build/app_flutter_build.sh
-        fi
+    args: ['cloud_build/app_flutter_build.sh']
 
-  #   # Build repo_dashboard.
+  # Build repo_dashboard.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args:  
-      - '-c'
-      - |-
-        latest_version=$(cat /workspace/latest_version.txt)
-        if [ "$latest_version" = "version-$SHORT_SHA" ]; then
-          echo "No updates since last deployment."
-        else
-          bash cloud_build/repo_dash_build.sh
-        fi
+    args: ['cloud_build/repo_dash_build.sh']
 
   # Deploy a new version to google cloud.
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -51,7 +21,8 @@ steps:
     args:  
       - '-c'
       - |-
-        latest_version=$(cat /workspace/latest_version.txt)
+        gcloud config set project $PROJECT_ID
+        latest_version=$(gcloud app versions list --hide-no-traffic --format 'value(version.id)')
         if [ "$latest_version" = "version-$SHORT_SHA" ]; then
           echo "No updates since last deployment."
         else
