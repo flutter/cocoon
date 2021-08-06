@@ -481,6 +481,7 @@ String _getTeamLabelFromTeam(Team team) {
     case Team.unknown:
       return null;
   }
+  return null;
 }
 
 enum BuilderType {
