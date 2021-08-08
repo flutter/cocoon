@@ -3,11 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 import 'package:metrics_center/metrics_center.dart';
 
+import '../../cocoon_service.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
@@ -31,11 +33,13 @@ import '../service/datastore.dart';
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
     Config config,
-    AuthenticationProvider authenticationProvider, {
+    AuthenticationProvider authenticationProvider,
+    this.cache, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+  final CacheService cache;
 
   static const String gitBranchParam = 'CommitBranch';
   static const String gitShaParam = 'CommitSha';
@@ -71,9 +75,20 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     task.isTestFlaky = isTestFlaky;
 
     await datastore.insert(<Task>[task]);
+    await _writeTaskToCache(task);
 
     await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
     return UpdateTaskStatusResponse(task);
+  }
+
+  // Update the [Task] into GCP Memorystore cache.
+  Future<void> _writeTaskToCache(Task task) async {
+    const String subcacheName = 'task';
+    final String ciPath = '${task.parentKey.id}/${task.builderName}';
+    final Uint8List serializedTask = Uint8List.fromList(task.toString().codeUnits);
+    //task.toJson();
+    //final Uint8List serializedTask = Uint8List.fromList(jsonEncode(task.toJson()).codeUnits);
+    await cache.set(subcacheName, ciPath, serializedTask, ttl: const Duration(hours: 1));
   }
 
   // Convert `resultData` (`requestData['ResultData']`) and `scoreKeys`

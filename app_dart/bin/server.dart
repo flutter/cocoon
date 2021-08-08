@@ -125,7 +125,7 @@ Future<void> main() async {
       ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
       ///
       /// Response: Status 200 OK
-      '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
+      '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider, cache),
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,

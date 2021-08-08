@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
@@ -27,6 +31,7 @@ class FakeFlutterDestination implements FlutterDestination {
 }
 
 void main() {
+  CacheService cache;
   group('UpdateTaskStatus', () {
     FakeConfig config;
     ApiRequestHandlerTester tester;
@@ -48,9 +53,11 @@ void main() {
         metricsDestination: fakeMetricsDestination,
       );
       tester = ApiRequestHandlerTester();
+      cache = CacheService(inMemory: true);
       handler = UpdateTaskStatus(
         config,
         FakeAuthenticationProvider(),
+        cache,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
       commit = Commit(
@@ -126,6 +133,38 @@ void main() {
 
       await tester.post(handler);
 
+      expect(task.status, 'Failed');
+      expect(task.attempts, 1);
+    });
+
+    test('task update cache entry', () async {
+      final Task task = Task(
+        key: commit.key.append(Task, id: taskId),
+        name: 'integration_ui_ios',
+        builderName: 'linux_integration_ui_ios',
+        attempts: 1,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+      );
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: 'master',
+        UpdateTaskStatus.gitShaParam: commitSha,
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
+      };
+
+      await tester.post(handler);
+
+      final Uint8List cacheResult = await cache.getOrCreate('task', '${task.parentKey.id}/${task.builderName}');
+
+      print('${task.parentKey.id}/${task.builderName}');
+      String s = String.fromCharCodes(cacheResult);
+      print(String.fromCharCodes(cacheResult));
+      Map<String, dynamic> j = jsonDecode(s) as Map<String, dynamic>;
+
+      expect(cacheResult, '');
       expect(task.status, 'Failed');
       expect(task.attempts, 1);
     });
