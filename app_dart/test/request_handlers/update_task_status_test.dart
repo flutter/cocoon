@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -160,9 +159,7 @@ void main() {
       final Uint8List cacheResult = await cache.getOrCreate('task', '${task.parentKey.id}/${task.builderName}');
 
       print('${task.parentKey.id}/${task.builderName}');
-      String s = String.fromCharCodes(cacheResult);
       print(String.fromCharCodes(cacheResult));
-      Map<String, dynamic> j = jsonDecode(s) as Map<String, dynamic>;
 
       expect(cacheResult, '');
       expect(task.status, 'Failed');
