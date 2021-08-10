@@ -310,6 +310,10 @@ targets:
     enabled_branches:
       - master
     presubmit: true
+  - name: Linux D
+    scheduler: luci
+    bringup: true
+    presubmit: true
   - name: Google-internal roll
     scheduler: google_internal
     enabled_branches:
