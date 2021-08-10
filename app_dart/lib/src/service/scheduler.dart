@@ -241,7 +241,8 @@ class Scheduler {
   /// and that do not have any dependencies.
   List<Target> getPreSubmitTargets(Commit commit, SchedulerConfig config) {
     // Filter targets to only those run in presubmit.
-    final Iterable<Target> presubmitTargets = config.targets.where((Target target) => target.presubmit);
+    final Iterable<Target> presubmitTargets =
+        config.targets.where((Target target) => target.presubmit && !target.bringup);
 
     return _filterEnabledTargets(commit, config, presubmitTargets.toList());
   }
