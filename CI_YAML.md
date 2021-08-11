@@ -56,29 +56,29 @@ targets:
 
 ## Upgrading dependencies
 1. Find the cipd ref to upgrade to
-  A. If this is a Flutter managed package, look up its docs on uploading a new version
-  B. For example, JDK is at https://chrome-infra-packages.appspot.com/p/flutter_internal/java/openjdk/linux-amd64
+    - If this is a Flutter managed package, look up its docs on uploading a new version
+    - For example, JDK is at https://chrome-infra-packages.appspot.com/p/flutter_internal/java/openjdk/linux-amd64
 2. In `ci.yaml`, find a target that would be impacted by this change
-  A. Duplicate the target with a bringup version (will only run in postsubmit, non-blocking)
-  B. Override the `version` in like `{"dependency": "open_jdk", "version": "11"}
-  ```yaml
-  - name: Linux Host Engine Java 11
-    recipe: engine
-    properties:
-      build_host: "true"
-      dependencies: >-
-        [
-          {"dependency": "open_jdk", "version": "11"}
-        ]
-    timeout: 60
-    scheduler: luci
-  ```
-  C. Send PR, wait for it to propagate in LUCI
+    - Duplicate the target with a bringup version (will only run in postsubmit, non-blocking)
+    - Override the `version` in like `{"dependency": "open_jdk", "version": "11"}
+      ```yaml
+      - name: Linux Host Engine Java 11
+        recipe: engine
+        properties:
+          build_host: "true"
+          dependencies: >-
+          [
+              {"dependency": "open_jdk", "version": "11"}
+          ]
+        timeout: 60
+        scheduler: luci
+    ```
+    - Send PR, wait for it to propagate in LUCI
 3. If the target in (2) is red, send patches to get it green.
 4. When the bringup builder has validated the new dependency, and there is confidence
    the new dependency is compatible, roll all targets to the new version in `.ci.yaml`.
-  A. This is usually defined under `platform_properties`
-  B. Remove the bringup builder from (2)
+    - This is usually defined under `platform_properties`
+    - Remove the bringup builder from (2)
 
 ## External Tests
 
@@ -91,14 +91,14 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
 5. Add a custom log link - https://github.com/flutter/cocoon/blob/master/app_flutter/lib/logic/qualified_task.dart
 6. Wait for the next prod roll (every weekday)
 7. Add a target to `.ci.yaml`
-```yaml
-# .ci.yaml
-# Name is an arbitrary string that will show on the build dashboard
-- name: my_external_test_a
-  # External tests should not block the tree
-  bringup: true
-  presubmit: false
-  # Scheduler must match what was added to scheduler.proto (any unique name works)
-  scheduler: my_external_location
-```
-9. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
+   ```yaml
+   # .ci.yaml
+   # Name is an arbitrary string that will show on the build dashboard
+   - name: my_external_test_a
+     # External tests should not block the tree
+     bringup: true
+     presubmit: false
+     # Scheduler must match what was added to scheduler.proto (any unique name works)
+     scheduler: my_external_location
+   ```
+8. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
