@@ -54,6 +54,29 @@ targets:
        ["framework", "hostonly"]
 ```
 
+## Adding new targets
+
+All new targets should be added as `bringup: true` to ensure they do not block the tree.
+
+Targets based on the LUCI or Cocoon schedulers will first need to be mirrored to flutter/infra
+before they will be run. This propagation takes about 30 minutes, and will only run as non-blocking
+in postsubmit.
+
+The target will show runs in https://ci.chromium.org/p/flutter (under the repo). See
+https://github.com/flutter/flutter/wiki/Adding-a-new-Test-Shard for up to date information
+on the steps to promote your target to blocking.
+
+For flutter/flutter, there's a GitHub bot that will
+promote a test that has been passing for the past 50 runs.
+
+### Test Ownership
+
+**This only applies to flutter/flutter***
+
+To prevent tests from rotting, all targets are required to have a clear owner. Add an
+owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
+
+
 ## Upgrading dependencies
 1. Find the cipd ref to upgrade to
     - If this is a Flutter managed package, look up its docs on uploading a new version
