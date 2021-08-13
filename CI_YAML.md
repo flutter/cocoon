@@ -70,6 +70,12 @@ targets:
           [
               {"dependency": "open_jdk", "version": "11"}
           ]
+          # Some dependencies are large, and stored in a cache for reuse
+          # between runs. Ensure any paths are versioned correctly.
+          caches: >-
+          [
+              {"name": "openjdk", "path": "java11"}
+          ]
         timeout: 60
         scheduler: luci
     ```
