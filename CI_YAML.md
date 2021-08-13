@@ -67,6 +67,14 @@ https://github.com/flutter/flutter/wiki/Adding-a-new-Test-Shard for up to date i
 on the steps to promote your target to blocking. In general, this involves 10 consecutive green
 runs and no test flakes.
 
+### Test Ownership
+
+**This only applies to flutter/flutter***
+
+To prevent tests from rotting, all targets are required to have a clear owner. Add an
+owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
+
+
 ## Upgrading dependencies
 1. Find the cipd ref to upgrade to
     - If this is a Flutter managed package, look up its docs on uploading a new version
