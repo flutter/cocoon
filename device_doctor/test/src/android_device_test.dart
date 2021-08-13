@@ -227,7 +227,7 @@ void main() {
 
       final bool result = await device.killProcesses(processManager: processManager);
       expect(result, true);
-    });
+    }, skip: 'https://github.com/flutter/flutter/issues/88008');
 
     test('fails to kill running processes', () async {
       when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
