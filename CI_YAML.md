@@ -64,8 +64,8 @@ in postsubmit.
 
 The target will show runs in https://ci.chromium.org/p/flutter (under the repo). See
 https://github.com/flutter/flutter/wiki/Adding-a-new-Test-Shard for up to date information
-on the steps to promote your target to blocking. In general, this involves 10 consecutive green
-runs and no test flakes.
+on the steps to promote your target to blocking. By default, there's a GitHub bot that will
+promote a test that has been passing for the past 50 runs.
 
 ### Test Ownership
 
