@@ -59,4 +59,6 @@ targets:
 
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
+    properties:
+      add_recipes_cq: "true"
     scheduler: luci
