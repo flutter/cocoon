@@ -58,6 +58,5 @@ targets:
       - device_doctor/**
 
   - name: Linux ci_yaml roller
-    bringup: true
     recipe: infra/ci_yaml
     scheduler: luci
