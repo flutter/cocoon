@@ -31,7 +31,7 @@ void main() {
     test('deviceDiscovery no retries', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       output = <List<int>>[utf8.encode(sb.toString())];

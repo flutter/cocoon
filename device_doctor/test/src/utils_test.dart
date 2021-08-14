@@ -36,7 +36,7 @@ void main() {
     });
 
     test('validate process', () async {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       Process process = FakeProcess(123, out: output);
@@ -60,7 +60,7 @@ void main() {
     });
 
     test('exit code 0', () async {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('exit code not 0', () async {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       output = <List<int>>[utf8.encode(sb.toString())];

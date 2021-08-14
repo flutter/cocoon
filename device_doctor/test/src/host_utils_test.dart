@@ -52,10 +52,10 @@ void main() {
     });
 
     test('when there are unkilled processes', () async {
-      when(processManager.runSync(<String>['taskkill', '/pid', pid, '/f']))
-          .thenAnswer((_) => ProcessResult(1, 0, 'test', 'test'));
       pid = '123';
       output = '$pid abc';
+      when(processManager.runSync(<String>['taskkill', '/pid', pid, '/f']))
+          .thenAnswer((_) => ProcessResult(1, 0, 'test', 'test'));
       final bool result = await killAllRunningProcessesOnWindows('abc', processManager: processManager);
       expect(result, equals(false));
     });
