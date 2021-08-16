@@ -188,5 +188,30 @@ void main() {
       };
       expect(tester.post(handler), throwsA(isA<BadRequestException>()));
     });
+
+    test('no task update when staging', () async {
+      final Task task = Task(
+        key: commit.key.append(Task, id: taskId),
+        name: 'integration_ui_ios',
+        builderName: 'Linux_staging linux_integration_ui_ios',
+        attempts: 1,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+      );
+
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: 'master',
+        UpdateTaskStatus.gitShaParam: commitSha,
+        UpdateTaskStatus.newStatusParam: 'Succeeded',
+        UpdateTaskStatus.builderNameParam: 'Linux_staging linux_integration_ui_ios',
+        UpdateTaskStatus.testFlayParam: true,
+      };
+
+      await tester.post(handler);
+
+      expect(task.isTestFlaky, false);
+    });
   });
 }

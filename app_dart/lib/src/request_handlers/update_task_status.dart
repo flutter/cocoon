@@ -55,25 +55,31 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final Map<String, dynamic> resultData =
         requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
     final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
+    final String builderName = requestData[builderNameParam] as String;
+    final String gitSha = (requestData[gitShaParam] as String).trim();
+    final String gitBranch = (requestData[gitBranchParam] as String).trim();
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
-    final Task task = await _getTaskFromNamedParams(datastore);
+    // For staging builders, we only need to upload metrics to `metrics_center`:
+    // https://github.com/flutter/flutter/issues/88296.
+    // For prod builders, we also need to update task status in datastore.
+    if (!builderName.contains('staging')) {
+      final Task task = await _getTaskFromNamedParams(datastore);
+      await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+        throw BadRequestException('No such task: ${task.commitKey}');
+      });
 
-    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
-      throw BadRequestException('No such task: ${task.commitKey}');
-    });
+      task.status = newStatus;
+      task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+      task.isTestFlaky = isTestFlaky;
+      await datastore.insert(<Task>[task]);
+    }
 
-    task.status = newStatus;
-    task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-    task.isTestFlaky = isTestFlaky;
-
-    await datastore.insert(<Task>[task]);
-
-    await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
-    return UpdateTaskStatusResponse(task);
+    await _writeToMetricsCenter(resultData, scoreKeys, gitSha, gitBranch, builderName);
+    return UpdateTaskStatusResponse(builderName, newStatus);
   }
 
   // Convert `resultData` (`requestData['ResultData']`) and `scoreKeys`
@@ -85,8 +91,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<void> _writeToMetricsCenter(
     Map<String, dynamic> resultData,
     List<String> scoreKeys,
-    Commit commit,
-    Task task,
+    String sha,
+    String branch,
+    String taskName,
   ) async {
     final FlutterDestination metricsDestination = await config.createMetricsDestination();
     final List<MetricPoint> metricPoints = <MetricPoint>[];
@@ -96,9 +103,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
           (resultData[scoreKey] as num).toDouble(),
           <String, String>{
             kGithubRepoKey: kFlutterFrameworkRepo,
-            kGitRevisionKey: commit.sha,
-            'branch': commit.branch,
-            kNameKey: task.name,
+            kGitRevisionKey: sha,
+            'branch': branch,
+            kNameKey: taskName,
             kSubResultKey: scoreKey,
             // The unit should be encoded either in task.name or scoreKey
             // so we don't have to depend on TimeSeries or TimeSeriesValue to
@@ -167,15 +174,18 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
 @immutable
 class UpdateTaskStatusResponse extends JsonBody {
-  const UpdateTaskStatusResponse(this.task) : assert(task != null);
+  const UpdateTaskStatusResponse(this.taskName, this.status)
+      : assert(taskName != null),
+        assert(status != null);
 
-  final Task task;
+  final String taskName;
+  final String status;
 
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Name': task.name,
-      'Status': task.status,
+      'Name': taskName,
+      'Status': status,
     };
   }
 }
