@@ -30,7 +30,7 @@ void main() {
     test('deviceDiscovery', () async {
       deviceDiscovery.outputs = <dynamic>[''];
       expect(await deviceDiscovery.discoverDevices(), isEmpty);
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       deviceDiscovery.outputs = <dynamic>[sb.toString()];
       List<Device> devices = await deviceDiscovery.discoverDevices();
@@ -98,7 +98,7 @@ void main() {
     test('Cert check - success', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
       sb.writeln('1 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
@@ -110,7 +110,7 @@ void main() {
     test('Cert check - failure without target certificate', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       sb.writeln('hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
@@ -124,7 +124,7 @@ void main() {
     test('Cert check - failure with multiple certificates', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
 
       sb.writeln('1) opqrst "uvwxyz"');
@@ -150,7 +150,7 @@ void main() {
     test('Device pair check - success', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('SUCCESS: Validated pairing with device abcdefg-hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
@@ -161,7 +161,7 @@ void main() {
     test('Device pair check - failure', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
