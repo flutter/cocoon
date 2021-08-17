@@ -74,9 +74,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     String status = GithubBuildStatusUpdate.statusSuccess;
 
-    luciTasks.forEach((LuciBuilder luciBuilder, List<LuciTask> tasks) async {
+    await Future.forEach(luciTasks.entries, (MapEntry<LuciBuilder, List<LuciTask>> luciTask) async {
+      final List<LuciTask> tasks = luciTask.value;
       if (tasks.isEmpty) {
-        log.debug('No tasks returned for builder: ${luciBuilder.name}');
+        log.debug('No tasks returned for builder: ${luciTask.key.name}');
       }
       final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
