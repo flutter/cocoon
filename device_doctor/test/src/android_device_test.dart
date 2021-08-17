@@ -29,13 +29,13 @@ void main() {
     });
 
     test('deviceDiscovery no retries', () async {
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
       StringBuffer sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
 
       List<Device> devices = await deviceDiscovery.discoverDevices(
           retryDuration: const Duration(seconds: 0), processManager: processManager);
@@ -64,28 +64,27 @@ void main() {
     });
 
     test('returns empty when no device is attached', () async {
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
-
       output = 'List of devices attached';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
 
       expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, String>{}));
     });
 
     test('get device properties', () async {
-      when(processManager.start(<dynamic>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(property_process));
-
       output = '''[ro.product.brand]: [abc]
       [ro.build.id]: [def]
       [ro.build.type]: [ghi]
       [ro.product.model]: [jkl]
       [ro.product.board]: [mno]
       ''';
-
       property_process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      when(processManager.start(<dynamic>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(property_process));
 
       Map<String, String> deviceProperties = await deviceDiscovery
           .getDeviceProperties(AndroidDevice(deviceId: 'ZY223JQNMR'), processManager: processManager);
@@ -112,11 +111,10 @@ void main() {
     });
 
     test('returns success when adb power service is available', () async {
+      process = FakeProcess(0);
       when(processManager
               .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-
-      process = FakeProcess(0);
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
@@ -124,11 +122,10 @@ void main() {
     });
 
     test('returns failure when adb returns none 0 code', () async {
+      process = FakeProcess(1);
       when(processManager
               .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-
-      process = FakeProcess(1);
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
@@ -149,11 +146,11 @@ void main() {
     });
 
     test('returns success when developer mode is on', () async {
+      output = <List<int>>[utf8.encode('1')];
+      process = FakeProcess(0, out: output);
       when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      output = <List<int>>[utf8.encode('1')];
-      process = FakeProcess(0, out: output);
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
@@ -161,11 +158,11 @@ void main() {
     });
 
     test('returns failure when developer mode is off', () async {
+      output = <List<int>>[utf8.encode('0')];
+      process = FakeProcess(0, out: output);
       when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      output = <List<int>>[utf8.encode('0')];
-      process = FakeProcess(0, out: output);
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
@@ -174,10 +171,10 @@ void main() {
     });
 
     test('returns failure when adb return none 0 code', () async {
+      process = FakeProcess(1);
       when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      process = FakeProcess(1);
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
@@ -199,48 +196,48 @@ void main() {
     });
 
     test('successfully killed running processes', () async {
+      output = <List<int>>[
+        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
+      ];
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(0);
       when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
       when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
-      output = <List<int>>[
-        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
-      ];
-      listProcess = FakeProcess(0, out: output);
-      killProcess = FakeProcess(0);
 
       final bool result = await device.killProcesses(processManager: processManager);
       expect(result, true);
     });
 
     test('no running processes', () async {
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(0);
       when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
       when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
-      listProcess = FakeProcess(0, out: output);
-      killProcess = FakeProcess(0);
 
       final bool result = await device.killProcesses(processManager: processManager);
       expect(result, true);
     });
 
     test('fails to kill running processes', () async {
+      output = <List<int>>[
+        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
+      ];
+      listProcess = FakeProcess(0, out: output);
+      killProcess = FakeProcess(1);
       when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
       when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
-      output = <List<int>>[
-        utf8.encode('Proc #27: fg     T/ /TOP  LCM  t: 0 0:com.google.android.apps.nexuslauncher/u0a199 (top-activity)')
-      ];
-      listProcess = FakeProcess(0, out: output);
-      killProcess = FakeProcess(1);
 
       final bool result = await device.killProcesses(processManager: processManager);
       expect(result, false);
