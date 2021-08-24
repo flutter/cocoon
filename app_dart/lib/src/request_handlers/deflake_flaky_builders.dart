@@ -148,9 +148,9 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   /// Removes the `bringup: true` for the builder in the ci.yaml.
   String _deflakeBuilderInContent(String content, String builder) {
     final List<String> lines = content.split('\n');
-    final int builderLineNumber = lines.indexWhere((String line) => line.contains('builder: $builder'));
+    final int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder'));
     int nextLine = builderLineNumber + 1;
-    while (nextLine < lines.length && !lines[nextLine].contains('builder:')) {
+    while (nextLine < lines.length && !lines[nextLine].contains('name:')) {
       if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
         lines.removeAt(nextLine);
         return lines.join('\n');
