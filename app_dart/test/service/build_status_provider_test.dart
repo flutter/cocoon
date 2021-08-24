@@ -106,13 +106,6 @@ void main() {
         expect(status, BuildStatus.success());
       });
 
-      test('returns failure if last commit contains any red tasks', () async {
-        db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
-        db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
-        final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
-
       test('ensure failed task do not have duplicates when last consecutive commits contains red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
@@ -143,26 +136,6 @@ void main() {
         int row = 0;
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
-        });
-        final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
-
-      test('returns failure when green but a task is rerunning', () async {
-        db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
-        int row = 0;
-        db.addOnQuery<Task>((Iterable<Task> results) {
-          return row++ == 0 ? middleTaskRerunning : allGreen;
-        });
-        final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['task2']));
-      });
-
-      test('returns failure when a task has an infra failure', () async {
-        db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
-        int row = 0;
-        db.addOnQuery<Task>((Iterable<Task> results) {
-          return row++ == 0 ? middleTaskInfraFailure : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.failure(const <String>['task2']));

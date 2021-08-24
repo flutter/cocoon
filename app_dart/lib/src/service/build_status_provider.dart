@@ -65,7 +65,7 @@ class BuildStatusService {
       return BuildStatus.failure();
     }
 
-    final List<String> failedTasks = <String>[];
+    final Set<String> failedTasks = <String>{};
     for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
@@ -82,19 +82,17 @@ class BuildStatusService {
               /// This task no longer needs to be checked to see if it causing
               /// the build status to fail.
               tasksInProgress[task.name] = false;
+              if (failedTasks.contains(task.name)) {
+                failedTasks.remove(task.name);
+              }
             } else if (_isFailed(task) || _isRerunning(task)) {
               failedTasks.add(task.name);
-
-              /// This task no longer needs to be checked to see if its causing
-              /// the build status to fail since its been
-              /// added to the failedTasks list.
-              tasksInProgress[task.name] = false;
             }
           }
         }
       }
     }
-    return failedTasks.isNotEmpty ? BuildStatus.failure(failedTasks) : BuildStatus.success();
+    return failedTasks.isNotEmpty ? BuildStatus.failure(failedTasks.toList()) : BuildStatus.success();
   }
 
   /// Creates a map of the tasks that need to be checked for the build status.
