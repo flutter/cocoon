@@ -10,11 +10,12 @@ import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 
 const String branchRegExp = '''
@@ -45,16 +46,15 @@ void main() {
       maxDelay: Duration.zero,
     );
     group('githubFileContent', () {
-      FakeHttpClient branchHttpClient;
+      MockClient branchHttpClient;
       FakeLogging log;
 
       setUp(() {
-        branchHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
 
       test('returns branches', () async {
-        branchHttpClient.request.response.body = branchRegExp;
+        branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final String branches = await githubFileContent(
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
@@ -68,12 +68,13 @@ void main() {
 
       test('retries branches download upon HTTP failure', () async {
         int retry = 0;
-        branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
-          request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
-          retry++;
-        };
+        branchHttpClient = MockClient((_) async {
+          if (retry++ == 0) {
+            return http.Response('', HttpStatus.serviceUnavailable);
+          }
+          return http.Response(branchRegExp, HttpStatus.ok);
+        });
 
-        branchHttpClient.request.response.body = branchRegExp;
         final String branches = await githubFileContent(
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
@@ -94,9 +95,10 @@ void main() {
 
       test('gives up after 3 tries', () async {
         int retry = 0;
-        branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-        branchHttpClient.request.response.body = branchRegExp;
+        branchHttpClient = MockClient((_) async {
+          retry++;
+          return http.Response('', HttpStatus.serviceUnavailable);
+        });
         await expectLater(
             githubFileContent(
               'branches.txt',
@@ -115,15 +117,14 @@ void main() {
     });
 
     group('GetBranches', () {
-      FakeHttpClient branchHttpClient;
+      MockClient branchHttpClient;
       FakeLogging log;
 
       setUp(() {
-        branchHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
       test('returns branches', () async {
-        branchHttpClient.request.response.body = branchRegExp;
+        branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final Uint8List branches = await getBranches(
           () => branchHttpClient,
           log,
@@ -133,10 +134,9 @@ void main() {
       });
 
       test('returns master when http request fails', () async {
-        int retry = 0;
-        branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-        branchHttpClient.request.response.body = luciBuilders;
+        branchHttpClient = MockClient((_) async {
+          return http.Response('', HttpStatus.serviceUnavailable);
+        });
         final Uint8List builders = await getBranches(
           () => branchHttpClient,
           log,
@@ -147,16 +147,17 @@ void main() {
     });
 
     group('GetLuciBuilders', () {
-      FakeHttpClient luciBuilderHttpClient;
+      MockClient luciBuilderHttpClient;
       FakeLogging log;
 
       setUp(() {
-        luciBuilderHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
       test('returns enabled luci builders', () async {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
-        luciBuilderHttpClient.request.response.body = luciBuilders;
+        luciBuilderHttpClient = MockClient((_) async {
+          return http.Response(luciBuilders, HttpStatus.ok);
+        });
         final List<LuciBuilder> builders = await getLuciBuilders(
           () => luciBuilderHttpClient,
           log,
@@ -171,10 +172,9 @@ void main() {
 
       test('returns empty list when http request 404s', () async {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
-        int retry = 0;
-        luciBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        luciBuilderHttpClient.request.response.statusCode = HttpStatus.notFound;
-        luciBuilderHttpClient.request.response.body = luciBuilders;
+        luciBuilderHttpClient = MockClient((_) async {
+          return http.Response('', HttpStatus.notFound);
+        });
         final List<LuciBuilder> builders = await getLuciBuilders(
           () => luciBuilderHttpClient,
           log,

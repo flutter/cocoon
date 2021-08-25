@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -112,31 +113,28 @@ class AuthenticationProvider {
   /// X-Flutter-IdToken header.
   Future<TokenInfo> tokenInfo(HttpRequest request, {Logging log, String tokenType = 'id_token'}) async {
     final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final HttpClient client = httpClientProvider();
+    final http.Client client = httpClientProvider();
     final Logging log = loggingProvider();
     try {
-      final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+      final http.Response verifyTokenResponse = await client.get(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
         <String, String>{
           tokenType: idTokenFromHeader,
         },
       ));
-      final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        final String body = await utf8.decodeStream(verifyTokenResponse);
-        log.debug('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        log.debug('Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}');
         throw const Unauthenticated('Invalid ID token');
       }
 
-      final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
       try {
-        return TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+        return TokenInfo.fromJson(json.decode(verifyTokenResponse.body) as Map<String, dynamic>);
       } on FormatException {
-        throw InternalServerError('Invalid JSON: "$tokenJson"');
+        throw InternalServerError('Invalid JSON: "${verifyTokenResponse.body}"');
       }
     } finally {
       client.close();

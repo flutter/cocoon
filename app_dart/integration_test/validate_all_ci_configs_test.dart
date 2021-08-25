@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -27,7 +26,7 @@ Future<void> main() async {
     test('validate config file of $configFile', () async {
       final String configContent = await githubFileContent(
         configFile,
-        httpClientProvider: () => io.HttpClient(),
+        httpClientProvider: () => http.Client(),
         log: TestLogging.instance,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;

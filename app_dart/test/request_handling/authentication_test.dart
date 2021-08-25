@@ -8,6 +8,8 @@ import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -49,12 +51,9 @@ void main() {
     });
 
     group('when id token is given', () {
-      FakeHttpClient httpClient;
-      FakeHttpClientResponse verifyTokenResponse;
+      MockClient httpClient;
 
       setUp(() {
-        httpClient = FakeHttpClient();
-        verifyTokenResponse = httpClient.request.response;
         auth = AuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -64,12 +63,7 @@ void main() {
       });
 
       test('auth succeeds with authenticated header', () async {
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          return verifyTokenResponse
-            ..statusCode = HttpStatus.ok
-            ..body = '{"aud": "client-id", "hd": "google.com"}';
-        });
-        verifyTokenResponse = httpClient.request.response;
+        httpClient = MockClient((_) async => http.Response('{"aud": "client-id", "hd": "google.com"}', HttpStatus.ok));
         auth = AuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -90,9 +84,8 @@ void main() {
       });
 
       test('fails if tokenInfo returns invalid JSON', () async {
-        verifyTokenResponse.body = 'Not JSON';
+        httpClient = MockClient((_) async => http.Response('Not JSON!', HttpStatus.ok));
         await expectLater(auth.tokenInfo(request, log: log), throwsA(isA<InternalServerError>()));
-        expect(httpClient.requestCount, 1);
         expect(log.records, isEmpty);
       });
 
