@@ -23,7 +23,7 @@ tasks:
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
 
-  - task: app_flutter
+  - task: dashboard
     script: test_utilities/bin/flutter_test_runner.sh
 
   - task: repo_dashboard

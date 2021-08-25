@@ -3,9 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Build flutter app to generate flutter build dashboard.
+# Build flutter build dashboard.
 
-pushd app_flutter > /dev/null
+pushd dashboard > /dev/null
 set -e
 rm -rf build
 flutter doctor
