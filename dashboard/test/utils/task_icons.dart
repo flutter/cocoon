@@ -14,7 +14,7 @@ Future<void> precacheTaskIcons(WidgetTester tester) async {
   // Depending on how we're invoked, Platform.script.path will have extra parts
   // after app_flutter. Just trim them off.
   final List<String> pathParts = path.split(Platform.script.path);
-  while (pathParts.last != 'app_flutter') {
+  while (pathParts.last != 'dashboard') {
     pathParts.removeLast();
   }
 
