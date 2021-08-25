@@ -107,7 +107,13 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
 
+      // Update is from Flutter LUCI builds
       if (token.email == config.luciProdAccount) {
+        return AuthenticatedContext(clientContext: clientContext);
+      }
+
+      if (token.email == config.frobAccount) {
+        log.debug('Authenticating as FRoB request');
         return AuthenticatedContext(clientContext: clientContext);
       }
 

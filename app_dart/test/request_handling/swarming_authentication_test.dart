@@ -54,7 +54,7 @@ void main() {
         );
       });
 
-      test('auth succeeds with expected service account', () async {
+      test('auth succeeds with flutter luci service account', () async {
         httpClient = FakeHttpClient(
             onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
               ..statusCode = HttpStatus.ok
@@ -68,7 +68,26 @@ void main() {
           loggingProvider: () => log,
         );
 
-        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.clientContext, same(clientContext));
+      });
+
+      test('auth succeeds with frob service account', () async {
+        httpClient = FakeHttpClient(
+            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
+              ..statusCode = HttpStatus.ok
+              ..body = '{"email": "${config.frobAccount}"}');
+
+        verifyTokenResponse = httpClient.request.response;
+        auth = SwarmingAuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
 
         final AuthenticatedContext result = await auth.authenticate(request);
         expect(result.clientContext, same(clientContext));
