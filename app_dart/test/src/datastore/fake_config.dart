@@ -15,7 +15,6 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
-import 'package:metrics_center/src/flutter.dart';
 
 import '../request_handling/fake_authentication.dart';
 import 'fake_datastore.dart';
@@ -44,7 +43,6 @@ class FakeConfig implements Config {
     this.bigqueryService,
     this.githubGraphQLClient,
     this.cirrusGraphQLClient,
-    this.metricsDestination,
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
     this.flutterBuildValue,
@@ -70,7 +68,6 @@ class FakeConfig implements Config {
   TabledataResourceApi tabledataResourceApi;
   BigqueryService bigqueryService;
   GithubService githubService;
-  FlutterDestination metricsDestination;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
   int maxTaskRetriesValue;
@@ -128,9 +125,6 @@ class FakeConfig implements Config {
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService;
-
-  @override
-  Future<FlutterDestination> createMetricsDestination() async => metricsDestination;
 
   @override
   FakeDatastoreDB get db => dbValue;
