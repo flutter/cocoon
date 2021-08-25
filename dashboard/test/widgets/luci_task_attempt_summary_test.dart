@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
-
-import 'package:flutter/material.dart' hide Key;
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

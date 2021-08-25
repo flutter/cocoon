@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
-import 'package:flutter/material.dart';
 
 import 'fake_build.dart';
 import 'fake_index_state.dart';

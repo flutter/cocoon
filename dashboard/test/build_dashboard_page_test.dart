@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -15,7 +16,6 @@ import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/sign_in_button.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 

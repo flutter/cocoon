@@ -4,6 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -16,8 +18,6 @@ import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_icon.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
@@ -10,8 +12,6 @@ import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Client, Request, Response;
 import 'package:http/testing.dart';
