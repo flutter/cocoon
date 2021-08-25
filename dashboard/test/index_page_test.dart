@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/index_page.dart';
-import 'package:app_flutter/widgets/sign_in_button.dart';
+import 'package:flutter_dashboard/index_page.dart';
+import 'package:flutter_dashboard/widgets/sign_in_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

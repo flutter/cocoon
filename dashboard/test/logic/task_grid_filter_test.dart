@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/logic/qualified_task.dart';
-import 'package:app_flutter/logic/task_grid_filter.dart';
-import 'package:app_flutter/model/commit.pb.dart';
-import 'package:app_flutter/model/commit_status.pb.dart';
-import 'package:app_flutter/model/task.pb.dart';
+import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/logic/task_grid_filter.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
+import 'package:flutter_dashboard/model/commit_status.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 

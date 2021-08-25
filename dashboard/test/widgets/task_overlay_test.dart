@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/logic/qualified_task.dart';
-import 'package:app_flutter/model/commit.pb.dart';
-import 'package:app_flutter/model/commit_status.pb.dart';
-import 'package:app_flutter/model/task.pb.dart';
-import 'package:app_flutter/state/build.dart';
-import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
-import 'package:app_flutter/widgets/now.dart';
-import 'package:app_flutter/widgets/task_box.dart';
-import 'package:app_flutter/widgets/task_grid.dart';
-import 'package:app_flutter/widgets/task_overlay.dart';
+import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
+import 'package:flutter_dashboard/model/commit_status.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
+import 'package:flutter_dashboard/widgets/now.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
+import 'package:flutter_dashboard/widgets/task_grid.dart';
+import 'package:flutter_dashboard/widgets/task_overlay.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

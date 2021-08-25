@@ -4,18 +4,18 @@
 
 import 'dart:typed_data';
 
-import 'package:app_flutter/logic/task_grid_filter.dart';
-import 'package:app_flutter/model/commit.pb.dart';
-import 'package:app_flutter/model/commit_status.pb.dart';
-import 'package:app_flutter/model/task.pb.dart';
-import 'package:app_flutter/service/dev_cocoon.dart';
-import 'package:app_flutter/state/build.dart';
-import 'package:app_flutter/widgets/commit_box.dart';
-import 'package:app_flutter/widgets/lattice.dart';
-import 'package:app_flutter/widgets/state_provider.dart';
-import 'package:app_flutter/widgets/task_box.dart';
-import 'package:app_flutter/widgets/task_grid.dart';
-import 'package:app_flutter/widgets/task_icon.dart';
+import 'package:flutter_dashboard/logic/task_grid_filter.dart';
+import 'package:flutter_dashboard/model/commit.pb.dart';
+import 'package:flutter_dashboard/model/commit_status.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/service/dev_cocoon.dart';
+import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/commit_box.dart';
+import 'package:flutter_dashboard/widgets/lattice.dart';
+import 'package:flutter_dashboard/widgets/state_provider.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
+import 'package:flutter_dashboard/widgets/task_grid.dart';
+import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';

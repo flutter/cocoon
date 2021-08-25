@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:app_flutter/logic/brooks.dart';
-import 'package:app_flutter/model/commit_status.pb.dart';
-import 'package:app_flutter/model/task.pb.dart';
-import 'package:app_flutter/service/cocoon.dart';
-import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/state/build.dart';
+import 'package:flutter_dashboard/logic/brooks.dart';
+import 'package:flutter_dashboard/model/commit_status.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
+import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/state/build.dart';
 
 import 'package:flutter/foundation.dart';
 
