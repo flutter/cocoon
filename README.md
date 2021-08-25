@@ -27,7 +27,7 @@ Cocoon has several components:
   is found in [app_dart](app_dart/).
 
 * A Flutter app (generally used as a Web app) for the build 
-  dashboards. The dashboard is found in [app_flutter](app_flutter/).
+  dashboards. The dashboard is found in [dashboard](dashboard/).
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is
 made of multiple _tasks_. Tasks are _performed_ by _LUCI bots_.
@@ -91,7 +91,7 @@ Cloud Console UI:
 
 #### Optional flags
 
-`--profile`: Deploy a profile mode of `app_flutter` application for debugging purposes.
+`--profile`: Deploy a profile mode of `dashboard` application for debugging purposes.
 
 
 ## Developing the dashboard
@@ -99,7 +99,7 @@ Cloud Console UI:
 The dashboard application will use dummy data when it is not connected
 to the server, so it can be developed locally without a dev server.
 
-To run the dashboard locally, go into the `app_flutter` directory and
+To run the dashboard locally, go into the `dashboard` directory and
 run `flutter run -d chrome`. The dashboard will be served from localhost
 (the exact address will be given on the console); copy the URL into
 your browser to view the application. (The dashboard should also be
