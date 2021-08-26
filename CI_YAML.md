@@ -116,8 +116,8 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
 1. Contact flutter-infra@ with your request (go/flutter-infra-office-hours)
 2. Add your system to SchedulerSystem (https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/model/proto/internal/scheduler.proto)
 3. Add your service account to https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handling/swarming_authentication.dart
-4. Add a custom frontend icon - https://github.com/flutter/cocoon/blob/master/app_flutter/lib/widgets/task_icon.dart
-5. Add a custom log link - https://github.com/flutter/cocoon/blob/master/app_flutter/lib/logic/qualified_task.dart
+4. Add a custom frontend icon - https://github.com/flutter/cocoon/blob/master/dashboard/lib/widgets/task_icon.dart
+5. Add a custom log link - https://github.com/flutter/cocoon/blob/master/dashboard/lib/logic/qualified_task.dart
 6. Wait for the next prod roll (every weekday)
 7. Add a target to `.ci.yaml`
    ```yaml
