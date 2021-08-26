@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:appengine/appengine.dart';
+import 'package:http/http.dart' as http;
 
 /// Signature for a function that returns an App Engine [ClientContext].
 ///
@@ -16,7 +15,7 @@ typedef ClientContextProvider = ClientContext Function();
 ///
 /// This is used by [AuthenticationProvider] to provide the HTTP client that
 /// will be used (if necessary) to verify OAuth ID tokens (JWT tokens).
-typedef HttpClientProvider = HttpClient Function();
+typedef HttpClientProvider = http.Client Function();
 
 /// Signature for a function that returns a [Logging] instance.
 ///

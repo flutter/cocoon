@@ -18,13 +18,14 @@ import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
-import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
@@ -54,7 +55,7 @@ void main() {
   CacheService cache;
   FakeConfig config;
   FakeDatastoreDB db;
-  FakeHttpClient httpClient;
+  MockClient httpClient;
   MockGithubChecksUtil mockGithubChecksUtil;
   Scheduler scheduler;
 
@@ -77,12 +78,11 @@ void main() {
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db, githubService: FakeGithubService());
-      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-        if (request.uri.path.contains('.ci.yaml')) {
-          httpClient.request.response.body = singleCiYaml;
-        } else {
-          throw Exception('Failed to find ${request.uri.path}');
+      httpClient = MockClient((http.Request request) async {
+        if (request.url.path.contains('.ci.yaml')) {
+          return http.Response(singleCiYaml, 200);
         }
+        throw Exception('Failed to find ${request.url.path}');
       });
 
       mockGithubChecksUtil = MockGithubChecksUtil();
@@ -291,9 +291,9 @@ void main() {
       });
 
       test('gets only enabled .ci.yaml builds', () async {
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.path.contains('.ci.yaml')) {
-            httpClient.request.response.body = '''
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('''
 enabled_branches:
   - master
 targets:
@@ -319,10 +319,9 @@ targets:
     enabled_branches:
       - master
     presubmit: true
-          ''';
-          } else {
-            throw Exception('Failed to find ${request.uri.path}');
+          ''', 200);
           }
+          throw Exception('Failed to find ${request.url.path}');
         });
         config.luciBuildersValue = <LuciBuilder>[];
         final List<LuciBuilder> presubmitBuilders =
@@ -377,12 +376,11 @@ targets:
       });
 
       test('ci.yaml validation fails with empty config', () async {
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.path.contains('.ci.yaml')) {
-            httpClient.request.response.body = '';
-          } else {
-            throw Exception('Failed to find ${request.uri.path}');
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('', 200);
           }
+          throw Exception('Failed to find ${request.url.path}');
         });
         await scheduler.triggerPresubmitTargets(
           branch: config.defaultBranch,
@@ -416,9 +414,9 @@ targets:
       });
 
       test('ci.yaml validation fails with config with unknown dependencies', () async {
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.path.contains('.ci.yaml')) {
-            httpClient.request.response.body = '''
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('''
 enabled_branches:
   - master
 targets:
@@ -426,10 +424,9 @@ targets:
     builder: Linux A
     dependencies:
       - B
-          ''';
-          } else {
-            throw Exception('Failed to find ${request.uri.path}');
+          ''', 200);
           }
+          throw Exception('Failed to find ${request.url.path}');
         });
         await scheduler.triggerPresubmitTargets(
           branch: config.defaultBranch,
