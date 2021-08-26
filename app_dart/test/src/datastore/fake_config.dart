@@ -292,4 +292,7 @@ class FakeConfig implements Config {
 
   @override
   Future<GithubService> createDefaultGitHubService() async => githubService;
+
+  @override
+  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 }
