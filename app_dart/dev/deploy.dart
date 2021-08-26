@@ -146,7 +146,7 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  await shellCommand(<String>['$cloudbuildDirectory/app_flutter_build.sh']);
+  await shellCommand(<String>['$cloudbuildDirectory/dashboard_build.sh']);
   await shellCommand(<String>['$cloudbuildDirectory/repo_dash_build.sh']);
 
   if (!await _deployToAppEngine()) {
