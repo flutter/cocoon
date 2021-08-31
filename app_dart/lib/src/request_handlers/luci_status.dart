@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
@@ -117,7 +116,10 @@ class LuciStatusHandler extends RequestHandler<Body> {
     if (info.expiresIn == null || info.expiresIn < 1) {
       return false;
     }
-    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
-    return info.email == devicelabServiceAccount.email;
+    final Set<String> allowedServiceAccounts = <String>{
+      'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
+      'flutter-dashboard@appspot.gserviceaccount.com'
+    };
+    return allowedServiceAccounts.contains(info.email);
   }
 }
