@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
