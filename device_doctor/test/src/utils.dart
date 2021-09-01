@@ -31,8 +31,8 @@ class FakeProcess extends Fake implements Process {
   Future<int> get exitCode => Future.value(_exitCode);
 
   @override
-  Stream<List<int>> get stderr => Stream.fromIterable(_err);
+  Stream<List<int>> get stderr => Stream.fromIterable(_err ?? <List<int>>[]);
 
   @override
-  Stream<List<int>> get stdout => Stream.fromIterable(_out);
+  Stream<List<int>> get stdout => Stream.fromIterable(_out ?? <List<int>>[]);
 }

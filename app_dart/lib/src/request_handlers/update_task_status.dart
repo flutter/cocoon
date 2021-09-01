@@ -61,7 +61,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     task.isTestFlaky = isTestFlaky;
 
     await datastore.insert(<Task>[task]);
-
     return UpdateTaskStatusResponse(task);
   }
 

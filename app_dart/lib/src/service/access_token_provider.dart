@@ -5,7 +5,6 @@
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
-import '../model/appengine/service_account_info.dart';
 import 'config.dart';
 
 /// Function signature for a [TaskService] provider.
@@ -25,17 +24,10 @@ class AccessTokenService {
   }
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
-  Future<AccessToken> createAccessToken({
-    List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
-  }) async {
-    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+  Future<AccessToken> createAccessToken() async {
     final http.Client httpClient = http.Client();
     try {
-      final AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
-        serviceAccount.asServiceAccountCredentials(),
-        scopes,
-        httpClient,
-      );
+      final AccessCredentials credentials = await obtainAccessCredentialsViaMetadataServer(httpClient);
       return credentials.accessToken;
     } finally {
       httpClient.close();

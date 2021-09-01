@@ -133,9 +133,6 @@ class FakeConfig implements Config {
   String get defaultBranch => kDefaultBranchName;
 
   @override
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
-
-  @override
   int get maxTaskRetries => maxTaskRetriesValue;
 
   @override

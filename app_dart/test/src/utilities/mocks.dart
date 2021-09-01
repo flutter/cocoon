@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
+import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';

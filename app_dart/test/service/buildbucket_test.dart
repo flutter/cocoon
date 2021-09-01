@@ -47,7 +47,7 @@ void main() {
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
-      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes'))).thenAnswer((_) async {
+      when(mockAccessTokenProvider.createAccessToken()).thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
@@ -71,7 +71,7 @@ void main() {
     }
 
     test('Throws the right exception', () async {
-      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes'))).thenAnswer((_) async {
+      when(mockAccessTokenProvider.createAccessToken()).thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(

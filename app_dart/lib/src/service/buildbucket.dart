@@ -63,13 +63,7 @@ class BuildBucketClient {
     httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
 
     if (accessTokenService != null) {
-      final AccessToken token = await accessTokenService.createAccessToken(
-        scopes: <String>[
-          'openid',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          'https://www.googleapis.com/auth/userinfo.email',
-        ],
-      );
+      final AccessToken token = await accessTokenService.createAccessToken();
       if (token != null) {
         httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
       }
