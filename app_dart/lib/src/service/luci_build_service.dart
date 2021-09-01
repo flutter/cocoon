@@ -12,7 +12,6 @@ import 'package:retry/retry.dart';
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
-import '../model/appengine/service_account_info.dart';
 import '../model/appengine/task.dart';
 import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';

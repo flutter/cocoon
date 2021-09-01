@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
