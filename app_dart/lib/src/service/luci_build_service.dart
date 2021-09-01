@@ -28,12 +28,11 @@ const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.sta
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
-  LuciBuildService(this.config, this.buildBucketClient, this.serviceAccount, {GithubChecksUtil githubChecksUtil})
+  LuciBuildService(this.config, this.buildBucketClient, {GithubChecksUtil githubChecksUtil})
       : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   BuildBucketClient buildBucketClient;
   Config config;
-  ServiceAccountInfo serviceAccount;
   Logging log;
   GithubChecksUtil githubChecksUtil;
 
@@ -121,7 +120,7 @@ class LuciBuildService {
               project: 'flutter',
               bucket: 'try',
             ),
-            createdBy: serviceAccount.email,
+            createdBy: 'cocoon',
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$prNumber'],
               'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],

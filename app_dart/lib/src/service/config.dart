@@ -22,7 +22,6 @@ import '../foundation/providers.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
-import '../model/appengine/service_account_info.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
@@ -251,11 +250,6 @@ class Config {
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async {
-    final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return ServiceAccountInfo.fromJson(json.decode(rawValue) as Map<String, dynamic>);
-  }
-
   Future<ServiceAccountCredentials> get taskLogServiceAccount async {
     final String rawValue = await _getSingleValue('TaskLogServiceAccount');
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
@@ -341,7 +335,7 @@ class Config {
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
     return BigqueryService(accessClientProvider);
   }
 

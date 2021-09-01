@@ -23,13 +23,11 @@ Future<void> main() async {
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
-    final ServiceAccountInfo serviceAccountInfo = await config.deviceLabServiceAccount;
 
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
       config,
       buildBucketClient,
-      serviceAccountInfo,
     );
 
     /// Github checks api service used to provide luci test execution status on the Github UI.
