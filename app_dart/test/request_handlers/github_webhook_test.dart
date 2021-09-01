@@ -69,7 +69,7 @@ void main() {
       scheduler =
           FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
       tester = RequestHandlerTester(request: request);
-      
+
       mockGithubChecksService = MockGithubChecksService();
 
       webhook = GithubWebhook(
