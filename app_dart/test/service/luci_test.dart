@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:mockito/mockito.dart';
@@ -10,12 +11,18 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   BranchLuciBuilder branchLuciBuilder1;
   BranchLuciBuilder branchLuciBuilder2;
+  FakeLogging log;
+
+  setUp(() {
+    log = FakeLogging();
+  });
 
   test('validates effectiveness of class BranchLuciBuilder as a map key', () async {
     branchLuciBuilder1 = const BranchLuciBuilder(
@@ -34,7 +41,7 @@ void main() {
     final FakeClientContext clientContext = FakeClientContext();
     final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
     final LuciService service =
-        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext, log: log);
     final List<Build> builds = List<Build>.generate(
       luciStatusToTaskStatus.keys.length,
       (int index) => Build(
@@ -77,7 +84,7 @@ void main() {
     final FakeClientContext clientContext = FakeClientContext();
     final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
     final LuciService service =
-        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext, log: log);
     const LuciBuilder builder = LuciBuilder(name: 'Linux', repo: 'flutter', flaky: false);
     final List<Build> builds = List<Build>.generate(
       luciStatusToTaskStatus.keys.length,
@@ -105,12 +112,48 @@ void main() {
     expect(resultBuilds, builds);
   });
 
+  test('log error when response fails', () async {
+    final FakeConfig config = FakeConfig(githubService: FakeGithubService());
+    final FakeClientContext clientContext = FakeClientContext();
+    final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+    final LuciService service =
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext, log: log);
+    const LuciBuilder builder = LuciBuilder(name: 'Linux', repo: 'flutter', flaky: false);
+    final List<Build> builds = List<Build>.generate(
+      luciStatusToTaskStatus.keys.length,
+      (int index) => Build(
+        id: index,
+        number: index,
+        builderId: const BuilderId(
+          project: 'flutter',
+          bucket: 'prod',
+          builder: 'Linux',
+        ),
+        status: luciStatusToTaskStatus.keys.toList()[index],
+      ),
+    );
+    when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+      return BatchResponse(
+        responses: <Response>[
+          Response(
+            searchBuilds: SearchBuildsResponse(builds: builds),
+            error: const GrpcStatus(code: 400, message: 'test', details: 'test error'),
+          ),
+        ],
+      );
+    });
+    await service.getBuildsForBuilderList(<LuciBuilder>[builder], repo: 'flutter');
+    expect(log.records.length, 1);
+    expect(log.records[0].level.name, 'Error');
+    expect(log.records[0].message, 'Failed search request response: [Response #400: test, test error]');
+  });
+
   test('luci getPartialBuildersList handles non-uniform batches', () async {
     final FakeConfig config = FakeConfig(githubService: FakeGithubService());
     final FakeClientContext clientContext = FakeClientContext();
     final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
     final LuciService service =
-        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext, log: log);
     const List<LuciBuilder> builders = <LuciBuilder>[
       LuciBuilder(name: 'Linux1', repo: 'flutter', flaky: false),
       LuciBuilder(name: 'Linux2', repo: 'flutter', flaky: false),
@@ -138,7 +181,7 @@ void main() {
     final FakeClientContext clientContext = FakeClientContext();
     final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
     final LuciService service =
-        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext, log: log);
     final List<LuciBuilder> luciBuilders = <LuciBuilder>[
       const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
     ];

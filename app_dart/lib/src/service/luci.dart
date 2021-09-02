@@ -47,9 +47,13 @@ class LuciService {
     @required this.buildBucketClient,
     @required this.config,
     @required this.clientContext,
+    @required this.log,
   })  : assert(buildBucketClient != null),
         assert(config != null),
-        assert(clientContext != null);
+        assert(clientContext != null),
+        assert(log != null);
+
+  final Logging log;
 
   /// Client for making buildbucket requests to.
   final BuildBucketClient buildBucketClient;
@@ -173,6 +177,21 @@ class LuciService {
     final List<Request> searchRequests = prepareSearchRequests(repo, requireTaskName, builders);
     final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
     final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
+    // Log error of any response if existing.
+    // Any response code other than 200 suggests there is an error.
+    // https://cloud.google.com/apis/design/errors#handling_errors
+    if (batchResponse.responses.any((Response response) => response.error.code != 200)) {
+      final String responseError = batchResponse.responses
+          .map<String>((Response response) {
+            if (response.error.code == null) {
+              return '';
+            }
+            return response.error.toString();
+          })
+          .toList()
+          .toString();
+      log.error('Failed search request response: $responseError');
+    }
     final Iterable<Build> builds = batchResponse.responses
         .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
         .where((SearchBuildsResponse response) => response.builds != null)
@@ -206,6 +225,7 @@ class LuciService {
     return searchRequests;
   }
 
+  /// Returns `Request` based on `scheduler_job_id` tag.
   Request _getRequest(List<String> schedulerJobId) {
     return Request(
       searchBuilds: SearchBuildsRequest(
