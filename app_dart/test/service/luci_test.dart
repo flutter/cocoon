@@ -60,6 +60,7 @@ void main() {
         responses: <Response>[
           Response(
             searchBuilds: SearchBuildsResponse(builds: builds),
+            error: const GrpcStatus(code: 200, message: null, details: null)
           ),
         ],
       );
@@ -104,6 +105,7 @@ void main() {
         responses: <Response>[
           Response(
             searchBuilds: SearchBuildsResponse(builds: builds),
+            error: const GrpcStatus(code: 200, message: null, details: null)
           ),
         ],
       );

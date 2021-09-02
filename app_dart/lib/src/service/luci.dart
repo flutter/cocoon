@@ -180,7 +180,7 @@ class LuciService {
     // Log error of any response if existing.
     // Any response code other than 200 suggests there is an error.
     // https://cloud.google.com/apis/design/errors#handling_errors
-    if (batchResponse.responses.any((Response response) => response.error.code != 200)) {
+    if (batchResponse.responses.any((Response response) => response.error != null && response.error.code != 200)) {
       final String responseError = batchResponse.responses
           .map<String>((Response response) {
             if (response.error.code == null) {
