@@ -132,4 +132,24 @@ void main() {
       <LuciBuilder>[const LuciBuilder(name: 'Linux5', repo: 'flutter', flaky: false)]
     ]);
   });
+
+  test('prepare search requests', () async {
+    final FakeConfig config = FakeConfig(githubService: FakeGithubService());
+    final FakeClientContext clientContext = FakeClientContext();
+    final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+    final LuciService service =
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+    final List<LuciBuilder> luciBuilders = <LuciBuilder>[
+      const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
+    ];
+
+    final List<Request> searchRequests = service.prepareSearchRequests('flutter', true, luciBuilders);
+    expect(searchRequests.length, 2);
+    expect(searchRequests[0].searchBuilds.predicate.tags, <String, List<String>>{
+      'scheduler_job_id': <String>['flutter/Linux']
+    });
+    expect(searchRequests[1].searchBuilds.predicate.tags, <String, List<String>>{
+      'scheduler_job_id': <String>['flutter/prod-Linux']
+    });
+  });
 }
