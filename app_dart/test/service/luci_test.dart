@@ -59,9 +59,8 @@ void main() {
       return BatchResponse(
         responses: <Response>[
           Response(
-            searchBuilds: SearchBuildsResponse(builds: builds),
-            error: const GrpcStatus(code: 200, message: null, details: null)
-          ),
+              searchBuilds: SearchBuildsResponse(builds: builds),
+              error: const GrpcStatus(code: 200, message: null, details: null)),
         ],
       );
     });
@@ -104,9 +103,8 @@ void main() {
       return BatchResponse(
         responses: <Response>[
           Response(
-            searchBuilds: SearchBuildsResponse(builds: builds),
-            error: const GrpcStatus(code: 200, message: null, details: null)
-          ),
+              searchBuilds: SearchBuildsResponse(builds: builds),
+              error: const GrpcStatus(code: 200, message: null, details: null)),
         ],
       );
     });
