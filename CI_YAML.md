@@ -76,6 +76,55 @@ promote a test that has been passing for the past 50 runs.
 To prevent tests from rotting, all targets are required to have a clear owner. Add an
 owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
 
+## Properties
+
+Targets support specifying properties that can be passed throughout infrastructure. The
+following are a list of keys that are reserved for special use.
+
+**Properties is a Map<String, String> and any special values must be JSON encoded
+(i.e. no trailing commas). Additionally, these strings must be compatible with YAML multiline strings**
+
+**add_recipes_cq**: String boolean whether to add this target to flutter/recipes CQ. This ensures
+changes to flutter/recipes pass on this target before landing.
+
+**caches**: JSON representation of swarming caches the bot running the target should have.
+Name is what flutter/recipes will refer to it as, and path is where it will be stored on the bot.
+
+Path should be versioned to ensure bots do not incorrectly reuse the version. Paths originally not versioned
+are legacy from when Flutter originally migrated to LUCI, and have not been updated since.
+
+Example
+```yaml
+caches: >-
+  [
+    {"name": "openjdk", "path": "java11"}
+  ]
+```
+
+**dependencies**: JSON list of objects with "dependency" and optionally "version".
+The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py)
+
+Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
+
+Example
+``` yaml
+dependencies: >-
+  [
+    {"dependency": "android_sdk"},
+    {"dependency": "chrome_and_driver", "version": "latest"},
+    {"dependency": "clang"},
+    {"dependency": "goldctl"}
+  ]
+```
+
+**tags**: JSON list of strings. These are currently only used in flutter/flutter to help
+with TESTOWNERSHIP and test flakiness.
+
+Example
+```yaml
+tags: >
+  ["devicelab","hostonly"]
+```
 
 ## Upgrading dependencies
 1. Find the cipd ref to upgrade to
