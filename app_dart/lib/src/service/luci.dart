@@ -20,10 +20,10 @@ import 'config.dart';
 
 part 'luci.g.dart';
 
-const int _maxResults = 40;
+const int _maxResults = 20;
 
 /// The batch size used to query buildbucket service.
-const int _buildersBatchSize = 50;
+const int _buildersBatchSize = 25;
 
 const Map<Status, String> luciStatusToTaskStatus = <Status, String>{
   Status.unspecified: Task.statusInProgress,
@@ -120,7 +120,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     final List<Build> builds = <Build>[];
-    // Request builders data in batches of 50 to prevent failures in the grpc service.
+    // Request builders data in batches of `_buildersBatchSize` to prevent failures in the grpc service.
     const RetryOptions r = RetryOptions(maxAttempts: 3);
     final List<List<LuciBuilder>> partialBuildersList = getPartialBuildersList(builders, _buildersBatchSize);
     for (List<LuciBuilder> partialBuilders in partialBuildersList) {
@@ -182,12 +182,8 @@ class LuciService {
     // https://cloud.google.com/apis/design/errors#handling_errors
     if (batchResponse.responses.any((Response response) => response.error != null && response.error.code != 200)) {
       final String responseError = batchResponse.responses
-          .map<String>((Response response) {
-            if (response.error.code == null) {
-              return '';
-            }
-            return response.error.toString();
-          })
+          .where((Response response) => response.error != null && response.error.code != 200)
+          .map<String>((Response response) => response.error.toString())
           .toList()
           .toString();
       log.error('Failed search request response: $responseError');
