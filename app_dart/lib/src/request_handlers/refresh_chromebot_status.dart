@@ -51,7 +51,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       buildBucketClient: BuildBucketClient(),
       config: handler.config,
       clientContext: handler.authContext.clientContext,
-      log: handler.config.loggingService,
     );
   }
 
