@@ -20,10 +20,10 @@ import 'config.dart';
 
 part 'luci.g.dart';
 
-const int _maxResults = 20;
+const int _maxResults = 40;
 
 /// The batch size used to query buildbucket service.
-const int _buildersBatchSize = 25;
+const int _buildersBatchSize = 50;
 
 const Map<Status, String> luciStatusToTaskStatus = <Status, String>{
   Status.unspecified: Task.statusInProgress,
@@ -47,13 +47,9 @@ class LuciService {
     @required this.buildBucketClient,
     @required this.config,
     @required this.clientContext,
-    @required this.log,
   })  : assert(buildBucketClient != null),
         assert(config != null),
-        assert(clientContext != null),
-        assert(log != null);
-
-  final Logging log;
+        assert(clientContext != null);
 
   /// Client for making buildbucket requests to.
   final BuildBucketClient buildBucketClient;
@@ -120,7 +116,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     final List<Build> builds = <Build>[];
-    // Request builders data in batches of `_buildersBatchSize` to prevent failures in the grpc service.
+    // Request builders data in batches of 50 to prevent failures in the grpc service.
     const RetryOptions r = RetryOptions(maxAttempts: 3);
     final List<List<LuciBuilder>> partialBuildersList = getPartialBuildersList(builders, _buildersBatchSize);
     for (List<LuciBuilder> partialBuilders in partialBuildersList) {
@@ -174,32 +170,6 @@ class LuciService {
   ///
   /// Latest builds of each builder will be returned from new to old.
   Future<Iterable<Build>> getBuilds(String repo, bool requireTaskName, List<LuciBuilder> builders) async {
-    final List<Request> searchRequests = prepareSearchRequests(repo, requireTaskName, builders);
-    final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
-    final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
-    // Log error of any response if existing.
-    // Any response code other than 200 suggests there is an error.
-    // https://cloud.google.com/apis/design/errors#handling_errors
-    if (batchResponse.responses.any((Response response) => response.error != null && response.error.code != 200)) {
-      final String responseError = batchResponse.responses
-          .where((Response response) => response.error != null && response.error.code != 200)
-          .map<String>((Response response) => response.error.toString())
-          .toList()
-          .toString();
-      log.error('Failed search request response: $responseError');
-    }
-    final Iterable<Build> builds = batchResponse.responses
-        .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
-        .where((SearchBuildsResponse response) => response.builds != null)
-        .expand<Build>((SearchBuildsResponse response) => response.builds);
-    return builds;
-  }
-
-  /// Prepare search requests via tags predicate.
-  ///
-  /// For builders only enabled in prod, the scheduler_job_id follows: `flutter/<builder.name>`
-  /// For builders enabled in both prod and staging, the scheduler_job_id follows: `flutter/<realm>-<builder.name>`.
-  List<Request> prepareSearchRequests(String repo, bool requireTaskName, List<LuciBuilder> builders) {
     bool includeBuilder(LuciBuilder builder) {
       if (repo != null && builder.repo != repo) {
         return false;
@@ -211,27 +181,26 @@ class LuciService {
     }
 
     final List<Request> searchRequests = builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
-      return _getRequest(<String>['flutter/${builder.name}']);
-    }).toList();
-
-    searchRequests.addAll(builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
-      return _getRequest(<String>['flutter/prod-${builder.name}']);
-    }).toList());
-
-    return searchRequests;
-  }
-
-  /// Returns `Request` based on `scheduler_job_id` tag.
-  Request _getRequest(List<String> schedulerJobId) {
-    return Request(
-      searchBuilds: SearchBuildsRequest(
-        pageSize: _maxResults,
-        predicate: BuildPredicate(
-          tags: <String, List<String>>{'scheduler_job_id': schedulerJobId},
+      return Request(
+        searchBuilds: SearchBuildsRequest(
+          pageSize: _maxResults,
+          predicate: BuildPredicate(
+            tags: <String, List<String>>{
+              'scheduler_job_id': <String>['flutter/${builder.name}']
+            },
+          ),
+          fields:
+              'builds.*.id,builds.*.input,builds.*.builder,builds.*.number,builds.*.status,builds.*.summaryMarkdown',
         ),
-        fields: 'builds.*.id,builds.*.input,builds.*.builder,builds.*.number,builds.*.status,builds.*.summaryMarkdown',
-      ),
-    );
+      );
+    }).toList();
+    final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
+    final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
+    final Iterable<Build> builds = batchResponse.responses
+        .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
+        .where((SearchBuildsResponse response) => response.builds != null)
+        .expand<Build>((SearchBuildsResponse response) => response.builds);
+    return builds;
   }
 }
 
