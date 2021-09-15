@@ -22,7 +22,6 @@ enabled_branches:
 
 targets:
   - name: Mac_android android_semantics_integration_test
-    builder: Mac_android android_semantics_integration_test
     presubmit: false
     bringup: true # Flaky $existingIssueURL
     scheduler: luci
@@ -30,13 +29,11 @@ targets:
       tags: >
         ["devicelab"]
   - name: Linux analyze
-    builder: Linux analyze
     scheduler: luci
     properties:
       tags: >
         ["framework","hostonly"]
   - name: Windows framework_tests_misc
-    builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
     properties:
@@ -57,7 +54,6 @@ enabled_branches:
 
 targets:
   - name: Mac_android android_semantics_integration_test
-    builder: Mac_android android_semantics_integration_test
     presubmit: false
     bringup: true
     scheduler: luci
@@ -65,13 +61,11 @@ targets:
       tags: >
         ["devicelab"]
   - name: Linux analyze
-    builder: Linux analyze
     scheduler: luci
     properties:
       tags: >
         ["framework","hostonly"]
   - name: Windows framework_tests_misc
-    builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
     properties:
@@ -92,7 +86,6 @@ enabled_branches:
 
 targets:
   - name: Mac_ios32 flutter_gallery__transition_perf_e2e_ios32
-    builder: Mac_ios32 flutter_gallery__transition_perf_e2e_ios32
     presubmit: false
     bringup: true
     scheduler: luci
@@ -166,20 +159,17 @@ enabled_branches:
 
 targets:
   - name: Mac_android android_semantics_integration_test
-    builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
     properties:
       tags: >
         ["devicelab"]
   - name: Linux analyze
-    builder: Linux analyze
     scheduler: luci
     properties:
       tags: >
         ["framework","hostonly"]
   - name: Windows framework_tests_misc
-    builder: Windows framework_tests_misc
     presubmit: false
     scheduler: luci
     properties:

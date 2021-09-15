@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +18,6 @@ import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
@@ -27,7 +27,7 @@ void main() {
     ApiRequestHandlerTester tester;
     MockLuciService mockLuciService;
     RefreshChromebotStatus handler;
-    FakeHttpClient branchHttpClient;
+    MockClient branchHttpClient;
     FakeScheduler scheduler;
     FakeTabledataResourceApi tabledataResourceApi;
     MockLuciBuildService mockLuciBuildService;
@@ -35,7 +35,6 @@ void main() {
     Commit commit;
 
     setUp(() {
-      branchHttpClient = FakeHttpClient();
       tabledataResourceApi = FakeTabledataResourceApi();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       config.flutterBranchesValue = <String>[config.defaultBranch];

@@ -16,14 +16,12 @@ import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:metrics_center/metrics_center.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
-import '../model/appengine/service_account_info.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
@@ -222,6 +220,9 @@ class Config {
   /// Post submit service account email used by LUCI swarming tasks.
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
+  /// Internal Google service account used to surface FRoB results.
+  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+
   int get maxTaskRetries => 2;
 
   /// Max retries for Luci builder with infra failure.
@@ -248,11 +249,6 @@ class Config {
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
-
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async {
-    final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return ServiceAccountInfo.fromJson(json.decode(rawValue) as Map<String, dynamic>);
-  }
 
   Future<ServiceAccountCredentials> get taskLogServiceAccount async {
     final String rawValue = await _getSingleValue('TaskLogServiceAccount');
@@ -339,7 +335,7 @@ class Config {
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
     return BigqueryService(accessClientProvider);
   }
 
@@ -362,18 +358,6 @@ class Config {
   GithubService createGithubServiceWithToken(String token) {
     final GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);
-  }
-
-  /// Return a [FlutterDestination] (subclass of [MetricsDestination]) for
-  /// storing all Flutter-related performance metrics (framework, engine, ...).
-  ///
-  /// The destination is created from the [deviceLabServiceAccount] credentials
-  /// so the destination storage (e.g., the GCS bucket) must grant access to
-  /// that account.
-  Future<FlutterDestination> createMetricsDestination() async {
-    return await FlutterDestination.makeFromCredentialsJson(
-      (await deviceLabServiceAccount).toJson(),
-    );
   }
 
   bool githubPresubmitSupportedRepo(RepositorySlug slug) {

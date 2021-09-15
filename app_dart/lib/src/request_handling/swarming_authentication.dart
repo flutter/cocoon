@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -78,36 +79,40 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
       {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final HttpClient client = httpClientProvider();
+    final Client client = httpClientProvider();
     try {
       log.debug('Sending token request to Google OAuth');
-      final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+      final Response verifyTokenResponse = await client.get(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
         <String, String>{
           'access_token': accessToken,
         },
       ));
-      final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        final String body = await utf8.decodeStream(verifyTokenResponse);
+        final String body = verifyTokenResponse.body;
         log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
         throw const Unauthenticated('Invalid access token');
       }
 
-      final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
       TokenInfo token;
       try {
-        token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+        token = TokenInfo.fromJson(json.decode(verifyTokenResponse.body) as Map<String, dynamic>);
       } on FormatException {
-        log.warning('Failed to decode token JSON: $tokenJson');
-        throw InternalServerError('Invalid JSON: "$tokenJson"');
+        log.warning('Failed to decode token JSON: ${verifyTokenResponse.body}');
+        throw InternalServerError('Invalid JSON: "${verifyTokenResponse.body}"');
       }
 
+      // Update is from Flutter LUCI builds
       if (token.email == config.luciProdAccount) {
+        return AuthenticatedContext(clientContext: clientContext);
+      }
+
+      if (token.email == config.frobAccount) {
+        log.debug('Authenticating as FRoB request');
         return AuthenticatedContext(clientContext: clientContext);
       }
 

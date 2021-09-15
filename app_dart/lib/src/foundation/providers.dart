@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:appengine/appengine.dart' as gae;
+import 'package:http/http.dart' as http;
 
 import 'typedefs.dart';
 
@@ -12,12 +11,12 @@ import 'typedefs.dart';
 class Providers {
   const Providers._();
 
-  /// Default [HttpClient] provider.
+  /// Default [http.Client] provider.
   ///
   /// See also:
   ///
   ///  * [HttpClientProvider], which defines this interface.
-  static HttpClient freshHttpClient() => HttpClient();
+  static http.Client freshHttpClient() => http.Client();
 
   /// Default [gae.Logging] provider.
   ///

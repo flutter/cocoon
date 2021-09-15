@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:cocoon_service/src/request_handling/authentication.dart' show AuthenticatedContext;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/swarming_authentication.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -40,12 +42,9 @@ void main() {
     });
 
     group('when access token is given', () {
-      FakeHttpClient httpClient;
-      FakeHttpClientResponse verifyTokenResponse;
+      MockClient httpClient;
 
       setUp(() {
-        httpClient = FakeHttpClient();
-        verifyTokenResponse = httpClient.request.response;
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -54,13 +53,8 @@ void main() {
         );
       });
 
-      test('auth succeeds with expected service account', () async {
-        httpClient = FakeHttpClient(
-            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
-              ..statusCode = HttpStatus.ok
-              ..body = '{"email": "${config.luciProdAccount}"}');
-
-        verifyTokenResponse = httpClient.request.response;
+      test('auth succeeds with flutter luci service account', () async {
+        httpClient = MockClient((_) async => http.Response('{"email": "${config.luciProdAccount}"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -68,19 +62,28 @@ void main() {
           loggingProvider: () => log,
         );
 
-        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.clientContext, same(clientContext));
+      });
+
+      test('auth succeeds with frob service account', () async {
+        httpClient = MockClient((_) async => http.Response('{"email": "${config.frobAccount}"}', HttpStatus.ok));
+        auth = SwarmingAuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
 
         final AuthenticatedContext result = await auth.authenticate(request);
         expect(result.clientContext, same(clientContext));
       });
 
       test('auth fails with non-luci service account', () async {
-        httpClient = FakeHttpClient(
-            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
-              ..statusCode = HttpStatus.ok
-              ..body = '{"email": "abc@gmail.com"}');
-
-        verifyTokenResponse = httpClient.request.response;
+        httpClient = MockClient((_) async => http.Response('{"email": "abc@gmail.com"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -94,11 +97,7 @@ void main() {
       });
 
       test('auth fails with unauthenticated service account token', () async {
-        httpClient = FakeHttpClient(
-            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
-              ..statusCode = HttpStatus.unauthorized
-              ..body = 'Invalid token');
-        verifyTokenResponse = httpClient.request.response;
+        httpClient = MockClient((_) async => http.Response('Invalid token', HttpStatus.unauthorized));
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,

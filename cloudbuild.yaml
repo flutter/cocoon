@@ -5,10 +5,10 @@
 # The auto-build will be skipped if no new commits since last deployment.
 
 steps:
-  # Build app_flutter.
+  # Build dashboard.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['cloud_build/app_flutter_build.sh']
+    args: ['cloud_build/dashboard_build.sh']
 
   # Build repo_dashboard.
   - name: gcr.io/$PROJECT_ID/flutter

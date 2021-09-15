@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
@@ -66,22 +67,20 @@ FutureOr<String> getUrl(
   Logging log,
   Duration timeout = const Duration(seconds: 5),
 }) async {
-  final HttpClient client = httpClientProvider();
+  final http.Client client = httpClientProvider();
   try {
-    final HttpClientRequest clientRequest = await client.getUrl(url).timeout(timeout);
-    final HttpClientResponse clientResponse = await clientRequest.close().timeout(timeout);
-    final int status = clientResponse.statusCode;
+    final http.Response response = await client.get(url).timeout(timeout);
 
-    if (status == HttpStatus.ok) {
-      return await utf8.decoder.bind(clientResponse).join();
-    } else if (status == HttpStatus.notFound) {
-      throw NotFoundException('HTTP $status: $url');
+    if (response.statusCode == HttpStatus.ok) {
+      return response.body;
+    } else if (response.statusCode == HttpStatus.notFound) {
+      throw NotFoundException('HTTP ${response.statusCode}: $url');
     } else {
-      log?.warning('HTTP $status: $url');
-      throw HttpException('HTTP $status: $url');
+      log?.warning('HTTP ${response.statusCode}: $url');
+      throw HttpException('HTTP ${response.statusCode}: $url');
     }
   } finally {
-    client.close(force: true);
+    client.close();
   }
 }
 

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
-import 'package:metrics_center/metrics_center.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
@@ -40,8 +39,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   static const String gitBranchParam = 'CommitBranch';
   static const String gitShaParam = 'CommitSha';
   static const String newStatusParam = 'NewStatus';
-  static const String resultsParam = 'ResultData';
-  static const String scoreKeysParam = 'BenchmarkScoreKeys';
   static const String builderNameParam = 'BuilderName';
   static const String testFlayParam = 'TestFlaky';
 
@@ -52,9 +49,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String newStatus = requestData[newStatusParam] as String;
     final bool isTestFlaky = (requestData[testFlayParam] as bool) ?? false;
-    final Map<String, dynamic> resultData =
-        requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
-    final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
@@ -62,53 +56,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final Task task = await _getTaskFromNamedParams(datastore);
 
-    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
-      throw BadRequestException('No such task: ${task.commitKey}');
-    });
-
     task.status = newStatus;
     task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     task.isTestFlaky = isTestFlaky;
 
     await datastore.insert(<Task>[task]);
-
-    await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
     return UpdateTaskStatusResponse(task);
-  }
-
-  // Convert `resultData` (`requestData['ResultData']`) and `scoreKeys`
-  // (`requestData['BenchmarkScoreKeys']`) into `MetricPoint`s, and write them
-  // into `metrics_center`'s `FlutterDestination`.
-  //
-  // This enables the perf dashboard configured by the `metrics_center` (e.g.,
-  // Skia perf) to provide perf metric queries and regression alerts.
-  Future<void> _writeToMetricsCenter(
-    Map<String, dynamic> resultData,
-    List<String> scoreKeys,
-    Commit commit,
-    Task task,
-  ) async {
-    final FlutterDestination metricsDestination = await config.createMetricsDestination();
-    final List<MetricPoint> metricPoints = <MetricPoint>[];
-    for (String scoreKey in scoreKeys) {
-      metricPoints.add(
-        MetricPoint(
-          (resultData[scoreKey] as num).toDouble(),
-          <String, String>{
-            kGithubRepoKey: kFlutterFrameworkRepo,
-            kGitRevisionKey: commit.sha,
-            'branch': commit.branch,
-            kNameKey: task.name,
-            kSubResultKey: scoreKey,
-            // The unit should be encoded either in task.name or scoreKey
-            // so we don't have to depend on TimeSeries or TimeSeriesValue to
-            // know that. It allows us to remove the code and data that are
-            // related to TimeSeries and TimeSeriesValue.
-          },
-        ),
-      );
-    }
-    await metricsDestination.update(metricPoints);
   }
 
   /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].

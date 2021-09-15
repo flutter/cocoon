@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -26,7 +25,6 @@ import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
-  ServiceAccountInfo serviceAccountInfo;
   FakeConfig config;
   FakeGithubService githubService;
   MockBuildBucketClient mockBuildBucketClient;
@@ -65,11 +63,10 @@ void main() {
     );
 
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       githubService = FakeGithubService();
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Null build', () async {
@@ -153,11 +150,10 @@ void main() {
     );
 
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       githubService = FakeGithubService();
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Empty responses are handled correctly', () async {
@@ -199,14 +195,12 @@ void main() {
   });
   group('scheduleBuilds', () {
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       githubService = FakeGithubService();
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(
         config,
         mockBuildBucketClient,
-        serviceAccountInfo,
         githubChecksUtil: mockGithubChecksUtil,
       );
       service.setLogger(FakeLogging());
@@ -350,10 +344,9 @@ void main() {
 
   group('cancelBuilds', () {
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Cancel builds when build list is empty', () async {
@@ -404,10 +397,9 @@ void main() {
   group('failedBuilds', () {
     setUp(() {
       githubService = FakeGithubService();
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'flutter');
     });
     test('Failed builds from an empty list', () async {
@@ -447,10 +439,9 @@ void main() {
     push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
         'COMPLETED',
         result: 'FAILURE',
@@ -470,10 +461,9 @@ void main() {
   });
   group('rescheduleProdBuild', () {
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
     });
     test('Reschedule an existing build', () async {
       await service.rescheduleProdBuild(
@@ -491,10 +481,9 @@ void main() {
     Commit totCommit;
     DatastoreService datastore;
     setUp(() {
-      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient);
       service.setLogger(FakeLogging());
       datastore = DatastoreService(config.db, 5);
       commit = Commit(
