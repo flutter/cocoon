@@ -27,6 +27,7 @@ import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  // TODO(Piinks): update all test mocks that use v1 API
   const String kGoldenFileLabel = 'will affect goldens';
 
   group('PushGoldStatusToGithub', () {
