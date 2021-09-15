@@ -82,7 +82,7 @@ abstract class RequestHandler<T extends Body> {
   /// Returns a future that completes when [response] has been closed.
   Future<void> _respond({int status = HttpStatus.ok, Body body = Body.empty}) async {
     response!.statusCode = status;
-    await response!.addStream(body.serialize() as Stream<List<int>>);
+    await response!.addStream(body.serialize().cast<List<int>>());
     await response!.flush();
     await response!.close();
   }

@@ -170,7 +170,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             await gitHubClient.repositories.createStatus(slug, pr.head!.sha!, statusRequest);
             lastUpdate.status = statusRequest.state!;
             lastUpdate.head = pr.head!.sha;
-            lastUpdate.updates += 1;
+            lastUpdate.updates = (lastUpdate.updates ?? 0) + 1;
             lastUpdate.description = statusRequest.description!;
             statusUpdates.add(lastUpdate);
           } catch (error) {

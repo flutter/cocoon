@@ -16,12 +16,12 @@ part 'commit.g.dart';
 class Commit extends Model<String> {
   Commit({
     Key<String>? key,
-    required this.sha,
+    this.sha,
     this.timestamp,
     this.author,
     this.authorAvatarUrl,
     this.message,
-    required this.repository,
+    this.repository,
     this.branch = 'master',
   }) {
     parentKey = key?.parent;
@@ -35,7 +35,7 @@ class Commit extends Model<String> {
 
   /// The SHA1 hash of the commit.
   @StringProperty(propertyName: 'Commit.Sha', required: true)
-  String sha;
+  String? sha;
 
   /// The GitHub username of the commit author.
   @StringProperty(propertyName: 'Commit.Author.Login')
@@ -58,14 +58,14 @@ class Commit extends Model<String> {
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
-  String repository;
+  String? repository;
 
   /// The branch of the commit.
   @StringProperty(propertyName: 'Branch')
   String? branch;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository);
+  RepositorySlug get slug => RepositorySlug.full(repository!);
 
   @override
   String toString() {
@@ -96,7 +96,7 @@ class SerializableCommit {
 
   @JsonKey(name: 'Key')
   @StringKeyConverter()
-  Key<String> get key => commit.key;
+  Key<String>? get key => commit.key;
 
   @JsonKey(name: 'Checklist')
   Map<String, dynamic> get facade {

@@ -179,6 +179,6 @@ void main() {
   });
 }
 
-String toSha(Commit commit) => commit.sha;
+String toSha(Commit commit) => commit.sha!;
 
 int toTimestamp(Commit commit) => commit.timestamp!;

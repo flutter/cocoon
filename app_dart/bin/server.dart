@@ -247,7 +247,7 @@ Future<void> main() async {
     };
 
     return await runAppEngine((HttpRequest request) async {
-      if (!handlers.containsKey(request.uri.path)) {
+      if (handlers.containsKey(request.uri.path)) {
         final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
         await handler.service(request);
       } else {

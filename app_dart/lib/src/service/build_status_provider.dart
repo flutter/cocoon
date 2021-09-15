@@ -78,17 +78,17 @@ class BuildStatusService {
           final bool taskInProgress = tasksInProgress[task.name] ?? true;
 
           if (isRelevantToLatestStatus && taskInProgress) {
-            if (task.isFlaky || _isSuccessful(task)) {
+            if (task.isFlaky! || _isSuccessful(task)) {
               /// This task no longer needs to be checked to see if it causing
               /// the build status to fail.
-              tasksInProgress[task.name] = false;
+              tasksInProgress[task.name!] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
-              failedTasks.add(task.name);
+              failedTasks.add(task.name!);
 
               /// This task no longer needs to be checked to see if its causing
               /// the build status to fail since its been
               /// added to the failedTasks list.
-              tasksInProgress[task.name] = false;
+              tasksInProgress[task.name!] = false;
             }
           }
         }
@@ -105,7 +105,7 @@ class BuildStatusService {
 
     for (Stage stage in statuses.first.stages) {
       for (Task task in stage.tasks) {
-        tasks[task.name] = true;
+        tasks[task.name!] = true;
       }
     }
 
@@ -159,7 +159,7 @@ class BuildStatusService {
   }
 
   bool _isRerunning(Task task) {
-    return task.attempts > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
+    return task.attempts! > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 

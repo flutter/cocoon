@@ -79,11 +79,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       if (task!.status == 'Succeeded') {
         return Body.empty;
       }
-      commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+      commit = await datastore.db.lookupValue<Commit>(task.commitKey!, orElse: () {
         throw BadRequestException('No such commit: ${task!.commitKey}');
       });
       slug = commit.slug;
-      commitSha = commit.sha;
+      commitSha = commit.sha!;
       builder = task.builderName;
       if (builder == null) {
         final List<LuciBuilder> builders = (await config.luciBuilders('prod', slug))!;
@@ -102,7 +102,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       commit = Commit(repository: slug.fullName, sha: commitSha);
     }
 
-    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha, builder, repo);
+    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha!, builder, repo);
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     final Build? build = currentBuilds.firstWhereOrNull(
       (Build element) {
@@ -120,7 +120,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       'trigger_type': <String>['manual'],
     };
     final Build buildResult = await luciBuildService.rescheduleProdBuild(
-      commitSha: commit.sha,
+      commitSha: commit.sha!,
       builderName: builder,
       repo: repo,
       properties: properties,
@@ -131,7 +131,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       task
         ..status = Task.statusNew
         ..startTimestamp = 0
-        ..attempts += 1;
+        ..attempts = (task.attempts ?? 0) + 1;
       await datastore.insert(<Task>[task]);
     }
     final String buildUrl = 'https://ci.chromium.org/ui/b/${buildResult.id}';

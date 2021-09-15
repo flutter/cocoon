@@ -499,7 +499,7 @@ class LuciBuildService {
         'trigger_type': <String>['retry'],
       };
       await rescheduleProdBuild(
-        commitSha: commit.sha,
+        commitSha: commit.sha!,
         builderName: luciTask.builderName,
         repo: repo,
         tags: tags,

@@ -21,12 +21,12 @@ part 'task.g.dart';
 class Task extends Model<int> {
   /// Creates a new [Task].
   Task({
-    required Key<int>? key,
-    required this.commitKey,
+    Key<int>? key,
+    this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
     this.endTimestamp = 0,
-    required this.name,
+    this.name,
     this.attempts = 0,
     this.isFlaky = false,
     this.isTestFlaky = false,
@@ -39,9 +39,9 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
-    required String status,
+    String? status,
   }) : _status = status {
-    if (!legalStatusValues.contains(status)) {
+    if (status != null && !legalStatusValues.contains(status)) {
       throw ArgumentError('Invalid state: "$status"');
     }
     parentKey = key?.parent;
@@ -54,7 +54,6 @@ class Task extends Model<int> {
     required int createTimestamp,
     required LuciBuilder builder,
   }) {
-    assert(builder.flaky != null);
     return Task(
       attempts: 1,
       builderName: builder.name,
@@ -122,10 +121,10 @@ class Task extends Model<int> {
   ];
 
   /// The key of the commit that owns this task.
-  @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
+  @ModelKeyProperty(propertyName: 'ChecklistKey')
   @JsonKey(name: 'ChecklistKey')
   @StringKeyConverter()
-  Key<String> commitKey;
+  Key<String>? commitKey;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -134,7 +133,7 @@ class Task extends Model<int> {
   /// the 'New' state until they've been picked up by an [Agent].
   @IntProperty(propertyName: 'CreateTimestamp', required: true)
   @JsonKey(name: 'CreateTimestamp')
-  int createTimestamp;
+  int? createTimestamp;
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
   /// running.
@@ -143,13 +142,13 @@ class Task extends Model<int> {
   /// once, this timestamp represents when the task was most recently started.
   @IntProperty(propertyName: 'StartTimestamp', required: true)
   @JsonKey(name: 'StartTimestamp')
-  int startTimestamp;
+  int? startTimestamp;
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
   @IntProperty(propertyName: 'EndTimestamp', required: true)
   @JsonKey(name: 'EndTimestamp')
-  int endTimestamp;
+  int? endTimestamp;
 
   /// The name of the task.
   ///
@@ -157,7 +156,7 @@ class Task extends Model<int> {
   /// "hello_world__memory").
   @StringProperty(propertyName: 'Name', required: true)
   @JsonKey(name: 'Name')
-  String name;
+  String? name;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -165,7 +164,7 @@ class Task extends Model<int> {
   /// attempts.
   @IntProperty(propertyName: 'Attempts', required: true)
   @JsonKey(name: 'Attempts')
-  int attempts;
+  int? attempts;
 
   /// Whether this task has been marked flaky by .ci.yaml.
   ///
@@ -176,7 +175,7 @@ class Task extends Model<int> {
   /// A flaky (`bringup: true`) task will not block the tree.
   @BoolProperty(propertyName: 'Flaky')
   @JsonKey(name: 'Flaky')
-  bool isFlaky;
+  bool? isFlaky;
 
   /// Whether the test execution of this task shows flake.
   ///
@@ -186,7 +185,7 @@ class Task extends Model<int> {
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
   @BoolProperty(propertyName: 'TestFlaky')
   @JsonKey(name: 'TestFlaky')
-  bool isTestFlaky;
+  bool? isTestFlaky;
 
   /// The timeout of the task, or zero if the task has no timeout.
   @IntProperty(propertyName: 'TimeoutInMinutes', required: true)
@@ -196,7 +195,7 @@ class Task extends Model<int> {
   /// Currently unset and unused.
   @StringProperty(propertyName: 'Reason')
   @JsonKey(name: 'Reason')
-  String reason;
+  String? reason;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   @IntProperty(propertyName: 'BuildNumber')
@@ -238,7 +237,7 @@ class Task extends Model<int> {
   /// This will be null until an agent has reserved this task.
   @StringProperty(propertyName: 'ReservedForAgentID')
   @JsonKey(name: 'ReservedForAgentID')
-  String reservedForAgentId;
+  String? reservedForAgentId;
 
   /// The name of the [Stage] that groups this task with other tasks that are
   /// related to it.
@@ -251,8 +250,8 @@ class Task extends Model<int> {
   /// Legal values and their meanings are defined in [legalStatusValues].
   @StringProperty(propertyName: 'Status', required: true)
   @JsonKey(name: 'Status')
-  String get status => _status;
-  String _status;
+  String get status => _status ?? statusNew;
+  String? _status;
   set status(String value) {
     if (!legalStatusValues.contains(value)) {
       throw ArgumentError('Invalid state: "$value"');
@@ -261,7 +260,7 @@ class Task extends Model<int> {
   }
 
   /// Comparator that sorts tasks by fewest attempts first.
-  static int byAttempts(Task a, Task b) => a.attempts.compareTo(b.attempts);
+  static int byAttempts(Task a, Task b) => a.attempts!.compareTo(b.attempts!);
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$TaskToJson(this);
@@ -273,7 +272,7 @@ class Task extends Model<int> {
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')
       ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', commitKey: ${commitKey.id}')
+      ..write(', commitKey: ${commitKey?.id}')
       ..write(', createTimestamp: $createTimestamp')
       ..write(', startTimestamp: $startTimestamp')
       ..write(', endTimestamp: $endTimestamp')

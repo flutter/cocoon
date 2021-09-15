@@ -136,10 +136,10 @@ class Scheduler {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
+        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
       });
     } catch (error) {
-      log.error('Failed to add commit ${commit.sha}: $error');
+      log.error('Failed to add commit ${commit.sha!}: $error');
     }
 
     await _uploadToBigQuery(commit);
@@ -178,7 +178,7 @@ class Scheduler {
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder>? prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
+    final List<LuciBuilder>? prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!);
     if (prodBuilders != null) {
       for (LuciBuilder builder in prodBuilders) {
         tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp!, builder: builder));
@@ -194,7 +194,7 @@ class Scheduler {
 
   /// Load in memory the `.ci.yaml`.
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async {
-    final String ciPath = '${commit.repository}/${commit.sha}/.ci.yaml';
+    final String ciPath = '${commit.repository}/${commit.sha!}/.ci.yaml';
     final Uint8List configBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
@@ -233,7 +233,7 @@ class Scheduler {
   Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
     // 1. Get prod_builders.json builders
     final List<LuciBuilder> postsubmitBuilders =
-        await config.luciBuilders('prod', commit.slug, commitSha: commit.sha) ?? <LuciBuilder>[];
+        await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!) ?? <LuciBuilder>[];
     // 2. Get ci.yaml builders (filter to only those that are relevant)
     final List<Target> postsubmitLuciTargets = schedulerConfig.targets
         .where((Target target) => target.postsubmit && target.scheduler == SchedulerSystem.luci)
@@ -330,7 +330,7 @@ class Scheduler {
       String reason = 'Newer commit available'}) async {
     if (commitSha.isEmpty) {
       throw BadRequestException(
-          'Empty commit sha given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
+          'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
     await cancelPreSubmitTargets(
@@ -441,7 +441,7 @@ class Scheduler {
     final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
           'try',
           commit.slug,
-          commitSha: commit.sha,
+          commitSha: commit.sha!,
         ) ??
         <LuciBuilder>[];
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
@@ -492,7 +492,7 @@ class Scheduler {
         'ID': commit.id,
         'CreateTimestamp': commit.timestamp,
         'FlutterRepositoryPath': commit.repository,
-        'CommitSha': commit.sha,
+        'CommitSha': commit.sha!,
         'CommitAuthorLogin': commit.author,
         'CommitAuthorAvatarURL': commit.authorAvatarUrl,
         'CommitMessage': commit.message,

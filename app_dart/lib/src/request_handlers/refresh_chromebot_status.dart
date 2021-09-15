@@ -89,7 +89,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     /// [builderNumberList] when luci rerun happens, and update [devicelabTask]
     /// status when the status of latest luci run changes.
     for (FullTask datastoreTask in datastoreTasks) {
-      final String commitSha = datastoreTask.commit.sha;
+      final String commitSha = datastoreTask.commit.sha!;
       if (!luciTasksMap!.containsKey(commitSha)) {
         continue;
       }
@@ -105,10 +105,10 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         if (await luciBuildService.checkRerunBuilder(
             commit: datastoreTask.commit,
             luciTask: latestLuciTask,
-            retries: update.attempts - 1,
+            retries: update.attempts! - 1,
             datastore: datastore)) {
           update.status = Task.statusNew;
-          update.attempts += 1;
+          update.attempts = (update.attempts ?? 0) + 1;
         }
 
         update.buildNumberList = buildNumberList;
@@ -126,7 +126,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<void> _insertBigquery(Task task) async {
     const String bigqueryTableName = 'Task';
     final Map<String, dynamic> bigqueryData = <String, dynamic>{
-      'ID': task.commitKey.id,
+      'ID': task.commitKey?.id,
       'CreateTimestamp': task.createTimestamp,
       'StartTimestamp': task.startTimestamp,
       'EndTimestamp': task.endTimestamp,

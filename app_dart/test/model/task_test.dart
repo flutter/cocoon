@@ -19,7 +19,7 @@ void main() {
         generateTask(3, attempts: 3),
       ];
       tasks.sort(Task.byAttempts);
-      expect(tasks.map<int>((Task task) => task.attempts), <int>[3, 5, 9]);
+      expect(tasks.map<int>((Task task) => task.attempts!), <int>[3, 5, 9]);
     });
 
     test('disallows illegal status', () {
@@ -45,7 +45,7 @@ void main() {
       expect(task.timeoutInMinutes, 0);
     });
 
-    test('disallows flaky be null', () {
+    test('flaky defaults to false', () {
       final Key<String> commitKey = generateKey<String>(Commit, 'flutter/flutter/master/42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
@@ -53,8 +53,7 @@ void main() {
         taskName: 'taskName',
         flaky: null,
       );
-      expect(() => Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder),
-          throwsA(isA<AssertionError>()));
+      expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
   });
 }

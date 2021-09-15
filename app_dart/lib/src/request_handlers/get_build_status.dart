@@ -33,8 +33,7 @@ class GetBuildStatus extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String branch = request!.uri.queryParameters[branchParam] ?? 'master';
-    final BuildStatus status =
-        await (buildStatusService.calculateCumulativeStatus(branch: branch) as FutureOr<BuildStatus>);
+    final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(branch: branch))!;
     final BuildStatusResponse response = BuildStatusResponse()
       ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
       ..failingTasks.addAll(status.failedTasks);
