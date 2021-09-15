@@ -91,7 +91,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      log.debug('Querying builds for pull request #${pr.number}...');
+      log.debug('Querying builds for pull request #${pr.number} with sha: ${lastUpdate.head}...');
       final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
       final List<String> incompleteChecks = <String>[];
       bool runsGoldenFileTests = false;
@@ -108,8 +108,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
       checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      log.debug('This PR has ${checkRuns.length} checks.');
       for (Map<String, dynamic> checkRun in checkRuns) {
-        log.debug('Found check run: $checkRun');
+        log.debug('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
         if (name.contains('framework') || name.contains('web')) {
           runsGoldenFileTests = true;
@@ -120,6 +121,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
+        log.debug('This PR executes golden file tests.');
         // Check when this PR was last updated. Gold does not keep results after
         // >20 days. If a PR has gone stale, we should draw attention to it to be
         // updated or closed.
@@ -175,6 +177,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
         }
+      } else {
+        log.debug('This PR does not execute golden file tests.');
       }
     }
     await datastore.insert(statusUpdates);
@@ -198,10 +202,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
     await Future<void>.delayed(const Duration(seconds: 10));
+    // TODO(Piinks): Get new API to restore functionality
     final Uri requestForTryjobStatus =
-        Uri.parse('http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
+        Uri.parse('http://flutter-gold.skia.org/json/v2/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
     String rawResponse;
     try {
+      log.debug('Querying Gold for image results...');
       final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);
       final HttpClientResponse response = await request.close();
 
