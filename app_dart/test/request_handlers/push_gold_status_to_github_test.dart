@@ -297,8 +297,8 @@ void main() {
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -646,8 +646,8 @@ void main() {
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -689,8 +689,8 @@ void main() {
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -741,8 +741,8 @@ void main() {
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -791,8 +791,8 @@ void main() {
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
-          when(mockHttpClient.getUrl(Uri.parse(
-              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -851,8 +851,8 @@ void main() {
           // New status: completed/triaged/no changes
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-          when(mockHttpClient.getUrl(Uri.parse(
-              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
+          when(mockHttpClient
+                  .getUrl(Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -1022,11 +1022,11 @@ void main() {
         // New status: completed/triaged/no changes
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
         final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-        when(mockHttpClient.getUrl(Uri.parse(
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}')))
+        when(mockHttpClient.getUrl(
+                Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-        when(mockHttpClient.getUrl(Uri.parse(
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}')))
+        when(mockHttpClient.getUrl(
+                Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
