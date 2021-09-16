@@ -27,7 +27,6 @@ import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  // TODO(Piinks): update all test mocks that use v1 API
   const String kGoldenFileLabel = 'will affect goldens';
 
   group('PushGoldStatusToGithub', () {
@@ -299,7 +298,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -648,7 +647,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -691,7 +690,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -743,7 +742,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -793,7 +792,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -853,7 +852,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -1024,10 +1023,10 @@ void main() {
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
         final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
         when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -1124,7 +1123,17 @@ QueryResult createGithubQueryResult(List<dynamic> statuses) {
 String tryjobEmpty() {
   return '''
     {
-      "digests": null
+      "changelist_id": "123",
+      "patchsets": [
+        {
+          "new_images": 0,
+          "new_untriaged_images": 0,
+          "total_untriaged_images": 0,
+          "patchset_id": "abc",
+          "patchset_order": 1
+        }
+      ],
+      "outdated": false
     }
   ''';
 }
@@ -1133,11 +1142,17 @@ String tryjobEmpty() {
 String tryjobDigests() {
   return '''
     {
-      "digests": [
-        "abcd",
-        "efgh",
-        "ijkl"
-      ]
+      "changelist_id": "123",
+      "patchsets": [
+        {
+          "new_images": 1,
+          "new_untriaged_images": 1,
+          "total_untriaged_images": 1,
+          "patchset_id": "abc",
+          "patchset_order": 1
+        }
+      ],
+      "outdated": false
     }
   ''';
 }

@@ -202,9 +202,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
     await Future<void>.delayed(const Duration(seconds: 10));
-    // TODO(Piinks): Get new API to restore functionality
     final Uri requestForTryjobStatus =
-        Uri.parse('http://flutter-gold.skia.org/json/v2/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
+        Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}');
     String rawResponse;
     try {
       log.debug('Querying Gold for image results...');
@@ -212,9 +211,21 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final HttpClientResponse response = await request.close();
 
       rawResponse = await utf8.decodeStream(response);
-      final Map<String, dynamic> decodedResponse = json.decode(rawResponse) as Map<String, dynamic>;
+      final dynamic jsonResponseTriage = json.decode(rawResponse);
+      if (jsonResponseTriage is! Map<String, dynamic>) {
+        throw const FormatException('Skia gold expectations do not match expected format.');
+      }
+      final List<dynamic> patchsets = jsonResponseTriage['patchsets'] as List<dynamic>;
+      int untriaged = 0;
+      for (int i = 0; i <= patchsets.length; i++) {
+        final Map<String, dynamic> patchset = patchsets[i] as Map<String, dynamic>;
+        if (patchset['patchset_id'] == pr.head.sha) {
+          untriaged = patchset['new_untriaged_images'] as int;
+          break;
+        }
+      }
 
-      if (decodedResponse['digests'] == null) {
+      if (untriaged == 0) {
         log.debug('There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
