@@ -213,7 +213,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       rawResponse = await utf8.decodeStream(response);
       final dynamic jsonResponseTriage = json.decode(rawResponse);
       if (jsonResponseTriage is! Map<String, dynamic>) {
-        throw const FormatException('Skia gold expectations do not match expected format.');
+        throw const FormatException('Skia gold changelist summary does not match expected format.');
       }
       final List<dynamic> patchsets = jsonResponseTriage['patchsets'] as List<dynamic>;
       int untriaged = 0;
