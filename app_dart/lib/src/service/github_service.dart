@@ -234,8 +234,6 @@ class GithubService {
   /// https://developer.github.com/v3/pulls/#list-pull-requests-files
   Future<List<String?>> listFiles(RepositorySlug slug, int prNumber) async {
     ArgumentError.checkNotNull(slug);
-
-    log.debug('About to get files from github');
     final List<PullRequestFile> files = await github.pullRequests.listFiles(slug, prNumber).toList();
     log.debug('List of files: $files');
     return files.map((PullRequestFile file) {

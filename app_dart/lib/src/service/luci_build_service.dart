@@ -158,12 +158,12 @@ class LuciBuildService {
         key: (dynamic b) => b.builderId.builder as String?, value: (dynamic b) => b as Build?);
   }
 
-  /// Creates a build request.
+  /// Creates BuildBucket [Request] using [checkSuiteEvent], [slug], [prNumber], [commitSha], [builder], [builderId]
+  /// and [userData].
   Future<Request> _createBuildRequest(CheckSuiteEvent? checkSuiteEvent, github.RepositorySlug slug, int prNumber,
       String commitSha, String builder, BuilderId builderId, Map<String, dynamic> userData) async {
     int? checkRunId;
     if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
-      log.info('Creating check run for PR: $prNumber, Commit: $commitSha, Slug: $slug');
       final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
         config,
         slug,
@@ -231,7 +231,6 @@ class LuciBuildService {
 
     final List<Future<Request>> requestFutures = <Future<Request>>[];
     for (String builder in builderNames) {
-      log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',
         bucket: 'try',
@@ -246,20 +245,21 @@ class LuciBuildService {
     }
     final List<Request> requests = await Future.wait(requestFutures);
     List<BatchResponse> batchResponseList;
-    log.info('Making BatchRequest with ${requests.length} requests');
     final List<Future<BatchResponse>> futureBatchResponses = <Future<BatchResponse>>[];
     final Iterable<List<Request>> requestPartitions = await shard(requests, 1);
-    log.info('Sending BatchRequest with ${requestPartitions.length} partitions');
     for (List<Request> requestPartition in requestPartitions) {
       futureBatchResponses.add(buildBucketClient.batch(BatchRequest(requests: requestPartition)));
     }
     batchResponseList = await Future.wait(futureBatchResponses);
     final Iterable<Response> responses =
         batchResponseList.expand((BatchResponse element) => element.responses as Iterable<Response>);
+    String errorText;
+
     for (Response response in responses) {
-      if (response.error?.code != 0) {
-        log.warning('BatchResponse error: $response');
-        continue;
+      errorText = '';
+      if (response.error != null && response.error?.code != 0) {
+        errorText = 'BatchResponse error: ${response.error}';
+        log.warning(errorText);
       }
 
       if (response.scheduleBuild == null) {
@@ -267,18 +267,36 @@ class LuciBuildService {
         continue;
       }
 
-      final Build scheduleBuild = response.scheduleBuild!;
+      final Build? scheduleBuild = response.scheduleBuild;
+      if (scheduleBuild?.tags == null) {
+        // Nothing to update just continue.
+        continue;
+      }
       // Tags are List<String> so we need to decode to a single int
-      final List<String?> checkrunIdStrings = scheduleBuild.tags!['github_checkrun']!;
-      final int? checkRunId = checkrunIdStrings.map((String? id) => int.parse(id!)).single;
-      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+      final List<String?>? checkrunIdStrings = scheduleBuild?.tags!['github_checkrun']!;
+      final int? checkRunId = checkrunIdStrings?.map((String? id) => int.parse(id!)).single;
+      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild?.id}';
       // Not all scheduled builds have check runs
       if (checkRunId != null) {
         final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
-        await githubChecksUtil.updateCheckRun(config, slug, checkRun, detailsUrl: buildUrl);
+        if (errorText.isNotEmpty) {
+          await githubChecksUtil.updateCheckRun(
+            config,
+            slug,
+            checkRun,
+            status: github.CheckRunStatus.completed,
+            conclusion: github.CheckRunConclusion.failure,
+            output: github.CheckRunOutput(
+              title: 'Scheduling error',
+              summary: 'Error scheduling build',
+              text: errorText,
+            ),
+          );
+        } else {
+          await githubChecksUtil.updateCheckRun(config, slug, checkRun, detailsUrl: buildUrl);
+        }
       }
     }
-
     return true;
   }
 
