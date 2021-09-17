@@ -196,18 +196,45 @@ class LuciBuildService {
 
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
   /// and Github [slug].
-  Future<bool> scheduleTryBuilds({
-    required List<LuciBuilder> builders,
-    required int prNumber,
-    required String commitSha,
-    required github.RepositorySlug slug,
-    CheckSuiteEvent? checkSuiteEvent,
+  Future<void> scheduleTryBuilds({
+    @required List<LuciBuilder> builders,
+    @required int prNumber,
+    @required String commitSha,
+    @required github.RepositorySlug slug,
+    CheckSuiteEvent checkSuiteEvent,
   }) async {
     if (!config.githubPresubmitSupportedRepo(slug)) {
       throw BadRequestException('Repository ${slug.name} is not supported by this service.');
     }
+    List<String> builderNames = await _builderNamesForRepo(
+      builders,
+      prNumber,
+      commitSha,
+      slug,
+    );
+    int retryCount = 1;
+    while (builderNames.isNotEmpty) {
+      builderNames = await _scheduleTryBuilds(
+        builderNames: builderNames,
+        prNumber: prNumber,
+        commitSha: commitSha,
+        slug: slug,
+        checkSuiteEvent: checkSuiteEvent,
+      );
+      retryCount += 1;
+      if (retryCount >= config.schedulerRetries) {
+        break;
+      }
+    }
+  }
 
-    final Map<String?, Build?> builds = await tryBuildsForRepositoryAndPr(
+  Future<List<String>> _builderNamesForRepo(
+    List<LuciBuilder> builders,
+    int prNumber,
+    String commitSha,
+    github.RepositorySlug slug,
+  ) async {
+    final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(
       slug,
       prNumber,
       commitSha,
@@ -218,7 +245,7 @@ class LuciBuildService {
       log.error('Either builds are empty or they are already scheduled or started. '
           'PR: $prNumber, Commit: $commitSha, Owner: ${slug.owner} '
           'Repo: ${slug.name}');
-      return false;
+      return <String>[];
     }
 
     final List<String> builderNames = builders
@@ -228,8 +255,20 @@ class LuciBuildService {
     if (builderNames.isEmpty) {
       throw InternalServerError('${slug.name} does not have any builders');
     }
+    return builderNames;
+  }
 
+  /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
+  /// and Github [slug].
+  Future<List<String>> _scheduleTryBuilds({
+    @required List<String> builderNames,
+    @required int prNumber,
+    @required String commitSha,
+    @required github.RepositorySlug slug,
+    CheckSuiteEvent checkSuiteEvent,
+  }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
+    final List<String> builderNamesToRetry = <String>[];
     for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
         project: 'flutter',
@@ -246,7 +285,7 @@ class LuciBuildService {
     final List<Request> requests = await Future.wait(requestFutures);
     List<BatchResponse> batchResponseList;
     final List<Future<BatchResponse>> futureBatchResponses = <Future<BatchResponse>>[];
-    final Iterable<List<Request>> requestPartitions = await shard(requests, 1);
+    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
     for (List<Request> requestPartition in requestPartitions) {
       futureBatchResponses.add(buildBucketClient.batch(BatchRequest(requests: requestPartition)));
     }
@@ -264,6 +303,7 @@ class LuciBuildService {
 
       if (response.scheduleBuild == null) {
         log.warning('$response does not contain scheduleBuild');
+        builderNamesToRetry.add(response.getBuild.builderId.builder);
         continue;
       }
 
@@ -280,6 +320,7 @@ class LuciBuildService {
       if (checkRunId != null) {
         final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
         if (errorText.isNotEmpty) {
+          builderNamesToRetry.add(response.getBuild.builderId.builder);
           await githubChecksUtil.updateCheckRun(
             config,
             slug,
@@ -297,7 +338,7 @@ class LuciBuildService {
         }
       }
     }
-    return true;
+    return builderNamesToRetry;
   }
 
   /// Cancels all the current builds for a given [repositoryName], [prNumber]

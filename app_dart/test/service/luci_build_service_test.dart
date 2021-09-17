@@ -28,9 +28,16 @@ import '../src/utilities/push_message.dart';
 void main() {
   late FakeConfig config;
   FakeGithubService githubService;
+<<<<<<< HEAD
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
   RepositorySlug? slug;
+=======
+  MockBuildBucketClient mockBuildBucketClient;
+  LuciBuildService service;
+  RepositorySlug slug;
+  FakeLogging fakeLogging;
+>>>>>>> 996d6318 (Address comments and implement retries for failing builds.)
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
   const List<LuciBuilder> builders = <LuciBuilder>[
@@ -170,7 +177,8 @@ void main() {
         mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
       );
-      service.setLogger(FakeLogging());
+      fakeLogging = FakeLogging();
+      service.setLogger(fakeLogging);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -198,14 +206,13 @@ void main() {
         'check_suite': <String, dynamic>{'id': 2}
       });
       when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async => checkRun);
-      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);
-      final bool result = await service.scheduleTryBuilds(
+      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);   
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: config.flutterSlug,
       );
-      expect(result, isTrue);
       verify(mockGithubChecksUtil.updateCheckRun(any, config.flutterSlug, any,
               detailsUrl: 'https://ci.chromium.org/ui/b/998'))
           .called(1);
@@ -224,13 +231,14 @@ void main() {
           ],
         );
       });
-      final bool result = await service.scheduleTryBuilds(
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: slug!,
       );
-      expect(result, isFalse);
+      expect(fakeLogging.records[0].message,
+          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -246,13 +254,14 @@ void main() {
           ],
         );
       });
-      final bool result = await service.scheduleTryBuilds(
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: slug!,
       );
-      expect(result, isFalse);
+      expect(fakeLogging.records[0].message,
+          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('Schedule builds throws when current list of builds is empty', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {

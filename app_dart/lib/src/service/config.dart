@@ -108,6 +108,12 @@ class Config {
 
   DatastoreDB get db => _db;
 
+  /// Size of the shards to send to buildBucket when scheduling builds.
+  int get schedulingShardSize => 5;
+
+  /// Max retries when scheduling try builds.
+  int get schedulerRetries => 3;
+
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {
     if (slug.name == 'flutter') {

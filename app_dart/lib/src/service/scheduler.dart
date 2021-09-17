@@ -444,10 +444,11 @@ class Scheduler {
     // Get try_builders.json builders
     log.debug('Getting presubmit builders from json file');
     final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
-      'try',
-      commit.slug,
-      commitSha: commit.sha!,
-    ) ?? <LuciBuilder>[];
+          'try',
+          commit.slug,
+          commitSha: commit.sha!,
+        ) ??
+        <LuciBuilder>[];
     //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
@@ -455,7 +456,9 @@ class Scheduler {
     }
     final Iterable<Target> presubmitLuciTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
-    presubmitBuilders.addAll(presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
+    final Iterable<LuciBuilder> ciYamlBuilders =
+        presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
+    builders.addAll(ciYamlBuilders);
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(commit.slug, prNumber);

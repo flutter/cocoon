@@ -133,6 +133,14 @@ class FakeConfig implements Config {
   @override
   int get maxTaskRetries => maxTaskRetriesValue!;
 
+  /// Size of the shards to send to buildBucket when scheduling builds.
+  @override
+  int get schedulingShardSize => 5;
+
+  /// Max retries when scheduling try builds.
+  @override
+  int get schedulerRetries => 3;
+
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
 
