@@ -91,7 +91,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      log.debug('Querying builds for pull request #${pr.number}...');
+      log.debug('Querying builds for pull request #${pr.number} with sha: ${lastUpdate.head}...');
       final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
       final List<String> incompleteChecks = <String>[];
       bool runsGoldenFileTests = false;
@@ -108,8 +108,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
       checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      log.debug('This PR has ${checkRuns.length} checks.');
       for (Map<String, dynamic> checkRun in checkRuns) {
-        log.debug('Found check run: $checkRun');
+        log.debug('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
         if (name.contains('framework') || name.contains('web')) {
           runsGoldenFileTests = true;
@@ -120,6 +121,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
+        log.debug('This PR executes golden file tests.');
         // Check when this PR was last updated. Gold does not keep results after
         // >20 days. If a PR has gone stale, we should draw attention to it to be
         // updated or closed.
@@ -175,6 +177,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
         }
+      } else {
+        log.debug('This PR does not execute golden file tests.');
       }
     }
     await datastore.insert(statusUpdates);
@@ -199,16 +203,29 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     // has not finished ingesting the results.
     await Future<void>.delayed(const Duration(seconds: 10));
     final Uri requestForTryjobStatus =
-        Uri.parse('http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
+        Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}');
     String rawResponse;
     try {
+      log.debug('Querying Gold for image results...');
       final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);
       final HttpClientResponse response = await request.close();
 
       rawResponse = await utf8.decodeStream(response);
-      final Map<String, dynamic> decodedResponse = json.decode(rawResponse) as Map<String, dynamic>;
+      final dynamic jsonResponseTriage = json.decode(rawResponse);
+      if (jsonResponseTriage is! Map<String, dynamic>) {
+        throw const FormatException('Skia gold changelist summary does not match expected format.');
+      }
+      final List<dynamic> patchsets = jsonResponseTriage['patchsets'] as List<dynamic>;
+      int untriaged = 0;
+      for (int i = 0; i <= patchsets.length; i++) {
+        final Map<String, dynamic> patchset = patchsets[i] as Map<String, dynamic>;
+        if (patchset['patchset_id'] == pr.head.sha) {
+          untriaged = patchset['new_untriaged_images'] as int;
+          break;
+        }
+      }
 
-      if (decodedResponse['digests'] == null) {
+      if (untriaged == 0) {
         log.debug('There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
