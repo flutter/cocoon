@@ -58,21 +58,23 @@ class BuildBucketClient {
   ) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
-    final http.Response response = await httpClient.post(
-      url,
-      headers: <String, String>{
-        HttpHeaders.contentTypeHeader: 'application/json',
-        HttpHeaders.acceptHeader: 'application/json',
-        if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
-      },
-      body: json.encode(request.toJson()),
-    );
+
+    final http.Request postRequest = http.Request('POST', url)
+      ..body = json.encode(request.toJson())
+      ..headers[HttpHeaders.contentTypeHeader] = 'application/json'
+      ..headers[HttpHeaders.acceptHeader] = 'application/json';
+    if (token != null) {
+      postRequest.headers[HttpHeaders.authorizationHeader] = '${token.type} ${token.data}';
+    }
+
+    final http.StreamedResponse response = await httpClient.send(postRequest);
+    final String responseBody = await response.stream.bytesToString();
 
     if (response.statusCode < 300) {
       return responseFromJson(
-          json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
+          json.decode(responseBody.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
     }
-    throw BuildBucketException(response.statusCode, response.body);
+    throw BuildBucketException(response.statusCode, responseBody);
   }
 
   /// The RPC request to schedule a build.
