@@ -434,6 +434,7 @@ class LuciBuildService {
       commitSha,
     );
     final Iterable<Build> builds = await getTryBuilds(slug, commitSha, builderName);
+
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final int prNumber = int.parse(prString.split('/')[2]);
