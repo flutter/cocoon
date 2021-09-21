@@ -1,5 +1,4 @@
 # Mirror master to main branches in the cocoon repository.
-
 on:
   push:
     branches:
@@ -7,9 +6,12 @@ on:
 
 jobs:
   mirror_job:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     name: Mirror master branch to main branch
     steps:
+<<<<<<< HEAD
     - name: Mirror action step
       id: mirror
       uses: google/mirror-branch-action@c6b07e441a7ffc5ae15860c1d0a8107a3a151db8
@@ -17,3 +19,11 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         source: 'master'
         dest: 'main'
+=======
+      - name: Mirror action step
+        id: mirror
+        uses: google/mirror-branch-action@c6b07e441a7ffc5ae15860c1d0a8107a3a151db8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          source: 'master'
+>>>>>>> c455f1a7 (Grant explicit write permissions.)
