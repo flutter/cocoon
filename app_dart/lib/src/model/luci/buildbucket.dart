@@ -36,6 +36,11 @@ class BatchRequest extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BatchRequestToJson(this);
+
+  @override
+  String toString() {
+    return requests.toString();
+  }
 }
 
 /// A container for one request in a batch.
@@ -75,6 +80,15 @@ class Request extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$RequestToJson(this);
+
+  @override
+  String toString() {
+    return getBuild?.toString() ??
+        searchBuilds?.toString() ??
+        scheduleBuild?.toString() ??
+        cancelBuild?.toString() ??
+        'Unknown build';
+  }
 }
 
 /// A response from the Batch RPC.
@@ -188,6 +202,11 @@ class GetBuildRequest extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$GetBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'getBuild(id: $id, buildNumber: $buildNumber, field: $fields, builderId: $builderId)';
+  }
 }
 
 /// A request for the CancelBuild RPC.
@@ -214,6 +233,11 @@ class CancelBuildRequest extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$CancelBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'cancelBuild(id: $id, summaryMarkdown: $summaryMarkdown)';
+  }
 }
 
 /// A request object for the SearchBuilds RPC.
@@ -260,6 +284,11 @@ class SearchBuildsRequest extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$SearchBuildsRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'searchBuild(predicate: $predicate, pageSize: $pageSize, pageToken: $pageToken, fields: $fields)';
+  }
 }
 
 /// A predicate to apply when searching for builds in the SearchBuilds RPC.
@@ -301,6 +330,11 @@ class BuildPredicate extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$BuildPredicateToJson(this);
+
+  @override
+  String toString() {
+    return 'buildPredicate(builderId: $builderId, status: $status, createdBy: $createdBy, tags: $tags, includeExperimental: $includeExperimental)';
+  }
 }
 
 /// The response object from a SearchBuilds RPC.
@@ -428,6 +462,11 @@ class ScheduleBuildRequest extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit)';
+  }
 }
 
 /// A single build, identified by an int64 [id], belonging to a builder.
@@ -516,12 +555,7 @@ class Build extends JsonBody {
   Map<String, dynamic> toJson() => _$BuildToJson(this);
 
   @override
-  String toString() => '''
-    id: $id
-    builderId: $builderId
-    number: $number
-    status: $status
-  ''';
+  String toString() => 'build(id: $id, builderId: $builderId, number: $number, status: $status)';
 }
 
 /// A unique handle to a builder on BuildBucket.

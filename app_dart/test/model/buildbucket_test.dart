@@ -32,6 +32,25 @@ void main() {
     expect(json.encode(encodedTags), tagsJson);
   });
 
+  test('Handles Build id correctly', () {
+    final String id = 0xFFFFFFFFFFFFFFFF.toString(); // would overflow a 32 bit int
+    final Build build = Build(id: id, builderId: const BuilderId());
+    final Map<String, dynamic> buildJson = build.toJson();
+    expect(buildJson['id'], id.toString());
+    expect(buildJson['id'].runtimeType, String);
+
+    final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)) as Map<String, dynamic>);
+    expect(deserializedBuild.id, id);
+
+    final GetBuildRequest request = GetBuildRequest(id: id);
+    final Map<String, dynamic> requestBuildJson = request.toJson();
+    expect(requestBuildJson['id'], id.toString());
+    expect(requestBuildJson['id'].runtimeType, String);
+
+    final GetBuildRequest deserializedRequest = GetBuildRequest.fromJson(requestBuildJson);
+    expect(deserializedRequest.id, id);
+  });
+
   test('Handles fields correctly', () {
     GetBuildRequest request = const GetBuildRequest(id: '9083774268329986752');
     Map<String, dynamic> requestBuildJson = request.toJson();

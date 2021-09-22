@@ -47,8 +47,6 @@ class BuildBucketClient {
   final AccessTokenService? accessTokenService;
 
   /// The [http.Client] to use for requests.
-  ///
-  /// Defaults to `HttpClient()`.
   final http.Client httpClient;
 
   Future<T> _postRequest<S extends JsonBody, T>(
@@ -59,22 +57,17 @@ class BuildBucketClient {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    final http.Request postRequest = http.Request('POST', url)
-      ..body = json.encode(request.toJson())
-      ..headers[HttpHeaders.contentTypeHeader] = 'application/json'
-      ..headers[HttpHeaders.acceptHeader] = 'application/json';
-    if (token != null) {
-      postRequest.headers[HttpHeaders.authorizationHeader] = '${token.type} ${token.data}';
-    }
-
-    final http.StreamedResponse response = await httpClient.send(postRequest);
-    final String responseBody = await response.stream.bytesToString();
+    final http.Response response = await httpClient.post(url, body: json.encode(request), headers: <String, String>{
+      HttpHeaders.contentTypeHeader: 'application/json',
+      HttpHeaders.acceptHeader: 'application/json',
+      if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
+    });
 
     if (response.statusCode < 300) {
       return responseFromJson(
-          json.decode(responseBody.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
+          json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
     }
-    throw BuildBucketException(response.statusCode, responseBody);
+    throw BuildBucketException(response.statusCode, response.body);
   }
 
   /// The RPC request to schedule a build.

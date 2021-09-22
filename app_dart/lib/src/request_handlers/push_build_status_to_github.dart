@@ -54,6 +54,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
+      log!.debug('GitHub statuses are not pushed from local dev environments');
       return Body.empty;
     }
     luciBuildService.setLogger(log!);
