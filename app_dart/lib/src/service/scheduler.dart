@@ -373,6 +373,7 @@ class Scheduler {
       );
     } else {
       log.warning('Marking PR #$prNumber ci.yaml validation as failed');
+      log.warning(exception.toString());
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
