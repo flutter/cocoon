@@ -54,10 +54,7 @@ class AuthenticationProvider {
     this.clientContextProvider = Providers.serviceScopeContext,
     this.httpClientProvider = Providers.freshHttpClient,
     this.loggingProvider = Providers.serviceScopeLogger,
-  })  : assert(config != null),
-        assert(clientContextProvider != null),
-        assert(httpClientProvider != null),
-        assert(loggingProvider != null);
+  });
 
   /// The Cocoon config, guaranteed to be non-null.
   final Config config;
@@ -89,7 +86,7 @@ class AuthenticationProvider {
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
+    final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final ClientContext clientContext = clientContextProvider();
     final Logging log = loggingProvider();
 
@@ -111,15 +108,15 @@ class AuthenticationProvider {
 
   /// Gets oauth token information. This method requires the token to be stored in
   /// X-Flutter-IdToken header.
-  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging log, String tokenType = 'id_token'}) async {
-    final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
+  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging? log, String tokenType = 'id_token'}) async {
+    final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final http.Client client = httpClientProvider();
     final Logging log = loggingProvider();
     try {
       final http.Response verifyTokenResponse = await client.get(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
-        <String, String>{
+        <String, String?>{
           tokenType: idTokenFromHeader,
         },
       ));
@@ -141,12 +138,12 @@ class AuthenticationProvider {
     }
   }
 
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateToken(TokenInfo token,
+      {required ClientContext clientContext, Logging? log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final String clientId = await config.oauthClientId;
-    assert(clientId != null);
-    if (token.audience != clientId && !token.email.endsWith('@google.com')) {
-      log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
+    if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
+      log!.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
       throw const Unauthenticated('Invalid ID token');
     }
 
@@ -159,7 +156,7 @@ class AuthenticationProvider {
     return AuthenticatedContext(clientContext: clientContext);
   }
 
-  Future<bool> _isAllowed(String email) async {
+  Future<bool> _isAllowed(String? email) async {
     final Query<AllowedAccount> query = config.db.query<AllowedAccount>()
       ..filter('email =', email)
       ..limit(20);
@@ -178,8 +175,8 @@ class AuthenticationProvider {
 class AuthenticatedContext {
   /// Creates a new [AuthenticatedContext].
   const AuthenticatedContext({
-    @required this.clientContext,
-  }) : assert(clientContext != null);
+    required this.clientContext,
+  });
 
   /// The App Engine [ClientContext] of the current request.
   ///

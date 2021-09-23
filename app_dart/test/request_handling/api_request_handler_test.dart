@@ -17,9 +17,9 @@ import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('ApiRequestHandler', () {
-    HttpServer server;
-    FakeLogging log;
-    ApiRequestHandler<dynamic> handler;
+    late HttpServer server;
+    late FakeLogging log;
+    late ApiRequestHandler<dynamic> handler;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -29,7 +29,7 @@ void main() {
             log.debug(line);
           },
         );
-        return runZoned<Future<void>>(() {
+        return runZoned<dynamic>(() {
           return ss.fork(() {
             ss.register(#appengine.logging, log);
             return handler.service(request);
@@ -46,7 +46,7 @@ void main() {
       log = FakeLogging();
     });
 
-    Future<HttpClientResponse> issueRequest({String body}) async {
+    Future<HttpClientResponse> issueRequest({String? body}) async {
       final HttpClient client = HttpClient();
       final Uri url = Uri(scheme: 'http', host: 'localhost', port: server.port, path: '/path');
       final HttpClientRequest request = await client.getUrl(url);
@@ -144,8 +144,8 @@ class ReadParams extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-RequestBody', requestBody.toString());
-    response.headers.add('X-Test-RequestData', requestData.toString());
+    response!.headers.add('X-Test-RequestBody', requestBody.toString());
+    response!.headers.add('X-Test-RequestData', requestData.toString());
     return Body.empty;
   }
 }
@@ -165,7 +165,7 @@ class AccessAuth extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-IsDev', authContext.clientContext.isDevelopmentEnvironment);
+    response!.headers.add('X-Test-IsDev', authContext!.clientContext.isDevelopmentEnvironment);
     return Body.empty;
   }
 }

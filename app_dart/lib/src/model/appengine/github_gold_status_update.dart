@@ -9,7 +9,7 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'GithubGoldStatusUpdate')
 class GithubGoldStatusUpdate extends Model<int> {
   GithubGoldStatusUpdate({
-    Key<int> key,
+    Key<int>? key,
     this.pr,
     this.head,
     this.status,
@@ -32,22 +32,22 @@ class GithubGoldStatusUpdate extends Model<int> {
   static const String statusRunning = 'pending';
 
   @IntProperty(propertyName: 'PR', required: true)
-  int pr;
+  int? pr;
 
   @StringProperty(propertyName: 'Head')
-  String head;
+  String? head;
 
   @StringProperty(propertyName: 'Status', required: true)
-  String status;
+  String? status;
 
   @StringProperty(propertyName: 'Description', required: true)
-  String description;
+  String? description;
 
   @IntProperty(propertyName: 'Updates', required: true)
-  int updates;
+  int? updates;
 
   @StringProperty(propertyName: 'Repository', required: true)
-  String repository;
+  String? repository;
 
   @override
   String toString() {

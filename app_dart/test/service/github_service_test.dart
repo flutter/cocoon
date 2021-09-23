@@ -15,9 +15,9 @@ import 'package:test/test.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  GithubService githubService;
+  late GithubService githubService;
   MockGitHub mockGitHub;
-  RepositorySlug slug;
+  late RepositorySlug slug;
 
   const String branch = 'master';
   const int lastCommitTimestampMills = 100;
@@ -79,12 +79,12 @@ void main() {
     final RepositoryCommit commit = commits.single;
     expect(commit.sha, shas.single);
     expect(commit.author, isNotNull);
-    expect(commit.author.login, authorLogin);
-    expect(commit.author.avatarUrl, authorAvatarUrl);
+    expect(commit.author!.login, authorLogin);
+    expect(commit.author!.avatarUrl, authorAvatarUrl);
     expect(commit.commit, isNotNull);
-    expect(commit.commit.message, commitMessage);
-    expect(commit.commit.committer, isNotNull);
-    expect(commit.commit.committer.name, authorName);
-    expect(commit.commit.committer.email, authorEmail);
+    expect(commit.commit!.message, commitMessage);
+    expect(commit.commit!.committer, isNotNull);
+    expect(commit.commit!.committer!.name, authorName);
+    expect(commit.commit!.committer!.email, authorEmail);
   });
 }

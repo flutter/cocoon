@@ -14,9 +14,9 @@ void main() {
       json.decode(buildPushMessageJson) as Map<String, dynamic>,
     );
 
-    expect(data.build.tags.length, 11);
-    expect(data.build.tagsByName('builder').single, 'Linux Coverage');
-    expect(data.build.tagsByName('buildset'), const <String>[
+    expect(data.build!.tags!.length, 11);
+    expect(data.build!.tagsByName('builder').single, 'Linux Coverage');
+    expect(data.build!.tagsByName('buildset'), const <String>[
       'pr/git/37647',
       'sha/git/0d78fc94f890a64af140ce0a2671ac5fc636f59b',
     ]);

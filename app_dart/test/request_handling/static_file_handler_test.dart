@@ -16,8 +16,8 @@ import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
   group('StaticFileHandler', () {
-    RequestHandlerTester tester;
-    FileSystem fs;
+    late RequestHandlerTester tester;
+    late FileSystem fs;
 
     final FakeConfig config = FakeConfig();
 
@@ -34,7 +34,7 @@ void main() {
     });
 
     Future<String> _decodeHandlerBody(Body body) {
-      return utf8.decoder.bind(body.serialize()).first;
+      return utf8.decoder.bind(body.serialize() as Stream<List<int>>).first;
     }
 
     test('returns 404 response when file does not exist', () async {

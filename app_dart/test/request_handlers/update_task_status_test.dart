@@ -18,12 +18,11 @@ import '../src/request_handling/fake_authentication.dart';
 
 void main() {
   group('UpdateTaskStatus', () {
-    FakeConfig config;
-    ApiRequestHandlerTester tester;
-    UpdateTaskStatus handler;
-    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
-
-    Commit commit;
+    late FakeConfig config;
+    late ApiRequestHandlerTester tester;
+    late UpdateTaskStatus handler;
+    final FakeTabledataResource tabledataResourceApi = FakeTabledataResource();
+    late Commit commit;
     const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
     const int taskId = 4506830800027648;
 
@@ -32,7 +31,7 @@ void main() {
       config = FakeConfig(
         dbValue: datastoreDB,
         flutterBranchesValue: <String>['master'],
-        tabledataResourceApi: tabledataResourceApi,
+        tabledataResource: tabledataResourceApi,
         maxTaskRetriesValue: 2,
       );
       tester = ApiRequestHandlerTester();
@@ -43,7 +42,9 @@ void main() {
       );
       commit = Commit(
         key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
+        repository: config.flutterSlug.fullName,
         sha: commitSha,
+        timestamp: 123,
       );
     });
 
@@ -53,6 +54,7 @@ void main() {
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
+        status: Task.statusInProgress,
         isFlaky: false, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
       );
@@ -76,6 +78,7 @@ void main() {
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
+        status: Task.statusInProgress,
         isFlaky: false, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
       );
@@ -100,6 +103,7 @@ void main() {
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
+        status: Task.statusInProgress,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
       );
@@ -144,6 +148,7 @@ void main() {
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
+        status: Task.statusInProgress,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
       );

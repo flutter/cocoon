@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../service/bigquery.dart';
@@ -50,9 +49,9 @@ const String _flakeRecordPrefix =
 /// A builder to build a new issue for a flake.
 class IssueBuilder {
   IssueBuilder({
-    @required this.statistic,
-    @required this.ownership,
-    @required this.threshold,
+    required this.statistic,
+    required this.ownership,
+    required this.threshold,
   });
 
   final BuilderStatistic statistic;
@@ -63,7 +62,7 @@ class IssueBuilder {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
   }
 
-  String get issueAssignee {
+  String? get issueAssignee {
     return ownership.owner;
   }
 
@@ -75,10 +74,10 @@ The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
 
 Succeeded builds (3 most recent):
-${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds.sublist(0, 3))}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, 3))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -90,8 +89,8 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
       kSevereFlakeLabel,
       kP1Label,
     ];
-    final String teamLabel = _getTeamLabelFromTeam(ownership.team);
-    if (teamLabel?.isNotEmpty == true) {
+    final String? teamLabel = _getTeamLabelFromTeam(ownership.team);
+    if (teamLabel != null && teamLabel.isNotEmpty == true) {
       labels.add(teamLabel);
     }
     return labels;
@@ -102,9 +101,9 @@ Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fi
 /// issue.
 class IssueUpdateBuilder {
   IssueUpdateBuilder({
-    @required this.statistic,
-    @required this.threshold,
-    @required this.existingIssue,
+    required this.statistic,
+    required this.threshold,
+    required this.existingIssue,
   });
 
   final BuilderStatistic statistic;
@@ -114,8 +113,7 @@ class IssueUpdateBuilder {
   bool get isBelow => statistic.flakyRate < threshold;
 
   List<String> get issueLabels {
-    final List<String> existingLabels =
-        existingIssue.labels?.map<String>((IssueLabel label) => label.name)?.toList() ?? <String>[];
+    final List<String> existingLabels = existingIssue.labels.map<String>((IssueLabel label) => label.name).toList();
     // Update the priority.
     if (!existingLabels.contains(kP1Label) && !isBelow) {
       existingLabels.remove(kP2Label);
@@ -136,7 +134,7 @@ class IssueUpdateBuilder {
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
 ''';
     }
     return result;
@@ -146,9 +144,9 @@ ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds)}
 /// A builder to build the pull request title and body for marking test flaky
 class PullRequestBuilder {
   PullRequestBuilder({
-    @required this.statistic,
-    @required this.ownership,
-    @required this.issue,
+    required this.statistic,
+    required this.ownership,
+    required this.issue,
   });
 
   final BuilderStatistic statistic;
@@ -157,20 +155,20 @@ class PullRequestBuilder {
 
   String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
   String get pullRequestBody => '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
-  String get pullRequestReviewer => ownership.owner;
+  String? get pullRequestReviewer => ownership.owner;
 }
 
 /// A builder to build the pull request title and body for marking test unflaky
 class DeflakePullRequestBuilder {
   DeflakePullRequestBuilder({
-    @required this.name,
-    @required this.recordNumber,
-    @required this.ownership,
+    required this.name,
+    required this.recordNumber,
+    required this.ownership,
     this.issue,
   });
 
-  final String name;
-  final Issue issue;
+  final String? name;
+  final Issue? issue;
   final TestOwnership ownership;
   final int recordNumber;
 
@@ -179,7 +177,7 @@ class DeflakePullRequestBuilder {
     String body = _buildHiddenMetaTags(name: name);
     if (issue != null) {
       body +=
-          'The issue ${issue.htmlUrl} has been closed, and the test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
+          'The issue ${issue!.htmlUrl} has been closed, and the test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
     } else {
       body +=
           'The test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
@@ -188,7 +186,7 @@ class DeflakePullRequestBuilder {
     return body;
   }
 
-  String get pullRequestReviewer => ownership.owner;
+  String? get pullRequestReviewer => ownership.owner;
 }
 
 // TESTOWNER Regex
@@ -206,17 +204,17 @@ final RegExp shardTestOwners = RegExp('## Shards tests\n(?<$kOwnerGroupName>.+)'
 /// Gets the existing flaky issues.
 ///
 /// The state can be 'open', 'closed', or 'all'.
-Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlug slug, {String state = 'all'}) async {
-  final Map<String, Issue> nameToExistingIssue = <String, Issue>{};
+Future<Map<String?, Issue>> getExistingIssues(GithubService gitHub, RepositorySlug slug, {String state = 'all'}) async {
+  final Map<String?, Issue> nameToExistingIssue = <String?, Issue>{};
   for (final Issue issue in await gitHub.listIssues(slug, state: state, labels: <String>[kTeamFlakeLabel])) {
-    if (issue.htmlUrl?.contains('pull') == true) {
+    if (issue.htmlUrl.contains('pull') == true) {
       // For some reason, this github api may also return pull requests.
       continue;
     }
-    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(issue.body);
+    final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(issue.body);
     if (metaTags != null) {
-      final String name = metaTags['name'] as String;
-      if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name], issue)) {
+      final String? name = metaTags['name'] as String?;
+      if (!nameToExistingIssue.containsKey(name) || _isOtherIssueMoreImportant(nameToExistingIssue[name]!, issue)) {
         nameToExistingIssue[name] = issue;
       }
     }
@@ -225,10 +223,10 @@ Future<Map<String, Issue>> getExistingIssues(GithubService gitHub, RepositorySlu
 }
 
 /// Gets the existing open pull requests that make tests flaky.
-Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
-  final Map<String, PullRequest> nameToExistingPRs = <String, PullRequest>{};
+Future<Map<String?, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
+  final Map<String?, PullRequest> nameToExistingPRs = <String?, PullRequest>{};
   for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-    final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(pr.body);
+    final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body!);
     if (metaTags != null) {
       nameToExistingPRs[metaTags['name'] as String] = pr;
     }
@@ -239,17 +237,17 @@ Future<Map<String, PullRequest>> getExistingPRs(GithubService gitHub, Repository
 /// Looks up the owner of a builder in TESTOWNERS file.
 TestOwnership getTestOwnership(String builderName, BuilderType type, String testOwnersContent) {
   final String testName = _getTestNameFromBuilderName(builderName);
-  String owner;
-  Team team;
+  String? owner;
+  Team? team;
   switch (type) {
     case BuilderType.shard:
       {
         // The format looks like this:
         //   # build_tests @zanderso @flutter/tool
-        final RegExpMatch match = shardTestOwners.firstMatch(testOwnersContent);
+        final RegExpMatch? match = shardTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines =
-              match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.contains('@')).toList();
+              match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.contains('@')).toList();
 
           for (final String line in lines) {
             final List<String> words = line.trim().split(' ');
@@ -267,10 +265,10 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
       {
         // The format looks like this:
         //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
-        final RegExpMatch match = devicelabTestOwners.firstMatch(testOwnersContent);
+        final RegExpMatch? match = devicelabTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines = match
-              .namedGroup(kOwnerGroupName)
+              .namedGroup(kOwnerGroupName)!
               .split('\n')
               .where((String line) => line.isNotEmpty && !line.startsWith('#'))
               .toList();
@@ -292,10 +290,10 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
         // The format looks like this:
         //   # Linux analyze
         //   /dev/bots/analyze.dart @HansMuller @flutter/framework
-        final RegExpMatch match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
+        final RegExpMatch? match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines =
-              match.namedGroup(kOwnerGroupName).split('\n').where((String line) => line.isNotEmpty).toList();
+              match.namedGroup(kOwnerGroupName)!.split('\n').where((String line) => line.isNotEmpty).toList();
           int index = 0;
           while (index < lines.length) {
             if (lines[index].startsWith('#')) {
@@ -331,10 +329,10 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
       {
         // The format looks like this for builder `Linux firebase_abstrac_method_smoke_test`:
         //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
-        final RegExpMatch match = firebaselabTestOwners.firstMatch(testOwnersContent);
+        final RegExpMatch? match = firebaselabTestOwners.firstMatch(testOwnersContent);
         if (match != null && match.namedGroup(kOwnerGroupName) != null) {
           final List<String> lines = match
-              .namedGroup(kOwnerGroupName)
+              .namedGroup(kOwnerGroupName)!
               .split('\n')
               .where((String line) => line.isNotEmpty && !line.startsWith('#'))
               .toList();
@@ -360,8 +358,8 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
-  final List<dynamic> tags = _getTags(builderName, ci);
+BuilderType getTypeForBuilder(String? builderName, YamlMap ci) {
+  final List<dynamic>? tags = _getTags(builderName, ci);
   if (tags == null) {
     return BuilderType.unknown;
   }
@@ -388,16 +386,16 @@ BuilderType getTypeForBuilder(String builderName, YamlMap ci) {
   return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
 }
 
-List<dynamic> _getTags(String builderName, YamlMap ci) {
+List<dynamic>? _getTags(String? builderName, YamlMap ci) {
   final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-  final YamlMap target = targets.firstWhere(
+  final YamlMap? target = targets.firstWhere(
     (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
     orElse: () => null,
-  ) as YamlMap;
+  ) as YamlMap?;
   if (target == null) {
     return null;
   }
-  return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>;
+  return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>?;
 }
 
 String _getTestNameFromBuilderName(String builderName) {
@@ -416,11 +414,11 @@ bool _isOtherIssueMoreImportant(Issue original, Issue other) {
   } else if (original.isClosed && other.isOpen) {
     return true;
   } else {
-    return other.createdAt.isAfter(original.createdAt);
+    return other.createdAt!.isAfter(original.createdAt!);
   }
 }
 
-String _buildHiddenMetaTags({String name}) {
+String _buildHiddenMetaTags({String? name}) {
   return '''<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
   "name": "$name"
@@ -438,21 +436,21 @@ final RegExp _issueHiddenMetaTagsRegex =
 /// The script generated contents for issue bodies or pull request bodies
 /// contain the meta tags. Using this method is a reliable way to check whether
 /// a issue or pull request is generated by this script.
-Map<String, dynamic> retrieveMetaTagsFromContent(String content) {
-  final RegExpMatch match = _issueHiddenMetaTagsRegex.firstMatch(content);
+Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
+  final RegExpMatch? match = _issueHiddenMetaTagsRegex.firstMatch(content);
   if (match == null) {
     return null;
   }
-  return jsonDecode(match.namedGroup('meta')) as Map<String, dynamic>;
+  return jsonDecode(match.namedGroup('meta')!) as Map<String, dynamic>?;
 }
 
 String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
 
-String _issueBuildLinks({String builder, List<String> builds}) {
+String _issueBuildLinks({String? builder, required List<String> builds}) {
   return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build)).join('\n')}';
 }
 
-String _issueBuildLink({String builder, String build}) {
+String _issueBuildLink({String? builder, String? build}) {
   return Uri.encodeFull('$_buildPrefix$builder/$build');
 }
 
@@ -470,7 +468,7 @@ Team _teamFromString(String teamString) {
   return Team.unknown;
 }
 
-String _getTeamLabelFromTeam(Team team) {
+String? _getTeamLabelFromTeam(Team? team) {
   switch (team) {
     case Team.framework:
       return kFrameworkLabel;
@@ -481,9 +479,9 @@ String _getTeamLabelFromTeam(Team team) {
     case Team.web:
       return kWebLabel;
     case Team.unknown:
+    case null:
       return null;
   }
-  return null;
 }
 
 enum BuilderType {
@@ -507,6 +505,6 @@ class TestOwnership {
     this.owner,
     this.team,
   );
-  String owner;
-  Team team;
+  String? owner;
+  Team? team;
 }

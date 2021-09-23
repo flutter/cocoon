@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:googleapis_auth/auth.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'service_account_info.g.dart';
@@ -37,40 +37,40 @@ class ServiceAccountInfo {
   factory ServiceAccountInfo.fromJson(Map<String, dynamic> json) => _$ServiceAccountInfoFromJson(json);
 
   @JsonKey(name: 'type')
-  final String type;
+  final String? type;
 
   @JsonKey(name: 'project_id')
-  final String projectId;
+  final String? projectId;
 
   @JsonKey(name: 'private_key_id')
-  final String privateKeyId;
+  final String? privateKeyId;
 
   @JsonKey(name: 'private_key')
-  final String privateKey;
+  final String? privateKey;
 
   @JsonKey(name: 'client_email')
-  final String email;
+  final String? email;
 
   @JsonKey(name: 'client_id')
-  final String clientId;
+  final String? clientId;
 
   @JsonKey(name: 'auth_uri')
-  final String authUrl;
+  final String? authUrl;
 
   @JsonKey(name: 'token_uri')
-  final String tokenUrl;
+  final String? tokenUrl;
 
   @JsonKey(name: 'auth_provider_x509_cert_url')
-  final String authCertUrl;
+  final String? authCertUrl;
 
   @JsonKey(name: 'client_x509_cert_url')
-  final String clientCertUrl;
+  final String? clientCertUrl;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$ServiceAccountInfoToJson(this);
 
   /// Returns this object in its [ServiceAccountCredentials] form.
   ServiceAccountCredentials asServiceAccountCredentials() {
-    return ServiceAccountCredentials(email, ClientId(clientId, null), privateKey);
+    return ServiceAccountCredentials(email!, ClientId(clientId!, null), privateKey!);
   }
 }

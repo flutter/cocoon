@@ -2,8 +2,8 @@
 //  Generated code. Do not modify.
 //  source: lib/src/model/appengine/key_helper.proto
 //
-// @dart = 2.3
-// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+// @dart = 2.12
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
 
@@ -11,20 +11,44 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Path_Element extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Path.Element', createEmptyInstance: create)
-    ..aQS(2, 'type')
-    ..aInt64(3, 'id')
-    ..aOS(4, 'name');
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Path.Element',
+      createEmptyInstance: create)
+    ..aQS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
+    ..aInt64(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name');
 
   Path_Element._() : super();
-  factory Path_Element() => create();
+  factory Path_Element({
+    $core.String? type,
+    $fixnum.Int64? id,
+    $core.String? name,
+  }) {
+    final _result = create();
+    if (type != null) {
+      _result.type = type;
+    }
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    return _result;
+  }
   factory Path_Element.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Path_Element.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Path_Element clone() => Path_Element()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Path_Element copyWith(void Function(Path_Element) updates) =>
-      super.copyWith((message) => updates(message as Path_Element));
+      super.copyWith((message) => updates(message as Path_Element)) as Path_Element; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Path_Element create() => Path_Element._();
@@ -32,7 +56,7 @@ class Path_Element extends $pb.GeneratedMessage {
   static $pb.PbList<Path_Element> createRepeated() => $pb.PbList<Path_Element>();
   @$core.pragma('dart2js:noInline')
   static Path_Element getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Path_Element>(create);
-  static Path_Element _defaultInstance;
+  static Path_Element? _defaultInstance;
 
   @$pb.TagNumber(2)
   $core.String get type => $_getSZ(0);
@@ -72,18 +96,37 @@ class Path_Element extends $pb.GeneratedMessage {
 }
 
 class Path extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Path', createEmptyInstance: create)
-    ..pc<Path_Element>(1, 'element', $pb.PbFieldType.PG, subBuilder: Path_Element.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Path',
+      createEmptyInstance: create)
+    ..pc<Path_Element>(
+        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'element', $pb.PbFieldType.PG,
+        subBuilder: Path_Element.create)
     ..hasRequiredFields = false;
 
   Path._() : super();
-  factory Path() => create();
+  factory Path({
+    $core.Iterable<Path_Element>? element,
+  }) {
+    final _result = create();
+    if (element != null) {
+      _result.element.addAll(element);
+    }
+    return _result;
+  }
   factory Path.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Path.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Path clone() => Path()..mergeFromMessage(this);
-  Path copyWith(void Function(Path) updates) => super.copyWith((message) => updates(message as Path));
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Path copyWith(void Function(Path) updates) =>
+      super.copyWith((message) => updates(message as Path)) as Path; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Path create() => Path._();
@@ -91,26 +134,52 @@ class Path extends $pb.GeneratedMessage {
   static $pb.PbList<Path> createRepeated() => $pb.PbList<Path>();
   @$core.pragma('dart2js:noInline')
   static Path getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Path>(create);
-  static Path _defaultInstance;
+  static Path? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<Path_Element> get element => $_getList(0);
 }
 
 class Reference extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Reference', createEmptyInstance: create)
-    ..aQS(13, 'app')
-    ..aQM<Path>(14, 'path', subBuilder: Path.create)
-    ..aOS(20, 'nameSpace');
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Reference',
+      createEmptyInstance: create)
+    ..aQS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'app')
+    ..aQM<Path>(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'path',
+        subBuilder: Path.create)
+    ..aOS(20, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nameSpace');
 
   Reference._() : super();
-  factory Reference() => create();
+  factory Reference({
+    $core.String? app,
+    Path? path,
+    $core.String? nameSpace,
+  }) {
+    final _result = create();
+    if (app != null) {
+      _result.app = app;
+    }
+    if (path != null) {
+      _result.path = path;
+    }
+    if (nameSpace != null) {
+      _result.nameSpace = nameSpace;
+    }
+    return _result;
+  }
   factory Reference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
   factory Reference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Reference clone() => Reference()..mergeFromMessage(this);
-  Reference copyWith(void Function(Reference) updates) => super.copyWith((message) => updates(message as Reference));
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Reference copyWith(void Function(Reference) updates) =>
+      super.copyWith((message) => updates(message as Reference)) as Reference; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Reference create() => Reference._();
@@ -118,7 +187,7 @@ class Reference extends $pb.GeneratedMessage {
   static $pb.PbList<Reference> createRepeated() => $pb.PbList<Reference>();
   @$core.pragma('dart2js:noInline')
   static Reference getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Reference>(create);
-  static Reference _defaultInstance;
+  static Reference? _defaultInstance;
 
   @$pb.TagNumber(13)
   $core.String get app => $_getSZ(0);

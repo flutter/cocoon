@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
@@ -41,13 +40,13 @@ class GithubStatusService {
   }
 
   Future<bool> setPendingStatus({
-    @required String ref,
-    @required String builderName,
-    @required String buildUrl,
-    @required RepositorySlug slug,
+    required String ref,
+    required String builderName,
+    required String buildUrl,
+    required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.luciBuilders('try', slug), builderName) == null) {
+    if (await repoNameForBuilder((await config.luciBuilders('try', slug))!, builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug);
@@ -59,7 +58,7 @@ class GithubStatusService {
     // However, we should keep going if the _most recent_ status is not pending.
     await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
-        if (status.state == PENDING_STATE && status.targetUrl.startsWith(buildUrl)) {
+        if (status.state == PENDING_STATE && status.targetUrl!.startsWith(buildUrl)) {
           return false;
         }
         break;
@@ -81,15 +80,15 @@ class GithubStatusService {
     return true;
   }
 
-  Future<void> setCompletedStatus({
-    @required String ref,
-    @required String builderName,
-    @required String buildUrl,
-    @required Result result,
-    @required RepositorySlug slug,
+  Future<bool> setCompletedStatus({
+    required String ref,
+    required String builderName,
+    required String buildUrl,
+    required Result result,
+    required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.luciBuilders('try', slug), builderName) == null) {
+    if (await repoNameForBuilder((await config.luciBuilders('try', slug))!, builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug);
@@ -98,6 +97,7 @@ class GithubStatusService {
       ..description = 'Flutter LUCI Build: $builderName'
       ..targetUrl = buildUrl;
     await gitHubClient.repositories.createStatus(slug, ref, status);
+    return true;
   }
 
   CreateStatus statusForResult(Result result) {
@@ -105,11 +105,8 @@ class GithubStatusService {
       case Result.canceled:
       case Result.failure:
         return CreateStatus('failure');
-        break;
       case Result.success:
         return CreateStatus('success');
-        break;
     }
-    throw StateError('unreachable');
   }
 }

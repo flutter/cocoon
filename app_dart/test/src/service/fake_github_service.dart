@@ -9,11 +9,12 @@ import '../utilities/mocks.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
-  List<RepositoryCommit> Function(String, int) listCommitsBranch;
-  List<PullRequest> Function(String) listPullRequestsBranch;
+  FakeGithubService({GitHub? client}) : github = client ?? MockGitHub();
+  late List<RepositoryCommit> Function(String, int) listCommitsBranch;
+  late List<PullRequest> Function(String?) listPullRequestsBranch;
 
   @override
-  final GitHub github = MockGitHub();
+  final GitHub github;
 
   @override
   Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
@@ -21,20 +22,20 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) async {
     return listPullRequestsBranch(branch);
   }
 
   @override
-  Future<void> assignReviewer(RepositorySlug slug, {int pullRequestNumber, String reviewer}) async {}
+  Future<void> assignReviewer(RepositorySlug slug, {int? pullRequestNumber, String? reviewer}) async {}
 
   @override
   Future<Issue> createIssue(
     RepositorySlug slug, {
-    String title,
-    String body,
-    List<String> labels,
-    String assignee,
+    String? title,
+    String? body,
+    List<String?>? labels,
+    String? assignee,
   }) async {
     return Issue();
   }
@@ -42,8 +43,8 @@ class FakeGithubService implements GithubService {
   @override
   Future<void> assignIssue(
     RepositorySlug slug, {
-    int issueNumber,
-    String assignee,
+    int? issueNumber,
+    String? assignee,
   }) async {
     return;
   }
@@ -51,11 +52,11 @@ class FakeGithubService implements GithubService {
   @override
   Future<PullRequest> createPullRequest(
     RepositorySlug slug, {
-    String title,
-    String body,
-    String commitMessage,
-    GitReference baseRef,
-    List<CreateGitTreeEntry> entries,
+    String? title,
+    String? body,
+    String? commitMessage,
+    GitReference? baseRef,
+    List<CreateGitTreeEntry>? entries,
   }) async {
     return PullRequest();
   }
@@ -78,25 +79,25 @@ class FakeGithubService implements GithubService {
   @override
   Future<List<Issue>> listIssues(
     RepositorySlug slug, {
-    List<String> labels,
+    List<String>? labels,
     String state = 'open',
   }) async {
     return <Issue>[];
   }
 
   @override
-  Future<Issue> getIssue(
+  Future<Issue>? getIssue(
     RepositorySlug slug, {
-    int issueNumber,
+    int? issueNumber,
   }) {
     return null;
   }
 
   @override
-  Future<IssueComment> createComment(
+  Future<IssueComment?> createComment(
     RepositorySlug slug, {
-    int issueNumber,
-    String body,
+    int? issueNumber,
+    String? body,
   }) async {
     return null;
   }
@@ -104,8 +105,8 @@ class FakeGithubService implements GithubService {
   @override
   Future<List<IssueLabel>> replaceLabelsForIssue(
     RepositorySlug slug, {
-    int issueNumber,
-    List<String> labels,
+    int? issueNumber,
+    List<String>? labels,
   }) async {
     return <IssueLabel>[];
   }

@@ -17,7 +17,7 @@ part 'grpc.g.dart';
 /// * https://cloud.google.com/apis/design/errors
 @JsonSerializable(includeIfNull: false)
 class GrpcStatus extends JsonBody {
-  const GrpcStatus({this.code, this.message, this.details});
+  const GrpcStatus({required this.code, this.message, this.details});
 
   /// Creates a [Status] from JSON.
   static GrpcStatus fromJson(Map<String, dynamic> json) => _$GrpcStatusFromJson(json);
@@ -28,7 +28,7 @@ class GrpcStatus extends JsonBody {
   /// A developer-facing error message, which should be in English. Any
   /// user-facing error message should be localized and sent in the
   /// [google.rpc.Status.details][] field, or localized by the client.
-  final String message;
+  final String? message;
 
   /// A list of messages that carry the error details.  There is a common set of
   /// message types for APIs to use.

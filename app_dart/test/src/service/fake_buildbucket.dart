@@ -4,8 +4,8 @@
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
-
-import '../request_handling/fake_http.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 /// Fake [BuildBucketClient] for handling requests to BuildBucket.
 ///
@@ -18,30 +18,30 @@ class FakeBuildBucketClient extends BuildBucketClient {
     this.batchResponse,
     this.cancelBuildResponse,
     this.getBuildResponse,
-  }) : super(httpClient: FakeHttpClient());
+  }) : super(httpClient: MockClient((_) async => http.Response('', 200)));
 
-  Future<Build> scheduleBuildResponse;
-  Future<SearchBuildsResponse> searchBuildsResponse;
-  Future<BatchResponse> batchResponse;
-  Future<Build> cancelBuildResponse;
-  Future<Build> getBuildResponse;
+  Future<Build>? scheduleBuildResponse;
+  Future<SearchBuildsResponse>? searchBuildsResponse;
+  Future<BatchResponse>? batchResponse;
+  Future<Build>? cancelBuildResponse;
+  Future<Build>? getBuildResponse;
 
   @override
-  Future<Build> scheduleBuild(ScheduleBuildRequest request) async => (scheduleBuildResponse != null)
-      ? await scheduleBuildResponse
+  Future<Build> scheduleBuild(ScheduleBuildRequest? request) async => (scheduleBuildResponse != null)
+      ? await scheduleBuildResponse!
       : Build(
-          id: 123,
-          builderId: request.builderId,
+          id: '123',
+          builderId: request!.builderId,
           tags: request.tags,
         );
 
   @override
-  Future<SearchBuildsResponse> searchBuilds(SearchBuildsRequest request) async => (searchBuildsResponse != null)
-      ? await searchBuildsResponse
+  Future<SearchBuildsResponse> searchBuilds(SearchBuildsRequest? request) async => (searchBuildsResponse != null)
+      ? await searchBuildsResponse!
       : const SearchBuildsResponse(
           builds: <Build>[
             Build(
-                id: 123,
+                id: '123',
                 builderId: BuilderId(
                   builder: 'builder_abc',
                   bucket: 'try',
@@ -56,7 +56,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
   @override
   Future<BatchResponse> batch(BatchRequest request) async {
     final List<Response> responses = <Response>[];
-    for (Request request in request.requests) {
+    for (Request request in request.requests!) {
       if (request.cancelBuild != null) {
         responses.add(Response(cancelBuild: await cancelBuild(request.cancelBuild)));
       } else if (request.getBuild != null) {
@@ -71,10 +71,10 @@ class FakeBuildBucketClient extends BuildBucketClient {
   }
 
   @override
-  Future<Build> cancelBuild(CancelBuildRequest request) async => (cancelBuildResponse != null)
-      ? await cancelBuildResponse
+  Future<Build> cancelBuild(CancelBuildRequest? request) async => (cancelBuildResponse != null)
+      ? await cancelBuildResponse!
       : Build(
-          id: request.id,
+          id: request!.id,
           builderId: const BuilderId(
             bucket: 'try',
             project: 'flutter',
@@ -83,11 +83,11 @@ class FakeBuildBucketClient extends BuildBucketClient {
           summaryMarkdown: request.summaryMarkdown);
 
   @override
-  Future<Build> getBuild(GetBuildRequest request) async => (getBuildResponse != null)
-      ? await getBuildResponse
+  Future<Build> getBuild(GetBuildRequest? request) async => (getBuildResponse != null)
+      ? await getBuildResponse!
       : Build(
-          id: request.id,
-          builderId: request.builderId,
+          id: request!.id!,
+          builderId: request.builderId!,
           number: request.buildNumber,
         );
 }

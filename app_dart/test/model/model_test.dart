@@ -42,8 +42,8 @@ void main() {
     for (ClassMirror modelClass in classes) {
       group('${modelClass.reflectedType}', () {
         test('extends Model', () {
-          final bool isStringModel = modelClass.superclass.reflectedType.toString() == 'Model<String>';
-          final bool isIntModel = modelClass.superclass.reflectedType.toString() == 'Model<int>';
+          final bool isStringModel = modelClass.superclass!.reflectedType.toString() == 'Model<String>';
+          final bool isIntModel = modelClass.superclass!.reflectedType.toString() == 'Model<int>';
           expect(isStringModel || isIntModel, isTrue);
         });
 
@@ -126,7 +126,7 @@ class SymbolName {
   @override
   String toString() {
     final String raw = symbol.toString();
-    final RegExpMatch match = symbolToString.firstMatch(raw);
-    return match == null ? raw : match.group(1);
+    final RegExpMatch? match = symbolToString.firstMatch(raw);
+    return match == null ? raw : match.group(1)!;
   }
 }

@@ -16,10 +16,9 @@ import 'package:gcloud/db.dart';
 // ignore: must_be_immutable
 class FakeAuthenticationProvider implements AuthenticationProvider {
   FakeAuthenticationProvider({
-    FakeClientContext clientContext,
+    FakeClientContext? clientContext,
     this.authenticated = true,
-  })  : assert(authenticated != null),
-        clientContext = clientContext ?? FakeClientContext();
+  }) : clientContext = clientContext ?? FakeClientContext();
 
   bool authenticated;
   FakeClientContext clientContext;
@@ -34,9 +33,9 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   }
 
   @override
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext? clientContext, Logging? log}) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext);
+      return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext?);
     } else {
       throw const Unauthenticated('Not authenticated');
     }
@@ -55,15 +54,18 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   LoggingProvider get loggingProvider => throw UnimplementedError();
 
   @override
-  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging log, String tokenType = 'id_token'}) async {
-    return const TokenInfo(email: 'abc@gmail.com');
+  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging? log, String tokenType = 'id_token'}) async {
+    return TokenInfo(
+      email: 'abc@gmail.com',
+      issued: DateTime.now(),
+    );
   }
 }
 
 // ignore: must_be_immutable
 class FakeAuthenticatedContext implements AuthenticatedContext {
   FakeAuthenticatedContext({
-    FakeClientContext clientContext,
+    FakeClientContext? clientContext,
   }) : clientContext = clientContext ?? FakeClientContext();
 
   @override
@@ -74,7 +76,7 @@ class FakeClientContext implements ClientContext {
   FakeClientContext({
     this.isDevelopmentEnvironment = true,
     this.isProductionEnvironment = false,
-    FakeAppEngineContext applicationContext,
+    FakeAppEngineContext? applicationContext,
   }) : applicationContext = applicationContext ?? FakeAppEngineContext();
 
   @override
@@ -87,41 +89,41 @@ class FakeClientContext implements ClientContext {
   bool isProductionEnvironment;
 
   @override
-  Services services;
+  late Services services;
 
   @override
-  String traceId;
+  String? traceId;
 }
 
 class FakeAppEngineContext implements AppEngineContext {
   @override
-  String applicationID;
+  late String applicationID;
 
   @override
-  String fullQualifiedApplicationId;
+  late String fullQualifiedApplicationId;
 
   @override
-  String instance;
+  late String instance;
 
   @override
-  String instanceId;
+  String? instanceId;
 
   @override
-  bool isDevelopmentEnvironment;
+  late bool isDevelopmentEnvironment;
 
   @override
-  String module;
+  late String module;
 
   @override
-  String partition;
+  late String partition;
 
   @override
-  String version;
+  late String version;
 }
 
 class FakeKeyHelper extends KeyHelper {
   FakeKeyHelper({
-    AppEngineContext applicationContext,
+    AppEngineContext? applicationContext,
   }) : super(applicationContext: applicationContext);
 
   @override

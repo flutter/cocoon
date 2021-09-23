@@ -4,12 +4,14 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -27,8 +29,8 @@ void main() {
   });
 
   group('Client tests', () {
-    MockHttpClient mockHttpClient;
-    MockAccessTokenService mockAccessTokenProvider;
+    late MockClient httpClient;
+    late MockAccessTokenService mockAccessTokenProvider;
 
     const BuilderId builderId = BuilderId(
       bucket: 'prod',
@@ -37,7 +39,7 @@ void main() {
     );
 
     setUp(() {
-      mockHttpClient = MockHttpClient();
+      httpClient = MockClient((_) => throw Exception('Client not defined'));
       mockAccessTokenProvider = MockAccessTokenService();
     });
 
@@ -50,23 +52,21 @@ void main() {
       when(mockAccessTokenProvider.createAccessToken()).thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
+      httpClient = MockClient((http.Request request) async {
+        expect(request.headers['content-type'], 'application/json; charset=utf-8');
+        expect(request.headers['accept'], 'application/json');
+        expect(request.headers['authorization'], 'Bearer data');
+        if (request.method == 'POST' && request.url.toString() == 'https://localhost/$expectedPath') {
+          return http.Response(response, HttpStatus.accepted);
+        }
+        return http.Response('Test exception: A mock response was not returned', HttpStatus.internalServerError);
+      });
       final BuildBucketClient client = BuildBucketClient(
         buildBucketUri: 'https://localhost',
-        httpClient: mockHttpClient,
+        httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
       );
-      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response) as Uint8List);
-      when(mockHttpResponse.statusCode).thenReturn(202);
-      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
-          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
-
-      expect(mockHttpRequest.headers.value('content-type'), 'application/json');
-      expect(mockHttpRequest.headers.value('accept'), 'application/json');
-      expect(mockHttpRequest.headers.value('authorization'), 'Bearer data');
-      verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
       return result;
     }
 
@@ -74,21 +74,16 @@ void main() {
       when(mockAccessTokenProvider.createAccessToken()).thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
+      httpClient = MockClient((_) async => http.Response('Error', HttpStatus.forbidden));
       final BuildBucketClient client = BuildBucketClient(
         buildBucketUri: 'https://localhost',
-        httpClient: mockHttpClient,
+        httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
       );
-      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode('Error') as Uint8List);
-      when(mockHttpResponse.statusCode).thenReturn(403);
-      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))
-          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       try {
         await client.batch(const BatchRequest());
       } on BuildBucketException catch (ex) {
-        expect(ex.statusCode, 403);
+        expect(ex.statusCode, HttpStatus.forbidden);
         expect(ex.message, 'Error');
         return;
       }
@@ -115,13 +110,13 @@ void main() {
         'ScheduleBuild',
         (BuildBucketClient client) => client.scheduleBuild(request),
       );
-      expect(build.id, 123);
-      expect(build.tags.length, 2);
+      expect(build.id, '123');
+      expect(build.tags!.length, 2);
     });
 
     test('CancelBuild', () async {
       const CancelBuildRequest request = CancelBuildRequest(
-        id: 1234,
+        id: '1234',
         summaryMarkdown: 'Because I felt like it.',
       );
 
@@ -132,8 +127,8 @@ void main() {
         (BuildBucketClient client) => client.cancelBuild(request),
       );
 
-      expect(build.id, 123);
-      expect(build.tags.length, 2);
+      expect(build.id, '123');
+      expect(build.tags!.length, 2);
     });
 
     test('Batch', () async {
@@ -148,13 +143,13 @@ void main() {
         (BuildBucketClient client) => client.batch(request),
       );
 
-      expect(response.responses.length, 1);
-      expect(response.responses.first.getBuild.status, Status.success);
+      expect(response.responses!.length, 1);
+      expect(response.responses!.first.getBuild!.status, Status.success);
     });
 
     test('GetBuild', () async {
       const GetBuildRequest request = GetBuildRequest(
-        id: 1234,
+        id: '1234',
       );
 
       final Build build = await _httpTest<GetBuildRequest, Build>(
@@ -164,8 +159,8 @@ void main() {
         (BuildBucketClient client) => client.getBuild(request),
       );
 
-      expect(build.id, 123);
-      expect(build.tags.length, 2);
+      expect(build.id, '123');
+      expect(build.tags!.length, 2);
     });
 
     test('SearchBuilds', () async {
@@ -184,8 +179,8 @@ void main() {
         (BuildBucketClient client) => client.searchBuilds(request),
       );
 
-      expect(response.builds.length, 1);
-      expect(response.builds.first.number, 9151);
+      expect(response.builds!.length, 1);
+      expect(response.builds!.first.number, 9151);
     });
   });
 }

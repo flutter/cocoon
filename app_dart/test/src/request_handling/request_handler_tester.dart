@@ -14,20 +14,20 @@ import 'fake_logging.dart';
 
 class RequestHandlerTester {
   RequestHandlerTester({
-    FakeHttpRequest request,
-    FakeLogging log,
+    FakeHttpRequest? request,
+    FakeLogging? log,
     this.httpClient,
   }) {
     this.log = log ?? FakeLogging();
     this.request = request ?? FakeHttpRequest();
   }
 
-  FakeHttpRequest request;
-  FakeLogging log;
-  http.MockClient httpClient;
+  FakeHttpRequest? request;
+  FakeLogging? log;
+  http.MockClient? httpClient;
 
   /// This tester's [FakeHttpResponse], derived from [request].
-  FakeHttpResponse get response => request.response;
+  FakeHttpResponse get response => request!.response;
 
   /// Executes [RequestHandler.get] on the specified [handler].
   Future<T> get<T extends Body>(RequestHandler<T> handler) {
@@ -47,7 +47,7 @@ class RequestHandlerTester {
   Future<T> run<T extends Body>(Future<T> callback()) {
     return runZoned<Future<T>>(() {
       return callback();
-    }, zoneValues: <RequestKey<dynamic>, Object>{
+    }, zoneValues: <RequestKey<dynamic>, Object?>{
       RequestKey.request: request,
       RequestKey.response: response,
       RequestKey.log: log,

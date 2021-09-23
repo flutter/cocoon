@@ -55,7 +55,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   /// unauthenticated.
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final String swarmingToken = request.headers.value(kSwarmingTokenHeader);
+    final String? swarmingToken = request.headers.value(kSwarmingTokenHeader);
 
     final ClientContext clientContext = clientContextProvider();
     final Logging log = loggingProvider();
@@ -77,7 +77,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
   Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
-      {ClientContext clientContext, Logging log}) async {
+      {required ClientContext clientContext, required Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final Client client = httpClientProvider();
     try {

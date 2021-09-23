@@ -21,25 +21,25 @@ import 'package:json_annotation/json_annotation.dart';
 /// ```
 ///
 /// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
+class TagsConverter implements JsonConverter<Map<String?, List<String?>>?, List<dynamic>?> {
   const TagsConverter();
 
   @override
-  Map<String, List<String>> fromJson(List<dynamic> json) {
+  Map<String?, List<String?>>? fromJson(List<dynamic>? json) {
     if (json == null) {
       return null;
     }
-    final Map<String, List<String>> result = <String, List<String>>{};
+    final Map<String?, List<String?>> result = <String?, List<String?>>{};
     for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
-      final String key = tag['key'] as String;
-      result[key] ??= <String>[];
-      result[key].add(tag['value'] as String);
+      final String? key = tag['key'] as String?;
+      result[key] ??= <String?>[];
+      result[key]!.add(tag['value'] as String?);
     }
     return result;
   }
 
   @override
-  List<Map<String, dynamic>> toJson(Map<String, List<String>> object) {
+  List<Map<String, dynamic>>? toJson(Map<String?, List<String?>>? object) {
     if (object == null) {
       return null;
     }
@@ -47,8 +47,18 @@ class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dyn
       return const <Map<String, List<String>>>[];
     }
     final List<Map<String, String>> result = <Map<String, String>>[];
-    for (String key in object.keys) {
-      for (String value in object[key]) {
+    for (String? key in object.keys) {
+      if (key == null) {
+        continue;
+      }
+      final List<String?>? values = object[key];
+      if (values == null) {
+        continue;
+      }
+      for (String? value in values) {
+        if (value == null) {
+          continue;
+        }
         result.add(<String, String>{
           'key': key,
           'value': value,
@@ -56,26 +66,6 @@ class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dyn
       }
     }
     return result;
-  }
-}
-
-/// A convert for BuildBucket IDs.
-///
-/// These are int64s, which are not safely representable as JSON numbers.
-///
-/// In JSON format, they're converted to Strings, but they're always int64s,
-/// which are safe to use in the Dart VM.
-class Int64Converter implements JsonConverter<int, String> {
-  const Int64Converter();
-
-  @override
-  int fromJson(String json) {
-    return int.parse(json);
-  }
-
-  @override
-  String toJson(int object) {
-    return object.toString();
   }
 }
 
@@ -97,11 +87,11 @@ class Base64Converter implements JsonConverter<String, String> {
 }
 
 /// A converter for "timestamp" fields encoded as milliseconds since epoch.
-class MillisecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
+class MillisecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
   const MillisecondsSinceEpochConverter();
 
   @override
-  DateTime fromJson(String json) {
+  DateTime? fromJson(String? json) {
     if (json == null) {
       return null;
     }
@@ -109,7 +99,7 @@ class MillisecondsSinceEpochConverter implements JsonConverter<DateTime, String>
   }
 
   @override
-  String toJson(DateTime object) {
+  String? toJson(DateTime? object) {
     if (object == null) {
       return null;
     }
@@ -118,11 +108,11 @@ class MillisecondsSinceEpochConverter implements JsonConverter<DateTime, String>
 }
 
 /// A converter for "timestamp" fields encoded as seconds since epoch.
-class SecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
+class SecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
   const SecondsSinceEpochConverter();
 
   @override
-  DateTime fromJson(String json) {
+  DateTime? fromJson(String? json) {
     if (json == null) {
       return null;
     }
@@ -130,7 +120,7 @@ class SecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
   }
 
   @override
-  String toJson(DateTime dateTime) {
+  String? toJson(DateTime? dateTime) {
     if (dateTime == null) {
       return null;
     }
@@ -140,11 +130,11 @@ class SecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
 }
 
 /// A converter for boolean fields encoded as strings.
-class BoolConverter implements JsonConverter<bool, String> {
+class BoolConverter implements JsonConverter<bool?, String?> {
   const BoolConverter();
 
   @override
-  bool fromJson(String json) {
+  bool? fromJson(String? json) {
     if (json == null) {
       return null;
     }
@@ -152,7 +142,7 @@ class BoolConverter implements JsonConverter<bool, String> {
   }
 
   @override
-  String toJson(bool value) {
+  String? toJson(bool? value) {
     if (value == null) {
       return null;
     }
@@ -161,19 +151,19 @@ class BoolConverter implements JsonConverter<bool, String> {
 }
 
 /// A converter for fields with nested JSON objects in String format.
-class NestedJsonConverter implements JsonConverter<Map<String, dynamic>, String> {
+class NestedJsonConverter implements JsonConverter<Map<String, dynamic>?, String?> {
   const NestedJsonConverter();
 
   @override
-  Map<String, dynamic> fromJson(String json) {
+  Map<String, dynamic>? fromJson(String? json) {
     if (json == null) {
       return null;
     }
-    return convert.json.decode(json) as Map<String, dynamic>;
+    return convert.json.decode(json) as Map<String, dynamic>?;
   }
 
   @override
-  String toJson(Map<String, dynamic> object) {
+  String? toJson(Map<String, dynamic>? object) {
     if (object == null) {
       return null;
     }

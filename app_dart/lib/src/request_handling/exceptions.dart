@@ -8,9 +8,7 @@ import 'dart:io';
 /// HTTP response.
 class HttpStatusException implements Exception {
   /// Creates a new [HttpStatusException].
-  const HttpStatusException(this.statusCode, this.message)
-      : assert(statusCode != null),
-        assert(message != null);
+  const HttpStatusException(this.statusCode, this.message);
 
   /// The HTTP status code to return to the issuer.
   final int statusCode;
@@ -29,9 +27,7 @@ class BadRequestException extends HttpStatusException {
 
 /// Exception that will trigger an HTTP 404 not found
 class NotFoundException extends HttpStatusException {
-  const NotFoundException(String missing)
-      : assert(missing != null),
-        super(HttpStatus.notFound, 'Not found: $missing');
+  const NotFoundException(String missing) : super(HttpStatus.notFound, 'Not found: $missing');
 }
 
 /// Exception that will trigger an HTTP 405 method not allowed.

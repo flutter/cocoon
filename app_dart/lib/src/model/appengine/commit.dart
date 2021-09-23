@@ -15,9 +15,9 @@ part 'commit.g.dart';
 @Kind(name: 'Checklist', idType: IdType.String)
 class Commit extends Model<String> {
   Commit({
-    Key<String> key,
-    this.timestamp,
+    Key<String>? key,
     this.sha,
+    this.timestamp,
     this.author,
     this.authorAvatarUrl,
     this.message,
@@ -31,41 +31,41 @@ class Commit extends Model<String> {
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
   @IntProperty(propertyName: 'CreateTimestamp', required: true)
-  int timestamp;
+  int? timestamp;
 
   /// The SHA1 hash of the commit.
   @StringProperty(propertyName: 'Commit.Sha', required: true)
-  String sha;
+  String? sha;
 
   /// The GitHub username of the commit author.
-  @StringProperty(propertyName: 'Commit.Author.Login', required: true)
-  String author;
+  @StringProperty(propertyName: 'Commit.Author.Login')
+  String? author;
 
   /// URL of the [author]'s profile image / avatar.
   ///
   /// The bytes loaded from the URL are expected to be encoded image bytes.
-  @StringProperty(propertyName: 'Commit.Author.AvatarURL', required: true)
-  String authorAvatarUrl;
+  @StringProperty(propertyName: 'Commit.Author.AvatarURL')
+  String? authorAvatarUrl;
 
   /// The commit message.
   ///
   /// This may be null, since we didn't always load/store this property in
   /// the datastore, so historical entries won't have this information.
   @StringProperty(propertyName: 'Commit.Message', required: false)
-  String message;
+  String? message;
 
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
-  String repository;
+  String? repository;
 
   /// The branch of the commit.
   @StringProperty(propertyName: 'Branch')
-  String branch;
+  String? branch;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository);
+  RepositorySlug get slug => RepositorySlug.full(repository!);
 
   @override
   String toString() {
@@ -78,7 +78,7 @@ class Commit extends Model<String> {
       ..write(', sha: $sha')
       ..write(', author: $author')
       ..write(', authorAvatarUrl: $authorAvatarUrl')
-      ..write(', message: ${message?.split("\n")?.first}')
+      ..write(', message: ${message?.split("\n").first}')
       ..write(', repository: $repository')
       ..write(', branch: $branch')
       ..write(')');
@@ -96,7 +96,7 @@ class SerializableCommit {
 
   @JsonKey(name: 'Key')
   @StringKeyConverter()
-  Key<String> get key => commit.key;
+  Key<String>? get key => commit.key;
 
   @JsonKey(name: 'Checklist')
   Map<String, dynamic> get facade {

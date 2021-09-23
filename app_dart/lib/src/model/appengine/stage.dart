@@ -17,16 +17,14 @@ part 'stage.g.dart';
 @immutable
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 class Stage implements Comparable<Stage> {
-  const Stage._(this.name, this.commit, this.tasks, this.taskStatus)
-      : assert(name != null),
-        assert(commit != null),
-        assert(tasks != null),
-        assert(taskStatus != null);
+  const Stage(this.name, this.commit, this.tasks, this.taskStatus);
+
+  const Stage._(this.name, this.commit, this.tasks, this.taskStatus);
 
   /// The fixed ordering of the stages (by name).
   ///
   /// Unknown stages will be placed at the end of any ordering.
-  static const List<String> _order = <String>[
+  static const List<String?> _order = <String?>[
     'cirrus',
     'chromebot',
     'devicelab',
@@ -41,12 +39,12 @@ class Stage implements Comparable<Stage> {
   ///
   /// This is guaranteed to be non-null.
   @JsonKey(name: 'Name')
-  final String name;
+  final String? name;
 
   /// The commit that owns this stage.
   ///
   /// All [tasks] will be run against this commit.
-  final Commit commit;
+  final Commit? commit;
 
   /// The list of tasks in this stage.
   ///
@@ -75,7 +73,7 @@ class Stage implements Comparable<Stage> {
   ///
   /// Stages such as 'cirrus' and 'chromebot' are not managed by the Flutter
   /// device lab.
-  bool get isManagedByDeviceLab => name.startsWith('devicelab');
+  bool get isManagedByDeviceLab => name!.startsWith('devicelab');
 
   @override
   int compareTo(Stage other) => _orderIndex(this).compareTo(_orderIndex(other));
@@ -98,7 +96,7 @@ class Stage implements Comparable<Stage> {
       ..write('$runtimeType(')
       ..write('name: $name')
       ..write(', commit: ${commit?.sha}')
-      ..write(', tasks: ${tasks?.length}')
+      ..write(', tasks: ${tasks.length}')
       ..write(', taskStatus: $taskStatus')
       ..write(')');
     return buf.toString();
@@ -111,13 +109,13 @@ class StageBuilder {
   ///
   /// See also:
   ///  * [Stage.name]
-  String name;
+  String? name;
 
   /// The commit that owns the stage.
   ///
   /// See also:
   ///  * [Stage.commit]
-  Commit commit;
+  Commit? commit;
 
   /// The tasks within the stage, run against [commit].
   ///
@@ -155,8 +153,8 @@ class StageBuilder {
       return Task.statusFailed;
     }
 
-    final String commonStatus =
-        tasks.map<String>((Task task) => task.status).reduce((String a, String b) => a == b ? a : null);
+    final String? commonStatus =
+        tasks.map<String?>((Task task) => task.status).reduce((String? a, String? b) => a == b ? a : null);
     return commonStatus ?? Task.statusInProgress;
   }
 }

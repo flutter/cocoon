@@ -25,15 +25,15 @@ const String kThreshold = '0.02';
 
 void main() {
   group('Update flaky', () {
-    UpdateExistingFlakyIssue handler;
-    ApiRequestHandlerTester tester;
+    late UpdateExistingFlakyIssue handler;
+    late ApiRequestHandlerTester tester;
     FakeHttpRequest request;
-    FakeConfig config;
+    late FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    MockBigqueryService mockBigqueryService;
-    MockGitHub mockGitHubClient;
-    MockIssuesService mockIssuesService;
+    late MockBigqueryService mockBigqueryService;
+    late MockGitHub mockGitHubClient;
+    late MockIssuesService mockIssuesService;
     MockRepositoriesService mockRepositoriesService;
 
     setUp(() {
@@ -69,9 +69,12 @@ void main() {
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockGitHubClient.issues).thenReturn(mockIssuesService);
+      when(mockIssuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
+      when(mockIssuesService.edit(any, any, any)).thenAnswer((_) async => Issue());
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
         bigqueryService: mockBigqueryService,
+        githubOAuthTokenValue: 'token',
       );
       tester = ApiRequestHandlerTester(request: request);
 
@@ -117,7 +120,7 @@ void main() {
         return Future<Response>.value(Response('[]', 200));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -177,7 +180,7 @@ void main() {
         return Future<Response>.value(Response('[]', 200));
       });
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -228,7 +231,7 @@ void main() {
       });
 
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
@@ -280,7 +283,7 @@ void main() {
       });
 
       final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize())
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
 
