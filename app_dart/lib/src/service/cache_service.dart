@@ -18,17 +18,17 @@ class CacheService {
     bool inMemory = false,
     int inMemoryMaxNumberEntries = 256,
   }) : _provider =
-            inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUrl);
+            inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUri);
 
   final CacheProvider<List<int>> _provider;
 
   Cache<Uint8List> get cache => cacheValue ?? Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
 
   @visibleForTesting
-  Cache<Uint8List> cacheValue;
+  Cache<Uint8List>? cacheValue;
 
   /// Google Cloud Memorystore default url.
-  static const String memorystoreUrl = 'redis://10.0.0.4:6379';
+  static Uri memorystoreUri = Uri.parse('redis://10.0.0.4:6379');
 
   /// An arbritary number for how many times we should try to get from cache
   /// before giving up.
@@ -46,15 +46,15 @@ class CacheService {
   /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
   /// times before giving up. This is because the cache is magnitudes faster
   /// than the fallback operation (usually a Datastore query).
-  Future<Uint8List> getOrCreate(
+  Future<Uint8List?> getOrCreate(
     String subcacheName,
     String key, {
     int attempt = 1,
-    Future<Uint8List> Function() createFn,
+    Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    Uint8List value;
+    Uint8List? value;
 
     try {
       value = await subcache[key].get();
@@ -65,6 +65,7 @@ class CacheService {
           key,
           attempt: ++attempt,
           createFn: createFn,
+          ttl: ttl,
         );
       } else {
         // Give up on trying to get the value from the cache.
@@ -83,14 +84,15 @@ class CacheService {
   }
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
-  Future<Uint8List> set(
+  Future<Uint8List?> set(
     String subcacheName,
     String key,
-    Uint8List value, {
+    Uint8List? value, {
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    return subcache[key].set(value, ttl);
+    final Entry<Uint8List> entry = subcache[key];
+    return entry.set(value, ttl);
   }
 
   /// Clear the value stored in subcache [subcacheName] for key [key].

@@ -21,20 +21,20 @@ void main() {
   };
 
   test('Deserializes tags', () {
-    final List<dynamic> decodedTags = json.decode(tagsJson) as List<dynamic>;
+    final List<dynamic>? decodedTags = json.decode(tagsJson) as List<dynamic>?;
     expect(const TagsConverter().fromJson(decodedTags), tags);
   });
 
   test('Serializes tags', () {
     final List<Map<String, String>> encodedTags =
-        const TagsConverter().toJson(tags).cast<Map<String, String>>().toList();
+        const TagsConverter().toJson(tags)!.cast<Map<String, String>>().toList();
     expect(encodedTags.length, 3);
     expect(json.encode(encodedTags), tagsJson);
   });
 
   test('Handles Build id correctly', () {
-    const int id = 0xFFFFFFFFFFFFFFFF; // would overflow a 32 bit int
-    const Build build = Build(id: id, builderId: BuilderId());
+    final String id = 0xFFFFFFFFFFFFFFFF.toString(); // would overflow a 32 bit int
+    final Build build = Build(id: id, builderId: const BuilderId());
     final Map<String, dynamic> buildJson = build.toJson();
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
@@ -42,7 +42,7 @@ void main() {
     final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)) as Map<String, dynamic>);
     expect(deserializedBuild.id, id);
 
-    const GetBuildRequest request = GetBuildRequest(id: id);
+    final GetBuildRequest request = GetBuildRequest(id: id);
     final Map<String, dynamic> requestBuildJson = request.toJson();
     expect(requestBuildJson['id'], id.toString());
     expect(requestBuildJson['id'].runtimeType, String);
@@ -52,12 +52,12 @@ void main() {
   });
 
   test('Handles fields correctly', () {
-    GetBuildRequest request = const GetBuildRequest(id: 9083774268329986752);
+    GetBuildRequest request = const GetBuildRequest(id: '9083774268329986752');
     Map<String, dynamic> requestBuildJson = request.toJson();
-    expect(requestBuildJson['id'], 9083774268329986752.toString());
-    request = const GetBuildRequest(id: 9083774268329986752, fields: 'summaryMarkDown');
+    expect(requestBuildJson['id'], request.id.toString());
+    request = const GetBuildRequest(id: '9083774268329986752', fields: 'summaryMarkDown');
     requestBuildJson = request.toJson();
-    expect(requestBuildJson['id'], 9083774268329986752.toString());
+    expect(requestBuildJson['id'], request.id.toString());
     expect(requestBuildJson['fields'], 'summaryMarkDown');
   });
 

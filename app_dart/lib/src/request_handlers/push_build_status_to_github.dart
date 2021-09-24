@@ -14,10 +14,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../service/build_status_provider.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable
@@ -27,9 +24,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
     this.scheduler,
-    @visibleForTesting LuciServiceProvider luciServiceProvider,
-    @visibleForTesting DatastoreServiceProvider datastoreProvider,
-    @visibleForTesting BuildStatusServiceProvider buildStatusServiceProvider,
+    @visibleForTesting LuciServiceProvider? luciServiceProvider,
+    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
+    @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
         datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
@@ -39,36 +36,40 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   final LuciServiceProvider luciServiceProvider;
   final BuildStatusServiceProvider buildStatusServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
+  final Scheduler? scheduler;
   static const String fullNameRepoParam = 'repo';
 
   static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
       buildBucketClient: BuildBucketClient(),
       config: handler.config,
-      clientContext: handler.authContext.clientContext,
+      clientContext: handler.authContext!.clientContext,
     );
   }
 
   @override
   Future<Body> get() async {
-    if (authContext.clientContext.isDevelopmentEnvironment) {
+    if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
+      log!.debug('GitHub statuses are not pushed from local dev environments');
       return Body.empty;
     }
-    luciBuildService.setLogger(log);
-    scheduler.setLogger(log);
+    luciBuildService.setLogger(log!);
+    scheduler!.setLogger(log!);
 
-    final String repo = request.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
+    final String repo = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
     final RepositorySlug slug = RepositorySlug.full(repo);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
 
-    final Commit tipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
-    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(tipOfTreeCommit);
-    List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    final Commit tipOfTreeCommit = Commit(
+      sha: config.defaultBranch,
+      repository: slug.fullName,
+    );
+    final SchedulerConfig schedulerConfig = await scheduler!.getSchedulerConfig(tipOfTreeCommit);
+    List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
     // Filter the builders to only those that can block the tree
-    postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky).toList();
+    postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky!).toList();
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 
@@ -77,7 +78,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await Future.forEach(luciTasks.entries, (MapEntry<LuciBuilder, List<LuciTask>> luciTask) async {
       final List<LuciTask> tasks = luciTask.value;
       if (tasks.isEmpty) {
-        log.debug('No tasks returned for builder: ${luciTask.key.name}');
+        log!.debug('No tasks returned for builder: ${luciTask.key.name}');
       }
       final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
@@ -86,7 +87,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     });
     await _insertBigquery(slug, status, config.defaultBranch, log, config);
     await _updatePRs(slug, status, datastore);
-    log.debug('All the PRs for $repo have been updated with $status');
+    log!.debug('All the PRs for $repo have been updated with $status');
 
     return Body.empty;
   }
@@ -97,7 +98,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await for (PullRequest pr in github.pullRequests.list(slug, base: config.defaultBranch)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
-        log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
+        log!.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
         final CreateStatus request = CreateStatus(status);
         request.targetUrl = 'https://ci.chromium.org/p/flutter/g/${slug.name}/console';
         request.context = 'luci-${slug.name}';
@@ -105,20 +106,20 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           request.description = config.flutterBuildDescription;
         }
         try {
-          await github.repositories.createStatus(slug, pr.head.sha, request);
+          await github.repositories.createStatus(slug, pr.head!.sha!, request);
           update.status = status;
-          update.updates += 1;
+          update.updates = (update.updates ?? 0) + 1;
           update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
           updates.add(update);
         } catch (error) {
-          log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          log!.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
         }
       }
     }
     await datastore.insert(updates);
   }
 
-  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Logging log, Config config) async {
+  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Logging? log, Config config) async {
     const String bigqueryTableName = 'BuildStatus';
     final Map<String, dynamic> bigqueryData = <String, dynamic>{
       'Timestamp': DateTime.now().millisecondsSinceEpoch,

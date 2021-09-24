@@ -16,13 +16,11 @@ import 'allowed_account.dart';
 import 'commit.dart';
 import 'github_build_status_update.dart';
 import 'key_helper.pb.dart';
-import 'log_chunk.dart';
 import 'task.dart';
 
 const Set<Type> _defaultTypes = <Type>{
   Commit,
   GithubBuildStatusUpdate,
-  LogChunk,
   Task,
   AllowedAccount,
 };
@@ -39,7 +37,7 @@ const Set<Type> _defaultTypes = <Type>{
 @immutable
 class KeyHelper {
   KeyHelper({
-    AppEngineContext applicationContext,
+    AppEngineContext? applicationContext,
     Set<Type> types = _defaultTypes,
   })  : applicationContext = applicationContext ?? gae.context.applicationContext,
         types = _populateTypes(types);
@@ -65,7 +63,7 @@ class KeyHelper {
     final Reference reference = Reference()
       ..app = applicationContext.applicationID
       ..path = _asPath(key);
-    if (applicationContext.partition != null && applicationContext.partition.isNotEmpty) {
+    if (applicationContext.partition.isNotEmpty) {
       reference.nameSpace = applicationContext.partition;
     }
     final Uint8List buffer = reference.writeToBuffer();
@@ -122,7 +120,7 @@ class KeyHelper {
       final Kind annotation = kindAnnotations.single.reflectee as Kind;
       result[type] = Kind(
         name: annotation.name ?? type.toString(),
-        idType: annotation.idType ?? IdType.Integer,
+        idType: annotation.idType,
       );
     }
 
@@ -131,16 +129,16 @@ class KeyHelper {
 
   Path _asPath(Key<dynamic> key) {
     final List<Key<dynamic>> path = <Key<dynamic>>[];
-    for (Key<dynamic> current = key; current != null && !current.isEmpty; current = current.parent) {
+    for (Key<dynamic>? current = key; current != null && !current.isEmpty; current = current.parent) {
       path.insert(0, current);
     }
     return Path()
       ..element.addAll(path.map<Path_Element>((Key<dynamic> key) {
         final Path_Element element = Path_Element();
         if (key.type != null) {
-          element.type = types.containsKey(key.type) ? types[key.type].name : key.type.toString();
+          element.type = types.containsKey(key.type) ? types[key.type!]!.name! : key.type.toString();
         }
-        final Object id = key.id;
+        final Object? id = key.id;
         if (id is String) {
           element.name = id;
         } else if (id is int) {

@@ -16,37 +16,21 @@ import '../src/datastore/fake_config.dart';
 import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  FakeConfig config;
-  FakeScheduler scheduler;
-  FakeBuildBucketClient buildbucket;
-  GithubStatusService githubStatusService;
-  MockGitHub mockGitHub;
-  MockRepositoriesService mockRepositoriesService;
-  RepositorySlug slug;
+  late FakeConfig config;
+  late FakeScheduler scheduler;
+  late FakeBuildBucketClient buildbucket;
+  late GithubStatusService githubStatusService;
+  late MockGitHub mockGitHub;
+  late MockRepositoriesService mockRepositoriesService;
+  late RepositorySlug slug;
   FakeGithubService githubService;
 
-  const Build macBuild = Build(
-    id: 999,
-    builderId: BuilderId(
-      project: 'flutter',
-      bucket: 'prod',
-      builder: 'MacDoesNotExist',
-    ),
-    status: Status.scheduled,
-  );
-
-  const Build linuxBuild = Build(
-    id: 998,
-    builderId: BuilderId(
-      project: 'flutter',
-      bucket: 'prod',
-      builder: 'Linux',
-    ),
-    status: Status.scheduled,
-  );
+  final Build macBuild = generateBuild(999, name: 'MacDoesNotExist', status: Status.scheduled);
+  final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.scheduled);
 
   setUp(() {
     config = FakeConfig();
@@ -54,6 +38,7 @@ void main() {
     scheduler = FakeScheduler(
       config: config,
       buildbucket: buildbucket,
+      schedulerConfig: exampleConfig,
     );
     githubStatusService = GithubStatusService(config, scheduler);
     mockGitHub = MockGitHub();
@@ -62,6 +47,7 @@ void main() {
     when(mockGitHub.repositories).thenAnswer((_) {
       return mockRepositoriesService;
     });
+    when(mockRepositoriesService.createStatus(any, any, any)).thenAnswer((_) async => RepositoryStatus());
     config.githubClient = mockGitHub;
     config.githubService = githubService;
     slug = config.flutterSlug;
@@ -69,6 +55,7 @@ void main() {
   group('setBuildsPendingStatus', () {
     test('Empty builds do nothing', () async {
       config.luciBuildersValue = <LuciBuilder>[];
+      scheduler.schedulerConfig = emptyConfig;
       buildbucket.batchResponse = Future<BatchResponse>.value(
         const BatchResponse(
           responses: <Response>[
@@ -86,7 +73,7 @@ void main() {
 
     test('A build list creates status', () async {
       buildbucket.batchResponse = Future<BatchResponse>.value(
-        const BatchResponse(
+        BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -96,9 +83,8 @@ void main() {
           ],
         ),
       );
-      final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
-        return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
+        return Stream<RepositoryStatus>.fromIterable(<RepositoryStatus>[]);
       });
       await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       expect(
@@ -106,9 +92,9 @@ void main() {
           jsonDecode(
               '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
-    test('Only builds in luciTryBuilders create statuses', () async {
+    test('Only presubmit targets create statuses', () async {
       buildbucket.batchResponse = Future<BatchResponse>.value(
-        const BatchResponse(
+        BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -145,7 +131,7 @@ void main() {
 
     test('Status not updated if it is already pending', () async {
       buildbucket.batchResponse = Future<BatchResponse>.value(
-        const BatchResponse(
+        BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(

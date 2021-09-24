@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
@@ -11,15 +10,14 @@ import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart' as bigquery;
-import 'package:googleapis_auth/auth.dart';
-import 'package:graphql/client.dart' hide Cache;
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
@@ -31,7 +29,7 @@ import 'luci.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache) : assert(_db != null);
+  Config(this._db, this._cache);
 
   final DatastoreDB _db;
 
@@ -64,30 +62,30 @@ class Config {
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
   Future<List<String>> _getFlutterBranches() async {
-    final Uint8List cacheValue = await _cache.getOrCreate(
+    final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
       createFn: () => getBranches(Providers.freshHttpClient, loggingService),
       ttl: configCacheTtl,
     );
 
-    return String.fromCharCodes(cacheValue).split(',');
+    return String.fromCharCodes(cacheValue!).split(',');
   }
 
   // Returns LUCI builders.
-  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
+  Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
     return await getLuciBuilders(Providers.freshHttpClient, loggingService, slug, bucket, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {
-    final Uint8List cacheValue = await _cache.getOrCreate(
+    final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
       id,
       createFn: () => _getValueFromDatastore(id),
       ttl: configCacheTtl,
     );
 
-    return String.fromCharCodes(cacheValue);
+    return String.fromCharCodes(cacheValue!);
   }
 
   Future<Uint8List> _getValueFromDatastore(String id) async {
@@ -109,6 +107,12 @@ class Config {
   }
 
   DatastoreDB get db => _db;
+
+  /// Size of the shards to send to buildBucket when scheduling builds.
+  int get schedulingShardSize => 5;
+
+  /// Max retries when scheduling try builds.
+  int get schedulerRetries => 3;
 
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {
@@ -215,7 +219,7 @@ class Config {
       'and make sure this patch meets those guidelines before LGTMing.\n\n';
 
   String flutterGoldCommentID(PullRequest pr) =>
-      '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
+      '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
@@ -236,7 +240,7 @@ class Config {
   String get defaultBranch => kDefaultBranchName;
 
   // Default number of commits to return for benchmark dashboard.
-  int get maxRecords => 50;
+  int /*!*/ get maxRecords => 50;
 
   // Repository status context for github status.
   String get flutterBuild => 'flutter-build';
@@ -281,14 +285,14 @@ class Config {
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String;
+    final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final http.Response response =
-        await http.post('https://api.github.com/app/installations/$appInstallation/access_tokens', headers: headers);
+    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
+    final http.Response response = await http.post(githubAccessTokensUri, headers: headers);
     final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     return jsonBody['token'] as String;
   }
@@ -304,8 +308,8 @@ class Config {
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
     final HttpLink httpLink = HttpLink(
-      uri: 'https://api.github.com/graphql',
-      headers: <String, String>{
+      'https://api.github.com/graphql',
+      defaultHeaders: <String, String>{
         'Accept': 'application/vnd.github.antiope-preview+json',
       },
     );
@@ -315,21 +319,19 @@ class Config {
       getToken: () async => 'Bearer $token',
     );
 
-    final Link link = _authLink.concat(httpLink);
-
     return GraphQLClient(
-      cache: InMemoryCache(storageProvider: () => Directory.systemTemp.createTempSync('graphql')),
-      link: link,
+      cache: GraphQLCache(),
+      link: _authLink.concat(httpLink),
     );
   }
 
   Future<GraphQLClient> createCirrusGraphQLClient() async {
     final HttpLink httpLink = HttpLink(
-      uri: 'https://api.cirrus-ci.com/graphql',
+      'https://api.cirrus-ci.com/graphql',
     );
 
     return GraphQLClient(
-      cache: InMemoryCache(storageProvider: () => Directory.systemTemp.createTempSync('graphql')),
+      cache: GraphQLCache(),
       link: httpLink,
     );
   }
@@ -339,7 +341,7 @@ class Config {
     return BigqueryService(accessClientProvider);
   }
 
-  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+  Future<TabledataResource> createTabledataResourceApi() async {
     return (await createBigQueryService()).defaultTabledata();
   }
 

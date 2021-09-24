@@ -9,11 +9,11 @@ import 'dart:convert';
 const String ref = 'deadbeef';
 
 String pushMessageJson(String status,
-    {String result,
+    {String? result,
     String builderName = 'Linux Coverage',
     String urlParam = '',
     int retries = 0,
-    String failureReason,
+    String? failureReason,
     String userData = '{}'}) {
   return '''{
      "message": {
@@ -27,11 +27,11 @@ String pushMessageJson(String status,
 
 String pushMessageJsonNoBuildset(
   String status, {
-  String result,
+  String? result,
   String builderName = 'Linux Coverage',
   String urlParam = '',
   int retries = 0,
-  String failureReason,
+  String? failureReason,
 }) {
   return '''{
      "message": {
@@ -44,12 +44,12 @@ String pushMessageJsonNoBuildset(
 }
 
 String buildPushMessageJson(String status,
-        {String result,
+        {String? result,
         String builderName = 'Linux Coverage',
         String urlParam = '',
         int retries = 0,
-        String failureReason,
-        String userData}) =>
+        String? failureReason,
+        String? userData}) =>
     base64.encode(utf8.encode(buildPushMessageString(
       status,
       result: result,
@@ -62,11 +62,11 @@ String buildPushMessageJson(String status,
 
 String buildPushMessageJsonNoBuildset(
   String status, {
-  String result,
+  String? result,
   String builderName = 'Linux Coverage',
   String urlParam = '',
   int retries = 0,
-  String failureReason,
+  String? failureReason,
 }) =>
     base64.encode(utf8.encode(buildPushMessageNoBuildsetString(
       status,
@@ -78,12 +78,12 @@ String buildPushMessageJsonNoBuildset(
     )));
 
 String buildPushMessageString(String status,
-    {String result,
+    {String? result,
     String builderName = 'Linux Coverage',
     String urlParam = '',
     int retries = 0,
-    String failureReason,
-    String userData = '{}'}) {
+    String? failureReason,
+    String? userData = '{}'}) {
   return '''{
   "build": {
     "bucket": "luci.flutter.prod",
@@ -127,11 +127,11 @@ String buildPushMessageString(String status,
 }
 
 String buildPushMessageNoBuildsetString(String status,
-    {String result,
+    {String? result,
     String builderName = 'Linux Coverage',
     String urlParam = '',
     int retries = 0,
-    String failureReason}) {
+    String? failureReason}) {
   return '''{
   "build": {
     "bucket": "luci.flutter.prod",

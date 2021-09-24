@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis_auth/auth.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
 
 import '../request_handling/fake_authentication.dart';
@@ -26,7 +26,6 @@ class FakeConfig implements Config {
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
-    this.commitNumberValue,
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
@@ -38,7 +37,7 @@ class FakeConfig implements Config {
     this.releaseBranchPullRequestMessageValue,
     this.webhookKeyValue,
     this.loggingServiceValue,
-    this.tabledataResourceApi,
+    this.tabledataResource,
     this.githubService,
     this.bigqueryService,
     this.githubGraphQLClient,
@@ -59,72 +58,71 @@ class FakeConfig implements Config {
     this.flutterGoldStalePRValue,
     this.supportedBranchesValue,
     this.luciBuildersValue,
-    FakeDatastoreDB dbValue,
+    FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
-  GitHub githubClient;
-  GraphQLClient githubGraphQLClient;
-  GraphQLClient cirrusGraphQLClient;
-  TabledataResourceApi tabledataResourceApi;
-  BigqueryService bigqueryService;
-  GithubService githubService;
+  GitHub? githubClient;
+  GraphQLClient? githubGraphQLClient;
+  GraphQLClient? cirrusGraphQLClient;
+  TabledataResource? tabledataResource;
+  BigqueryService? bigqueryService;
+  GithubService? githubService;
   FakeDatastoreDB dbValue;
-  ServiceAccountInfo deviceLabServiceAccountValue;
-  int maxTaskRetriesValue;
-  int maxLuciTaskRetriesValue;
-  int commitNumberValue;
-  FakeKeyHelper keyHelperValue;
-  String oauthClientIdValue;
-  String githubOAuthTokenValue;
-  String githubFlakyBotOAuthTokenValue;
+  ServiceAccountInfo? deviceLabServiceAccountValue;
+  int? maxTaskRetriesValue;
+  int? maxLuciTaskRetriesValue;
+  FakeKeyHelper? keyHelperValue;
+  String? oauthClientIdValue;
+  String? githubOAuthTokenValue;
+  String? githubFlakyBotOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
-  String wrongBaseBranchPullRequestMessageValue;
-  String wrongHeadBranchPullRequestMessageValue;
-  String releaseBranchPullRequestMessageValue;
-  String webhookKeyValue;
-  String flutterBuildValue;
-  String flutterBuildDescriptionValue;
-  Logging loggingServiceValue;
-  String waitingForTreeToGoGreenLabelNameValue;
-  ServiceAccountCredentials taskLogServiceAccountValue;
-  Set<String> rollerAccountsValue;
-  List<String> flutterBranchesValue;
-  int maxRecordsValue;
-  String flutterGoldPendingValue;
-  String flutterGoldSuccessValue;
-  String flutterGoldChangesValue;
-  String flutterGoldAlertConstantValue;
-  String flutterGoldInitialAlertValue;
-  String flutterGoldFollowUpAlertValue;
-  String flutterGoldDraftChangeValue;
-  String flutterGoldStalePRValue;
-  List<String> supportedBranchesValue;
-  List<LuciBuilder> luciBuildersValue;
+  String? wrongBaseBranchPullRequestMessageValue;
+  String? wrongHeadBranchPullRequestMessageValue;
+  String? releaseBranchPullRequestMessageValue;
+  String? webhookKeyValue;
+  String? flutterBuildValue;
+  String? flutterBuildDescriptionValue;
+  Logging? loggingServiceValue;
+  String? waitingForTreeToGoGreenLabelNameValue;
+  ServiceAccountCredentials? taskLogServiceAccountValue;
+  Set<String>? rollerAccountsValue;
+  List<String>? flutterBranchesValue;
+  int? maxRecordsValue;
+  String? flutterGoldPendingValue;
+  String? flutterGoldSuccessValue;
+  String? flutterGoldChangesValue;
+  String? flutterGoldAlertConstantValue;
+  String? flutterGoldInitialAlertValue;
+  String? flutterGoldFollowUpAlertValue;
+  String? flutterGoldDraftChangeValue;
+  String? flutterGoldStalePRValue;
+  List<String>? supportedBranchesValue;
+  List<LuciBuilder>? luciBuildersValue;
 
   @override
-  Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
+  Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient!;
 
   @override
-  GitHub createGitHubClientWithToken(String token) => githubClient;
+  GitHub createGitHubClientWithToken(String token) => githubClient!;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
+  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
 
   @override
-  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient;
+  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient!;
 
   @override
-  Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
+  Future<TabledataResource> createTabledataResourceApi() async => tabledataResource!;
 
   @override
-  Future<BigqueryService> createBigQueryService() async => bigqueryService;
+  Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override
-  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService;
+  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService!;
 
   @override
-  GithubService createGithubServiceWithToken(String token) => githubService;
+  GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
   FakeDatastoreDB get db => dbValue;
@@ -133,58 +131,66 @@ class FakeConfig implements Config {
   String get defaultBranch => kDefaultBranchName;
 
   @override
-  int get maxTaskRetries => maxTaskRetriesValue;
+  int get maxTaskRetries => maxTaskRetriesValue!;
+
+  /// Size of the shards to send to buildBucket when scheduling builds.
+  @override
+  int get schedulingShardSize => 5;
+
+  /// Max retries when scheduling try builds.
+  @override
+  int get schedulerRetries => 3;
 
   @override
-  int get maxLuciTaskRetries => maxLuciTaskRetriesValue;
+  int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
 
   @override
-  int get maxRecords => maxRecordsValue;
+  int get maxRecords => maxRecordsValue!;
 
   @override
-  String get flutterGoldPending => flutterGoldPendingValue;
+  String get flutterGoldPending => flutterGoldPendingValue!;
 
   @override
-  String get flutterGoldSuccess => flutterGoldSuccessValue;
+  String get flutterGoldSuccess => flutterGoldSuccessValue!;
 
   @override
-  String get flutterGoldChanges => flutterGoldChangesValue;
+  String get flutterGoldChanges => flutterGoldChangesValue!;
 
   @override
-  String get flutterGoldDraftChange => flutterGoldDraftChangeValue;
+  String get flutterGoldDraftChange => flutterGoldDraftChangeValue!;
 
   @override
-  String get flutterGoldStalePR => flutterGoldStalePRValue;
+  String get flutterGoldStalePR => flutterGoldStalePRValue!;
 
   @override
-  String flutterGoldInitialAlert(String url) => flutterGoldInitialAlertValue;
+  String flutterGoldInitialAlert(String url) => flutterGoldInitialAlertValue!;
 
   @override
-  String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue;
+  String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue!;
 
   @override
-  String get flutterGoldAlertConstant => flutterGoldAlertConstantValue;
+  String get flutterGoldAlertConstant => flutterGoldAlertConstantValue!;
 
   @override
-  String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head.sha}';
+  String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
 
   @override
-  int get commitNumber => commitNumberValue;
+  int get commitNumber => 30;
 
   @override
-  Future<List<String>> get flutterBranches async => flutterBranchesValue;
+  Future<List<String>> get flutterBranches async => flutterBranchesValue!;
 
   @override
-  KeyHelper get keyHelper => keyHelperValue;
+  KeyHelper get keyHelper => keyHelperValue!;
 
   @override
-  Future<String> get oauthClientId async => oauthClientIdValue;
+  Future<String> get oauthClientId async => oauthClientIdValue!;
 
   @override
-  Future<String> get githubOAuthToken async => githubOAuthTokenValue;
+  Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
 
   @override
-  Future<String> get githubFlakyBotOAuthToken async => githubFlakyBotOAuthTokenValue;
+  Future<String> get githubFlakyBotOAuthToken async => githubFlakyBotOAuthTokenValue!;
 
   @override
   String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;
@@ -193,37 +199,40 @@ class FakeConfig implements Config {
   String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
 
   @override
-  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue;
+  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue!;
 
   @override
-  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue;
+  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue!;
 
   @override
-  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue;
+  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue!;
 
   @override
-  Future<String> get webhookKey async => webhookKeyValue;
+  Future<String> get webhookKey async => webhookKeyValue!;
 
   @override
-  String get flutterBuild => flutterBuildValue;
+  String get flutterBuild => flutterBuildValue!;
 
   @override
-  String get flutterBuildDescription => flutterBuildDescriptionValue;
+  String get flutterBuildDescription =>
+      flutterBuildDescriptionValue ??
+      'Tree is currently broken. Please do not merge this '
+          'PR unless it contains a fix for the tree.';
 
   @override
-  Logging get loggingService => loggingServiceValue;
+  Logging get loggingService => loggingServiceValue!;
 
   @override
-  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue;
+  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue!;
 
   @override
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   @override
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue;
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue!;
 
   @override
-  Set<String> get rollerAccounts => rollerAccountsValue;
+  Set<String> get rollerAccounts => rollerAccountsValue!;
 
   @override
   bool githubPresubmitSupportedRepo(RepositorySlug slug) {
@@ -258,8 +267,8 @@ class FakeConfig implements Config {
   Future<String> get githubPublicKey => throw UnimplementedError();
 
   @override
-  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug,
-      {String commitSha = 'master', int prNumber}) async {
+  Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug,
+      {String commitSha = 'master', int? prNumber}) async {
     if (luciBuildersValue != null) {
       return luciBuildersValue;
     }
@@ -282,13 +291,13 @@ class FakeConfig implements Config {
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   @override
-  Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue;
+  Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue!;
 
   @override
   RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
 
   @override
-  Future<GithubService> createDefaultGitHubService() async => githubService;
+  Future<GithubService> createDefaultGitHubService() async => githubService!;
 
   @override
   String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';

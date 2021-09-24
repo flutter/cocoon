@@ -54,23 +54,23 @@ limit @LIMIT
 ''';
 
 class BigqueryService {
-  const BigqueryService(this.accessClientProvider) : assert(accessClientProvider != null);
+  const BigqueryService(this.accessClientProvider);
 
   /// AccessClientProvider for OAuth 2.0 authenticated access client
   final AccessClientProvider accessClientProvider;
 
-  /// Return a [TabledataResourceApi] with an authenticated [client]
-  Future<TabledataResourceApi> defaultTabledata() async {
+  /// Return a [TabledataResource] with an authenticated [client]
+  Future<TabledataResource> defaultTabledata() async {
     final Client client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.BigqueryScope],
+      scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).tabledata;
   }
 
-  /// Return a [JobsResourceApi] with an authenticated [client]
-  Future<JobsResourceApi> defaultJobs() async {
+  /// Return a [JobsResource] with an authenticated [client]
+  Future<JobsResource> defaultJobs() async {
     final Client client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.BigqueryScope],
+      scopes: const <String>[BigqueryApi.bigqueryScope],
     );
     return BigqueryApi(client).jobs;
   }
@@ -80,29 +80,29 @@ class BigqueryService {
   /// See getBuilderStatisticQuery to get the detail information about the table
   /// schema
   Future<List<BuilderStatistic>> listBuilderStatistic(String projectId) async {
-    final JobsResourceApi jobsResourceApi = await defaultJobs();
+    final JobsResource jobsResource = await defaultJobs();
     final QueryRequest query =
         QueryRequest.fromJson(<String, Object>{'query': getBuilderStatisticQuery, 'useLegacySql': false});
-    final QueryResponse response = await jobsResourceApi.query(query, projectId);
-    if (!response.jobComplete) {
+    final QueryResponse response = await jobsResource.query(query, projectId);
+    if (!response.jobComplete!) {
       throw 'job does not complete';
     }
     final List<BuilderStatistic> result = <BuilderStatistic>[];
-    for (final TableRow row in response.rows) {
-      final String builder = row.f[0].v as String;
-      List<String> flakyBuilds = (row.f[3].v as String)?.split(', ');
+    for (final TableRow row in response.rows!) {
+      final String builder = row.f![0].v as String;
+      List<String>? flakyBuilds = (row.f![3].v as String?)?.split(', ');
       flakyBuilds?.sort();
-      flakyBuilds = flakyBuilds?.reversed?.toList();
-      List<String> succeededBuilds = (row.f[4].v as String)?.split(', ');
+      flakyBuilds = flakyBuilds?.reversed.toList();
+      List<String>? succeededBuilds = (row.f![4].v as String?)?.split(', ');
       succeededBuilds?.sort();
-      succeededBuilds = succeededBuilds?.reversed?.toList();
+      succeededBuilds = succeededBuilds?.reversed.toList();
       result.add(BuilderStatistic(
           name: builder,
-          flakyRate: double.parse(row.f[7].v as String),
+          flakyRate: double.parse(row.f![7].v as String),
           flakyBuilds: flakyBuilds ?? const <String>[],
           succeededBuilds: succeededBuilds ?? const <String>[],
-          recentCommit: row.f[5].v as String,
-          flakyBuildOfRecentCommit: row.f[6].v as String));
+          recentCommit: row.f![5].v as String?,
+          flakyBuildOfRecentCommit: row.f![6].v as String?));
     }
     return result;
   }
@@ -113,10 +113,10 @@ class BigqueryService {
   /// schema
   Future<List<BuilderRecord>> listRecentBuildRecordsForBuilder(
     String projectId, {
-    String builder,
-    int limit,
+    String? builder,
+    int? limit,
   }) async {
-    final JobsResourceApi jobsResourceApi = await defaultJobs();
+    final JobsResource jobsResource = await defaultJobs();
     final QueryRequest query = QueryRequest.fromJson(<String, Object>{
       'query': getRecordsQuery,
       'parameterMode': 'NAMED',
@@ -124,7 +124,7 @@ class BigqueryService {
         <String, Object>{
           'name': 'BUILDER_NAME',
           'parameterType': <String, Object>{'type': 'STRING'},
-          'parameterValue': <String, Object>{'value': builder},
+          'parameterValue': <String, Object?>{'value': builder},
         },
         <String, Object>{
           'name': 'LIMIT',
@@ -134,15 +134,15 @@ class BigqueryService {
       ],
       'useLegacySql': false
     });
-    final QueryResponse response = await jobsResourceApi.query(query, projectId);
-    if (!response.jobComplete) {
+    final QueryResponse response = await jobsResource.query(query, projectId);
+    if (!response.jobComplete!) {
       throw 'job does not complete';
     }
     final List<BuilderRecord> result = <BuilderRecord>[];
-    for (final TableRow row in response.rows) {
+    for (final TableRow row in response.rows!) {
       result.add(BuilderRecord(
-        commit: row.f[0].v as String,
-        isFlaky: row.f[1].v as String != '0',
+        commit: row.f![0].v as String,
+        isFlaky: row.f![1].v as String != '0',
       ));
     }
     return result;
@@ -151,8 +151,8 @@ class BigqueryService {
 
 class BuilderRecord {
   BuilderRecord({
-    this.commit,
-    this.isFlaky,
+    required this.commit,
+    required this.isFlaky,
   });
 
   final String commit;
@@ -161,8 +161,8 @@ class BuilderRecord {
 
 class BuilderStatistic {
   BuilderStatistic({
-    this.name,
-    this.flakyRate,
+    required this.name,
+    required this.flakyRate,
     this.flakyBuilds,
     this.succeededBuilds,
     this.recentCommit,
@@ -171,8 +171,8 @@ class BuilderStatistic {
 
   final String name;
   final double flakyRate;
-  final List<String> flakyBuilds;
-  final List<String> succeededBuilds;
-  final String recentCommit;
-  final String flakyBuildOfRecentCommit;
+  final List<String>? flakyBuilds;
+  final List<String>? succeededBuilds;
+  final String? recentCommit;
+  final String? flakyBuildOfRecentCommit;
 }

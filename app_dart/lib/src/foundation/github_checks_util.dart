@@ -22,7 +22,7 @@ class GithubChecksUtil {
     final List<github.CheckRun> allCheckRuns = await gitHubClient.checks.checkRuns
         .listCheckRunsInSuite(
           checkSuiteEvent.repository.slug(),
-          checkSuiteId: checkSuiteEvent.checkSuite.id,
+          checkSuiteId: checkSuiteEvent.checkSuite.id!,
         )
         .toList();
     return Map<String, github.CheckRun>.fromIterable(
@@ -49,10 +49,10 @@ class GithubChecksUtil {
     Config cocoonConfig,
     github.RepositorySlug slug,
     github.CheckRun checkRun, {
-    github.CheckRunStatus status,
-    github.CheckRunConclusion conclusion,
-    String detailsUrl,
-    github.CheckRunOutput output,
+    github.CheckRunStatus? status,
+    github.CheckRunConclusion? conclusion,
+    String? detailsUrl,
+    github.CheckRunOutput? output,
   }) async {
     const RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -63,7 +63,7 @@ class GithubChecksUtil {
       await gitHubClient.checks.checkRuns.updateCheckRun(
         slug,
         checkRun,
-        status: status,
+        status: status!,
         conclusion: conclusion,
         detailsUrl: detailsUrl,
         output: output,
@@ -74,7 +74,7 @@ class GithubChecksUtil {
   Future<github.CheckRun> getCheckRun(
     Config cocoonConfig,
     github.RepositorySlug slug,
-    int id,
+    int? id,
   ) async {
     const RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -84,7 +84,7 @@ class GithubChecksUtil {
       final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
       return await gitHubClient.checks.checkRuns.getCheckRun(
         slug,
-        checkRunId: id,
+        checkRunId: id!,
       );
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
@@ -92,11 +92,11 @@ class GithubChecksUtil {
   /// Sends a request to github checks api to create a new [CheckRun] associated
   /// with a task [name] and commit [headSha].
   Future<github.CheckRun> createCheckRun(
-    Config cocoonConfig,
+    Config? cocoonConfig,
     github.RepositorySlug slug,
-    String name,
-    String headSha, {
-    github.CheckRunOutput output,
+    String? name,
+    String? headSha, {
+    github.CheckRunOutput? output,
   }) async {
     const RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -104,10 +104,10 @@ class GithubChecksUtil {
     );
     return r.retry(() async {
       return _createCheckRun(
-        cocoonConfig,
+        cocoonConfig!,
         slug,
-        name,
-        headSha,
+        name!,
+        headSha!,
         output: output,
       );
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
@@ -118,7 +118,7 @@ class GithubChecksUtil {
     github.RepositorySlug slug,
     String name,
     String headSha, {
-    github.CheckRunOutput output,
+    github.CheckRunOutput? output,
   }) async {
     final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
     return gitHubClient.checks.checkRuns.createCheckRun(

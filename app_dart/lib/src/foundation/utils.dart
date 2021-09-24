@@ -11,7 +11,6 @@ import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
@@ -41,10 +40,10 @@ Duration twoSecondLinearBackoff(int attempt) {
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
   String filePath, {
-  @required HttpClientProvider httpClientProvider,
-  Logging log,
+  required HttpClientProvider httpClientProvider,
+  Logging? log,
   Duration timeout = const Duration(seconds: 5),
-  RetryOptions retryOptions,
+  RetryOptions? retryOptions,
 }) async {
   retryOptions ??= const RetryOptions(
     maxDelay: Duration(seconds: 5),
@@ -64,7 +63,7 @@ Future<String> githubFileContent(
 FutureOr<String> getUrl(
   Uri url,
   HttpClientProvider httpClientProvider, {
-  Logging log,
+  Logging? log,
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final http.Client client = httpClientProvider();
@@ -88,7 +87,7 @@ FutureOr<String> getUrl(
 Future<Uint8List> getBranches(
   HttpClientProvider httpClientProvider,
   Logging log, {
-  RetryOptions retryOptions,
+  RetryOptions? retryOptions,
 }) async {
   String content;
   try {
@@ -108,12 +107,12 @@ Future<Uint8List> getBranches(
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
 
-Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String builderName) async {
+Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String builderName) async {
   final LuciBuilder builderConfig = builders.firstWhere(
     (LuciBuilder builder) => builder.name == builderName,
     orElse: () => const LuciBuilder(repo: '', name: '', flaky: false),
   );
-  final String repoName = builderConfig.repo;
+  final String repoName = builderConfig.repo!;
   // If there is no builder config for the builderName then we
   // return null. This is to allow the code calling this method
   // to skip changes that depend on builder configurations.
@@ -135,7 +134,7 @@ Future<List<LuciBuilder>> getLuciBuilders(
   RepositorySlug slug,
   String bucket, {
   String commitSha = 'master',
-  RetryOptions retryOptions,
+  RetryOptions? retryOptions,
 }) async {
   const Map<String, String> repoFilePathPrefix = <String, String>{
     'flutter': 'dev',
@@ -162,9 +161,9 @@ Future<List<LuciBuilder>> getLuciBuilders(
     builderContent = '{"builders":[]}';
   }
 
-  Map<String, dynamic> builderMap;
-  builderMap = json.decode(builderContent) as Map<String, dynamic>;
-  final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+  Map<String, dynamic>? builderMap;
+  builderMap = json.decode(builderContent) as Map<String, dynamic>?;
+  final List<dynamic> builderList = builderMap!['builders'] as List<dynamic>;
   final List<LuciBuilder> builders = builderList
       .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
       .where((LuciBuilder element) => element.enabled ?? true)
@@ -188,7 +187,7 @@ Future<List<LuciBuilder>> getLuciBuilders(
 /// }
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<String> files) async {
+Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<String?> files) async {
   final List<LuciBuilder> filteredBuilders = <LuciBuilder>[];
   for (LuciBuilder builder in builders) {
     final List<String> globs = builder.runIf ?? <String>[''];
@@ -201,7 +200,7 @@ Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<S
       glob = glob.replaceAll('*', '[a-zA-Z_\/]*');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
       final RegExp regExp = RegExp('^$glob');
-      if (glob.isEmpty || files.any((String file) => regExp.hasMatch(file))) {
+      if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
         filteredBuilders.add(builder);
         break;
       }
@@ -211,7 +210,7 @@ Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<S
 }
 
 Future<void> insertBigquery(
-    String tableName, Map<String, dynamic> data, TabledataResourceApi tabledataResourceApi, Logging log) async {
+    String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi, Logging? log) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';
   const String dataset = 'cocoon';
@@ -223,23 +222,23 @@ Future<void> insertBigquery(
   });
 
   // Obtain [rows] to be inserted to [BigQuery].
-  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
+  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, dynamic>{'rows': requestRows});
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
   } on ApiRequestError catch (error) {
-    log.warning('Failed to add to BigQuery: $error');
+    log!.warning('Failed to add to BigQuery: $error');
   }
 }
 
 /// Validate test ownership defined in `testOwnersContenct` for tests configured in `ciYamlContent`.
 List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
   final List<String> noOwnerBuilders = <String>[];
-  final YamlMap ciYaml = loadYaml(ciYamlContent) as YamlMap;
+  final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
   for (Target target in schedulerConfig.targets) {
     final String builder = target.name;
-    final String owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml), testOwnersContenct).owner;
+    final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContenct).owner;
     print('$builder: $owner');
     if (owner == null) {
       noOwnerBuilders.add(builder);

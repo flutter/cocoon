@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const String labeledPullRequestsWithReviewsQuery = r'''
+import 'package:gql/ast.dart';
+import 'package:gql/language.dart' as lang;
+
+final DocumentNode labeledPullRequestsWithReviewsQuery = lang.parseString(r'''
 query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
   repository(owner: $sOwner, name: $sName) {
     labels(first: 1, query: $sLabelName) {
@@ -61,9 +64,9 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
       }
     }
   }
-}''';
+}''');
 
-const String mergePullRequestMutation = r'''
+final DocumentNode mergePullRequestMutation = lang.parseString(r'''
 mutation MergePR($id: ID!, $oid: GitObjectID!) {
   mergePullRequest(input: {
     pullRequestId: $id,
@@ -73,9 +76,9 @@ mutation MergePR($id: ID!, $oid: GitObjectID!) {
   }) {
     clientMutationId
   }
-}''';
+}''');
 
-const String removeLabelMutation = r'''
+final DocumentNode removeLabelMutation = lang.parseString(r'''
 mutation RemoveLabelAndComment($id: ID!, $sBody: String!, $labelId: ID!) {
   addComment(input: { subjectId:$id, body: $sBody }) {
     clientMutationId
@@ -83,4 +86,4 @@ mutation RemoveLabelAndComment($id: ID!, $sBody: String!, $labelId: ID!) {
   removeLabelsFromLabelable(input: { labelableId: $id, labelIds: [$labelId] }) {
     clientMutationId
   }
-}''';
+}''');

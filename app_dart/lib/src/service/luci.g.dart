@@ -9,19 +9,25 @@ part of 'luci.dart';
 // **************************************************************************
 
 LuciBuilder _$LuciBuilderFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['name', 'repo'], disallowNullValues: const ['name', 'repo']);
+  $checkKeys(
+    json,
+    requiredKeys: const ['name', 'repo'],
+    disallowNullValues: const ['name', 'repo'],
+  );
   return LuciBuilder(
     name: json['name'] as String,
-    repo: json['repo'] as String,
-    flaky: json['flaky'] as bool,
-    enabled: json['enabled'] as bool,
-    runIf: (json['run_if'] as List)?.map((e) => e as String)?.toList(),
-    taskName: json['task_name'] as String,
+    repo: json['repo'] as String?,
+    flaky: json['flaky'] as bool?,
+    enabled: json['enabled'] as bool?,
+    runIf: (json['run_if'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    taskName: json['task_name'] as String?,
   );
 }
 
 Map<String, dynamic> _$LuciBuilderToJson(LuciBuilder instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'name': instance.name,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -29,7 +35,6 @@ Map<String, dynamic> _$LuciBuilderToJson(LuciBuilder instance) {
     }
   }
 
-  writeNotNull('name', instance.name);
   writeNotNull('repo', instance.repo);
   val['flaky'] = instance.flaky;
   val['enabled'] = instance.enabled;

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -15,13 +16,9 @@ import '../model/appengine/task.dart';
 import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
-import '../service/luci_build_service.dart';
 
 /// Triggers prod builds based on a task key. This handler is used to trigger
 /// LUCI builds that didn't run or failed.
@@ -31,7 +28,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
-    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
@@ -48,18 +45,18 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData[taskKeyParam] as String ?? '';
+    final String encodedKey = requestData![taskKeyParam] as String? ?? '';
     final KeyHelper keyHelper = config.keyHelper;
-    final String owner = requestData[ownerParam] as String ?? 'flutter';
-    final String repo = requestData[repoParam] as String ?? 'flutter';
-    String commitSha = requestData[commitShaParam] as String ?? '';
+    final String owner = requestData![ownerParam] as String? ?? 'flutter';
+    final String repo = requestData![repoParam] as String? ?? 'flutter';
+    String commitSha = requestData![commitShaParam] as String? ?? '';
     final Map<String, dynamic> properties =
-        (requestData[propertiesParam] as Map<String, dynamic>) ?? <String, dynamic>{};
-    final TokenInfo token = await tokenInfo(request);
+        (requestData![propertiesParam] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final TokenInfo token = await tokenInfo(request!);
 
     RepositorySlug slug;
-    String builder = requestData[builderParam] as String ?? '';
-    Task task;
+    String? builder = requestData![builderParam] as String? ?? '';
+    Task? task;
     Commit commit;
 
     if (encodedKey.isNotEmpty) {
@@ -73,21 +70,21 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     if (encodedKey.isNotEmpty) {
       // Request coming from the dashboard.
       final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
-      log.info('Rescheduling task with Key: ${key.id}');
+      log!.info('Rescheduling task with Key: ${key.id}');
       task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
-      if (task.status == 'Succeeded') {
+      if (task!.status == 'Succeeded') {
         return Body.empty;
       }
-      commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
-        throw BadRequestException('No such commit: ${task.commitKey}');
+      commit = await datastore.db.lookupValue<Commit>(task.commitKey!, orElse: () {
+        throw BadRequestException('No such commit: ${task!.commitKey}');
       });
       slug = commit.slug;
-      commitSha = commit.sha;
+      commitSha = commit.sha!;
       builder = task.builderName;
       if (builder == null) {
-        final List<LuciBuilder> builders = await config.luciBuilders('prod', slug);
+        final List<LuciBuilder> builders = (await config.luciBuilders('prod', slug))!;
         builder = builders
-            .where((LuciBuilder builder) => builder.taskName == task.name)
+            .where((LuciBuilder builder) => builder.taskName == task!.name)
             .map((LuciBuilder builder) => builder.name)
             .single;
       }
@@ -101,26 +98,25 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       commit = Commit(repository: slug.fullName, sha: commitSha);
     }
 
-    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha, builder, repo);
+    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha!, builder, repo);
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
-    final Build build = currentBuilds.firstWhere(
+    final Build? build = currentBuilds.firstWhereOrNull(
       (Build element) {
-        log.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
+        log!.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
         return noReschedule.contains(element.status);
       },
-      orElse: () => null,
     );
-    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
+    log!.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
 
     if (build != null) {
       throw const ConflictException();
     }
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'triggered_by': <String>[token.email],
+    final Map<String, List<String?>> tags = <String, List<String?>>{
+      'triggered_by': <String?>[token.email],
       'trigger_type': <String>['manual'],
     };
     final Build buildResult = await luciBuildService.rescheduleProdBuild(
-      commitSha: commit.sha,
+      commitSha: commit.sha!,
       builderName: builder,
       repo: repo,
       properties: properties,
@@ -131,7 +127,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       task
         ..status = Task.statusNew
         ..startTimestamp = 0
-        ..attempts += 1;
+        ..attempts = (task.attempts ?? 0) + 1;
       await datastore.insert(<Task>[task]);
     }
     final String buildUrl = 'https://ci.chromium.org/ui/b/${buildResult.id}';

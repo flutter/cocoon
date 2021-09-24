@@ -13,7 +13,7 @@ typedef AccessTokenServiceProvider = AccessTokenService Function(Config config);
 /// A provider for Oauth2 tokens from Service Account JSON.
 class AccessTokenService {
   /// Creates a new Access Token provider.
-  const AccessTokenService(this.config) : assert(config != null);
+  const AccessTokenService(this.config);
 
   /// The Cocoon configuration.
   final Config config;

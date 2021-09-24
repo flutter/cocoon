@@ -8,12 +8,10 @@ part of 'push_message.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PushMessageEnvelope _$PushMessageEnvelopeFromJson(Map<String, dynamic> json) {
-  return PushMessageEnvelope(
-    message: json['message'] == null ? null : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
-    subscription: json['subscription'] as String,
-  );
-}
+PushMessageEnvelope _$PushMessageEnvelopeFromJson(Map<String, dynamic> json) => PushMessageEnvelope(
+      message: json['message'] == null ? null : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
+      subscription: json['subscription'] as String?,
+    );
 
 Map<String, dynamic> _$PushMessageEnvelopeToJson(PushMessageEnvelope instance) {
   final val = <String, dynamic>{};
@@ -29,15 +27,13 @@ Map<String, dynamic> _$PushMessageEnvelopeToJson(PushMessageEnvelope instance) {
   return val;
 }
 
-PushMessage _$PushMessageFromJson(Map<String, dynamic> json) {
-  return PushMessage(
-    attributes: (json['attributes'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(k, e as String),
-    ),
-    data: const Base64Converter().fromJson(json['data'] as String),
-    messageId: json['messageId'] as String,
-  );
-}
+PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
+      attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
+      data: json['data'] as String?,
+      messageId: json['messageId'] as String?,
+    );
 
 Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   final val = <String, dynamic>{};
@@ -49,18 +45,16 @@ Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   }
 
   writeNotNull('attributes', instance.attributes);
-  writeNotNull('data', const Base64Converter().toJson(instance.data));
+  writeNotNull('data', instance.data);
   writeNotNull('messageId', instance.messageId);
   return val;
 }
 
-BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) {
-  return BuildPushMessage(
-    build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
-    hostname: json['hostname'] as String,
-    userData: json['user_data'] as String,
-  );
-}
+BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) => BuildPushMessage(
+      build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
+      hostname: json['hostname'] as String?,
+      userData: json['user_data'] as String?,
+    );
 
 Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
   final val = <String, dynamic>{};
@@ -77,32 +71,30 @@ Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
   return val;
 }
 
-Build _$BuildFromJson(Map<String, dynamic> json) {
-  return Build(
-    bucket: json['bucket'] as String,
-    canary: json['canary'] as bool,
-    canaryPreference: _$enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
-    cancelationReason: _$enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
-    completedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['completed_ts'] as String),
-    createdBy: json['created_by'] as String,
-    createdTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['created_ts'] as String),
-    failureReason: _$enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
-    experimental: json['experimental'] as bool,
-    id: const Int64Converter().fromJson(json['id'] as String),
-    buildParameters: const NestedJsonConverter().fromJson(json['parameters_json'] as String),
-    project: json['project'] as String,
-    result: _$enumDecodeNullable(_$ResultEnumMap, json['result']),
-    resultDetails: const NestedJsonConverter().fromJson(json['result_details_json'] as String),
-    serviceAccount: json['service_account'] as String,
-    startedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['started_ts'] as String),
-    status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
-    statusChangedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['status_changed_ts'] as String),
-    tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
-    updatedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['updated_ts'] as String),
-    utcNowTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String),
-    url: json['url'] as String,
-  );
-}
+Build _$BuildFromJson(Map<String, dynamic> json) => Build(
+      bucket: json['bucket'] as String?,
+      canary: json['canary'] as bool?,
+      canaryPreference: _$enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
+      cancelationReason: _$enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
+      completedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['completed_ts'] as String?),
+      createdBy: json['created_by'] as String?,
+      createdTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['created_ts'] as String?),
+      failureReason: _$enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
+      experimental: json['experimental'] as bool?,
+      id: json['id'] as String?,
+      buildParameters: const NestedJsonConverter().fromJson(json['parameters_json'] as String?),
+      project: json['project'] as String?,
+      result: _$enumDecodeNullable(_$ResultEnumMap, json['result']),
+      resultDetails: const NestedJsonConverter().fromJson(json['result_details_json'] as String?),
+      serviceAccount: json['service_account'] as String?,
+      startedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
+      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      statusChangedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['status_changed_ts'] as String?),
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      updatedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
+      utcNowTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
+      url: json['url'] as String?,
+    );
 
 Map<String, dynamic> _$BuildToJson(Build instance) {
   final val = <String, dynamic>{};
@@ -122,7 +114,7 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('created_ts', const MillisecondsSinceEpochConverter().toJson(instance.createdTimestamp));
   writeNotNull('experimental', instance.experimental);
   writeNotNull('failure_reason', _$FailureReasonEnumMap[instance.failureReason]);
-  writeNotNull('id', const Int64Converter().toJson(instance.id));
+  writeNotNull('id', instance.id);
   writeNotNull('parameters_json', const NestedJsonConverter().toJson(instance.buildParameters));
   writeNotNull('project', instance.project);
   writeNotNull('result', _$ResultEnumMap[instance.result]);
@@ -138,34 +130,41 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   return val;
 }
 
-T _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T unknownValue,
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
 }) {
   if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
   }
 
-  final value = enumValues.entries.singleWhere((e) => e.value == source, orElse: () => null)?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
 }
 
-T _$enumDecodeNullable<T>(
-  Map<T, dynamic> enumValues,
+K? _$enumDecodeNullable<K, V>(
+  Map<K, V> enumValues,
   dynamic source, {
-  T unknownValue,
+  K? unknownValue,
 }) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
+  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$CanaryPreferenceEnumMap = {

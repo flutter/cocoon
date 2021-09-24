@@ -14,8 +14,8 @@ import 'fake_buildbucket.dart';
 class FakeLuciBuildService extends LuciBuildService {
   FakeLuciBuildService(
     Config config, {
-    BuildBucketClient buildbucket,
-    GithubChecksUtil githubChecksUtil,
+    BuildBucketClient? buildbucket,
+    GithubChecksUtil? githubChecksUtil,
   }) : super(
           config,
           buildbucket ?? FakeBuildBucketClient(),

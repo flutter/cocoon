@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_test;
@@ -30,15 +29,15 @@ void main() {
   const String authHeader = 'Bearer $authToken';
   const String deviceLabEmail = 'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
 
-  LuciStatusHandler handler;
-  FakeBuildBucketClient buildbucket;
-  FakeConfig config;
-  MockGitHub mockGitHubClient;
-  FakeHttpRequest request;
-  RequestHandlerTester tester;
-  MockRepositoriesService mockRepositoriesService;
+  late LuciStatusHandler handler;
+  late FakeBuildBucketClient buildbucket;
+  late FakeConfig config;
+  late MockGitHub mockGitHubClient;
+  late FakeHttpRequest request;
+  late RequestHandlerTester tester;
+  late MockRepositoriesService mockRepositoriesService;
   final FakeLogging log = FakeLogging();
-  MockGithubChecksService mockGithubChecksService;
+  late MockGithubChecksService mockGithubChecksService;
 
   setUp(() async {
     config = FakeConfig();
@@ -110,6 +109,7 @@ void main() {
   });
 
   test('Requests with repo_owner and repo_name update checks', () async {
+    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     request.bodyBytes = utf8.encode(pushMessageJson(
       'COMPLETED',
       result: 'SUCCESS',

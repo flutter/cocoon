@@ -21,16 +21,19 @@ import '../src/service/fake_build_status_provider.dart';
 
 void main() {
   group('GetStatus', () {
-    FakeConfig config;
+    late FakeConfig config;
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
     FakeBuildStatusService buildStatusService;
-    RequestHandlerTester tester;
-    GetStatus handler;
+    late RequestHandlerTester tester;
+    late GetStatus handler;
 
-    Future<T> decodeHandlerBody<T>() async {
+    late Commit commit1;
+    late Commit commit2;
+
+    Future<T?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as T;
+      return await utf8.decoder.bind(body.serialize() as Stream<List<int>>).transform(json.decoder).single as T?;
     }
 
     setUp(() {
@@ -44,22 +47,28 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
+      commit1 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+          repository: 'flutter/flutter',
+          sha: 'ea28a9c34dc701de891eaf74503ca4717019f829',
+          timestamp: 3,
+          message: 'test message 1',
+          branch: 'master');
+      commit2 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+          repository: 'flutter/flutter',
+          sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+          timestamp: 1,
+          message: 'test message 2',
+          branch: 'master');
     });
 
     test('no statuses', () async {
-      final Map<String, dynamic> result = await decodeHandlerBody();
+      final Map<String, dynamic> result = (await decodeHandlerBody())!;
       expect(result['Statuses'], isEmpty);
     });
 
     test('reports statuses without input commit key', () async {
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3,
-          branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          timestamp: 1,
-          branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
@@ -72,7 +81,7 @@ void main() {
         buildStatusProvider: (_) => buildStatusService,
       );
 
-      final Map<String, dynamic> result = await decodeHandlerBody();
+      final Map<String, dynamic> result = (await decodeHandlerBody())!;
 
       expect(result['Statuses'].length, 2);
     });
@@ -80,11 +89,15 @@ void main() {
     test('reports statuses with input commit key', () async {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+          repository: 'flutter/flutter',
+          sha: 'ea28a9c34dc701de891eaf74503ca4717019f829',
           timestamp: 3,
           message: 'test message 1',
           branch: 'master');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+          repository: 'flutter/flutter',
+          sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
           timestamp: 1,
           message: 'test message 2',
           branch: 'master');
@@ -106,17 +119,16 @@ void main() {
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
       });
-      final Map<String, dynamic> result = await decodeHandlerBody();
-      //final Map<String, dynamic> result
+      final Map<String, dynamic> result = (await decodeHandlerBody())!;
 
       expect(result['Statuses'].first, <String, dynamic>{
         'Checklist': <String, dynamic>{
           'Key': '',
           'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
+            'FlutterRepositoryPath': 'flutter/flutter',
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
-              'Sha': null,
+              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
               'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
@@ -128,14 +140,7 @@ void main() {
     });
 
     test('reports statuses with input branch', () async {
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3,
-          branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          timestamp: 1,
-          branch: 'flutter-1.1-candidate.1');
+      commit2.branch = 'flutter-1.1-candidate.1';
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
@@ -155,18 +160,18 @@ void main() {
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         GetStatus.branchParam: branch,
       });
-      final Map<String, dynamic> result = await decodeHandlerBody();
+      final Map<String, dynamic> result = (await decodeHandlerBody())!;
 
       expect(result['Statuses'].length, 1);
       expect(result['Statuses'].first, <String, dynamic>{
         'Checklist': <String, dynamic>{
           'Key': '',
           'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
+            'FlutterRepositoryPath': 'flutter/flutter',
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
-              'Sha': null,
-              'Message': null,
+              'Sha': 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+              'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'flutter-1.1-candidate.1'

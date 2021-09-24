@@ -20,14 +20,11 @@ import 'request_handler.dart';
 class ProxyRequestHandler extends RequestHandler<Body> {
   /// Creates a new [ProxyRequestHandler].
   const ProxyRequestHandler({
-    @required Config config,
-    @required this.scheme,
-    @required this.host,
-    @required this.port,
-  })  : assert(scheme != null),
-        assert(host != null),
-        assert(port != null),
-        super(config: config);
+    required Config config,
+    required this.scheme,
+    required this.host,
+    required this.port,
+  }) : super(config: config);
 
   /// The URI scheme to use when forwarding requests (e.g. 'https').
   final String scheme;
@@ -57,7 +54,7 @@ class ProxyRequestHandler extends RequestHandler<Body> {
     await response.close();
   }
 
-  void _transferHttpHeaders({@required HttpHeaders from, @required HttpHeaders to}) {
+  void _transferHttpHeaders({required HttpHeaders from, required HttpHeaders to}) {
     to.clear();
     from.forEach((String name, List<String> values) {
       for (String value in values) {

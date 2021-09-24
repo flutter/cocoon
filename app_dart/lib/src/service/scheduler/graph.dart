@@ -7,7 +7,7 @@ import 'package:yaml/yaml.dart';
 import '../../model/proto/internal/scheduler.pb.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
-SchedulerConfig schedulerConfigFromYaml(YamlMap yamlConfig) {
+SchedulerConfig schedulerConfigFromYaml(YamlMap? yamlConfig) {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
   _validateSchedulerConfig(config);
@@ -42,7 +42,7 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
           if (target.dependencies.first == target.name) {
             exceptions.add('ERROR: ${target.name} cannot depend on itself');
           } else if (targetGraph.containsKey(target.dependencies.first)) {
-            targetGraph[target.dependencies.first].add(target);
+            targetGraph[target.dependencies.first]!.add(target);
           } else {
             exceptions.add('ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
           }

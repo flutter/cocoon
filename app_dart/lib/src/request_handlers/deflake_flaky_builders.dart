@@ -52,7 +52,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
     final List<_BuilderInfo> eligibleBuilders = await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent);
-    String testOwnerContent;
+    String? testOwnerContent;
     for (final _BuilderInfo info in eligibleBuilders) {
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
@@ -72,18 +72,18 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   /// 3. The flaky issue of the builder is closed if there is one.
   /// 4. Does not have any existing pr against the builder.
   Future<List<_BuilderInfo>> _getEligibleFlakyBuilders(GithubService gitHub, RepositorySlug slug,
-      {String content}) async {
+      {required String content}) async {
     final YamlMap ci = loadYaml(content) as YamlMap;
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-    final List<YamlMap> flakyTargets = targets
+    final List<YamlMap?> flakyTargets = targets
         .where((dynamic target) => target[kCiYamlTargetIsFlakyKey] == true)
-        .map<YamlMap>((dynamic target) => target as YamlMap)
+        .map<YamlMap?>((dynamic target) => target as YamlMap?)
         .toList();
     final List<_BuilderInfo> result = <_BuilderInfo>[];
     final List<String> lines = content.split('\n');
-    final Map<String, PullRequest> nameToExistingPRs = await getExistingPRs(gitHub, slug);
-    for (final YamlMap flakyTarget in flakyTargets) {
-      final String builder = flakyTarget[kCiYamlTargetNameKey] as String;
+    final Map<String?, PullRequest> nameToExistingPRs = await getExistingPRs(gitHub, slug);
+    for (final YamlMap? flakyTarget in flakyTargets) {
+      final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       if (ignoredBuilders.contains(builder)) {
         continue;
       }
@@ -95,12 +95,12 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
       int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder')) + 1;
       while (builderLineNumber < lines.length && !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
-          final RegExpMatch match = _issueLinkRegex.firstMatch(lines[builderLineNumber]);
+          final RegExpMatch? match = _issueLinkRegex.firstMatch(lines[builderLineNumber]);
           if (match == null) {
             result.add(_BuilderInfo(name: builder));
             break;
           }
-          final Issue issue = await gitHub.getIssue(slug, issueNumber: int.parse(match.namedGroup('id')));
+          final Issue issue = await gitHub.getIssue(slug, issueNumber: int.parse(match.namedGroup('id')!))!;
           if (issue.isClosed) {
             result.add(_BuilderInfo(name: builder, existingIssue: issue));
           }
@@ -115,17 +115,17 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   Future<void> _deflakyPullRequest(
     GithubService gitHub,
     RepositorySlug slug, {
-    @required _BuilderInfo info,
-    @required String ciContent,
-    @required String testOwnerContent,
+    required _BuilderInfo info,
+    required String ciContent,
+    required String testOwnerContent,
   }) async {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final DeflakePullRequestBuilder prBuilder = DeflakePullRequestBuilder(
         name: info.name,
         recordNumber: kRecordNumber,
-        ownership:
-            getTestOwnership(info.name, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent),
+        ownership: getTestOwnership(
+            info.name!, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent),
         issue: info.existingIssue);
     final PullRequest pullRequest = await gitHub.createPullRequest(
       slug,
@@ -146,7 +146,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   }
 
   /// Removes the `bringup: true` for the builder in the ci.yaml.
-  String _deflakeBuilderInContent(String content, String builder) {
+  String _deflakeBuilderInContent(String content, String? builder) {
     final List<String> lines = content.split('\n');
     final int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder'));
     int nextLine = builderLineNumber + 1;
@@ -165,6 +165,6 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
 /// for the builder.
 class _BuilderInfo {
   _BuilderInfo({this.name, this.existingIssue});
-  final String name;
-  final Issue existingIssue;
+  final String? name;
+  final Issue? existingIssue;
 }

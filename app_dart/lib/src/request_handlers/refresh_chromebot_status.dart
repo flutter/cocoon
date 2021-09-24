@@ -28,15 +28,13 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
-    @required this.scheduler,
-    @visibleForTesting LuciServiceProvider luciServiceProvider,
-    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    required this.scheduler,
+    @visibleForTesting LuciServiceProvider? luciServiceProvider,
+    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
         datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        assert(branchHttpClientProvider != null),
-        assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciBuildService luciBuildService;
@@ -50,13 +48,15 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     return LuciService(
       buildBucketClient: BuildBucketClient(),
       config: handler.config,
-      clientContext: handler.authContext.clientContext,
+      clientContext: handler.authContext!.clientContext,
     );
   }
 
   @override
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
+    scheduler.setLogger(log!);
+    luciBuildService.setLogger(log!);
     final DatastoreService datastore = datastoreProvider(config.db);
     final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
@@ -69,7 +69,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     for (BranchLuciBuilder branchLuciBuilder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
         await _updateStatus(
-          branchLuciBuilder.luciBuilder,
+          branchLuciBuilder.luciBuilder!,
           branchLuciBuilder.branch,
           datastore,
           luciTasks[branchLuciBuilder],
@@ -81,8 +81,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   /// Update chromebot tasks statuses in datastore for [builder],
   /// based on latest [luciTasks] statuses.
-  Future<void> _updateStatus(
-      LuciBuilder builder, String branch, DatastoreService datastore, Map<String, List<LuciTask>> luciTasksMap) async {
+  Future<void> _updateStatus(LuciBuilder builder, String? branch, DatastoreService datastore,
+      Map<String, List<LuciTask>>? luciTasksMap) async {
     final List<FullTask> datastoreTasks =
         await datastore.queryRecentTasks(taskName: builder.taskName, branch: branch).toList();
 
@@ -91,11 +91,11 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     /// [builderNumberList] when luci rerun happens, and update [devicelabTask]
     /// status when the status of latest luci run changes.
     for (FullTask datastoreTask in datastoreTasks) {
-      final String commitSha = datastoreTask.commit.sha;
-      if (!luciTasksMap.containsKey(commitSha)) {
+      final String commitSha = datastoreTask.commit.sha!;
+      if (!luciTasksMap!.containsKey(commitSha)) {
         continue;
       }
-      final List<LuciTask> luciTasks = luciTasksMap[commitSha];
+      final List<LuciTask> luciTasks = luciTasksMap[commitSha]!;
       final String buildNumberList =
           luciTasks.reversed.map((LuciTask luciTask) => luciTask.buildNumber.toString()).toList().join(',');
       final LuciTask latestLuciTask = luciTasks.first;
@@ -107,10 +107,10 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         if (await luciBuildService.checkRerunBuilder(
             commit: datastoreTask.commit,
             luciTask: latestLuciTask,
-            retries: update.attempts - 1,
+            retries: update.attempts! - 1,
             datastore: datastore)) {
           update.status = Task.statusNew;
-          update.attempts += 1;
+          update.attempts = (update.attempts ?? 0) + 1;
         }
 
         update.buildNumberList = buildNumberList;
@@ -128,17 +128,17 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<void> _insertBigquery(Task task) async {
     const String bigqueryTableName = 'Task';
     final Map<String, dynamic> bigqueryData = <String, dynamic>{
-      'ID': task.commitKey.id,
+      'ID': task.commitKey?.id,
       'CreateTimestamp': task.createTimestamp,
       'StartTimestamp': task.startTimestamp,
       'EndTimestamp': task.endTimestamp,
       'Name': task.name,
       'Attempts': task.attempts,
       'IsFlaky': task.isFlaky,
-      'TimeoutInMinutes': task.timeoutInMinutes,
-      'RequiredCapabilities': task.requiredCapabilities,
+      'TimeoutInMinutes': task.timeoutInMinutes ?? 0,
+      'RequiredCapabilities': task.requiredCapabilities ?? <String>[],
       'ReservedForAgentID': task.reservedForAgentId,
-      'StageName': task.stageName,
+      'StageName': task.stageName ?? 'unknown',
       'Status': task.status,
     };
     await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);

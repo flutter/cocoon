@@ -27,16 +27,21 @@ class Counter {
 
 void main() {
   group('Datastore', () {
-    FakeConfig config;
-    FakeDatastoreDB db;
-    DatastoreService datastoreService;
-    Commit commit;
+    late FakeConfig config;
+    late FakeDatastoreDB db;
+    late DatastoreService datastoreService;
+    late Commit commit;
 
     setUp(() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
       datastoreService = DatastoreService(config.db, 5);
-      commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc_master'), sha: 'abc_master', branch: 'master');
+      commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'abc_master'),
+        sha: 'abc_master',
+        repository: config.flutterSlug.fullName,
+        branch: 'master',
+      );
     });
 
     group('DatasourceService', () {
@@ -48,8 +53,12 @@ void main() {
 
       test('QueryRecentCommits', () async {
         for (String branch in <String>['master', 'release']) {
-          final Commit commit =
-              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
+          final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+            repository: config.flutterSlug.fullName,
+            sha: 'abc_$branch',
+            branch: branch,
+          );
           config.db.values[commit.key] = commit;
         }
         // Defaults to master
@@ -66,8 +75,12 @@ void main() {
         List<Commit> commits = await datastoreService.queryRecentCommits().toList();
         expect(commits, isEmpty);
         for (String branch in <String>['master', 'release']) {
-          final Commit commit =
-              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
+          final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+            repository: config.flutterSlug.fullName,
+            sha: 'abc_$branch',
+            branch: branch,
+          );
           config.db.values[commit.key] = commit;
         }
         // Results from two branches
@@ -76,11 +89,16 @@ void main() {
       });
 
       test('QueryRecentTasksNoBranch - release branch', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), branch: 'release');
+        final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'abc'),
+            repository: config.flutterSlug.fullName,
+            sha: 'abc',
+            branch: 'release');
         config.db.values[commit.key] = commit;
         final Task task = Task(
             key: commit.key.append(Task, id: 123),
             commitKey: commit.key,
+            name: 'Linux A',
             attempts: 1,
             status: Task.statusInProgress,
             startTimestamp: DateTime.now().millisecondsSinceEpoch);
@@ -94,20 +112,19 @@ void main() {
 
     test('Shard', () async {
       // default maxEntityGroups = 5
-      List<List<Model<dynamic>>> shards =
-          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit(), Commit(), Commit(), Commit()]);
+      List<List<Model<dynamic>>> shards = await datastoreService.shard(generateCommits(6));
       expect(shards, hasLength(2));
       expect(shards[0], hasLength(5));
       expect(shards[1], hasLength(1));
-      // maxEntigroups = 2
+      // maxEntitygroups = 2
       datastoreService = DatastoreService(config.db, 2);
-      shards = await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      shards = await datastoreService.shard(generateCommits(3));
       expect(shards, hasLength(2));
       expect(shards[0], hasLength(2));
       expect(shards[1], hasLength(1));
       // maxEntityGroups = 1
       datastoreService = DatastoreService(config.db, 1);
-      shards = await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      shards = await datastoreService.shard(generateCommits(3));
       expect(shards, hasLength(3));
       expect(shards[0], hasLength(1));
       expect(shards[1], hasLength(1));
@@ -121,19 +138,19 @@ void main() {
 
     test('LookupByKey', () async {
       config.db.values[commit.key] = commit;
-      final List<Commit> commits = await datastoreService.lookupByKey(<Key<dynamic>>[commit.key]);
+      final List<Commit?> commits = await datastoreService.lookupByKey(<Key<dynamic>>[commit.key]);
       expect(commits, hasLength(1));
       expect(commits[0], equals(commit));
     });
 
     test('LookupByValue', () async {
       config.db.values[commit.key] = commit;
-      final Commit expected = await datastoreService.lookupByValue(commit.key);
+      final Commit? expected = await datastoreService.lookupByValue(commit.key);
       expect(expected, equals(commit));
     });
 
     test('WithTransaction', () async {
-      final String expected = await datastoreService.withTransaction((Transaction transaction) async {
+      final String? expected = await datastoreService.withTransaction((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         await transaction.commit();
         return 'success';
@@ -144,7 +161,7 @@ void main() {
   });
 
   group('RunTransactionWithRetry', () {
-    RetryOptions retryOptions;
+    late RetryOptions retryOptions;
 
     setUp(() {
       retryOptions = const RetryOptions(
@@ -186,4 +203,9 @@ void main() {
       expect(counter.value(), equals(1));
     });
   });
+}
+
+/// Helper function to generate fake commits
+List<Commit> generateCommits(int i) {
+  return List<Commit>.generate(i, (int i) => Commit(repository: 'flutter/flutter', sha: '$i'));
 }

@@ -16,11 +16,11 @@ import 'request_handler_tester.dart';
 
 class NoAuthRequestHandlerTester extends RequestHandlerTester {
   NoAuthRequestHandlerTester({
-    HttpRequest request,
-    FakeLogging log,
-    Map<String, dynamic> requestData,
+    HttpRequest? request,
+    FakeLogging? log,
+    Map<String, dynamic>? requestData,
   })  : requestData = requestData ?? <String, dynamic>{},
-        super(request: request as FakeHttpRequest, log: log);
+        super(request: request as FakeHttpRequest?, log: log);
 
   Map<String, dynamic> requestData;
 

@@ -2,19 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:test/test.dart';
+
+import '../src/utilities/entity_generators.dart';
 
 Stage buildStage({
   String name = 'stage',
   List<String> statuses = const <String>[Task.statusNew],
 }) {
-  final Iterable<Task> tasks = statuses.map<Task>((String status) => Task(status: status));
+  final Iterable<Task> tasks = statuses.map<Task>((String status) => generateTask(1, status: status));
   final StageBuilder builder = StageBuilder()
     ..name = name
-    ..commit = Commit()
+    ..commit = generateCommit(1)
     ..tasks.addAll(tasks);
   return builder.build();
 }
@@ -28,7 +29,7 @@ void main() {
         buildStage(name: 'cirrus'),
       ];
       stages.sort();
-      expect(stages.map<String>((Stage stage) => stage.name), <String>['cirrus', 'devicelab', 'unknown']);
+      expect(stages.map<String?>((Stage stage) => stage.name), <String>['cirrus', 'devicelab', 'unknown']);
     });
 
     test('isManagedByDeviceLab', () {
@@ -137,11 +138,11 @@ void main() {
     test('validates state of the stage', () {
       expect(() => StageBuilder().build(), throwsStateError);
       expect(() => (StageBuilder()..name = 'name').build(), throwsStateError);
-      expect(() => (StageBuilder()..commit = Commit()).build(), throwsStateError);
+      expect(() => (StageBuilder()..commit = generateCommit(1)).build(), throwsStateError);
       expect(
           () => (StageBuilder()
                 ..name = 'name'
-                ..commit = Commit())
+                ..commit = generateCommit(1))
               .build(),
           throwsStateError);
     });

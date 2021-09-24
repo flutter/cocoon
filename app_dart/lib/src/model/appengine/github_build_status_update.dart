@@ -9,7 +9,7 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'GithubBuildStatusUpdate')
 class GithubBuildStatusUpdate extends Model<int> {
   GithubBuildStatusUpdate({
-    Key<int> key,
+    Key<int>? key,
     this.repository,
     this.pr,
     this.head,
@@ -26,23 +26,23 @@ class GithubBuildStatusUpdate extends Model<int> {
   static const String statusFailure = 'failure';
 
   @StringProperty(propertyName: 'Repository', required: true)
-  String repository;
+  String? repository;
 
   @IntProperty(propertyName: 'PR', required: true)
-  int pr;
+  int? pr;
 
   @StringProperty(propertyName: 'Head')
-  String head;
+  String? head;
 
   @StringProperty(propertyName: 'Status', required: true)
-  String status;
+  String? status;
 
   @IntProperty(propertyName: 'Updates', required: true)
-  int updates;
+  int? updates;
 
   /// The last time when the status is updated for the PR.
   @IntProperty(propertyName: 'UpdateTimeMillis')
-  int updateTimeMillis;
+  int? updateTimeMillis;
 
   @override
   String toString() {

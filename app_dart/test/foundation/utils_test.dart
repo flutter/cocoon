@@ -46,8 +46,8 @@ void main() {
       maxDelay: Duration.zero,
     );
     group('githubFileContent', () {
-      MockClient branchHttpClient;
-      FakeLogging log;
+      late MockClient branchHttpClient;
+      late FakeLogging log;
 
       setUp(() {
         log = FakeLogging();
@@ -117,8 +117,8 @@ void main() {
     });
 
     group('GetBranches', () {
-      MockClient branchHttpClient;
-      FakeLogging log;
+      late MockClient branchHttpClient;
+      late FakeLogging log;
 
       setUp(() {
         log = FakeLogging();
@@ -147,8 +147,8 @@ void main() {
     });
 
     group('GetLuciBuilders', () {
-      MockClient luciBuilderHttpClient;
-      FakeLogging log;
+      late MockClient luciBuilderHttpClient;
+      late FakeLogging log;
 
       setUp(() {
         log = FakeLogging();
@@ -198,7 +198,7 @@ void main() {
     group('repoNameForBuilder', () {
       test('Builder config does not exist', () async {
         final List<LuciBuilder> builders = <LuciBuilder>[];
-        final RepositorySlug result = await repoNameForBuilder(builders, 'DoesNotExist');
+        final RepositorySlug? result = await repoNameForBuilder(builders, 'DoesNotExist');
         expect(result, isNull);
       });
 
@@ -206,18 +206,17 @@ void main() {
         final List<LuciBuilder> builders = <LuciBuilder>[
           const LuciBuilder(name: 'Cocoon', repo: 'cocoon', flaky: false)
         ];
-        final RepositorySlug result = await repoNameForBuilder(builders, 'Cocoon');
-        expect(result, isNotNull);
+        final RepositorySlug result = (await repoNameForBuilder(builders, 'Cocoon'))!;
         expect(result.fullName, equals('flutter/cocoon'));
       });
     });
 
     group('bigquery', () {
-      FakeTabledataResourceApi tabledataResourceApi;
-      FakeLogging log;
+      late FakeTabledataResource tabledataResourceApi;
+      late FakeLogging log;
 
       setUp(() {
-        tabledataResourceApi = FakeTabledataResourceApi();
+        tabledataResourceApi = FakeTabledataResource();
         log = FakeLogging();
       });
       test('Insert data to bigquery', () async {

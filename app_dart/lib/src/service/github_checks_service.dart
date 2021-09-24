@@ -22,12 +22,12 @@ const String kGithubSummary = '''
 
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksService {
-  GithubChecksService(this.config, {GithubChecksUtil githubChecksUtil})
+  GithubChecksService(this.config, {GithubChecksUtil? githubChecksUtil})
       : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   Config config;
   GithubChecksUtil githubChecksUtil;
-  Logging log;
+  late Logging log;
 
   static Set<github.CheckRunConclusion> failedStatesSet = <github.CheckRunConclusion>{
     github.CheckRunConclusion.cancelled,
@@ -47,16 +47,16 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
   Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests[0];
-    final int prNumber = pullRequest.number;
-    final String commitSha = checkSuiteEvent.checkSuite.headSha;
+    final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests![0];
+    final int? prNumber = pullRequest.number;
+    final String? commitSha = checkSuiteEvent.checkSuite.headSha;
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.
         await scheduler.triggerPresubmitTargets(
-          branch: pullRequest.base.ref,
-          prNumber: prNumber,
-          commitSha: commitSha,
+          branch: pullRequest.base!.ref!,
+          prNumber: prNumber!,
+          commitSha: commitSha!,
           slug: checkSuiteEvent.repository.slug(),
         );
         break;
@@ -64,8 +64,8 @@ class GithubChecksService {
       case 'rerequested':
         return await scheduler.retryPresubmitTargets(
           slug: slug,
-          prNumber: prNumber,
-          commitSha: commitSha,
+          prNumber: prNumber!,
+          commitSha: commitSha!,
           checkSuiteEvent: checkSuiteEvent,
         );
     }
@@ -80,11 +80,11 @@ class GithubChecksService {
     LuciBuildService luciBuildService,
     github.RepositorySlug slug,
   ) async {
-    final push_message.Build build = buildPushMessage.build;
-    if (buildPushMessage.userData.isEmpty) {
+    final push_message.Build? build = buildPushMessage.build;
+    if (buildPushMessage.userData!.isEmpty) {
       return false;
     }
-    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
+    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     if (!userData.containsKey('check_run_id') ||
         !userData.containsKey('repo_owner') ||
         !userData.containsKey('repo_name')) {
@@ -97,20 +97,21 @@ class GithubChecksService {
     final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(
       config,
       slug,
-      userData['check_run_id'] as int,
+      userData['check_run_id'] as int?,
     );
-    final github.CheckRunStatus status = statusForResult(build.status);
-    final github.CheckRunConclusion conclusion =
-        (buildPushMessage.build.result != null) ? conclusionForResult(buildPushMessage.build.result) : null;
+    final github.CheckRunStatus status = statusForResult(build!.status);
+    final github.CheckRunConclusion? conclusion =
+        (buildPushMessage.build!.result != null) ? conclusionForResult(buildPushMessage.build!.result) : null;
     // Do not override url for completed status.
-    final String url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build.url;
-    github.CheckRunOutput output;
+    final String? url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build!.url;
+    github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
-          await luciBuildService.getTryBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
-      output = github.CheckRunOutput(title: checkRun.name, summary: getGithubSummary(build.summaryMarkdown));
+          await luciBuildService.getTryBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+      output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
     }
+    log.debug('Updating check run with output: [$output]');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,
@@ -125,14 +126,25 @@ class GithubChecksService {
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
   /// reference from github check run page.
-  String getGithubSummary(String summary) {
-    return kGithubSummary + (summary ?? 'Empty summaryMarkdown');
+  String getGithubSummary(String? summary) {
+    if (summary == null) {
+      return kGithubSummary + 'Empty summaryMarkdown';
+    }
+    // This is an imposed GitHub limit
+    const int checkSummaryLimit = 65535;
+    // This is to give buffer room incase GitHub lowers the amount.
+    const int checkSummaryBufferLimit = checkSummaryLimit - 10000 - kGithubSummary.length;
+    // Return the last [checkSummaryBufferLimit] characters as they are likely the most relevant.
+    if (summary.length > checkSummaryBufferLimit) {
+      summary = '[TRUNCATED...] ' + summary.substring(summary.length - checkSummaryBufferLimit);
+    }
+    return kGithubSummary + summary;
   }
 
   /// Transforms a [push_message.Result] to a [github.CheckRunConclusion].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
-  github.CheckRunConclusion conclusionForResult(push_message.Result result) {
+  github.CheckRunConclusion conclusionForResult(push_message.Result? result) {
     switch (result) {
       case push_message.Result.canceled:
         // Set conclusion cancelled as a failure to ensure developers can retry
@@ -142,14 +154,15 @@ class GithubChecksService {
         return github.CheckRunConclusion.failure;
       case push_message.Result.success:
         return github.CheckRunConclusion.success;
+      case null:
+        throw StateError('unreachable');
     }
-    throw StateError('unreachable');
   }
 
   /// Transforms a [ush_message.Status] to a [github.CheckRunStatus].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
-  github.CheckRunStatus statusForResult(push_message.Status status) {
+  github.CheckRunStatus statusForResult(push_message.Status? status) {
     switch (status) {
       case push_message.Status.completed:
         return github.CheckRunStatus.completed;
@@ -157,7 +170,8 @@ class GithubChecksService {
         return github.CheckRunStatus.queued;
       case push_message.Status.started:
         return github.CheckRunStatus.inProgress;
+      case null:
+        throw StateError('unreachable');
     }
-    throw StateError('unreachable');
   }
 }
