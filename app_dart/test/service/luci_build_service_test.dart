@@ -28,16 +28,10 @@ import '../src/utilities/push_message.dart';
 void main() {
   late FakeConfig config;
   FakeGithubService githubService;
-<<<<<<< HEAD
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
   RepositorySlug? slug;
-=======
-  MockBuildBucketClient mockBuildBucketClient;
-  LuciBuildService service;
-  RepositorySlug slug;
-  FakeLogging fakeLogging;
->>>>>>> 996d6318 (Address comments and implement retries for failing builds.)
+  late FakeLogging fakeLogging;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
   const List<LuciBuilder> builders = <LuciBuilder>[
@@ -206,7 +200,7 @@ void main() {
         'check_suite': <String, dynamic>{'id': 2}
       });
       when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async => checkRun);
-      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);   
+      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);
       await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,

@@ -353,12 +353,10 @@ class Scheduler {
     dynamic exception;
     final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
     try {
-      log.debug('about to get presubmit builders');
       final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
         commit: presubmitCommit,
         prNumber: prNumber,
       );
-      log.debug('about to schedule presubmit builds');
       await luciBuildService.scheduleTryBuilds(
         builders: presubmitBuilders,
         slug: slug,
@@ -454,11 +452,10 @@ class Scheduler {
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
+     //  Get .ci.yaml targets
     final Iterable<Target> presubmitLuciTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
-    final Iterable<LuciBuilder> ciYamlBuilders =
-        presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
-    builders.addAll(ciYamlBuilders);
+    presubmitBuilders.addAll(presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(commit.slug, prNumber);

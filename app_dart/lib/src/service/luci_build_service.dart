@@ -161,7 +161,7 @@ class LuciBuildService {
   /// Creates BuildBucket [Request] using [checkSuiteEvent], [slug], [prNumber], [commitSha], [builder], [builderId]
   /// and [userData].
   Future<Request> _createBuildRequest(CheckSuiteEvent? checkSuiteEvent, github.RepositorySlug slug, int prNumber,
-      String commitSha, String builder, BuilderId builderId, Map<String, dynamic> userData) async {
+      String commitSha, String? builder, BuilderId builderId, Map<String, dynamic> userData) async {
     int? checkRunId;
     if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
       final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
@@ -197,16 +197,16 @@ class LuciBuildService {
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
   /// and Github [slug].
   Future<void> scheduleTryBuilds({
-    @required List<LuciBuilder> builders,
-    @required int prNumber,
-    @required String commitSha,
-    @required github.RepositorySlug slug,
-    CheckSuiteEvent checkSuiteEvent,
+    required List<LuciBuilder> builders,
+    required int prNumber,
+    required String commitSha,
+    required github.RepositorySlug slug,
+    CheckSuiteEvent? checkSuiteEvent,
   }) async {
     if (!config.githubPresubmitSupportedRepo(slug)) {
       throw BadRequestException('Repository ${slug.name} is not supported by this service.');
     }
-    List<String> builderNames = await _builderNamesForRepo(
+    List<String?> builderNames = await _builderNamesForRepo(
       builders,
       prNumber,
       commitSha,
@@ -234,7 +234,7 @@ class LuciBuildService {
     String commitSha,
     github.RepositorySlug slug,
   ) async {
-    final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(
+    final Map<String?, Build?> builds = await tryBuildsForRepositoryAndPr(
       slug,
       prNumber,
       commitSha,
@@ -260,16 +260,16 @@ class LuciBuildService {
 
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
   /// and Github [slug].
-  Future<List<String>> _scheduleTryBuilds({
-    @required List<String> builderNames,
-    @required int prNumber,
-    @required String commitSha,
-    @required github.RepositorySlug slug,
-    CheckSuiteEvent checkSuiteEvent,
+  Future<List<String?>> _scheduleTryBuilds({
+    required List<String?> builderNames,
+    required int prNumber,
+    required String commitSha,
+    required github.RepositorySlug slug,
+    CheckSuiteEvent? checkSuiteEvent,
   }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
-    final List<String> builderNamesToRetry = <String>[];
-    for (String builder in builderNames) {
+    final List<String?> builderNamesToRetry = <String>[];
+    for (String? builder in builderNames) {
       final BuilderId builderId = BuilderId(
         project: 'flutter',
         bucket: 'try',
@@ -303,7 +303,9 @@ class LuciBuildService {
 
       if (response.scheduleBuild == null) {
         log.warning('$response does not contain scheduleBuild');
-        builderNamesToRetry.add(response.getBuild.builderId.builder);
+        if (response.getBuild?.builderId.builder != null) {
+          builderNamesToRetry.add(response.getBuild?.builderId.builder);
+        }
         continue;
       }
 
@@ -320,7 +322,9 @@ class LuciBuildService {
       if (checkRunId != null) {
         final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
         if (errorText.isNotEmpty) {
-          builderNamesToRetry.add(response.getBuild.builderId.builder);
+          if (response.getBuild?.builderId.builder != null) {
+            builderNamesToRetry.add(response.getBuild?.builderId.builder);
+          }
           await githubChecksUtil.updateCheckRun(
             config,
             slug,
