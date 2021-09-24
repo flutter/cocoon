@@ -133,7 +133,7 @@ void main() {
 
     test('really large summaryMarkdown', () async {
       String summaryMarkdown = '';
-      for (int i = 0; i < 65535; i++) {
+      for (int i = 0; i < 20000; i++) {
         summaryMarkdown += 'test ';
       }
       expect(githubChecksService.getGithubSummary(summaryMarkdown), startsWith('$kGithubSummary[TRUNCATED...]'));
