@@ -36,7 +36,7 @@ typedef RetryHandler = Function();
 ///
 /// It uses quadratic backoff starting with 200ms and 3 max attempts.
 /// for context please read https://github.com/flutter/flutter/issues/54615.
-Future<void> runTransactionWithRetries(RetryHandler retryHandler, {RetryOptions retryOptions}) {
+Future<void> runTransactionWithRetries(RetryHandler retryHandler, {RetryOptions? retryOptions}) {
   final RetryOptions r = retryOptions ??
       const RetryOptions(
         maxDelay: Duration(seconds: 10),
@@ -57,9 +57,8 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService(this.db, this.maxEntityGroups, {RetryOptions retryOptions})
-      : assert(db != null, maxEntityGroups != null),
-        retryOptions = retryOptions ??
+  const DatastoreService(this.db, this.maxEntityGroups, {RetryOptions? retryOptions})
+      : retryOptions = retryOptions ??
             const RetryOptions(
               maxDelay: Duration(seconds: 10),
               maxAttempts: 3,
@@ -68,7 +67,7 @@ class DatastoreService {
   /// Maximum number of entity groups to process at once.
   final int maxEntityGroups;
 
-  /// The backing [DatastoreDB] object. Guaranteed to be non-null.
+  /// The backing [DatastoreDB] object.
   final DatastoreDB db;
 
   /// Transaction retry configurations.
@@ -76,7 +75,7 @@ class DatastoreService {
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
   static DatastoreService defaultProvider(DatastoreDB db) {
-    return DatastoreService(db ?? dbService, defaultMaxEntityGroups);
+    return DatastoreService(db, defaultMaxEntityGroups);
   }
 
   /// Queries for recent commits.
@@ -84,7 +83,7 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp, String branch}) {
+  Stream<Commit> queryRecentCommits({int limit = 100, int? timestamp, String? branch}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= 'master';
     final Query<Commit> query = db.query<Commit>()
@@ -96,7 +95,7 @@ class DatastoreService {
   }
 
   // Queries for recent commits without considering branches.
-  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp}) {
+  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int? timestamp}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
@@ -122,9 +121,7 @@ class DatastoreService {
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
   Stream<FullTask> queryRecentTasks(
-      {String taskName, int commitLimit = 20, int taskLimit = 20, String branch = 'master'}) async* {
-    assert(commitLimit != null);
-    assert(taskLimit != null);
+      {String? taskName, int commitLimit = 20, int taskLimit = 20, String? branch = 'master'}) async* {
     await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
         ..limit(taskLimit)
@@ -138,7 +135,6 @@ class DatastoreService {
 
   // Queries for recent tasks without considering branches.
   Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20}) async* {
-    assert(commitLimit != null);
     await for (Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
@@ -152,14 +148,14 @@ class DatastoreService {
   /// [Stage].
   Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
     final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-stageName');
-    final Map<String, StageBuilder> stages = <String, StageBuilder>{};
+    final Map<String?, StageBuilder> stages = <String?, StageBuilder>{};
     await for (Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
         stages[task.stageName] = StageBuilder()
           ..commit = commit
           ..name = task.stageName;
       }
-      stages[task.stageName].tasks.add(task);
+      stages[task.stageName]!.tasks.add(task);
     }
     final List<Stage> result = stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
     return result..sort();
@@ -172,15 +168,14 @@ class DatastoreService {
     final Query<GithubBuildStatusUpdate> query = db.query<GithubBuildStatusUpdate>()
       ..filter('repository =', slug.fullName)
       ..filter('pr =', pr.number)
-      ..filter('head =', pr.head.sha);
+      ..filter('head =', pr.head!.sha);
     final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
         repository: slug.fullName,
-        pr: pr.number,
-        head: pr.head.sha,
-        status: null,
+        pr: pr.number!,
+        head: pr.head!.sha,
         updates: 0,
         updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
       );
@@ -190,7 +185,7 @@ class DatastoreService {
       /// is returned.
       if (previousStatusUpdates.length > 1) {
         return previousStatusUpdates.reduce((GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
-            current.updateTimeMillis < next.updateTimeMillis ? next : current);
+            current.updateTimeMillis! < next.updateTimeMillis! ? next : current);
       }
       return previousStatusUpdates.single;
     }
@@ -207,7 +202,7 @@ class DatastoreService {
 
     if (previousStatusUpdates.isEmpty) {
       return GithubGoldStatusUpdate(
-        pr: pr.number,
+        pr: pr.number!,
         head: '',
         status: '',
         updates: 0,
@@ -246,8 +241,8 @@ class DatastoreService {
   }
 
   /// Looks up registers by [keys].
-  Future<List<T>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
-    List<T> results = <T>[];
+  Future<List<T?>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
+    List<T?> results = <T>[];
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {
         results = await transaction.lookup<T>(keys);
@@ -257,8 +252,8 @@ class DatastoreService {
   }
 
   /// Looks up registers by value using a single [key].
-  Future<T> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function() orElse}) async {
-    T result;
+  Future<T?> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
+    T? result;
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {
         result = await db.lookupValue<T>(key, orElse: orElse);
@@ -268,8 +263,8 @@ class DatastoreService {
   }
 
   /// Runs a function inside a transaction providing a [Transaction] parameter.
-  Future<T> withTransaction<T>(Future<T> Function(Transaction) handler) async {
-    T result;
+  Future<T?> withTransaction<T>(Future<T> Function(Transaction) handler) async {
+    T? result;
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {
         result = await handler(transaction);

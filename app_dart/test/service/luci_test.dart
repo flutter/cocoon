@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -36,18 +37,9 @@ void main() {
     final LuciService service =
         LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
     final List<Build> builds = List<Build>.generate(
-      luciStatusToTaskStatus.keys.length,
-      (int index) => Build(
-        id: index,
-        number: index,
-        builderId: const BuilderId(
-          project: 'flutter',
-          bucket: 'prod',
-          builder: 'Linux',
-        ),
-        status: luciStatusToTaskStatus.keys.toList()[index],
-      ),
-    );
+        luciStatusToTaskStatus.keys.length,
+        (int index) => generateBuild(index,
+            name: 'Linux', status: luciStatusToTaskStatus.keys.toList()[index], buildNumber: index));
     when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
       return BatchResponse(
         responses: <Response>[
@@ -65,11 +57,11 @@ void main() {
     // There's no branch logic so there is only one entry
     expect(luciTaskBranchMap.keys.length, 1);
     final Map<String, List<LuciTask>> luciTaskMap = luciTaskBranchMap.values.first;
-    final List<LuciTask> luciTasks = luciTaskMap['unknown'];
+    final List<LuciTask> luciTasks = luciTaskMap['unknown']!;
     for (LuciTask luciTask in luciTasks) {
       // Get associated luci builder to verify status is mapped correctly
       final Build luciBuild = builds[luciTask.buildNumber];
-      expect(luciTask.status, luciStatusToTaskStatus[luciBuild.status]);
+      expect(luciTask.status, luciStatusToTaskStatus[luciBuild.status!]);
     }
   });
   test('luci getBuildsForBuilders works correctly', () async {
@@ -81,14 +73,9 @@ void main() {
     const LuciBuilder builder = LuciBuilder(name: 'Linux', repo: 'flutter', flaky: false);
     final List<Build> builds = List<Build>.generate(
       luciStatusToTaskStatus.keys.length,
-      (int index) => Build(
-        id: index,
-        number: index,
-        builderId: const BuilderId(
-          project: 'flutter',
-          bucket: 'prod',
-          builder: 'Linux',
-        ),
+      (int index) => generateBuild(
+        index,
+        name: 'Linux',
         status: luciStatusToTaskStatus.keys.toList()[index],
       ),
     );

@@ -18,9 +18,9 @@ import '../src/request_handling/fake_http.dart';
 void main() {
   group('FlushCache', () {
     FakeConfig config;
-    ApiRequestHandlerTester tester;
-    FlushCache handler;
-    CacheService cache;
+    late ApiRequestHandlerTester tester;
+    late FlushCache handler;
+    late CacheService cache;
 
     setUp(() {
       tester = ApiRequestHandlerTester();

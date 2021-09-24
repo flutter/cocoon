@@ -12,8 +12,8 @@ import '../src/datastore/fake_datastore.dart';
 void main() {
   group('githubAppInstallations', () {
     FakeDatastoreDB datastore;
-    CacheService cacheService;
-    Config config;
+    late CacheService cacheService;
+    late Config config;
     setUp(() {
       datastore = FakeDatastoreDB();
       cacheService = CacheService(inMemory: true);

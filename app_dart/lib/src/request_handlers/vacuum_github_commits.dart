@@ -24,10 +24,9 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   const VacuumGithubCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @required this.scheduler,
+    required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  })  : assert(datastoreProvider != null),
-        super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -36,7 +35,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    scheduler.setLogger(log);
+    scheduler.setLogger(log!);
 
     for (RepositorySlug slug in Config.schedulerSupportedRepos) {
       await _vacuumRepository(slug, datastore: datastore);
@@ -45,7 +44,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
-  Future<void> _vacuumRepository(RepositorySlug slug, {DatastoreService datastore}) async {
+  Future<void> _vacuumRepository(RepositorySlug slug, {DatastoreService? datastore}) async {
     final GithubService githubService = await config.createGithubService(slug);
     for (String branch in await config.getSupportedBranches(slug)) {
       final List<Commit> commits =
@@ -57,24 +56,26 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   Future<List<Commit>> _vacuumBranch(
     RepositorySlug slug,
     String branch, {
-    DatastoreService datastore,
-    GithubService githubService,
+    DatastoreService? datastore,
+    required GithubService githubService,
   }) async {
-    List<RepositoryCommit> commits;
+    late List<RepositoryCommit> commits;
     // Sliding window of times to add commits from.
     final DateTime queryAfter = DateTime.now().subtract(const Duration(days: 1));
     final DateTime queryBefore = DateTime.now().subtract(const Duration(minutes: 3));
     try {
+      log!.debug(
+          'Listing commit for slug: $slug branch: $branch and msSinceEpoch: ${queryAfter.millisecondsSinceEpoch}');
       commits = await githubService.listCommits(slug, branch, queryAfter.millisecondsSinceEpoch);
-      log.debug('Retrieved ${commits.length} commits from GitHub');
+      log!.debug('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
       commits = commits
           .where((RepositoryCommit commit) =>
-              commit.commit.committer.date.millisecondsSinceEpoch < queryBefore.millisecondsSinceEpoch)
+              commit.commit!.committer!.date!.millisecondsSinceEpoch < queryBefore.millisecondsSinceEpoch)
           .toList();
     } on GitHubError catch (error) {
-      log.error('$error');
+      log!.error('$error');
     }
 
     // For release branches, only look at the latest commit.
@@ -87,21 +88,21 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   /// Convert [RepositoryCommit] to Cocoon's [Commit] format.
   Future<List<Commit>> _toDatastoreCommit(
-      RepositorySlug slug, List<RepositoryCommit> commits, DatastoreService datastore, String branch) async {
+      RepositorySlug slug, List<RepositoryCommit> commits, DatastoreService? datastore, String branch) async {
     final List<Commit> recentCommits = <Commit>[];
     for (RepositoryCommit commit in commits) {
       final String id = '${slug.fullName}/$branch/${commit.sha}';
-      final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
+      final Key<String> key = datastore!.db.emptyKey.append<String>(Commit, id: id);
       recentCommits.add(Commit(
         key: key,
-        timestamp: commit.commit.committer.date.millisecondsSinceEpoch,
+        timestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
         repository: slug.fullName,
-        sha: commit.sha,
-        author: commit.author.login,
-        authorAvatarUrl: commit.author.avatarUrl,
+        sha: commit.sha!,
+        author: commit.author!.login!,
+        authorAvatarUrl: commit.author!.avatarUrl!,
         // The field has a size of 1500 we need to ensure the commit message
         // is at most 1500 chars long.
-        message: truncate(commit.commit.message, 1490, omission: '...'),
+        message: truncate(commit.commit!.message!, 1490, omission: '...'),
         branch: branch,
       ));
     }

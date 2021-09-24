@@ -24,15 +24,15 @@ import '../src/utilities/mocks.dart';
 
 void main() {
   group('VacuumGithubCommits', () {
-    FakeConfig config;
+    late FakeConfig config;
     FakeAuthenticationProvider auth;
-    FakeDatastoreDB db;
+    late FakeDatastoreDB db;
     FakeScheduler scheduler;
-    ApiRequestHandlerTester tester;
-    VacuumGithubCommits handler;
+    late ApiRequestHandlerTester tester;
+    late VacuumGithubCommits handler;
 
-    List<String> githubCommits;
-    int yieldedCommitCount;
+    late List<String> githubCommits;
+    late int yieldedCommitCount;
 
     List<RepositoryCommit> commitList() {
       final List<RepositoryCommit> commits = <RepositoryCommit>[];
@@ -56,6 +56,7 @@ void main() {
     Commit shaToCommit(String sha, String branch) {
       return Commit(
           key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
+          repository: 'flutter/flutter',
           sha: sha,
           branch: branch,
           timestamp: int.parse(sha));
@@ -64,15 +65,15 @@ void main() {
     setUp(() {
       final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
-      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
-      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
-        return Future<TableDataInsertAllResponse>.value(null);
+      final MockTabledataResource tabledataResourceApi = MockTabledataResource();
+      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) async {
+        return TableDataInsertAllResponse();
       });
 
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
       config = FakeConfig(
-          tabledataResourceApi: tabledataResourceApi,
+          tabledataResource: tabledataResourceApi,
           githubService: githubService,
           dbValue: db,
           supportedBranchesValue: <String>['master']);
@@ -178,6 +179,6 @@ void main() {
   });
 }
 
-String toSha(Commit commit) => commit.sha;
+String toSha(Commit commit) => commit.sha!;
 
-int toTimestamp(Commit commit) => commit.timestamp;
+int toTimestamp(Commit commit) => commit.timestamp!;

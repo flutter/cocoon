@@ -12,6 +12,8 @@ import '../request_handling/request_handler.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 
+@immutable
+
 /// Endpoint to collect the current GitHub API quota usage of the flutter-dashboard app.
 ///
 /// This endpoint pushes data to BigQuery for metric collection to analyze usage over time. There
@@ -23,7 +25,6 @@ import '../service/github_service.dart';
 ///   `limit`: Total API calls allowed on flutter-dashboard.
 ///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
 ///   `resets`: [DateTime] when [remaining] will reset back to [limit].
-@immutable
 class GithubRateLimitStatus extends RequestHandler<Body> {
   const GithubRateLimitStatus(Config config) : super(config: config);
 

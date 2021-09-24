@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
 
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -15,26 +15,25 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
-import '../src/service/fake_cirrus_graphql_client.dart';
 import '../src/service/fake_graphql_client.dart';
 
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
 
 void main() {
-  group('repos are processed indepedently', () {
-    CheckForWaitingPullRequests handler;
-    ApiRequestHandlerTester tester;
+  group('repos are processed independently', () {
+    late CheckForWaitingPullRequests handler;
+    late ApiRequestHandlerTester tester;
     FakeHttpRequest request;
-    MockGraphQLClient githubGraphQLClient;
+    late FakeGraphQLClient githubGraphQLClient;
+    FakeGraphQLClient cirrusGraphQLClient;
     FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    FakeLogging log;
+    late FakeLogging log;
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
-    FakeCirrusGraphQLClient cirrusGraphQLClient;
     final List<dynamic> statuses = <dynamic>[];
-    String branch;
+    String? branch;
 
     setUp(() {
       request = FakeHttpRequest();
@@ -42,8 +41,8 @@ void main() {
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       log = FakeLogging();
-      githubGraphQLClient = MockGraphQLClient();
-      cirrusGraphQLClient = FakeCirrusGraphQLClient();
+      githubGraphQLClient = FakeGraphQLClient();
+      cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
         rollerAccountsValue: <String>{},
         githubGraphQLClient: githubGraphQLClient,
@@ -51,13 +50,13 @@ void main() {
       );
       flutterRepoPRs.clear();
       statuses.clear();
-      cirrusGraphQLClient.mutateCirrusResultForOptions = (MutationOptions options) => QueryResult();
-      cirrusGraphQLClient.queryCirrusResultForOptions = (QueryOptions options) {
+      cirrusGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createCirrusQueryResult(statuses, branch);
       };
       tester = ApiRequestHandlerTester(request: request);
       config.waitingForTreeToGoGreenLabelNameValue = 'waiting for tree to go green';
-      config.githubGraphQLClient = githubGraphQLClient;
 
       handler = CheckForWaitingPullRequests(
         config,
@@ -69,34 +68,41 @@ void main() {
     test('Continue with other repos if one fails', () async {
       flutterRepoPRs.add(PullRequestHelper());
 
-      when(githubGraphQLClient.mutate(any)).thenAnswer((_) async {
-        return QueryResult();
-      });
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
       int errorIndex = 0;
-      when(githubGraphQLClient.query(any)).thenAnswer((_) async {
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         if (errorIndex == 0) {
-          errorIndex += 1;
-          throw GraphQLError();
+          errorIndex++;
+          return QueryResult(
+            exception: OperationException(graphqlErrors: <GraphQLError>[const GraphQLError(message: 'error')]),
+            source: QueryResultSource.network,
+          );
         }
         return createQueryResult(flutterRepoPRs);
-      });
+      };
       await tester.get(handler);
-      expect(log.records.length, 1);
-      expect(log.records[0].message, '_checkPRs error in flutter/cocoon: null: Undefined location');
+      final List<FakeLogRecord> errorLogs =
+          log.records.where((FakeLogRecord logLine) => logLine.level == LogLevel.ERROR).toList();
+      // The initial GraphQL error is logged, and then the repo failure is logged
+      expect(errorLogs.length, 2);
+      expect(
+          errorLogs.first.message, contains('OperationException(linkException: null, graphqlErrors: [GraphQLError('));
+      expect(errorLogs[1].message, contains('_checkPRs error in flutter/cocoon'));
     });
   });
   group('check for waiting pull requests', () {
-    CheckForWaitingPullRequests handler;
+    late CheckForWaitingPullRequests handler;
 
     FakeHttpRequest request;
-    FakeConfig config;
+    late FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    FakeLogging log;
-    FakeGraphQLClient githubGraphQLClient;
-    FakeCirrusGraphQLClient cirrusGraphQLClient;
+    late FakeLogging log;
+    late FakeGraphQLClient githubGraphQLClient;
+    FakeGraphQLClient cirrusGraphQLClient;
 
-    ApiRequestHandlerTester tester;
+    late ApiRequestHandlerTester tester;
 
     final List<PullRequestHelper> cocoonRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
@@ -104,7 +110,7 @@ void main() {
     final List<PullRequestHelper> packageRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
-    String branch;
+    String? branch;
 
     setUp(() {
       request = FakeHttpRequest();
@@ -112,7 +118,7 @@ void main() {
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
-      cirrusGraphQLClient = FakeCirrusGraphQLClient();
+      cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
         rollerAccountsValue: <String>{},
         cirrusGraphQLClient: cirrusGraphQLClient,
@@ -124,19 +130,20 @@ void main() {
       statuses.clear();
       PullRequestHelper._counter = 0;
 
-      cirrusGraphQLClient.mutateCirrusResultForOptions = (MutationOptions options) => QueryResult();
-
-      cirrusGraphQLClient.queryCirrusResultForOptions = (QueryOptions options) {
+      cirrusGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createCirrusQueryResult(statuses, branch);
       };
 
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
         expect(options.variables['sLabelName'], config.waitingForTreeToGoGreenLabelNameValue);
 
-        final String repoName = options.variables['sName'] as String;
+        final String? repoName = options.variables['sName'] as String?;
         if (repoName == 'flutter') {
           return createQueryResult(flutterRepoPRs);
         } else if (repoName == 'engine') {
@@ -218,15 +225,17 @@ void main() {
     test('Errors can be logged', () async {
       flutterRepoPRs.add(PullRequestHelper());
       final List<GraphQLError> errors = <GraphQLError>[
-        GraphQLError(raw: <String, String>{}, message: 'message'),
+        const GraphQLError(message: 'message'),
       ];
-      githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(errors: errors);
+      final OperationException exception = OperationException(graphqlErrors: errors);
+      githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(
+            exception: exception,
+            source: QueryResultSource.network,
+          );
 
       await tester.get(handler);
       expect(log.records.length, errors.length);
-      for (int i = 0; i < errors.length; i++) {
-        expect(log.records[i].message, errors[i].toString());
-      }
+      expect(log.records[0].message, exception.toString());
     });
 
     test('Merges unapproved PR from autoroller', () async {
@@ -950,9 +959,9 @@ enum MemberType {
 @immutable
 class PullRequestReviewHelper {
   const PullRequestReviewHelper({
-    @required this.authorName,
-    @required this.state,
-    @required this.memberType,
+    required this.authorName,
+    required this.state,
+    required this.memberType,
   });
 
   final String authorName;
@@ -1015,9 +1024,9 @@ class PullRequestHelper {
   final String author;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
-  List<StatusHelper> lastCommitStatuses;
-  List<CheckRunHelper> lastCommitCheckRuns;
-  final DateTime dateTime;
+  List<StatusHelper>? lastCommitStatuses;
+  List<CheckRunHelper>? lastCommitCheckRuns;
+  final DateTime? dateTime;
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
@@ -1041,7 +1050,7 @@ class PullRequestHelper {
               'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
               'status': <String, dynamic>{
                 'contexts': lastCommitStatuses != null
-                    ? lastCommitStatuses.map((StatusHelper status) {
+                    ? lastCommitStatuses!.map((StatusHelper status) {
                         return <String, dynamic>{
                           'context': status.name,
                           'state': status.state,
@@ -1055,7 +1064,7 @@ class PullRequestHelper {
                     ? <dynamic>[
                         <String, dynamic>{
                           'checkRuns': <String, dynamic>{
-                            'nodes': lastCommitCheckRuns.map((CheckRunHelper status) {
+                            'nodes': lastCommitCheckRuns!.map((CheckRunHelper status) {
                               return <String, dynamic>{
                                 'name': status.name,
                                 'status': status.status,
@@ -1077,8 +1086,6 @@ class PullRequestHelper {
 }
 
 QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
-  assert(pullRequests != null);
-
   return QueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
@@ -1098,30 +1105,32 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
         },
       },
     },
+    source: QueryResultSource.network,
   );
 }
 
-QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
-  assert(statuses != null);
-
+QueryResult createCirrusQueryResult(List<dynamic> statuses, String? branch) {
   if (statuses.isEmpty) {
-    return QueryResult();
+    return QueryResult(source: QueryResultSource.network);
   }
-  return QueryResult(data: <String, dynamic>{
-    'searchBuilds': <dynamic>[
-      <String, dynamic>{
-        'id': '1',
-        'branch': branch,
-        'latestGroupTasks': statuses.map<Map<String, dynamic>>((dynamic status) {
-          return <String, dynamic>{
-            'id': status['id'],
-            'name': status['name'],
-            'status': status['status'],
-          };
-        }).toList(),
-      }
-    ]
-  });
+  return QueryResult(
+    data: <String, dynamic>{
+      'searchBuilds': <dynamic>[
+        <String, dynamic>{
+          'id': '1',
+          'branch': branch,
+          'latestGroupTasks': statuses.map<Map<String, dynamic>>((dynamic status) {
+            return <String, dynamic>{
+              'id': status['id'],
+              'name': status['name'],
+              'status': status['status'],
+            };
+          }).toList(),
+        }
+      ],
+    },
+    source: QueryResultSource.network,
+  );
 }
 
 const PullRequestReviewHelper ownerApprove = PullRequestReviewHelper(
@@ -1154,8 +1163,3 @@ const PullRequestReviewHelper nonMemberChangeRequest = PullRequestReviewHelper(
   memberType: MemberType.OTHER,
   state: ReviewState.CHANGES_REQUESTED,
 );
-
-class MockGraphQLClient extends Mock implements GraphQLClient {
-  QueryResult Function(MutationOptions) mutateCirrusResultForOptions;
-  QueryResult Function(QueryOptions) queryCirrusResultForOptions;
-}

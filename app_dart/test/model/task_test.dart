@@ -8,22 +8,27 @@ import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import '../src/utilities/entity_generators.dart';
+
 void main() {
   group('Task', () {
     test('byAttempts comparator', () {
-      final List<Task> tasks = <Task>[Task(attempts: 5), Task(attempts: 9), Task(attempts: 3)];
+      final List<Task> tasks = <Task>[
+        generateTask(1, attempts: 5),
+        generateTask(2, attempts: 9),
+        generateTask(3, attempts: 3),
+      ];
       tasks.sort(Task.byAttempts);
-      expect(tasks.map<int>((Task task) => task.attempts), <int>[3, 5, 9]);
+      expect(tasks.map<int>((Task task) => task.attempts!), <int>[3, 5, 9]);
     });
 
     test('disallows illegal status', () {
-      expect(() => Task(status: 'unknown'), throwsArgumentError);
-      expect(() => Task()..status = 'unknown', throwsArgumentError);
+      expect(() => generateTask(1, status: 'unknown'), throwsArgumentError);
+      expect(() => generateTask(1)..status = 'unknown', throwsArgumentError);
     });
 
     test('creates a valid chromebot task', () {
-      final DatastoreDB db = DatastoreDB(null);
-      final Key<String> commitKey = db.emptyKey.append<String>(Commit, id: '42');
+      final Key<String> commitKey = generateKey<String>(Commit, 'flutter/flutter/master/42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
         repo: 'flutter/flutter',
@@ -40,17 +45,15 @@ void main() {
       expect(task.timeoutInMinutes, 0);
     });
 
-    test('disallows flaky be null', () {
-      final DatastoreDB db = DatastoreDB(null);
-      final Key<String> key = db.emptyKey.append<String>(Task, id: '42');
+    test('flaky defaults to false', () {
+      final Key<String> commitKey = generateKey<String>(Commit, 'flutter/flutter/master/42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
         repo: 'flutter/flutter',
         taskName: 'taskName',
         flaky: null,
       );
-      expect(
-          () => Task.chromebot(commitKey: key, createTimestamp: 123, builder: builder), throwsA(isA<AssertionError>()));
+      expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
   });
 }

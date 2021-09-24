@@ -20,10 +20,10 @@ import 'fake_luci_build_service.dart';
 class FakeScheduler extends Scheduler {
   FakeScheduler({
     this.schedulerConfig,
-    LuciBuildService luciBuildService,
-    BuildBucketClient buildbucket,
-    Config config,
-    GithubChecksUtil githubChecksUtil,
+    LuciBuildService? luciBuildService,
+    BuildBucketClient? buildbucket,
+    required Config config,
+    GithubChecksUtil? githubChecksUtil,
   }) : super(
           cache: CacheService(inMemory: true),
           config: config,
@@ -34,18 +34,20 @@ class FakeScheduler extends Scheduler {
     setLogger(FakeLogging());
   }
 
-  final SchedulerConfig _defaultConfig = SchedulerConfig(
-    enabledBranches: <String>['master'],
-    targets: <Target>[],
-  );
+  final SchedulerConfig _defaultConfig = emptyConfig;
 
   /// [SchedulerConfig] value to be injected on [getSchedulerConfig].
-  SchedulerConfig schedulerConfig;
+  SchedulerConfig? schedulerConfig;
 
   @override
-  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async =>
+  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async =>
       schedulerConfig ?? _defaultConfig;
 }
+
+final SchedulerConfig emptyConfig = SchedulerConfig(
+  enabledBranches: <String>['master'],
+  targets: <Target>[],
+);
 
 SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
   'master'

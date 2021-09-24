@@ -8,14 +8,12 @@ part of 'checks.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CheckSuiteEvent _$CheckSuiteEventFromJson(Map<String, dynamic> json) {
-  return CheckSuiteEvent(
-    action: json['action'] as String,
-    checkSuite: json['check_suite'] == null ? null : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
-    sender: json['sender'] == null ? null : User.fromJson(json['sender'] as Map<String, dynamic>),
-    repository: json['repository'] == null ? null : Repository.fromJson(json['repository'] as Map<String, dynamic>),
-  );
-}
+CheckSuiteEvent _$CheckSuiteEventFromJson(Map<String, dynamic> json) => CheckSuiteEvent(
+      action: json['action'] as String,
+      checkSuite: CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
+      sender: User.fromJson(json['sender'] as Map<String, dynamic>),
+      repository: Repository.fromJson(json['repository'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$CheckSuiteEventToJson(CheckSuiteEvent instance) => <String, dynamic>{
       'check_suite': instance.checkSuite,
@@ -24,18 +22,16 @@ Map<String, dynamic> _$CheckSuiteEventToJson(CheckSuiteEvent instance) => <Strin
       'repository': instance.repository,
     };
 
-CheckSuite _$CheckSuiteFromJson(Map<String, dynamic> json) {
-  return CheckSuite(
-    conclusion: json['conclusion'] as String,
-    headSha: json['head_sha'] as String,
-    id: json['id'] as int,
-    pullRequests: (json['pull_requests'] as List)
-            ?.map((e) => e == null ? null : PullRequest.fromJson(e as Map<String, dynamic>))
-            ?.toList() ??
-        [],
-    headBranch: json['head_branch'] as String,
-  );
-}
+CheckSuite _$CheckSuiteFromJson(Map<String, dynamic> json) => CheckSuite(
+      conclusion: json['conclusion'] as String?,
+      headSha: json['head_sha'] as String?,
+      id: json['id'] as int?,
+      pullRequests: (json['pull_requests'] as List<dynamic>?)
+              ?.map((e) => PullRequest.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      headBranch: json['head_branch'] as String?,
+    );
 
 Map<String, dynamic> _$CheckSuiteToJson(CheckSuite instance) => <String, dynamic>{
       'id': instance.id,
@@ -45,14 +41,12 @@ Map<String, dynamic> _$CheckSuiteToJson(CheckSuite instance) => <String, dynamic
       'pull_requests': instance.pullRequests,
     };
 
-CheckRunEvent _$CheckRunEventFromJson(Map<String, dynamic> json) {
-  return CheckRunEvent(
-    action: json['action'] as String,
-    checkRun: json['check_run'] == null ? null : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
-    sender: json['sender'] == null ? null : User.fromJson(json['sender'] as Map<String, dynamic>),
-    repository: json['repository'] == null ? null : Repository.fromJson(json['repository'] as Map<String, dynamic>),
-  );
-}
+CheckRunEvent _$CheckRunEventFromJson(Map<String, dynamic> json) => CheckRunEvent(
+      action: json['action'] as String?,
+      checkRun: json['check_run'] == null ? null : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
+      sender: json['sender'] == null ? null : User.fromJson(json['sender'] as Map<String, dynamic>),
+      repository: json['repository'] == null ? null : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) => <String, dynamic>{
       'check_run': instance.checkRun,
@@ -61,19 +55,17 @@ Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) => <String, d
       'repository': instance.repository,
     };
 
-CheckRun _$CheckRunFromJson(Map<String, dynamic> json) {
-  return CheckRun(
-    conclusion: json['conclusion'] as String,
-    headSha: json['head_sha'] as String,
-    id: json['id'] as int,
-    pullRequests: (json['pull_requests'] as List)
-            ?.map((e) => e == null ? null : PullRequest.fromJson(e as Map<String, dynamic>))
-            ?.toList() ??
-        [],
-    name: json['name'] as String,
-    checkSuite: json['check_suite'] == null ? null : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
-  );
-}
+CheckRun _$CheckRunFromJson(Map<String, dynamic> json) => CheckRun(
+      conclusion: json['conclusion'] as String?,
+      headSha: json['head_sha'] as String?,
+      id: json['id'] as int?,
+      pullRequests: (json['pull_requests'] as List<dynamic>?)
+              ?.map((e) => PullRequest.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      name: json['name'] as String?,
+      checkSuite: json['check_suite'] == null ? null : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
       'id': instance.id,

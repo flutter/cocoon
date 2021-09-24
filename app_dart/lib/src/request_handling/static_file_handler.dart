@@ -19,7 +19,7 @@ import 'exceptions.dart';
 @immutable
 class StaticFileHandler extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler(this.filePath, {@required Config config, this.fs = const LocalFileSystem()})
+  const StaticFileHandler(this.filePath, {required Config config, this.fs = const LocalFileSystem()})
       : super(config: config);
 
   /// The current [FileSystem] to retrieve files from.
@@ -31,7 +31,7 @@ class StaticFileHandler extends RequestHandler<Body> {
   /// Services an HTTP GET Request for static files.
   @override
   Future<Body> get() async {
-    final HttpResponse response = request.response;
+    final HttpResponse response = request!.response;
 
     /// The map of mimeTypes not found in [mime] package.
     final Map<String, String> mimeTypeMap = <String, String>{
@@ -46,8 +46,8 @@ class StaticFileHandler extends RequestHandler<Body> {
     final File file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
       final String mimeType = mimeTypeMap.containsKey(path.extension(file.path))
-          ? mimeTypeMap[path.extension(file.path)]
-          : lookupMimeType(resultPath);
+          ? mimeTypeMap[path.extension(file.path)]!
+          : lookupMimeType(resultPath)!;
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {

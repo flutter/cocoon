@@ -9,7 +9,7 @@ class FakeLogRecord {
 
   final LogLevel level;
   final String message;
-  final DateTime timestamp;
+  final DateTime? timestamp;
 
   @override
   String toString() {
@@ -21,32 +21,32 @@ class FakeLogging implements Logging {
   final List<FakeLogRecord> records = <FakeLogRecord>[];
 
   @override
-  void debug(String message, {DateTime timestamp}) {
+  void debug(String message, {DateTime? timestamp}) {
     log(LogLevel.DEBUG, message, timestamp: timestamp);
   }
 
   @override
-  void info(String message, {DateTime timestamp}) {
+  void info(String message, {DateTime? timestamp}) {
     log(LogLevel.INFO, message, timestamp: timestamp);
   }
 
   @override
-  void warning(String message, {DateTime timestamp}) {
+  void warning(String message, {DateTime? timestamp}) {
     log(LogLevel.WARNING, message, timestamp: timestamp);
   }
 
   @override
-  void error(String message, {DateTime timestamp}) {
+  void error(String message, {DateTime? timestamp}) {
     log(LogLevel.ERROR, message, timestamp: timestamp);
   }
 
   @override
-  void critical(String message, {DateTime timestamp}) {
+  void critical(String message, {DateTime? timestamp}) {
     log(LogLevel.CRITICAL, message, timestamp: timestamp);
   }
 
   @override
-  void log(LogLevel level, String message, {DateTime timestamp}) {
+  void log(LogLevel level, String message, {DateTime? timestamp}) {
     records.add(FakeLogRecord(level, message, timestamp));
   }
 
@@ -58,7 +58,7 @@ class FakeLogging implements Logging {
     LogLevel level,
     Object error,
     StackTrace stackTrace, {
-    DateTime timestamp,
+    DateTime? timestamp,
   }) {
     log(level, 'Error: $error\n$stackTrace', timestamp: timestamp);
   }

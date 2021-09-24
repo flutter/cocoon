@@ -19,7 +19,7 @@ typedef BuildStatusServiceProvider = BuildStatusService Function(DatastoreServic
 
 /// Class that calculates the current build status.
 class BuildStatusService {
-  const BuildStatusService(this.datastoreService) : assert(datastoreService != null);
+  const BuildStatusService(this.datastoreService);
 
   final DatastoreService datastoreService;
 
@@ -51,7 +51,7 @@ class BuildStatusService {
   /// the latest commit status, so it does not impact the build status.
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
-  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
+  Future<BuildStatus?> calculateCumulativeStatus({String? branch}) async {
     final List<CommitStatus> statuses = await retrieveCommitStatus(
       limit: numberOfCommitsToReferenceForTreeStatus,
       branch: branch,
@@ -78,17 +78,17 @@ class BuildStatusService {
           final bool taskInProgress = tasksInProgress[task.name] ?? true;
 
           if (isRelevantToLatestStatus && taskInProgress) {
-            if (task.isFlaky || _isSuccessful(task)) {
+            if (task.isFlaky! || _isSuccessful(task)) {
               /// This task no longer needs to be checked to see if it causing
               /// the build status to fail.
-              tasksInProgress[task.name] = false;
+              tasksInProgress[task.name!] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
-              failedTasks.add(task.name);
+              failedTasks.add(task.name!);
 
               /// This task no longer needs to be checked to see if its causing
               /// the build status to fail since its been
               /// added to the failedTasks list.
-              tasksInProgress[task.name] = false;
+              tasksInProgress[task.name!] = false;
             }
           }
         }
@@ -105,7 +105,7 @@ class BuildStatusService {
 
     for (Stage stage in statuses.first.stages) {
       for (Task task in stage.tasks) {
-        tasks[task.name] = true;
+        tasks[task.name!] = true;
       }
     }
 
@@ -116,7 +116,7 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch}) async* {
+  Stream<CommitStatus> retrieveCommitStatus({required int limit, int? timestamp, String? branch}) async* {
     await for (Commit commit
         in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
@@ -128,23 +128,23 @@ class BuildStatusService {
   /// by creation time starting with the last one first. [tasks] has a list of tasks
   /// retrieved from BuildBucket using RPCs and [log] is the AppEngine logger to be
   /// able to logging messages.
-  Future<String> latestLUCIStatus(List<LuciTask> tasks, Logging log) async {
+  Future<String> latestLUCIStatus(List<LuciTask> tasks, Logging? log) async {
     for (LuciTask task in tasks) {
       if (task.ref != 'refs/heads/master') {
-        log.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+        log!.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
         continue;
       }
       switch (task.status) {
         case Task.statusFailed:
         case Task.statusInfraFailure:
-          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          log!.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           return GithubBuildStatusUpdate.statusFailure;
         case Task.statusSucceeded:
-          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          log!.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           return GithubBuildStatusUpdate.statusSuccess;
       }
     }
-    log.debug('Found ${tasks.length} tasks in latest commits.');
+    log!.debug('Found ${tasks.length} tasks in latest commits.');
     // No state means we don't have a state for the last 40 commits which should
     // close the tree.
     return GithubBuildStatusUpdate.statusFailure;
@@ -159,7 +159,7 @@ class BuildStatusService {
   }
 
   bool _isRerunning(Task task) {
-    return task.attempts > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
+    return task.attempts! > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 

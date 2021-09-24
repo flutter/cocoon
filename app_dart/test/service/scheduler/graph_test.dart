@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 void main() {
   group('scheduler config', () {
     test('constructs graph with one target', () {
-      final YamlMap singleTargetConfig = loadYaml('''
+      final YamlMap? singleTargetConfig = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -18,7 +18,7 @@ targets:
     builder: builderA
     properties:
       test: abc
-      ''') as YamlMap;
+      ''') as YamlMap?;
       final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(singleTargetConfig);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
@@ -34,18 +34,18 @@ targets:
     });
 
     test('throws exception when non-existent scheduler is given', () {
-      final YamlMap targetWithNonexistentScheduler = loadYaml('''
+      final YamlMap? targetWithNonexistentScheduler = loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
     scheduler: dashatar
-      ''') as YamlMap;
+      ''') as YamlMap?;
       expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () {
-      final YamlMap dependentTargetConfig = loadYaml('''
+      final YamlMap? dependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -56,7 +56,7 @@ targets:
   - name: C
     dependencies:
       - B
-      ''') as YamlMap;
+      ''') as YamlMap?;
       final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(dependentTargetConfig);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
@@ -70,7 +70,7 @@ targets:
     });
 
     test('constructs graph with parent with two dependents', () {
-      final YamlMap twoDependentTargetConfig = loadYaml('''
+      final YamlMap? twoDependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -81,7 +81,7 @@ targets:
   - name: B2
     dependencies:
       - A
-      ''') as YamlMap;
+      ''') as YamlMap?;
       final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(twoDependentTargetConfig);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
@@ -95,7 +95,7 @@ targets:
     });
 
     test('fails when there are cyclic targets', () {
-      final YamlMap configWithCycle = loadYaml('''
+      final YamlMap? configWithCycle = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -105,7 +105,7 @@ targets:
   - name: B
     dependencies:
       - A
-      ''') as YamlMap;
+      ''') as YamlMap?;
       expect(
           () => schedulerConfigFromYaml(configWithCycle),
           throwsA(
@@ -118,13 +118,13 @@ targets:
     });
 
     test('fails when there are duplicate targets', () {
-      final YamlMap configWithDuplicateTargets = loadYaml('''
+      final YamlMap? configWithDuplicateTargets = loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
   - name: A
-      ''') as YamlMap;
+      ''') as YamlMap?;
       expect(
           () => schedulerConfigFromYaml(configWithDuplicateTargets),
           throwsA(
@@ -137,7 +137,7 @@ targets:
     });
 
     test('fails when there are multiple dependencies', () {
-      final YamlMap configWithMultipleDependencies = loadYaml('''
+      final YamlMap? configWithMultipleDependencies = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -147,7 +147,7 @@ targets:
     dependencies:
       - A
       - B
-      ''') as YamlMap;
+      ''') as YamlMap?;
       expect(
           () => schedulerConfigFromYaml(configWithMultipleDependencies),
           throwsA(
@@ -160,14 +160,14 @@ targets:
     });
 
     test('fails when dependency does not exist', () {
-      final YamlMap configWithMissingTarget = loadYaml('''
+      final YamlMap? configWithMissingTarget = loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
     dependencies:
       - B
-      ''') as YamlMap;
+      ''') as YamlMap?;
       expect(
           () => schedulerConfigFromYaml(configWithMissingTarget),
           throwsA(

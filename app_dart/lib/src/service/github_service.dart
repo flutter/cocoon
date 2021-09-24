@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
@@ -14,6 +15,14 @@ class GithubService {
   final GitHub github;
   static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
   static const String kRefsPrefix = 'refs/heads/';
+  late Logging log;
+
+  /// Sets the appengine [log] used by this class to log debug and error
+  /// messages. This method has to be called before any other method in this
+  /// class.
+  void setLogger(Logging log) {
+    this.log = log;
+  }
 
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
@@ -28,7 +37,7 @@ class GithubService {
     /// results. Return only one page when this is a new branch. Otherwise
     ///  it will return all commits prior to this release branch commit,
     /// leading to heavy workload.
-    int pages;
+    int? pages;
     if (lastCommitTimestampMills == 0) {
       pages = 1;
     }
@@ -61,21 +70,21 @@ class GithubService {
 
     return commits.map<RepositoryCommit>((Map<String, dynamic> commit) {
       return RepositoryCommit()
-        ..sha = commit['sha'] as String
+        ..sha = commit['sha'] as String?
         ..author = (User()
-          ..login = commit['author']['login'] as String
-          ..avatarUrl = commit['author']['avatar_url'] as String)
+          ..login = commit['author']['login'] as String?
+          ..avatarUrl = commit['author']['avatar_url'] as String?)
         ..commit = (GitCommit()
-          ..message = commit['commit']['message'] as String
+          ..message = commit['commit']['message'] as String?
           ..committer = (GitCommitUser(
-              commit['commit']['author']['name'] as String,
-              commit['commit']['author']['email'] as String,
+              commit['commit']['author']['name'] as String?,
+              commit['commit']['author']['email'] as String?,
               DateTime.parse(commit['commit']['author']['date'] as String))));
     }).toList();
   }
 
   /// List pull requests in the repository.
-  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) {
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String? branch) {
     ArgumentError.checkNotNull(slug);
     return github.pullRequests
         .list(
@@ -96,25 +105,25 @@ class GithubService {
   /// targeted slug, and the targeted slug must not be belong to current user.
   Future<PullRequest> createPullRequest(
     RepositorySlug slug, {
-    String title,
-    String body,
-    String commitMessage,
-    GitReference baseRef,
-    List<CreateGitTreeEntry> entries,
+    required String title,
+    String? body,
+    String? commitMessage,
+    required GitReference baseRef,
+    List<CreateGitTreeEntry>? entries,
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(title);
 
     final RepositorySlug clientSlug = await _getCurrentUserSlug(slug.name);
-    final GitTree tree = await github.git.createTree(clientSlug, CreateGitTree(entries, baseTree: baseRef.object.sha));
-    final CurrentUser currentUser = await _getCurrentUser();
+    final GitTree tree = await github.git.createTree(clientSlug, CreateGitTree(entries, baseTree: baseRef.object!.sha));
+    final CurrentUser currentUser = (await _getCurrentUser())!;
     final GitCommitUser commitUser = GitCommitUser(currentUser.name, currentUser.email, DateTime.now());
     final GitCommit commit = await github.git.createCommit(
       clientSlug,
       CreateGitCommit(
         commitMessage,
         tree.sha,
-        parents: <String>[baseRef.object.sha],
+        parents: <String?>[baseRef.object!.sha],
         author: commitUser,
         committer: commitUser,
       ),
@@ -132,15 +141,15 @@ class GithubService {
   /// The `reviewer` contains the github login of the reviewer.
   Future<void> assignReviewer(
     RepositorySlug slug, {
-    int pullRequestNumber,
-    String reviewer,
+    int? pullRequestNumber,
+    String? reviewer,
   }) async {
     const JsonEncoder encoder = JsonEncoder();
     await github.postJSON<Map<String, dynamic>, PullRequest>(
       '/repos/${slug.fullName}/pulls/$pullRequestNumber/requested_reviewers',
       convert: (Map<String, dynamic> i) => PullRequest.fromJson(i),
       body: encoder.convert(<String, dynamic>{
-        'reviewers': <String>[reviewer],
+        'reviewers': <String?>[reviewer],
       }),
     );
   }
@@ -155,7 +164,7 @@ class GithubService {
   /// returns both closed and open issues. Defaults to `open`.
   Future<List<Issue>> listIssues(
     RepositorySlug slug, {
-    List<String> labels,
+    List<String>? labels,
     String state = 'open',
   }) {
     ArgumentError.checkNotNull(slug);
@@ -163,9 +172,9 @@ class GithubService {
   }
 
   /// Get an issue with the issue number
-  Future<Issue> getIssue(
+  Future<Issue>? getIssue(
     RepositorySlug slug, {
-    int issueNumber,
+    required int issueNumber,
   }) {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
@@ -175,8 +184,8 @@ class GithubService {
   /// Assign the issue to the assignee.
   Future<void> assignIssue(
     RepositorySlug slug, {
-    int issueNumber,
-    String assignee,
+    required int issueNumber,
+    required String assignee,
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
@@ -186,10 +195,10 @@ class GithubService {
 
   Future<Issue> createIssue(
     RepositorySlug slug, {
-    String title,
-    String body,
-    List<String> labels,
-    String assignee,
+    String? title,
+    String? body,
+    List<String>? labels,
+    String? assignee,
   }) async {
     ArgumentError.checkNotNull(slug);
     return await github.issues.create(
@@ -198,10 +207,10 @@ class GithubService {
     );
   }
 
-  Future<IssueComment> createComment(
+  Future<IssueComment?> createComment(
     RepositorySlug slug, {
-    int issueNumber,
-    String body,
+    required int issueNumber,
+    required String body,
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
@@ -210,8 +219,8 @@ class GithubService {
 
   Future<List<IssueLabel>> replaceLabelsForIssue(
     RepositorySlug slug, {
-    int issueNumber,
-    List<String> labels,
+    required int issueNumber,
+    required List<String> labels,
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
@@ -223,11 +232,12 @@ class GithubService {
 
   /// Returns changed files of [slug] and [prNumber].
   /// https://developer.github.com/v3/pulls/#list-pull-requests-files
-  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+  Future<List<String?>> listFiles(RepositorySlug slug, int prNumber) async {
     ArgumentError.checkNotNull(slug);
     final List<PullRequestFile> files = await github.pullRequests.listFiles(slug, prNumber).toList();
-    return files.map((dynamic file) {
-      return file.filename as String;
+    log.debug('List of files: $files');
+    return files.map((PullRequestFile file) {
+      return file.filename;
     }).toList();
   }
 
@@ -240,7 +250,7 @@ class GithubService {
     if (!contents.isFile) {
       throw 'The path $path should point to a file, but it is not!';
     }
-    final String content = utf8.decode(base64.decode(contents.file.content.replaceAll('\n', '')));
+    final String content = utf8.decode(base64.decode(contents.file!.content!.replaceAll('\n', '')));
     return content;
   }
 
@@ -259,15 +269,15 @@ class GithubService {
   ///   * https://docs.github.com/en/rest/reference/rate-limit
   Future<RateLimit> getRateLimit() => github.misc.getRateLimit();
 
-  CurrentUser _currentUser;
+  CurrentUser? _currentUser;
 
-  Future<CurrentUser> _getCurrentUser() async {
+  Future<CurrentUser?> _getCurrentUser() async {
     _currentUser ??= await github.users.getCurrentUser();
     return _currentUser;
   }
 
   Future<RepositorySlug> _getCurrentUserSlug(String repository) async {
-    return RepositorySlug((await _getCurrentUser()).login, repository);
+    return RepositorySlug((await _getCurrentUser())!.login!, repository);
   }
 
   String _generateNewRef() {

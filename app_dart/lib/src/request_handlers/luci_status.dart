@@ -47,9 +47,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
     this.buildBucketClient,
     this.luciBuildService,
     this.githubChecksService, {
-    LoggingProvider loggingProvider,
-  })  : assert(buildBucketClient != null),
-        loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
+    LoggingProvider? loggingProvider,
+  })  : loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
         super(config: config);
 
   final BuildBucketClient buildBucketClient;
@@ -62,28 +61,28 @@ class LuciStatusHandler extends RequestHandler<Body> {
     RepositorySlug slug;
 
     // Set logger in all the service classes.
-    luciBuildService.setLogger(log);
-    githubChecksService.setLogger(log);
+    luciBuildService.setLogger(log!);
+    githubChecksService.setLogger(log!);
 
-    if (!await _authenticateRequest(request.headers)) {
+    if (!await _authenticateRequest(request!.headers)) {
       throw const Unauthorized();
     }
-    final String requestString = await utf8.decodeStream(request);
+    final String requestString = await utf8.decodeStream(request!);
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString) as Map<String, dynamic>,
     );
-    final BuildPushMessage buildPushMessage =
-        BuildPushMessage.fromJson(json.decode(envelope.message.data) as Map<String, dynamic>);
-    final Build build = buildPushMessage.build;
+    final BuildPushMessage buildPushMessage = BuildPushMessage.fromJson(
+        json.decode(String.fromCharCodes(base64.decode(envelope.message!.data!))) as Map<String, dynamic>);
+    final Build build = buildPushMessage.build!;
     final String builderName = build.tagsByName('builder').single;
-    log.debug('Available tags: ${build.tags.toString()}');
+    log!.debug('Available tags: ${build.tags.toString()}');
     // Skip status update if we can not get the sha tag.
     if (build.tagsByName('buildset').isEmpty) {
-      log.warning('Buildset tag not included, skipping Status Updates');
+      log!.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
-    log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
-    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
+    log!.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
+    final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
     if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
       // Message is coming from a github checks api enabled repo. We need to
       // create the slug from the data in the message and send the check status
@@ -98,22 +97,22 @@ class LuciStatusHandler extends RequestHandler<Body> {
         slug,
       );
     } else {
-      log.error('This repo does not support checks API');
+      log!.error('This repo does not support checks API');
     }
     return Body.empty;
   }
 
   Future<bool> _authenticateRequest(HttpHeaders headers) async {
-    final http.Client client = httpClient;
+    final http.Client client = httpClient!;
     final Oauth2Api oauth2api = Oauth2Api(client);
-    final String idToken = headers.value(HttpHeaders.authorizationHeader);
+    final String? idToken = headers.value(HttpHeaders.authorizationHeader);
     if (idToken == null || !idToken.startsWith('Bearer ')) {
       return false;
     }
     final Tokeninfo info = await oauth2api.tokeninfo(
       idToken: idToken.substring('Bearer '.length),
     );
-    if (info.expiresIn == null || info.expiresIn < 1) {
+    if (info.expiresIn == null || info.expiresIn! < 1) {
       return false;
     }
     final Set<String> allowedServiceAccounts = <String>{

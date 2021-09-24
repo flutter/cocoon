@@ -110,6 +110,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
       if (path.basename(entity.path) == 'gradlew.bat') continue;
       if (path.basename(entity.path) == 'Runner-Bridging-Header.h') continue;
       if (path.basename(entity.path).endsWith('g.dart')) continue;
+      if (path.basename(entity.path).endsWith('mocks.mocks.dart')) continue;
       if (path.basename(entity.path).endsWith('pb.dart')) continue;
       if (path.basename(entity.path).endsWith('pbenum.dart')) continue;
       if (path.basename(entity.path).endsWith('pbjson.dart')) continue;

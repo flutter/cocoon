@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
@@ -16,83 +16,73 @@ import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:mockito/mockito.dart';
+import 'package:graphql/client.dart';
+import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:neat_cache/neat_cache.dart';
 
-import '../request_handling/fake_http.dart';
+import '../../service/cache_service_test.dart';
 
-class MockGitHub extends Mock implements GitHub {}
+export 'mocks.mocks.dart';
 
-class MockGithubService extends Mock implements GithubService {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
-
-class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}
-
-class MockBigqueryService extends Mock implements BigqueryService {}
-
-class MockJobsResourceApi extends Mock implements JobsResourceApi {}
-
-class MockAccessTokenService extends Mock implements AccessTokenService {}
-
-// ignore: must_be_immutable
-class MockLuciService extends Mock implements LuciService {}
-
-class MockIssuesService extends Mock implements IssuesService {}
-
-class MockPullRequestsService extends Mock implements PullRequestsService {}
-
-class MockGitService extends Mock implements GitService {}
-
-class MockUsersService extends Mock implements UsersService {}
-
-class MockHttpClient extends Mock implements HttpClient {}
-
-class MockAccessClientProvider extends Mock implements AccessClientProvider {}
-
-class MockHttpClientRequest extends Mock implements HttpClientRequest {
-  final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
-  @override
-  HttpHeaders get headers => _fakeHeaders;
-}
-
-class MockHttpClientResponse extends Mock implements HttpClientResponse {
-  MockHttpClientResponse(this.response);
-
-  final List<int> response;
-
-  @override
-  StreamSubscription<List<int>> listen(
-    void onData(List<int> event), {
-    Function onError,
-    void onDone(),
-    bool cancelOnError,
-  }) {
-    return Stream<List<int>>.fromFuture(Future<List<int>>.value(response))
-        .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+/// Fallback generated function for returning default values from the generic
+/// function [GitHub.postJSON].
+Future<T> postJsonShim<S, T>(
+  dynamic path, {
+  int? statusCode,
+  void Function(http.Response)? fail,
+  Map<String, String>? headers,
+  Map<String, dynamic>? params,
+  T Function(S)? convert,
+  dynamic body,
+  String? preview,
+}) {
+  if (T == PullRequest) {
+    return Future<T>.value(PullRequest() as T);
   }
+  throw Exception('MockGitHub.postJSON does not return $T.\n'
+      'Either add it to postJsonShim or use a manual mock.');
 }
 
-class MockHttpImageResponse extends Mock implements HttpClientResponse {
-  MockHttpImageResponse(this.response);
+const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
+  MockSpec<Cache<Uint8List>>(),
+  MockSpec<GitHub>(
+    fallbackGenerators: <Symbol, Function>{
+      #postJSON: postJsonShim,
+    },
+  ),
+];
 
-  final List<List<int>> response;
-
-  @override
-  Future<void> forEach(void action(List<int> element)) async {
-    response.forEach(action);
-  }
-}
+@GenerateMocks(
+  <Type>[
+    AccessClientProvider,
+    AccessTokenService,
+    BigqueryService,
+    BuildBucketClient,
+    FakeEntry,
+    IssuesService,
+    // GitHub,
+    GithubChecksService,
+    GithubChecksUtil,
+    GithubService,
+    GitService,
+    GraphQLClient,
+    HttpClient,
+    HttpClientRequest,
+    HttpClientResponse,
+    JobsResource,
+    LuciBuildService,
+    LuciService,
+    PullRequestsService,
+    RepositoriesService,
+    TabledataResource,
+    UsersService,
+  ],
+  customMocks: _mocks,
+)
+void main() {}
 
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
 }
-
-// ignore: must_be_immutable, Test mock.
-class MockBuildBucketClient extends Mock implements BuildBucketClient {}
-
-class MockGithubChecksService extends Mock implements GithubChecksService {}
-
-class MockLuciBuildService extends Mock implements LuciBuildService {}
-
-class MockGithubChecksUtil extends Mock implements GithubChecksUtil {}

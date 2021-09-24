@@ -36,11 +36,11 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
-    final Map<String, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug, state: 'open');
+    final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug, state: 'open');
     for (final BuilderStatistic statistic in builderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
-            statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]);
+            statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
     }
     return Body.forJson(const <String, dynamic>{
@@ -48,7 +48,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     });
   }
 
-  double get _threshold => double.parse(request.uri.queryParameters[kThresholdKey]);
+  double get _threshold => double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
   /// Adds an update comment and adjusts the labels of the existing issue based
   /// on the latest statistics.
@@ -58,10 +58,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _addCommentToExistingIssue(
     GithubService gitHub,
     RepositorySlug slug, {
-    @required BuilderStatistic statistic,
-    @required Issue existingIssue,
+    required BuilderStatistic statistic,
+    required Issue existingIssue,
   }) async {
-    if (DateTime.now().difference(existingIssue.createdAt) < const Duration(days: kFreshPeriodForOpenFlake)) {
+    if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
     }
     final IssueUpdateBuilder updateBuilder =
@@ -71,7 +71,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
       final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
       final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
-      final String testOwner = getTestOwnership(
+      final String? testOwner = getTestOwnership(
               statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent)
           .owner;
       if (testOwner != null) {

@@ -26,14 +26,14 @@ import 'request_handler.dart';
 abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [NoAuthRequestHandler].
   const NoAuthRequestHandler({
-    @required Config config,
+    required Config config,
   }) : super(config: config);
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
   /// from [requestData].
   @protected
   void checkRequiredParameters(List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData.containsKey);
+    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData!.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
@@ -49,7 +49,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   ///  * [requestData], which contains the JSON-decoded [Map] of the request
   ///    body content (if applicable).
   @protected
-  Uint8List get requestBody => getValue<Uint8List>(NoAuthKey.requestBody);
+  Uint8List? get requestBody => getValue<Uint8List>(NoAuthKey.requestBody);
 
   /// The JSON data specified in the HTTP request body.
   ///
@@ -61,7 +61,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
-  Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(NoAuthKey.requestData);
+  Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(NoAuthKey.requestData);
 
   @override
   Future<void> service(HttpRequest request) async {
@@ -78,10 +78,10 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
       return;
     }
 
-    Map<String, dynamic> requestData = const <String, dynamic>{};
+    Map<String, dynamic>? requestData = const <String, dynamic>{};
     if (body.isNotEmpty) {
       try {
-        requestData = json.decode(utf8.decode(body)) as Map<String, dynamic>;
+        requestData = json.decode(utf8.decode(body)) as Map<String, dynamic>?;
       } on FormatException {
         // The HTTP request body is not valid UTF-8 encoded JSON. This is
         // allowed; just let [requestData] be null.
@@ -98,7 +98,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
 
     await runZoned<Future<void>>(() async {
       await super.service(request);
-    }, zoneValues: <NoAuthKey<dynamic>, Object>{
+    }, zoneValues: <NoAuthKey<dynamic>, Object?>{
       NoAuthKey.requestBody: Uint8List.fromList(body),
       NoAuthKey.requestData: requestData,
     });

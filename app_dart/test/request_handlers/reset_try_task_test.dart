@@ -19,15 +19,15 @@ import '../src/utilities/mocks.dart';
 
 void main() {
   group('ResetTryTask', () {
-    ApiRequestHandlerTester tester;
+    late ApiRequestHandlerTester tester;
     FakeClientContext clientContext;
-    ResetTryTask handler;
-    FakeConfig config;
+    late ResetTryTask handler;
+    late FakeConfig config;
     FakeScheduler fakeScheduler;
     FakeAuthenticatedContext authContext;
     MockGitHub mockGithub;
     MockPullRequestsService mockPullRequestsService;
-    MockGithubChecksUtil mockGithubChecksUtil;
+    late MockGithubChecksUtil mockGithubChecksUtil;
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -75,7 +75,8 @@ void main() {
     });
 
     test('Trigger builds if all parameters are correct', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any, output: anyNamed('output')))
+          .thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',

@@ -18,11 +18,11 @@ import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('SwarmingAuthenticationProvider', () {
-    FakeConfig config;
-    FakeClientContext clientContext;
-    FakeLogging log;
-    FakeHttpRequest request;
-    SwarmingAuthenticationProvider auth;
+    late FakeConfig config;
+    late FakeClientContext clientContext;
+    late FakeLogging log;
+    late FakeHttpRequest request;
+    late SwarmingAuthenticationProvider auth;
 
     setUp(() {
       config = FakeConfig();
@@ -42,7 +42,7 @@ void main() {
     });
 
     group('when access token is given', () {
-      MockClient httpClient;
+      late MockClient httpClient;
 
       setUp(() {
         auth = SwarmingAuthenticationProvider(

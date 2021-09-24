@@ -24,7 +24,7 @@ class GetAuthenticationStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     try {
-      await authenticationProvider.authenticate(request);
+      await authenticationProvider.authenticate(request!);
       return Body.forJson(const <String, dynamic>{'Status': 'OK'});
     } on Unauthenticated {
       return Body.forJson(const <String, dynamic>{'Status': 'Unauthorized'});

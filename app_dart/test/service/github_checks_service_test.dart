@@ -18,21 +18,24 @@ import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_scheduler.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;
-  FakeScheduler scheduler;
+  late FakeScheduler scheduler;
   MockGithubService mockGithubService;
-  MockGithubChecksUtil mockGithubChecksUtil;
-  MockLuciBuildService mockLuciBuildService;
-  GithubChecksService githubChecksService;
-  github.CheckRun checkRun;
-  RepositorySlug slug;
+  late MockGithubChecksUtil mockGithubChecksUtil;
+  late MockLuciBuildService mockLuciBuildService;
+  late GithubChecksService githubChecksService;
+  late github.CheckRun checkRun;
+  late RepositorySlug slug;
 
   setUp(() {
     mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
+    when(mockLuciBuildService.setLogger(any)).thenReturn(0);
+    when(mockGithubService.listFiles(any, any)).thenAnswer((_) async => <String?>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
     config = FakeConfig(githubService: mockGithubService);
     githubChecksService = GithubChecksService(
@@ -62,11 +65,23 @@ void main() {
       final RepositorySlug slug = RepositorySlug('abc', 'cocoon');
       final CheckSuiteEvent checkSuiteEvent =
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+          .thenAnswer((_) async => generateCheckRun(1));
       await githubChecksService.handleCheckSuite(checkSuiteEvent, scheduler);
-      verify(mockLuciBuildService.scheduleTryBuilds(builders: <LuciBuilder>[
-        const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)
-      ], prNumber: 758, commitSha: 'dabc07b74c555c9952f7b63e139f2bb83b75250f', slug: slug))
-          .called(1);
+      verify(
+        mockLuciBuildService.scheduleTryBuilds(
+          builders: <LuciBuilder>[
+            const LuciBuilder(
+              name: 'Cocoon',
+              repo: 'cocoon',
+              flaky: false,
+            )
+          ],
+          prNumber: 758,
+          commitSha: 'dabc07b74c555c9952f7b63e139f2bb83b75250f',
+          slug: slug,
+        ),
+      ).called(1);
     });
   });
 
@@ -114,6 +129,15 @@ void main() {
     test('empty summaryMarkdown', () async {
       const String expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
       expect(githubChecksService.getGithubSummary(null), expectedSummary);
+    });
+
+    test('really large summaryMarkdown', () async {
+      String summaryMarkdown = '';
+      for (int i = 0; i < 20000; i++) {
+        summaryMarkdown += 'test ';
+      }
+      expect(githubChecksService.getGithubSummary(summaryMarkdown), startsWith('$kGithubSummary[TRUNCATED...]'));
+      expect(githubChecksService.getGithubSummary(summaryMarkdown).length, lessThan(65535));
     });
   });
 }

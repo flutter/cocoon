@@ -47,8 +47,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     checkRequiredParameters(<String>[newStatusParam, gitBranchParam, gitShaParam, builderNameParam]);
 
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String newStatus = requestData[newStatusParam] as String;
-    final bool isTestFlaky = (requestData[testFlayParam] as bool) ?? false;
+    final String newStatus = requestData![newStatusParam] as String;
+    final bool isTestFlaky = (requestData![testFlayParam] as bool?) ?? false;
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
@@ -75,12 +75,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
     final Key<String> commitKey = await _constructCommitKey(datastore);
 
-    final String builderName = requestData[builderNameParam] as String;
+    final String? builderName = requestData![builderNameParam] as String?;
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
     final List<Task> initialTasks = await query.run().toList();
-    log.debug('Found ${initialTasks.length} tasks for commit');
+    log!.debug('Found ${initialTasks.length} tasks for commit');
     final List<Task> tasks = <Task>[];
-    log.debug('Searching for task with builderName=$builderName');
+    log!.debug('Searching for task with builderName=$builderName');
     for (Task task in initialTasks) {
       if (task.builderName == builderName || task.name == builderName) {
         tasks.add(task);
@@ -88,7 +88,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (tasks.length != 1) {
-      log.error('Found ${tasks.length} entries for builder $builderName');
+      log!.error('Found ${tasks.length} entries for builder $builderName');
       throw InternalServerError('Expected to find 1 task for $builderName, but found ${tasks.length}');
     }
 
@@ -99,8 +99,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   ///
   /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
   Future<Key<String>> _constructCommitKey(DatastoreService datastore) async {
-    final String gitBranch = (requestData[gitBranchParam] as String).trim();
-    final String gitSha = (requestData[gitShaParam] as String).trim();
+    final String gitBranch = (requestData![gitBranchParam] as String).trim();
+    final String gitSha = (requestData![gitShaParam] as String).trim();
     final List<String> flutterBranches = await config.flutterBranches;
     if (!flutterBranches.contains(gitBranch)) {
       throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
@@ -109,7 +109,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
     final String id = 'flutter/flutter/$gitBranch/$gitSha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    log.debug('Constructed commit key=$id');
+    log!.debug('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
     final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
       throw BadRequestException('No such commit: $id');
@@ -120,7 +120,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
 @immutable
 class UpdateTaskStatusResponse extends JsonBody {
-  const UpdateTaskStatusResponse(this.task) : assert(task != null);
+  const UpdateTaskStatusResponse(this.task);
 
   final Task task;
 

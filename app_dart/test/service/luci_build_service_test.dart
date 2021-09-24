@@ -21,15 +21,17 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
-  FakeConfig config;
+  late FakeConfig config;
   FakeGithubService githubService;
-  MockBuildBucketClient mockBuildBucketClient;
-  LuciBuildService service;
-  RepositorySlug slug;
+  late MockBuildBucketClient mockBuildBucketClient;
+  late LuciBuildService service;
+  RepositorySlug? slug;
+  late FakeLogging fakeLogging;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
   const List<LuciBuilder> builders = <LuciBuilder>[
@@ -42,25 +44,8 @@ void main() {
   ];
 
   group('getBuilds', () {
-    const Build macBuild = Build(
-      id: 999,
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'prod',
-        builder: 'Mac',
-      ),
-      status: Status.started,
-    );
-
-    const Build linuxBuild = Build(
-      id: 998,
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: 'Linux',
-      ),
-      status: Status.started,
-    );
+    final Build macBuild = generateBuild(999, name: 'Mac', status: Status.started);
+    final Build linuxBuild = generateBuild(998, name: 'Linux', bucket: 'try', status: Status.started);
 
     setUp(() {
       githubService = FakeGithubService();
@@ -71,7 +56,7 @@ void main() {
     });
     test('Null build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -110,7 +95,7 @@ void main() {
     });
     test('Existing try build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -129,25 +114,8 @@ void main() {
     });
   });
   group('buildsForRepositoryAndPr', () {
-    const Build macBuild = Build(
-      id: 999,
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'prod',
-        builder: 'Mac',
-      ),
-      status: Status.started,
-    );
-
-    const Build linuxBuild = Build(
-      id: 998,
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'prod',
-        builder: 'Linux',
-      ),
-      status: Status.started,
-    );
+    final Build macBuild = generateBuild(999, name: 'Mac', status: Status.started);
+    final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.started);
 
     setUp(() {
       githubService = FakeGithubService();
@@ -168,13 +136,13 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds = await service.tryBuildsForRepositoryAndPr(slug, 1, 'abcd');
+      final Map<String?, Build?> builds = await service.tryBuildsForRepositoryAndPr(slug!, 1, 'abcd');
       expect(builds.keys, isEmpty);
     });
 
     test('Response returning a couple of builds', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -189,7 +157,7 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds = await service.tryBuildsForRepositoryAndPr(slug, 1, 'abcd');
+      final Map<String?, Build?> builds = await service.tryBuildsForRepositoryAndPr(slug!, 1, 'abcd');
       expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
@@ -203,109 +171,91 @@ void main() {
         mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
       );
-      service.setLogger(FakeLogging());
+      fakeLogging = FakeLogging();
+      service.setLogger(fakeLogging);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
     test('schedule try build set build url in check run', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
-              error: GrpcStatus(code: 0),
-              scheduleBuild: Build(
-                id: 998,
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: 'prod',
-                  builder: 'Linux',
-                ),
+              error: const GrpcStatus(code: 0),
+              scheduleBuild: generateBuild(
+                998,
+                name: 'Linux',
+                status: Status.started,
                 tags: <String, List<String>>{
                   'github_checkrun': <String>['1'],
                 },
-                status: Status.started,
               ),
             ),
           ],
         );
       });
-      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async {
-        return CheckRun.fromJson(const <String, dynamic>{
-          'id': 1,
-          'started_at': '2020-05-10T02:49:31Z',
-          'check_suite': <String, dynamic>{'id': 2}
-        });
+      final CheckRun checkRun = CheckRun.fromJson(const <String, dynamic>{
+        'id': 1,
+        'started_at': '2020-05-10T02:49:31Z',
+        'check_suite': <String, dynamic>{'id': 2}
       });
-      final bool result = await service.scheduleTryBuilds(
+      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async => checkRun);
+      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: config.flutterSlug,
       );
-      expect(result, isTrue);
       verify(mockGithubChecksUtil.updateCheckRun(any, config.flutterSlug, any,
               detailsUrl: 'https://ci.chromium.org/ui/b/998'))
           .called(1);
     });
     test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  Build(
-                    id: 998,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.started,
-                  )
+                  generateBuild(998, name: 'Linux', status: Status.started),
                 ],
               ),
             ),
           ],
         );
       });
-      final bool result = await service.scheduleTryBuilds(
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
-        slug: slug,
+        slug: slug!,
       );
-      expect(result, isFalse);
+      expect(fakeLogging.records[0].message,
+          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  Build(
-                    id: 998,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.scheduled,
-                  )
+                  generateBuild(998, name: 'Linux', status: Status.scheduled),
                 ],
               ),
             ),
           ],
         );
       });
-      final bool result = await service.scheduleTryBuilds(
+      await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
         commitSha: 'abc',
-        slug: slug,
+        slug: slug!,
       );
-      expect(result, isFalse);
+      expect(fakeLogging.records[0].message,
+          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('Schedule builds throws when current list of builds is empty', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
@@ -325,7 +275,7 @@ void main() {
             builders: <LuciBuilder>[],
             prNumber: 1,
             commitSha: 'abc',
-            slug: slug,
+            slug: slug!,
           ),
           throwsA(isA<InternalServerError>()));
     });
@@ -336,7 +286,7 @@ void main() {
                 builders: builders,
                 prNumber: 1,
                 commitSha: 'abc',
-                slug: slug,
+                slug: slug!,
               ),
           throwsA(const TypeMatcher<BadRequestException>()));
     });
@@ -355,29 +305,24 @@ void main() {
           responses: <Response>[],
         );
       });
-      await service.cancelBuilds(slug, 1, 'abc', 'new builds');
+      await service.cancelBuilds(slug!, 1, 'abc', 'new builds');
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
     test('Cancel builds that are scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
-                searchBuilds: SearchBuildsResponse(builds: <Build>[
-              Build(
-                id: 998,
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: 'prod',
-                  builder: 'Linux',
-                ),
-                status: Status.started,
-              )
-            ]))
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(998, name: 'Linux', status: Status.started),
+                ],
+              ),
+            )
           ],
         );
       });
-      await service.cancelBuilds(slug, 1, 'abc', 'new builds');
+      await service.cancelBuilds(slug!, 1, 'abc', 'new builds');
       expect(verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
           json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
     });
@@ -385,7 +330,7 @@ void main() {
       slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.cancelBuilds(
-                slug,
+                slug!,
                 1,
                 'abc',
                 'new builds',
@@ -408,35 +353,30 @@ void main() {
           responses: <Response>[],
         );
       });
-      final List<Build> result = await service.failedBuilds(slug, 1, 'abc', <LuciBuilder>[]);
+      final List<Build?> result = await service.failedBuilds(slug!, 1, 'abc', <LuciBuilder>[]);
       expect(result, isEmpty);
     });
     test('Failed builds from a list of builds with failures', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
-                searchBuilds: SearchBuildsResponse(builds: <Build>[
-              Build(
-                id: 998,
-                builderId: BuilderId(
-                  project: 'flutter',
-                  bucket: 'prod',
-                  builder: 'Linux',
-                ),
-                status: Status.failure,
-              )
-            ]))
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(998, name: 'Linux', status: Status.failure),
+                ],
+              ),
+            )
           ],
         );
       });
-      final List<Build> result = await service
-          .failedBuilds(slug, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
+      final List<Build?> result = await service.failedBuilds(
+          slug!, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
       expect(result, hasLength(1));
     });
   });
   group('rescheduleBuild', () {
-    push_message.BuildPushMessage buildPushMessage;
+    late push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
       config = FakeConfig();
@@ -449,7 +389,9 @@ void main() {
       )) as Map<String, dynamic>;
       buildPushMessage = push_message.BuildPushMessage.fromJson(json);
     });
+
     test('Reschedule an existing build', () async {
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
       final bool rescheduled = await service.rescheduleBuild(
         commitSha: 'abc',
         builderName: 'mybuild',
@@ -466,6 +408,7 @@ void main() {
       service = LuciBuildService(config, mockBuildBucketClient);
     });
     test('Reschedule an existing build', () async {
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
       await service.rescheduleProdBuild(
         commitSha: 'abc',
         builderName: 'mybuild',
@@ -477,9 +420,9 @@ void main() {
   });
 
   group('checkRerunBuilder', () {
-    Commit commit;
-    Commit totCommit;
-    DatastoreService datastore;
+    late Commit commit;
+    late Commit totCommit;
+    late DatastoreService datastore;
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
@@ -502,6 +445,7 @@ void main() {
           buildNumber: 1,
           builderName: 'Mac abc',
           summaryMarkdown: 'summary');
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         luciTask: luciTask,
@@ -522,6 +466,7 @@ void main() {
           buildNumber: 1,
           builderName: 'Mac abc',
           summaryMarkdown: 'summary');
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         luciTask: luciTask,

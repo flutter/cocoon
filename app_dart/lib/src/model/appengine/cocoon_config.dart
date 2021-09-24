@@ -7,5 +7,5 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'CocoonConfig', idType: IdType.String)
 class CocoonConfig extends Model<String> {
   @StringProperty(propertyName: 'ParameterValue')
-  String value;
+  late String value;
 }

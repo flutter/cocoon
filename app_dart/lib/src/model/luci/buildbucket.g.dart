@@ -8,13 +8,9 @@ part of 'buildbucket.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-BatchRequest _$BatchRequestFromJson(Map<String, dynamic> json) {
-  return BatchRequest(
-    requests: (json['requests'] as List)
-        ?.map((e) => e == null ? null : Request.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-  );
-}
+BatchRequest _$BatchRequestFromJson(Map<String, dynamic> json) => BatchRequest(
+      requests: (json['requests'] as List<dynamic>?)?.map((e) => Request.fromJson(e as Map<String, dynamic>)).toList(),
+    );
 
 Map<String, dynamic> _$BatchRequestToJson(BatchRequest instance) {
   final val = <String, dynamic>{};
@@ -29,19 +25,17 @@ Map<String, dynamic> _$BatchRequestToJson(BatchRequest instance) {
   return val;
 }
 
-Request _$RequestFromJson(Map<String, dynamic> json) {
-  return Request(
-    getBuild: json['getBuild'] == null ? null : GetBuildRequest.fromJson(json['getBuild'] as Map<String, dynamic>),
-    searchBuilds: json['searchBuilds'] == null
-        ? null
-        : SearchBuildsRequest.fromJson(json['searchBuilds'] as Map<String, dynamic>),
-    scheduleBuild: json['scheduleBuild'] == null
-        ? null
-        : ScheduleBuildRequest.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
-    cancelBuild:
-        json['cancelBuild'] == null ? null : CancelBuildRequest.fromJson(json['cancelBuild'] as Map<String, dynamic>),
-  );
-}
+Request _$RequestFromJson(Map<String, dynamic> json) => Request(
+      getBuild: json['getBuild'] == null ? null : GetBuildRequest.fromJson(json['getBuild'] as Map<String, dynamic>),
+      searchBuilds: json['searchBuilds'] == null
+          ? null
+          : SearchBuildsRequest.fromJson(json['searchBuilds'] as Map<String, dynamic>),
+      scheduleBuild: json['scheduleBuild'] == null
+          ? null
+          : ScheduleBuildRequest.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
+      cancelBuild:
+          json['cancelBuild'] == null ? null : CancelBuildRequest.fromJson(json['cancelBuild'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$RequestToJson(Request instance) {
   final val = <String, dynamic>{};
@@ -59,13 +53,10 @@ Map<String, dynamic> _$RequestToJson(Request instance) {
   return val;
 }
 
-BatchResponse _$BatchResponseFromJson(Map<String, dynamic> json) {
-  return BatchResponse(
-    responses: (json['responses'] as List)
-        ?.map((e) => e == null ? null : Response.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-  );
-}
+BatchResponse _$BatchResponseFromJson(Map<String, dynamic> json) => BatchResponse(
+      responses:
+          (json['responses'] as List<dynamic>?)?.map((e) => Response.fromJson(e as Map<String, dynamic>)).toList(),
+    );
 
 Map<String, dynamic> _$BatchResponseToJson(BatchResponse instance) {
   final val = <String, dynamic>{};
@@ -80,17 +71,16 @@ Map<String, dynamic> _$BatchResponseToJson(BatchResponse instance) {
   return val;
 }
 
-Response _$ResponseFromJson(Map<String, dynamic> json) {
-  return Response(
-    getBuild: json['getBuild'] == null ? null : Build.fromJson(json['getBuild'] as Map<String, dynamic>),
-    searchBuilds: json['searchBuilds'] == null
-        ? null
-        : SearchBuildsResponse.fromJson(json['searchBuilds'] as Map<String, dynamic>),
-    scheduleBuild: json['scheduleBuild'] == null ? null : Build.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
-    cancelBuild: json['cancelBuild'] == null ? null : Build.fromJson(json['cancelBuild'] as Map<String, dynamic>),
-    error: json['error'] == null ? null : GrpcStatus.fromJson(json['error'] as Map<String, dynamic>),
-  );
-}
+Response _$ResponseFromJson(Map<String, dynamic> json) => Response(
+      getBuild: json['getBuild'] == null ? null : Build.fromJson(json['getBuild'] as Map<String, dynamic>),
+      searchBuilds: json['searchBuilds'] == null
+          ? null
+          : SearchBuildsResponse.fromJson(json['searchBuilds'] as Map<String, dynamic>),
+      scheduleBuild:
+          json['scheduleBuild'] == null ? null : Build.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
+      cancelBuild: json['cancelBuild'] == null ? null : Build.fromJson(json['cancelBuild'] as Map<String, dynamic>),
+      error: json['error'] == null ? null : GrpcStatus.fromJson(json['error'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$ResponseToJson(Response instance) {
   final val = <String, dynamic>{};
@@ -109,14 +99,12 @@ Map<String, dynamic> _$ResponseToJson(Response instance) {
   return val;
 }
 
-GetBuildRequest _$GetBuildRequestFromJson(Map<String, dynamic> json) {
-  return GetBuildRequest(
-    id: const Int64Converter().fromJson(json['id'] as String),
-    builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-    buildNumber: json['buildNumber'] as int,
-    fields: json['fields'] as String,
-  );
-}
+GetBuildRequest _$GetBuildRequestFromJson(Map<String, dynamic> json) => GetBuildRequest(
+      id: json['id'] as String?,
+      builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
+      buildNumber: json['buildNumber'] as int?,
+      fields: json['fields'] as String?,
+    );
 
 Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
   final val = <String, dynamic>{};
@@ -127,7 +115,7 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
     }
   }
 
-  writeNotNull('id', const Int64Converter().toJson(instance.id));
+  writeNotNull('id', instance.id);
   writeNotNull('builder', instance.builderId);
   writeNotNull('buildNumber', instance.buildNumber);
   writeNotNull('fields', instance.fields);
@@ -135,38 +123,32 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
 }
 
 CancelBuildRequest _$CancelBuildRequestFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['id', 'summaryMarkdown']);
+  $checkKeys(
+    json,
+    requiredKeys: const ['id', 'summaryMarkdown'],
+  );
   return CancelBuildRequest(
-    id: const Int64Converter().fromJson(json['id'] as String),
+    id: json['id'] as String,
     summaryMarkdown: json['summaryMarkdown'] as String,
   );
 }
 
-Map<String, dynamic> _$CancelBuildRequestToJson(CancelBuildRequest instance) {
-  final val = <String, dynamic>{};
+Map<String, dynamic> _$CancelBuildRequestToJson(CancelBuildRequest instance) => <String, dynamic>{
+      'id': instance.id,
+      'summaryMarkdown': instance.summaryMarkdown,
+    };
 
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('id', const Int64Converter().toJson(instance.id));
-  val['summaryMarkdown'] = instance.summaryMarkdown;
-  return val;
-}
-
-SearchBuildsRequest _$SearchBuildsRequestFromJson(Map<String, dynamic> json) {
-  return SearchBuildsRequest(
-    predicate: json['predicate'] == null ? null : BuildPredicate.fromJson(json['predicate'] as Map<String, dynamic>),
-    pageSize: json['pageSize'] as int,
-    pageToken: json['pageToken'] as String,
-    fields: json['fields'] as String,
-  );
-}
+SearchBuildsRequest _$SearchBuildsRequestFromJson(Map<String, dynamic> json) => SearchBuildsRequest(
+      predicate: BuildPredicate.fromJson(json['predicate'] as Map<String, dynamic>),
+      pageSize: json['pageSize'] as int?,
+      pageToken: json['pageToken'] as String?,
+      fields: json['fields'] as String?,
+    );
 
 Map<String, dynamic> _$SearchBuildsRequestToJson(SearchBuildsRequest instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'predicate': instance.predicate,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -174,22 +156,19 @@ Map<String, dynamic> _$SearchBuildsRequestToJson(SearchBuildsRequest instance) {
     }
   }
 
-  writeNotNull('predicate', instance.predicate);
   writeNotNull('pageSize', instance.pageSize);
   writeNotNull('pageToken', instance.pageToken);
   writeNotNull('fields', instance.fields);
   return val;
 }
 
-BuildPredicate _$BuildPredicateFromJson(Map<String, dynamic> json) {
-  return BuildPredicate(
-    builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-    status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
-    createdBy: json['createdBy'] as String,
-    tags: const TagsConverter().fromJson(json['tags'] as List),
-    includeExperimental: json['includeExperimental'] as bool,
-  );
-}
+BuildPredicate _$BuildPredicateFromJson(Map<String, dynamic> json) => BuildPredicate(
+      builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
+      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      createdBy: json['createdBy'] as String?,
+      tags: const TagsConverter().fromJson(json['tags'] as List?),
+      includeExperimental: json['includeExperimental'] as bool?,
+    );
 
 Map<String, dynamic> _$BuildPredicateToJson(BuildPredicate instance) {
   final val = <String, dynamic>{};
@@ -208,34 +187,41 @@ Map<String, dynamic> _$BuildPredicateToJson(BuildPredicate instance) {
   return val;
 }
 
-T _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T unknownValue,
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
 }) {
   if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
   }
 
-  final value = enumValues.entries.singleWhere((e) => e.value == source, orElse: () => null)?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
 }
 
-T _$enumDecodeNullable<T>(
-  Map<T, dynamic> enumValues,
+K? _$enumDecodeNullable<K, V>(
+  Map<K, V> enumValues,
   dynamic source, {
-  T unknownValue,
+  K? unknownValue,
 }) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
+  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$StatusEnumMap = {
@@ -249,13 +235,10 @@ const _$StatusEnumMap = {
   Status.canceled: 'CANCELED',
 };
 
-SearchBuildsResponse _$SearchBuildsResponseFromJson(Map<String, dynamic> json) {
-  return SearchBuildsResponse(
-    builds:
-        (json['builds'] as List)?.map((e) => e == null ? null : Build.fromJson(e as Map<String, dynamic>))?.toList(),
-    nextPageToken: json['nextPageToken'] as String,
-  );
-}
+SearchBuildsResponse _$SearchBuildsResponseFromJson(Map<String, dynamic> json) => SearchBuildsResponse(
+      builds: (json['builds'] as List<dynamic>?)?.map((e) => Build.fromJson(e as Map<String, dynamic>)).toList(),
+      nextPageToken: json['nextPageToken'] as String?,
+    );
 
 Map<String, dynamic> _$SearchBuildsResponseToJson(SearchBuildsResponse instance) {
   final val = <String, dynamic>{};
@@ -271,23 +254,21 @@ Map<String, dynamic> _$SearchBuildsResponseToJson(SearchBuildsResponse instance)
   return val;
 }
 
-ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) {
-  return ScheduleBuildRequest(
-    requestId: json['requestId'] as String,
-    builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-    canary: json['canary'] as bool,
-    experimental: _$enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
-    gitilesCommit:
-        json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
-    properties: json['properties'] as Map<String, dynamic>,
-    dimensions: (json['dimensions'] as List)
-        ?.map((e) => e == null ? null : RequestedDimension.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    priority: json['priority'] as int,
-    tags: const TagsConverter().fromJson(json['tags'] as List),
-    notify: json['notify'] == null ? null : NotificationConfig.fromJson(json['notify'] as Map<String, dynamic>),
-  );
-}
+ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) => ScheduleBuildRequest(
+      requestId: json['requestId'] as String?,
+      builderId: BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
+      canary: json['canary'] as bool?,
+      experimental: _$enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
+      gitilesCommit:
+          json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
+      properties: json['properties'] as Map<String, dynamic>?,
+      dimensions: (json['dimensions'] as List<dynamic>?)
+          ?.map((e) => RequestedDimension.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      priority: json['priority'] as int?,
+      tags: const TagsConverter().fromJson(json['tags'] as List?),
+      notify: json['notify'] == null ? null : NotificationConfig.fromJson(json['notify'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$ScheduleBuildRequestToJson(ScheduleBuildRequest instance) {
   final val = <String, dynamic>{};
@@ -299,7 +280,7 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(ScheduleBuildRequest instance)
   }
 
   writeNotNull('requestId', instance.requestId);
-  writeNotNull('builder', instance.builderId);
+  val['builder'] = instance.builderId;
   writeNotNull('canary', instance.canary);
   writeNotNull('experimental', _$TrinaryEnumMap[instance.experimental]);
   writeNotNull('properties', instance.properties);
@@ -317,25 +298,26 @@ const _$TrinaryEnumMap = {
   Trinary.unset: 'UNSET',
 };
 
-Build _$BuildFromJson(Map<String, dynamic> json) {
-  return Build(
-    id: const Int64Converter().fromJson(json['id'] as String),
-    builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-    number: json['number'] as int,
-    createdBy: json['createdBy'] as String,
-    canceledBy: json['canceledBy'] as String,
-    startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
-    endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
-    status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
-    tags: const TagsConverter().fromJson(json['tags'] as List),
-    input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
-    summaryMarkdown: json['summaryMarkdown'] as String,
-    critical: _$enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
-  );
-}
+Build _$BuildFromJson(Map<String, dynamic> json) => Build(
+      id: json['id'] as String,
+      builderId: BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
+      number: json['number'] as int?,
+      createdBy: json['createdBy'] as String?,
+      canceledBy: json['canceledBy'] as String?,
+      startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
+      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      tags: const TagsConverter().fromJson(json['tags'] as List?),
+      input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
+      summaryMarkdown: json['summaryMarkdown'] as String?,
+      critical: _$enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
+    );
 
 Map<String, dynamic> _$BuildToJson(Build instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'builder': instance.builderId,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -343,8 +325,6 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
     }
   }
 
-  writeNotNull('id', const Int64Converter().toJson(instance.id));
-  writeNotNull('builder', instance.builderId);
   writeNotNull('number', instance.number);
   writeNotNull('createdBy', instance.createdBy);
   writeNotNull('canceledBy', instance.canceledBy);
@@ -358,13 +338,11 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   return val;
 }
 
-BuilderId _$BuilderIdFromJson(Map<String, dynamic> json) {
-  return BuilderId(
-    project: json['project'] as String,
-    bucket: json['bucket'] as String,
-    builder: json['builder'] as String,
-  );
-}
+BuilderId _$BuilderIdFromJson(Map<String, dynamic> json) => BuilderId(
+      project: json['project'] as String?,
+      bucket: json['bucket'] as String?,
+      builder: json['builder'] as String?,
+    );
 
 Map<String, dynamic> _$BuilderIdToJson(BuilderId instance) {
   final val = <String, dynamic>{};
@@ -381,12 +359,10 @@ Map<String, dynamic> _$BuilderIdToJson(BuilderId instance) {
   return val;
 }
 
-NotificationConfig _$NotificationConfigFromJson(Map<String, dynamic> json) {
-  return NotificationConfig(
-    pubsubTopic: json['pubsubTopic'] as String,
-    userData: const Base64Converter().fromJson(json['userData'] as String),
-  );
-}
+NotificationConfig _$NotificationConfigFromJson(Map<String, dynamic> json) => NotificationConfig(
+      pubsubTopic: json['pubsubTopic'] as String?,
+      userData: json['userData'] as String?,
+    );
 
 Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
   final val = <String, dynamic>{};
@@ -398,18 +374,16 @@ Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
   }
 
   writeNotNull('pubsubTopic', instance.pubsubTopic);
-  writeNotNull('userData', const Base64Converter().toJson(instance.userData));
+  writeNotNull('userData', instance.userData);
   return val;
 }
 
-Input _$InputFromJson(Map<String, dynamic> json) {
-  return Input(
-    properties: json['properties'] as Map<String, dynamic>,
-    gitilesCommit:
-        json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
-    experimental: json['experimental'] as bool,
-  );
-}
+Input _$InputFromJson(Map<String, dynamic> json) => Input(
+      properties: json['properties'] as Map<String, dynamic>?,
+      gitilesCommit:
+          json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
+      experimental: json['experimental'] as bool?,
+    );
 
 Map<String, dynamic> _$InputToJson(Input instance) {
   final val = <String, dynamic>{};
@@ -426,14 +400,12 @@ Map<String, dynamic> _$InputToJson(Input instance) {
   return val;
 }
 
-GitilesCommit _$GitilesCommitFromJson(Map<String, dynamic> json) {
-  return GitilesCommit(
-    host: json['host'] as String,
-    project: json['project'] as String,
-    ref: json['ref'] as String,
-    hash: json['id'] as String,
-  );
-}
+GitilesCommit _$GitilesCommitFromJson(Map<String, dynamic> json) => GitilesCommit(
+      host: json['host'] as String?,
+      project: json['project'] as String?,
+      ref: json['ref'] as String?,
+      hash: json['id'] as String?,
+    );
 
 Map<String, dynamic> _$GitilesCommitToJson(GitilesCommit instance) {
   final val = <String, dynamic>{};
@@ -451,16 +423,16 @@ Map<String, dynamic> _$GitilesCommitToJson(GitilesCommit instance) {
   return val;
 }
 
-RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) {
-  return RequestedDimension(
-    key: json['key'] as String,
-    value: json['value'] as String,
-    expiration: json['expiration'] as String,
-  );
-}
+RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) => RequestedDimension(
+      key: json['key'] as String,
+      value: json['value'] as String?,
+      expiration: json['expiration'] as String?,
+    );
 
 Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'key': instance.key,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -468,7 +440,6 @@ Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
     }
   }
 
-  writeNotNull('key', instance.key);
   writeNotNull('value', instance.value);
   writeNotNull('expiration', instance.expiration);
   return val;
