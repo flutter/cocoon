@@ -206,14 +206,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await Future<void>.delayed(const Duration(seconds: 10));
     final Uri requestForTryjobStatus =
         Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}');
-    String rawResponse;
     try {
       log.debug('Querying Gold for image results...');
-      final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);
-      final HttpClientResponse response = await request.close();
+      final http.Response response = await goldClient.get(requestForTryjobStatus);
+      if (response.statusCode != HttpStatus.ok) {
+        throw HttpException(response.body);
+      }
 
-      rawResponse = await utf8.decodeStream(response);
-      final dynamic jsonResponseTriage = json.decode(rawResponse);
+      final dynamic jsonResponseTriage = json.decode(response.body);
       if (jsonResponseTriage is! Map<String, dynamic>) {
         throw const FormatException('Skia gold changelist summary does not match expected format.');
       }
@@ -221,7 +221,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       int untriaged = 0;
       for (int i = 0; i <= patchsets.length; i++) {
         final Map<String, dynamic> patchset = patchsets[i] as Map<String, dynamic>;
-        if (patchset['patchset_id'] == pr.head.sha) {
+        if (patchset['patchset_id'] == pr.head!.sha) {
           untriaged = patchset['new_untriaged_images'] as int;
           break;
         }

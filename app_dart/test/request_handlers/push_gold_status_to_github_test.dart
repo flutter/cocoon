@@ -928,7 +928,7 @@ void main() {
           // New status: completed/triaged/no changes
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}'') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobEmpty(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
