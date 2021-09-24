@@ -68,7 +68,6 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
           'Listing commit for slug: $slug branch: $branch and msSinceEpoch: ${queryAfter.millisecondsSinceEpoch}');
       commits = await githubService.listCommits(slug, branch, queryAfter.millisecondsSinceEpoch);
       log!.debug('Retrieved ${commits.length} commits from GitHub');
-      commits = commits ?? <RepositoryCommit>[];
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
       commits = commits
