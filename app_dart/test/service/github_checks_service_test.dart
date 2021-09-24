@@ -130,6 +130,15 @@ void main() {
       const String expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
       expect(githubChecksService.getGithubSummary(null), expectedSummary);
     });
+
+    test('really large summaryMarkdown', () async {
+      String summaryMarkdown = '';
+      for (int i = 0; i < 20000; i++) {
+        summaryMarkdown += 'test ';
+      }
+      expect(githubChecksService.getGithubSummary(summaryMarkdown), startsWith('$kGithubSummary[TRUNCATED...]'));
+      expect(githubChecksService.getGithubSummary(summaryMarkdown).length, lessThan(65535));
+    });
   });
 }
 
