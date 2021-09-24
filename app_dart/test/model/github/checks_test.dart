@@ -23,13 +23,13 @@ void main() {
       expect(suite.headBranch, equals('update_licenses'));
       // PullRequestProperties.
       expect(suite.pullRequests, hasLength(1));
-      final PullRequest pullRequest = suite.pullRequests[0];
-      expect(pullRequest.base.ref, equals('master'));
-      expect(pullRequest.base.sha, equals('cc430b2e8d6448dfbacf5bcbbd6160cd1fe9dc0b'));
-      expect(pullRequest.base.repo.name, equals('cocoon'));
-      expect(pullRequest.head.ref, equals('update_licenses'));
-      expect(pullRequest.head.sha, equals('5763f4c2b3b5e529f4b35c655761a7e818eced2e'));
-      expect(pullRequest.head.repo.name, equals('cocoon'));
+      final PullRequest pullRequest = suite.pullRequests![0];
+      expect(pullRequest.base!.ref, equals('master'));
+      expect(pullRequest.base!.sha, equals('cc430b2e8d6448dfbacf5bcbbd6160cd1fe9dc0b'));
+      expect(pullRequest.base!.repo!.name, equals('cocoon'));
+      expect(pullRequest.head!.ref, equals('update_licenses'));
+      expect(pullRequest.head!.sha, equals('5763f4c2b3b5e529f4b35c655761a7e818eced2e'));
+      expect(pullRequest.head!.repo!.name, equals('cocoon'));
     });
   });
   group('CheckRunEvent', () {
@@ -39,18 +39,18 @@ void main() {
       expect(checkRunEvent.action, 'rerequested');
       expect(checkRunEvent.checkRun, isA<CheckRun>());
       // CheckSuite properties.
-      final CheckRun checkRun = checkRunEvent.checkRun;
+      final CheckRun checkRun = checkRunEvent.checkRun!;
       expect(checkRun.headSha, equals('66d6bd9a3f79a36fe4f5178ccefbc781488a596c'));
-      expect(checkRun.checkSuite.headBranch, equals('independent_agent'));
+      expect(checkRun.checkSuite!.headBranch, equals('independent_agent'));
       // PullRequestProperties.
       expect(checkRun.pullRequests, hasLength(1));
-      final PullRequest pullRequest = checkRun.pullRequests[0];
-      expect(pullRequest.base.ref, equals('master'));
-      expect(pullRequest.base.sha, equals('96b953d99588ade4a2b5e9c920813f8f3841b7fb'));
-      expect(pullRequest.base.repo.name, equals('cocoon'));
-      expect(pullRequest.head.ref, equals('independent_agent'));
-      expect(pullRequest.head.sha, equals('66d6bd9a3f79a36fe4f5178ccefbc781488a596c'));
-      expect(pullRequest.head.repo.name, equals('cocoon'));
+      final PullRequest pullRequest = checkRun.pullRequests![0];
+      expect(pullRequest.base!.ref, equals('master'));
+      expect(pullRequest.base!.sha, equals('96b953d99588ade4a2b5e9c920813f8f3841b7fb'));
+      expect(pullRequest.base!.repo!.name, equals('cocoon'));
+      expect(pullRequest.head!.ref, equals('independent_agent'));
+      expect(pullRequest.head!.sha, equals('66d6bd9a3f79a36fe4f5178ccefbc781488a596c'));
+      expect(pullRequest.head!.repo!.name, equals('cocoon'));
     });
   });
 }

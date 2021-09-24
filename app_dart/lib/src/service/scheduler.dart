@@ -9,7 +9,6 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
@@ -42,14 +41,13 @@ export 'scheduler/graph.dart';
 ///   3. Retry mechanisms for tasks
 class Scheduler {
   Scheduler({
-    @required this.cache,
-    @required this.config,
-    @required this.githubChecksService,
-    @required this.luciBuildService,
+    required this.cache,
+    required this.config,
+    required this.githubChecksService,
+    required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
-  })  : assert(datastoreProvider != null),
-        assert(httpClientProvider != null);
+  });
 
   final CacheService cache;
   final Config config;
@@ -57,8 +55,8 @@ class Scheduler {
   final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
 
-  DatastoreService datastore;
-  Logging log;
+  late DatastoreService datastore;
+  late Logging log;
   LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
@@ -94,27 +92,27 @@ class Scheduler {
   Future<void> addPullRequest(github.PullRequest pr) async {
     datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
-    if (!pr.merged) {
+    if (!pr.merged!) {
       log.warning('Only pull requests that were closed and merged should have tasks scheduled');
       return;
     }
 
-    final String fullRepo = pr.base.repo.fullName;
-    final String branch = pr.base.ref;
-    final String sha = pr.mergeCommitSha;
+    final String fullRepo = pr.base!.repo!.fullName;
+    final String? branch = pr.base!.ref;
+    final String sha = pr.mergeCommitSha!;
 
     final String id = '$fullRepo/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit mergedCommit = Commit(
-      author: pr.user.login,
-      authorAvatarUrl: pr.user.avatarUrl,
+      author: pr.user!.login!,
+      authorAvatarUrl: pr.user!.avatarUrl!,
       branch: branch,
       key: key,
       // The field has a max length of 1500 so ensure the commit message is not longer.
-      message: truncate(pr.title, 1490, omission: '...'),
+      message: truncate(pr.title!, 1490, omission: '...'),
       repository: fullRepo,
       sha: sha,
-      timestamp: pr.mergedAt.millisecondsSinceEpoch,
+      timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
 
     if (await _commitExistsInDatastore(mergedCommit)) {
@@ -138,10 +136,10 @@ class Scheduler {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
+        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
       });
     } catch (error) {
-      log.error('Failed to add commit ${commit.sha}: $error');
+      log.error('Failed to add commit ${commit.sha!}: $error');
     }
 
     await _uploadToBigQuery(commit);
@@ -151,7 +149,7 @@ class Scheduler {
   Future<List<Commit>> _getMissingCommits(List<Commit> commits) async {
     final List<Commit> newCommits = <Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
-    commits.sort((Commit a, Commit b) => b.timestamp.compareTo(a.timestamp));
+    commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
     for (Commit commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
       if (!await _commitExistsInDatastore(commit)) {
@@ -169,17 +167,23 @@ class Scheduler {
   /// Since webhooks or cron jobs can schedule commits, we must verify a commit
   /// has not already been scheduled.
   Future<bool> _commitExistsInDatastore(Commit commit) async {
-    return await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) != null;
+    try {
+      await datastore.db.lookupValue<Commit>(commit.key);
+    } on KeyNotFoundException {
+      return false;
+    }
+    return true;
   }
 
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
-    for (LuciBuilder builder in prodBuilders) {
-      tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
+    final List<LuciBuilder>? prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!);
+    if (prodBuilders != null) {
+      for (LuciBuilder builder in prodBuilders) {
+        tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp!, builder: builder));
+      }
     }
-
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     final List<Target> initialTargets = _getInitialPostSubmitTargets(commit, schedulerConfig);
     final List<Task> ciYamlTasks = targetsToTask(commit, initialTargets).toList();
@@ -189,14 +193,17 @@ class Scheduler {
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async {
-    final String ciPath = '${commit.repository}/${commit.sha}/.ci.yaml';
-    final Uint8List configBytes = await cache.getOrCreate(subcacheName, ciPath,
-        createFn: () => _downloadSchedulerConfig(
-              ciPath,
-              retryOptions: retryOptions,
-            ),
-        ttl: const Duration(hours: 1));
+  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async {
+    final String ciPath = '${commit.repository}/${commit.sha!}/.ci.yaml';
+    final Uint8List configBytes = (await cache.getOrCreate(
+      subcacheName,
+      ciPath,
+      createFn: () => _downloadSchedulerConfig(
+        ciPath,
+        retryOptions: retryOptions,
+      ),
+      ttl: const Duration(hours: 1),
+    ))!;
     return SchedulerConfig.fromBuffer(configBytes);
   }
 
@@ -225,7 +232,8 @@ class Scheduler {
   /// Get an aggregate of LUCI presubmit builders from .ci.yaml and prod_builders.json.
   Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
     // 1. Get prod_builders.json builders
-    final List<LuciBuilder> postsubmitBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
+    final List<LuciBuilder> postsubmitBuilders =
+        await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!) ?? <LuciBuilder>[];
     // 2. Get ci.yaml builders (filter to only those that are relevant)
     final List<Target> postsubmitLuciTargets = schedulerConfig.targets
         .where((Target target) => target.postsubmit && target.scheduler == SchedulerSystem.luci)
@@ -274,7 +282,7 @@ class Scheduler {
   ///
   /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
   /// that commit does not support the scheduler config file.
-  Future<Uint8List> _downloadSchedulerConfig(String ciPath, {RetryOptions retryOptions}) async {
+  Future<Uint8List> _downloadSchedulerConfig(String ciPath, {RetryOptions? retryOptions}) async {
     String configContent;
     try {
       configContent = await githubFileContent(
@@ -296,7 +304,7 @@ class Scheduler {
 
   /// Cancel all incomplete targets against a pull request.
   Future<void> cancelPreSubmitTargets(
-      {int prNumber, github.RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
+      {int? prNumber, github.RepositorySlug? slug, String? commitSha, String reason = 'Newer commit available'}) async {
     if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
       throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
@@ -315,14 +323,14 @@ class Scheduler {
   /// Schedules a `ci.yaml validation` check to validate [SchedulerConfig] is valid
   /// and all builds were able to be triggered.
   Future<void> triggerPresubmitTargets(
-      {String branch,
-      int prNumber,
-      github.RepositorySlug slug,
-      String commitSha,
+      {required String branch,
+      required int prNumber,
+      required github.RepositorySlug slug,
+      required String commitSha,
       String reason = 'Newer commit available'}) async {
-    if (branch == null || prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
+    if (commitSha.isEmpty) {
       throw BadRequestException(
-          'Unexpected null value given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
+          'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
     await cancelPreSubmitTargets(
@@ -373,7 +381,7 @@ class Scheduler {
         conclusion: github.CheckRunConclusion.success,
       );
     } else {
-      log.info('Marking PR #$prNumber ci.yaml validation as failed');
+      log.warning('Marking PR #$prNumber ci.yaml validation as failed');
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -396,10 +404,10 @@ class Scheduler {
   /// 2. Get failed LUCI builds for this pull request at [commitSha].
   /// 3. Rerun the failed builds that also have a failed check status.
   Future<void> retryPresubmitTargets({
-    int prNumber,
-    github.RepositorySlug slug,
-    String commitSha,
-    CheckSuiteEvent checkSuiteEvent,
+    required int prNumber,
+    required github.RepositorySlug slug,
+    required String commitSha,
+    required CheckSuiteEvent checkSuiteEvent,
   }) async {
     final github.GitHub githubClient = await config.createGitHubClient(slug);
     final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
@@ -411,9 +419,9 @@ class Scheduler {
       commit: presubmitCommit,
       prNumber: prNumber,
     );
-    final List<Build> failedBuilds = await luciBuildService.failedBuilds(slug, prNumber, commitSha, presubmitBuilders);
-    for (Build build in failedBuilds) {
-      final github.CheckRun checkRun = checkRuns[build.builderId.builder];
+    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(slug, prNumber, commitSha, presubmitBuilders);
+    for (Build? build in failedBuilds) {
+      final github.CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
 
       if (checkRun.status != github.CheckRunStatus.completed) {
         // Check run is still in progress, do not retry.
@@ -427,28 +435,27 @@ class Scheduler {
     }
   }
 
-  /// Get an aggregate of LUCI presubmit builders from .ci.yaml and try_builders.json.
-  Future<List<LuciBuilder>> getPresubmitBuilders({@required Commit commit, int prNumber}) async {
+  /// Get LUCI presubmit builders from .ci.yaml.
+  Future<List<LuciBuilder>> getPresubmitBuilders({required Commit commit, required int prNumber}) async {
     // Get try_builders.json builders
-    final List<LuciBuilder> builders = await config.luciBuilders(
-      'try',
-      commit.slug,
-      commitSha: commit.sha,
-    );
-    //  Get .ci.yaml targets
+    final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
+          'try',
+          commit.slug,
+          commitSha: commit.sha!,
+        ) ??
+        <LuciBuilder>[];
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
+    //  Get .ci.yaml targets
     final Iterable<Target> presubmitLuciTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
-    final Iterable<LuciBuilder> ciYamlBuilders =
-        presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
-    builders.addAll(ciYamlBuilders);
+    presubmitBuilders.addAll(presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
-    final List<String> files = await githubService.listFiles(commit.slug, prNumber);
-    return await getFilteredBuilders(builders, files);
+    final List<String?> files = await githubService.listFiles(commit.slug, prNumber);
+    return await getFilteredBuilders(presubmitBuilders, files);
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
@@ -459,7 +466,7 @@ class Scheduler {
   Future<bool> processCheckRun(CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
-        final String builderName = checkRunEvent.checkRun.name;
+        final String? builderName = checkRunEvent.checkRun!.name;
         final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
         log.debug('BuilderName: $builderName State: $success');
         return success;
@@ -474,18 +481,18 @@ class Scheduler {
     const String dataset = 'cocoon';
     const String table = 'Checklist';
 
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final TabledataResource tabledataResource = await config.createTabledataResourceApi();
     final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     /// Consolidate [commits] together
     ///
     /// Prepare for bigquery [insertAll]
     tableDataInsertAllRequestRows.add(<String, Object>{
-      'json': <String, Object>{
+      'json': <String, Object?>{
         'ID': commit.id,
         'CreateTimestamp': commit.timestamp,
         'FlutterRepositoryPath': commit.repository,
-        'CommitSha': commit.sha,
+        'CommitSha': commit.sha!,
         'CommitAuthorLogin': commit.author,
         'CommitAuthorAvatarURL': commit.authorAvatarUrl,
         'CommitMessage': commit.message,
@@ -499,7 +506,7 @@ class Scheduler {
 
     /// Insert [commits] to [BigQuery]
     try {
-      await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+      await tabledataResource.insertAll(rows, projectId, dataset, table);
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }

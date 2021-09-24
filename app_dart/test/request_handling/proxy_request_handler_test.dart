@@ -10,7 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 void main() {
-  HttpServer destServer;
+  late HttpServer destServer;
 
   setUpAll(() async {
     destServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -73,9 +73,9 @@ void main() {
 
   group('ProxyRequestHandler', () {
     ProxyRequestHandler handler;
-    HttpServer proxyServer;
-    HttpClient client;
-    Uri url;
+    late HttpServer proxyServer;
+    late HttpClient client;
+    late Uri url;
 
     HttpClientRequest request;
     HttpClientResponse response;

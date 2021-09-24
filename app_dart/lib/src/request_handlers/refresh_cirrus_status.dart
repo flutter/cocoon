@@ -20,10 +20,9 @@ const List<String> kCirrusInProgressStates = <String>['CREATED', 'TRIGGERED', 'S
 Future<List<CirrusResult>> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
-  Logging log,
+  Logging? log,
   String name,
 ) async {
-  assert(client != null);
   const String owner = 'flutter';
   final QueryResult result = await client.query(
     QueryOptions(
@@ -37,37 +36,35 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
     ),
   );
 
-  if (result.hasErrors) {
-    for (GraphQLError error in result.errors) {
-      log.error(error.toString());
-    }
+  if (result.hasException) {
+    log!.error(result.exception.toString());
     throw const BadRequestException('GraphQL query failed');
   }
 
   final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
   final List<CirrusResult> cirrusResults = <CirrusResult>[];
-  String branch;
+  String? branch;
   if (result.data == null) {
     cirrusResults.add(CirrusResult(branch, tasks));
     return cirrusResults;
   }
   try {
-    final List<dynamic> searchBuilds = result.data['searchBuilds'] as List<dynamic>;
+    final List<dynamic> searchBuilds = result.data!['searchBuilds'] as List<dynamic>;
     for (dynamic searchBuild in searchBuilds) {
       tasks.clear();
       tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
-      branch = searchBuild['branch'] as String;
+      branch = searchBuild['branch'] as String?;
       cirrusResults.add(CirrusResult(branch, tasks));
     }
   } catch (_) {
-    log.debug('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
+    log!.debug('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
   return cirrusResults;
 }
 
 class CirrusResult {
-  const CirrusResult(this.branch, this.tasks) : assert(tasks != null);
+  const CirrusResult(this.branch, this.tasks);
 
-  final String branch;
+  final String? branch;
   final List<Map<String, dynamic>> tasks;
 }

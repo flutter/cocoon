@@ -16,10 +16,10 @@ import 'request_handler_tester.dart';
 
 class ApiRequestHandlerTester extends RequestHandlerTester {
   ApiRequestHandlerTester({
-    FakeHttpRequest request,
-    FakeLogging log,
-    FakeAuthenticatedContext context,
-    Map<String, dynamic> requestData,
+    FakeHttpRequest? request,
+    FakeLogging? log,
+    FakeAuthenticatedContext? context,
+    Map<String, dynamic>? requestData,
   })  : context = context ?? FakeAuthenticatedContext(),
         requestData = requestData ?? <String, dynamic>{},
         super(request: request, log: log);

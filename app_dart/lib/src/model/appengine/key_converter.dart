@@ -8,14 +8,15 @@ import 'package:json_annotation/json_annotation.dart';
 import 'key_helper.dart';
 
 /// A converter for [Key]s encoded as strings.
-class StringKeyConverter implements JsonConverter<Key<String>, String> {
+class StringKeyConverter implements JsonConverter<Key<String>?, String> {
   const StringKeyConverter();
 
   @override
-  Key<String> fromJson(String json) => json == null ? null : KeyHelper().decode(json) as Key<String>;
+  Key<String>? fromJson(String? json) =>
+      (json == null || json.isEmpty) ? null : KeyHelper().decode(json) as Key<String>;
 
   @override
-  String toJson(Key<String> key) => key == null ? null : KeyHelper().encode(key);
+  String toJson(Key<String>? key) => key == null ? '' : KeyHelper().encode(key);
 }
 
 /// A converter for [Key]s encoded as strings.
@@ -23,8 +24,8 @@ class IntKeyConverter implements JsonConverter<Key<int>, String> {
   const IntKeyConverter();
 
   @override
-  Key<int> fromJson(String json) => json == null ? null : KeyHelper().decode(json) as Key<int>;
+  Key<int> fromJson(String json) => KeyHelper().decode(json) as Key<int>;
 
   @override
-  String toJson(Key<int> key) => key == null ? null : KeyHelper().encode(key);
+  String toJson(Key<int?> key) => KeyHelper().encode(key);
 }

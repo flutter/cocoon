@@ -19,16 +19,16 @@ import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('AuthenticationProvider', () {
-    FakeConfig config;
-    FakeClientContext clientContext;
-    FakeLogging log;
-    FakeHttpRequest request;
-    AuthenticationProvider auth;
-    TokenInfo token;
+    late FakeConfig config;
+    late FakeClientContext clientContext;
+    late FakeLogging log;
+    late FakeHttpRequest request;
+    late AuthenticationProvider auth;
+    late TokenInfo token;
 
     setUp(() {
       config = FakeConfig();
-      token = const TokenInfo(email: 'abc123@gmail.com');
+      token = TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now());
       clientContext = FakeClientContext();
       log = FakeLogging();
       request = FakeHttpRequest();
@@ -51,7 +51,7 @@ void main() {
     });
 
     group('when id token is given', () {
-      MockClient httpClient;
+      late MockClient httpClient;
 
       setUp(() {
         auth = AuthenticationProvider(
@@ -80,7 +80,13 @@ void main() {
       test('fails if token verification fails', () async {
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
-        await expectLater(auth.authenticateToken(token, log: log), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateToken(
+              token,
+              log: log,
+              clientContext: FakeClientContext(),
+            ),
+            throwsA(isA<Unauthenticated>()));
       });
 
       test('fails if tokenInfo returns invalid JSON', () async {
@@ -90,28 +96,64 @@ void main() {
       });
 
       test('fails if token verification yields forged token', () async {
-        const TokenInfo token = TokenInfo(audience: 'forgery', email: 'abc@abc.com');
+        final TokenInfo token = TokenInfo(
+          audience: 'forgery',
+          email: 'abc@abc.com',
+          issued: DateTime.now(),
+        );
         config.oauthClientIdValue = 'expected-client-id';
-        await expectLater(auth.authenticateToken(token, log: log), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateToken(
+              token,
+              log: log,
+              clientContext: FakeClientContext(),
+            ),
+            throwsA(isA<Unauthenticated>()));
       });
 
       test('allows different aud for gcloud tokens with google accounts', () async {
-        const TokenInfo token = TokenInfo(audience: 'different', email: 'abc@google.com');
+        final TokenInfo token = TokenInfo(
+          audience: 'different',
+          email: 'abc@google.com',
+          issued: DateTime.now(),
+        );
         config.oauthClientIdValue = 'expected-client-id';
-        await expectLater(auth.authenticateToken(token, log: log), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateToken(
+              token,
+              log: log,
+              clientContext: FakeClientContext(),
+            ),
+            throwsA(isA<Unauthenticated>()));
       });
 
       test('succeeds for google.com auth user', () async {
-        const TokenInfo token = TokenInfo(audience: 'client-id', hostedDomain: 'google.com', email: 'abc@google.com');
+        final TokenInfo token = TokenInfo(
+          audience: 'client-id',
+          hostedDomain: 'google.com',
+          email: 'abc@google.com',
+          issued: DateTime.now(),
+        );
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateToken(token, clientContext: clientContext, log: log);
+        final AuthenticatedContext result = await auth.authenticateToken(
+          token,
+          clientContext: clientContext,
+          log: log,
+        );
         expect(result.clientContext, same(clientContext));
       });
 
       test('fails for non-allowed non-Google auth users', () async {
-        const TokenInfo token = TokenInfo(audience: 'client-id', hostedDomain: 'gmail.com', email: 'abc@gmail.com');
+        final TokenInfo token =
+            TokenInfo(audience: 'client-id', hostedDomain: 'gmail.com', email: 'abc@gmail.com', issued: DateTime.now());
         config.oauthClientIdValue = 'client-id';
-        await expectLater(auth.authenticateToken(token, log: log), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateToken(
+              token,
+              log: log,
+              clientContext: FakeClientContext(),
+            ),
+            throwsA(isA<Unauthenticated>()));
       });
 
       test('succeeds for allowed non-Google auth users', () async {
@@ -120,7 +162,11 @@ void main() {
           email: 'test@gmail.com',
         );
         config.db.values[account.key] = account;
-        const TokenInfo token = TokenInfo(audience: 'client-id', email: 'test@gmail.com');
+        final TokenInfo token = TokenInfo(
+          audience: 'client-id',
+          email: 'test@gmail.com',
+          issued: DateTime.now(),
+        );
         config.oauthClientIdValue = 'client-id';
         final AuthenticatedContext result = await auth.authenticateToken(token, clientContext: clientContext, log: log);
         expect(result.clientContext, same(clientContext));

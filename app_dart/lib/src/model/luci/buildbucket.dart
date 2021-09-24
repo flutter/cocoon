@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import '../../request_handling/body.dart';
 import '../common/json_converters.dart';
@@ -33,10 +32,15 @@ class BatchRequest extends JsonBody {
   static BatchRequest fromJson(Map<String, dynamic> json) => _$BatchRequestFromJson(json);
 
   /// The batch of [Request]s to make.
-  final List<Request> requests;
+  final List<Request>? requests;
 
   @override
   Map<String, dynamic> toJson() => _$BatchRequestToJson(this);
+
+  @override
+  String toString() {
+    return requests.toString();
+  }
 }
 
 /// A container for one request in a batch.
@@ -61,21 +65,30 @@ class Request extends JsonBody {
   static Request fromJson(Map<String, dynamic> json) => _$RequestFromJson(json);
 
   /// A request to get build information.
-  final GetBuildRequest getBuild;
+  final GetBuildRequest? getBuild;
 
   /// A request to find builds.
-  final SearchBuildsRequest searchBuilds;
+  final SearchBuildsRequest? searchBuilds;
 
   /// A request to schedule a build.
   ///
   /// All schedule build requests are executed before other requests by LUCI.
-  final ScheduleBuildRequest scheduleBuild;
+  final ScheduleBuildRequest? scheduleBuild;
 
   /// A request to cancel a build.
-  final CancelBuildRequest cancelBuild;
+  final CancelBuildRequest? cancelBuild;
 
   @override
   Map<String, dynamic> toJson() => _$RequestToJson(this);
+
+  @override
+  String toString() {
+    return getBuild?.toString() ??
+        searchBuilds?.toString() ??
+        scheduleBuild?.toString() ??
+        cancelBuild?.toString() ??
+        'Unknown build';
+  }
 }
 
 /// A response from the Batch RPC.
@@ -87,10 +100,10 @@ class BatchResponse extends JsonBody {
   });
 
   /// Creates a [BatchResponse] from JSON.
-  static BatchResponse fromJson(Map<String, dynamic> json) => _$BatchResponseFromJson(json);
+  static BatchResponse fromJson(Map<String, dynamic>? json) => _$BatchResponseFromJson(json!);
 
   /// The collected responses from the Batch request.
-  final List<Response> responses;
+  final List<Response>? responses;
 
   @override
   Map<String, dynamic> toJson() => _$BatchResponseToJson(this);
@@ -117,19 +130,19 @@ class Response extends JsonBody {
   static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
 
   /// The [Build] response corresponding to a getBuild request.
-  final Build getBuild;
+  final Build? getBuild;
 
   /// The [SearchBuildsResponse] corresponding to a searchBuilds request.
-  final SearchBuildsResponse searchBuilds;
+  final SearchBuildsResponse? searchBuilds;
 
   /// The [Build] response corresponding to a scheduleBuild request.
-  final Build scheduleBuild;
+  final Build? scheduleBuild;
 
   /// The [Build] response corresponding to a cancelBuild request.
-  final Build cancelBuild;
+  final Build? cancelBuild;
 
   /// Error code of the unsuccessful request.
-  final GrpcStatus error;
+  final GrpcStatus? error;
 
   @override
   String toString() {
@@ -168,28 +181,32 @@ class GetBuildRequest extends JsonBody {
   /// The BuildBucket build ID.
   ///
   /// If specified, [builderId] and [buildNumber] must be null.
-  @Int64Converter()
-  final int id;
+  final String? id;
 
   /// The BuildBucket [BuilderId].
   ///
   /// If specified, [buildNumber] must be specified, and [id] must be null.
   @JsonKey(name: 'builder')
-  final BuilderId builderId;
+  final BuilderId? builderId;
 
   /// The BuildBucket build number.
   ///
   /// If specified, [builderId] must be specified, and [id] must be null.
-  final int buildNumber;
+  final int? buildNumber;
 
   /// The list fields to be included in the response.
   ///
   /// This is a comma separated list of Build proto fields to get included
   /// in the response.
-  final String fields;
+  final String? fields;
 
   @override
   Map<String, dynamic> toJson() => _$GetBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'getBuild(id: $id, buildNumber: $buildNumber, field: $fields, builderId: $builderId)';
+  }
 }
 
 /// A request for the CancelBuild RPC.
@@ -199,25 +216,28 @@ class CancelBuildRequest extends JsonBody {
   ///
   /// Both [id] and [summaryMarkdown] are required.
   const CancelBuildRequest({
-    @required this.id,
-    @required this.summaryMarkdown,
-  })  : assert(id != null),
-        assert(summaryMarkdown != null);
+    required this.id,
+    required this.summaryMarkdown,
+  });
 
   /// Creates a [CancelBuildRequest] from JSON.
   static CancelBuildRequest fromJson(Map<String, dynamic> json) => _$CancelBuildRequestFromJson(json);
 
   /// The BuildBucket ID for the build to cancel.
-  @JsonKey(nullable: false, required: true)
-  @Int64Converter()
-  final int id;
+  @JsonKey(required: true)
+  final String id;
 
   /// A summary of the reason for canceling.
-  @JsonKey(nullable: false, required: true)
+  @JsonKey(required: true)
   final String summaryMarkdown;
 
   @override
   Map<String, dynamic> toJson() => _$CancelBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'cancelBuild(id: $id, summaryMarkdown: $summaryMarkdown)';
+  }
 }
 
 /// A request object for the SearchBuilds RPC.
@@ -232,11 +252,11 @@ class SearchBuildsRequest extends JsonBody {
   /// The [pageToken] from a previous request can be used to page through
   /// results.
   const SearchBuildsRequest({
-    @required this.predicate,
+    required this.predicate,
     this.pageSize,
     this.pageToken,
     this.fields,
-  }) : assert(predicate != null);
+  });
 
   /// Creates a [SearchBuildsReqeuest] object from JSON.
   static SearchBuildsRequest fromJson(Map<String, dynamic> json) => _$SearchBuildsRequestFromJson(json);
@@ -247,23 +267,28 @@ class SearchBuildsRequest extends JsonBody {
   /// The number of builds to return per request.  Defaults to 100.
   ///
   /// Any value over 1000 is treated as 1000.
-  final int pageSize;
+  final int? pageSize;
 
   /// The value of the [SearchBuildsResponse.nextPageToken] from a previous ]
   /// request.
   ///
   /// This can be used to continue paging through results when there are more
   /// than [pageSize] builds available.
-  final String pageToken;
+  final String? pageToken;
 
   /// The list fields to be included in the response.
   ///
   /// This is a comma separated list of Build proto fields to get included
   /// in the response.
-  final String fields;
+  final String? fields;
 
   @override
   Map<String, dynamic> toJson() => _$SearchBuildsRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'searchBuild(predicate: $predicate, pageSize: $pageSize, pageToken: $pageToken, fields: $fields)';
+  }
 }
 
 /// A predicate to apply when searching for builds in the SearchBuilds RPC.
@@ -286,25 +311,30 @@ class BuildPredicate extends JsonBody {
 
   /// The [BuilderId] to search for.
   @JsonKey(name: 'builder')
-  final BuilderId builderId;
+  final BuilderId? builderId;
 
   /// The [Status] to search for.
-  final Status status;
+  final Status? status;
 
   /// Used to find builds created by the specified user.
-  final String createdBy;
+  final String? createdBy;
 
   /// Used to return builds containing all of the specified tags.
   @TagsConverter()
-  final Map<String, List<String>> tags;
+  final Map<String?, List<String?>>? tags;
 
   /// Determines whether to include experimental builds in the result.
   ///
   /// Defaults to false.
-  final bool includeExperimental;
+  final bool? includeExperimental;
 
   @override
   Map<String, dynamic> toJson() => _$BuildPredicateToJson(this);
+
+  @override
+  String toString() {
+    return 'buildPredicate(builderId: $builderId, status: $status, createdBy: $createdBy, tags: $tags, includeExperimental: $includeExperimental)';
+  }
 }
 
 /// The response object from a SearchBuilds RPC.
@@ -321,16 +351,16 @@ class SearchBuildsResponse extends JsonBody {
   });
 
   /// Creates a [SearchBuildsResponse] from JSON.
-  static SearchBuildsResponse fromJson(Map<String, dynamic> json) => _$SearchBuildsResponseFromJson(json);
+  static SearchBuildsResponse fromJson(Map<String, dynamic>? json) => _$SearchBuildsResponseFromJson(json!);
 
   /// The [Build]s returned by the search.
-  final List<Build> builds;
+  final List<Build>? builds;
 
   /// A token that can be used as the [SearchBuildsRequest.pageToken].
   ///
   /// This value will only be specified if further results are available;
   /// otherwise, it will be null.
-  final String nextPageToken;
+  final String? nextPageToken;
 
   @override
   Map<String, dynamic> toJson() => _$SearchBuildsResponseToJson(this);
@@ -350,7 +380,7 @@ class ScheduleBuildRequest extends JsonBody {
   /// The [builderId] is required.
   const ScheduleBuildRequest({
     this.requestId,
-    @required this.builderId,
+    required this.builderId,
     this.canary,
     this.experimental,
     this.gitilesCommit,
@@ -359,7 +389,7 @@ class ScheduleBuildRequest extends JsonBody {
     this.priority,
     this.tags,
     this.notify,
-  }) : assert(builderId != null);
+  });
 
   /// Creates a [ScheduleBuildRequest] from JSON.
   static ScheduleBuildRequest fromJson(Map<String, dynamic> json) => _$ScheduleBuildRequestFromJson(json);
@@ -368,7 +398,7 @@ class ScheduleBuildRequest extends JsonBody {
   /// requests.
   ///
   /// This is "strongly recommended", but not required.
-  final String requestId;
+  final String? requestId;
 
   /// The [BuilderId] to schedule on. Required.
   @JsonKey(name: 'builder')
@@ -376,13 +406,13 @@ class ScheduleBuildRequest extends JsonBody {
 
   /// If specified, overrides the server-defined value of
   /// Build.infra.buildbucket.canary.
-  final bool canary;
+  final bool? canary;
 
   /// If specified, overrides the server-defined value of
   /// Build.input.experimental.
   ///
   /// This value comes into the recipe as `api.runtime.is_experimental`.
-  final Trinary experimental;
+  final Trinary? experimental;
 
   /// Properties to include in Build.input.properties.
   /// Input properties of the created build are result of merging server-defined
@@ -400,7 +430,7 @@ class ScheduleBuildRequest extends JsonBody {
   /// * ["blamelist""]
   /// * ["$recipe_engine/runtime", "is_luci"]
   /// * ["$recipe_engine/runtime", "is_experimental"]
-  final Map<String, dynamic> properties;
+  final Map<String, dynamic>? properties;
 
   /// The value for Build.input.gitiles_commit.
   ///
@@ -408,30 +438,35 @@ class ScheduleBuildRequest extends JsonBody {
   /// tag with value "commit/gitiles/{hostname}/{project}/+/{id}".
   ///
   /// GitilesCommit objects MUST have host, project, ref fields set.
-  final GitilesCommit gitilesCommit;
+  final GitilesCommit? gitilesCommit;
 
   /// Tags to include in Build.tags of the created build.
   ///
   /// Note: tags of the created build may include other tags defined on the
   /// server.
   @TagsConverter()
-  final Map<String, List<String>> tags;
+  final Map<String?, List<String?>>? tags;
 
   /// Overrides default dimensions defined by builder config or template build.
   ///
   /// A set of entries with the same key defines a new or replaces an existing
   /// dimension with the same key.
-  final List<RequestedDimension> dimensions;
+  final List<RequestedDimension>? dimensions;
 
   // If not zero, overrides swarming task priority.
   // See also Build.infra.swarming.priority.
-  final int priority;
+  final int? priority;
 
   /// The topic and user data to send build status updates to.
-  final NotificationConfig notify;
+  final NotificationConfig? notify;
 
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit)';
+  }
 }
 
 /// A single build, identified by an int64 [id], belonging to a builder.
@@ -445,8 +480,8 @@ class Build extends JsonBody {
   ///
   /// The [id] and [builderId] parameter is required.
   const Build({
-    @required this.id,
-    @required this.builderId,
+    required this.id,
+    required this.builderId,
     this.number,
     this.createdBy,
     this.canceledBy,
@@ -457,15 +492,13 @@ class Build extends JsonBody {
     this.input,
     this.summaryMarkdown,
     this.critical,
-  })  : assert(id != null),
-        assert(builderId != null);
+  });
 
   /// Creates a [Build] object from JSON.
-  static Build fromJson(Map<String, dynamic> json) => _$BuildFromJson(json);
+  static Build fromJson(Map<String, dynamic>? json) => _$BuildFromJson(json!);
 
   /// The BuildBucket ID for the build. Required.
-  @Int64Converter()
-  final int id;
+  final String id;
 
   /// The [BuilderId] for the build.  Required.
   @JsonKey(name: 'builder')
@@ -475,59 +508,54 @@ class Build extends JsonBody {
   ///
   /// This number corresponds to the order of builds, but build numbers may have
   /// gaps.
-  final int number;
+  final int? number;
 
   /// The verified LUCI identity that created the build.
-  final String createdBy;
+  final String? createdBy;
 
   /// The verified LUCI identity that canceled the build.
-  final String canceledBy;
+  final String? canceledBy;
 
   /// The start time of the build.
   ///
   /// Required if and only if the [status] is [Status.started], [Status.success],
   /// or [Status.failure].
-  final DateTime startTime;
+  final DateTime? startTime;
 
   /// The end time of the build.
   ///
   /// Required if and only if the [status] is terminal. Must not be before
   /// [startTime].
-  final DateTime endTime;
+  final DateTime? endTime;
 
   /// The build status.
   ///
   /// Must be specified, and must not be [Status.unspecified].
-  final Status status;
+  final Status? status;
 
   /// Human readable summary of the build in Markdown format.
   ///
   /// Up to 4kb.
-  final String summaryMarkdown;
+  final String? summaryMarkdown;
 
   /// Arbitrary annotations for the build.
   ///
   /// The same key for a tag may be used multiple times.
   @TagsConverter()
-  final Map<String, List<String>> tags;
+  final Map<String?, List<String?>>? tags;
 
   /// If [Trinary.no], then the build status should not be used to assess the
   /// correctness of the input gitilesCommit or gerritChanges.
-  final Trinary critical;
+  final Trinary? critical;
 
   /// The build input values.
-  final Input input;
+  final Input? input;
 
   @override
   Map<String, dynamic> toJson() => _$BuildToJson(this);
 
   @override
-  String toString() => '''
-    id: $id
-    builderId: $builderId
-    number: $number
-    status: $status
-  ''';
+  String toString() => 'build(id: $id, builderId: $builderId, number: $number, status: $status)';
 }
 
 /// A unique handle to a builder on BuildBucket.
@@ -547,16 +575,16 @@ class BuilderId extends JsonBody {
   static BuilderId fromJson(Map<String, dynamic> json) => _$BuilderIdFromJson(json);
 
   /// The project, e.g. "flutter", for the builder.
-  final String project;
+  final String? project;
 
   /// The bucket, e.g. "try" or "prod", for the builder.
   ///
   /// By convention, "prod" is for assets that will be released, "ci" is for
   /// reviewed code, and "try" is for untrusted code.
-  final String bucket;
+  final String? bucket;
 
   /// The builder from cr-buildbucket.cfg, e.g. "Linux" or "Linux Host Engine".
-  final String builder;
+  final String? builder;
 
   @override
   Map<String, dynamic> toJson() => _$BuilderIdToJson(this);
@@ -575,13 +603,13 @@ class NotificationConfig extends JsonBody {
 
   /// The Cloud PubSub topic to use, e.g.
   /// `projects/flutter-dashboard/topics/luci-builds`.
-  final String pubsubTopic;
+  final String? pubsubTopic;
 
   /// An optional user data field that will be delivered with the message.
   ///
   /// May be omitted.
   @Base64Converter()
-  final String userData;
+  final String? userData;
 
   @override
   Map<String, dynamic> toJson() => _$NotificationConfigToJson(this);
@@ -601,14 +629,14 @@ class Input extends JsonBody {
   static Input fromJson(Map<String, dynamic> json) => _$InputFromJson(json);
 
   /// The build properties of a build.
-  final Map<String, dynamic> properties;
+  final Map<String, dynamic>? properties;
 
   /// The [GitilesCommit] information for a build.
-  final GitilesCommit gitilesCommit;
+  final GitilesCommit? gitilesCommit;
 
   /// Whether the build is experimental or not. Passed into the recipe as
   /// `api.runtime.is_experimental`.
-  final bool experimental;
+  final bool? experimental;
 
   @override
   Map<String, dynamic> toJson() => _$InputToJson(this);
@@ -629,17 +657,17 @@ class GitilesCommit extends JsonBody {
   static GitilesCommit fromJson(Map<String, dynamic> json) => _$GitilesCommitFromJson(json);
 
   /// The Gitiles host name, e.g. "chromium.googlesource.com"
-  final String host;
+  final String? host;
 
   /// The repository name on the host, e.g. "external/github.com/flutter/flutter".
-  final String project;
+  final String? project;
 
   /// The Git hash of the commit.
   @JsonKey(name: 'id')
-  final String hash;
+  final String? hash;
 
   /// The Git ref of the commit, e.g. "refs/heads/master".
-  final String ref;
+  final String? ref;
 
   @override
   Map<String, dynamic> toJson() => _$GitilesCommitToJson(this);
@@ -701,19 +729,19 @@ enum Trinary {
 @JsonSerializable(includeIfNull: false)
 class RequestedDimension extends JsonBody {
   const RequestedDimension({
-    @required this.key,
+    required this.key,
     this.value,
     this.expiration,
-  }) : assert(key != null);
+  });
 
   static RequestedDimension fromJson(Map<String, dynamic> json) => _$RequestedDimensionFromJson(json);
 
   final String key;
-  final String value;
+  final String? value;
 
   /// If set, ignore this dimension after this duration. Must be a multiple of 1 minute. The format is '<seconds>s',
   /// e.g. '120s' represents 120 seconds.
-  final String expiration;
+  final String? expiration;
 
   @override
   Map<String, dynamic> toJson() => _$RequestedDimensionToJson(this);

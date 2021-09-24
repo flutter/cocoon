@@ -14,46 +14,23 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
-const Build startedBuild = Build(
-  id: 999,
-  builderId: BuilderId(
-    project: 'flutter',
-    bucket: 'prod',
-    builder: 'Mac',
-  ),
-  status: Status.started,
-);
-const Build scheduledBuild = Build(
-  id: 999,
-  builderId: BuilderId(
-    project: 'flutter',
-    bucket: 'prod',
-    builder: 'Mac',
-  ),
-  status: Status.scheduled,
-);
-const Build succeededBuild = Build(
-  id: 999,
-  builderId: BuilderId(
-    project: 'flutter',
-    bucket: 'prod',
-    builder: 'Mac',
-  ),
-  status: Status.success,
-);
+final Build startedBuild = generateBuild(999, name: 'Mac', status: Status.started);
+final Build scheduledBuild = generateBuild(999, name: 'Mac', status: Status.scheduled);
+final Build succeededBuild = generateBuild(999, name: 'Mac', status: Status.success);
 
 void main() {
   group('ResetProdTask', () {
     FakeClientContext clientContext;
-    ResetProdTask handler;
-    FakeConfig config;
+    late ResetProdTask handler;
+    late FakeConfig config;
     FakeKeyHelper keyHelper;
-    MockLuciBuildService mockLuciBuildService;
+    late MockLuciBuildService mockLuciBuildService;
     FakeAuthenticatedContext authContext;
-    ApiRequestHandlerTester tester;
-    Commit commit;
+    late ApiRequestHandlerTester tester;
+    late Commit commit;
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
@@ -101,9 +78,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-      )).thenAnswer((_) async {
-        return const Build(builderId: BuilderId(), id: 123);
-      });
+      )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -123,6 +98,7 @@ void main() {
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
           attempts: 0,
+          name: 'Linux A',
           status: 'Failed',
           builderName: 'Windows');
       config.db.values[task.key] = task;
@@ -136,9 +112,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-      )).thenAnswer((_) async {
-        return const Build(builderId: BuilderId(), id: 123);
-      });
+      )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -170,9 +144,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-      )).thenAnswer((_) async {
-        return const Build(builderId: BuilderId(), id: 123);
-      });
+      )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -227,9 +199,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-      )).thenAnswer((_) async {
-        return const Build(builderId: BuilderId(), id: 123);
-      });
+      )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -250,6 +220,7 @@ void main() {
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
           attempts: 0,
+          name: 'Linux A',
           status: 'Succeeded',
           builderName: 'Windows');
       config.db.values[task.key] = task;
@@ -265,6 +236,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
+          name: 'Linux A',
           attempts: 0,
           status: 'Failed',
           builderName: 'Windows');
@@ -280,6 +252,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
+          name: 'Linux A',
           attempts: 0,
           status: 'Failed',
           builderName: 'Windows');
@@ -295,6 +268,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
+          name: 'Linux A',
           attempts: 0,
           status: 'Failed',
           builderName: 'Windows');
@@ -310,6 +284,7 @@ void main() {
       Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
+          name: 'Linux A',
           attempts: 0,
           status: 'Failed',
           builderName: 'Windows');
@@ -324,9 +299,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-      )).thenAnswer((_) async {
-        return const Build(builderId: BuilderId(), id: 123);
-      });
+      )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -346,6 +319,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
+          name: 'Linux A',
           attempts: 0,
           status: 'Failed',
           builderName: 'Windows');

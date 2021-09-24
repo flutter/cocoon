@@ -13,9 +13,9 @@ import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
   group('GetBranches', () {
-    FakeConfig config;
-    RequestHandlerTester tester;
-    GetBranches handler;
+    late FakeConfig config;
+    late RequestHandlerTester tester;
+    late GetBranches handler;
 
     setUp(() {
       config = FakeConfig();
@@ -29,8 +29,10 @@ void main() {
       config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       final Body body = await tester.get(handler);
-      final Map<String, dynamic> result =
-          await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as Map<String, dynamic>;
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind(body.serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
 
       expect(result['Branches'], <String>['flutter-1.1-candidate.1', 'master']);
     });

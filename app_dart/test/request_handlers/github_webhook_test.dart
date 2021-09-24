@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -23,23 +24,24 @@ import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   group('githubWebhookPullRequest', () {
-    GithubWebhook webhook;
-    FakeBuildBucketClient fakeBuildBucketClient;
-    FakeDatastoreDB db;
+    late GithubWebhook webhook;
+    late FakeBuildBucketClient fakeBuildBucketClient;
+    late FakeDatastoreDB db;
     FakeGithubService githubService;
-    FakeHttpRequest request;
-    FakeConfig config;
-    MockGitHub gitHubClient;
-    MockIssuesService issuesService;
-    MockPullRequestsService pullRequestsService;
+    late FakeHttpRequest request;
+    late FakeConfig config;
+    late MockGitHub gitHubClient;
+    late MockIssuesService issuesService;
+    late MockPullRequestsService pullRequestsService;
     FakeScheduler scheduler;
-    RequestHandlerTester tester;
+    late RequestHandlerTester tester;
     const String serviceAccountEmail = 'test@test';
-    ServiceAccountInfo serviceAccountInfo;
+    ServiceAccountInfo? serviceAccountInfo;
     MockGithubChecksService mockGithubChecksService;
     MockGithubChecksUtil mockGithubChecksUtil;
 
@@ -51,42 +53,56 @@ void main() {
     }
 
     setUp(() async {
-      githubService = FakeGithubService();
       serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
       request = FakeHttpRequest();
       db = FakeDatastoreDB();
+      gitHubClient = MockGitHub();
+      githubService = FakeGithubService();
+      final MockTabledataResource tabledataResource = MockTabledataResource();
+      when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async => TableDataInsertAllResponse());
       config = FakeConfig(
         dbValue: db,
         deviceLabServiceAccountValue: serviceAccountInfo,
         githubService: githubService,
-        tabledataResourceApi: MockTabledataResourceApi(),
+        tabledataResource: tabledataResource,
+        githubClient: gitHubClient,
       );
-      gitHubClient = MockGitHub();
       issuesService = MockIssuesService();
+      when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
+      when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
+      when(issuesService.listCommentsByIssue(any, any))
+          .thenAnswer((_) => Stream<IssueComment>.fromIterable(<IssueComment>[IssueComment()]));
       pullRequestsService = MockPullRequestsService();
+      when(pullRequestsService.listFiles(config.flutterSlug, any))
+          .thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.edit(any, any,
+              title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
+          .thenAnswer((_) async => PullRequest());
       fakeBuildBucketClient = FakeBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
-      scheduler =
-          FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
+      scheduler = FakeScheduler(
+        config: config,
+        buildbucket: fakeBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+      );
       tester = RequestHandlerTester(request: request);
 
       mockGithubChecksService = MockGithubChecksService();
-
-      webhook = GithubWebhook(
-        config,
-        githubChecksService: mockGithubChecksService,
-        scheduler: scheduler,
-      );
-
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
           'check_suite': <String, dynamic>{'id': 2}
         });
       });
+
+      webhook = GithubWebhook(
+        config,
+        githubChecksService: mockGithubChecksService,
+        scheduler: scheduler,
+      );
 
       config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
       config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
@@ -125,7 +141,7 @@ void main() {
     test('Rejects non-json', () async {
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = 'Hello, World!';
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -141,20 +157,18 @@ void main() {
         kDefaultBranchName,
         headRef: 'dev',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
       );
 
-      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+      when(issuesService.listCommentsByIssue(config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
           IssueComment()..body = 'some other comment',
         ),
@@ -163,13 +177,13 @@ void main() {
       await tester.post(webhook);
 
       verify(pullRequestsService.edit(
-        slug,
+        config.flutterSlug,
         issueNumber,
         state: 'closed',
       )).called(1);
 
       verify(issuesService.createComment(
-        slug,
+        config.flutterSlug,
         issueNumber,
         argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
       )).called(1);
@@ -179,7 +193,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'dev');
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -222,7 +236,7 @@ void main() {
         'flutter-1.20-candidate.7',
         headRef: 'cherrypicks-flutter-1.20-candidate.7',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -370,7 +384,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -407,7 +421,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -438,7 +452,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -490,7 +504,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -522,7 +536,7 @@ void main() {
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -571,7 +585,7 @@ void main() {
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -608,7 +622,7 @@ void main() {
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -648,7 +662,7 @@ void main() {
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -680,7 +694,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -712,7 +726,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName, merged: true);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -731,7 +745,7 @@ void main() {
         kDefaultBranchName,
         isDraft: true,
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -754,7 +768,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -796,7 +810,7 @@ void main() {
         kDefaultBranchName,
         login: 'engine-flutter-autoroll',
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -804,12 +818,6 @@ void main() {
       await tester.post(webhook);
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      verifyNever(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: anyNamed('body'),
-        convert: anyNamed('convert'),
-      ));
 
       verifyNever(issuesService.createComment(
         slug,
@@ -828,22 +836,15 @@ void main() {
         // This PR is unmergeable (probably merge conflict)
         isMergeable: false,
       );
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       request.headers.set('X-GitHub-Event', 'pull_request');
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
-      when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
-      final MockIssuesService mockIssuesService = MockIssuesService();
-      when(gitHubClient.issues).thenReturn(mockIssuesService);
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(mockIssuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer((Invocation _invocation) {
-        return Stream<IssueComment>.fromIterable(<IssueComment>[]);
-      });
 
       await tester.post(webhook);
-      verify(mockIssuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
+      verify(issuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
     });
 
     test('When synchronized, cancels existing builds and schedules new ones', () async {
@@ -851,35 +852,19 @@ void main() {
       bool batchRequestCalled = false;
       Future<BatchResponse> _getBatchResponse() async {
         batchRequestCalled = true;
-        return const BatchResponse(
+        return BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  Build(
-                    id: 999,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.ended,
-                  )
+                  generateBuild(999, name: 'Linux', status: Status.ended),
                 ],
               ),
             ),
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  Build(
-                    id: 998,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.ended,
-                  )
+                  generateBuild(998, name: 'Linux', status: Status.ended),
                 ],
               ),
             ),
@@ -890,7 +875,7 @@ void main() {
       fakeBuildBucketClient.batchResponse = _getBatchResponse();
 
       request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       request.headers.set('X-GitHub-Event', 'pull_request');
       final String hmac = getHmac(body, key);
@@ -905,11 +890,11 @@ void main() {
     group('BuildBucket', () {
       const int issueNumber = 123;
 
-      setUp(() {
+      setUp(() async {
         request.headers.set('X-GitHub-Event', 'pull_request');
       });
 
-      Future<void> _testActions(String action, {bool never = false}) async {
+      Future<void> _testActions(String action) async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -933,61 +918,18 @@ void main() {
           ),
         );
 
-        request.body = '''
-{
-  "action": "$action",
-  "number": 583,
-  "draft": false,
-  "pull_request": {
-    "id": 354272971,
-    "number": 583,
-    "labels": [],
-    "base": {
-      "ref": "master",
-      "sha": "the_base_sha",
-      "repo": {
-        "name": "cocoon",
-        "full_name": "flutter/cocoon"
-      }
-    },
-    "head": {
-      "sha": "the_head_sha",
-      "repo": {
-        "name": "cocoon",
-        "full_name": "flutter/cocoon",
-        "owner": {
-          "login": "flutter"
-        }
-      }
-    }
-  },
-  "repository": {
-    "id": 1868532,
-    "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
-    "name": "cocoon",
-    "full_name": "flutter/cocoon",
-    "private": false,
-    "owner": {
-      "login": "flutter"
-    }
-  }
-}
-''';
+        request.body = jsonTemplate(action, 1, 'master');
 
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List body = utf8.encode(request.body!) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
-
-        if (never) {
-          return;
-        }
       }
 
       test('Edited Action works properly', () async {
-        await _testActions('edited', never: true);
+        await _testActions('edited');
       });
 
       test('Opened Action works properly', () async {
@@ -1003,7 +945,7 @@ void main() {
       });
 
       test('Labeled Action works properly', () async {
-        await _testActions('labeled', never: true);
+        await _testActions('labeled');
       });
 
       test('Synchronize Action works properly', () async {
@@ -1011,6 +953,7 @@ void main() {
       });
 
       test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
+        when(issuesService.listCommentsByIssue(any, any)).thenAnswer((_) => Stream<IssueComment>.value(IssueComment()));
         request.body = jsonTemplate(
           'synchronize',
           issueNumber,
@@ -1019,54 +962,30 @@ void main() {
           // This PR is unmergeable (probably merge conflict)
           isMergeable: false,
         );
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List body = utf8.encode(request.body!) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-        final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
-        when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
-        final MockIssuesService mockIssuesService = MockIssuesService();
-        when(gitHubClient.issues).thenReturn(mockIssuesService);
-        final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-        when(mockIssuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer((Invocation _invocation) {
-          return Stream<IssueComment>.fromIterable(<IssueComment>[]);
-        });
 
         await tester.post(webhook);
-        verify(mockIssuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
+        verify(issuesService.createComment(config.flutterSlug, issueNumber, config.mergeConflictPullRequestMessage));
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
         fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
-          const BatchResponse(
+          BatchResponse(
             responses: <Response>[
               Response(
                 searchBuilds: SearchBuildsResponse(
                   builds: <Build>[
-                    Build(
-                      id: 999,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux',
-                      ),
-                      status: Status.ended,
-                    )
+                    generateBuild(999, name: 'Linux', status: Status.ended),
                   ],
                 ),
               ),
               Response(
                 searchBuilds: SearchBuildsResponse(
                   builds: <Build>[
-                    Build(
-                      id: 998,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux',
-                      ),
-                      status: Status.ended,
-                    )
+                    generateBuild(998, name: 'Linux', status: Status.ended),
                   ],
                 ),
               ),
@@ -1075,7 +994,7 @@ void main() {
         );
 
         request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List body = utf8.encode(request.body!) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');

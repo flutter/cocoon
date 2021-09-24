@@ -29,6 +29,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
 const String singleCiYaml = '''
@@ -52,16 +53,17 @@ targets:
 ''';
 
 void main() {
-  CacheService cache;
-  FakeConfig config;
-  FakeDatastoreDB db;
-  MockClient httpClient;
-  MockGithubChecksUtil mockGithubChecksUtil;
-  Scheduler scheduler;
+  late CacheService cache;
+  late FakeConfig config;
+  late FakeDatastoreDB db;
+  late MockClient httpClient;
+  late MockGithubChecksUtil mockGithubChecksUtil;
+  late Scheduler scheduler;
 
   Commit shaToCommit(String sha, {String branch = 'master'}) {
     return Commit(
       key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
+      repository: 'flutter/flutter',
       sha: sha,
       branch: branch,
       timestamp: int.parse(sha),
@@ -70,14 +72,19 @@ void main() {
 
   group('Scheduler', () {
     setUp(() {
-      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
-      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
-        return Future<TableDataInsertAllResponse>.value(null);
+      final MockTabledataResource tabledataResource = MockTabledataResource();
+      when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
+        return TableDataInsertAllResponse();
       });
 
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db, githubService: FakeGithubService());
+      config = FakeConfig(
+        tabledataResource: tabledataResource,
+        dbValue: db,
+        githubService: FakeGithubService(),
+        githubClient: MockGitHub(),
+      );
       httpClient = MockClient((http.Request request) async {
         if (request.url.path.contains('.ci.yaml')) {
           return http.Response(singleCiYaml, 200);
@@ -86,6 +93,9 @@ void main() {
       });
 
       mockGithubChecksUtil = MockGithubChecksUtil();
+      // Generate check runs based on the name hash code
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+          .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[3].hashCode));
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -276,20 +286,6 @@ void main() {
     });
 
     group('presubmit', () {
-      test('adds both try_builders and .ci.yaml builds', () async {
-        final List<LuciBuilder> presubmitBuilders =
-            await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
-        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
-            <String>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
-      });
-
-      test('adds only .ci.yaml builds', () async {
-        config.luciBuildersValue = <LuciBuilder>[];
-        final List<LuciBuilder> presubmitBuilders =
-            await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
-        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(), <String>['Linux A']);
-      });
-
       test('gets only enabled .ci.yaml builds', () async {
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
@@ -324,8 +320,8 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         config.luciBuildersValue = <LuciBuilder>[];
-        final List<LuciBuilder> presubmitBuilders =
-            await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
+        final List<LuciBuilder> presubmitBuilders = await scheduler.getPresubmitBuilders(
+            commit: Commit(repository: config.flutterSlug.fullName, sha: 'abc'), prNumber: 42);
         expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
             containsAll(<String>['Linux A', 'Linux C']));
       });
@@ -462,16 +458,18 @@ targets:
                 Response(
                   searchBuilds: SearchBuildsResponse(
                     builds: <Build>[
-                      createBuild(name: 'Linux', id: 1000),
-                      createBuild(name: 'Linux Coverage', id: 2000),
-                      createBuild(name: 'Mac', id: 3000, status: Status.scheduled),
-                      createBuild(name: 'Windows', id: 4000, status: Status.started),
-                      createBuild(name: 'Linux A', id: 5000, status: Status.failure)
+                      generateBuild(1000, name: 'Linux', bucket: 'try'),
+                      generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
+                      generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
+                      generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
+                      generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure)
                     ],
                   ),
                 ),
               ],
             ));
+        when(mockBuildbucket.scheduleBuild(any))
+            .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
         scheduler.setLogger(FakeLogging());
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
@@ -498,9 +496,9 @@ targets:
 
     group('postsubmit', () {
       test('adds both prod_builders and .ci.yaml builds', () async {
-        final Commit commit = Commit(repository: config.flutterSlug.fullName);
-        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(commit);
-        final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(commit, schedulerConfig);
+        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(generateCommit(1));
+        final List<LuciBuilder> postsubmitBuilders =
+            await scheduler.getPostSubmitBuilders(generateCommit(1), schedulerConfig);
         expect(postsubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
             <String>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
       });
@@ -508,19 +506,7 @@ targets:
   });
 }
 
-Build createBuild({String name, int id = 1000, Status status = Status.success, String bucket = 'try'}) {
-  return Build(
-    id: id,
-    builderId: BuilderId(
-      project: 'flutter',
-      bucket: bucket,
-      builder: name,
-    ),
-    status: status,
-  );
-}
-
-CheckRun createCheckRun({String name, int id, CheckRunStatus status = CheckRunStatus.completed}) {
+CheckRun createCheckRun({String? name, required int id, CheckRunStatus status = CheckRunStatus.completed}) {
   final int externalId = id * 2;
   final String checkRunJson =
       '{"name": "$name", "id": $id, "external_id": "{$externalId}", "status": "$status", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}';
@@ -535,7 +521,7 @@ PullRequest createPullRequest({
   String authorAvatar = 'dashatar',
   String title = 'example message',
   int number = 123,
-  DateTime mergedAt,
+  DateTime? mergedAt,
   String mergedCommitSha = 'abc',
   bool merged = true,
 }) {
@@ -560,6 +546,6 @@ PullRequest createPullRequest({
   );
 }
 
-String toSha(Commit commit) => commit.sha;
+String toSha(Commit commit) => commit.sha!;
 
-int toTimestamp(Commit commit) => commit.timestamp;
+int toTimestamp(Commit commit) => commit.timestamp!;

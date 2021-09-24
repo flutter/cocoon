@@ -17,7 +17,7 @@ abstract class Body {
   factory Body.forString(String content) => _StringBody(content);
 
   /// Creates a [Body] that passes through the already-serialized [stream].
-  factory Body.forStream(Stream<Uint8List> stream) => _StreamBody(stream);
+  factory Body.forStream(Stream<Uint8List?> stream) => _StreamBody(stream);
 
   /// Creates a [Body] that serializes the specified JSON [value].
   ///
@@ -30,7 +30,7 @@ abstract class Body {
   static const Body empty = _EmptyBody();
 
   /// Serializes this response body to bytes.
-  Stream<Uint8List> serialize();
+  Stream<Uint8List?> serialize();
 }
 
 abstract class JsonBody extends Body {
@@ -67,8 +67,8 @@ class _StringBody extends Body {
 class _StreamBody extends Body {
   const _StreamBody(this.stream);
 
-  final Stream<Uint8List> stream;
+  final Stream<Uint8List?> stream;
 
   @override
-  Stream<Uint8List> serialize() => stream;
+  Stream<Uint8List?> serialize() => stream;
 }

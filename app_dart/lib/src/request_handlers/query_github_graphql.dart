@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -22,7 +23,7 @@ class QueryGithubGraphql extends ApiRequestHandler<Body> {
   const QueryGithubGraphql(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting Uint8List requestBodyValue,
+    @visibleForTesting Uint8List? requestBodyValue,
   }) : super(
           config: config,
           authenticationProvider: authenticationProvider,
@@ -31,36 +32,34 @@ class QueryGithubGraphql extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    final String requestDataString = String.fromCharCodes(requestBody);
+    final String requestDataString = String.fromCharCodes(requestBody!);
 
     if (requestDataString.isEmpty) {
       throw const BadRequestException('Empty request');
     }
 
-    log.info('Received query: $requestDataString');
+    log!.info('Received query: $requestDataString');
     final GraphQLClient client = await config.createGitHubGraphQLClient();
-    final Map<String, dynamic> data = await _queryGraphQL(log, client, requestDataString);
+    final Map<String, dynamic>? data = await _queryGraphQL(log, client, requestDataString);
     return Body.forJson(data);
   }
 
-  Future<Map<String, dynamic>> _queryGraphQL(
-    Logging log,
+  Future<Map<String, dynamic>?> _queryGraphQL(
+    Logging? log,
     GraphQLClient client,
     String query,
   ) async {
     final QueryResult result = await client.query(
       QueryOptions(
-        document: query,
+        document: lang.parseString(query),
         fetchPolicy: FetchPolicy.noCache,
       ),
     );
 
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
+    if (result.hasException) {
+      log!.error(result.exception.toString());
       throw const BadRequestException('GraphQL query failed');
     }
-    return result.data as Map<String, dynamic>;
+    return result.data;
   }
 }

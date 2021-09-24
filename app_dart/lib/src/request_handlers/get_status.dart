@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
@@ -20,7 +21,7 @@ class GetStatus extends RequestHandler<Body> {
   const GetStatus(
     Config config, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting BuildStatusServiceProvider buildStatusProvider,
+    @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
   })  : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
         super(config: config);
 
@@ -32,8 +33,8 @@ class GetStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String encodedLastCommitKey = request.uri.queryParameters[lastCommitKeyParam];
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
+    final String? encodedLastCommitKey = request!.uri.queryParameters[lastCommitKeyParam];
+    final String branch = request!.uri.queryParameters[branchParam] ?? 'master';
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
@@ -51,7 +52,7 @@ class GetStatus extends RequestHandler<Body> {
     });
   }
 
-  Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper, DatastoreService datastore) async {
+  Future<int> _obtainTimestamp(String? encodedLastCommitKey, KeyHelper keyHelper, DatastoreService datastore) async {
     /// [lastCommitTimestamp] is initially set as the current time, which allows query return
     /// latest commit list. If [owerKeyParam] is not empty, [lastCommitTimestamp] will be set
     /// as the timestamp of that [commit], and the query will return lastest commit
@@ -60,9 +61,10 @@ class GetStatus extends RequestHandler<Body> {
 
     if (encodedLastCommitKey != null) {
       final Key<String> ownerKey = keyHelper.decode(encodedLastCommitKey) as Key<String>;
-      final Commit commit = await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
+      final Commit commit = await datastore.db.lookupValue<Commit>(ownerKey,
+          orElse: () => throw NotFoundException('Failed to find commit with key $ownerKey'));
 
-      lastCommitTimestamp = commit?.timestamp;
+      lastCommitTimestamp = commit.timestamp!;
     }
     return lastCommitTimestamp;
   }

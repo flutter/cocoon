@@ -15,10 +15,10 @@ part 'checks.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CheckSuiteEvent extends HookEvent {
   CheckSuiteEvent({
-    this.action,
-    this.checkSuite,
-    this.sender,
-    this.repository,
+    required this.action,
+    required this.checkSuite,
+    required this.sender,
+    required this.repository,
   });
 
   factory CheckSuiteEvent.fromJson(Map<String, dynamic> input) => _$CheckSuiteEventFromJson(input);
@@ -41,12 +41,12 @@ class CheckSuite {
   });
 
   factory CheckSuite.fromJson(Map<String, dynamic> input) => _$CheckSuiteFromJson(input);
-  final int id;
-  final String headSha;
-  final String conclusion;
-  final String headBranch;
+  final int? id;
+  final String? headSha;
+  final String? conclusion;
+  final String? headBranch;
   @JsonKey(name: 'pull_requests', defaultValue: <PullRequest>[])
-  final List<PullRequest> pullRequests;
+  final List<PullRequest>? pullRequests;
 
   Map<String, dynamic> toJson() => _$CheckSuiteToJson(this);
 }
@@ -61,10 +61,10 @@ class CheckRunEvent extends HookEvent {
   });
 
   factory CheckRunEvent.fromJson(Map<String, dynamic> input) => _$CheckRunEventFromJson(input);
-  CheckRun checkRun;
-  String action;
-  User sender;
-  Repository repository;
+  CheckRun? checkRun;
+  String? action;
+  User? sender;
+  Repository? repository;
 
   Map<String, dynamic> toJson() => _$CheckRunEventToJson(this);
 }
@@ -81,13 +81,13 @@ class CheckRun {
   });
 
   factory CheckRun.fromJson(Map<String, dynamic> input) => _$CheckRunFromJson(input);
-  final int id;
-  final String headSha;
-  final String conclusion;
-  final String name;
-  final CheckSuite checkSuite;
+  final int? id;
+  final String? headSha;
+  final String? conclusion;
+  final String? name;
+  final CheckSuite? checkSuite;
   @JsonKey(name: 'pull_requests', defaultValue: <PullRequest>[])
-  final List<PullRequest> pullRequests;
+  final List<PullRequest>? pullRequests;
 
   Map<String, dynamic> toJson() => _$CheckRunToJson(this);
 }

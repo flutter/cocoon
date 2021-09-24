@@ -4,19 +4,14 @@
 
 import 'package:graphql/client.dart';
 import 'package:graphql/src/core/observable_query.dart';
-import 'package:graphql/src/link/fetch_result.dart';
-import 'package:graphql/src/link/operation.dart';
 import 'package:test/test.dart';
 
 class FakeGraphQLClient implements GraphQLClient {
-  QueryResult Function(MutationOptions) mutateResultForOptions;
-  QueryResult Function(QueryOptions) queryResultForOptions;
+  late QueryResult Function(MutationOptions) mutateResultForOptions;
+  late QueryResult Function(QueryOptions) queryResultForOptions;
 
   @override
-  QueryManager queryManager;
-
-  @override
-  Cache get cache => throw UnimplementedError();
+  late QueryManager queryManager;
 
   @override
   Link get link => throw UnimplementedError();
@@ -37,26 +32,70 @@ class FakeGraphQLClient implements GraphQLClient {
   }
 
   @override
-  Stream<FetchResult> subscribe(Operation operation) {
-    throw UnimplementedError();
-  }
-
-  @override
   ObservableQuery watchQuery(WatchQueryOptions options) {
     throw UnimplementedError();
   }
 
-  void verify(List<BaseOptions> expected, List<BaseOptions> actual) {
-    expect(actual.length, expected.length);
-    for (int i = 0; i < actual.length; i++) {
+  void verifyQueries(List<QueryOptions> expected) {
+    expect(queries.length, expected.length);
+    for (int i = 0; i < queries.length; i++) {
       /// [BaseOptions.toKey] serializes all of the relevant parts of the query
       /// or mutation for us, except the fetch policy.
-      expect(actual[i].toKey(), expected[i].toKey());
-      expect(actual[i].fetchPolicy, expected[i].fetchPolicy);
+      expect(queries[i].toString(), expected[i].toString());
+      expect(queries[i].fetchPolicy, expected[i].fetchPolicy);
     }
   }
 
-  void verifyQueries(List<QueryOptions> expected) => verify(expected, queries);
+  void verifyMutations(List<MutationOptions> expected) {
+    expect(mutations.length, expected.length);
+    for (int i = 0; i < mutations.length; i++) {
+      /// [BaseOptions.toKey] serializes all of the relevant parts of the query
+      /// or mutation for us, except the fetch policy.
+      expect(mutations[i].toString(), expected[i].toString());
+      expect(mutations[i].fetchPolicy, expected[i].fetchPolicy);
+    }
+  }
 
-  void verifyMutations(List<MutationOptions> expected) => verify(expected, mutations);
+  @override
+  late DefaultPolicies defaultPolicies;
+
+  @override
+  Future<QueryResult> fetchMore(FetchMoreOptions fetchMoreOptions,
+      {QueryOptions? originalOptions, QueryResult? previousResult}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Map<String, dynamic> readFragment(FragmentRequest fragmentRequest, {bool? optimistic = true}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Map<String, dynamic> readQuery(Request request, {bool? optimistic = true}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<QueryResult>> resetStore({bool refetchQueries = true}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  ObservableQuery watchMutation(WatchQueryOptions options) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void writeFragment(FragmentRequest fragmentRequest, {bool? broadcast = true, Map<String, dynamic>? data}) {}
+
+  @override
+  void writeQuery(Request request, {Map<String, dynamic>? data, bool? broadcast = true}) {}
+
+  @override
+  GraphQLCache get cache => throw UnimplementedError();
+
+  @override
+  Stream<QueryResult> subscribe(SubscriptionOptions options) {
+    throw UnimplementedError();
+  }
 }

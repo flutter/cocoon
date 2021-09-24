@@ -13,11 +13,11 @@ class FakeBuildStatusService implements BuildStatusService {
     this.commitStatuses,
   });
 
-  BuildStatus cumulativeStatus;
-  List<CommitStatus> commitStatuses;
+  BuildStatus? cumulativeStatus;
+  List<CommitStatus>? commitStatuses;
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
+  Future<BuildStatus?> calculateCumulativeStatus({String? branch}) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
@@ -25,21 +25,21 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch}) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int? timestamp, String? branch}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
-    commitStatuses.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp.compareTo(b.commit.timestamp));
+    commitStatuses!.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp!.compareTo(b.commit.timestamp!));
 
-    return Stream<CommitStatus>.fromIterable(commitStatuses.where((CommitStatus commitStatus) =>
-        commitStatus.commit.timestamp < timestamp && commitStatus.commit.branch == branch));
+    return Stream<CommitStatus>.fromIterable(commitStatuses!.where((CommitStatus commitStatus) =>
+        commitStatus.commit.timestamp! < timestamp! && commitStatus.commit.branch == branch));
   }
 
   @override
   DatastoreService get datastoreService => throw UnimplementedError();
 
   @override
-  Future<String> latestLUCIStatus(List<LuciTask> tasks, Logging log) {
+  Future<String> latestLUCIStatus(List<LuciTask> tasks, Logging? log) {
     throw UnimplementedError();
   }
 }

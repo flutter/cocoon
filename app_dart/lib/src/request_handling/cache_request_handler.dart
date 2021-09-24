@@ -21,9 +21,9 @@ import 'body.dart';
 class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CacheRequestHandler].
   const CacheRequestHandler({
-    @required this.delegate,
-    @required Config config,
-    @required this.cache,
+    required this.delegate,
+    required Config config,
+    required this.cache,
     this.ttl = const Duration(minutes: 1),
   }) : super(config: config);
 
@@ -48,20 +48,20 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// to the latest information.
   @override
   Future<T> get() async {
-    final String responseKey = '${request.uri.path}:${request.uri.query}';
+    final String responseKey = '${request!.uri.path}:${request!.uri.query}';
 
-    if (request.uri.queryParameters[flushCacheQueryParam] == 'true') {
+    if (request!.uri.queryParameters[flushCacheQueryParam] == 'true') {
       await cache.purge(responseSubcacheName, responseKey);
     }
 
-    final Uint8List cachedResponse = await cache.getOrCreate(
+    final Uint8List? cachedResponse = await cache.getOrCreate(
       responseSubcacheName,
       responseKey,
       createFn: () => getBodyBytesFromDelegate(delegate),
       ttl: ttl,
     );
 
-    return Body.forStream(Stream<Uint8List>.value(cachedResponse)) as T;
+    return Body.forStream(Stream<Uint8List?>.value(cachedResponse)) as T;
   }
 
   /// Get a Uint8List that contains the bytes of the response from [delegate]
@@ -73,7 +73,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     // the data out usually to a client. In this case, we want to store
     // the bytes in the cache which requires several conversions to get a
     // Uint8List that contains the bytes of the response.
-    final List<int> rawBytes = await body.serialize().expand<int>((Uint8List chunk) => chunk).toList();
+    final List<int> rawBytes = await body.serialize().expand<int>((Uint8List? chunk) => chunk!).toList();
     return Uint8List.fromList(rawBytes);
   }
 }

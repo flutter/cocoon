@@ -6,8 +6,6 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 
 class AccessClientProvider {
-  /// Creates a new Access Client provider.
-
   /// Returns an OAuth 2.0 authenticated access client for the device lab service account.
   Future<Client> createAccessClient({
     List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
