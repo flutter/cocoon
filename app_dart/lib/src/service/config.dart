@@ -65,7 +65,7 @@ class Config {
     final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(Providers.freshHttpClient, loggingService),
+      createFn: () => getBranches(Providers.freshHttpClient),
       ttl: configCacheTtl,
     );
 
@@ -74,7 +74,7 @@ class Config {
 
   // Returns LUCI builders.
   Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
-    return await getLuciBuilders(Providers.freshHttpClient, loggingService, slug, bucket, commitSha: commitSha);
+    return await getLuciBuilders(Providers.freshHttpClient, slug, bucket, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

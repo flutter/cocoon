@@ -12,14 +12,15 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -31,8 +32,8 @@ void main() {
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
   RepositorySlug? slug;
-  late FakeLogging fakeLogging;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+  final List<LogRecord> records = <LogRecord>[];
 
   const List<LuciBuilder> builders = <LuciBuilder>[
     LuciBuilder(
@@ -123,6 +124,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'cocoon');
+      log.onRecord.listen((LogRecord record) => records.add(record));
+      records.clear();
     });
     test('Empty responses are handled correctly', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -171,8 +174,6 @@ void main() {
         mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
       );
-      fakeLogging = FakeLogging();
-      service.setLogger(fakeLogging);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -231,7 +232,7 @@ void main() {
         commitSha: 'abc',
         slug: slug!,
       );
-      expect(fakeLogging.records[0].message,
+      expect(records[0].message,
           'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('try to schedule builds already scheduled', () async {
@@ -254,7 +255,7 @@ void main() {
         commitSha: 'abc',
         slug: slug!,
       );
-      expect(fakeLogging.records[0].message,
+      expect(records[0].message,
           'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
     });
     test('Schedule builds throws when current list of builds is empty', () async {
@@ -427,7 +428,6 @@ void main() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient);
-      service.setLogger(FakeLogging());
       datastore = DatastoreService(config.db, 5);
       commit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/abc'), sha: 'abc', repository: 'flutter/flutter');

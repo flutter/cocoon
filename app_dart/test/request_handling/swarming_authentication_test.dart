@@ -14,25 +14,21 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('SwarmingAuthenticationProvider', () {
     late FakeConfig config;
     late FakeClientContext clientContext;
-    late FakeLogging log;
     late FakeHttpRequest request;
     late SwarmingAuthenticationProvider auth;
 
     setUp(() {
       config = FakeConfig();
       clientContext = FakeClientContext();
-      log = FakeLogging();
       request = FakeHttpRequest();
       auth = SwarmingAuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
-        loggingProvider: () => log,
       );
     });
 
@@ -49,7 +45,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
       });
 
@@ -59,7 +54,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
 
         request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
@@ -74,7 +68,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
         request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'token');
 
@@ -88,7 +81,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
 
         request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
@@ -102,7 +94,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
 
         request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');

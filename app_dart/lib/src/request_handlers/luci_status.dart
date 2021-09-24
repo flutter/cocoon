@@ -10,8 +10,6 @@ import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
@@ -19,6 +17,7 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
+import '../service/logging.dart';
 import '../service/luci_build_service.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -46,23 +45,16 @@ class LuciStatusHandler extends RequestHandler<Body> {
     Config config,
     this.buildBucketClient,
     this.luciBuildService,
-    this.githubChecksService, {
-    LoggingProvider? loggingProvider,
-  })  : loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        super(config: config);
+    this.githubChecksService,
+  ) : super(config: config);
 
   final BuildBucketClient buildBucketClient;
-  final LoggingProvider loggingProvider;
   final LuciBuildService luciBuildService;
   final GithubChecksService githubChecksService;
 
   @override
   Future<Body> post() async {
     RepositorySlug slug;
-
-    // Set logger in all the service classes.
-    luciBuildService.setLogger(log!);
-    githubChecksService.setLogger(log!);
 
     if (!await _authenticateRequest(request!.headers)) {
       throw const Unauthorized();
@@ -75,13 +67,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
         json.decode(String.fromCharCodes(base64.decode(envelope.message!.data!))) as Map<String, dynamic>);
     final Build build = buildPushMessage.build!;
     final String builderName = build.tagsByName('builder').single;
-    log!.debug('Available tags: ${build.tags.toString()}');
+    log.fine('Available tags: ${build.tags.toString()}');
     // Skip status update if we can not get the sha tag.
     if (build.tagsByName('buildset').isEmpty) {
-      log!.warning('Buildset tag not included, skipping Status Updates');
+      log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
-    log!.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
+    log.fine('Setting status: ${buildPushMessage.toJson()} for $builderName');
     final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
     if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
       // Message is coming from a github checks api enabled repo. We need to
@@ -97,7 +89,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
         slug,
       );
     } else {
-      log!.error('This repo does not support checks API');
+      log.shout('This repo does not support checks API');
     }
     return Body.empty;
   }

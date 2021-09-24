@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 import 'package:googleapis/bigquery/v2.dart';
@@ -22,6 +21,7 @@ import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/exceptions.dart';
+import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
@@ -56,19 +56,10 @@ class Scheduler {
   final HttpClientProvider httpClientProvider;
 
   late DatastoreService datastore;
-  late Logging log;
   LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
-
-  /// Sets the appengine [log] used by this class to log debug and error
-  /// messages. This method has to be called before any other method in this
-  /// class.
-  void setLogger(Logging log) {
-    this.log = log;
-    luciBuildService.setLogger(log);
-  }
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -79,7 +70,7 @@ class Scheduler {
   Future<void> addCommits(List<Commit> commits) async {
     datastore = datastoreProvider(config.db);
     final List<Commit> newCommits = await _getMissingCommits(commits);
-    log.debug('Found ${newCommits.length} new commits on GitHub');
+    log.fine('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
       await _addCommit(commit);
     }
@@ -116,17 +107,17 @@ class Scheduler {
     );
 
     if (await _commitExistsInDatastore(mergedCommit)) {
-      log.debug('$sha already exists in datastore. Scheduling skipped.');
+      log.fine('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
 
-    log.debug('Scheduling $sha via GitHub webhook');
+    log.fine('Scheduling $sha via GitHub webhook');
     await _addCommit(mergedCommit);
   }
 
   Future<void> _addCommit(Commit commit) async {
     if (!Config.schedulerSupportedRepos.contains(commit.slug)) {
-      log.debug('Skipping ${commit.id} as repo is not supported');
+      log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
 
@@ -136,10 +127,10 @@ class Scheduler {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
+        log.fine('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
       });
     } catch (error) {
-      log.error('Failed to add commit ${commit.sha!}: $error');
+      log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
     await _uploadToBigQuery(commit);
@@ -288,11 +279,10 @@ class Scheduler {
       configContent = await githubFileContent(
         ciPath,
         httpClientProvider: httpClientProvider,
-        log: log,
         retryOptions: retryOptions,
       );
     } on NotFoundException {
-      log.debug('Failed to find $ciPath');
+      log.fine('Failed to find $ciPath');
       return SchedulerConfig.getDefault().writeToBuffer();
     } on HttpException catch (_, e) {
       log.warning('githubFileContent failed to get $ciPath: $e');
@@ -472,7 +462,7 @@ class Scheduler {
       case 'rerequested':
         final String? builderName = checkRunEvent.checkRun!.name;
         final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-        log.debug('BuilderName: $builderName State: $success');
+        log.fine('BuilderName: $builderName State: $success');
         return success;
     }
 

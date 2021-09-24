@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:appengine/appengine.dart';
 import 'package:github/github.dart' as github;
 
 import '../../cocoon_service.dart';
@@ -17,6 +16,8 @@ import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/logging.dart';
+import 'buildbucket.dart';
 import 'luci.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
@@ -30,17 +31,9 @@ class LuciBuildService {
 
   BuildBucketClient buildBucketClient;
   Config config;
-  late Logging log;
   GithubChecksUtil githubChecksUtil;
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
-
-  /// Sets the appengine [log] used by this class to log debug and error
-  /// messages. This method has to be called before any other method in this
-  /// class.
-  void setLogger(Logging log) {
-    this.log = log;
-  }
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
@@ -242,7 +235,7 @@ class LuciBuildService {
     if (builds.values.any((Build? build) {
       return build!.status == Status.scheduled || build.status == Status.started;
     })) {
-      log.error('Either builds are empty or they are already scheduled or started. '
+      log.severe('Either builds are empty or they are already scheduled or started. '
           'PR: $prNumber, Commit: $commitSha, Owner: ${slug.owner} '
           'Repo: ${slug.name}');
       return <String>[];

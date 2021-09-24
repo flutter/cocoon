@@ -55,8 +55,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
-    scheduler.setLogger(log!);
-    luciBuildService.setLogger(log!);
     final DatastoreService datastore = datastoreProvider(config.db);
     final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
@@ -141,6 +139,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       'StageName': task.stageName ?? 'unknown',
       'Status': task.status,
     };
-    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi());
   }
 }

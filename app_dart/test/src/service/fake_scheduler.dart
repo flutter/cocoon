@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:retry/retry.dart';
 
-import '../request_handling/fake_logging.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -30,9 +29,7 @@ class FakeScheduler extends Scheduler {
           githubChecksService: GithubChecksService(config, githubChecksUtil: githubChecksUtil),
           luciBuildService: luciBuildService ??
               FakeLuciBuildService(config, buildbucket: buildbucket, githubChecksUtil: githubChecksUtil),
-        ) {
-    setLogger(FakeLogging());
-  }
+        );
 
   final SchedulerConfig _defaultConfig = emptyConfig;
 

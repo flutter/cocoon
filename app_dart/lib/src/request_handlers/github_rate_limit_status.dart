@@ -36,7 +36,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
 
     /// Insert quota usage to BigQuery
     const String githubQuotaTable = 'GithubQuotaUsage';
-    await insertBigquery(githubQuotaTable, quotaUsage, await config.createTabledataResourceApi(), log);
+    await insertBigquery(githubQuotaTable, quotaUsage, await config.createTabledataResourceApi());
 
     return Body.forJson(quotaUsage);
   }

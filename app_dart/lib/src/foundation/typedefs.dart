@@ -16,8 +16,3 @@ typedef ClientContextProvider = ClientContext Function();
 /// This is used by [AuthenticationProvider] to provide the HTTP client that
 /// will be used (if necessary) to verify OAuth ID tokens (JWT tokens).
 typedef HttpClientProvider = http.Client Function();
-
-/// Signature for a function that returns a [Logging] instance.
-///
-/// This is used by [AuthenticationProvider] to provide the logger.
-typedef LoggingProvider = Logging Function();

@@ -10,20 +10,16 @@ import 'package:http/testing.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'fake_http.dart';
-import 'fake_logging.dart';
 
 class RequestHandlerTester {
   RequestHandlerTester({
     FakeHttpRequest? request,
-    FakeLogging? log,
     this.httpClient,
   }) {
-    this.log = log ?? FakeLogging();
     this.request = request ?? FakeHttpRequest();
   }
 
   FakeHttpRequest? request;
-  FakeLogging? log;
   http.MockClient? httpClient;
 
   /// This tester's [FakeHttpResponse], derived from [request].
@@ -50,7 +46,6 @@ class RequestHandlerTester {
     }, zoneValues: <RequestKey<dynamic>, Object?>{
       RequestKey.request: request,
       RequestKey.response: response,
-      RequestKey.log: log,
       RequestKey.httpClient: httpClient,
     });
   }

@@ -14,6 +14,7 @@ import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/google/token_info.dart';
+import '../service/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s for infra endpoints.
@@ -34,12 +35,10 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     Config config, {
     ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
   }) : super(
           config,
           clientContextProvider: clientContextProvider,
           httpClientProvider: httpClientProvider,
-          loggingProvider: loggingProvider,
         );
 
   /// Name of the header that LUCI requests will put their service account token.
@@ -58,11 +57,10 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     final String? swarmingToken = request.headers.value(kSwarmingTokenHeader);
 
     final ClientContext clientContext = clientContextProvider();
-    final Logging log = loggingProvider();
 
     if (swarmingToken != null) {
-      log.debug('Authenticating as swarming task');
-      return await authenticateAccessToken(swarmingToken, clientContext: clientContext, log: log);
+      log.fine('Authenticating as swarming task');
+      return await authenticateAccessToken(swarmingToken, clientContext: clientContext);
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI');
@@ -77,11 +75,11 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
   Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
-      {required ClientContext clientContext, required Logging log}) async {
+      {required ClientContext clientContext}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final Client client = httpClientProvider();
     try {
-      log.debug('Sending token request to Google OAuth');
+      log.fine('Sending token request to Google OAuth');
       final Response verifyTokenResponse = await client.get(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
@@ -112,7 +110,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
       }
 
       if (token.email == config.frobAccount) {
-        log.debug('Authenticating as FRoB request');
+        log.fine('Authenticating as FRoB request');
         return AuthenticatedContext(clientContext: clientContext);
       }
 

@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -42,7 +41,6 @@ void main() {
       config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    githubChecksService.setLogger(FakeLogging());
     slug = RepositorySlug('flutter', 'cocoon');
     scheduler = FakeScheduler(
       config: config,

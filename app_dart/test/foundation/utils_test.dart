@@ -5,18 +5,18 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/request_handling/fake_logging.dart';
 
 const String branchRegExp = '''
       master
@@ -47,18 +47,12 @@ void main() {
     );
     group('githubFileContent', () {
       late MockClient branchHttpClient;
-      late FakeLogging log;
-
-      setUp(() {
-        log = FakeLogging();
-      });
 
       test('returns branches', () async {
         branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final String branches = await githubFileContent(
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
-          log: log,
           retryOptions: noRetry,
         );
         final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
@@ -74,11 +68,11 @@ void main() {
           }
           return http.Response(branchRegExp, HttpStatus.ok);
         });
-
+        final List<LogRecord> records = <LogRecord>[];
+        log.onRecord.listen((LogRecord record) => records.add(record));
         final String branches = await githubFileContent(
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
-          log: log,
           retryOptions: const RetryOptions(
             maxAttempts: 3,
             delayFactor: Duration.zero,
@@ -89,8 +83,8 @@ void main() {
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(retry, 2);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
-        expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.INFO), isNotEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
       });
 
       test('gives up after 3 tries', () async {
@@ -99,11 +93,12 @@ void main() {
           retry++;
           return http.Response('', HttpStatus.serviceUnavailable);
         });
+        final List<LogRecord> records = <LogRecord>[];
+        log.onRecord.listen((LogRecord record) => records.add(record));
         await expectLater(
             githubFileContent(
               'branches.txt',
               httpClientProvider: () => branchHttpClient,
-              log: log,
               retryOptions: const RetryOptions(
                 maxAttempts: 3,
                 delayFactor: Duration.zero,
@@ -112,22 +107,17 @@ void main() {
             ),
             throwsA(isA<HttpException>()));
         expect(retry, 3);
-        expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.WARNING), isNotEmpty);
       });
     });
 
     group('GetBranches', () {
       late MockClient branchHttpClient;
-      late FakeLogging log;
 
-      setUp(() {
-        log = FakeLogging();
-      });
       test('returns branches', () async {
         branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final Uint8List branches = await getBranches(
           () => branchHttpClient,
-          log,
           retryOptions: noRetry,
         );
         expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
@@ -139,7 +129,6 @@ void main() {
         });
         final Uint8List builders = await getBranches(
           () => branchHttpClient,
-          log,
           retryOptions: noRetry,
         );
         expect(String.fromCharCodes(builders), 'master');
@@ -148,11 +137,7 @@ void main() {
 
     group('GetLuciBuilders', () {
       late MockClient luciBuilderHttpClient;
-      late FakeLogging log;
 
-      setUp(() {
-        log = FakeLogging();
-      });
       test('returns enabled luci builders', () async {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
         luciBuilderHttpClient = MockClient((_) async {
@@ -160,7 +145,6 @@ void main() {
         });
         final List<LuciBuilder> builders = await getLuciBuilders(
           () => luciBuilderHttpClient,
-          log,
           slug,
           'try',
           retryOptions: noRetry,
@@ -177,7 +161,6 @@ void main() {
         });
         final List<LuciBuilder> builders = await getLuciBuilders(
           () => luciBuilderHttpClient,
-          log,
           slug,
           'try',
           retryOptions: noRetry,
@@ -213,14 +196,12 @@ void main() {
 
     group('bigquery', () {
       late FakeTabledataResource tabledataResourceApi;
-      late FakeLogging log;
 
       setUp(() {
         tabledataResourceApi = FakeTabledataResource();
-        log = FakeLogging();
       });
       test('Insert data to bigquery', () async {
-        await insertBigquery('test', <String, dynamic>{'test': 'test'}, tabledataResourceApi, log);
+        await insertBigquery('test', <String, dynamic>{'test': 'test'}, tabledataResourceApi);
         final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
         expect(tableDataList.totalRows, '1');
       });

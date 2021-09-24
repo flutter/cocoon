@@ -16,6 +16,7 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/allowed_account.dart';
 import '../model/google/token_info.dart';
+import '../service/logging.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
@@ -53,7 +54,6 @@ class AuthenticationProvider {
     this.config, {
     this.clientContextProvider = Providers.serviceScopeContext,
     this.httpClientProvider = Providers.freshHttpClient,
-    this.loggingProvider = Providers.serviceScopeLogger,
   });
 
   /// The Cocoon config, guaranteed to be non-null.
@@ -71,11 +71,6 @@ class AuthenticationProvider {
   /// This is guaranteed to be non-null.
   final HttpClientProvider httpClientProvider;
 
-  /// Provides the logger.
-  ///
-  /// This is guaranteed to be non-null.
-  final LoggingProvider loggingProvider;
-
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
   ///
@@ -88,7 +83,6 @@ class AuthenticationProvider {
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
     final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final ClientContext clientContext = clientContextProvider();
-    final Logging log = loggingProvider();
 
     if (isCron) {
       // Authenticate cron requests
@@ -100,7 +94,7 @@ class AuthenticationProvider {
       } on Unauthenticated {
         token = await tokenInfo(request, tokenType: 'access_token');
       }
-      return authenticateToken(token, clientContext: clientContext, log: log);
+      return authenticateToken(token, clientContext: clientContext);
     }
 
     throw const Unauthenticated('User is not signed in');
@@ -108,10 +102,9 @@ class AuthenticationProvider {
 
   /// Gets oauth token information. This method requires the token to be stored in
   /// X-Flutter-IdToken header.
-  Future<TokenInfo> tokenInfo(HttpRequest request, {Logging? log, String tokenType = 'id_token'}) async {
+  Future<TokenInfo> tokenInfo(HttpRequest request, {String tokenType = 'id_token'}) async {
     final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final http.Client client = httpClientProvider();
-    final Logging log = loggingProvider();
     try {
       final http.Response verifyTokenResponse = await client.get(Uri.https(
         'oauth2.googleapis.com',
@@ -124,7 +117,7 @@ class AuthenticationProvider {
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
-        log.debug('Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}');
+        log.fine('Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}');
         throw const Unauthenticated('Invalid ID token');
       }
 
@@ -138,12 +131,11 @@ class AuthenticationProvider {
     }
   }
 
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token,
-      {required ClientContext clientContext, Logging? log}) async {
+  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {required ClientContext clientContext}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final String clientId = await config.oauthClientId;
     if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
-      log!.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
+      log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
       throw const Unauthenticated('Invalid ID token');
     }
 
