@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:appengine/src/logging.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 
@@ -114,5 +115,12 @@ class FakeGithubService implements GithubService {
   @override
   Future<RateLimit> getRateLimit() {
     throw UnimplementedError();
+  }
+
+  @override
+  late Logging log;
+
+  @override
+  void setLogger(Logging log) {
   }
 }

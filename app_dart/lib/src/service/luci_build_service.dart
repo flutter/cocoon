@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart' as github;
-import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
@@ -17,7 +17,6 @@ import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
-import 'buildbucket.dart';
 import 'luci.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
@@ -41,6 +40,15 @@ class LuciBuildService {
   /// class.
   void setLogger(Logging log) {
     this.log = log;
+  }
+
+  /// Shards [rows] into several sublists of size [maxEntityGroups].
+  Future<List<List<Request>>> shard(List<Request> requests, int max) async {
+    final List<List<Request>> shards = <List<Request>>[];
+    for (int i = 0; i < requests.length; i += max) {
+      shards.add(requests.sublist(i, i + min<int>(requests.length - i, max)));
+    }
+    return shards;
   }
 
   /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
@@ -150,6 +158,42 @@ class LuciBuildService {
         key: (dynamic b) => b.builderId.builder as String?, value: (dynamic b) => b as Build?);
   }
 
+  /// Creates a build request.
+  Future<Request> _createBuildRequest(CheckSuiteEvent? checkSuiteEvent, github.RepositorySlug slug, int prNumber,
+      String commitSha, String builder, BuilderId builderId, Map<String, dynamic> userData) async {
+    int? checkRunId;
+    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
+      log.info('Creating check run for PR: $prNumber, Commit: $commitSha, Slug: $slug');
+      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+        config,
+        slug,
+        builder,
+        commitSha,
+      );
+      userData['check_run_id'] = checkRun.id;
+      checkRunId = checkRun.id;
+    }
+    return Request(
+      scheduleBuild: ScheduleBuildRequest(
+        builderId: builderId,
+        tags: <String, List<String>>{
+          'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
+          'user_agent': const <String>['flutter-cocoon'],
+          'github_link': <String>['https://github.com/${slug.fullName}/pull/$prNumber'],
+          'github_checkrun': <String>[checkRunId.toString()],
+        },
+        properties: <String, String>{
+          'git_url': 'https://github.com/${slug.owner}/${slug.name}',
+          'git_ref': 'refs/pull/$prNumber/head',
+        },
+        notify: NotificationConfig(
+          pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+          userData: base64Encode(json.encode(userData).codeUnits),
+        ),
+      ),
+    );
+  }
+
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
   /// and Github [slug].
   Future<bool> scheduleTryBuilds({
@@ -185,7 +229,7 @@ class LuciBuildService {
       throw InternalServerError('${slug.name} does not have any builders');
     }
 
-    final List<Request> requests = <Request>[];
+    final List<Future<Request>> requestFutures = <Future<Request>>[];
     for (String builder in builderNames) {
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
@@ -198,53 +242,21 @@ class LuciBuildService {
         'repo_name': slug.name,
         'user_agent': 'flutter-cocoon',
       };
-      int? checkRunId;
-      if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
-        log.info('Creating check run for PR: $prNumber, Commit: $commitSha, Slug: $slug');
-        final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-          config,
-          slug,
-          builder,
-          commitSha,
-        );
-        userData['check_run_id'] = checkRun.id;
-        checkRunId = checkRun.id;
-      }
-      requests.add(
-        Request(
-          scheduleBuild: ScheduleBuildRequest(
-            builderId: builderId,
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
-              'user_agent': const <String>['flutter-cocoon'],
-              'github_link': <String>['https://github.com/${slug.fullName}/pull/$prNumber'],
-              if (checkRunId != null) 'github_checkrun': <String>[checkRunId.toString()],
-            },
-            properties: <String, String>{
-              'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-              'git_ref': 'refs/pull/$prNumber/head',
-            },
-            notify: NotificationConfig(
-              pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-              userData: base64Encode(json.encode(userData).codeUnits),
-            ),
-          ),
-        ),
-      );
+      requestFutures.add(_createBuildRequest(checkSuiteEvent, slug, prNumber, commitSha, builder, builderId, userData));
     }
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
-    late BatchResponse batchResponse;
-    log.debug('Making BatchRequest with ${requests.length} requests');
-    await r.retry(
-      () async {
-        batchResponse = await buildBucketClient.batch(BatchRequest(requests: requests));
-      },
-      retryIf: (Exception e) => e is BuildBucketException,
-    );
-    for (Response response in batchResponse.responses!) {
+    final List<Request> requests = await Future.wait(requestFutures);
+    List<BatchResponse> batchResponseList;
+    log.info('Making BatchRequest with ${requests.length} requests');
+    final List<Future<BatchResponse>> futureBatchResponses = <Future<BatchResponse>>[];
+    final Iterable<List<Request>> requestPartitions = await shard(requests, 1);
+    log.info('Sending BatchRequest with ${requestPartitions.length} partitions');
+    for (List<Request> requestPartition in requestPartitions) {
+      futureBatchResponses.add(buildBucketClient.batch(BatchRequest(requests: requestPartition)));
+    }
+    batchResponseList = await Future.wait(futureBatchResponses);
+    final Iterable<Response> responses =
+        batchResponseList.expand((BatchResponse element) => element.responses as Iterable<Response>);
+    for (Response response in responses) {
       if (response.error?.code != 0) {
         log.warning('BatchResponse error: $response');
         continue;

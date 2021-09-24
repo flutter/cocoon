@@ -333,6 +333,7 @@ class Scheduler {
           'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
+    log.debug('about to cancel presubmit targets');
     await cancelPreSubmitTargets(
       prNumber: prNumber,
       slug: slug,
@@ -352,10 +353,12 @@ class Scheduler {
     dynamic exception;
     final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
     try {
+      log.debug('about to get presubmit builders');
       final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
         commit: presubmitCommit,
         prNumber: prNumber,
       );
+      log.debug('about to schedule presubmit builds');
       await luciBuildService.scheduleTryBuilds(
         builders: presubmitBuilders,
         slug: slug,
@@ -396,6 +399,7 @@ class Scheduler {
         ),
       );
     }
+    log.debug('finish triggering presubmit targets');
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
@@ -438,17 +442,17 @@ class Scheduler {
   /// Get LUCI presubmit builders from .ci.yaml.
   Future<List<LuciBuilder>> getPresubmitBuilders({required Commit commit, required int prNumber}) async {
     // Get try_builders.json builders
+    log.debug('Getting presubmit builders from json file');
     final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
-          'try',
-          commit.slug,
-          commitSha: commit.sha!,
-        ) ??
-        <LuciBuilder>[];
+      'try',
+      commit.slug,
+      commitSha: commit.sha!,
+    ) ?? <LuciBuilder>[];
+    //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
-    //  Get .ci.yaml targets
     final Iterable<Target> presubmitLuciTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
     presubmitBuilders.addAll(presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));

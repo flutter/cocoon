@@ -12,10 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 
 /// Runs an authenticated Github GraphQl query returning the query result as json.
 @immutable

@@ -14,10 +14,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../service/build_status_provider.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable
