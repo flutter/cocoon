@@ -304,7 +304,7 @@ void main() {
           // Gold status is running
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobDigests(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -667,7 +667,7 @@ void main() {
           // Change detected by Gold
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobEmpty(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -724,7 +724,7 @@ void main() {
           // Change detected by Gold
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobDigests(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -790,7 +790,7 @@ void main() {
           // Gold status is running
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobDigests(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -854,7 +854,7 @@ void main() {
           // Gold status is running
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobDigests(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -928,7 +928,7 @@ void main() {
           // New status: completed/triaged/no changes
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head!.sha}/untriaged') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobEmpty(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -1113,11 +1113,11 @@ void main() {
         // New status: completed/triaged/no changes
         mockHttpClient = MockClient((http.Request request) async {
           if (request.url.toString() ==
-              'http://flutter-gold.skia.org/json/v1/changelist/github/${completedPR.number}/${completedPR.head!.sha}/untriaged') {
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}') {
             return http.Response(tryjobEmpty(), HttpStatus.ok);
           }
           if (request.url.toString() ==
-              'http://flutter-gold.skia.org/json/v1/changelist/github/${followUpPR.number}/${followUpPR.head!.sha}/untriaged') {
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}') {
             return http.Response(tryjobEmpty(), HttpStatus.ok);
           }
           throw const HttpException('Unexpected http request');
@@ -1229,7 +1229,17 @@ QueryResult createGithubQueryResult(List<dynamic> statuses) {
 String tryjobEmpty() {
   return '''
     {
-      "digests": null
+      "changelist_id": "123",
+      "patchsets": [
+        {
+          "new_images": 0,
+          "new_untriaged_images": 0,
+          "total_untriaged_images": 0,
+          "patchset_id": "abc",
+          "patchset_order": 1
+        }
+      ],
+      "outdated": false
     }
   ''';
 }
@@ -1238,11 +1248,17 @@ String tryjobEmpty() {
 String tryjobDigests() {
   return '''
     {
-      "digests": [
-        "abcd",
-        "efgh",
-        "ijkl"
-      ]
+      "changelist_id": "123",
+      "patchsets": [
+        {
+          "new_images": 1,
+          "new_untriaged_images": 1,
+          "total_untriaged_images": 1,
+          "patchset_id": "abc",
+          "patchset_order": 1
+        }
+      ],
+      "outdated": false
     }
   ''';
 }
