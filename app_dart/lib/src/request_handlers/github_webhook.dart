@@ -201,7 +201,7 @@ class GithubWebhook extends RequestHandler<Body> {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      if (!file.filename!.contains('.gitignore') &&
+      if (!file.filename!.contains('.github') &&
           !file.fielname!.endsWith('.md') &&
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename!.startsWith('dev/bots/')) {
