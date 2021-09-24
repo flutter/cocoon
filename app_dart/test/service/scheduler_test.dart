@@ -357,7 +357,7 @@ targets:
 
       test('ci.yaml validation passes with default config', () async {
         when(mockGithubChecksUtil.getCheckRun(any, any, any))
-          .thenAnswer((Invocation invocation) async => createCheckRun(id:0));
+            .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
         await scheduler.triggerPresubmitTargets(
           branch: config.defaultBranch,
           prNumber: 42,

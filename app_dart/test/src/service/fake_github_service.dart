@@ -121,6 +121,5 @@ class FakeGithubService implements GithubService {
   late Logging log;
 
   @override
-  void setLogger(Logging log) {
-  }
+  void setLogger(Logging log) {}
 }
