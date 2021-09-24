@@ -18,7 +18,6 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
@@ -108,6 +107,12 @@ class Config {
   }
 
   DatastoreDB get db => _db;
+
+  /// Size of the shards to send to buildBucket when scheduling builds.
+  int get schedulingShardSize => 5;
+
+  /// Max retries when scheduling try builds.
+  int get schedulerRetries => 3;
 
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {

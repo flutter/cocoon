@@ -196,6 +196,7 @@ class LuciService {
         .map<SearchBuildsResponse?>((Response response) => response.searchBuilds)
         .where((SearchBuildsResponse? response) => response?.builds != null)
         .expand<Build>((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
+
     return builds;
   }
 }

@@ -16,13 +16,9 @@ import '../model/appengine/task.dart';
 import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
-import '../service/luci_build_service.dart';
 
 /// Triggers prod builds based on a task key. This handler is used to trigger
 /// LUCI builds that didn't run or failed.

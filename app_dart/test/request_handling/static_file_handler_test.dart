@@ -5,7 +5,6 @@
 import 'dart:convert' show utf8;
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
