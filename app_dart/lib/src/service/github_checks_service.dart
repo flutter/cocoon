@@ -105,7 +105,7 @@ class GithubChecksService {
           await luciBuildService.getTryBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
       output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
     }
-    log.debug('Updating check run with output: [$output]');
+    log.fine('Updating check run with output: [$output]');
     await githubChecksUtil.updateCheckRun(
       config,
       slug,

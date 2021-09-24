@@ -5,9 +5,10 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
+
+import '../service/logging.dart';
 
 class GithubService {
   GithubService(this.github);
@@ -15,14 +16,6 @@ class GithubService {
   final GitHub github;
   static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
   static const String kRefsPrefix = 'refs/heads/';
-  late Logging log;
-
-  /// Sets the appengine [log] used by this class to log debug and error
-  /// messages. This method has to be called before any other method in this
-  /// class.
-  void setLogger(Logging log) {
-    this.log = log;
-  }
 
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
@@ -235,7 +228,7 @@ class GithubService {
   Future<List<String?>> listFiles(RepositorySlug slug, int prNumber) async {
     ArgumentError.checkNotNull(slug);
     final List<PullRequestFile> files = await github.pullRequests.listFiles(slug, prNumber).toList();
-    log.debug('List of files: $files');
+    log.fine('List of files: $files');
     return files.map((PullRequestFile file) {
       return file.filename;
     }).toList();

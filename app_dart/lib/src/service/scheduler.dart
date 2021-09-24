@@ -323,7 +323,7 @@ class Scheduler {
           'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.debug('about to cancel presubmit targets');
+    log.fine('about to cancel presubmit targets');
     await cancelPreSubmitTargets(
       prNumber: prNumber,
       slug: slug,
@@ -387,7 +387,7 @@ class Scheduler {
         ),
       );
     }
-    log.debug('finish triggering presubmit targets');
+    log.fine('finish triggering presubmit targets');
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
@@ -430,7 +430,7 @@ class Scheduler {
   /// Get LUCI presubmit builders from .ci.yaml.
   Future<List<LuciBuilder>> getPresubmitBuilders({required Commit commit, required int prNumber}) async {
     // Get try_builders.json builders
-    log.debug('Getting presubmit builders from json file');
+    log.fine('Getting presubmit builders from json file');
     final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
           'try',
           commit.slug,
