@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
@@ -353,12 +354,12 @@ class Scheduler {
         prNumber: prNumber,
         commitSha: commitSha,
       );
-    } on FormatException catch (e) {
-      log.info(e.toString());
-      exception = e;
-    } catch (e) {
-      log.warning(e.toString());
-      exception = e;
+    } on FormatException catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
+    } catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
     }
 
     // Update validate ci.yaml check
