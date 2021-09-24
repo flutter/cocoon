@@ -116,10 +116,4 @@ class FakeGithubService implements GithubService {
   Future<RateLimit> getRateLimit() {
     throw UnimplementedError();
   }
-
-  @override
-  late Logging log;
-
-  @override
-  void setLogger(Logging log) {}
 }
