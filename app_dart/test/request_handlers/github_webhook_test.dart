@@ -289,6 +289,10 @@ void main() {
         expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'), contains('framework'));
         expect(
             GithubWebhook.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'), contains('framework'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+            contains('framework'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+            contains('framework'));
       });
 
       test('Material label applied', () {
@@ -309,6 +313,10 @@ void main() {
         expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'), contains('a: tests'));
         expect(
             GithubWebhook.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'), contains('a: tests'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+            contains('a: tests'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+            contains('a: tests'));
       });
 
       test('a11y label applied', () {
@@ -330,6 +338,74 @@ void main() {
       test('Team label applied', () {
         expect(GithubWebhook.getLabelsForFrameworkPath('dev/foo/bar/baz.dart'), contains('team'));
         expect(GithubWebhook.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('team'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+            contains('team'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+            contains('team'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'), contains('team'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/test_fixes'), contains('team'));
+        expect(
+            GithubWebhook.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'), contains('team'));
+      });
+
+      test('tech-debt label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'), contains('tech-debt'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/test_fixes'), contains('tech-debt'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'),
+            contains('tech-debt'));
+      });
+
+      test('gestures label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/gestures'), contains('f: gestures'));
+      });
+
+      test('focus label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_node.dart'),
+            contains('f: focus'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_scope.dart'),
+            contains('f: focus'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_manager.dart'),
+            contains('f: focus'));
+      });
+
+      test('routes label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/router.dart'),
+            contains('f: routes'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/routes.dart'),
+            contains('f: routes'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/navigator.dart'),
+            contains('f: routes'));
+      });
+
+      test('text input label applied', () {
+        expect(
+            GithubWebhook.getLabelsForFrameworkPath(
+                'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart'),
+            contains('a: text input'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/text_editing_action.dart'),
+            contains('a: text input'));
+      });
+
+      test('animation label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/animation'), contains('a: animation'));
+      });
+
+      test('scrolling label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/sliver.dart'),
+            contains('f: scrolling'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/material/scrollbar.dart'),
+            contains('f: scrolling'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/src/rendering/viewport.dart'),
+            contains('f: scrolling'));
+      });
+
+      test('integration_test label applied', () {
+        expect(
+            GithubWebhook.getLabelsForFrameworkPath(
+                'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart'),
+            contains('integration_test'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
+            contains('integration_test'));
       });
     });
 
@@ -497,6 +573,141 @@ void main() {
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
       ));
+    });
+
+    test('Framework labels dart fix PRs, no comment if tests', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/test_fixes/material.dart',
+          PullRequestFile()..filename = 'packages/flutter/test_fixes/material.expect',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['team', 'tech-debt', 'framework', 'f: material design'],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework labels bot PR, no comment', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework labels deletion only PR, no test request', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/flutter/blah.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
+      )).called(1);
+
+      // The PR here is only deleting code, so no test comment.
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('PR with additions and deletions is commented and labeled', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/flutter/blah.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 1
+            ..changesCount = 21,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
+      )).called(1);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
     });
 
     test('Framework no comment if only dev bots or devicelab changed', () async {

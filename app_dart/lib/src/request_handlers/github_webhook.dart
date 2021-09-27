@@ -191,23 +191,42 @@ class GithubWebhook extends RequestHandler<Body> {
     if (pr.user!.login == 'engine-flutter-autoroll') {
       return;
     }
+
     final RepositorySlug slug = pr.base!.repo!.slug();
     log!.info('Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
+
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      if (file.filename!.endsWith('.dart') &&
+      // When null, do not assume 0 lines have been added.
+      final int linesAdded = file.additionsCount ?? 1;
+      final int linesDeleted = file.deletionsCount ?? 0;
+      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
+
+      if (addedCode &&
+          !file.filename!.contains('pubspec.yaml') &&
+          !file.filename!.contains('.github') &&
+          !file.filename!.endsWith('.md') &&
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename!.startsWith('dev/bots/')) {
         needsTests = true;
       }
-      if (file.filename!.endsWith('_test.dart')) {
+
+      if (file.filename!.endsWith('_test.dart') ||
+          file.filename!.endsWith('.expect') ||
+          file.filename!.contains('test_fixes')) {
         hasTests = true;
       }
       labels.addAll(getLabelsForFrameworkPath(file.filename!));
+    }
+
+    if (pr.user!.login == 'fluttergithubbot') {
+      needsTests = false;
+      labels.addAll(<String>['team', 'tech-debt', 'team: flakes']);
     }
 
     if (labels.isNotEmpty) {
@@ -231,23 +250,41 @@ class GithubWebhook extends RequestHandler<Body> {
       return labels;
     }
 
+    if (filepath.endsWith('fix_data.yaml') || filepath.endsWith('.expect') || filepath.contains('test_fixes')) {
+      // Dart fixes
+      labels.add('team');
+      labels.add('tech-debt');
+    }
+
     const Map<String, List<String>> pathPrefixLabels = <String, List<String>>{
       'bin/internal/engine.version': <String>['engine'],
       'dev/': <String>['team'],
       'examples/': <String>['d: examples', 'team'],
       'examples/flutter_gallery': <String>['d: examples', 'team', 'team: gallery'],
       'packages/flutter_tools/': <String>['tool'],
-      'packages/fuchsia_remote_debug_protocol': <String>['tool'],
       'packages/flutter/': <String>['framework'],
-      'packages/flutter_test/': <String>['framework', 'a: tests'],
       'packages/flutter_driver/': <String>['framework', 'a: tests'],
       'packages/flutter_localizations/': <String>['a: internationalization'],
+      'packages/flutter_goldens/': <String>['framework', 'a: tests', 'team'],
+      'packages/flutter_goldens_client/': <String>['framework', 'a: tests', 'team'],
+      'packages/flutter_test/': <String>['framework', 'a: tests'],
+      'packages/fuchsia_remote_debug_protocol': <String>['tool'],
     };
     const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
-      'material': <String>['f: material design'],
-      'cupertino': <String>['f: cupertino'],
       'accessibility': <String>['a: accessibility'],
+      'animation': <String>['a: animation'],
+      'cupertino': <String>['f: cupertino'],
+      'focus': <String>['f: focus'],
+      'gestures': <String>['f: gestures'],
+      'integration_test': <String>['integration_test'],
+      'material': <String>['f: material design'],
+      'navigator': <String>['f: routes'],
+      'route': <String>['f: routes'],
+      'scroll': <String>['f: scrolling'],
       'semantics': <String>['a: accessibility'],
+      'sliver': <String>['f: scrolling'],
+      'text': <String>['a: text input'],
+      'viewport': <String>['f: scrolling'],
     };
 
     pathPrefixLabels.forEach((String path, List<String> pathLabels) {
