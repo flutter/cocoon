@@ -183,6 +183,7 @@ class LuciBuildService {
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
           userData: base64Encode(json.encode(userData).codeUnits),
         ),
+        fields: 'id,builder,number,status,tags',
       ),
     );
   }
@@ -286,14 +287,12 @@ class LuciBuildService {
     final Iterable<Response> responses =
         batchResponseList.expand((BatchResponse element) => element.responses as Iterable<Response>);
     String errorText;
-
     for (Response response in responses) {
       errorText = '';
       if (response.error != null && response.error?.code != 0) {
         errorText = 'BatchResponse error: ${response.error}';
         log.warning(errorText);
       }
-
       if (response.scheduleBuild == null) {
         log.warning('$response does not contain scheduleBuild');
         if (response.getBuild?.builderId.builder != null) {
@@ -301,7 +300,6 @@ class LuciBuildService {
         }
         continue;
       }
-
       final Build? scheduleBuild = response.scheduleBuild;
       if (scheduleBuild?.tags == null) {
         // Nothing to update just continue.
@@ -310,7 +308,6 @@ class LuciBuildService {
       // Tags are List<String> so we need to decode to a single int
       final List<String?>? checkrunIdStrings = scheduleBuild?.tags!['github_checkrun']!;
       final int? checkRunId = checkrunIdStrings?.map((String? id) => int.parse(id!)).single;
-      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild?.id}';
       // Not all scheduled builds have check runs
       if (checkRunId != null) {
         final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
@@ -330,8 +327,6 @@ class LuciBuildService {
               text: errorText,
             ),
           );
-        } else {
-          await githubChecksUtil.updateCheckRun(config, slug, checkRun, detailsUrl: buildUrl);
         }
       }
     }

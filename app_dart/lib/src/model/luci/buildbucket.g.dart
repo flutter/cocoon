@@ -268,6 +268,7 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) =
       priority: json['priority'] as int?,
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       notify: json['notify'] == null ? null : NotificationConfig.fromJson(json['notify'] as Map<String, dynamic>),
+      fields: json['fields'] as String?,
     );
 
 Map<String, dynamic> _$ScheduleBuildRequestToJson(ScheduleBuildRequest instance) {
@@ -289,6 +290,7 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(ScheduleBuildRequest instance)
   writeNotNull('dimensions', instance.dimensions);
   writeNotNull('priority', instance.priority);
   writeNotNull('notify', instance.notify);
+  writeNotNull('fields', instance.fields);
   return val;
 }
 

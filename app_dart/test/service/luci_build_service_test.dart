@@ -7,7 +7,6 @@ import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -174,41 +173,6 @@ void main() {
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
-    test('schedule try build set build url in check run', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              error: const GrpcStatus(code: 0),
-              scheduleBuild: generateBuild(
-                998,
-                name: 'Linux',
-                status: Status.started,
-                tags: <String, List<String>>{
-                  'github_checkrun': <String>['1'],
-                },
-              ),
-            ),
-          ],
-        );
-      });
-      final CheckRun checkRun = CheckRun.fromJson(const <String, dynamic>{
-        'id': 1,
-        'started_at': '2020-05-10T02:49:31Z',
-        'check_suite': <String, dynamic>{'id': 2}
-      });
-      when(mockGithubChecksUtil.createCheckRun(any, config.flutterSlug, any, any)).thenAnswer((_) async => checkRun);
-      when(mockGithubChecksUtil.getCheckRun(any, config.flutterSlug, any)).thenAnswer((_) async => checkRun);
-      await service.scheduleTryBuilds(
-        builders: builders,
-        prNumber: 1,
-        commitSha: 'abc',
-        slug: config.flutterSlug,
-      );
-      verify(mockGithubChecksUtil.updateCheckRun(any, config.flutterSlug, any,
-              detailsUrl: 'https://ci.chromium.org/ui/b/998'))
-          .called(1);
-    });
     test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
