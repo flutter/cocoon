@@ -204,10 +204,10 @@ class GithubWebhook extends RequestHandler<Body> {
       // When null, do not assume 0 lines have been added.
       final int linesAdded = file.additionsCount ?? 1;
       final int linesDeleted = file.deletionsCount ?? 0;
-      final int linesTotal = file.changesCount ?? 0;
-      final bool addedCode = linesAdded > 0 || linesDeleted == linesTotal;
+      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
-      if (linesAdded > 0 &&
+      if (addedCode &&
           !file.filename!.contains('pubspec.yaml') &&
           !file.filename!.contains('.github') &&
           !file.filename!.endsWith('.md') &&
