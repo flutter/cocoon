@@ -353,12 +353,12 @@ class Scheduler {
         prNumber: prNumber,
         commitSha: commitSha,
       );
-    } on FormatException catch (e) {
-      log.info(e.toString());
-      exception = e;
-    } catch (e) {
-      log.warning(e.toString());
-      exception = e;
+    } on FormatException catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
+    } catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
     }
 
     // Update validate ci.yaml check
@@ -373,6 +373,7 @@ class Scheduler {
       );
     } else {
       log.warning('Marking PR #$prNumber ci.yaml validation as failed');
+      log.warning(exception.toString());
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
