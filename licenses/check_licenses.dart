@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core' hide print;
-import 'dart:core';
 import 'dart:io' hide exit;
-import 'dart:io';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io' as io_internals show exit;
