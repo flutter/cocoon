@@ -9,3 +9,4 @@
 set -ex
 
 pub global activate tuneup
+flutter upgrade
