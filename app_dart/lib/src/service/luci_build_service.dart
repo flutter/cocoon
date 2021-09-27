@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:github/github.dart' as github;
 
-import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
@@ -15,6 +14,7 @@ import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'buildbucket.dart';

@@ -9,8 +9,9 @@ import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
+import '../request_handling/authentication.dart';
+import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/logging.dart';
