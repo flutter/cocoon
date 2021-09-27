@@ -233,7 +233,7 @@ class LuciBuildService {
       commitSha,
     );
     if (builds.values.any((Build? build) {
-      return build!.status == Status.scheduled || build.status == Status.started;
+      return build?.status == Status.scheduled || build?.status == Status.started;
     })) {
       log.severe('Either builds are empty or they are already scheduled or started. '
           'PR: $prNumber, Commit: $commitSha, Owner: ${slug.owner} '

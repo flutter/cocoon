@@ -33,7 +33,6 @@ void main() {
   late LuciBuildService service;
   RepositorySlug? slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
-  final List<LogRecord> records = <LogRecord>[];
 
   const List<LuciBuilder> builders = <LuciBuilder>[
     LuciBuilder(
@@ -124,8 +123,6 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient);
       slug = RepositorySlug('flutter', 'cocoon');
-      log.onRecord.listen((LogRecord record) => records.add(record));
-      records.clear();
     });
     test('Empty responses are handled correctly', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -226,6 +223,8 @@ void main() {
           ],
         );
       });
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
@@ -249,6 +248,8 @@ void main() {
           ],
         );
       });
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         builders: builders,
         prNumber: 1,
