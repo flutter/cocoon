@@ -30,7 +30,7 @@ dart pub global run tuneup check
 # Only try tests if test folder exist.
 if [ -d 'test' ]; then
   echo "############# tests ###########"
-  dart test --test-randomize-ordering-seed=random --reporter expanded
+  dart test --test-randomize-ordering-seed=random --reporter expanded --concurrency 1
   echo "###############################"
 fi
 
