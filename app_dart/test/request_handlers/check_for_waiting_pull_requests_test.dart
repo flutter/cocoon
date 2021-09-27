@@ -230,7 +230,9 @@ void main() {
             source: QueryResultSource.network,
           );
 
+      records.clear();
       await tester.get(handler);
+      print(records);
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, errors.length);
       expect(errorLogs.first.message, exception.toString());
