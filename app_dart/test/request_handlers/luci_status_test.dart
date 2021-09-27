@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_luci_build_service.dart';
@@ -36,7 +35,6 @@ void main() {
   late FakeHttpRequest request;
   late RequestHandlerTester tester;
   late MockRepositoriesService mockRepositoriesService;
-  final FakeLogging log = FakeLogging();
   late MockGithubChecksService mockGithubChecksService;
 
   setUp(() async {
@@ -49,7 +47,6 @@ void main() {
       buildbucket,
       FakeLuciBuildService(config),
       mockGithubChecksService,
-      loggingProvider: () => log,
     );
     request = FakeHttpRequest();
 

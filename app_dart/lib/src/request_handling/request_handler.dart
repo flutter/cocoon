@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../service/config.dart';
+import '../service/logging.dart';
 
 import 'body.dart';
 import 'exceptions.dart';
@@ -57,7 +57,7 @@ abstract class RequestHandler<T extends Body> {
         } on HttpStatusException {
           rethrow;
         } catch (error, stackTrace) {
-          log!.error('$error\n$stackTrace');
+          log.severe('$error\n$stackTrace');
           throw InternalServerError('$error\n$stackTrace');
         }
       } on HttpStatusException catch (error) {
@@ -71,7 +71,6 @@ abstract class RequestHandler<T extends Body> {
     }, zoneValues: <RequestKey<dynamic>, Object>{
       RequestKey.request: request,
       RequestKey.response: request.response,
-      RequestKey.log: loggingService,
       RequestKey.httpClient: httpClient ?? http.Client(),
     });
   }
@@ -119,13 +118,6 @@ abstract class RequestHandler<T extends Body> {
   @protected
   HttpResponse? get response => getValue<HttpResponse>(RequestKey.response);
 
-  /// Gets the current [Logging] instance.
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  Logging? get log => getValue<Logging>(RequestKey.log);
-
   /// Services an HTTP GET.
   ///
   /// Subclasses should override this method if they support GET requests.
@@ -164,7 +156,6 @@ class RequestKey<T> {
 
   static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>('request');
   static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>('response');
-  static const RequestKey<Logging> log = RequestKey<Logging>('log');
   static const RequestKey<http.Client> httpClient = RequestKey<http.Client>('httpClient');
 
   @override

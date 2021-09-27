@@ -8,20 +8,20 @@ import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('AuthenticationProvider', () {
     late FakeConfig config;
     late FakeClientContext clientContext;
-    late FakeLogging log;
     late FakeHttpRequest request;
     late AuthenticationProvider auth;
     late TokenInfo token;
@@ -30,13 +30,11 @@ void main() {
       config = FakeConfig();
       token = TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now());
       clientContext = FakeClientContext();
-      log = FakeLogging();
       request = FakeHttpRequest();
       auth = AuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => throw AssertionError(),
-        loggingProvider: () => log,
       );
     });
 
@@ -58,7 +56,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
       });
 
@@ -68,7 +65,6 @@ void main() {
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
         );
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
@@ -83,7 +79,6 @@ void main() {
         await expectLater(
             auth.authenticateToken(
               token,
-              log: log,
               clientContext: FakeClientContext(),
             ),
             throwsA(isA<Unauthenticated>()));
@@ -91,8 +86,10 @@ void main() {
 
       test('fails if tokenInfo returns invalid JSON', () async {
         httpClient = MockClient((_) async => http.Response('Not JSON!', HttpStatus.ok));
-        await expectLater(auth.tokenInfo(request, log: log), throwsA(isA<InternalServerError>()));
-        expect(log.records, isEmpty);
+        final List<LogRecord> records = <LogRecord>[];
+        log.onRecord.listen((LogRecord record) => records.add(record));
+        await expectLater(auth.tokenInfo(request), throwsA(isA<InternalServerError>()));
+        expect(records, isEmpty);
       });
 
       test('fails if token verification yields forged token', () async {
@@ -105,7 +102,6 @@ void main() {
         await expectLater(
             auth.authenticateToken(
               token,
-              log: log,
               clientContext: FakeClientContext(),
             ),
             throwsA(isA<Unauthenticated>()));
@@ -121,7 +117,6 @@ void main() {
         await expectLater(
             auth.authenticateToken(
               token,
-              log: log,
               clientContext: FakeClientContext(),
             ),
             throwsA(isA<Unauthenticated>()));
@@ -138,7 +133,6 @@ void main() {
         final AuthenticatedContext result = await auth.authenticateToken(
           token,
           clientContext: clientContext,
-          log: log,
         );
         expect(result.clientContext, same(clientContext));
       });
@@ -150,7 +144,6 @@ void main() {
         await expectLater(
             auth.authenticateToken(
               token,
-              log: log,
               clientContext: FakeClientContext(),
             ),
             throwsA(isA<Unauthenticated>()));
@@ -168,7 +161,7 @@ void main() {
           issued: DateTime.now(),
         );
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateToken(token, clientContext: clientContext, log: log);
+        final AuthenticatedContext result = await auth.authenticateToken(token, clientContext: clientContext);
         expect(result.clientContext, same(clientContext));
       });
     });

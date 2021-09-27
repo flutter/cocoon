@@ -14,6 +14,8 @@ const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
+    useLoggingPackageAdaptor();
+
     final bool inMemoryCache = Platform.environment[_kCocoonUseInMemoryCache] == 'true';
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 

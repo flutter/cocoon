@@ -18,6 +18,7 @@ import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/logging.dart';
 import '../service/luci.dart';
 
 /// Triggers prod builds based on a task key. This handler is used to trigger
@@ -70,7 +71,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     if (encodedKey.isNotEmpty) {
       // Request coming from the dashboard.
       final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
-      log!.info('Rescheduling task with Key: ${key.id}');
+      log.info('Rescheduling task with Key: ${key.id}');
       task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
       if (task!.status == 'Succeeded') {
         return Body.empty;
@@ -102,11 +103,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     final Build? build = currentBuilds.firstWhereOrNull(
       (Build element) {
-        log!.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
+        log.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
         return noReschedule.contains(element.status);
       },
     );
-    log!.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
+    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
 
     if (build != null) {
       throw const ConflictException();

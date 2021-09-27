@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -16,6 +15,7 @@ import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
+import '../service/logging.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
@@ -51,11 +51,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
-      log!.debug('GitHub statuses are not pushed from local dev environments');
+      log.fine('GitHub statuses are not pushed from local dev environments');
       return Body.empty;
     }
-    luciBuildService.setLogger(log!);
-    scheduler!.setLogger(log!);
 
     final String repo = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
     final RepositorySlug slug = RepositorySlug.full(repo);
@@ -78,16 +76,16 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await Future.forEach(luciTasks.entries, (MapEntry<LuciBuilder, List<LuciTask>> luciTask) async {
       final List<LuciTask> tasks = luciTask.value;
       if (tasks.isEmpty) {
-        log!.debug('No tasks returned for builder: ${luciTask.key.name}');
+        log.fine('No tasks returned for builder: ${luciTask.key.name}');
       }
-      final String latestStatus = await buildStatusService.latestLUCIStatus(tasks, log);
+      final String latestStatus = await buildStatusService.latestLUCIStatus(tasks);
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
         status = GithubBuildStatusUpdate.statusFailure;
       }
     });
-    await _insertBigquery(slug, status, config.defaultBranch, log, config);
+    await _insertBigquery(slug, status, config.defaultBranch, config);
     await _updatePRs(slug, status, datastore);
-    log!.debug('All the PRs for $repo have been updated with $status');
+    log.fine('All the PRs for $repo have been updated with $status');
 
     return Body.empty;
   }
@@ -98,7 +96,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     await for (PullRequest pr in github.pullRequests.list(slug, base: config.defaultBranch)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
-        log!.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
+        log.fine('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
         final CreateStatus request = CreateStatus(status);
         request.targetUrl = 'https://ci.chromium.org/p/flutter/g/${slug.name}/console';
         request.context = 'luci-${slug.name}';
@@ -112,14 +110,14 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
           updates.add(update);
         } catch (error) {
-          log!.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          log.severe('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
         }
       }
     }
     await datastore.insert(updates);
   }
 
-  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Logging? log, Config config) async {
+  Future<void> _insertBigquery(RepositorySlug slug, String status, String branch, Config config) async {
     const String bigqueryTableName = 'BuildStatus';
     final Map<String, dynamic> bigqueryData = <String, dynamic>{
       'Timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -127,6 +125,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       'Branch': branch,
       'Repo': slug.name,
     };
-    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi());
   }
 }

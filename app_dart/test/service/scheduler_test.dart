@@ -26,7 +26,6 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -107,7 +106,6 @@ void main() {
           githubChecksUtil: mockGithubChecksUtil,
         ),
       );
-      scheduler.setLogger(FakeLogging());
 
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
@@ -472,7 +470,6 @@ targets:
             ));
         when(mockBuildbucket.scheduleBuild(any))
             .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
-        scheduler.setLogger(FakeLogging());
         // Only Linux A should be retried
         final Map<String, CheckRun> checkRuns = <String, CheckRun>{
           'Linux': createCheckRun(name: 'Linux', id: 100),

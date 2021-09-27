@@ -4,18 +4,16 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
+import '../service/logging.dart';
 import 'check_for_waiting_pull_requests_queries.dart';
 import 'refresh_cirrus_status.dart';
 
@@ -33,23 +31,18 @@ const Map<String, Duration> _kInjectedLatencies = <String, Duration>{'cocoon': D
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   const CheckForWaitingPullRequests(
     Config config,
-    AuthenticationProvider authenticationProvider, {
-    @visibleForTesting LoggingProvider? loggingProvider,
-  })  : loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        super(config: config, authenticationProvider: authenticationProvider);
-
-  final LoggingProvider loggingProvider;
+    AuthenticationProvider authenticationProvider,
+  ) : super(config: config, authenticationProvider: authenticationProvider);
 
   @override
   Future<Body> get() async {
-    final Logging log = loggingProvider();
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
     for (RepositorySlug slug in Config.supportedRepos) {
       try {
-        await _checkPRs(slug, log, client);
+        await _checkPRs(slug, client);
       } catch (e) {
-        log.error('_checkPRs error in $slug: $e');
+        log.warning('_checkPRs error in $slug: $e');
       }
     }
     return Body.empty;
@@ -57,7 +50,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
   Future<void> _checkPRs(
     RepositorySlug slug,
-    Logging log,
     GraphQLClient client,
   ) async {
     if (_kMergeCountPerCycle == 0) {
@@ -67,7 +59,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     int mergeCount = 0;
     final Map<String, dynamic> data = await _queryGraphQL(
       slug,
-      log,
       client,
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
@@ -76,7 +67,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
-          log,
           client,
         );
         if (merged) {
@@ -96,7 +86,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
   Future<Map<String, dynamic>> _queryGraphQL(
     RepositorySlug slug,
-    Logging log,
     GraphQLClient client,
   ) async {
     final String labelName = config.waitingForTreeToGoGreenLabelName;
@@ -114,7 +103,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
 
     if (result.hasException) {
-      log.error(result.exception.toString());
+      log.severe(result.exception.toString());
       throw const BadRequestException('GraphQL query failed');
     }
     return result.data!;
@@ -135,7 +124,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       },
     ));
     if (result.hasException) {
-      log!.error(result.exception.toString());
+      log.severe(result.exception.toString());
       return false;
     }
     return true;
@@ -144,7 +133,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _mergePullRequest(
     String id,
     String sha,
-    Logging log,
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
@@ -156,7 +144,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     ));
 
     if (result.hasException) {
-      log.error(result.exception.toString());
+      log.severe(result.exception.toString());
       return false;
     }
     return true;
@@ -176,7 +164,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String? labelId = label['id'] as String?;
-    log!.info('LabelId of returned PRs: $labelId');
+    log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
@@ -261,7 +249,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       'submit-queue', // plugins repo
     };
 
-    log!.info('Validating name: $name, branch: $branch, status: $statuses');
+    log.info('Validating name: $name, branch: $branch, status: $statuses');
     for (Map<String, dynamic> status in statuses) {
       final String? name = status['context'] as String?;
       if (status['state'] != 'SUCCESS') {
@@ -271,7 +259,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         }
       }
     }
-    log!.info('Validating name: $name, branch: $branch, checks: $checkRuns');
+    log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String? name = checkRun['name'] as String?;
       if (checkRun['status'] != 'COMPLETED') {
@@ -286,7 +274,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(sha, cirrusClient, log, name);
+    final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(sha, cirrusClient, name);
     if (!cirrusResults.any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
       return allSuccess;
     }

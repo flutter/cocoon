@@ -16,6 +16,7 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
+import '../service/logging.dart';
 import '../service/scheduler.dart';
 
 /// List of repos that require check for labels and tests.
@@ -42,9 +43,6 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<Body> post() async {
     final String? gitHubEvent = request!.headers.value('X-GitHub-Event');
 
-    githubChecksService!.setLogger(log!);
-    scheduler.setLogger(log!);
-
     if (gitHubEvent == null || request!.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
@@ -56,7 +54,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
-      log!.debug('Processing $gitHubEvent');
+      log.fine('Processing $gitHubEvent');
       switch (gitHubEvent) {
         case 'pull_request':
           await _handlePullRequest(stringRequest);
@@ -90,7 +88,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
-    log!.debug('Processing $eventAction for ${pr.htmlUrl}');
+    log.fine('Processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
         // If it was closed without merging, cancel any outstanding tryjobs.
@@ -143,7 +141,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final RepositorySlug slug = pullRequestEvent.repository!.slug();
 
-    log!.info(
+    log.info(
         'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
 
     // The mergeable flag may be null. False indicates there's a merge conflict,
@@ -193,7 +191,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    log!.info('Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
+    log.info('Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
 
     final Set<String> labels = <String>{};

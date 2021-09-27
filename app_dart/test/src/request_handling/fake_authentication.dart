@@ -51,9 +51,6 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   HttpClientProvider get httpClientProvider => throw UnimplementedError();
 
   @override
-  LoggingProvider get loggingProvider => throw UnimplementedError();
-
-  @override
   Future<TokenInfo> tokenInfo(HttpRequest request, {Logging? log, String tokenType = 'id_token'}) async {
     return TokenInfo(
       email: 'abc@gmail.com',

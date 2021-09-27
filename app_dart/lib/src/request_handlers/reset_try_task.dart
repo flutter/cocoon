@@ -30,9 +30,6 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String pr = request!.uri.queryParameters['pr'] ?? '';
     final String commitSha = request!.uri.queryParameters['commitSha'] ?? '';
 
-    // Set logger for service classes.
-    scheduler.setLogger(log!);
-
     final int? prNumber = int.tryParse(pr);
     if (prNumber == null) {
       throw const BadRequestException('pr must be a number');

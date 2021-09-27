@@ -7,8 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import './common.dart';
-
 /// List of repositories that have valid .ci.yaml config files.
 ///
 /// These will be prepended by 'https://raw.githubusercontent.com/'. Should be
@@ -27,7 +25,6 @@ Future<void> main() async {
       final String configContent = await githubFileContent(
         configFile,
         httpClientProvider: () => http.Client(),
-        log: TestLogging.instance,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       try {

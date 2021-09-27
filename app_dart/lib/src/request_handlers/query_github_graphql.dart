@@ -5,14 +5,16 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
+import '../request_handling/authentication.dart';
+import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
+import '../service/logging.dart';
 
 /// Runs an authenticated Github GraphQl query returning the query result as json.
 @immutable
@@ -35,14 +37,13 @@ class QueryGithubGraphql extends ApiRequestHandler<Body> {
       throw const BadRequestException('Empty request');
     }
 
-    log!.info('Received query: $requestDataString');
+    log.info('Received query: $requestDataString');
     final GraphQLClient client = await config.createGitHubGraphQLClient();
-    final Map<String, dynamic>? data = await _queryGraphQL(log, client, requestDataString);
+    final Map<String, dynamic>? data = await _queryGraphQL(client, requestDataString);
     return Body.forJson(data);
   }
 
   Future<Map<String, dynamic>?> _queryGraphQL(
-    Logging? log,
     GraphQLClient client,
     String query,
   ) async {
@@ -54,7 +55,7 @@ class QueryGithubGraphql extends ApiRequestHandler<Body> {
     );
 
     if (result.hasException) {
-      log!.error(result.exception.toString());
+      log.severe(result.exception.toString());
       throw const BadRequestException('GraphQL query failed');
     }
     return result.data;

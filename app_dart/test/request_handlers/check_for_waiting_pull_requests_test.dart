@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 
 import 'package:graphql/client.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +15,6 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_graphql_client.dart';
 
 const String base64LabelId = 'base_64_label_id';
@@ -30,7 +30,6 @@ void main() {
     FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    late FakeLogging log;
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<dynamic> statuses = <dynamic>[];
     String? branch;
@@ -40,7 +39,6 @@ void main() {
 
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
-      log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
@@ -61,7 +59,6 @@ void main() {
       handler = CheckForWaitingPullRequests(
         config,
         auth,
-        loggingProvider: () => log,
       );
     });
 
@@ -81,14 +78,13 @@ void main() {
         }
         return createQueryResult(flutterRepoPRs);
       };
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await tester.get(handler);
-      final List<FakeLogRecord> errorLogs =
-          log.records.where((FakeLogRecord logLine) => logLine.level == LogLevel.ERROR).toList();
-      // The initial GraphQL error is logged, and then the repo failure is logged
-      expect(errorLogs.length, 2);
+      final List<LogRecord> errorLogs = records.where((LogRecord logLine) => logLine.level == Level.SEVERE).toList();
+      expect(errorLogs.length, 1);
       expect(
           errorLogs.first.message, contains('OperationException(linkException: null, graphqlErrors: [GraphQLError('));
-      expect(errorLogs[1].message, contains('_checkPRs error in flutter/cocoon'));
     });
   });
   group('check for waiting pull requests', () {
@@ -98,7 +94,6 @@ void main() {
     late FakeConfig config;
     FakeClientContext clientContext;
     FakeAuthenticationProvider auth;
-    late FakeLogging log;
     late FakeGraphQLClient githubGraphQLClient;
     FakeGraphQLClient cirrusGraphQLClient;
 
@@ -116,7 +111,6 @@ void main() {
       request = FakeHttpRequest();
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
-      log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
@@ -166,7 +160,6 @@ void main() {
       handler = CheckForWaitingPullRequests(
         config,
         auth,
-        loggingProvider: () => log,
       );
     });
 
@@ -232,10 +225,12 @@ void main() {
             exception: exception,
             source: QueryResultSource.network,
           );
-
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await tester.get(handler);
-      expect(log.records.length, errors.length);
-      expect(log.records[0].message, exception.toString());
+      final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
+      expect(errorLogs.length, errors.length);
+      expect(errorLogs.first.message, exception.toString());
     });
 
     test('Merges unapproved PR from autoroller', () async {

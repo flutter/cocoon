@@ -11,16 +11,14 @@ import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_http.dart';
-import 'fake_logging.dart';
 import 'request_handler_tester.dart';
 
 class NoAuthRequestHandlerTester extends RequestHandlerTester {
   NoAuthRequestHandlerTester({
     HttpRequest? request,
-    FakeLogging? log,
     Map<String, dynamic>? requestData,
   })  : requestData = requestData ?? <String, dynamic>{},
-        super(request: request as FakeHttpRequest?, log: log);
+        super(request: request as FakeHttpRequest?);
 
   Map<String, dynamic> requestData;
 

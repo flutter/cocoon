@@ -5,17 +5,18 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/logging.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -24,7 +25,6 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/mocks.dart';
 
@@ -37,7 +37,6 @@ void main() {
     FakeAuthenticatedContext authContext;
     late FakeAuthenticationProvider auth;
     late FakeDatastoreDB db;
-    late FakeLogging log;
     late ApiRequestHandlerTester tester;
     late PushGoldStatusToGithub handler;
     FakeGraphQLClient githubGraphQLClient;
@@ -45,6 +44,8 @@ void main() {
     late MockClient mockHttpClient;
     late RepositorySlug slug;
     late RetryOptions retryOptions;
+
+    final List<LogRecord> records = <LogRecord>[];
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -55,7 +56,6 @@ void main() {
       config = FakeConfig(
         dbValue: db,
       );
-      log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockClient((_) async => http.Response('{}', HttpStatus.ok));
       retryOptions = const RetryOptions(
@@ -90,12 +90,13 @@ void main() {
             retryOptions: retryOptions,
           );
         },
-        loggingProvider: () => log,
         goldClient: mockHttpClient,
       );
 
       slug = RepositorySlug('flutter', 'flutter');
       checkRuns.clear();
+      records.clear();
+      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     group('in development environment', () {
@@ -172,8 +173,8 @@ void main() {
           prsFromGitHub = <PullRequest>[];
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
         });
 
         test('if there are no framework tests for this PR', () async {
@@ -186,8 +187,8 @@ void main() {
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -225,8 +226,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -264,8 +265,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -319,7 +320,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -333,8 +333,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -367,8 +367,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -401,8 +401,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -435,8 +435,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -477,8 +477,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels, should comment to update
           verifyNever(issuesService.addLabelsToIssue(
@@ -519,8 +519,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -561,8 +561,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -598,8 +598,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -633,8 +633,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -682,7 +682,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -690,8 +689,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not label or comment
           verifyNever(issuesService.addLabelsToIssue(
@@ -739,7 +738,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -754,8 +752,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should label and comment
           verify(issuesService.addLabelsToIssue(
@@ -805,7 +803,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -819,8 +816,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should apply labels and make comment
           verify(issuesService.addLabelsToIssue(
@@ -869,7 +866,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -883,8 +879,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should apply labels and make comment
           verify(issuesService.addLabelsToIssue(
@@ -943,7 +939,6 @@ void main() {
                 retryOptions: retryOptions,
               );
             },
-            loggingProvider: () => log,
             goldClient: mockHttpClient,
           );
 
@@ -957,8 +952,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not label or comment
           verifyNever(issuesService.addLabelsToIssue(
@@ -997,8 +992,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -1037,8 +1032,8 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -1072,8 +1067,8 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
@@ -1132,7 +1127,6 @@ void main() {
               retryOptions: retryOptions,
             );
           },
-          loggingProvider: () => log,
           goldClient: mockHttpClient,
         );
 
@@ -1148,8 +1142,8 @@ void main() {
         expect(followUpStatus.updates, 1);
         expect(completedStatus.status, GithubGoldStatusUpdate.statusCompleted);
         expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
-        expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
       });
 
       test('accounts for null status description when parsing for Luci builds', () async {
@@ -1176,8 +1170,8 @@ void main() {
         final Body body = await tester.get<Body>(handler);
         expect(body, same(Body.empty));
         expect(status.updates, 0);
-        expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+        expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
         // Should not apply labels or make comments
         verifyNever(issuesService.addLabelsToIssue(

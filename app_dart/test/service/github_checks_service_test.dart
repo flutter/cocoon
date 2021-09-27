@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -34,7 +33,6 @@ void main() {
   setUp(() {
     mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
-    when(mockLuciBuildService.setLogger(any)).thenReturn(0);
     when(mockGithubService.listFiles(any, any)).thenAnswer((_) async => <String?>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
     config = FakeConfig(githubService: mockGithubService);
@@ -42,7 +40,6 @@ void main() {
       config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    githubChecksService.setLogger(FakeLogging());
     slug = RepositorySlug('flutter', 'cocoon');
     scheduler = FakeScheduler(
       config: config,

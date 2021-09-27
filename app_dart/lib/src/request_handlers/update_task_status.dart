@@ -15,6 +15,7 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
+import '../service/logging.dart';
 
 /// Endpoint for task runners to update Cocoon with test run information.
 ///
@@ -78,9 +79,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String? builderName = requestData![builderNameParam] as String?;
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
     final List<Task> initialTasks = await query.run().toList();
-    log!.debug('Found ${initialTasks.length} tasks for commit');
+    log.fine('Found ${initialTasks.length} tasks for commit');
     final List<Task> tasks = <Task>[];
-    log!.debug('Searching for task with builderName=$builderName');
+    log.fine('Searching for task with builderName=$builderName');
     for (Task task in initialTasks) {
       if (task.builderName == builderName || task.name == builderName) {
         tasks.add(task);
@@ -88,7 +89,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (tasks.length != 1) {
-      log!.error('Found ${tasks.length} entries for builder $builderName');
+      log.severe('Found ${tasks.length} entries for builder $builderName');
       throw InternalServerError('Expected to find 1 task for $builderName, but found ${tasks.length}');
     }
 
@@ -109,7 +110,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
     final String id = 'flutter/flutter/$gitBranch/$gitSha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    log!.debug('Constructed commit key=$id');
+    log.fine('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
     final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
       throw BadRequestException('No such commit: $id');

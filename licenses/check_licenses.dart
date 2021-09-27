@@ -2,12 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:core' hide print;
 import 'dart:core';
-import 'dart:io' hide exit;
 import 'dart:io';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io' as io_internals show exit;
 
@@ -36,14 +32,13 @@ Future<void> run(List<String> arguments) async {
 
 // TESTS
 String _generateLicense(String prefix) {
-  assert(prefix != null);
   return '${prefix}Copyright (2014|2015|2016|2017|2018|2019|2020|2021) The Flutter Authors. All rights reserved.\n'
       '${prefix}Use of this source code is governed by a BSD-style license that can be\n'
       '${prefix}found in the LICENSE file.';
 }
 
 Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums = true}) async {
-  final int overrideMinimumMatches = checkMinimums ? null : 0;
+  final int? overrideMinimumMatches = checkMinimums ? null : 0;
   await _verifyNoMissingLicenseForExtension(
       workingDirectory, 'dart', overrideMinimumMatches ?? 2000, _generateLicense('// '));
   await _verifyNoMissingLicenseForExtension(
@@ -95,8 +90,8 @@ Future<void> _verifyNoMissingLicenseForExtension(
   }
 }
 
-Iterable<File> _allFiles(String workingDirectory, String extension, {@required int minimumMatches}) sync* {
-  assert(extension == null || !extension.startsWith('.'), 'Extension argument should not start with a period.');
+Iterable<File> _allFiles(String workingDirectory, String extension, {required int minimumMatches}) sync* {
+  assert(!extension.startsWith('.'), 'Extension argument should not start with a period.');
   final Set<FileSystemEntity> pending = <FileSystemEntity>{Directory(workingDirectory)};
   int matches = 0;
   while (pending.isNotEmpty) {
@@ -115,7 +110,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
       if (path.basename(entity.path).endsWith('pbenum.dart')) continue;
       if (path.basename(entity.path).endsWith('pbjson.dart')) continue;
       if (path.basename(entity.path).endsWith('pbserver.dart')) continue;
-      if (extension == null || path.extension(entity.path) == '.$extension') {
+      if (path.extension(entity.path) == '.$extension') {
         matches += 1;
         yield entity;
       }

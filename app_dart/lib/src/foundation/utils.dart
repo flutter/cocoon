@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +17,7 @@ import '../../protos.dart';
 import '../foundation/typedefs.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
+import '../service/logging.dart';
 import '../service/luci.dart';
 import '../service/scheduler/graph.dart';
 
@@ -41,7 +41,6 @@ Duration twoSecondLinearBackoff(int attempt) {
 Future<String> githubFileContent(
   String filePath, {
   required HttpClientProvider httpClientProvider,
-  Logging? log,
   Duration timeout = const Duration(seconds: 5),
   RetryOptions? retryOptions,
 }) async {
@@ -51,7 +50,7 @@ Future<String> githubFileContent(
   );
   final Uri url = Uri.https('raw.githubusercontent.com', filePath);
   return retryOptions.retry(
-    () async => await getUrl(url, httpClientProvider, log: log, timeout: timeout),
+    () async => await getUrl(url, httpClientProvider, timeout: timeout),
     retryIf: (Exception e) => e is HttpException,
   );
 }
@@ -63,9 +62,9 @@ Future<String> githubFileContent(
 FutureOr<String> getUrl(
   Uri url,
   HttpClientProvider httpClientProvider, {
-  Logging? log,
   Duration timeout = const Duration(seconds: 5),
 }) async {
+  log.info('Making HTTP GET request for $url');
   final http.Client client = httpClientProvider();
   try {
     final http.Response response = await client.get(url).timeout(timeout);
@@ -75,7 +74,7 @@ FutureOr<String> getUrl(
     } else if (response.statusCode == HttpStatus.notFound) {
       throw NotFoundException('HTTP ${response.statusCode}: $url');
     } else {
-      log?.warning('HTTP ${response.statusCode}: $url');
+      log.warning('HTTP ${response.statusCode}: $url');
       throw HttpException('HTTP ${response.statusCode}: $url');
     }
   } finally {
@@ -85,8 +84,7 @@ FutureOr<String> getUrl(
 
 /// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
-  HttpClientProvider httpClientProvider,
-  Logging log, {
+  HttpClientProvider httpClientProvider, {
   RetryOptions? retryOptions,
 }) async {
   String content;
@@ -94,7 +92,6 @@ Future<Uint8List> getBranches(
     content = await githubFileContent(
       '/flutter/cocoon/master/app_dart/dev/branches.txt',
       httpClientProvider: httpClientProvider,
-      log: log,
       retryOptions: retryOptions,
     );
   } on HttpException {
@@ -130,7 +127,6 @@ Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String bu
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(
   HttpClientProvider httpClientProvider,
-  Logging log,
   RepositorySlug slug,
   String bucket, {
   String commitSha = 'master',
@@ -151,7 +147,6 @@ Future<List<LuciBuilder>> getLuciBuilders(
     builderContent = await githubFileContent(
       builderConfigPath,
       httpClientProvider: httpClientProvider,
-      log: log,
       retryOptions: retryOptions,
     );
   } on NotFoundException {
@@ -209,8 +204,7 @@ Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<S
   return filteredBuilders;
 }
 
-Future<void> insertBigquery(
-    String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi, Logging? log) async {
+Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
   // Define const variables for [BigQuery] operations.
   const String projectId = 'flutter-dashboard';
   const String dataset = 'cocoon';
@@ -227,7 +221,7 @@ Future<void> insertBigquery(
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
   } on ApiRequestError catch (error) {
-    log!.warning('Failed to add to BigQuery: $error');
+    log.warning('Failed to add to BigQuery: $error');
   }
 }
 

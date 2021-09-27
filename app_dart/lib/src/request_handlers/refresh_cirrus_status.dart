@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:graphql/client.dart';
 
 import '../request_handling/exceptions.dart';
+import '../service/logging.dart';
 import 'refresh_cirrus_status_queries.dart';
 
 /// Refer all cirrus build statuses at: https://github.com/cirruslabs/cirrus-ci-web/blob/master/schema.graphql#L120
@@ -20,7 +20,6 @@ const List<String> kCirrusInProgressStates = <String>['CREATED', 'TRIGGERED', 'S
 Future<List<CirrusResult>> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
-  Logging? log,
   String name,
 ) async {
   const String owner = 'flutter';
@@ -37,7 +36,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   );
 
   if (result.hasException) {
-    log!.error(result.exception.toString());
+    log.severe(result.exception.toString());
     throw const BadRequestException('GraphQL query failed');
   }
 
@@ -57,7 +56,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
       cirrusResults.add(CirrusResult(branch, tasks));
     }
   } catch (_) {
-    log!.debug('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
+    log.fine('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
   return cirrusResults;
 }
