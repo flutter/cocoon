@@ -579,7 +579,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -611,7 +611,7 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
@@ -632,6 +632,47 @@ void main() {
         <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
       )).called(1);
 
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework labels deletion only PR, no test request', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/flutter_tools/blah.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 0,
+          PullRequestFile()
+            ..filename = 'packages/flutter_driver/blah.dart'
+            ..deletionsCount = 50
+            ..additionsCount = 0
+            ..changesCount = 0,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
+      )).called(1);
+
+      // The PR here is only deleting code, so no test comment.
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,

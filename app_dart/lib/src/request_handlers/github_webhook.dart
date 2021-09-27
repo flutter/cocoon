@@ -201,7 +201,15 @@ class GithubWebhook extends RequestHandler<Body> {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      if (file.filename!.endsWith('.dart') &&
+      // When null, do not assume 0 lines have changed.
+      final int linesAdded = file.additionsCount ?? 1;
+      final int linesModified = file.changesCount ?? 1;
+      final bool addsOrModifies = linesAdded > 0 || linesModified > 0;
+
+      if (addsOrModifies &&
+          !file.filename!.contains('pubspec.yaml') &&
+          !file.filename!.contains('.github') &&
+          !file.filename!.endsWith('.md') &&
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename!.startsWith('dev/bots/')) {
         needsTests = true;
@@ -215,7 +223,7 @@ class GithubWebhook extends RequestHandler<Body> {
       labels.addAll(getLabelsForFrameworkPath(file.filename!));
     }
 
-    if (pr.user.login == 'fluttergithubbot') {
+    if (pr.user!.login == 'fluttergithubbot') {
       needsTests = false;
       labels.addAll(<String>['team', 'tech-debt', 'team: flakes']);
     }
