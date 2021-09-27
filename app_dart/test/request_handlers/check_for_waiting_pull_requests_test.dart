@@ -33,7 +33,6 @@ void main() {
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<dynamic> statuses = <dynamic>[];
     String? branch;
-    final List<LogRecord> records = <LogRecord>[];
 
     setUp(() {
       request = FakeHttpRequest();
@@ -61,8 +60,6 @@ void main() {
         config,
         auth,
       );
-      log.onRecord.listen((LogRecord record) => records.add(record));
-      records.clear();
     });
 
     test('Continue with other repos if one fails', () async {
@@ -81,6 +78,8 @@ void main() {
         }
         return createQueryResult(flutterRepoPRs);
       };
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await tester.get(handler);
       final List<LogRecord> errorLogs = records.where((LogRecord logLine) => logLine.level == Level.SEVERE).toList();
       expect(errorLogs.length, 1);
@@ -107,7 +106,6 @@ void main() {
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String? branch;
-    final List<LogRecord> records = <LogRecord>[];
 
     setUp(() {
       request = FakeHttpRequest();
@@ -163,8 +161,6 @@ void main() {
         config,
         auth,
       );
-      log.onRecord.listen((LogRecord record) => records.add(record));
-      records.clear();
     });
 
     void _verifyQueries() {
@@ -229,10 +225,9 @@ void main() {
             exception: exception,
             source: QueryResultSource.network,
           );
-
-      records.clear();
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
       await tester.get(handler);
-      print(records);
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, errors.length);
       expect(errorLogs.first.message, exception.toString());
