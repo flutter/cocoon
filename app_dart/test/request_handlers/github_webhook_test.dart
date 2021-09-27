@@ -642,7 +642,7 @@ void main() {
     test('Framework labels deletion only PR, no test request', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -652,15 +652,10 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
-            ..filename = 'packages/flutter_tools/blah.dart'
+            ..filename = 'packages/flutter/blah.dart'
             ..deletionsCount = 20
             ..additionsCount = 0
-            ..changesCount = 0,
-          PullRequestFile()
-            ..filename = 'packages/flutter_driver/blah.dart'
-            ..deletionsCount = 50
-            ..additionsCount = 0
-            ..changesCount = 0,
+            ..changesCount = 20,
         ]),
       );
 
@@ -669,7 +664,7 @@ void main() {
       verify(issuesService.addLabelsToIssue(
         slug,
         issueNumber,
-        <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
+        <String>['framework'],
       )).called(1);
 
       // The PR here is only deleting code, so no test comment.
@@ -678,6 +673,41 @@ void main() {
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
       ));
+    });
+
+    test('PR with additions and deletions is commented and labeled', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/flutter/blah.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 1
+            ..changesCount = 21,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
+      )).called(1);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
     });
 
     test('Framework no comment if only dev bots or devicelab changed', () async {
