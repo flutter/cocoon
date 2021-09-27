@@ -686,7 +686,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'packages/flutter/blah.dart'
             ..deletionsCount = 20
