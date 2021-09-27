@@ -112,6 +112,10 @@ void main() {
       );
       expect(build.id, '123');
       expect(build.tags!.length, 2);
+      expect(build.tags, <String?, List<String?>>{
+        'user_agent': <String>['flutter_cocoon'],
+        'flutter_pr': <String>['1']
+      });
     });
 
     test('CancelBuild', () async {
@@ -131,9 +135,44 @@ void main() {
       expect(build.tags!.length, 2);
     });
 
+    test('BatchBuildRequest', () async {
+      const BatchRequest request = BatchRequest(requests: <Request>[
+        Request(
+            scheduleBuild: ScheduleBuildRequest(
+          builderId: builderId,
+          experimental: Trinary.yes,
+          tags: <String, List<String>>{
+            'user_agent': <String>['flutter_cocoon'],
+            'flutter_pr': <String>['true', '1']
+          },
+          properties: <String, String>{
+            'git_url': 'https://github.com/flutter/flutter',
+            'git_ref': 'refs/pull/1/head',
+          },
+        ))
+      ]);
+
+      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
+        request,
+        batchJson,
+        'Batch',
+        (BuildBucketClient client) => client.batch(request),
+      );
+      expect(response.responses!.length, 1);
+      expect(response.responses!.first.getBuild!.status, Status.success);
+      expect(response.responses!.first.getBuild!.tags, <String?, List<String?>>{
+        'user_agent': <String>['flutter_cocoon'],
+        'flutter_pr': <String>['1']
+      });
+    });
+
     test('Batch', () async {
       const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
+        Request(
+            getBuild: GetBuildRequest(
+          builderId: builderId,
+          buildNumber: 123,
+        ))
       ]);
 
       final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
@@ -238,7 +277,17 @@ const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
           }
         },
         "endTime": "2019-07-15T23:20:32.610402Z",
-        "createTime": "2019-07-15T22:48:44.299749Z"
+        "createTime": "2019-07-15T22:48:44.299749Z",
+        "tags": [
+          {
+            "key": "user_agent",
+            "value": "flutter_cocoon"
+          },
+          {
+            "key": "flutter_pr",
+            "value": "1"
+          }
+        ]
       }
     }
   ]

@@ -8,7 +8,6 @@ import 'dart:io' as _i12;
 import 'dart:typed_data' as _i22;
 
 import 'package:appengine/appengine.dart' as _i16;
-import 'package:cocoon_service/cocoon_service.dart' as _i23;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i9;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i31;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i24;
@@ -20,6 +19,7 @@ import 'package:cocoon_service/src/service/bigquery.dart' as _i20;
 import 'package:cocoon_service/src/service/buildbucket.dart' as _i15;
 import 'package:cocoon_service/src/service/config.dart' as _i3;
 import 'package:cocoon_service/src/service/datastore.dart' as _i32;
+import 'package:cocoon_service/src/service/github_checks_service.dart' as _i23;
 import 'package:cocoon_service/src/service/github_service.dart' as _i28;
 import 'package:cocoon_service/src/service/luci.dart' as _i30;
 import 'package:cocoon_service/src/service/luci_build_service.dart' as _i27;
@@ -1361,11 +1361,7 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
   }
 
   @override
-  _i15.BuildBucketClient get buildBucketClient =>
-      (super.noSuchMethod(Invocation.getter(#buildBucketClient), returnValue: _FakeBuildBucketClient_45())
-          as _i15.BuildBucketClient);
-  @override
-  set buildBucketClient(_i15.BuildBucketClient? _buildBucketClient) =>
+  set buildBucketClient(dynamic _buildBucketClient) =>
       super.noSuchMethod(Invocation.setter(#buildBucketClient, _buildBucketClient), returnValueForMissingStub: null);
   @override
   _i3.Config get config => (super.noSuchMethod(Invocation.getter(#config), returnValue: _FakeConfig_1()) as _i3.Config);

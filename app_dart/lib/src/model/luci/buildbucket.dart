@@ -389,6 +389,7 @@ class ScheduleBuildRequest extends JsonBody {
     this.priority,
     this.tags,
     this.notify,
+    this.fields,
   });
 
   /// Creates a [ScheduleBuildRequest] from JSON.
@@ -460,12 +461,18 @@ class ScheduleBuildRequest extends JsonBody {
   /// The topic and user data to send build status updates to.
   final NotificationConfig? notify;
 
+  /// The list fields to be included in the response.
+  ///
+  /// This is a comma separated list of Build proto fields to get included
+  /// in the response.
+  final String? fields;
+
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
 
   @override
   String toString() {
-    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit)';
+    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit, fields: $fields)';
   }
 }
 
@@ -555,7 +562,7 @@ class Build extends JsonBody {
   Map<String, dynamic> toJson() => _$BuildToJson(this);
 
   @override
-  String toString() => 'build(id: $id, builderId: $builderId, number: $number, status: $status)';
+  String toString() => 'build(id: $id, builderId: $builderId, number: $number, status: $status, tags: $tags)';
 }
 
 /// A unique handle to a builder on BuildBucket.
