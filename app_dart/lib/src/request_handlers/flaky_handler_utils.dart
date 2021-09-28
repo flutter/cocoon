@@ -227,7 +227,7 @@ Future<Map<String?, PullRequest>> getExistingPRs(GithubService gitHub, Repositor
   final Map<String?, PullRequest> nameToExistingPRs = <String?, PullRequest>{};
   for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
     try {
-      final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body);
+      final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body!);
       if (metaTags != null) {
         nameToExistingPRs[metaTags['name'] as String] = pr;
       }

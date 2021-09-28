@@ -104,7 +104,7 @@ abc_test.sh @ghi @flutter/framework
         final FakeConfig config = FakeConfig(
           githubService: GithubService(mockGitHubClient),
         );
-        expect(() => getExistingPRs(config.githubService, config.flutterSlug), throwsA(predicate<String>((String e) {
+        expect(() => getExistingPRs(config.githubService!, config.flutterSlug), throwsA(predicate<String>((String e) {
           return e.contains('Unable to parse body of $expectedHtml');
         })));
       });
