@@ -225,7 +225,7 @@ class Config {
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   /// Internal Google service account used to surface FRoB results.
-  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+  String get frobAccount => 'dart-sdk-rolls-jobs@system.gserviceaccount.com';
 
   int get maxTaskRetries => 2;
 
