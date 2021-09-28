@@ -19,9 +19,9 @@ cron:
 - description: check for mergeable commits waiting for the tree to go green
   url: /api/check-waiting-pull-requests
   schedule: every 5 minutes
-# - description: push github rate limit history to bigquery
-#   url: /api/public/github-rate-limit-status
-#   schedule: every 1 minutes
+- description: push github rate limit history to bigquery
+  url: /api/public/github-rate-limit-status
+  schedule: every 1 minutes
 - description: detect and flag tests with high flaky rates
   url: /api/file_flaky_issue_and_pr?threshold=0.02
   schedule: every monday 16:00
