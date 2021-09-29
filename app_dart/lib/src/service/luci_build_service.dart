@@ -451,7 +451,7 @@ class LuciBuildService {
       },
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: json.encode(userData),
+        userData: base64Encode(json.encode(userData).codeUnits),
       ),
     ));
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
