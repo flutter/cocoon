@@ -4,4 +4,4 @@
 
 import 'package:logging/logging.dart';
 
-final Logger log = Logger('server')..level = Level.ALL;
+final Logger log = Logger.root..level = Level.ALL;
