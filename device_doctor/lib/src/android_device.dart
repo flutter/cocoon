@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
 import 'package:retry/retry.dart';
@@ -99,6 +100,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
+      checks.add(await screenOnCheck(processManager: processManager));
       if (Platform.isMacOS) {
         checks.add(await userAutoLoginCheck(processManager: processManager));
       }
@@ -177,6 +179,33 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  @visibleForTesting
+
+  /// The health check for Android device screen on.
+  ///
+  /// An Android device screen is on when both `mHoldingWakeLockSuspendBlocker` and
+  /// `mHoldingDisplaySuspendBlocker` are true.
+  Future<HealthCheckResult> screenOnCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String result = await eval('adb', <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+          processManager: processManager);
+      final Set<String> mHoldings = result.trim().split('\n').map((e) => e.trim()).toSet();
+      final Set<String> expectedHoldings = <String>{
+        'mHoldingWakeLockSuspendBlocker=true',
+        'mHoldingDisplaySuspendBlocker=true'
+      };
+      if (SetEquality().equals(mHoldings, expectedHoldings)) {
+        healthCheckResult = HealthCheckResult.success(kScreenOnCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, 'screen is off');
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, error.toString());
     }
     return healthCheckResult;
   }
