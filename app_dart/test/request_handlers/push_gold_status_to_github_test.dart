@@ -206,6 +206,35 @@ void main() {
           ));
         });
 
+        test('if there are no framework tests for this PR, exclude web builds', () async {
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'web-test1', 'status': 'completed', 'conclusion': 'success'}
+          ];
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ));
+        });
+
         test('same commit, checks running, last status running', () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
@@ -592,41 +621,6 @@ void main() {
           // Checks running
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'}
-          ];
-
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusRunning);
-          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
-          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
-
-          // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
-        });
-
-        test('web tests also indicate golden file tests', () async {
-          // New commit
-          final PullRequest pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
-          db.values[status.key] = status;
-
-          // Checks running
-          checkRuns = <dynamic>[
-            <String, String>{'name': 'web', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
 
           final Body body = await tester.get<Body>(handler);
