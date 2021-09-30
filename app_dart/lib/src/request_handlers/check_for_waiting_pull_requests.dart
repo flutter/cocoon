@@ -169,6 +169,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
+      log.info('Is pull request mergeable: ${pullRequest['mergeable']}');
       final bool isMergeable = pullRequest['mergeable'] == 'MERGEABLE';
 
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
@@ -432,6 +433,9 @@ class _AutoMergeQueryResult {
       buffer.writeln('- This commit has empty status or empty checks. Please'
           ' check the Google CLA status is present and Flutter Dashboard'
           ' application has multiple checks.');
+    }
+    if (!isMergeable) {
+      buffer.writeln('- This commit is not mergeable. Please rebase your PR.');
     }
     return buffer.toString();
   }
