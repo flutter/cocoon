@@ -12,6 +12,7 @@ import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
+import '../foundation/environment.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
@@ -213,8 +214,10 @@ class Scheduler {
   /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
   /// and that do not have any dependencies.
   List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
-    // Filter targets to only those run in postsubmit.
-    final List<Target> postsubmitTargets = config.targets.where((Target target) => target.postsubmit).toList();
+    // Filter targets to only those run in this postsubmit environment.
+    final List<Target> postsubmitTargets =
+        config.targets.where((Target target) => target.postsubmit && target.bringup != isProduction).toList();
+
     return _filterEnabledTargets(commit, config, postsubmitTargets);
   }
 
