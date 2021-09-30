@@ -1009,7 +1009,6 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
     this.dateTime,
-    this.mergeable = 'MERGEABLE',
   }) : _count = _counter++;
 
   static int _counter = 0;
@@ -1023,14 +1022,12 @@ class PullRequestHelper {
   List<StatusHelper>? lastCommitStatuses;
   List<CheckRunHelper>? lastCommitCheckRuns;
   final DateTime? dateTime;
-  final String? mergeable;
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'author': <String, dynamic>{'login': author},
       'id': id,
       'number': _count,
-      'mergeable': mergeable,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{

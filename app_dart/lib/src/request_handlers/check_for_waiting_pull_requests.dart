@@ -169,8 +169,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
-      final bool isMergeable = pullRequest['mergeable'] == 'MERGEABLE';
-
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
@@ -225,7 +223,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         sha: sha,
         labelId: labelId!,
         emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
-        isMergeable: isMergeable,
       ));
     }
     return list;
@@ -361,7 +358,6 @@ class _AutoMergeQueryResult {
     required this.sha,
     required this.labelId,
     required this.emptyValidations,
-    required this.isMergeable,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -391,21 +387,13 @@ class _AutoMergeQueryResult {
   /// Whether the commit has empty validations or not.
   final bool emptyValidations;
 
-  /// Whether the PR is mergeable or not.
-  final bool isMergeable;
-
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
-      ciSuccessful &&
-      failures.isEmpty &&
-      hasApprovedReview &&
-      changeRequestAuthors.isEmpty &&
-      !emptyValidations &&
-      isMergeable;
+      ciSuccessful && failures.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty && !emptyValidations;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations || !isMergeable;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
