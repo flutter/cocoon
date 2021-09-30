@@ -201,7 +201,8 @@ class Scheduler {
     return SchedulerConfig(
       enabledBranches: cachedConfig.enabledBranches,
       targets: cachedConfig.targets.where((Target target) => target.bringup != isProduction),
-      platformProperties: cachedConfig.platformProperties,);
+      platformProperties: cachedConfig.platformProperties,
+    );
   }
 
   /// Get all postsubmit targets that should be immediately started for [Commit].
@@ -220,8 +221,7 @@ class Scheduler {
   /// and that do not have any dependencies.
   List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
     // Filter targets to only those run in postsubmit.
-    final List<Target> postsubmitTargets =
-        config.targets.where((Target target) => target.postsubmit).toList();
+    final List<Target> postsubmitTargets = config.targets.where((Target target) => target.postsubmit).toList();
 
     return _filterEnabledTargets(commit, config, postsubmitTargets);
   }

@@ -73,7 +73,7 @@ void main() {
   group('Scheduler', () {
     setUp(() {
       productionTest = true;
-      
+
       final MockTabledataResource tabledataResource = MockTabledataResource();
       when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
         return TableDataInsertAllResponse();
