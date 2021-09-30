@@ -421,9 +421,6 @@ class _AutoMergeQueryResult {
           ' check the Google CLA status is present and Flutter Dashboard'
           ' application has multiple checks.');
     }
-    if (!isMergeable) {
-      buffer.writeln('- This commit is not mergeable. Please rebase your PR.');
-    }
     return buffer.toString();
   }
 
