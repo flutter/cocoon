@@ -3,7 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:github/github.dart' hide Team;
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+
+import '../src/datastore/fake_config.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('Gets test ownership', () {
@@ -80,6 +86,27 @@ abc_test.sh @ghi @flutter/framework
         final TestOwnership ownership = getTestOwnership('Linux abc', BuilderType.shard, testOwnersContent);
         expect(ownership.owner, 'def');
         expect(ownership.team, Team.engine);
+      });
+    });
+
+    group('getExistingPRs', () {
+      test('throws more detailed logs for bad prs', () async {
+        final MockGitHub mockGitHubClient = MockGitHub();
+        final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
+        const String expectedHtml = 'https://someurl';
+        // when gets existing marks flaky prs.
+        when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
+          return Stream<PullRequest>.value(PullRequest(
+            htmlUrl: expectedHtml,
+          ));
+        });
+        when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
+        final FakeConfig config = FakeConfig(
+          githubService: GithubService(mockGitHubClient),
+        );
+        expect(() => getExistingPRs(config.githubService!, config.flutterSlug), throwsA(predicate<String>((String e) {
+          return e.contains('Unable to parse body of $expectedHtml');
+        })));
       });
     });
   });

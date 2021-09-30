@@ -226,9 +226,13 @@ Future<Map<String?, Issue>> getExistingIssues(GithubService gitHub, RepositorySl
 Future<Map<String?, PullRequest>> getExistingPRs(GithubService gitHub, RepositorySlug slug) async {
   final Map<String?, PullRequest> nameToExistingPRs = <String?, PullRequest>{};
   for (final PullRequest pr in await gitHub.listPullRequests(slug, null)) {
-    final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body!);
-    if (metaTags != null) {
-      nameToExistingPRs[metaTags['name'] as String] = pr;
+    try {
+      final Map<String, dynamic>? metaTags = retrieveMetaTagsFromContent(pr.body!);
+      if (metaTags != null) {
+        nameToExistingPRs[metaTags['name'] as String] = pr;
+      }
+    } catch (e) {
+      throw 'Unable to parse body of ${pr.htmlUrl}\n$e';
     }
   }
   return nameToExistingPRs;
