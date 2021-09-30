@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'package:meta/meta.dart';
 
 const String kCocoonEnvironmentVariable = 'COCOON_ENVIRONMENT';
 
@@ -10,6 +11,11 @@ const String kCocoonEnvironmentVariable = 'COCOON_ENVIRONMENT';
 ///
 /// This is the strictest level of access in Cocoon, and indicates all functionality is running
 /// against prod instances, configs, and APIs. It has the ability to block users.
-///
-/// New functionality should be tested exclusively in staging before promoting to prod.
-bool get isProduction => Platform.environment[kCocoonEnvironmentVariable] == 'prod';
+bool get isProduction =>
+    (Platform.environment.containsKey(kCocoonEnvironmentVariable) &&
+        Platform.environment[kCocoonEnvironmentVariable] == 'prod') ||
+    productionTest;
+
+/// Test flag to enable production functionality.
+@visibleForTesting
+bool productionTest = false;

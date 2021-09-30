@@ -196,7 +196,12 @@ class Scheduler {
       ),
       ttl: const Duration(hours: 1),
     ))!;
-    return SchedulerConfig.fromBuffer(configBytes);
+    final SchedulerConfig cachedConfig = SchedulerConfig.fromBuffer(configBytes);
+    // Filter targets so non-bringup is shown in production, otherwise only show bringup.
+    return SchedulerConfig(
+      enabledBranches: cachedConfig.enabledBranches,
+      targets: cachedConfig.targets.where((Target target) => target.bringup != isProduction),
+      platformProperties: cachedConfig.platformProperties,);
   }
 
   /// Get all postsubmit targets that should be immediately started for [Commit].
@@ -214,9 +219,9 @@ class Scheduler {
   /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
   /// and that do not have any dependencies.
   List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
-    // Filter targets to only those run in this postsubmit environment.
+    // Filter targets to only those run in postsubmit.
     final List<Target> postsubmitTargets =
-        config.targets.where((Target target) => target.postsubmit && target.bringup != isProduction).toList();
+        config.targets.where((Target target) => target.postsubmit).toList();
 
     return _filterEnabledTargets(commit, config, postsubmitTargets);
   }
