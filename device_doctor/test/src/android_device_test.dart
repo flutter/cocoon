@@ -183,6 +183,63 @@ void main() {
     });
   });
 
+  group('AndroidScreenOnCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    List<List<int>> output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when screen is on', () async {
+      const String screenMessage = '''
+      mHoldingWakeLockSuspendBlocker=true
+      mHoldingDisplaySuspendBlocker=true
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kScreenOnCheckKey);
+    });
+
+    test('returns failure when screen is off', () async {
+      const String screenMessage = '''
+      mHoldingWakeLockSuspendBlocker=false
+      mHoldingDisplaySuspendBlocker=false
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kScreenOnCheckKey);
+      expect(healthCheckResult.details, 'screen is off');
+    });
+
+    test('returns failure when adb return none 0 code', () async {
+      process = FakeProcess(1);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kScreenOnCheckKey);
+      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+    });
+  });
+
   group('AndroidDeviceKillProcesses', () {
     AndroidDevice device;
     MockProcessManager processManager;
