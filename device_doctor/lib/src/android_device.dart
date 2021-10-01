@@ -195,9 +195,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       final String result = await eval(
           'adb', <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
           processManager: processManager);
-      final Set<String> mHoldings = result.trim().split('\n').map((e) => e.trim()).toSet();
-      final Set<String> expectedHoldings = <String>{'mHoldingDisplaySuspendBlocker=true'};
-      if (SetEquality().equals(mHoldings, expectedHoldings)) {
+      if (result.trim() == 'mHoldingDisplaySuspendBlocker=true') {
         healthCheckResult = HealthCheckResult.success(kScreenOnCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, 'screen is off');
