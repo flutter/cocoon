@@ -6,6 +6,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
 import 'config.dart';
+import 'logging.dart';
 
 /// Function signature for a [TaskService] provider.
 typedef AccessTokenServiceProvider = AccessTokenService Function(Config config);
@@ -28,6 +29,7 @@ class AccessTokenService {
     final http.Client httpClient = http.Client();
     try {
       final AccessCredentials credentials = await obtainAccessCredentialsViaMetadataServer(httpClient);
+      log.info('Credential scopes: ${credentials.scopes}');
       return credentials.accessToken;
     } finally {
       httpClient.close();
