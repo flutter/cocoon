@@ -169,6 +169,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
+      log.info('Is pull request mergeable: ${pullRequest['mergeable']}');
+      // This is used to remove the bot label as it requires manual intervention.
+      final bool isConflicting = pullRequest['mergeable'] == 'CONFLICTING';
+      // This is used to skip landing until we are sure the PR is mergeable.
+      final bool unknownMergeableState = pullRequest['mergeable'] == 'UNKNOWN';
+
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
@@ -214,16 +220,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       );
 
       list.add(_AutoMergeQueryResult(
-        graphQLId: id,
-        ciSuccessful: ciSuccessful,
-        failures: failures,
-        hasApprovedReview: hasApproval,
-        changeRequestAuthors: changeRequestAuthors,
-        number: number,
-        sha: sha,
-        labelId: labelId!,
-        emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
-      ));
+          graphQLId: id,
+          ciSuccessful: ciSuccessful,
+          failures: failures,
+          hasApprovedReview: hasApproval,
+          changeRequestAuthors: changeRequestAuthors,
+          number: number,
+          sha: sha,
+          labelId: labelId!,
+          emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
+          isConflicting: isConflicting,
+          unknownMergeableState: unknownMergeableState));
     }
     return list;
   }
@@ -358,6 +365,8 @@ class _AutoMergeQueryResult {
     required this.sha,
     required this.labelId,
     required this.emptyValidations,
+    required this.isConflicting,
+    required this.unknownMergeableState,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -387,13 +396,25 @@ class _AutoMergeQueryResult {
   /// Whether the commit has empty validations or not.
   final bool emptyValidations;
 
+  /// Whether the PR has conflicts or not.
+  final bool isConflicting;
+
+  /// Whether has an unknown mergeable state or not.
+  final bool unknownMergeableState;
+
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
-      ciSuccessful && failures.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty && !emptyValidations;
+      ciSuccessful &&
+      failures.isEmpty &&
+      hasApprovedReview &&
+      changeRequestAuthors.isEmpty &&
+      !emptyValidations &&
+      !unknownMergeableState &&
+      !isConflicting;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations || isConflicting;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
