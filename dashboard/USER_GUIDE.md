@@ -71,18 +71,3 @@ PRs welcome for new filtering options!
 
 If you're interested in a larger data analysis, the Flutter Infra Team pushes
 this data to BigQuery.
-
-## Performance dashboard
-
-https://flutter-dashboard.appspot.com/benchmarks.html.
-
-This dashboard loads a lot of data, and can take ~1 minute to get a response
-from the backend.
-
-### How do I update the baseline for a benchmark?
-
-1. Ensure that you are signed in with an AllowListedAccount with Cocoon
-2. Hover over top right corner of the benchmark graph of interest
-3. Click the magnifying glass
-4. A UI at the top will come down with a form to change baseline values
-
