@@ -196,12 +196,12 @@ void main() {
 
     test('returns success when screen is on', () async {
       const String screenMessage = '''
-      mHoldingWakeLockSuspendBlocker=true
       mHoldingDisplaySuspendBlocker=true
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+      when(processManager.start(
+              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -212,12 +212,12 @@ void main() {
 
     test('returns failure when screen is off', () async {
       const String screenMessage = '''
-      mHoldingWakeLockSuspendBlocker=false
       mHoldingDisplaySuspendBlocker=false
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+      when(processManager.start(
+              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -229,7 +229,8 @@ void main() {
 
     test('returns failure when adb return none 0 code', () async {
       process = FakeProcess(1);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+      when(processManager.start(
+              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
