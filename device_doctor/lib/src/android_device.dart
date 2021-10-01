@@ -192,13 +192,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> screenOnCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval('adb', <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHolding'],
+      final String result = await eval(
+          'adb', <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
           processManager: processManager);
       final Set<String> mHoldings = result.trim().split('\n').map((e) => e.trim()).toSet();
-      final Set<String> expectedHoldings = <String>{
-        'mHoldingWakeLockSuspendBlocker=true',
-        'mHoldingDisplaySuspendBlocker=true'
-      };
+      final Set<String> expectedHoldings = <String>{'mHoldingDisplaySuspendBlocker=true'};
       if (SetEquality().equals(mHoldings, expectedHoldings)) {
         healthCheckResult = HealthCheckResult.success(kScreenOnCheckKey);
       } else {
