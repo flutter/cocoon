@@ -210,6 +210,7 @@ class GithubWebhook extends RequestHandler<Body> {
           !file.filename!.contains('.github') &&
           !file.filename!.endsWith('.md') &&
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
+          !file.filename!.startsWith('dev/devicelab/lib/tasks') &&
           !file.filename!.startsWith('dev/bots/')) {
         needsTests = true;
       }
