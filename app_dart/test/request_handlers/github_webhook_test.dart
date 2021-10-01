@@ -724,6 +724,7 @@ void main() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/bots/test.dart',
           PullRequestFile()..filename = 'dev/devicelab/bin/tasks/analyzer_benchmark.dart',
+          PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
         ]),
       );
 
