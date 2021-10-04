@@ -35,4 +35,15 @@ class AccessTokenService {
       httpClient.close();
     }
   }
+  /// Returns an OAuth 2.0 access token for the device lab service account.
+  Future<String?> createIdToken() async {
+    final http.Client httpClient = http.Client();
+    try {
+      final AccessCredentials credentials = await obtainAccessCredentialsViaMetadataServer(httpClient);
+      log.info('Credential scopes: ${credentials.scopes}');
+      return credentials.idToken;
+    } finally {
+      httpClient.close();
+    }
+  }
 }

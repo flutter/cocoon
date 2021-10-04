@@ -134,12 +134,15 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticateToken(TokenInfo token, {required ClientContext clientContext}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final String clientId = await config.oauthClientId;
-    if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
+    log.info('Token data: email ${token.email}, json ${token.toJson()}');
+    if (token.audience != clientId &&
+        !token.email!.endsWith('@google.com') &&
+        token.email != 'flutter-dashboard@appspot.gserviceaccount.com') {
       log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
       throw const Unauthenticated('Invalid ID token');
     }
 
-    if (token.hostedDomain != 'google.com') {
+    if (token.hostedDomain != 'google.com' && token.email != 'flutter-dashboard@appspot.gserviceaccount.com') {
       final bool isAllowed = await _isAllowed(token.email);
       if (!isAllowed) {
         throw Unauthenticated('${token.email} is not authorized to access the dashboard');

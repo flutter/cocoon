@@ -16,6 +16,7 @@ import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
+import 'package:googleapis/cloudtasks/v2.dart' as v2;
 
 void main() {
   group('ResetTryTask', () {
