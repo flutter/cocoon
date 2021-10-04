@@ -388,7 +388,7 @@ class Scheduler {
         ),
       );
     }
-    log.fine('finish triggering presubmit targets');
+    log.info('Finished triggering builds for: pr $prNumber, commit $commitSha, branch $branch and slug $slug}');
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
