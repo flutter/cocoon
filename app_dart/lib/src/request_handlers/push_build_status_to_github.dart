@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/foundation/environment.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
