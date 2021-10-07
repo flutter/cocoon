@@ -330,6 +330,11 @@ void main() {
         expect(GithubWebhook.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('d: examples'));
       });
 
+      test('API Docs label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('examples/api/bar/baz.dart'),
+            <String>['d: examples', 'team', 'd: api docs', 'documentation']);
+      });
+
       test('Gallery label applied', () {
         expect(GithubWebhook.getLabelsForFrameworkPath('examples/flutter_gallery/lib/gallery.dart'),
             contains('team: gallery'));
