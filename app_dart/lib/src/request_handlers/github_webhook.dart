@@ -259,7 +259,8 @@ class GithubWebhook extends RequestHandler<Body> {
       'bin/internal/engine.version': <String>['engine'],
       'dev/': <String>['team'],
       'examples/': <String>['d: examples', 'team'],
-      'examples/flutter_gallery': <String>['d: examples', 'team', 'team: gallery'],
+      'examples/api/': <String>['d: examples', 'team', 'd: api docs', 'documentation'],
+      'examples/flutter_gallery/': <String>['d: examples', 'team', 'team: gallery'],
       'packages/flutter_tools/': <String>['tool'],
       'packages/flutter/': <String>['framework'],
       'packages/flutter_driver/': <String>['framework', 'a: tests'],
@@ -267,7 +268,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'packages/flutter_goldens/': <String>['framework', 'a: tests', 'team'],
       'packages/flutter_goldens_client/': <String>['framework', 'a: tests', 'team'],
       'packages/flutter_test/': <String>['framework', 'a: tests'],
-      'packages/fuchsia_remote_debug_protocol': <String>['tool'],
+      'packages/fuchsia_remote_debug_protocol/': <String>['tool'],
     };
     const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
       'accessibility': <String>['a: accessibility'],
