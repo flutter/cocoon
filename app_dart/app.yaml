@@ -31,6 +31,3 @@ handlers:
   # is because the Google Cloud utility cannot go outside the scope of app_dart.
   # Navigating to ../app_flutter/build/web will silently error.
   upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$
-
-env_variables:
-  COCOON_ENVIRONMENT: "prod"
