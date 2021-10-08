@@ -206,6 +206,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
       if (addedCode &&
+          !file.filename!.contains('AUTHORS') &&
           !file.filename!.contains('pubspec.yaml') &&
           !file.filename!.contains('.github') &&
           !file.filename!.endsWith('.md') &&

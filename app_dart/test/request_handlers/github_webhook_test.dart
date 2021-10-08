@@ -742,6 +742,31 @@ void main() {
       ));
     });
 
+    test('Framework no comment if only AUTHORS changed', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'AUTHORS',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Engine labels PRs, comment and labels if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
