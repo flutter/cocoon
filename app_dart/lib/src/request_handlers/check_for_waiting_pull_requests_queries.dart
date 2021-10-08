@@ -18,6 +18,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
             }
             id
             number
+            title
             mergeable
             commits(last:1) {
               nodes {
@@ -67,12 +68,13 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
 }''');
 
 final DocumentNode mergePullRequestMutation = lang.parseString(r'''
-mutation MergePR($id: ID!, $oid: GitObjectID!) {
+mutation MergePR($id: ID!, $oid: GitObjectID!, $title: String) {
   mergePullRequest(input: {
     pullRequestId: $id,
     expectedHeadOid: $oid,
     mergeMethod: SQUASH,
-    commitBody: ""
+    commitBody: "",
+    commitHeadline: $title
   }) {
     clientMutationId
   }

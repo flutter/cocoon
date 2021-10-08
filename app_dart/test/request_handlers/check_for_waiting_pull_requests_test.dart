@@ -19,6 +19,15 @@ import '../src/service/fake_graphql_client.dart';
 
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
+const String title = 'some_title';
+
+Map<String, dynamic> getMergePullRequestVariables(String number) {
+  return <String, dynamic>{
+    'id': number,
+    'oid': oid,
+    'title': '$title (#$number)',
+  };
+}
 
 void main() {
   group('repos are processed independently', () {
@@ -246,17 +255,11 @@ void main() {
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs.first.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
           ),
         ],
       );
@@ -500,10 +503,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
           document: mergePullRequestMutation,
-          variables: <String, dynamic>{
-            'id': flutterRepoPRs.first.id,
-            'oid': oid,
-          },
+          variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
         ),
       ]);
     });
@@ -525,10 +525,7 @@ This pull request is not suitable for automatic merging in its current state.
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[0].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[0].id),
           ),
         ],
       );
@@ -551,10 +548,7 @@ This pull request is not suitable for automatic merging in its current state.
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[0].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[0].id),
           ),
         ],
       );
@@ -642,24 +636,15 @@ This pull request is not suitable for automatic merging in its current state.
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[0].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[0].id),
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[1].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[1].id),
           ),
         ],
       );
@@ -680,17 +665,11 @@ This pull request is not suitable for automatic merging in its current state.
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[0].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[0].id),
           ),
           MutationOptions(
             document: removeLabelMutation,
@@ -705,10 +684,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs[2].id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs[2].id),
           ),
         ],
       );
@@ -727,17 +703,11 @@ This pull request is not suitable for automatic merging in its current state.
         <MutationOptions>[
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
           ),
           MutationOptions(
             document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': flutterRepoPRs.last.id,
-              'oid': oid,
-            },
+            variables: getMergePullRequestVariables(flutterRepoPRs.last.id),
           ),
         ],
       );
@@ -790,10 +760,10 @@ This pull request is not suitable for automatic merging in its current state.
 
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
-          MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
-            'id': prChangedReview.id,
-            'oid': oid,
-          }),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(prChangedReview.id),
+          ),
         ],
       );
     });
@@ -851,10 +821,10 @@ This pull request is not suitable for automatic merging in its current state.
               'labelId': base64LabelId,
             },
           ),
-          MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
-            'id': prNonMemberChangeRequestWithMemberApprove.id,
-            'oid': oid,
-          }),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(prNonMemberChangeRequestWithMemberApprove.id),
+          ),
         ],
       );
     });
@@ -1002,6 +972,7 @@ class CheckRunHelper {
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
+    this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
@@ -1017,6 +988,7 @@ class PullRequestHelper {
   String get id => _count.toString();
 
   final String author;
+  final String title;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   List<StatusHelper>? lastCommitStatuses;
@@ -1028,6 +1000,7 @@ class PullRequestHelper {
       'author': <String, dynamic>{'login': author},
       'id': id,
       'number': _count,
+      'title': title,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
