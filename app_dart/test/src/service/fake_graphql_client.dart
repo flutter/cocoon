@@ -38,20 +38,20 @@ class FakeGraphQLClient implements GraphQLClient {
   void verifyQueries(List<QueryOptions> expected) {
     expect(queries.length, expected.length);
     for (int i = 0; i < queries.length; i++) {
-      /// [BaseOptions.toKey] serializes all of the relevant parts of the query
-      /// or mutation for us, except the fetch policy.
-      expect(queries[i].toString(), expected[i].toString());
-      expect(queries[i].fetchPolicy, expected[i].fetchPolicy);
+      expect(
+        queries[i].properties,
+        equals(expected[i].properties),
+      );
     }
   }
 
   void verifyMutations(List<MutationOptions> expected) {
     expect(mutations.length, expected.length);
     for (int i = 0; i < mutations.length; i++) {
-      /// [BaseOptions.toKey] serializes all of the relevant parts of the query
-      /// or mutation for us, except the fetch policy.
-      expect(mutations[i].toString(), expected[i].toString());
-      expect(mutations[i].fetchPolicy, expected[i].fetchPolicy);
+      expect(
+        mutations[i].properties,
+        equals(expected[i].properties),
+      );
     }
   }
 

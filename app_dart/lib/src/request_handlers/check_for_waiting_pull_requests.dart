@@ -67,6 +67,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
+          queryResult.number,
+          queryResult.title,
           client,
         );
         if (merged) {
@@ -133,6 +135,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _mergePullRequest(
     String id,
     String sha,
+    int number,
+    String title,
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
@@ -140,6 +144,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       variables: <String, dynamic>{
         'id': id,
         'oid': sha,
+        'title': '$title (#$number)',
       },
     ));
 
@@ -187,6 +192,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String? author = pullRequest['author']['login'] as String?;
       final String id = pullRequest['id'] as String;
       final int number = pullRequest['number'] as int;
+      final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
@@ -226,6 +232,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           hasApprovedReview: hasApproval,
           changeRequestAuthors: changeRequestAuthors,
           number: number,
+          title: title,
           sha: sha,
           labelId: labelId!,
           emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
@@ -362,6 +369,7 @@ class _AutoMergeQueryResult {
     required this.ciSuccessful,
     required this.failures,
     required this.number,
+    required this.title,
     required this.sha,
     required this.labelId,
     required this.emptyValidations,
@@ -386,6 +394,9 @@ class _AutoMergeQueryResult {
 
   /// The pull request number.
   final int number;
+
+  /// The pull request title.
+  final String title;
 
   /// The git SHA to be merged.
   final String sha;
