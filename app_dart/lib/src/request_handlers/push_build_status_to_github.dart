@@ -65,8 +65,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       repository: slug.fullName,
     );
     final SchedulerConfig schedulerConfig = await scheduler!.getSchedulerConfig(tipOfTreeCommit);
-    final List<LuciBuilder> postsubmitBuilders =
-        await scheduler!.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    // Filter the builders to only those that can block the tree
+    postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky!).toList();
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 

@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/foundation/environment.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
@@ -72,8 +71,6 @@ void main() {
 
   group('Scheduler', () {
     setUp(() {
-      productionTest = true;
-
       final MockTabledataResource tabledataResource = MockTabledataResource();
       when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
         return TableDataInsertAllResponse();

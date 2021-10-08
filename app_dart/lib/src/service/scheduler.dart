@@ -12,7 +12,6 @@ import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
-import '../foundation/environment.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
@@ -196,13 +195,7 @@ class Scheduler {
       ),
       ttl: const Duration(hours: 1),
     ))!;
-    final SchedulerConfig cachedConfig = SchedulerConfig.fromBuffer(configBytes);
-    // Filter targets so non-bringup is shown in production, otherwise only show bringup.
-    return SchedulerConfig(
-      enabledBranches: cachedConfig.enabledBranches,
-      targets: cachedConfig.targets.where((Target target) => target.bringup != isProduction),
-      platformProperties: cachedConfig.platformProperties,
-    );
+    return SchedulerConfig.fromBuffer(configBytes);
   }
 
   /// Get all postsubmit targets that should be immediately started for [Commit].
@@ -222,7 +215,6 @@ class Scheduler {
   List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
     // Filter targets to only those run in postsubmit.
     final List<Target> postsubmitTargets = config.targets.where((Target target) => target.postsubmit).toList();
-
     return _filterEnabledTargets(commit, config, postsubmitTargets);
   }
 
