@@ -1,7 +1,9 @@
 Cocoon is a Dart App Engine custom runtime (backend) with a frontend
 of Flutter apps (build and repository dashboard). Cocoon coordinates
 and aggregates the results of [flutter/flutter](https://github.com/flutter/flutter)
-builds. It is not designed to help developers build Flutter apps.
+builds.
+
+It is not designed to help developers build Flutter apps.
 Cocoon is not a Google product.
 
 
