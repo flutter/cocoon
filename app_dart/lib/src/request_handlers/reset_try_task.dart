@@ -28,7 +28,6 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String owner = request!.uri.queryParameters['owner'] ?? 'flutter';
     final String repo = request!.uri.queryParameters['repo'] ?? '';
     final String pr = request!.uri.queryParameters['pr'] ?? '';
-    final String commitSha = request!.uri.queryParameters['commitSha'] ?? '';
 
     final int? prNumber = int.tryParse(pr);
     if (prNumber == null) {
@@ -37,8 +36,10 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug(owner, repo);
     final GitHub github = await config.createGitHubClient(slug);
     final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
-    await scheduler.triggerPresubmitTargets(
-        branch: pullRequest.base!.ref!, prNumber: prNumber, commitSha: commitSha, slug: slug);
+    final String commitSha = pullRequest.head!.ref!;
+    final List<CheckSuite> checksuites = await github.checks.checkSuites.listCheckSuitesForRef(slug, ref: commitSha, appId: int.parse(await config.githubAppId,)).toList();
+    final CheckSuite checkSuite = checksuites.single;
+    await scheduler.retryPresubmitTargets(prNumber: prNumber, slug: slug, commitSha: commitSha, checkSuite: checkSuite);
     return Body.empty;
   }
 }

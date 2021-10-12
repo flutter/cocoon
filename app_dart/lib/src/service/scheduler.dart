@@ -317,7 +317,7 @@ class Scheduler {
       required int prNumber,
       required github.RepositorySlug slug,
       required String commitSha,
-      String reason = 'Newer commit available'}) async {
+      String reason = 'Newer commit available',}) async {
     if (commitSha.isEmpty) {
       throw BadRequestException(
           'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
@@ -400,12 +400,13 @@ class Scheduler {
     required int prNumber,
     required github.RepositorySlug slug,
     required String commitSha,
-    required CheckSuiteEvent checkSuiteEvent,
+    required github.CheckSuite checkSuite,
   }) async {
     final github.GitHub githubClient = await config.createGitHubClient(slug);
     final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
       githubClient,
-      checkSuiteEvent,
+      checkSuite,
+      slug,
     );
     final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
     final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
@@ -422,7 +423,7 @@ class Scheduler {
       }
 
       await luciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(
-        checkSuiteEvent,
+        checkSuite,
         checkRun,
       );
     }

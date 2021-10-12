@@ -60,7 +60,7 @@ class GithubChecksService {
           slug: slug,
           prNumber: prNumber!,
           commitSha: commitSha!,
-          checkSuiteEvent: checkSuiteEvent,
+          checkSuite: checkSuiteEvent.checkSuite,
         );
     }
   }

@@ -17,12 +17,13 @@ class GithubChecksUtil {
   const GithubChecksUtil();
   Future<Map<String, github.CheckRun>> allCheckRuns(
     github.GitHub gitHubClient,
-    CheckSuiteEvent checkSuiteEvent,
+    github.CheckSuite checkSuite,
+    github.RepositorySlug slug,
   ) async {
     final List<github.CheckRun> allCheckRuns = await gitHubClient.checks.checkRuns
         .listCheckRunsInSuite(
-          checkSuiteEvent.repository.slug(),
-          checkSuiteId: checkSuiteEvent.checkSuite.id!,
+          slug,
+          checkSuiteId: checkSuite.id!,
         )
         .toList();
     return Map<String, github.CheckRun>.fromIterable(

@@ -462,17 +462,17 @@ class LuciBuildService {
   /// Sends a [BuildBucket.scheduleBuild] request using [CheckSuiteEvent],
   /// [gitgub.CheckRun] and [RepositorySlug]. It returns [true] if it is able to
   /// send the scheduleBuildRequest or [false] if not.
-  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
+  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(CheckSuite checkSuite, github.CheckRun checkRun) async {
+    final github.RepositorySlug slug = checkSuite.pullRequests!.first.base!.repo!.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
-    final github.PullRequest pr = checkSuiteEvent.checkSuite.pullRequests![0];
+    final github.PullRequest pr = checkSuite.pullRequests!.first;
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
       slug,
       checkRun.name,
       pr.head!.sha,
     );
-    userData['check_suite_id'] = checkSuiteEvent.checkSuite.id;
+    userData['check_suite_id'] = checkSuite.id;
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
