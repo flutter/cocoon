@@ -76,6 +76,7 @@ class LatticeScrollView extends StatelessWidget {
         axisDirection: textDirectionToAxisDirection(textDirection),
         controller: horizontalController,
         physics: horizontalPhysics,
+        scrollBehavior: _MouseDragScrollBehavior.instance,
         viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) => _FakeViewport(
           child: Scrollbar(
             isAlwaysShown: true,
@@ -85,6 +86,7 @@ class LatticeScrollView extends StatelessWidget {
               axisDirection: AxisDirection.down,
               controller: verticalController,
               physics: verticalPhysics,
+              scrollBehavior: _MouseDragScrollBehavior.instance,
               viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
                 child: _LatticeBody(
                   textDirection: textDirection,
@@ -905,4 +907,16 @@ class _RenderLatticeBody extends RenderBox {
 FlutterErrorDetails _debugReportException(FlutterErrorDetails details) {
   FlutterError.reportError(details);
   return details;
+}
+
+/// A [MaterialScrollBehavior] that supports mouse dragging.
+class _MouseDragScrollBehavior extends MaterialScrollBehavior {
+  static _MouseDragScrollBehavior _instance;
+  static _MouseDragScrollBehavior get instance => _instance ??= _MouseDragScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }
