@@ -137,7 +137,9 @@ void main() {
       tester.getCenter(find.byType(TaskGrid)),
       kind: PointerDeviceKind.mouse,
     );
-    await gesture.moveBy(const Offset(0.0, -5000.0));
+    for (int i = 0; i < 100; i += 1) {
+      await gesture.moveBy(const Offset(0.0, -50.0));
+    }
     await gesture.up();
 
     await tester.pumpAndSettle();
@@ -154,7 +156,11 @@ void main() {
       tester.getCenter(find.byType(TaskGrid)),
       kind: PointerDeviceKind.mouse,
     );
-    await gesture.moveBy(const Offset(-5000, 0));
+
+    for (int i = 0; i < 100; i += 1) {
+      await gesture.moveBy(const Offset(-50.0, 0));
+    }
+    //await gesture.moveBy(const Offset(-5000, 0));
     await gesture.up();
 
     await tester.pumpAndSettle();
