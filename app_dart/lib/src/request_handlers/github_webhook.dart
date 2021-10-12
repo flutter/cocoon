@@ -10,7 +10,6 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
-import '../model/github/checks.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -60,10 +59,10 @@ class GithubWebhook extends RequestHandler<Body> {
           await _handlePullRequest(stringRequest);
           break;
         case 'check_run':
-          final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
-            jsonDecode(stringRequest) as Map<String, dynamic>,
-          );
-          await scheduler.processCheckRun(checkRunEvent);
+          final Map<String, dynamic> event = jsonDecode(stringRequest) as Map<String, dynamic>;
+          final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(jsonDecode(stringRequest) as Map<String, dynamic>);
+          final PullRequest pullRequest = _getPullRequestFromEvent(event);
+          await scheduler.processCheckRun(pullRequest, checkRunEvent);
       }
 
       return Body.empty;
@@ -183,6 +182,11 @@ class GithubWebhook extends RequestHandler<Body> {
         gitHubClient.dispose();
       }
     }
+  }
+
+  PullRequest _getPullRequestFromEvent(Map<String, dynamic> event) {
+    final PullRequestEvent pullRequestEvent = PullRequestEvent.fromJson(event);
+    return pullRequestEvent.pullRequest!;
   }
 
   Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {

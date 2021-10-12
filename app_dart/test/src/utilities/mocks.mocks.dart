@@ -10,7 +10,6 @@ import 'dart:typed_data' as _i22;
 import 'package:appengine/appengine.dart' as _i16;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i9;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i31;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i24;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i7;
 import 'package:cocoon_service/src/model/luci/push_message.dart' as _i26;
 import 'package:cocoon_service/src/service/access_client_provider.dart' as _i5;
@@ -24,6 +23,7 @@ import 'package:cocoon_service/src/service/github_service.dart' as _i28;
 import 'package:cocoon_service/src/service/luci.dart' as _i30;
 import 'package:cocoon_service/src/service/luci_build_service.dart' as _i27;
 import 'package:cocoon_service/src/service/scheduler.dart' as _i25;
+import 'package:github/hooks.dart' as _i24;
 import 'package:github/src/common.dart' as _i8;
 import 'package:github/src/common/model/users.dart' as _i17;
 import 'package:googleapis/bigquery/v2.dart' as _i6;
@@ -577,8 +577,9 @@ class MockGithubChecksService extends _i1.Mock implements _i23.GithubChecksServi
   set githubChecksUtil(_i9.GithubChecksUtil? _githubChecksUtil) =>
       super.noSuchMethod(Invocation.setter(#githubChecksUtil, _githubChecksUtil), returnValueForMissingStub: null);
   @override
-  _i14.Future<void> handleCheckSuite(_i24.CheckSuiteEvent? checkSuiteEvent, _i25.Scheduler? scheduler) =>
-      (super.noSuchMethod(Invocation.method(#handleCheckSuite, [checkSuiteEvent, scheduler]),
+  _i14.Future<void> handleCheckSuite(
+          _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent, _i25.Scheduler? scheduler) =>
+      (super.noSuchMethod(Invocation.method(#handleCheckSuite, [pullRequest, checkSuiteEvent, scheduler]),
           returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i14.Future<void>);
   @override
   _i14.Future<bool> updateCheckStatus(
@@ -1439,13 +1440,14 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
               {#commitSha: commitSha, #builderName: builderName, #buildPushMessage: buildPushMessage}),
           returnValue: Future<bool>.value(false)) as _i14.Future<bool>);
   @override
-  _i14.Future<bool> rescheduleUsingCheckRunEvent(_i24.CheckRunEvent? checkRunEvent) =>
-      (super.noSuchMethod(Invocation.method(#rescheduleUsingCheckRunEvent, [checkRunEvent]),
+  _i14.Future<bool> rescheduleUsingCheckRunEvent(_i8.PullRequest? pullRequest, _i24.CheckRunEvent? checkRunEvent) =>
+      (super.noSuchMethod(Invocation.method(#rescheduleUsingCheckRunEvent, [pullRequest, checkRunEvent]),
           returnValue: Future<bool>.value(false)) as _i14.Future<bool>);
   @override
   _i14.Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(
-          _i24.CheckSuiteEvent? checkSuiteEvent, _i8.CheckRun? checkRun) =>
-      (super.noSuchMethod(Invocation.method(#rescheduleTryBuildUsingCheckSuiteEvent, [checkSuiteEvent, checkRun]),
+          _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent, _i8.CheckRun? checkRun) =>
+      (super.noSuchMethod(
+          Invocation.method(#rescheduleTryBuildUsingCheckSuiteEvent, [pullRequest, checkSuiteEvent, checkRun]),
           returnValue: Future<bool>.value(false)) as _i14.Future<bool>);
   @override
   _i14.Future<_i7.Build> getTryBuildById(String? id, {String? fields}) =>

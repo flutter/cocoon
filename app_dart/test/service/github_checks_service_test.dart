@@ -4,13 +4,13 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
+import 'package:github/hooks.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -65,7 +65,8 @@ void main() {
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((_) async => generateCheckRun(1));
-      await githubChecksService.handleCheckSuite(checkSuiteEvent, scheduler);
+      final PullRequest pullRequest = generatePullRequest(758);
+      await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
       verify(
         mockLuciBuildService.scheduleTryBuilds(
           builders: <LuciBuilder>[

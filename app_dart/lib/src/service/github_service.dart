@@ -223,11 +223,13 @@ class GithubService {
     return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
   }
 
-  /// Returns changed files of [slug] and [prNumber].
-  /// https://developer.github.com/v3/pulls/#list-pull-requests-files
-  Future<List<String?>> listFiles(RepositorySlug slug, int prNumber) async {
-    ArgumentError.checkNotNull(slug);
-    final List<PullRequestFile> files = await github.pullRequests.listFiles(slug, prNumber).toList();
+  /// Returns changed files for a [PullRequest].
+  ///
+  /// See more:
+  ///   * https://developer.github.com/v3/pulls/#list-pull-requests-files
+  Future<List<String?>> listFiles(PullRequest pullRequest) async {
+    final List<PullRequestFile> files =
+        await github.pullRequests.listFiles(pullRequest.base!.repo!.slug(), pullRequest.number!).toList();
     log.fine('List of files: $files');
     return files.map((PullRequestFile file) {
       return file.filename;

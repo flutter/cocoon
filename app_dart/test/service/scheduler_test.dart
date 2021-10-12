@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -16,6 +15,7 @@ import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -271,10 +271,10 @@ void main() {
             'check_suite': <String, dynamic>{'id': 2}
           });
         });
-        final cocoon_github.CheckRunEvent checkRunEvent = cocoon_github.CheckRunEvent.fromJson(
+        final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
-        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        expect(await scheduler.processCheckRun(generatePullRequest(1), checkRunEvent), true);
       });
     });
 
@@ -469,8 +469,8 @@ targets:
           return checkRuns;
         });
 
-        final cocoon_github.CheckSuiteEvent checkSuiteEvent = cocoon_github.CheckSuiteEvent.fromJson(
-            jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
+        final CheckSuiteEvent checkSuiteEvent =
+            CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
         await scheduler.retryPresubmitTargets(
             prNumber: 42, slug: config.flutterSlug, commitSha: 'abc', checkSuiteEvent: checkSuiteEvent);
         final List<dynamic> retriedBuildRequests = verify(mockBuildbucket.scheduleBuild(captureAny)).captured;

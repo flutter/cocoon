@@ -68,3 +68,7 @@ github.CheckRun generateCheckRun(
     'check_suite': <String, dynamic>{'id': checkSuite}
   });
 }
+
+github.PullRequest generatePullRequest(int i) {
+  return github.PullRequest(number: i);
+}

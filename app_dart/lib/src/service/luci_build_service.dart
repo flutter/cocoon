@@ -6,11 +6,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:github/github.dart' as github;
+import 'package:github/hooks.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
@@ -102,13 +102,10 @@ class LuciBuildService {
     return builds;
   }
 
-  /// Returns a map of the BuildBucket builds for a given Github [slug]
-  /// [prNumber] and [commitSha] using the [builderName] as key and [Build]
-  /// as value.
-  Future<Map<String?, Build?>> tryBuildsForRepositoryAndPr(
-    github.RepositorySlug slug,
-    int prNumber,
-    String commitSha,
+  /// Returns a map of the BuildBucket builds for a given Github [PullRequest]
+  /// using the [builderName] as key and [Build] as value.
+  Future<Map<String?, Build?>> tryBuildsForPullRequest(
+    github.PullRequest pullRequest,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
       // Builds created by Cocoon
@@ -121,8 +118,10 @@ class LuciBuildService {
             ),
             createdBy: 'cocoon',
             tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$prNumber'],
-              'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
+              'buildset': <String>['pr/git/${pullRequest.number}'],
+              'github_link': <String>[
+                'https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'
+              ],
               'user_agent': const <String>['flutter-cocoon'],
             },
           ),
@@ -137,7 +136,7 @@ class LuciBuildService {
               bucket: 'try',
             ),
             tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$prNumber'],
+              'buildset': <String>['pr/git/${pullRequest.number}'],
               'user_agent': const <String>['recipe'],
             },
           ),
@@ -153,15 +152,19 @@ class LuciBuildService {
 
   /// Creates BuildBucket [Request] using [checkSuiteEvent], [slug], [prNumber], [commitSha], [builder], [builderId]
   /// and [userData].
-  Future<Request> _createBuildRequest(CheckSuiteEvent? checkSuiteEvent, github.RepositorySlug slug, int prNumber,
-      String commitSha, String? builder, BuilderId builderId, Map<String, dynamic> userData) async {
+  Future<Request> _createBuildRequest(
+    CheckSuiteEvent? checkSuiteEvent,
+    github.PullRequest pullRequest,
+    String? builder,
+    BuilderId builderId,
+    Map<String, dynamic> userData,
+  ) async {
     int? checkRunId;
-    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
+    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
         config,
-        slug,
+        pullRequest,
         builder,
-        commitSha,
       );
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
@@ -170,14 +173,14 @@ class LuciBuildService {
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
         tags: <String, List<String>>{
-          'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
+          'buildset': <String>['pr/git/${pullRequest.number}', 'sha/git/${pullRequest.head!.sha}'],
           'user_agent': const <String>['flutter-cocoon'],
-          'github_link': <String>['https://github.com/${slug.fullName}/pull/$prNumber'],
+          'github_link': <String>['https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'],
           'github_checkrun': <String>[checkRunId.toString()],
         },
         properties: <String, String>{
-          'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-          'git_ref': 'refs/pull/$prNumber/head',
+          'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
+          'git_ref': 'refs/pull/${pullRequest.number}/head',
         },
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
@@ -192,27 +195,21 @@ class LuciBuildService {
   /// and Github [slug].
   Future<void> scheduleTryBuilds({
     required List<LuciBuilder> builders,
-    required int prNumber,
-    required String commitSha,
-    required github.RepositorySlug slug,
+    required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
-    if (!config.githubPresubmitSupportedRepo(slug)) {
-      throw BadRequestException('Repository ${slug.name} is not supported by this service.');
+    if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
+      throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
     }
     List<String?> builderNames = await _builderNamesForRepo(
       builders,
-      prNumber,
-      commitSha,
-      slug,
+      pullRequest,
     );
     int retryCount = 1;
     while (builderNames.isNotEmpty) {
       builderNames = await _scheduleTryBuilds(
         builderNames: builderNames,
-        prNumber: prNumber,
-        commitSha: commitSha,
-        slug: slug,
+        pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
       retryCount += 1;
@@ -224,30 +221,23 @@ class LuciBuildService {
 
   Future<List<String>> _builderNamesForRepo(
     List<LuciBuilder> builders,
-    int prNumber,
-    String commitSha,
-    github.RepositorySlug slug,
+    github.PullRequest pullRequest,
   ) async {
-    final Map<String?, Build?> builds = await tryBuildsForRepositoryAndPr(
-      slug,
-      prNumber,
-      commitSha,
-    );
+    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     if (builds.values.any((Build? build) {
       return build?.status == Status.scheduled || build?.status == Status.started;
     })) {
       log.severe('Either builds are empty or they are already scheduled or started. '
-          'PR: $prNumber, Commit: $commitSha, Owner: ${slug.owner} '
-          'Repo: ${slug.name}');
+          'PR: ${pullRequest.number}, Commit: ${pullRequest.head!.sha}, Repository: ${pullRequest.base!.repo!.fullName}');
       return <String>[];
     }
 
     final List<String> builderNames = builders
-        .where((LuciBuilder builder) => builder.repo == slug.name)
+        .where((LuciBuilder builder) => builder.repo == pullRequest.base!.repo!.name)
         .map<String>((LuciBuilder builder) => builder.name)
         .toList();
     if (builderNames.isEmpty) {
-      throw InternalServerError('${slug.name} does not have any builders');
+      throw InternalServerError('${pullRequest.base!.repo} does not have any builders');
     }
     return builderNames;
   }
@@ -256,9 +246,7 @@ class LuciBuildService {
   /// and Github [slug].
   Future<List<String?>> _scheduleTryBuilds({
     required List<String?> builderNames,
-    required int prNumber,
-    required String commitSha,
-    required github.RepositorySlug slug,
+    required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
@@ -270,11 +258,11 @@ class LuciBuildService {
         builder: builder,
       );
       final Map<String, dynamic> userData = <String, dynamic>{
-        'repo_owner': slug.owner,
-        'repo_name': slug.name,
+        'repo_owner': pullRequest.base!.repo!.owner,
+        'repo_name': pullRequest.base!.repo!.name,
         'user_agent': 'flutter-cocoon',
       };
-      requestFutures.add(_createBuildRequest(checkSuiteEvent, slug, prNumber, commitSha, builder, builderId, userData));
+      requestFutures.add(_createBuildRequest(checkSuiteEvent, pullRequest, builder, builderId, userData));
     }
     final List<Request> requests = await Future.wait(requestFutures);
     List<BatchResponse> batchResponseList;
@@ -310,14 +298,15 @@ class LuciBuildService {
       final int? checkRunId = checkrunIdStrings?.map((String? id) => int.parse(id!)).single;
       // Not all scheduled builds have check runs
       if (checkRunId != null) {
-        final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
+        final github.CheckRun checkRun =
+            await githubChecksUtil.getCheckRun(config, pullRequest.base!.repo!.slug(), checkRunId);
         if (errorText.isNotEmpty) {
           if (response.getBuild?.builderId.builder != null) {
             builderNamesToRetry.add(response.getBuild?.builderId.builder);
           }
           await githubChecksUtil.updateCheckRun(
             config,
-            slug,
+            pullRequest,
             checkRun,
             status: github.CheckRunStatus.completed,
             conclusion: github.CheckRunConclusion.failure,
@@ -333,17 +322,14 @@ class LuciBuildService {
     return builderNamesToRetry;
   }
 
-  /// Cancels all the current builds for a given [repositoryName], [prNumber]
-  /// and [commitSha] adding a message for the cancelation reason.
-  Future<void> cancelBuilds(github.RepositorySlug slug, int prNumber, String commitSha, String reason) async {
-    if (!config.githubPresubmitSupportedRepo(slug)) {
-      throw BadRequestException('This service does not support repository ${slug.name}');
+  /// Cancels all the current builds on [pullRequest] with [reason].
+  ///
+  /// Builds are queried based on the [RepositorySlug] and pull request number.
+  Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
+    if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
+      throw BadRequestException('This service does not support ${pullRequest.base!.repo}');
     }
-    final Map<String?, Build?> builds = await tryBuildsForRepositoryAndPr(
-      slug,
-      prNumber,
-      commitSha,
-    );
+    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     if (!builds.values.any((Build? build) {
       return build!.status == Status.scheduled || build.status == Status.started;
     })) {
@@ -360,15 +346,12 @@ class LuciBuildService {
     await buildBucketClient.batch(BatchRequest(requests: requests));
   }
 
-  /// Gets a list of failed builds for a given [repositoryName], [prNumber] and
-  /// [commitSha].
+  /// Filters [builders] to only those that failed on [pullRequest].
   Future<List<Build?>> failedBuilds(
-    github.RepositorySlug slug,
-    int prNumber,
-    String commitSha,
+    github.PullRequest pullRequest,
     List<LuciBuilder> builders,
   ) async {
-    final Map<String?, Build?> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
+    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
     final Iterable<Build?> failedBuilds = builds.values.where((Build? build) => failStatusSet.contains(build!.status));
@@ -414,16 +397,15 @@ class LuciBuildService {
   /// Sends a [BuildBucket.scheduleBuild] request using [CheckRunEvent]. It
   /// returns [true] if it is able to send the scheduleBuildRequest or [false]
   /// if not.
-  Future<bool> rescheduleUsingCheckRunEvent(CheckRunEvent checkRunEvent) async {
+  Future<bool> rescheduleUsingCheckRunEvent(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
     final String? commitSha = checkRunEvent.checkRun!.headSha;
     final String? builderName = checkRunEvent.checkRun!.name;
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
-      slug,
+      pullRequest,
       checkRunEvent.checkRun!.name,
-      commitSha,
     );
     final Iterable<Build> builds = await getTryBuilds(slug, commitSha, builderName);
 
@@ -455,24 +437,23 @@ class LuciBuildService {
       ),
     ));
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-    await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
+    await githubChecksUtil.updateCheckRun(config, pullRequest, githubCheckRun, detailsUrl: buildUrl);
     return true;
   }
 
   /// Sends a [BuildBucket.scheduleBuild] request using [CheckSuiteEvent],
   /// [gitgub.CheckRun] and [RepositorySlug]. It returns [true] if it is able to
   /// send the scheduleBuildRequest or [false] if not.
-  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final Map<String, dynamic> userData = <String, dynamic>{};
-    final github.PullRequest pr = checkSuiteEvent.checkSuite.pullRequests![0];
+  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(
+      github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
+    final github.RepositorySlug slug = checkSuiteEvent.repository!.slug();
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
-      slug,
+      pullRequest,
       checkRun.name,
-      pr.head!.sha,
     );
-    userData['check_suite_id'] = checkSuiteEvent.checkSuite.id;
+    final Map<String, dynamic> userData = <String, dynamic>{};
+    userData['check_suite_id'] = checkSuiteEvent.checkSuite!.id;
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
@@ -484,13 +465,13 @@ class LuciBuildService {
         builder: checkRun.name,
       ),
       tags: <String, List<String>>{
-        'buildset': <String>['pr/git/${pr.number}', 'sha/git/${pr.head!.sha}'],
+        'buildset': <String>['pr/git/${pullRequest.number}', 'sha/git/${pullRequest.head!.sha}'],
         'user_agent': const <String>['flutter-cocoon'],
-        'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/${pr.number}'],
+        'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
       },
       properties: <String, String>{
-        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/${pr.number}/head',
+        'git_url': 'https://github.com/${slug.fullName}',
+        'git_ref': 'refs/pull/${pullRequest.number}/head',
       },
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
