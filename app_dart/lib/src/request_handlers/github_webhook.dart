@@ -208,6 +208,7 @@ class GithubWebhook extends RequestHandler<Body> {
       if (addedCode &&
           !file.filename!.contains('AUTHORS') &&
           !file.filename!.contains('pubspec.yaml') &&
+          !file.filename!.contains('.ci.yaml') &&
           !file.filename!.contains('.github') &&
           !file.filename!.endsWith('.md') &&
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
