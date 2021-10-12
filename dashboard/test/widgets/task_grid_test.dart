@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
@@ -90,6 +91,83 @@ void main() {
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
     service.paused = false;
     await tester.pumpAndSettle();
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
+  });
+
+  testWidgets('TaskGridContainer supports mouse drag', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    final DevelopmentCocoonService service = DevelopmentCocoonService(DateTime.utc(2020));
+    final BuildState buildState = BuildState(
+      cocoonService: service,
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: const Material(
+            child: TaskGridContainer(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final int commitCount = tester.elementList(find.byType(CommitBox)).length;
+    expect(commitCount, 16); // based on screen size this is how many show up
+
+    final double xPosition = tester.getTopLeft(find.byType(CommitBox).first).dx;
+
+    for (int index = 0; index < commitCount; index += 1) {
+      // All the x positions should match the first instance if they're all in the same column
+      expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
+    }
+
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+
+    // Check if the LOADING... indicator appears.
+    service.paused = true;
+
+    TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.byType(TaskGrid)),
+      kind: PointerDeviceKind.mouse,
+    );
+    for (int i = 0; i < 100; i += 1) {
+      await gesture.moveBy(const Offset(0.0, -50.0));
+    }
+    await gesture.up();
+
+    await tester.pumpAndSettle();
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_y.png');
+
+    await gesture.removePointer();
+    service.paused = false;
+    await tester.pumpAndSettle();
+
+    // Check the right edge after the data comes in.
+    service.paused = true;
+
+    gesture = await tester.startGesture(
+      tester.getCenter(find.byType(TaskGrid)),
+      kind: PointerDeviceKind.mouse,
+    );
+
+    for (int i = 0; i < 100; i += 1) {
+      await gesture.moveBy(const Offset(-50.0, 0));
+    }
+    //await gesture.moveBy(const Offset(-5000, 0));
+    await gesture.up();
+
+    await tester.pumpAndSettle();
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_x.png');
+
+    service.paused = false;
+    await gesture.removePointer();
 
     await tester.pumpWidget(Container());
     buildState.dispose();
