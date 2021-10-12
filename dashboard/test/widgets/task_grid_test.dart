@@ -141,7 +141,7 @@ void main() {
     await gesture.up();
 
     await tester.pumpAndSettle();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_y.png');
 
     await gesture.removePointer();
     service.paused = false;
@@ -158,7 +158,7 @@ void main() {
     await gesture.up();
 
     await tester.pumpAndSettle();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.mouse_scroll_x.png');
 
     service.paused = false;
     await gesture.removePointer();
