@@ -132,7 +132,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': '${LuciTaskAttemptSummary.luciProdLogBase}Linux/456',
+            'url': '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456',
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,
