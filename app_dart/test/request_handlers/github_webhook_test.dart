@@ -956,6 +956,44 @@ void main() {
       ));
     });
 
+    test('Engine labels PRs, no comment if cc becnhmarks', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'fml/blah.cc',
+          PullRequestFile()..filename = 'fml/blah_benchmarks.cc',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');

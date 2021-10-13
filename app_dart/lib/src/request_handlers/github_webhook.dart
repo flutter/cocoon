@@ -22,7 +22,7 @@ import '../service/scheduler.dart';
 /// List of repos that require check for labels and tests.
 const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
 
-final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
+final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 @immutable
