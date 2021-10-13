@@ -25,7 +25,7 @@ export PATH="$PATH":"path/to/flutter/bin/cache/dart-sdk/bin/"
 ### Running the tests
 
 ```sh
-pub run test
+$ dart test
 ```
 
 ### Running codegen
@@ -35,7 +35,7 @@ pub run test
 To update the JSON serialization generated code, run:
 
 ```sh
-$ pub run build_runner build
+$ dart pub run build_runner build
 ```
 
 Any updates should be checked into source control.
@@ -79,14 +79,6 @@ To update the indexes in the App Engine project, run:
 
 ```sh
 $ gcloud datastore indexes create index.yaml
-```
-
-### Updating cloud cron tasks
-
-To update the cron tasks in the App Engine project, run:
-
-```sh
-$ gcloud app deploy cron.yaml
 ```
 
 ### Local development
