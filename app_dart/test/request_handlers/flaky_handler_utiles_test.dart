@@ -108,6 +108,22 @@ abc_test.sh @ghi @flutter/framework
           return e.contains('Unable to parse body of $expectedHtml');
         })));
       });
+
+      test('handles PRs with empty body message', () async {
+        final MockGitHub mockGitHubClient = MockGitHub();
+        final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
+        const String expectedHtml = 'https://someurl';
+        when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
+          return Stream<PullRequest>.value(PullRequest(
+            htmlUrl: expectedHtml,
+          ));
+        });
+        when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
+        final FakeConfig config = FakeConfig(
+          githubService: GithubService(mockGitHubClient),
+        );
+        expect(await getExistingPRs(config.githubService!, config.flutterSlug), <String?, PullRequest>{});
+      });
     });
   });
 }
