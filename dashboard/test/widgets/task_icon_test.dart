@@ -92,7 +92,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_web something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_web test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -107,7 +107,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -122,7 +122,8 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_fuchsia something'),
+            qualifiedTask:
+                QualifiedTask(stage: 'chromebot', task: 'Windows_fuchsia something', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -137,7 +138,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_android something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Windows_android test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -152,7 +153,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Mac something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -167,7 +168,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Mac_ios something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Mac_ios test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -182,7 +183,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Linux something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Linux test', pool: 'luci.flutter.prod'),
           ),
         ),
       ),
@@ -197,7 +198,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Unknown something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'Unknown', pool: 'luci.flutter.prod'),
           ),
         ),
       ),

@@ -21,7 +21,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   final Task task;
 
   @visibleForTesting
-  static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders/prod/';
+  static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders';
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +37,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   }
 
   String _luciProdLogUrl(String builderName, String buildNumber) {
-    return '$luciProdLogBase$builderName/$buildNumber';
+    final String pool = task.isFlaky ? 'staging' : 'prod';
+    return '$luciProdLogBase/$pool/$builderName/$buildNumber';
   }
 }

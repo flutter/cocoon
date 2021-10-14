@@ -32,45 +32,50 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.builder != null) {
-      if (qualifiedTask.builder.toLowerCase().contains('_fuchsia')) {
-        return Image.asset(
-          'assets/fuchsia.png',
-          color: blendFilter,
-        );
-      } else if (qualifiedTask.builder.toLowerCase().contains('_web')) {
-        return Image.asset(
-          'assets/chromium.png',
-          color: blendFilter,
-        );
-      } else if (qualifiedTask.builder.toLowerCase().contains('_android')) {
+    if (qualifiedTask.task == null || !qualifiedTask.isLuci) {
+      return Icon(
+        Icons.help,
+        color: blendFilter,
+      );
+    }
+
+    if (qualifiedTask.task.toLowerCase().contains('_fuchsia')) {
+      return Image.asset(
+        'assets/fuchsia.png',
+        color: blendFilter,
+      );
+    } else if (qualifiedTask.task.toLowerCase().contains('_web')) {
+      return Image.asset(
+        'assets/chromium.png',
+        color: blendFilter,
+      );
+    } else if (qualifiedTask.task.toLowerCase().contains('_android')) {
+      return Icon(
+        Icons.android,
+        color: blendFilter,
+      );
+    } else if (qualifiedTask.task.toLowerCase().startsWith('linux')) {
+      return Image.asset(
+        'assets/linux.png',
+        color: blendFilter,
+      );
+    } else if (qualifiedTask.task.toLowerCase().startsWith('mac')) {
+      if (qualifiedTask.task.toLowerCase().contains('_ios')) {
         return Icon(
-          Icons.android,
+          Icons.phone_iphone,
           color: blendFilter,
         );
-      } else if (qualifiedTask.builder.toLowerCase().startsWith('linux')) {
+      } else {
         return Image.asset(
-          'assets/linux.png',
-          color: blendFilter,
-        );
-      } else if (qualifiedTask.builder.toLowerCase().startsWith('mac')) {
-        if (qualifiedTask.builder.toLowerCase().contains('_ios')) {
-          return Icon(
-            Icons.phone_iphone,
-            color: blendFilter,
-          );
-        } else {
-          return Image.asset(
-            'assets/apple.png',
-            color: blendFilter,
-          );
-        }
-      } else if (qualifiedTask.builder.toLowerCase().startsWith('win')) {
-        return Image.asset(
-          'assets/windows.png',
+          'assets/apple.png',
           color: blendFilter,
         );
       }
+    } else if (qualifiedTask.task.toLowerCase().startsWith('win')) {
+      return Image.asset(
+        'assets/windows.png',
+        color: blendFilter,
+      );
     }
 
     return Icon(

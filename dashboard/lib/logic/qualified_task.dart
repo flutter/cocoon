@@ -23,16 +23,16 @@ const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask({this.stage, this.task, this.builder});
+  const QualifiedTask({this.stage, this.task, this.pool});
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
         task = task.builderName,
-        builder = task.builderName;
+        pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod';
 
+  final String pool;
   final String stage;
   final String task;
-  final String builder;
 
   /// Get the URL for the configuration of this task.
   ///
@@ -43,7 +43,7 @@ class QualifiedTask {
     if (isCirrus) {
       return '$_cirrusUrl/master';
     } else if (isLuci) {
-      return '$_luciUrl/builders/luci.flutter.prod/$builder';
+      return '$_luciUrl/builders/$pool/$task';
     }
     throw Exception('Failed to get source configuration url for $stage.');
   }

@@ -404,6 +404,7 @@ void main() {
         expect(task.status, Task.statusNew);
         await tester.get(handler);
         expect(task.status, Task.statusSucceeded);
+        expect(task.luciBucket, 'luci.flutter.prod');
       });
     });
 
