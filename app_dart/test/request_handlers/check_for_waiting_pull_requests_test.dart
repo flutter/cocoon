@@ -398,6 +398,7 @@ This pull request is not suitable for automatic merging in its current state.
         MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
           'id': flutterRepoPRs.first.id,
           'oid': oid,
+          'title': 'some_title (#0)',
         }),
       ]);
     });
