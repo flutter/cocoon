@@ -99,6 +99,7 @@ class FakeConfig implements Config {
   String? flutterGoldStalePRValue;
   List<String>? supportedBranchesValue;
   List<LuciBuilder>? luciBuildersValue;
+  String? overrideTreeStatusLabelValue;
 
   @override
   Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient!;
@@ -301,4 +302,7 @@ class FakeConfig implements Config {
 
   @override
   String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+
+  @override
+  Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
 }

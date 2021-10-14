@@ -60,6 +60,11 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                 state
               }
             }
+            labels(first: 100) {
+              nodes {
+                name
+              }
+            }
           }
         }
       }

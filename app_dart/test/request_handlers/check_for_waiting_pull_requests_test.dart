@@ -127,6 +127,7 @@ void main() {
         cirrusGraphQLClient: cirrusGraphQLClient,
         githubGraphQLClient: githubGraphQLClient,
       );
+      config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
@@ -375,6 +376,30 @@ This pull request is not suitable for automatic merging in its current state.
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Merges PR with failed tree status if override tree status label is provided', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+        ],
+        labels: <dynamic>[
+          <String, dynamic>{'name': 'warning: land on red to fix tree breakage'}
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+        }),
+      ]);
     });
 
     test('Does not merge PR with failed checks', () async {
@@ -980,6 +1005,7 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
     this.dateTime,
+    this.labels = const <dynamic>[],
   }) : _count = _counter++;
 
   static int _counter = 0;
@@ -994,6 +1020,7 @@ class PullRequestHelper {
   List<StatusHelper>? lastCommitStatuses;
   List<CheckRunHelper>? lastCommitCheckRuns;
   final DateTime? dateTime;
+  List<dynamic> labels;
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
@@ -1048,6 +1075,9 @@ class PullRequestHelper {
             },
           },
         ],
+      },
+      'labels': <String, dynamic>{
+        'nodes': labels,
       },
     };
   }

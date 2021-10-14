@@ -180,6 +180,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       // This is used to skip landing until we are sure the PR is mergeable.
       final bool unknownMergeableState = pullRequest['mergeable'] == 'UNKNOWN';
 
+      // List of labels associated with the pull request.
+      final List<String> labels = ((pullRequest['labels']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>())
+          .map<String>((Map<String, dynamic> labelMap) => labelMap['name'] as String)
+          .toList();
+
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
@@ -223,6 +228,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         checkRuns,
         name,
         'pull/$number',
+        labels,
       );
 
       list.add(_AutoMergeQueryResult(
@@ -237,7 +243,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           labelId: labelId!,
           emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
           isConflicting: isConflicting,
-          unknownMergeableState: unknownMergeableState));
+          unknownMergeableState: unknownMergeableState,
+          labels: labels));
     }
     return list;
   }
@@ -252,6 +259,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     List<Map<String, dynamic>> checkRuns,
     String name,
     String branch,
+    List<String> labels,
   ) async {
     assert(failures.isEmpty);
     bool allSuccess = true;
@@ -267,6 +275,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     for (Map<String, dynamic> status in statuses) {
       final String? name = status['context'] as String?;
       if (status['state'] != 'SUCCESS') {
+        if (notInAuthorsControl.contains(name) && labels.contains(await config.overrideTreeStatusLabel)) {
+          continue;
+        }
         allSuccess = false;
         if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
           failures.add(_FailureDetail(name!, status['targetUrl'] as String));
@@ -375,6 +386,7 @@ class _AutoMergeQueryResult {
     required this.emptyValidations,
     required this.isConflicting,
     required this.unknownMergeableState,
+    required this.labels,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -412,6 +424,9 @@ class _AutoMergeQueryResult {
 
   /// Whether has an unknown mergeable state or not.
   final bool unknownMergeableState;
+
+  /// List of labels associated with the PR.
+  final List<String> labels;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>

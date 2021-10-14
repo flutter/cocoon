@@ -99,6 +99,7 @@ class Config {
 
   // GitHub App properties.
   Future<String> get githubPrivateKey => _getSingleValue('githubapp_private_pem');
+  Future<String> get overrideTreeStatusLabel => _getSingleValue('override_tree_status_label');
   Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
   Future<String> get githubAppId => _getSingleValue('githubapp_id');
   Future<Map<String, dynamic>> get githubAppInstallations async {
