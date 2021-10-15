@@ -85,7 +85,7 @@ enabled_branches:
   - master
 
 targets:
-  - name: Mac_ios32 flutter_gallery__transition_perf_e2e_ios32
+  - name: Mac_ios32 native_ui_tests_ios
     presubmit: false
     bringup: true
     scheduler: luci

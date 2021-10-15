@@ -42,7 +42,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
   /// handler.
   static const Set<String> ignoredBuilders = <String>{
     'Mac_ios32 flutter_gallery__transition_perf_e2e_ios32',
-    'Mac_ios32 native_ui_tests_ios32',
+    'Mac_ios32 native_ui_tests_ios',
   };
 
   @override
