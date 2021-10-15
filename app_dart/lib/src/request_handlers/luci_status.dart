@@ -60,6 +60,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       throw const Unauthorized();
     }
     final String requestString = await utf8.decodeStream(request!);
+    log.fine(requestString);
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString) as Map<String, dynamic>,
     );
