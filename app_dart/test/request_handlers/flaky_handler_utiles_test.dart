@@ -90,7 +90,7 @@ abc_test.sh @ghi @flutter/framework
     });
 
     group('getExistingPRs', () {
-      test('throws more detailed logs for bad prs', () async {
+      test('throws more detailed logs for bad prs with inappropriate body meta tag', () async {
         final MockGitHub mockGitHubClient = MockGitHub();
         final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
         const String expectedHtml = 'https://someurl';
@@ -98,6 +98,12 @@ abc_test.sh @ghi @flutter/framework
         when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
           return Stream<PullRequest>.value(PullRequest(
             htmlUrl: expectedHtml,
+            body: '''
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name"
+}
+-->''',
           ));
         });
         when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
@@ -107,6 +113,22 @@ abc_test.sh @ghi @flutter/framework
         expect(() => getExistingPRs(config.githubService!, config.flutterSlug), throwsA(predicate<String>((String e) {
           return e.contains('Unable to parse body of $expectedHtml');
         })));
+      });
+
+      test('handles PRs with empty body message', () async {
+        final MockGitHub mockGitHubClient = MockGitHub();
+        final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
+        const String expectedHtml = 'https://someurl';
+        when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
+          return Stream<PullRequest>.value(PullRequest(
+            htmlUrl: expectedHtml,
+          ));
+        });
+        when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
+        final FakeConfig config = FakeConfig(
+          githubService: GithubService(mockGitHubClient),
+        );
+        expect(await getExistingPRs(config.githubService!, config.flutterSlug), <String?, PullRequest>{});
       });
     });
   });
