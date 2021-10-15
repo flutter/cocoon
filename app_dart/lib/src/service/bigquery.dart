@@ -154,7 +154,7 @@ class BuilderRecord {
   BuilderRecord({
     required this.commit,
     required this.isFlaky,
-    required this.isFailed
+    required this.isFailed,
   });
 
   final String commit;
