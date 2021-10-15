@@ -403,6 +403,28 @@ This pull request is not suitable for automatic merging in its current state.
       ]);
     });
 
+    test('Merges PR with check that is successful but still considered running', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxCompletedRunning,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
     test('Does not merge PR with failed checks', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -989,6 +1011,8 @@ class CheckRunHelper {
   static const CheckRunHelper windowsInProgress = CheckRunHelper('Windows', 'IN_PROGRESS', '');
   static const CheckRunHelper macQueued = CheckRunHelper('Mac', 'QUEUED', '');
   static const CheckRunHelper linuxRequested = CheckRunHelper('Linux', 'REQUESTED', '');
+  // See https://github.com/flutter/flutter/issues/91908
+  static const CheckRunHelper linuxCompletedRunning = CheckRunHelper('Linux', 'IN PROGRESS', 'SUCCESS');
 
   final String name;
   final String status;
