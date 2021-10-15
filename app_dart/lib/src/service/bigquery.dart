@@ -47,7 +47,7 @@ group by builder_name;
 ''';
 
 const String getRecordsQuery = r'''
-select sha, is_flaky from `flutter-dashboard.datasite.luci_prod_build_status`
+select sha, is_flaky, failure_count from `flutter-dashboard.datasite.luci_prod_build_status`
 where builder_name=@BUILDER_NAME
 order by time desc
 limit @LIMIT
@@ -143,6 +143,7 @@ class BigqueryService {
       result.add(BuilderRecord(
         commit: row.f![0].v as String,
         isFlaky: row.f![1].v as String != '0',
+        isFailed: row.f![2].v as String != '0',
       ));
     }
     return result;
@@ -153,10 +154,12 @@ class BuilderRecord {
   BuilderRecord({
     required this.commit,
     required this.isFlaky,
+    required this.isFailed
   });
 
   final String commit;
   final bool isFlaky;
+  final bool isFailed;
 }
 
 class BuilderStatistic {
