@@ -344,7 +344,46 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Do not create pr if the records do no pass', () async {
+    test('Do not create pr if the records have flaky runs', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFlaky);
+      });
+      // When get issue
+      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+      });
+
+      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFlaky.length;
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify BigQuery is called correctly.
+      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .captured;
+      expect(captured.length, 3);
+      expect(captured[0].toString(), kBigQueryProjectId);
+      expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
+      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+
+      // Verify it gets the correct issue.
+      captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0], config.flutterSlug);
+      expect(captured[1] as int?, existingIssueNumber);
+
+      // Verify pr is not created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Do not create pr if the records have failed runs', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
               builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))

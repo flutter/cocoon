@@ -121,25 +121,36 @@ const String testOwnersContent = '''
 ''';
 
 final List<BuilderRecord> semanticsIntegrationTestRecordsAllPassed = <BuilderRecord>[
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+];
+
+final List<BuilderRecord> semanticsIntegrationTestRecordsFlaky = <BuilderRecord>[
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: true, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
 ];
 
 final List<BuilderRecord> semanticsIntegrationTestRecordsFailed = <BuilderRecord>[
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: true),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
-  BuilderRecord(commit: 'abc', isFlaky: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: true),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
+  BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
 ];
 
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';

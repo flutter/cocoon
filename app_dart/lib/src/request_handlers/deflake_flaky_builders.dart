@@ -56,7 +56,7 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     for (final _BuilderInfo info in eligibleBuilders) {
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
-      if (builderRecords.length >= kRecordNumber && builderRecords.every((BuilderRecord record) => !record.isFlaky)) {
+      if (_shouldDeflake(builderRecords)) {
         testOwnerContent ??= await gitHub.getFileContent(slug, kTestOwnerPath);
         await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnerContent: testOwnerContent);
       }
@@ -64,6 +64,15 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     return Body.forJson(const <String, dynamic>{
       'Status': 'success',
     });
+  }
+
+  /// A builder should be deflaked if satisfying three conditions.
+  /// 1) There are enough data records.
+  /// 2) There is no flake
+  /// 3) There is no failure
+  bool _shouldDeflake(List<BuilderRecord> builderRecords) {
+    return builderRecords.length >= kRecordNumber &&
+        builderRecords.every((BuilderRecord record) => !record.isFlaky && !record.isFailed);
   }
 
   /// Gets the builders that match conditions:
