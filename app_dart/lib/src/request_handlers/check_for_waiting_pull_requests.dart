@@ -287,12 +287,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String? name = checkRun['name'] as String?;
-      if (checkRun['status'] != 'COMPLETED') {
-        allSuccess = false;
-      } else if (checkRun['conclusion'] != 'SUCCESS') {
-        allSuccess = false;
+      if (checkRun['conclusion'] == 'SUCCESS') {
+        continue;
+      } else if (checkRun['status'] == 'COMPLETED') {
         failures.add(_FailureDetail(name!, checkRun['detailsUrl'] as String));
       }
+      allSuccess = false;
     }
 
     // Validate cirrus
