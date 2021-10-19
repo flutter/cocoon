@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/github_build_status_update.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
@@ -38,7 +39,10 @@ void main() {
     MockRepositoriesService repositoriesService;
     late List<PullRequest> prsFromGitHub;
     FakeGithubService githubService;
+    late FakeScheduler scheduler;
     MockLuciBuildService mockLuciBuildService;
+
+    late List<LuciBuilder> builders;
 
     PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
       return PullRequest()
@@ -59,7 +63,7 @@ void main() {
       );
     }
 
-    setUp(() {
+    setUp(() async {
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       clientContext.isDevelopmentEnvironment = false;
@@ -79,13 +83,16 @@ void main() {
       );
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciService = MockLuciService();
+      scheduler = FakeScheduler(config: config, schedulerConfig: exampleConfig);
+      builders = await scheduler.getPostSubmitBuilders(
+          Commit(repository: config.engineSlug.fullName, sha: 'master'), exampleConfig);
       handler = PushBuildStatusToGithub(
         config,
         FakeAuthenticationProvider(clientContext: clientContext),
         mockLuciBuildService,
         luciServiceProvider: (_) => mockLuciService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        scheduler: FakeScheduler(config: config),
+        scheduler: scheduler,
       );
 
       when(github.pullRequests).thenReturn(pullRequestsService);
@@ -106,7 +113,6 @@ void main() {
 
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -130,7 +136,6 @@ void main() {
       config.supportedBranchesValue = <String>['master'];
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -162,7 +167,6 @@ void main() {
 
       config.db.values[status.key] = status;
 
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -193,7 +197,6 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -237,9 +240,7 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-      config.luciBuildersValue = (await config.luciBuilders('prod', config.engineSlug))!
-        ..add(LuciBuilder(name: 'flaky', repo: config.engineSlug.name, flaky: true));
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
+      builders.add(LuciBuilder(name: 'flaky', repo: config.engineSlug.name, flaky: true));
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
@@ -279,7 +280,6 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
 
       config.db.values[status.key] = status;
-      final List<LuciBuilder> builders = (await config.luciBuilders('prod', config.engineSlug))!;
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,

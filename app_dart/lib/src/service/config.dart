@@ -23,7 +23,6 @@ import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
-import 'luci.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
@@ -70,11 +69,6 @@ class Config {
     );
 
     return String.fromCharCodes(cacheValue!).split(',');
-  }
-
-  // Returns LUCI builders.
-  Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
-    return await getLuciBuilders(Providers.freshHttpClient, slug, bucket, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

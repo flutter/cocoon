@@ -169,12 +169,6 @@ class Scheduler {
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder>? prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!);
-    if (prodBuilders != null) {
-      for (LuciBuilder builder in prodBuilders) {
-        tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp!, builder: builder));
-      }
-    }
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     final List<Target> initialTargets = _getInitialPostSubmitTargets(commit, schedulerConfig);
     final List<Task> ciYamlTasks = targetsToTask(commit, initialTargets).toList();
@@ -219,19 +213,14 @@ class Scheduler {
   }
 
   /// Get all [LuciBuilder] run on postsubmit for [Commit].
-  ///
-  /// Get an aggregate of LUCI presubmit builders from .ci.yaml and prod_builders.json.
   Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
-    // 1. Get prod_builders.json builders
-    final List<LuciBuilder> postsubmitBuilders =
-        await config.luciBuilders('prod', commit.slug, commitSha: commit.sha!) ?? <LuciBuilder>[];
-    // 2. Get ci.yaml builders (filter to only those that are relevant)
     final List<Target> postsubmitLuciTargets = schedulerConfig.targets
         .where((Target target) => target.postsubmit && target.scheduler == SchedulerSystem.luci)
         .toList();
     final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitLuciTargets);
-    postsubmitBuilders.addAll(filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
-    return postsubmitBuilders;
+    final List<LuciBuilder> builders =
+        filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+    return builders;
   }
 
   /// Get all targets run on presubmit for [Commit].
@@ -430,23 +419,14 @@ class Scheduler {
 
   /// Get LUCI presubmit builders from .ci.yaml.
   Future<List<LuciBuilder>> getPresubmitBuilders({required Commit commit, required int prNumber}) async {
-    // Get try_builders.json builders
-    log.fine('Getting presubmit builders from json file');
-    final List<LuciBuilder> presubmitBuilders = await config.luciBuilders(
-          'try',
-          commit.slug,
-          commitSha: commit.sha!,
-        ) ??
-        <LuciBuilder>[];
-    //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
-    //  Get .ci.yaml targets
-    final Iterable<Target> presubmitLuciTargets =
+    final Iterable<Target> presubmitTargets =
         getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
-    presubmitBuilders.addAll(presubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)));
+    final List<LuciBuilder> presubmitBuilders =
+        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(commit.slug, prNumber);

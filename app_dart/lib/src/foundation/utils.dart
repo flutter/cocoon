@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -117,54 +116,6 @@ Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String bu
     return null;
   }
   return RepositorySlug('flutter', repoName);
-}
-
-/// Returns LUCI builders based on [bucket] and [slug].
-///
-/// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
-/// the corresponding [commitSha].
-///
-/// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
-Future<List<LuciBuilder>> getLuciBuilders(
-  HttpClientProvider httpClientProvider,
-  RepositorySlug slug,
-  String bucket, {
-  String commitSha = 'master',
-  RetryOptions? retryOptions,
-}) async {
-  const Map<String, String> repoFilePathPrefix = <String, String>{
-    'flutter': 'dev',
-    'engine': 'ci/dev',
-    'cocoon': 'dev',
-    'plugins': '.ci/dev',
-    'packages': 'dev'
-  };
-  final String filePath = '${slug.owner}/${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}';
-  final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
-  final String builderConfigPath = '$filePath/$fileName';
-  String builderContent;
-  try {
-    builderContent = await githubFileContent(
-      builderConfigPath,
-      httpClientProvider: httpClientProvider,
-      retryOptions: retryOptions,
-    );
-  } on NotFoundException {
-    builderContent = '{"builders":[]}';
-  } on HttpException catch (_, e) {
-    log.warning('githubFileContent failed to get $builderConfigPath: $e');
-    builderContent = '{"builders":[]}';
-  }
-
-  Map<String, dynamic>? builderMap;
-  builderMap = json.decode(builderContent) as Map<String, dynamic>?;
-  final List<dynamic> builderList = builderMap!['builders'] as List<dynamic>;
-  final List<LuciBuilder> builders = builderList
-      .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
-      .where((LuciBuilder element) => element.enabled ?? true)
-      .toList();
-
-  return builders;
 }
 
 /// Returns a LUCI [builder] list that covers changed [files].

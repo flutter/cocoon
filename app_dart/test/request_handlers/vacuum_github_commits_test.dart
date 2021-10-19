@@ -78,7 +78,10 @@ void main() {
           dbValue: db,
           supportedBranchesValue: <String>['master']);
       auth = FakeAuthenticationProvider();
-      scheduler = FakeScheduler(config: config);
+      scheduler = FakeScheduler(
+        config: config,
+        schedulerConfig: exampleConfig,
+      );
       tester = ApiRequestHandlerTester();
       handler = VacuumGithubCommits(
         config,

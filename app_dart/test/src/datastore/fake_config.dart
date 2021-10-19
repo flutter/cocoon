@@ -268,27 +268,6 @@ class FakeConfig implements Config {
   Future<String> get githubPublicKey => throw UnimplementedError();
 
   @override
-  Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug,
-      {String commitSha = 'master', int? prNumber}) async {
-    if (luciBuildersValue != null) {
-      return luciBuildersValue;
-    }
-    if (slug.name == 'flutter') {
-      return <LuciBuilder>[
-        const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
-        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
-        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
-        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
-      ];
-    } else if (slug.name == 'cocoon') {
-      return <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)];
-    } else if (slug.name == 'engine') {
-      return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
-    }
-    return <LuciBuilder>[];
-  }
-
-  @override
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   @override
