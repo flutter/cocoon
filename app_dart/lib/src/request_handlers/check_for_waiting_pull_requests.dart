@@ -40,6 +40,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     for (RepositorySlug slug in Config.supportedRepos) {
       try {
+        log.info('Checking PRs for $slug');
         await _checkPRs(slug, client);
       } catch (e) {
         log.warning('_checkPRs error in $slug: $e');

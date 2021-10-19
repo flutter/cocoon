@@ -118,7 +118,6 @@ class Build extends JsonBody {
     this.serviceAccount,
     this.startedTimestamp,
     this.status,
-    this.statusChangedTimestamp,
     this.tags,
     this.updatedTimestamp,
     this.utcNowTimestamp,
@@ -199,11 +198,6 @@ class Build extends JsonBody {
   ///
   /// If [Status.completed], [result] will be populated.
   final Status? status;
-
-  /// The time of the last status change/
-  @JsonKey(name: 'status_changed_ts')
-  @MillisecondsSinceEpochConverter()
-  final DateTime? statusChangedTimestamp;
 
   /// The swarming tags for the build.
   final List<String>? tags;
