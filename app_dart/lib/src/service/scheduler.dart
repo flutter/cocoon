@@ -177,19 +177,6 @@ class Scheduler {
     return tasks;
   }
 
-  /// Load in memory the latest `.ci.yaml`.
-  ///
-  /// This is based off of tip and tree, and is used by services that are not run specific to a commit.
-  Future<SchedulerConfig> getLatestSchedulerConfig(
-      {required github.RepositorySlug slug, RetryOptions? retryOptions}) async {
-    final String ciPath = '${slug.fullName}/${config.defaultBranch}/.ci.yaml';
-    final Uint8List configBytes = await _downloadSchedulerConfig(
-      ciPath,
-      retryOptions: retryOptions,
-    );
-    return SchedulerConfig.fromBuffer(configBytes);
-  }
-
   /// Load in memory the `.ci.yaml`.
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async {
     final String ciPath = '${commit.repository}/${commit.sha!}/.ci.yaml';

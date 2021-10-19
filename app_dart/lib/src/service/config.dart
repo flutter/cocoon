@@ -23,7 +23,6 @@ import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
-import 'luci.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
