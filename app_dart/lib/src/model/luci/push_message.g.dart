@@ -89,7 +89,6 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       serviceAccount: json['service_account'] as String?,
       startedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
       status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
-      statusChangedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['status_changed_ts'] as String?),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       updatedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
       utcNowTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
@@ -122,7 +121,6 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('service_account', instance.serviceAccount);
   writeNotNull('started_ts', const MillisecondsSinceEpochConverter().toJson(instance.startedTimestamp));
   writeNotNull('status', _$StatusEnumMap[instance.status]);
-  writeNotNull('status_changed_ts', const MillisecondsSinceEpochConverter().toJson(instance.statusChangedTimestamp));
   writeNotNull('tags', instance.tags);
   writeNotNull('updated_ts', const MillisecondsSinceEpochConverter().toJson(instance.updatedTimestamp));
   writeNotNull('url', instance.url);
