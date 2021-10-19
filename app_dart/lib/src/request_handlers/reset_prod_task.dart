@@ -15,6 +15,7 @@ import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
+import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
@@ -28,13 +29,15 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   const ResetProdTask(
     Config config,
     AuthenticationProvider authenticationProvider,
-    this.luciBuildService, {
+    this.luciBuildService,
+    this.scheduler, {
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
+  final Scheduler scheduler;
 
   static const String taskKeyParam = 'Key';
   static const String ownerParam = 'Owner';
@@ -83,7 +86,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       commitSha = commit.sha!;
       builder = task.builderName;
       if (builder == null) {
-        final List<LuciBuilder> builders = (await config.luciBuilders('prod', slug))!;
+        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(commit);
+        final List<LuciBuilder> builders = await scheduler.getPostSubmitBuilders(commit, schedulerConfig);
         builder = builders
             .where((LuciBuilder builder) => builder.taskName == task!.name)
             .map((LuciBuilder builder) => builder.name)

@@ -135,40 +135,6 @@ void main() {
       });
     });
 
-    group('GetLuciBuilders', () {
-      late MockClient luciBuilderHttpClient;
-
-      test('returns enabled luci builders', () async {
-        final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
-        luciBuilderHttpClient = MockClient((_) async {
-          return http.Response(luciBuilders, HttpStatus.ok);
-        });
-        final List<LuciBuilder> builders = await getLuciBuilders(
-          () => luciBuilderHttpClient,
-          slug,
-          'try',
-          retryOptions: noRetry,
-        );
-        expect(builders.length, 1);
-        expect(builders[0].name, 'Cocoon');
-        expect(builders[0].repo, 'cocoon');
-      });
-
-      test('returns empty list when http request 404s', () async {
-        final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
-        luciBuilderHttpClient = MockClient((_) async {
-          return http.Response('', HttpStatus.notFound);
-        });
-        final List<LuciBuilder> builders = await getLuciBuilders(
-          () => luciBuilderHttpClient,
-          slug,
-          'try',
-          retryOptions: noRetry,
-        );
-        expect(builders.length, 0);
-      });
-    });
-
     group('GitHubBackoffCalculator', () {
       test('twoSecondLinearBackoff', () {
         expect(twoSecondLinearBackoff(0), const Duration(seconds: 2));

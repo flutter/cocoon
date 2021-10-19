@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/proto/protos.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -36,14 +35,10 @@ enabled_branches:
   - master
 targets:
   - name: Linux A
-    postsubmit: true
-    presubmit: true
     scheduler: luci
   - name: Linux B
     enabled_branches:
       - stable
-    postsubmit: true
-    presubmit: true
     scheduler: luci
   - name: Google Internal Roll
     postsubmit: true
@@ -177,7 +172,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 6);
+        expect(db.values.values.whereType<Task>().length, 2 * 2);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -199,7 +194,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 6);
+        expect(db.values.values.whereType<Task>().length, 2 * 2);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -227,7 +222,7 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 6);
+        expect(db.values.values.whereType<Task>().length, 2);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -339,14 +334,6 @@ targets:
             const CheckRunOutput(
                 title: '.ci.yaml validation',
                 summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
-            'Linux',
-            null,
-            'Mac',
-            null,
-            'Windows',
-            null,
-            'Linux Coverage',
-            null,
             'Linux A',
             null,
           ],
@@ -490,16 +477,6 @@ targets:
         expect(retriedBuildRequests.length, 1);
         final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
         expect(retryRequest.builderId.builder, 'Linux A');
-      });
-    });
-
-    group('postsubmit', () {
-      test('adds both prod_builders and .ci.yaml builds', () async {
-        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(generateCommit(1));
-        final List<LuciBuilder> postsubmitBuilders =
-            await scheduler.getPostSubmitBuilders(generateCommit(1), schedulerConfig);
-        expect(postsubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
-            <String>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
       });
     });
   });

@@ -14,6 +14,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -45,6 +46,10 @@ void main() {
         config,
         FakeAuthenticationProvider(clientContext: clientContext),
         mockLuciBuildService,
+        FakeScheduler(
+          config: config,
+          schedulerConfig: exampleConfig,
+        ),
       );
       tester.requestData = <String, dynamic>{
         'Key':
@@ -65,7 +70,7 @@ void main() {
         commitKey: commit.key,
         attempts: 0,
         status: 'Failed',
-        name: 'windows_bot',
+        name: 'Windows A',
       );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
@@ -88,7 +93,7 @@ void main() {
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
         )).captured,
-        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
+        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
       expect(task.attempts, equals(1));
     });
@@ -183,11 +188,12 @@ void main() {
 
     test('Re-schedule existing task even though builderName is missing in the task', () async {
       Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          attempts: 0,
-          name: 'windows_bot',
-          status: 'Failed');
+        key: commit.key.append(Task, id: 4590522719010816),
+        commitKey: commit.key,
+        attempts: 0,
+        name: 'Windows A',
+        status: 'Failed',
+      );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
@@ -209,7 +215,7 @@ void main() {
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
         )).captured,
-        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
+        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
       task = config.db.values[task.key] as Task;
       expect(task.attempts, equals(1));

@@ -72,11 +72,6 @@ class Config {
     return String.fromCharCodes(cacheValue!).split(',');
   }
 
-  // Returns LUCI builders.
-  Future<List<LuciBuilder>?> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
-    return await getLuciBuilders(Providers.freshHttpClient, slug, bucket, commitSha: commitSha);
-  }
-
   Future<String> _getSingleValue(String id) async {
     final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,

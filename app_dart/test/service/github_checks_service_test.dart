@@ -45,6 +45,7 @@ void main() {
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksUtil: mockGithubChecksUtil,
+      schedulerConfig: exampleConfig,
     );
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
@@ -69,10 +70,23 @@ void main() {
         mockLuciBuildService.scheduleTryBuilds(
           builders: <LuciBuilder>[
             const LuciBuilder(
-              name: 'Cocoon',
+              name: 'Linux A',
               repo: 'cocoon',
               flaky: false,
-            )
+              taskName: 'Linux A',
+            ),
+            const LuciBuilder(
+              name: 'Mac A',
+              repo: 'cocoon',
+              flaky: false,
+              taskName: 'Mac A',
+            ),
+            const LuciBuilder(
+              name: 'Windows A',
+              repo: 'cocoon',
+              flaky: false,
+              taskName: 'Windows A',
+            ),
           ],
           prNumber: 758,
           commitSha: 'dabc07b74c555c9952f7b63e139f2bb83b75250f',

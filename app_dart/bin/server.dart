@@ -98,6 +98,7 @@ Future<void> main() async {
         config,
         authProvider,
         luciBuildService,
+        scheduler,
       ),
       '/api/reset-try-task': ResetTryTask(
         config,

@@ -50,11 +50,16 @@ SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
   'master'
 ], targets: <Target>[
   Target(
-    bringup: false,
     name: 'Linux A',
     scheduler: SchedulerSystem.luci,
-    presubmit: true,
-    postsubmit: true,
+  ),
+  Target(
+    name: 'Mac A',
+    scheduler: SchedulerSystem.luci,
+  ),
+  Target(
+    name: 'Windows A',
+    scheduler: SchedulerSystem.luci,
   ),
   Target(
     bringup: false,
