@@ -25,7 +25,10 @@ const int _kMergeCountPerCycle = 2;
 /// Injected latency per repository. Engine and Flutter use an injected latency of 1h meaning
 /// that the bot skips any commits younger than 1h. However 1h is too long for some repositories
 /// whose builds are faster. Use this constant to override the default 1h latency for a given repository.
-const Map<String, Duration> _kInjectedLatencies = <String, Duration>{'cocoon': Duration(minutes: 10)};
+const Map<String, Duration> _kInjectedLatencies = <String, Duration>{
+  'cocoon': Duration(minutes: 10),
+  'packages': Duration(minutes: 10)
+};
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
