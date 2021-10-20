@@ -28,15 +28,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     http.Client? goldClient,
-    int? ingestionTime,
+    this.ingestionDelay = const Duration(seconds: 10),
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         goldClient = goldClient ?? http.Client(),
-        ingestionTime = ingestionTime ?? 10,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final http.Client goldClient;
-  final int ingestionTime;
+  final Duration ingestionDelay;
 
   @override
   Future<Body> get() async {
@@ -199,7 +198,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   Future<String> _getGoldStatus(PullRequest pr) async {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
-    await Future<void>.delayed(Duration(seconds: ingestionTime));
+    await Future<void>.delayed(ingestionDelay);
     final Uri requestForTryjobStatus =
         Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}');
     try {
