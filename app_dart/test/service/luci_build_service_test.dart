@@ -67,8 +67,7 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        slug,
-        'commit123',
+        generatePullRequest(),
         'abcd',
       );
       expect(builds.first, macBuild);
@@ -106,8 +105,7 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        slug,
-        'commit123',
+        generatePullRequest(),
         'abcd',
       );
       expect(builds.first, linuxBuild);

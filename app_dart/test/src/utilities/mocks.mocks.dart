@@ -1386,8 +1386,8 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
               returnValue: Future<List<List<_i7.Request>>>.value(<List<_i7.Request>>[]))
           as _i14.Future<List<List<_i7.Request>>>);
   @override
-  _i14.Future<Iterable<_i7.Build>> getTryBuilds(_i8.RepositorySlug? slug, String? commitSha, String? builderName) =>
-      (super.noSuchMethod(Invocation.method(#getTryBuilds, [slug, commitSha, builderName]),
+  _i14.Future<Iterable<_i7.Build>> getTryBuilds(_i8.PullRequest? pullRequest, String? builderName) =>
+      (super.noSuchMethod(Invocation.method(#getTryBuilds, [pullRequest, builderName]),
           returnValue: Future<Iterable<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<Iterable<_i7.Build>>);
   @override
   _i14.Future<Iterable<_i7.Build>> getProdBuilds(

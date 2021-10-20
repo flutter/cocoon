@@ -47,15 +47,14 @@ class LuciBuildService {
   /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName].
   Future<Iterable<Build>> getTryBuilds(
-    github.RepositorySlug? slug,
-    String? commitSha,
+    github.PullRequest pullRequest,
     String? builderName,
   ) async {
     final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['sha/git/$commitSha'],
+      'buildset': <String>['sha/git/${pullRequest.head!.sha}'],
       'user_agent': const <String>['flutter-cocoon'],
     };
-    return getBuilds(slug, commitSha, builderName, 'try', tags);
+    return getBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha, builderName, 'try', tags);
   }
 
   /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
@@ -395,7 +394,7 @@ class LuciBuildService {
   ///
   /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
   Future<bool> rescheduleUsingCheckRunEvent(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
-    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
     final String? commitSha = checkRunEvent.checkRun!.headSha;
     final String? builderName = checkRunEvent.checkRun!.name;
@@ -404,7 +403,7 @@ class LuciBuildService {
       pullRequest,
       checkRunEvent.checkRun!.name,
     );
-    final Iterable<Build> builds = await getTryBuilds(slug, commitSha, builderName);
+    final Iterable<Build> builds = await getTryBuilds(pullRequest, builderName);
 
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
