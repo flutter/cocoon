@@ -61,7 +61,6 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
     BuildBucketClient,
     FakeEntry,
     IssuesService,
-    // GitHub,
     GithubChecksService,
     GithubChecksUtil,
     GithubService,

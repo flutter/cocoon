@@ -102,7 +102,7 @@ class FakeConfig implements Config {
   String? overrideTreeStatusLabelValue;
 
   @override
-  Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient!;
+  Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async => githubClient!;
 
   @override
   GitHub createGitHubClientWithToken(String token) => githubClient!;

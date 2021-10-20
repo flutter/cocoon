@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
+import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
@@ -17,7 +18,6 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/exceptions.dart';
@@ -282,17 +282,11 @@ class Scheduler {
   }
 
   /// Cancel all incomplete targets against a pull request.
-  Future<void> cancelPreSubmitTargets(
-      {int? prNumber, github.RepositorySlug? slug, String? commitSha, String reason = 'Newer commit available'}) async {
-    if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
-      throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
-    }
-    await luciBuildService.cancelBuilds(
-      slug,
-      prNumber,
-      commitSha,
-      reason,
-    );
+  Future<void> cancelPreSubmitTargets({
+    required github.PullRequest pullRequest,
+    String reason = 'Newer commit available',
+  }) async {
+    await luciBuildService.cancelBuilds(pullRequest, reason);
   }
 
   /// Schedule presubmit targets against a pull request.
@@ -301,46 +295,32 @@ class Scheduler {
   ///
   /// Schedules a `ci.yaml validation` check to validate [SchedulerConfig] is valid
   /// and all builds were able to be triggered.
-  Future<void> triggerPresubmitTargets(
-      {required String branch,
-      required int prNumber,
-      required github.RepositorySlug slug,
-      required String commitSha,
-      String reason = 'Newer commit available'}) async {
-    if (commitSha.isEmpty) {
-      throw BadRequestException(
-          'Empty commit.sha! given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
-    }
+  Future<void> triggerPresubmitTargets({
+    required github.PullRequest pullRequest,
+    String reason = 'Newer commit available',
+  }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.fine('about to cancel presubmit targets');
     await cancelPreSubmitTargets(
-      prNumber: prNumber,
-      slug: slug,
-      commitSha: commitSha,
+      pullRequest: pullRequest,
       reason: reason,
     );
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
-      slug,
+      pullRequest,
       'ci.yaml validation',
-      commitSha,
       output: const github.CheckRunOutput(
         title: '.ci.yaml validation',
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
-    final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
     try {
-      final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
-        commit: presubmitCommit,
-        prNumber: prNumber,
-      );
+      final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(pullRequest);
       await luciBuildService.scheduleTryBuilds(
         builders: presubmitBuilders,
-        slug: slug,
-        prNumber: prNumber,
-        commitSha: commitSha,
+        pullRequest: pullRequest,
       );
     } on FormatException catch (error, backtrace) {
       log.warning(backtrace.toString());
@@ -361,7 +341,7 @@ class Scheduler {
         conclusion: github.CheckRunConclusion.success,
       );
     } else {
-      log.warning('Marking PR #$prNumber ci.yaml validation as failed');
+      log.warning('Marking PR #${pullRequest.number} ci.yaml validation as failed');
       log.warning(exception.toString());
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
@@ -377,7 +357,8 @@ class Scheduler {
         ),
       );
     }
-    log.info('Finished triggering builds for: pr $prNumber, commit $commitSha, branch $branch and slug $slug}');
+    log.info(
+        'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}');
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
@@ -386,22 +367,16 @@ class Scheduler {
   /// 2. Get failed LUCI builds for this pull request at [commitSha].
   /// 3. Rerun the failed builds that also have a failed check status.
   Future<void> retryPresubmitTargets({
-    required int prNumber,
-    required github.RepositorySlug slug,
-    required String commitSha,
+    required github.PullRequest pullRequest,
     required CheckSuiteEvent checkSuiteEvent,
   }) async {
-    final github.GitHub githubClient = await config.createGitHubClient(slug);
+    final github.GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
     final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
       githubClient,
       checkSuiteEvent,
     );
-    final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
-    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
-      commit: presubmitCommit,
-      prNumber: prNumber,
-    );
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(slug, prNumber, commitSha, presubmitBuilders);
+    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(pullRequest);
+    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitBuilders);
     for (Build? build in failedBuilds) {
       final github.CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
 
@@ -411,6 +386,7 @@ class Scheduler {
       }
 
       await luciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(
+        pullRequest,
         checkSuiteEvent,
         checkRun,
       );
@@ -418,7 +394,8 @@ class Scheduler {
   }
 
   /// Get LUCI presubmit builders from .ci.yaml.
-  Future<List<LuciBuilder>> getPresubmitBuilders({required Commit commit, required int prNumber}) async {
+  Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
+    final Commit commit = Commit(repository: pullRequest.base!.repo!.fullName, sha: pullRequest.head!.sha);
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
@@ -429,7 +406,7 @@ class Scheduler {
         presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
-    final List<String?> files = await githubService.listFiles(commit.slug, prNumber);
+    final List<String?> files = await githubService.listFiles(pullRequest);
     return await getFilteredBuilders(presubmitBuilders, files);
   }
 
@@ -438,11 +415,11 @@ class Scheduler {
   /// the Github UI.
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(CheckRunEvent checkRunEvent) async {
+  Future<bool> processCheckRun(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
         final String? builderName = checkRunEvent.checkRun!.name;
-        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(pullRequest, checkRunEvent);
         log.fine('BuilderName: $builderName State: $success');
         return success;
     }

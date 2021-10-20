@@ -67,7 +67,7 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+  Future<List<String>> listFiles(PullRequest pullRequest) async {
     return <String>['abc/def'];
   }
 

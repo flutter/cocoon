@@ -68,3 +68,41 @@ github.CheckRun generateCheckRun(
     'check_suite': <String, dynamic>{'id': checkSuite}
   });
 }
+
+github.PullRequest generatePullRequest({
+  int id = 789,
+  String branch = 'master',
+  String repo = 'flutter',
+  String authorLogin = 'dash',
+  String authorAvatar = 'dashatar',
+  String title = 'example message',
+  int number = 123,
+  DateTime? mergedAt,
+  String sha = 'abc',
+  bool merged = true,
+}) {
+  mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
+  return github.PullRequest(
+    id: id,
+    title: title,
+    number: number,
+    mergedAt: mergedAt,
+    base: github.PullRequestHead(
+        ref: branch,
+        repo: github.Repository(
+          fullName: 'flutter/$repo',
+          name: repo,
+          owner: github.UserInformation('flutter', 1, '', ''),
+        )),
+    head: github.PullRequestHead(
+      ref: branch,
+      sha: sha,
+    ),
+    user: github.User(
+      login: authorLogin,
+      avatarUrl: authorAvatar,
+    ),
+    mergeCommitSha: sha,
+    merged: merged,
+  );
+}

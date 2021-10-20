@@ -292,7 +292,8 @@ class Config {
     return jsonBody['token'] as String;
   }
 
-  Future<GitHub> createGitHubClient(RepositorySlug slug) async {
+  Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async {
+    slug ??= pullRequest!.base!.repo!.slug();
     final String githubToken = await generateGithubToken(slug);
     return createGitHubClientWithToken(githubToken);
   }
@@ -348,7 +349,7 @@ class Config {
   }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
-    final GitHub github = await createGitHubClient(slug);
+    final GitHub github = await createGitHubClient(slug: slug);
     return GithubService(github);
   }
 

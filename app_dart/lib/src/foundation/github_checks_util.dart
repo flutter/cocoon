@@ -6,9 +6,9 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:github/github.dart' as github;
+import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
-import '../model/github/checks.dart';
 import '../service/config.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
@@ -21,8 +21,8 @@ class GithubChecksUtil {
   ) async {
     final List<github.CheckRun> allCheckRuns = await gitHubClient.checks.checkRuns
         .listCheckRunsInSuite(
-          checkSuiteEvent.repository.slug(),
-          checkSuiteId: checkSuiteEvent.checkSuite.id!,
+          checkSuiteEvent.repository!.slug(),
+          checkSuiteId: checkSuiteEvent.checkSuite!.id!,
         )
         .toList();
     return Map<String, github.CheckRun>.fromIterable(
@@ -59,7 +59,7 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
       await gitHubClient.checks.checkRuns.updateCheckRun(
         slug,
         checkRun,
@@ -81,7 +81,7 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
       return await gitHubClient.checks.checkRuns.getCheckRun(
         slug,
         checkRunId: id!,
@@ -93,9 +93,8 @@ class GithubChecksUtil {
   /// with a task [name] and commit [headSha].
   Future<github.CheckRun> createCheckRun(
     Config? cocoonConfig,
-    github.RepositorySlug slug,
-    String? name,
-    String? headSha, {
+    github.PullRequest pullRequest,
+    String? name, {
     github.CheckRunOutput? output,
   }) async {
     const RetryOptions r = RetryOptions(
@@ -105,9 +104,8 @@ class GithubChecksUtil {
     return r.retry(() async {
       return _createCheckRun(
         cocoonConfig!,
-        slug,
+        pullRequest,
         name!,
-        headSha!,
         output: output,
       );
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
@@ -115,16 +113,15 @@ class GithubChecksUtil {
 
   Future<github.CheckRun> _createCheckRun(
     Config cocoonConfig,
-    github.RepositorySlug slug,
-    String name,
-    String headSha, {
+    github.PullRequest pullRequest,
+    String name, {
     github.CheckRunOutput? output,
   }) async {
-    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
+    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(pullRequest: pullRequest);
     return gitHubClient.checks.checkRuns.createCheckRun(
-      slug,
+      pullRequest.base!.repo!.slug(),
       name: name,
-      headSha: headSha,
+      headSha: pullRequest.head!.sha!,
       output: output,
     );
   }

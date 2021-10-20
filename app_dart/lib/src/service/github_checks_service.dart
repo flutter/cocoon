@@ -5,13 +5,13 @@
 import 'dart:convert';
 
 import 'package:github/github.dart' as github;
+import 'package:github/hooks.dart';
 
 import '../foundation/github_checks_util.dart';
-import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../service/logging.dart';
 import 'config.dart';
+import 'logging.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
 
@@ -39,27 +39,19 @@ class GithubChecksService {
   /// Relevant API docs:
   ///   https://docs.github.com/en/rest/reference/checks#create-a-check-suite
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
-  Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests![0];
-    final int? prNumber = pullRequest.number;
-    final String? commitSha = checkSuiteEvent.checkSuite.headSha;
+  Future<void> handleCheckSuite(
+      github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.
         await scheduler.triggerPresubmitTargets(
-          branch: pullRequest.base!.ref!,
-          prNumber: prNumber!,
-          commitSha: commitSha!,
-          slug: checkSuiteEvent.repository.slug(),
+          pullRequest: pullRequest,
         );
         break;
 
       case 'rerequested':
         return await scheduler.retryPresubmitTargets(
-          slug: slug,
-          prNumber: prNumber!,
-          commitSha: commitSha!,
+          pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
         );
     }

@@ -15,7 +15,7 @@ String checkSuiteTemplate(String action) => '''\
         "head_branch": "update_licenses",
         "head_sha": "dabc07b74c555c9952f7b63e139f2bb83b75250f",
         "status": "queued",
-        "conclusion": null,
+        "conclusion": "success",
         "url": "https://api.github.com/repos/abc/cocoon/check-suites/694267587",
         "before": "5763f4c2b3b5e529f4b35c655761a7e818eced2e",
         "after": "dabc07b74c555c9952f7b63e139f2bb83b75250f",
