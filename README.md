@@ -16,6 +16,7 @@ The server is driven by commits made to
 https://github.com/flutter/flutter repo. It periodically syncs new
 commits. If you need to manually force a refresh, query
 `https://flutter-dashboard.appspot.com/api/refresh-github-commits`.
+
 You will need to be authenticated with Cocoon to do this.
 
 
