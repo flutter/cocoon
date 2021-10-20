@@ -306,7 +306,7 @@ class LuciBuildService {
           }
           await githubChecksUtil.updateCheckRun(
             config,
-            pullRequest,
+            pullRequest.base!.repo!.slug(),
             checkRun,
             status: github.CheckRunStatus.completed,
             conclusion: github.CheckRunConclusion.failure,
@@ -437,7 +437,7 @@ class LuciBuildService {
       ),
     ));
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-    await githubChecksUtil.updateCheckRun(config, pullRequest, githubCheckRun, detailsUrl: buildUrl);
+    await githubChecksUtil.updateCheckRun(config, pullRequest.base!.repo!.slug(), githubCheckRun, detailsUrl: buildUrl);
     return true;
   }
 

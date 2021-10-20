@@ -54,6 +54,8 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
 
+  final PullRequest pullRequest = generatePullRequest(id: 42);
+
   Commit shaToCommit(String sha, {String branch = 'master'}) {
     return Commit(
       key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
@@ -88,8 +90,8 @@ void main() {
 
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
-          .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[3].hashCode));
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output')))
+          .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -102,7 +104,7 @@ void main() {
         ),
       );
 
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -203,7 +205,7 @@ void main() {
 
     group('add pull request', () {
       test('creates expected commit', () async {
-        final PullRequest mergedPr = createPullRequest();
+        final PullRequest mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -218,7 +220,7 @@ void main() {
       });
 
       test('schedules tasks against merged PRs', () async {
-        final PullRequest mergedPr = createPullRequest();
+        final PullRequest mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -226,7 +228,7 @@ void main() {
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
-        final PullRequest notMergedPr = createPullRequest(merged: false);
+        final PullRequest notMergedPr = generatePullRequest(merged: false);
         await scheduler.addPullRequest(notMergedPr);
 
         expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 0);
@@ -238,7 +240,7 @@ void main() {
         final Commit commit = shaToCommit('1');
         db.values[commit.key] = commit;
 
-        final PullRequest alreadyLandedPr = createPullRequest(mergedCommitSha: '1');
+        final PullRequest alreadyLandedPr = generatePullRequest(sha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
 
         expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
@@ -247,7 +249,7 @@ void main() {
       });
 
       test('creates expected commit from release branch PR', () async {
-        final PullRequest mergedPr = createPullRequest(branch: '1.26');
+        final PullRequest mergedPr = generatePullRequest(branch: '1.26');
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -264,7 +266,7 @@ void main() {
 
     group('process check run', () {
       test('rerequested triggers triggers a luci build', () async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
@@ -274,7 +276,7 @@ void main() {
         final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
-        expect(await scheduler.processCheckRun(generatePullRequest(1), checkRunEvent), true);
+        expect(await scheduler.processCheckRun(generatePullRequest(id: 1), checkRunEvent), true);
       });
     });
 
@@ -313,22 +315,15 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         config.luciBuildersValue = <LuciBuilder>[];
-        final List<LuciBuilder> presubmitBuilders = await scheduler.getPresubmitBuilders(
-            commit: Commit(repository: config.flutterSlug.fullName, sha: 'abc'), prNumber: 42);
+        final List<LuciBuilder> presubmitBuilders = await scheduler.getPresubmitBuilders(pullRequest);
         expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
             containsAll(<String>['Linux A', 'Linux C']));
       });
 
       test('triggers expected presubmit build checks', () async {
-        await scheduler.triggerPresubmitTargets(
-          branch: config.defaultBranch,
-          prNumber: 42,
-          slug: config.flutterSlug,
-          commitSha: 'abc',
-        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc', output: captureAnyNamed('output')))
-              .captured,
+          verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, output: captureAnyNamed('output'))).captured,
           <dynamic>[
             'ci.yaml validation',
             const CheckRunOutput(
@@ -343,12 +338,7 @@ targets:
       test('ci.yaml validation passes with default config', () async {
         when(mockGithubChecksUtil.getCheckRun(any, any, any))
             .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
-        await scheduler.triggerPresubmitTargets(
-          branch: config.defaultBranch,
-          prNumber: 42,
-          slug: config.flutterSlug,
-          commitSha: 'abc',
-        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
             verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
                     status: captureAnyNamed('status'),
@@ -365,12 +355,7 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        await scheduler.triggerPresubmitTargets(
-          branch: config.defaultBranch,
-          prNumber: 42,
-          slug: config.flutterSlug,
-          commitSha: 'abc',
-        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
             verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
                     status: captureAnyNamed('status'),
@@ -381,12 +366,7 @@ targets:
       });
 
       test('ci.yaml validation fails on not enabled branch', () async {
-        await scheduler.triggerPresubmitTargets(
-          branch: 'abc',
-          prNumber: 42,
-          slug: config.flutterSlug,
-          commitSha: 'abc',
-        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
             verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
                     status: captureAnyNamed('status'),
@@ -411,12 +391,7 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        await scheduler.triggerPresubmitTargets(
-          branch: config.defaultBranch,
-          prNumber: 42,
-          slug: config.flutterSlug,
-          commitSha: 'abc',
-        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
             verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
                     status: anyNamed('status'), conclusion: anyNamed('conclusion'), output: captureAnyNamed('output')))
@@ -472,7 +447,9 @@ targets:
         final CheckSuiteEvent checkSuiteEvent =
             CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
         await scheduler.retryPresubmitTargets(
-            prNumber: 42, slug: config.flutterSlug, commitSha: 'abc', checkSuiteEvent: checkSuiteEvent);
+          pullRequest: pullRequest,
+          checkSuiteEvent: checkSuiteEvent,
+        );
         final List<dynamic> retriedBuildRequests = verify(mockBuildbucket.scheduleBuild(captureAny)).captured;
         expect(retriedBuildRequests.length, 1);
         final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
@@ -487,39 +464,6 @@ CheckRun createCheckRun({String? name, required int id, CheckRunStatus status = 
   final String checkRunJson =
       '{"name": "$name", "id": $id, "external_id": "{$externalId}", "status": "$status", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}';
   return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
-}
-
-PullRequest createPullRequest({
-  int id = 789,
-  String branch = 'master',
-  String repo = 'flutter',
-  String authorLogin = 'dash',
-  String authorAvatar = 'dashatar',
-  String title = 'example message',
-  int number = 123,
-  DateTime? mergedAt,
-  String mergedCommitSha = 'abc',
-  bool merged = true,
-}) {
-  mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
-  return PullRequest(
-    id: id,
-    title: title,
-    number: number,
-    mergedAt: mergedAt,
-    base: PullRequestHead(
-        ref: branch,
-        repo: Repository(
-          fullName: 'flutter/$repo',
-          name: repo,
-        )),
-    user: User(
-      login: authorLogin,
-      avatarUrl: authorAvatar,
-    ),
-    mergeCommitSha: mergedCommitSha,
-    merged: merged,
-  );
 }
 
 String toSha(Commit commit) => commit.sha!;

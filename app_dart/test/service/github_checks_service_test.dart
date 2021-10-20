@@ -33,7 +33,7 @@ void main() {
   setUp(() {
     mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
-    when(mockGithubService.listFiles(any, any)).thenAnswer((_) async => <String?>[]);
+    when(mockGithubService.listFiles(any)).thenAnswer((_) async => <String?>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
     config = FakeConfig(githubService: mockGithubService);
     githubChecksService = GithubChecksService(
@@ -60,12 +60,11 @@ void main() {
 
   group('handleCheckSuiteEvent', () {
     test('requested triggers all builds', () async {
-      final RepositorySlug slug = RepositorySlug('abc', 'cocoon');
       final CheckSuiteEvent checkSuiteEvent =
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output')))
           .thenAnswer((_) async => generateCheckRun(1));
-      final PullRequest pullRequest = generatePullRequest(758);
+      final PullRequest pullRequest = generatePullRequest(id: 758, repo: 'cocoon');
       await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
       verify(
         mockLuciBuildService.scheduleTryBuilds(
@@ -89,9 +88,7 @@ void main() {
               taskName: 'Windows A',
             ),
           ],
-          prNumber: 758,
-          commitSha: 'dabc07b74c555c9952f7b63e139f2bb83b75250f',
-          slug: slug,
+          pullRequest: pullRequest,
         ),
       ).called(1);
     });

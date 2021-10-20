@@ -82,7 +82,6 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     final String? eventAction = pullRequestEvent.action;
     final PullRequest pr = pullRequestEvent.pullRequest!;
-    final RepositorySlug slug = pullRequestEvent.repository!.slug();
 
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -94,8 +93,7 @@ class GithubWebhook extends RequestHandler<Body> {
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
         if (!pr.merged!) {
-          await scheduler.cancelPreSubmitTargets(
-              prNumber: pr.number, commitSha: pr.head!.sha, slug: slug, reason: 'Pull request closed');
+          await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
         } else {
           // Merged pull requests can be added to CI.
           await scheduler.addPullRequest(pr);
@@ -147,30 +145,24 @@ class GithubWebhook extends RequestHandler<Body> {
     // null indicates unknown. Err on the side of allowing the job to run.
     if (pr.mergeable == false) {
       final RepositorySlug slug = pullRequestEvent.repository!.slug();
-      final GitHub gitHubClient = await config.createGitHubClient(slug);
+      final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
       final String body = config.mergeConflictPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
 
       return;
     }
 
-    await scheduler.triggerPresubmitTargets(
-      branch: pr.base!.ref!,
-      prNumber: pr.number!,
-      commitSha: pr.head!.sha!,
-      slug: slug,
-    );
+    await scheduler.triggerPresubmitTargets(pullRequest: pr);
   }
 
   Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final String? eventAction = pullRequestEvent.action;
-    final RepositorySlug slug = pullRequestEvent.repository!.slug();
     final String repo = pr.base!.repo!.fullName.toLowerCase();
     if (kNeedsCheckLabelsAndTests.contains(repo)) {
-      final GitHub gitHubClient = await config.createGitHubClient(slug);
+      final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
       try {
         await _validateRefs(gitHubClient, pr);
         if (repo == 'flutter/flutter') {
@@ -240,7 +232,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (!hasTests && needsTests && !pr.draft!) {
       final String body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
     }
@@ -362,7 +354,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (!hasTests && needsTests && !pr.draft!) {
       final String body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
         await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, kNeedsTestsLabels);
       }
@@ -384,7 +376,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // Close PRs that use a release branch as a source.
     if (releaseChannels.contains(pr.head!.ref)) {
       body = config.wrongHeadBranchPullRequestMessage(pr.head!.ref!);
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.pullRequests.edit(
           slug,
           pr.number!,
@@ -401,7 +393,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (candidateTest.hasMatch(pr.base!.ref!) && candidateTest.hasMatch(pr.head!.ref!)) {
       // This is most likely a release branch
       body = config.releaseBranchPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
       return;
@@ -409,7 +401,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     // Assume this PR should be based against config.defaultBranch.
     body = _getWrongBaseComment(pr.base!.ref!);
-    if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+    if (!await _alreadyCommented(gitHubClient, pr, body)) {
       await gitHubClient.pullRequests.edit(
         slug,
         pr.number!,
@@ -422,10 +414,9 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<bool> _alreadyCommented(
     GitHub gitHubClient,
     PullRequest pr,
-    RepositorySlug slug,
     String message,
   ) async {
-    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number!);
+    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(pr.base!.repo!.slug(), pr.number!);
     await for (IssueComment comment in comments) {
       if (comment.body != null && comment.body!.contains(message)) {
         return true;

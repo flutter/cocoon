@@ -89,7 +89,7 @@ void main() {
       mockGithubChecksService = MockGithubChecksService();
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',

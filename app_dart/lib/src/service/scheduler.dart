@@ -295,8 +295,10 @@ class Scheduler {
   ///
   /// Schedules a `ci.yaml validation` check to validate [SchedulerConfig] is valid
   /// and all builds were able to be triggered.
-  Future<void> triggerPresubmitTargets(
-      {required github.PullRequest pullRequest, String reason = 'Newer commit available'}) async {
+  Future<void> triggerPresubmitTargets({
+    required github.PullRequest pullRequest,
+    String reason = 'Newer commit available',
+  }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.fine('about to cancel presubmit targets');
     await cancelPreSubmitTargets(
@@ -312,6 +314,7 @@ class Scheduler {
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
       final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(pullRequest);
@@ -332,7 +335,7 @@ class Scheduler {
       // Success in validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
-        pullRequest,
+        slug,
         ciValidationCheckRun,
         status: github.CheckRunStatus.completed,
         conclusion: github.CheckRunConclusion.success,
@@ -343,7 +346,7 @@ class Scheduler {
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
-        pullRequest,
+        slug,
         ciValidationCheckRun,
         status: github.CheckRunStatus.completed,
         conclusion: github.CheckRunConclusion.failure,
@@ -367,7 +370,7 @@ class Scheduler {
     required github.PullRequest pullRequest,
     required CheckSuiteEvent checkSuiteEvent,
   }) async {
-    final github.GitHub githubClient = await config.createGitHubClient(pullRequest);
+    final github.GitHub githubClient = await config.createGitHubClient(pullRequest: pullRequest);
     final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
       githubClient,
       checkSuiteEvent,
@@ -392,7 +395,7 @@ class Scheduler {
 
   /// Get LUCI presubmit builders from .ci.yaml.
   Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
-    final Commit commit = Commit(repository: pullRequest.head!.repo!.fullName, sha: pullRequest.head!.sha);
+    final Commit commit = Commit(repository: pullRequest.base!.repo!.fullName, sha: pullRequest.head!.sha);
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');

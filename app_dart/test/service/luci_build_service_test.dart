@@ -41,6 +41,7 @@ void main() {
       repo: 'flutter',
     ),
   ];
+  final PullRequest pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
 
   group('getBuilds', () {
     final Build macBuild = generateBuild(999, name: 'Mac', status: Status.started);
@@ -135,7 +136,7 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForRepositoryAndPr(slug!, 1, 'abcd');
+      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
       expect(builds.keys, isEmpty);
     });
 
@@ -156,7 +157,7 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForRepositoryAndPr(slug!, 1, 'abcd');
+      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
       expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
@@ -190,13 +191,11 @@ void main() {
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
         builders: builders,
-        prNumber: 1,
-        commitSha: 'abc',
-        slug: slug!,
       );
       expect(records[0].message,
-          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
+          'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
     });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -215,16 +214,14 @@ void main() {
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
         builders: builders,
-        prNumber: 1,
-        commitSha: 'abc',
-        slug: slug!,
       );
       expect(records[0].message,
-          'Either builds are empty or they are already scheduled or started. PR: 1, Commit: abc, Owner: flutter Repo: cocoon');
+          'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
     });
     test('Schedule builds throws when current list of builds is empty', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -238,21 +235,16 @@ void main() {
       });
       await expectLater(
           service.scheduleTryBuilds(
-            builders: <LuciBuilder>[],
-            prNumber: 1,
-            commitSha: 'abc',
-            slug: slug!,
+            pullRequest: pullRequest,
+            builders: builders,
           ),
           throwsA(isA<InternalServerError>()));
     });
     test('Try to schedule build on a unsupported repo', () async {
-      slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.scheduleTryBuilds(
                 builders: builders,
-                prNumber: 1,
-                commitSha: 'abc',
-                slug: slug!,
+                pullRequest: generatePullRequest(repo: 'nonsupported'),
               ),
           throwsA(const TypeMatcher<BadRequestException>()));
     });
@@ -271,7 +263,7 @@ void main() {
           responses: <Response>[],
         );
       });
-      await service.cancelBuilds(slug!, 1, 'abc', 'new builds');
+      await service.cancelBuilds(pullRequest, 'new builds');
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
     test('Cancel builds that are scheduled', () async {
@@ -288,17 +280,14 @@ void main() {
           ],
         );
       });
-      await service.cancelBuilds(slug!, 1, 'abc', 'new builds');
+      await service.cancelBuilds(pullRequest, 'new builds');
       expect(verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
           json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
     });
     test('Cancel builds from unsuported repo', () async {
-      slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.cancelBuilds(
-                slug!,
-                1,
-                'abc',
+                generatePullRequest(repo: 'notsupported'),
                 'new builds',
               ),
           throwsA(const TypeMatcher<BadRequestException>()));
@@ -319,7 +308,7 @@ void main() {
           responses: <Response>[],
         );
       });
-      final List<Build?> result = await service.failedBuilds(slug!, 1, 'abc', <LuciBuilder>[]);
+      final List<Build?> result = await service.failedBuilds(pullRequest, <LuciBuilder>[]);
       expect(result, isEmpty);
     });
     test('Failed builds from a list of builds with failures', () async {
@@ -336,8 +325,8 @@ void main() {
           ],
         );
       });
-      final List<Build?> result = await service.failedBuilds(
-          slug!, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
+      final List<Build?> result = await service
+          .failedBuilds(pullRequest, <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
       expect(result, hasLength(1));
     });
   });

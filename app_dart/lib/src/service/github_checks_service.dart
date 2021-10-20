@@ -11,7 +11,6 @@ import '../foundation/github_checks_util.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import 'config.dart';
-import 'github_service.dart';
 import 'logging.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
@@ -42,8 +41,6 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
   Future<void> handleCheckSuite(
       github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository!.slug();
-    final String? commitSha = checkSuiteEvent.checkSuite!.headSha;
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.

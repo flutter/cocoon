@@ -47,7 +47,7 @@ class GithubChecksUtil {
   /// [status] and [conclusion].
   Future<void> updateCheckRun(
     Config cocoonConfig,
-    github.PullRequest pullRequest,
+    github.RepositorySlug slug,
     github.CheckRun checkRun, {
     github.CheckRunStatus? status,
     github.CheckRunConclusion? conclusion,
@@ -59,9 +59,9 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(pullRequest.base!.repo!.slug());
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
       await gitHubClient.checks.checkRuns.updateCheckRun(
-        pullRequest.base!.repo!.slug(),
+        slug,
         checkRun,
         status: status!,
         conclusion: conclusion,
@@ -81,7 +81,7 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
       return await gitHubClient.checks.checkRuns.getCheckRun(
         slug,
         checkRunId: id!,
@@ -117,10 +117,9 @@ class GithubChecksUtil {
     String name, {
     github.CheckRunOutput? output,
   }) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
+    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(pullRequest: pullRequest);
     return gitHubClient.checks.checkRuns.createCheckRun(
-      slug,
+      pullRequest.base!.repo!.slug(),
       name: name,
       headSha: pullRequest.head!.sha!,
       output: output,

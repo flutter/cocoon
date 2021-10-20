@@ -635,10 +635,9 @@ class MockGithubChecksUtil extends _i1.Mock implements _i9.GithubChecksUtil {
       (super.noSuchMethod(Invocation.method(#getCheckRun, [cocoonConfig, slug, id]),
           returnValue: Future<_i8.CheckRun>.value(_FakeCheckRun_18())) as _i14.Future<_i8.CheckRun>);
   @override
-  _i14.Future<_i8.CheckRun> createCheckRun(
-          _i3.Config? cocoonConfig, _i8.RepositorySlug? slug, String? name, String? headSha,
+  _i14.Future<_i8.CheckRun> createCheckRun(_i3.Config? cocoonConfig, _i8.PullRequest? pullRequest, String? name,
           {_i8.CheckRunOutput? output}) =>
-      (super.noSuchMethod(Invocation.method(#createCheckRun, [cocoonConfig, slug, name, headSha], {#output: output}),
+      (super.noSuchMethod(Invocation.method(#createCheckRun, [cocoonConfig, pullRequest, name], {#output: output}),
           returnValue: Future<_i8.CheckRun>.value(_FakeCheckRun_18())) as _i14.Future<_i8.CheckRun>);
   @override
   String toString() => super.toString();
@@ -710,8 +709,8 @@ class MockGithubService extends _i1.Mock implements _i28.GithubService {
           Invocation.method(#replaceLabelsForIssue, [slug], {#issueNumber: issueNumber, #labels: labels}),
           returnValue: Future<List<_i8.IssueLabel>>.value(<_i8.IssueLabel>[])) as _i14.Future<List<_i8.IssueLabel>>);
   @override
-  _i14.Future<List<String?>> listFiles(_i8.RepositorySlug? slug, int? prNumber) =>
-      (super.noSuchMethod(Invocation.method(#listFiles, [slug, prNumber]),
+  _i14.Future<List<String?>> listFiles(_i8.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#listFiles, [pullRequest]),
           returnValue: Future<List<String?>>.value(<String?>[])) as _i14.Future<List<String?>>);
   @override
   _i14.Future<String> getFileContent(_i8.RepositorySlug? slug, String? path) =>
@@ -1401,36 +1400,25 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
       (super.noSuchMethod(Invocation.method(#getBuilds, [slug, commitSha, builderName, bucket, tags]),
           returnValue: Future<Iterable<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<Iterable<_i7.Build>>);
   @override
-  _i14.Future<Map<String?, _i7.Build?>> tryBuildsForRepositoryAndPr(
-          _i8.RepositorySlug? slug, int? prNumber, String? commitSha) =>
-      (super.noSuchMethod(Invocation.method(#tryBuildsForRepositoryAndPr, [slug, prNumber, commitSha]),
+  _i14.Future<Map<String?, _i7.Build?>> tryBuildsForPullRequest(_i8.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#tryBuildsForPullRequest, [pullRequest]),
               returnValue: Future<Map<String?, _i7.Build?>>.value(<String?, _i7.Build?>{}))
           as _i14.Future<Map<String?, _i7.Build?>>);
   @override
   _i14.Future<void> scheduleTryBuilds(
-          {List<_i30.LuciBuilder>? builders,
-          int? prNumber,
-          String? commitSha,
-          _i8.RepositorySlug? slug,
-          _i24.CheckSuiteEvent? checkSuiteEvent}) =>
+          {List<_i30.LuciBuilder>? builders, _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent}) =>
       (super.noSuchMethod(
-          Invocation.method(#scheduleTryBuilds, [], {
-            #builders: builders,
-            #prNumber: prNumber,
-            #commitSha: commitSha,
-            #slug: slug,
-            #checkSuiteEvent: checkSuiteEvent
-          }),
+          Invocation.method(#scheduleTryBuilds, [],
+              {#builders: builders, #pullRequest: pullRequest, #checkSuiteEvent: checkSuiteEvent}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future<void>.value()) as _i14.Future<void>);
   @override
-  _i14.Future<void> cancelBuilds(_i8.RepositorySlug? slug, int? prNumber, String? commitSha, String? reason) =>
-      (super.noSuchMethod(Invocation.method(#cancelBuilds, [slug, prNumber, commitSha, reason]),
+  _i14.Future<void> cancelBuilds(_i8.PullRequest? pullRequest, String? reason) =>
+      (super.noSuchMethod(Invocation.method(#cancelBuilds, [pullRequest, reason]),
           returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i14.Future<void>);
   @override
-  _i14.Future<List<_i7.Build?>> failedBuilds(
-          _i8.RepositorySlug? slug, int? prNumber, String? commitSha, List<_i30.LuciBuilder>? builders) =>
-      (super.noSuchMethod(Invocation.method(#failedBuilds, [slug, prNumber, commitSha, builders]),
+  _i14.Future<List<_i7.Build?>> failedBuilds(_i8.PullRequest? pullRequest, List<_i30.LuciBuilder>? builders) =>
+      (super.noSuchMethod(Invocation.method(#failedBuilds, [pullRequest, builders]),
           returnValue: Future<List<_i7.Build?>>.value(<_i7.Build?>[])) as _i14.Future<List<_i7.Build?>>);
   @override
   _i14.Future<bool> rescheduleBuild(
