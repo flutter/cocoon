@@ -392,7 +392,7 @@ class LuciBuildService {
   }
 
   /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
-  /// 
+  ///
   /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
   Future<bool> rescheduleUsingCheckRunEvent(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
