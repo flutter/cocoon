@@ -150,8 +150,7 @@ class LuciBuildService {
         key: (dynamic b) => b.builderId.builder as String?, value: (dynamic b) => b as Build?);
   }
 
-  /// Creates BuildBucket [Request] using [checkSuiteEvent], [slug], [prNumber], [commitSha], [builder], [builderId]
-  /// and [userData].
+  /// Creates BuildBucket [Request] using [checkSuiteEvent], [pullRequest], [builder], [builderId], and [userData].
   Future<Request> _createBuildRequest(
     CheckSuiteEvent? checkSuiteEvent,
     github.PullRequest pullRequest,
@@ -191,8 +190,7 @@ class LuciBuildService {
     );
   }
 
-  /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
-  /// and Github [slug].
+  /// Schedules presubmit [builders] on BuildBucket for [pullRequest].
   Future<void> scheduleTryBuilds({
     required List<LuciBuilder> builders,
     required github.PullRequest pullRequest,
@@ -242,8 +240,7 @@ class LuciBuildService {
     return builderNames;
   }
 
-  /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
-  /// and Github [slug].
+  /// Schedules [builderNames] against [pullRequest].
   Future<List<String?>> _scheduleTryBuilds({
     required List<String?> builderNames,
     required github.PullRequest pullRequest,
@@ -360,7 +357,7 @@ class LuciBuildService {
     return expectedFailedBuilds.toList();
   }
 
-  /// Sends a [BuildBucket.scheduleBuild] the buildset, user_agent, and
+  /// Sends [ScheduleBuildRequest] the buildset, user_agent, and
   /// github_link tags are applied to match the original build. The build
   /// properties from the original build are also preserved.
   Future<bool> rescheduleBuild({
@@ -394,9 +391,9 @@ class LuciBuildService {
     return true;
   }
 
-  /// Sends a [BuildBucket.scheduleBuild] request using [CheckRunEvent]. It
-  /// returns [true] if it is able to send the scheduleBuildRequest or [false]
-  /// if not.
+  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
+  /// 
+  /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
   Future<bool> rescheduleUsingCheckRunEvent(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
@@ -441,9 +438,9 @@ class LuciBuildService {
     return true;
   }
 
-  /// Sends a [BuildBucket.scheduleBuild] request using [CheckSuiteEvent],
-  /// [gitgub.CheckRun] and [RepositorySlug]. It returns [true] if it is able to
-  /// send the scheduleBuildRequest or [false] if not.
+  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkSuiteEvent],
+  ///
+  /// Returns true if it is able to schedule a build. Otherwise, false.
   Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(
       github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
     final github.RepositorySlug slug = checkSuiteEvent.repository!.slug();
@@ -481,7 +478,7 @@ class LuciBuildService {
     return true;
   }
 
-  /// Gets a [buildbucket.Build] using its [id] and passing the additional
+  /// Gets [Build] using its [id] and passing the additional
   /// fields to be populated in the response.
   Future<Build> getTryBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
