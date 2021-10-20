@@ -91,6 +91,7 @@ void main() {
           );
         },
         goldClient: mockHttpClient,
+        ingestionDelay: Duration.zero,
       );
 
       slug = RepositorySlug('flutter', 'flutter');
@@ -350,6 +351,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           // Already commented for this commit.
@@ -677,6 +679,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           final Body body = await tester.get<Body>(handler);
@@ -733,6 +736,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           // Have not already commented for this commit.
@@ -798,6 +802,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           // Have not already commented for this commit.
@@ -861,6 +866,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           // Have not already commented for this commit.
@@ -934,6 +940,7 @@ void main() {
               );
             },
             goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
 
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
@@ -1122,6 +1129,7 @@ void main() {
             );
           },
           goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
         );
 
         when(issuesService.listCommentsByIssue(slug, completedPR.number!)).thenAnswer(
