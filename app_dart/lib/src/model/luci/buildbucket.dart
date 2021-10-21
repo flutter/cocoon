@@ -472,7 +472,7 @@ class ScheduleBuildRequest extends JsonBody {
 
   @override
   String toString() {
-    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit, fields: $fields)';
+    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit, fields: $fields, notify: $notify)';
   }
 }
 
@@ -620,6 +620,9 @@ class NotificationConfig extends JsonBody {
 
   @override
   Map<String, dynamic> toJson() => _$NotificationConfigToJson(this);
+
+  @override
+  String toString() => 'NotificationConfig(pubsubTopic: $pubsubTopic, userData: $userData)';
 }
 
 /// The build inputs for a build.

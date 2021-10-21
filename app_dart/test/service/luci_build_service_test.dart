@@ -172,6 +172,39 @@ void main() {
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
+    test('schedule try builds successfully', () async {
+      final PullRequest pullRequest = generatePullRequest();
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              scheduleBuild: generateBuild(1),
+            ),
+          ],
+        );
+      });
+      when(mockGithubChecksUtil.createCheckRun(any, pullRequest, any)).thenAnswer((_) async => generateCheckRun(1));
+      final List<String> builderNames = await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        builders: builders,
+      );
+      expect(builderNames, <String>['Linux']);
+      final BatchRequest batchRequest = verify(mockBuildBucketClient.batch(captureAny)).captured.last as BatchRequest;
+      expect(batchRequest.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'try');
+      expect(scheduleBuild.builderId.builder, 'Linux');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
+        'user_agent': 'flutter-cocoon',
+        'check_run_id': 1,
+      });
+    });
+
     test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
