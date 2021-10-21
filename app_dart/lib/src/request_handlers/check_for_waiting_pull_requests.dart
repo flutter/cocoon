@@ -178,7 +178,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
-      log.info('Is pull request mergeable: ${pullRequest['mergeable']}');
+      log.info('Is pull request #${pullRequest['number']} mergeable: ${pullRequest['mergeable']}');
       // This is used to remove the bot label as it requires manual intervention.
       final bool isConflicting = pullRequest['mergeable'] == 'CONFLICTING';
       // This is used to skip landing until we are sure the PR is mergeable.
@@ -190,17 +190,19 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           .toList();
 
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+      final int number = pullRequest['number'] as int;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
       final DateTime utcDate =
           DateTime.parse(commit['pushedDate'] as String? ?? (commit['committedDate'] as String?)!).toUtc();
       final Duration injectedDuration = _kInjectedLatencies[name] ?? const Duration(hours: 1);
       if (utcDate.add(injectedDuration).isAfter(DateTime.now().toUtc())) {
+        log.info(
+            'Skipping PR#$number because it needs to land after ${utcDate.add(injectedDuration)} and current time is ${DateTime.now().toUtc()}');
         continue;
       }
       final String? author = pullRequest['author']['login'] as String?;
       final String id = pullRequest['id'] as String;
-      final int number = pullRequest['number'] as int;
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
