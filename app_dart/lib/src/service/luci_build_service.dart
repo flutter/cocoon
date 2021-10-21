@@ -190,7 +190,7 @@ class LuciBuildService {
   }
 
   /// Schedules presubmit [builders] on BuildBucket for [pullRequest].
-  Future<void> scheduleTryBuilds({
+  Future<List<String>> scheduleTryBuilds({
     required List<LuciBuilder> builders,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
@@ -198,14 +198,15 @@ class LuciBuildService {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
     }
-    List<String?> builderNames = await _builderNamesForRepo(
+    final List<String> builderNames = await _builderNamesForRepo(
       builders,
       pullRequest,
     );
     int retryCount = 1;
+    List<String> remainingBuildersToSchedule = List<String>.from(builderNames);
     while (builderNames.isNotEmpty) {
-      builderNames = await _scheduleTryBuilds(
-        builderNames: builderNames,
+      remainingBuildersToSchedule = await _scheduleTryBuilds(
+        builderNames: remainingBuildersToSchedule,
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
@@ -214,6 +215,8 @@ class LuciBuildService {
         break;
       }
     }
+
+    return builderNames;
   }
 
   Future<List<String>> _builderNamesForRepo(
@@ -240,14 +243,14 @@ class LuciBuildService {
   }
 
   /// Schedules [builderNames] against [pullRequest].
-  Future<List<String?>> _scheduleTryBuilds({
-    required List<String?> builderNames,
+  Future<List<String>> _scheduleTryBuilds({
+    required List<String> builderNames,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
-    final List<String?> builderNamesToRetry = <String>[];
-    for (String? builder in builderNames) {
+    final List<String> builderNamesToRetry = <String>[];
+    for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
         project: 'flutter',
         bucket: 'try',
@@ -280,7 +283,7 @@ class LuciBuildService {
       if (response.scheduleBuild == null) {
         log.warning('$response does not contain scheduleBuild');
         if (response.getBuild?.builderId.builder != null) {
-          builderNamesToRetry.add(response.getBuild?.builderId.builder);
+          builderNamesToRetry.add(response.getBuild!.builderId.builder!);
         }
         continue;
       }
@@ -298,7 +301,7 @@ class LuciBuildService {
             await githubChecksUtil.getCheckRun(config, pullRequest.base!.repo!.slug(), checkRunId);
         if (errorText.isNotEmpty) {
           if (response.getBuild?.builderId.builder != null) {
-            builderNamesToRetry.add(response.getBuild?.builderId.builder);
+            builderNamesToRetry.add(response.getBuild!.builderId.builder!);
           }
           await githubChecksUtil.updateCheckRun(
             config,

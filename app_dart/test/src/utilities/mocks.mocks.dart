@@ -1405,13 +1405,12 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
               returnValue: Future<Map<String?, _i7.Build?>>.value(<String?, _i7.Build?>{}))
           as _i14.Future<Map<String?, _i7.Build?>>);
   @override
-  _i14.Future<void> scheduleTryBuilds(
+  _i14.Future<List<String>> scheduleTryBuilds(
           {List<_i30.LuciBuilder>? builders, _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent}) =>
       (super.noSuchMethod(
           Invocation.method(#scheduleTryBuilds, [],
               {#builders: builders, #pullRequest: pullRequest, #checkSuiteEvent: checkSuiteEvent}),
-          returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future<void>.value()) as _i14.Future<void>);
+          returnValue: Future<List<String>>.value(<String>[])) as _i14.Future<List<String>>);
   @override
   _i14.Future<void> cancelBuilds(_i8.PullRequest? pullRequest, String? reason) =>
       (super.noSuchMethod(Invocation.method(#cancelBuilds, [pullRequest, reason]),
