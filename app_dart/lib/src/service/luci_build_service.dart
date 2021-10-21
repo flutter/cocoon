@@ -254,7 +254,7 @@ class LuciBuildService {
         builder: builder,
       );
       final Map<String, dynamic> userData = <String, dynamic>{
-        'repo_owner': pullRequest.base!.repo!.owner,
+        'repo_owner': pullRequest.base!.repo!.owner!.login,
         'repo_name': pullRequest.base!.repo!.name,
         'user_agent': 'flutter-cocoon',
       };
