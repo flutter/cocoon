@@ -81,7 +81,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       // create the slug from the data in the message and send the check status
       // update.
       slug = RepositorySlug(
-        'flutter', // Hard code as there was an outage
+        userData['repo_owner'] as String,
         userData['repo_name'] as String,
       );
       await githubChecksService.updateCheckStatus(
