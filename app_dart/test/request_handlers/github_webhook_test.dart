@@ -25,94 +25,93 @@ import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
+import '../src/utilities/webhook_generators.dart';
 
 void main() {
-  group('githubWebhookPullRequest', () {
-    late GithubWebhook webhook;
-    late FakeBuildBucketClient fakeBuildBucketClient;
-    late FakeDatastoreDB db;
-    FakeGithubService githubService;
-    late FakeHttpRequest request;
-    late FakeConfig config;
-    late MockGitHub gitHubClient;
-    late MockIssuesService issuesService;
-    late MockPullRequestsService pullRequestsService;
-    FakeScheduler scheduler;
-    late RequestHandlerTester tester;
-    const String serviceAccountEmail = 'test@test';
-    ServiceAccountInfo? serviceAccountInfo;
-    MockGithubChecksService mockGithubChecksService;
-    MockGithubChecksUtil mockGithubChecksUtil;
+  late GithubWebhook webhook;
+  late FakeBuildBucketClient fakeBuildBucketClient;
+  late FakeConfig config;
+  late FakeDatastoreDB db;
+  late FakeGithubService githubService;
+  late FakeHttpRequest request;
+  late FakeScheduler scheduler;
+  late MockGitHub gitHubClient;
+  late MockGithubChecksUtil mockGithubChecksUtil;
+  late MockGithubChecksService mockGithubChecksService;
+  late MockIssuesService issuesService;
+  late MockPullRequestsService pullRequestsService;
+  late RequestHandlerTester tester;
+  const String serviceAccountEmail = 'test@test';
+  ServiceAccountInfo? serviceAccountInfo;
 
-    const String keyString = 'not_a_real_key';
+  const String keyString = 'not_a_real_key';
 
-    String getHmac(Uint8List list, Uint8List key) {
-      final Hmac hmac = Hmac(sha1, key);
-      return hmac.convert(list).toString();
-    }
+  String getHmac(Uint8List list, Uint8List key) {
+    final Hmac hmac = Hmac(sha1, key);
+    return hmac.convert(list).toString();
+  }
 
-    setUp(() async {
-      serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
-      request = FakeHttpRequest();
-      db = FakeDatastoreDB();
-      gitHubClient = MockGitHub();
-      githubService = FakeGithubService();
-      final MockTabledataResource tabledataResource = MockTabledataResource();
-      when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async => TableDataInsertAllResponse());
-      config = FakeConfig(
-        dbValue: db,
-        deviceLabServiceAccountValue: serviceAccountInfo,
-        githubService: githubService,
-        tabledataResource: tabledataResource,
-        githubClient: gitHubClient,
-      );
-      issuesService = MockIssuesService();
-      when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
-      when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
-      when(issuesService.listCommentsByIssue(any, any))
-          .thenAnswer((_) => Stream<IssueComment>.fromIterable(<IssueComment>[IssueComment()]));
-      pullRequestsService = MockPullRequestsService();
-      when(pullRequestsService.listFiles(config.flutterSlug, any))
-          .thenAnswer((_) => const Stream<PullRequestFile>.empty());
-      when(pullRequestsService.edit(any, any,
-              title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
-          .thenAnswer((_) async => PullRequest());
-      fakeBuildBucketClient = FakeBuildBucketClient();
-      mockGithubChecksUtil = MockGithubChecksUtil();
-      scheduler = FakeScheduler(
-        config: config,
-        buildbucket: fakeBuildBucketClient,
-        githubChecksUtil: mockGithubChecksUtil,
-      );
-      tester = RequestHandlerTester(request: request);
+  setUp(() {
+    serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
+    request = FakeHttpRequest();
+    db = FakeDatastoreDB();
+    gitHubClient = MockGitHub();
+    githubService = FakeGithubService();
+    final MockTabledataResource tabledataResource = MockTabledataResource();
+    when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async => TableDataInsertAllResponse());
+    config = FakeConfig(
+      dbValue: db,
+      deviceLabServiceAccountValue: serviceAccountInfo,
+      githubService: githubService,
+      tabledataResource: tabledataResource,
+      githubClient: gitHubClient,
+    );
+    issuesService = MockIssuesService();
+    when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
+    when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
+    when(issuesService.listCommentsByIssue(any, any))
+        .thenAnswer((_) => Stream<IssueComment>.fromIterable(<IssueComment>[IssueComment()]));
+    pullRequestsService = MockPullRequestsService();
+    when(pullRequestsService.listFiles(config.flutterSlug, any))
+        .thenAnswer((_) => const Stream<PullRequestFile>.empty());
+    when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
+        .thenAnswer((_) async => PullRequest());
+    fakeBuildBucketClient = FakeBuildBucketClient();
+    mockGithubChecksUtil = MockGithubChecksUtil();
+    scheduler = FakeScheduler(
+      config: config,
+      buildbucket: fakeBuildBucketClient,
+      githubChecksUtil: mockGithubChecksUtil,
+    );
+    tester = RequestHandlerTester(request: request);
 
-      mockGithubChecksService = MockGithubChecksService();
-      when(gitHubClient.issues).thenReturn(issuesService);
-      when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
-        return CheckRun.fromJson(const <String, dynamic>{
-          'id': 1,
-          'started_at': '2020-05-10T02:49:31Z',
-          'check_suite': <String, dynamic>{'id': 2}
-        });
+    mockGithubChecksService = MockGithubChecksService();
+    when(gitHubClient.issues).thenReturn(issuesService);
+    when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
+    when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output'))).thenAnswer((_) async {
+      return CheckRun.fromJson(const <String, dynamic>{
+        'id': 1,
+        'started_at': '2020-05-10T02:49:31Z',
+        'check_suite': <String, dynamic>{'id': 2}
       });
-
-      webhook = GithubWebhook(
-        config,
-        githubChecksService: mockGithubChecksService,
-        scheduler: scheduler,
-      );
-
-      config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
-      config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
-      config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
-      config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
-      config.githubOAuthTokenValue = 'githubOAuthKey';
-      config.webhookKeyValue = keyString;
-      config.githubClient = gitHubClient;
-      config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
     });
 
+    webhook = GithubWebhook(
+      config,
+      githubChecksService: mockGithubChecksService,
+      scheduler: scheduler,
+    );
+
+    config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
+    config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
+    config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
+    config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
+    config.githubOAuthTokenValue = 'githubOAuthKey';
+    config.webhookKeyValue = keyString;
+    config.githubClient = gitHubClient;
+    config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
+  });
+  group('github webhook pull_request event', () {
     test('Rejects non-POST methods with methodNotAllowed', () async {
       expect(tester.get(webhook), throwsA(isA<MethodNotAllowed>()));
     });
@@ -150,7 +149,7 @@ void main() {
     test('Closes PR opened from dev', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -191,7 +190,7 @@ void main() {
     test('Acts on opened against dev', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'dev');
+      request.body = generatePullRequestEvent('opened', issueNumber, 'dev');
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -229,7 +228,7 @@ void main() {
     test('Does nothing against cherry pick PR', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         'flutter-1.20-candidate.7',
@@ -463,7 +462,7 @@ void main() {
     test('Framework labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -500,7 +499,7 @@ void main() {
     test('Framework labels PRs, no dart files', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -531,7 +530,7 @@ void main() {
     test('Framework labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -583,7 +582,7 @@ void main() {
     test('Framework labels dart fix PRs, no comment if tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -615,7 +614,7 @@ void main() {
     test('Framework labels bot PR, no comment', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName, login: 'fluttergithubbot');
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -647,7 +646,7 @@ void main() {
     test('Framework labels deletion only PR, no test request', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -683,7 +682,7 @@ void main() {
     test('PR with additions and deletions is commented and labeled', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -718,7 +717,7 @@ void main() {
     test('Framework no comment if only dev bots or devicelab changed', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -745,7 +744,7 @@ void main() {
     test('Framework no comment if only AUTHORS changed', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -770,7 +769,7 @@ void main() {
     test('Framework no comment if only ci.yaml changed', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -795,7 +794,7 @@ void main() {
     test('Engine labels PRs, comment and labels if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -844,7 +843,7 @@ void main() {
     test('Engine labels PRs, no code files', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -881,7 +880,7 @@ void main() {
     test('Engine labels PRs, no comment if Java tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -921,7 +920,7 @@ void main() {
     test('Engine labels PRs, no comment if cc tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -959,7 +958,7 @@ void main() {
     test('Engine labels PRs, no comment if cc becnhmarks', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -997,7 +996,7 @@ void main() {
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -1029,7 +1028,7 @@ void main() {
     test('Schedule tasks when pull request is closed and merged', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName, merged: true);
+      request.body = generatePullRequestEvent('closed', issueNumber, kDefaultBranchName, merged: true);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -1043,7 +1042,7 @@ void main() {
     test('Does not test pest draft pull requests.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -1071,7 +1070,7 @@ void main() {
     test('Will not spawn comments if they have already been made.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -1108,7 +1107,7 @@ void main() {
     test('Skips labeling or commenting on autorolls', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
         kDefaultBranchName,
@@ -1132,7 +1131,7 @@ void main() {
 
     test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
       const int issueNumber = 12345;
-      request.body = jsonTemplate(
+      request.body = generatePullRequestEvent(
         'synchronize',
         issueNumber,
         kDefaultBranchName,
@@ -1178,7 +1177,7 @@ void main() {
 
       fakeBuildBucketClient.batchResponse = _getBatchResponse();
 
-      request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
+      request.body = generatePullRequestEvent('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1222,7 +1221,7 @@ void main() {
           ),
         );
 
-        request.body = jsonTemplate(action, 1, 'master');
+        request.body = generatePullRequestEvent(action, 1, 'master');
 
         final Uint8List body = utf8.encode(request.body!) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1258,7 +1257,7 @@ void main() {
 
       test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
         when(issuesService.listCommentsByIssue(any, any)).thenAnswer((_) => Stream<IssueComment>.value(IssueComment()));
-        request.body = jsonTemplate(
+        request.body = generatePullRequestEvent(
           'synchronize',
           issueNumber,
           kDefaultBranchName,
@@ -1297,7 +1296,7 @@ void main() {
           ),
         );
 
-        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
+        request.body = generatePullRequestEvent('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body!) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1309,506 +1308,20 @@ void main() {
       });
     });
   });
-}
 
-String jsonTemplate(String action, int number, String baseRef,
-        {String login = 'flutter',
-        String headRef = 'wait_for_reassemble',
-        bool includeCqLabel = false,
-        bool isDraft = false,
-        bool merged = false,
-        String repoFullName = 'flutter/flutter',
-        String repoName = 'flutter',
-        bool isMergeable = true}) =>
-    '''{
-  "action": "$action",
-  "number": $number,
-  "pull_request": {
-    "url": "https://api.github.com/repos/$repoFullName/pulls/$number",
-    "id": 294034,
-    "node_id": "MDExOlB1bGxSZXF1ZXN0Mjk0MDMzODQx",
-    "html_url": "https://github.com/$repoFullName/pull/$number",
-    "diff_url": "https://github.com/$repoFullName/pull/$number.diff",
-    "patch_url": "https://github.com/$repoFullName/pull/$number.patch",
-    "issue_url": "https://api.github.com/repos/$repoFullName/issues/$number",
-    "number": $number,
-    "state": "open",
-    "locked": false,
-    "title": "Defer reassemble until reload is finished",
-    "user": {
-      "login": "$login",
-      "id": 862741,
-      "node_id": "MDQ6VXNlcjg2MjA3NDE=",
-      "avatar_url": "https://avatars3.githubusercontent.com/u/8620741?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/flutter",
-      "html_url": "https://github.com/flutter",
-      "followers_url": "https://api.github.com/users/flutter/followers",
-      "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-      "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-      "organizations_url": "https://api.github.com/users/flutter/orgs",
-      "repos_url": "https://api.github.com/users/flutter/repos",
-      "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/flutter/received_events",
-      "type": "User",
-      "site_admin": false
-    },
-    "draft" : "$isDraft",
-    "body": "The body",
-    "created_at": "2019-07-03T07:14:35Z",
-    "updated_at": "2019-07-03T16:34:53Z",
-    "closed_at": null,
-    "merged_at": "2019-07-03T16:34:53Z",
-    "merge_commit_sha": "d22ab7ced21d3b2a5be00cf576d383eb5ffddb8a",
-    "assignee": null,
-    "assignees": [],
-    "requested_reviewers": [],
-    "requested_teams": [],
-    "labels": [
-      {
-        "id": 487496476,
-        "node_id": "MDU6TGFiZWw0ODc0OTY0NzY=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/cla:%20yes",
-        "name": "cla: yes",
-        "color": "ffffff",
-        "default": false
-      },
-      {
-        "id": 284437560,
-        "node_id": "MDU6TGFiZWwyODQ0Mzc1NjA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/framework",
-        "name": "framework",
-        "color": "207de5",
-        "default": false
-      },
-      ${includeCqLabel ? '''
-      {
-        "id": 283480100,
-        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/tool",
-        "color": "5319e7",
-        "default": false
-      },''' : ''}
-      {
-        "id": 283480100,
-        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/tool",
-        "name": "tool",
-        "color": "5319e7",
-        "default": false
-      }
-    ],
-    "milestone": null,
-    "commits_url": "https://api.github.com/repos/$repoFullName/pulls/$number/commits",
-    "review_comments_url": "https://api.github.com/repos/$repoFullName/pulls/$number/comments",
-    "review_comment_url": "https://api.github.com/repos/$repoFullName/pulls/comments{/number}",
-    "comments_url": "https://api.github.com/repos/$repoFullName/issues/$number/comments",
-    "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
-    "head": {
-      "label": "$login:$headRef",
-      "ref": "$headRef",
-      "sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
-      "user": {
-        "login": "$login",
-        "id": 8620741,
-        "node_id": "MDQ6VXNlcjg2MjA3NDE=",
-        "avatar_url": "https://avatars3.githubusercontent.com/u/8620741?v=4",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/flutter",
-        "html_url": "https://github.com/flutter",
-        "followers_url": "https://api.github.com/users/flutter/followers",
-        "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-        "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-        "organizations_url": "https://api.github.com/users/flutter/orgs",
-        "repos_url": "https://api.github.com/users/flutter/repos",
-        "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/flutter/received_events",
-        "type": "User",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 131232406,
-        "node_id": "MDEwOlJlcG9zaXRvcnkxMzEyMzI0MDY=",
-        "name": "$repoName",
-        "full_name": "$repoFullName",
-        "private": false,
-        "owner": {
-          "login": "flutter",
-          "id": 8620741,
-          "node_id": "MDQ6VXNlcjg2MjA3NDE=",
-          "avatar_url": "https://avatars3.githubusercontent.com/u/8620741?v=4",
-          "gravatar_id": "",
-          "url": "https://api.github.com/users/flutter",
-          "html_url": "https://github.com/flutter",
-          "followers_url": "https://api.github.com/users/flutter/followers",
-          "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-          "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-          "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-          "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-          "organizations_url": "https://api.github.com/users/flutter/orgs",
-          "repos_url": "https://api.github.com/users/flutter/repos",
-          "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-          "received_events_url": "https://api.github.com/users/flutter/received_events",
-          "type": "User",
-          "site_admin": false
-        },
-        "html_url": "https://github.com/$repoFullName",
-        "description": "Flutter makes it easy and fast to build beautiful mobile apps.",
-        "fork": true,
-        "url": "https://api.github.com/repos/$repoFullName",
-        "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-        "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-        "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-        "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/$repoFullName/events",
-        "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-        "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-        "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-        "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-        "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-        "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-        "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-        "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-        "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-        "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-        "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-        "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
-        "created_at": "2018-04-27T02:03:08Z",
-        "updated_at": "2019-06-27T06:56:59Z",
-        "pushed_at": "2019-07-03T19:40:11Z",
-        "git_url": "git://github.com/$repoFullName.git",
-        "ssh_url": "git@github.com:$repoFullName.git",
-        "clone_url": "https://github.com/$repoFullName.git",
-        "svn_url": "https://github.com/$repoFullName",
-        "homepage": "https://flutter.io",
-        "size": 94508,
-        "stargazers_count": 1,
-        "watchers_count": 1,
-        "language": "Dart",
-        "has_issues": false,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 0,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 0,
-        "license": {
-          "key": "other",
-          "name": "Other",
-          "spdx_id": "NOASSERTION",
-          "url": null,
-          "node_id": "MDc6TGljZW5zZTA="
-        },
-        "forks": 0,
-        "open_issues": 0,
-        "watchers": 1,
-        "default_branch": "$kDefaultBranchName"
-      }
-    },
-    "base": {
-      "label": "flutter:$baseRef",
-      "ref": "$baseRef",
-      "sha": "4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890",
-      "user": {
-        "login": "flutter",
-        "id": 14101776,
-        "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2",
-        "avatar_url": "https://avatars3.githubblahblahblah",
-        "gravatar_id": "",
-        "url": "https://api.github.com/users/flutter",
-        "html_url": "https://github.com/flutter",
-        "followers_url": "https://api.github.com/users/flutter/followers",
-        "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-        "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-        "organizations_url": "https://api.github.com/users/flutter/orgs",
-        "repos_url": "https://api.github.com/users/flutter/repos",
-        "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/flutter/received_events",
-        "type": "Organization",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 31792824,
-        "node_id": "MDEwOlJlcG9zaXRvcnkzMTc5MjgyNA==",
-        "name": "$repoName",
-        "full_name": "$repoFullName",
-        "private": false,
-        "owner": {
-          "login": "flutter",
-          "id": 14101776,
-          "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2",
-          "avatar_url": "https://avatars3.githubblahblahblah",
-          "gravatar_id": "",
-          "url": "https://api.github.com/users/flutter",
-          "html_url": "https://github.com/flutter",
-          "followers_url": "https://api.github.com/users/flutter/followers",
-          "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-          "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-          "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-          "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-          "organizations_url": "https://api.github.com/users/flutter/orgs",
-          "repos_url": "https://api.github.com/users/flutter/repos",
-          "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-          "received_events_url": "https://api.github.com/users/flutter/received_events",
-          "type": "Organization",
-          "site_admin": false
-        },
-        "html_url": "https://github.com/$repoFullName",
-        "description": "Flutter makes it easy and fast to build beautiful mobile apps.",
-        "fork": false,
-        "url": "https://api.github.com/repos/$repoFullName",
-        "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-        "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-        "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-        "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/$repoFullName/events",
-        "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-        "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-        "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-        "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-        "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-        "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-        "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-        "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-        "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-        "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-        "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-        "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
-        "created_at": "2015-03-06T22:54:58Z",
-        "updated_at": "2019-07-04T02:08:44Z",
-        "pushed_at": "2019-07-04T02:03:04Z",
-        "git_url": "git://github.com/$repoFullName.git",
-        "ssh_url": "git@github.com:$repoFullName.git",
-        "clone_url": "https://github.com/$repoFullName.git",
-        "svn_url": "https://github.com/$repoFullName",
-        "homepage": "https://flutter.dev",
-        "size": 65507,
-        "stargazers_count": 68944,
-        "watchers_count": 68944,
-        "language": "Dart",
-        "has_issues": true,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 7987,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 6536,
-        "license": {
-          "key": "other",
-          "name": "Other",
-          "spdx_id": "NOASSERTION",
-          "url": null,
-          "node_id": "MDc6TGljZW5zZTA="
-        },
-        "forks": 7987,
-        "open_issues": 6536,
-        "watchers": 68944,
-        "default_branch": "$kDefaultBranchName"
-      }
-    },
-    "_links": {
-      "self": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number"
-      },
-      "html": {
-        "href": "https://github.com/$repoFullName/pull/$number"
-      },
-      "issue": {
-        "href": "https://api.github.com/repos/$repoFullName/issues/$number"
-      },
-      "comments": {
-        "href": "https://api.github.com/repos/$repoFullName/issues/$number/comments"
-      },
-      "review_comments": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number/comments"
-      },
-      "review_comment": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/comments{/number}"
-      },
-      "commits": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number/commits"
-      },
-      "statuses": {
-        "href": "https://api.github.com/repos/$repoFullName/statuses/deadbeef"
-      }
-    },
-    "author_association": "MEMBER",
-    "draft" : $isDraft,
-    "merged": $merged,
-    "mergeable": $isMergeable,
-    "rebaseable": true,
-    "mergeable_state": "draft",
-    "merged_by": null,
-    "comments": 1,
-    "review_comments": 0,
-    "maintainer_can_modify": true,
-    "commits": 5,
-    "additions": 55,
-    "deletions": 36,
-    "changed_files": 5
-  },
-  "repository": {
-    "id": 1868532,
-    "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
-    "name": "$repoName",
-    "full_name": "$repoFullName",
-    "private": false,
-    "owner": {
-      "login": "flutter",
-      "id": 21031067,
-      "node_id": "MDQ6VXNlcjIxMDMxMDY3",
-      "avatar_url": "https://avatars1.githubusercontent.com/u/21031067?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/flutter",
-      "html_url": "https://github.com/flutter",
-      "followers_url": "https://api.github.com/users/flutter/followers",
-      "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-      "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-      "organizations_url": "https://api.github.com/users/flutter/orgs",
-      "repos_url": "https://api.github.com/users/flutter/repos",
-      "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/flutter/received_events",
-      "type": "User",
-      "site_admin": false
-    },
-    "html_url": "https://github.com/$repoFullName",
-    "description": null,
-    "fork": false,
-    "url": "https://api.github.com/repos/$repoFullName",
-    "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-    "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-    "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-    "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-    "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-    "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-    "events_url": "https://api.github.com/repos/$repoFullName/events",
-    "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-    "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-    "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-    "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-    "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-    "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-    "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-    "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-    "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-    "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-    "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-    "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-    "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-    "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-    "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-    "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-    "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-    "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-    "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-    "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-    "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-    "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-    "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-    "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-    "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-    "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-    "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-    "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-    "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
-    "created_at": "2019-05-15T15:19:25Z",
-    "updated_at": "2019-05-15T15:19:27Z",
-    "pushed_at": "2019-05-15T15:20:32Z",
-    "git_url": "git://github.com/$repoFullName.git",
-    "ssh_url": "git@github.com:$repoFullName.git",
-    "clone_url": "https://github.com/$repoFullName.git",
-    "svn_url": "https://github.com/$repoFullName",
-    "homepage": null,
-    "size": 0,
-    "stargazers_count": 0,
-    "watchers_count": 0,
-    "language": null,
-    "has_issues": true,
-    "has_projects": true,
-    "has_downloads": true,
-    "has_wiki": true,
-    "has_pages": true,
-    "forks_count": 0,
-    "mirror_url": null,
-    "archived": false,
-    "disabled": false,
-    "open_issues_count": 2,
-    "license": null,
-    "forks": 0,
-    "open_issues": 2,
-    "watchers": 0,
-    "default_branch": "$kDefaultBranchName"
-  },
-  "sender": {
-    "login": "$login",
-    "id": 21031067,
-    "node_id": "MDQ6VXNlcjIxMDMxMDY3",
-    "avatar_url": "https://avatars1.githubusercontent.com/u/21031067?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/flutter",
-    "html_url": "https://github.com/flutter",
-    "followers_url": "https://api.github.com/users/flutter/followers",
-    "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-    "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-    "organizations_url": "https://api.github.com/users/flutter/orgs",
-    "repos_url": "https://api.github.com/users/flutter/repos",
-    "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-    "received_events_url": "https://api.github.com/users/flutter/received_events",
-    "type": "User",
-    "site_admin": false
-  }
-}''';
+  group('github webhook check_run event', () {
+    setUp(() {
+      request.headers.set('X-GitHub-Event', 'check_run');
+    });
+
+    test('gets pull request', () async {
+      request.body = generateCheckRunEvent();
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      // PullRequest is non-nullable, so testing the flow is sufficient
+      await tester.post(webhook);
+    });
+  });
+}

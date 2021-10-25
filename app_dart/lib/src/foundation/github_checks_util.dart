@@ -49,7 +49,7 @@ class GithubChecksUtil {
     Config cocoonConfig,
     github.RepositorySlug slug,
     github.CheckRun checkRun, {
-    github.CheckRunStatus? status,
+    github.CheckRunStatus status = github.CheckRunStatus.queued,
     github.CheckRunConclusion? conclusion,
     String? detailsUrl,
     github.CheckRunOutput? output,
@@ -63,7 +63,7 @@ class GithubChecksUtil {
       await gitHubClient.checks.checkRuns.updateCheckRun(
         slug,
         checkRun,
-        status: status!,
+        status: status,
         conclusion: conclusion,
         detailsUrl: detailsUrl,
         output: output,
