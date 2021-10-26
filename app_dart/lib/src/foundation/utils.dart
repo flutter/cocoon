@@ -38,20 +38,36 @@ Duration twoSecondLinearBackoff(int attempt) {
 
 /// Get content of [filePath] from GitHub CDN.
 Future<String> githubFileContent(
+  RepositorySlug slug,
   String filePath, {
   required HttpClientProvider httpClientProvider,
+  String ref = 'master',
   Duration timeout = const Duration(seconds: 5),
-  RetryOptions? retryOptions,
+  RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
 }) async {
-  retryOptions ??= const RetryOptions(
-    maxDelay: Duration(seconds: 5),
-    maxAttempts: 3,
+  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  // git-on-borg has a different path for shas and refs to github
+  final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
+  final Uri gobUrl = Uri.https(
+    'flutter.googlesource.com',
+    'mirrors/${slug.name}/+/$gobRef/$filePath',
+    <String, String>{
+      'format': 'text',
+    },
   );
-  final Uri url = Uri.https('raw.githubusercontent.com', filePath);
-  return retryOptions.retry(
-    () async => await getUrl(url, httpClientProvider, timeout: timeout),
-    retryIf: (Exception e) => e is HttpException,
-  );
+  late String content;
+  try {
+    await retryOptions.retry(
+      () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
+      retryIf: (Exception e) => e is HttpException,
+    );
+  } catch (e) {
+    await retryOptions.retry(
+      () async => content = await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+      retryIf: (Exception e) => e is HttpException,
+    );
+  }
+  return content;
 }
 
 /// Return [String] of response from [url] if status is [HttpStatus.ok].
@@ -84,12 +100,13 @@ FutureOr<String> getUrl(
 /// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
   HttpClientProvider httpClientProvider, {
-  RetryOptions? retryOptions,
+  RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
 }) async {
   String content;
   try {
     content = await githubFileContent(
-      '/flutter/cocoon/master/app_dart/dev/branches.txt',
+      RepositorySlug('flutter', 'cocoon'),
+      'app_dart/dev/branches.txt',
       httpClientProvider: httpClientProvider,
       retryOptions: retryOptions,
     );

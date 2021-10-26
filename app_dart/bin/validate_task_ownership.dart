@@ -8,6 +8,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 
 /// Remote check based on flutter `repo` and the commit `ref`.
@@ -15,12 +16,16 @@ import 'package:http/http.dart' as http;
 /// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
   final String ciYamlContent = await githubFileContent(
-    'flutter/$repo/$ref/$kCiYamlPath',
+    RepositorySlug('flutter', repo),
+    kCiYamlPath,
     httpClientProvider: () => http.Client(),
+    ref: ref,
   );
   final String testOwnersContent = await githubFileContent(
-    'flutter/$repo/$ref/$kTestOwnerPath',
+    RepositorySlug('flutter', repo),
+    kTestOwnerPath,
     httpClientProvider: () => http.Client(),
+    ref: ref,
   );
 
   final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);

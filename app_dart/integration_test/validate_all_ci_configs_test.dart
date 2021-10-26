@@ -3,28 +3,30 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-/// List of repositories that have valid .ci.yaml config files.
-///
-/// These will be prepended by 'https://raw.githubusercontent.com/'. Should be
-/// of the form '<GITHUB_ORG>/<REPO_NAME>/<BRANCH>/<PATH_TO_FILE>'.
-const List<String> configFiles = <String>[
-  'flutter/cocoon/master/.ci.yaml',
-  'flutter/engine/master/.ci.yaml',
-  'flutter/flutter/master/.ci.yaml',
-  'flutter/packages/master/.ci.yaml',
-  'flutter/plugins/master/.ci.yaml',
+import 'common.dart';
+
+/// List of repositories that have supported .ci.yaml config files.
+final List<SupportedConfig> configs = <SupportedConfig>[
+  SupportedConfig(RepositorySlug('flutter', 'cocoon')),
+  SupportedConfig(RepositorySlug('flutter', 'engine')),
+  SupportedConfig(RepositorySlug('flutter', 'flutter')),
+  SupportedConfig(RepositorySlug('flutter', 'packages')),
+  SupportedConfig(RepositorySlug('flutter', 'plugins')),
 ];
 
 Future<void> main() async {
-  for (final String configFile in configFiles) {
-    test('validate config file of $configFile', () async {
+  for (final SupportedConfig config in configs) {
+    test('validate config file of $config', () async {
       final String configContent = await githubFileContent(
-        configFile,
+        config.slug,
+        'ci.yaml',
         httpClientProvider: () => http.Client(),
+        ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       try {

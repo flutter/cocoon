@@ -9,12 +9,17 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/foundation/typedefs.dart';
+import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
 
 Future<String> getRemoteConfigContent(String repo, String ref) async {
   const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
-  final String configContent =
-      await githubFileContent('flutter/$repo/$ref/.ci.yaml', httpClientProvider: httpClientProvider);
+  final String configContent = await githubFileContent(
+    RepositorySlug('flutter', repo),
+    '.ci.yaml',
+    httpClientProvider: httpClientProvider,
+    ref: ref,
+  );
   return configContent;
 }
 

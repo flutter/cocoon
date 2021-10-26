@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 /// Validates the local tree has no outstanding changes.
@@ -13,4 +14,15 @@ void expectNoDiff(String path) {
     final ProcessResult gitDiffOutput = Process.runSync('git', <String>['diff', path]);
     fail('The working tree has a diff. Ensure changes are checked in:\n${gitDiffOutput.stdout}');
   }
+}
+
+/// Wrapper class to make it easy to add new repos + branches to the validation suite.
+class SupportedConfig {
+  SupportedConfig(this.slug, [this.branch = 'master']);
+
+  final RepositorySlug slug;
+  final String branch;
+
+  @override
+  String toString() => '${slug.fullName}/$branch';
 }

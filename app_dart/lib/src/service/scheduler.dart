@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:gcloud/db.dart';
@@ -20,7 +19,6 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart';
-import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -178,13 +176,16 @@ class Scheduler {
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async {
+  Future<SchedulerConfig> getSchedulerConfig(
+    Commit commit, {
+    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+  }) async {
     final String ciPath = '${commit.repository}/${commit.sha!}/.ci.yaml';
     final Uint8List configBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
       createFn: () => _downloadSchedulerConfig(
-        ciPath,
+        commit,
         retryOptions: retryOptions,
       ),
       ttl: const Duration(hours: 1),
@@ -259,24 +260,17 @@ class Scheduler {
   }
 
   /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.
-  ///
-  /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
-  /// that commit does not support the scheduler config file.
-  Future<Uint8List> _downloadSchedulerConfig(String ciPath, {RetryOptions? retryOptions}) async {
-    String configContent;
-    try {
-      configContent = await githubFileContent(
-        ciPath,
-        httpClientProvider: httpClientProvider,
-        retryOptions: retryOptions,
-      );
-    } on NotFoundException {
-      log.fine('Failed to find $ciPath');
-      return SchedulerConfig.getDefault().writeToBuffer();
-    } on HttpException catch (_, e) {
-      log.warning('githubFileContent failed to get $ciPath: $e');
-      return SchedulerConfig.getDefault().writeToBuffer();
-    }
+  Future<Uint8List> _downloadSchedulerConfig(
+    Commit commit, {
+    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+  }) async {
+    final String configContent = await githubFileContent(
+      commit.slug,
+      '.ci.yaml',
+      httpClientProvider: httpClientProvider,
+      ref: commit.sha!,
+      retryOptions: retryOptions,
+    );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     return schedulerConfigFromYaml(configYaml).writeToBuffer();
   }
