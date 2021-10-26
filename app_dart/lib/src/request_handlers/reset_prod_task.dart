@@ -126,6 +126,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       repo: repo,
       properties: properties,
       tags: tags,
+      isFlaky: task?.isFlaky,
     );
     if (task != null) {
       // Only try to update task when it really exists.

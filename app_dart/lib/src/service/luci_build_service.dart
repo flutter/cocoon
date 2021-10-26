@@ -497,6 +497,7 @@ class LuciBuildService {
     String repo = 'flutter',
     Map<String, dynamic> properties = const <String, dynamic>{},
     Map<String, List<String?>>? tags,
+    bool? isFlaky,
   }) async {
     final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
     tags ??= <String, List<String>>{};
@@ -511,7 +512,7 @@ class LuciBuildService {
     return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
-        bucket: 'prod',
+        bucket: isFlaky ?? false ? 'staging' : 'prod',
         builder: builderName,
       ),
       gitilesCommit: GitilesCommit(
@@ -535,6 +536,7 @@ class LuciBuildService {
     required int retries,
     String repo = 'flutter',
     DatastoreService? datastore,
+    bool? isFlaky,
   }) async {
     if (await _shouldRerunBuilder(luciTask, retries, commit, datastore)) {
       log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
@@ -547,6 +549,7 @@ class LuciBuildService {
         builderName: luciTask.builderName,
         repo: repo,
         tags: tags,
+        isFlaky: isFlaky,
       );
       return true;
     }

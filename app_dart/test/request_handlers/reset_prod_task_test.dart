@@ -83,6 +83,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
+        isFlaky: false,
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
@@ -92,6 +93,7 @@ void main() {
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
+          isFlaky: false,
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
@@ -117,6 +119,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
+        isFlaky: false,
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
@@ -126,6 +129,7 @@ void main() {
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
+          isFlaky: false,
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -205,6 +209,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
+        isFlaky: false,
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
@@ -214,6 +219,7 @@ void main() {
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
+          isFlaky: false,
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
@@ -305,6 +311,7 @@ void main() {
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
+        isFlaky: false,
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
@@ -314,6 +321,7 @@ void main() {
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
+          isFlaky: false,
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );

@@ -1447,7 +1447,8 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
           String? branch = r'master',
           String? repo = r'flutter',
           Map<String, dynamic>? properties = const {},
-          Map<String, List<String?>>? tags}) =>
+          Map<String, List<String?>>? tags,
+          bool? isFlaky}) =>
       (super.noSuchMethod(
           Invocation.method(#rescheduleProdBuild, [], {
             #commitSha: commitSha,
@@ -1455,7 +1456,8 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
             #branch: branch,
             #repo: repo,
             #properties: properties,
-            #tags: tags
+            #tags: tags,
+            #isFlaky: isFlaky
           }),
           returnValue: Future<_i7.Build>.value(_FakeBuild_6())) as _i14.Future<_i7.Build>);
   @override
@@ -1464,10 +1466,17 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
           _i30.LuciTask? luciTask,
           int? retries,
           String? repo = r'flutter',
-          _i32.DatastoreService? datastore}) =>
+          _i32.DatastoreService? datastore,
+          bool? isFlaky}) =>
       (super.noSuchMethod(
-          Invocation.method(#checkRerunBuilder, [],
-              {#commit: commit, #luciTask: luciTask, #retries: retries, #repo: repo, #datastore: datastore}),
+          Invocation.method(#checkRerunBuilder, [], {
+            #commit: commit,
+            #luciTask: luciTask,
+            #retries: retries,
+            #repo: repo,
+            #datastore: datastore,
+            #isFlaky: isFlaky
+          }),
           returnValue: Future<bool>.value(false)) as _i14.Future<bool>);
   @override
   String toString() => super.toString();
