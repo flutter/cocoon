@@ -2,9 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_core/conductor_core.dart';
+import 'package:file/file.dart';
 import 'package:flutter/material.dart';
+import 'package:platform/platform.dart';
+import 'package:process/process.dart';
 
 import '../logic/git.dart';
+import '../logic/helper_functions.dart';
 import 'common/tooltip.dart';
 
 enum CreateReleaseSubstep {
@@ -25,9 +30,11 @@ class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
     required this.nextStep,
+    this.startContext,
   }) : super(key: key);
 
   final VoidCallback nextStep;
+  final StartContext? startContext;
 
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
@@ -51,6 +58,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
+  Object? _error;
+  bool _isLoading = false;
 
   /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
   @visibleForTesting
@@ -73,6 +82,48 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     super.initState();
   }
 
+  /// Function that initializes and executes the equivalent of `conductor start` CLI command.
+  ///
+  /// Exceptions and errors can be thrown by this function and needed to be caught by the outer block.
+  Future<void> runStartContext(
+      {required FileSystem fileSystem,
+      required ProcessManager processManager,
+      required Platform platform,
+      required Stdio stdio}) async {
+    final Checkouts checkouts = Checkouts(
+      fileSystem: fileSystem,
+      parentDirectory: localFlutterRoot.parent,
+      platform: platform,
+      processManager: processManager,
+      stdio: stdio,
+    );
+    final String stateFilePath = defaultStateFilePath(platform);
+    final File stateFile = fileSystem.file(stateFilePath);
+
+    /// Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
+    final StartContext startContext = widget.startContext ??
+        StartContext(
+          candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[0]] ?? '',
+          releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[1]] ?? '',
+          frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[2]] ?? '',
+          engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[3]] ?? '',
+          engineCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[4]]),
+          frameworkCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[5]]),
+          dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[6]] == ''
+              ? null
+              : releaseData[CreateReleaseSubsteps.substepTitles[6]],
+          incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[7]] ?? '',
+          checkouts: checkouts,
+          engineUpstream: EngineRepository.defaultUpstream,
+          flutterRoot: localFlutterRoot,
+          frameworkUpstream: FrameworkRepository.defaultUpstream,
+          processManager: processManager,
+          stateFile: stateFile,
+          stdio: stdio,
+        );
+    await startContext.run();
+  }
+
   /// Updates the corresponding [field] in [releaseData] with [data].
   void setReleaseData(String field, String data) {
     setState(() {
@@ -93,6 +144,32 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
+  /// Updates [_error] with what the conductor throws.
+  void setError(Object? errorThrown) {
+    setState(() {
+      _error = errorThrown;
+    });
+  }
+
+  /// Method to modify the state [_isLoading].
+  void setIsLoading(bool result) {
+    setState(() {
+      _isLoading = result;
+    });
+  }
+
+  /// Presents the error object in a string.
+  String presentError(Object? error) {
+    final StringBuffer buffer = StringBuffer();
+    if (error is ConductorException) {
+      buffer.writeln('Conductor Exception: $error');
+      return buffer.toString();
+    } else {
+      buffer.writeln('Error: $error');
+      return buffer.toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final GitValidation candidateBranch = CandidateBranch();
@@ -110,7 +187,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsInputValid: changeIsEachInputValid,
           validationClass: candidateBranch,
         ),
-        CheckboxListTileDropdown(
+        DropdownAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
@@ -152,7 +229,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsInputValid: changeIsEachInputValid,
           validationClass: gitHash,
         ),
-        CheckboxListTileDropdown(
+        DropdownAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
@@ -160,12 +237,44 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsDropdownValid: changeIsEachInputValid,
         ),
         const SizedBox(height: 20.0),
-        Center(
-          child: ElevatedButton(
-            key: const Key('step1continue'),
-            onPressed: isEachInputValid.containsValue(false) ? null : widget.nextStep,
-            child: const Text('Continue'),
+        if (_error != null)
+          Center(
+            child: SelectableText(
+              presentError(_error),
+              style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
+            ),
           ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              key: const Key('step1continue'),
+              onPressed: isEachInputValid.containsValue(false) || _isLoading
+                  ? null // if the release initialization is loading, disable this button
+                  : () async {
+                      setError(null);
+                      try {
+                        setIsLoading(true);
+                        await runStartContext(
+                            fileSystem: fileSystem, processManager: processManager, platform: platform, stdio: stdio);
+                        // ignore: avoid_catches_without_on_clauses
+                      } catch (error) {
+                        setError(error);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                      if (_error == null) {
+                        widget.nextStep();
+                      }
+                    },
+              child: const Text('Continue'),
+            ),
+            const SizedBox(width: 30.0),
+            if (_isLoading)
+              const CircularProgressIndicator(
+                semanticsLabel: 'Linear progress indicator',
+              ),
+          ],
         ),
       ],
     );
@@ -221,8 +330,8 @@ class InputAsSubstep extends StatelessWidget {
 }
 
 /// Captures the chosen option and updates the corresponding field in [releaseData].
-class CheckboxListTileDropdown extends StatelessWidget {
-  const CheckboxListTileDropdown({
+class DropdownAsSubstep extends StatelessWidget {
+  const DropdownAsSubstep({
     Key? key,
     required this.substepName,
     required this.releaseData,

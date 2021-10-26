@@ -19,9 +19,11 @@ class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
     this.releaseState,
+    this.completedStep,
   }) : super(key: key);
 
   final pb.ConductorState? releaseState;
+  final int? completedStep;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -37,6 +39,14 @@ class MainProgression extends StatefulWidget {
 
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
+
+  @override
+  void initState() {
+    if (widget.completedStep != null) {
+      _completedStep = widget.completedStep!;
+    }
+    super.initState();
+  }
 
   /// Move forward the stepper to the next step of the release.
   void nextStep() {
