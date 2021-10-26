@@ -77,23 +77,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
-      when(mockLuciBuildService.rescheduleProdBuild(
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: anyNamed('commitSha'),
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-        isFlaky: false,
+        bucket: 'prod',
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
-        verify(mockLuciBuildService.rescheduleProdBuild(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
-          isFlaky: false,
+          bucket: 'prod',
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
@@ -102,34 +102,73 @@ void main() {
 
     test('Re-schedule existing task', () async {
       Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          attempts: 0,
-          name: 'Linux A',
-          status: 'Failed',
-          builderName: 'Windows');
+        key: commit.key.append(Task, id: 4590522719010816),
+        commitKey: commit.key,
+        attempts: 0,
+        name: 'Linux A',
+        status: 'Failed',
+        builderName: 'Windows',
+      );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
-      when(mockLuciBuildService.rescheduleProdBuild(
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: anyNamed('commitSha'),
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-        isFlaky: false,
+        bucket: 'prod',
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
-        verify(mockLuciBuildService.rescheduleProdBuild(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
-          isFlaky: false,
+          bucket: 'prod',
+        )).captured,
+        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
+      );
+      task = config.db.values[task.key] as Task;
+      expect(task.attempts, equals(1));
+    });
+
+    test('Re-schedule existing flaky task in staging', () async {
+      Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          name: 'Linux A',
+          status: 'Failed',
+          builderName: 'Windows',
+          isFlaky: true);
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
+      });
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
+        commitSha: anyNamed('commitSha'),
+        builderName: anyNamed('builderName'),
+        repo: anyNamed('repo'),
+        properties: anyNamed('properties'),
+        tags: anyNamed('tags'),
+        bucket: 'staging',
+      )).thenAnswer((_) async => generateBuild(123));
+      await tester.post(handler);
+      expect(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
+          commitSha: captureAnyNamed('commitSha'),
+          builderName: captureAnyNamed('builderName'),
+          repo: anyNamed('repo'),
+          properties: anyNamed('properties'),
+          tags: anyNamed('tags'),
+          bucket: 'staging',
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );
@@ -147,21 +186,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
-      when(mockLuciBuildService.rescheduleProdBuild(
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: anyNamed('commitSha'),
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
+        bucket: 'prod',
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
-        verify(mockLuciBuildService.rescheduleProdBuild(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
           repo: captureAnyNamed('repo'),
           properties: captureAnyNamed('properties'),
           tags: captureAnyNamed('tags'),
+          bucket: 'prod',
         )).captured,
         <dynamic>[
           'commitSha',
@@ -203,23 +244,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
-      when(mockLuciBuildService.rescheduleProdBuild(
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: anyNamed('commitSha'),
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-        isFlaky: false,
+        bucket: 'prod',
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
-        verify(mockLuciBuildService.rescheduleProdBuild(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
-          isFlaky: false,
+          bucket: 'prod',
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
       );
@@ -238,7 +279,7 @@ void main() {
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       await tester.post(handler);
-      verifyNever(mockLuciBuildService.rescheduleProdBuild(
+      verifyNever(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: captureAnyNamed('commitSha'),
         builderName: captureAnyNamed('builderName'),
       ));
@@ -305,23 +346,23 @@ void main() {
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
-      when(mockLuciBuildService.rescheduleProdBuild(
+      when(mockLuciBuildService.reschedulePostsubmitBuild(
         commitSha: anyNamed('commitSha'),
         builderName: anyNamed('builderName'),
         repo: anyNamed('repo'),
         properties: anyNamed('properties'),
         tags: anyNamed('tags'),
-        isFlaky: false,
+        bucket: 'prod',
       )).thenAnswer((_) async => generateBuild(123));
       await tester.post(handler);
       expect(
-        verify(mockLuciBuildService.rescheduleProdBuild(
+        verify(mockLuciBuildService.reschedulePostsubmitBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
           repo: anyNamed('repo'),
           properties: anyNamed('properties'),
           tags: anyNamed('tags'),
-          isFlaky: false,
+          bucket: 'prod',
         )).captured,
         <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
       );

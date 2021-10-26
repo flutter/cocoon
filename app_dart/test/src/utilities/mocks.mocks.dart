@@ -1441,23 +1441,23 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
       (super.noSuchMethod(Invocation.method(#getTryBuildById, [id], {#fields: fields}),
           returnValue: Future<_i7.Build>.value(_FakeBuild_6())) as _i14.Future<_i7.Build>);
   @override
-  _i14.Future<_i7.Build> rescheduleProdBuild(
+  _i14.Future<_i7.Build> reschedulePostsubmitBuild(
           {String? commitSha,
           String? builderName,
           String? branch = r'master',
           String? repo = r'flutter',
           Map<String, dynamic>? properties = const {},
           Map<String, List<String?>>? tags,
-          bool? isFlaky}) =>
+          String? bucket}) =>
       (super.noSuchMethod(
-          Invocation.method(#rescheduleProdBuild, [], {
+          Invocation.method(#reschedulePostsubmitBuild, [], {
             #commitSha: commitSha,
             #builderName: builderName,
             #branch: branch,
             #repo: repo,
             #properties: properties,
             #tags: tags,
-            #isFlaky: isFlaky
+            #bucket: bucket
           }),
           returnValue: Future<_i7.Build>.value(_FakeBuild_6())) as _i14.Future<_i7.Build>);
   @override
