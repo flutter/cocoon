@@ -54,6 +54,7 @@ class GithubWebhook extends RequestHandler<Body> {
     try {
       final String stringRequest = utf8.decode(requestBytes);
       log.fine('Processing $gitHubEvent');
+      log.finest(stringRequest);
       switch (gitHubEvent) {
         case 'pull_request':
           await _handlePullRequest(stringRequest);
@@ -61,7 +62,7 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'check_run':
           final Map<String, dynamic> event = jsonDecode(stringRequest) as Map<String, dynamic>;
           final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(jsonDecode(stringRequest) as Map<String, dynamic>);
-          final PullRequest pullRequest = _getPullRequestFromEvent(event);
+          final PullRequest pullRequest = getPullRequestFromCheckRunEvent(event);
           await scheduler.processCheckRun(pullRequest, checkRunEvent);
       }
 
@@ -176,9 +177,10 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  PullRequest _getPullRequestFromEvent(Map<String, dynamic> event) {
-    final PullRequestEvent pullRequestEvent = PullRequestEvent.fromJson(event);
-    return pullRequestEvent.pullRequest!;
+  PullRequest getPullRequestFromCheckRunEvent(Map<String, dynamic> event) {
+    final Map<String, dynamic> pullRequestJson =
+        (event['check_run']['pull_requests'] as List<dynamic>).single as Map<String, dynamic>;
+    return PullRequest.fromJson(pullRequestJson);
   }
 
   Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
