@@ -1330,5 +1330,17 @@ void main() {
       expect(pullRequest?.base?.ref, 'master');
       expect(pullRequest?.number, 2);
     });
+
+    test('processes completed check run event', () async {
+      request.body = generateCheckRunEvent(
+        action: 'completed',
+        numberOfPullRequests: 0,
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      await tester.post(webhook);
+    });
   });
 }

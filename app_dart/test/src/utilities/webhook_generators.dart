@@ -506,8 +506,12 @@ String generatePullRequestEvent(String action, int number, String baseRef,
   }
 }''';
 
-String generateCheckRunEvent() => '''{
-  "action": "created",
+String generateCheckRunEvent({
+  String action = 'created',
+  int numberOfPullRequests = 1,
+}) {
+  String body = '''{
+  "action": "$action",
   "check_run": {
     "id": 128620228,
     "node_id": "MDg6Q2hlY2tSdW4xMjg2MjAyMjg=",
@@ -670,11 +674,13 @@ String generateCheckRunEvent() => '''{
       },
       "events": []
     },
-    "pull_requests": [
-      {
+    "pull_requests": [''';
+
+  for (int i = 0; i < numberOfPullRequests; i++) {
+    body += '''{
         "url": "https://api.github.com/repos/flutter/flutter/pulls/2",
         "id": 279147437,
-        "number": 2,
+        "number": ${i + 2},
         "head": {
           "ref": "changes",
           "sha": "ec26c3e57ca3a959ca5aad62de7213c562f8c821",
@@ -693,8 +699,12 @@ String generateCheckRunEvent() => '''{
             "name": "flutter"
           }
         }
-      }
-    ],
+      }''';
+    if (i < numberOfPullRequests - 1) {
+      body += ',';
+    }
+  }
+  body += '''],
     "deployment": {
       "url": "https://api.github.com/repos/flutter/flutter/deployments/326191728",
       "id": 326191728,
@@ -824,3 +834,5 @@ String generateCheckRunEvent() => '''{
     "site_admin": false
   }
 }''';
+  return body;
+}
