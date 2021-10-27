@@ -74,6 +74,7 @@ void main() {
           luciTask: anyNamed('luciTask'),
           retries: anyNamed('retries'),
           datastore: anyNamed('datastore'),
+          isFlaky: false,
         )).thenAnswer((_) => Future<bool>.value(false));
       });
 
@@ -412,6 +413,7 @@ void main() {
           luciTask: anyNamed('luciTask'),
           retries: anyNamed('retries'),
           datastore: anyNamed('datastore'),
+          isFlaky: false,
         )).thenAnswer((_) => Future<bool>.value(true));
       });
 

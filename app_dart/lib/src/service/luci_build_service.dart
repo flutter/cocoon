@@ -487,16 +487,18 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
-  /// Reschedules a prod build using [commitSha], [builderName], [branch],
-  /// [repo] and [properties]. Default value for [branch] is "master", default value for
-  /// [repo] is "flutter", default for [properties] is an empty map and default for [tags] is null.
-  Future<Build> rescheduleProdBuild({
+  /// Reschedules a post-submit build using [commitSha], [builderName], [branch],
+  /// [repo], [properties], [tags] and [bucket]. Default value for [branch] is "master", default value for
+  /// [repo] is "flutter", default for [properties] is an empty map and default for [tags] is null. [bucket]
+  /// is either `prod` or `staging`.
+  Future<Build> reschedulePostsubmitBuild({
     required String commitSha,
     required String? builderName,
     String branch = 'master',
     String repo = 'flutter',
     Map<String, dynamic> properties = const <String, dynamic>{},
     Map<String, List<String?>>? tags,
+    String? bucket,
   }) async {
     final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
     tags ??= <String, List<String>>{};
@@ -511,7 +513,7 @@ class LuciBuildService {
     return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
-        bucket: 'prod',
+        bucket: bucket,
         builder: builderName,
       ),
       gitilesCommit: GitilesCommit(
@@ -535,6 +537,7 @@ class LuciBuildService {
     required int retries,
     String repo = 'flutter',
     DatastoreService? datastore,
+    bool? isFlaky,
   }) async {
     if (await _shouldRerunBuilder(luciTask, retries, commit, datastore)) {
       log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
@@ -542,11 +545,12 @@ class LuciBuildService {
         'triggered_by': <String>['cocoon'],
         'trigger_type': <String>['retry'],
       };
-      await rescheduleProdBuild(
+      await reschedulePostsubmitBuild(
         commitSha: commit.sha!,
         builderName: luciTask.builderName,
         repo: repo,
         tags: tags,
+        bucket: isFlaky ?? false ? 'staging' : 'prod',
       );
       return true;
     }

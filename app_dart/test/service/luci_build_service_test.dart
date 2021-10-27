@@ -387,7 +387,7 @@ void main() {
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });
-  group('rescheduleProdBuild', () {
+  group('reschedulePostsubmitBuild', () {
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
@@ -395,7 +395,7 @@ void main() {
     });
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      await service.rescheduleProdBuild(
+      await service.reschedulePostsubmitBuild(
         commitSha: 'abc',
         builderName: 'mybuild',
         branch: 'master',

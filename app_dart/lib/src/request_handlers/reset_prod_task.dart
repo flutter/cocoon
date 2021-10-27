@@ -120,12 +120,13 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       'triggered_by': <String?>[token.email],
       'trigger_type': <String>['manual'],
     };
-    final Build buildResult = await luciBuildService.rescheduleProdBuild(
+    final Build buildResult = await luciBuildService.reschedulePostsubmitBuild(
       commitSha: commit.sha!,
       builderName: builder,
       repo: repo,
       properties: properties,
       tags: tags,
+      bucket: task?.isFlaky ?? false ? 'staging' : 'prod',
     );
     if (task != null) {
       // Only try to update task when it really exists.
