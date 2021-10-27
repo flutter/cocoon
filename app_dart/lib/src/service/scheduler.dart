@@ -395,7 +395,11 @@ class Scheduler {
 
   /// Get LUCI presubmit builders from .ci.yaml.
   Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
-    final Commit commit = Commit(repository: pullRequest.base!.repo!.fullName, sha: pullRequest.head!.sha);
+    final Commit commit = Commit(
+      branch: pullRequest.base!.ref,
+      repository: pullRequest.base!.repo!.fullName,
+      sha: pullRequest.head!.sha,
+    );
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
       throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
