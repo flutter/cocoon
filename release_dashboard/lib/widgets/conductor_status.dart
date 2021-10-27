@@ -6,7 +6,6 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
-import 'common/dialog_prompt.dart';
 import 'common/tooltip.dart';
 
 /// Displays the current conductor state.
