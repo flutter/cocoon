@@ -621,7 +621,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i9.GithubChecksUtil {
           returnValue: Future<_i8.CheckSuite>.value(_FakeCheckSuite_17())) as _i14.Future<_i8.CheckSuite>);
   @override
   _i14.Future<void> updateCheckRun(_i3.Config? cocoonConfig, _i8.RepositorySlug? slug, _i8.CheckRun? checkRun,
-          {_i8.CheckRunStatus? status,
+          {_i8.CheckRunStatus? status = _i8.CheckRunStatus.queued,
           _i8.CheckRunConclusion? conclusion,
           String? detailsUrl,
           _i8.CheckRunOutput? output}) =>
