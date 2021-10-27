@@ -142,7 +142,7 @@ void main() {
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
-      test('gives up after 3 tries', () async {
+      test('gives up after 6 tries', () async {
         int retry = 0;
         branchHttpClient = MockClient((_) async {
           retry++;
@@ -162,7 +162,8 @@ void main() {
               ),
             ),
             throwsA(isA<HttpException>()));
-        expect(retry, 3);
+        // It will request from GitHub 3 times, fallback to GoB, then fail.
+        expect(retry, 6);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isNotEmpty);
       });
     });
