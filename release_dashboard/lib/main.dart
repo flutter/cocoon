@@ -39,6 +39,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Update the status state with the current state file if it exists at the start of the app
     context.read<StatusState>().changeCurrentReleaseStatus(ReleaseStatusSetter(testState));
 
     return MaterialApp(
