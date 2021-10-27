@@ -179,6 +179,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   PullRequest? getPullRequestFromCheckRunEvent(Map<String, dynamic> event) {
     final List<dynamic> pullRequests = event['check_run']['pull_requests'] as List<dynamic>;
+    // Cocoon only processes events on a single pull request. BatchRequests are currently not processed
     if (pullRequests.isEmpty || pullRequests.length != 1) {
       return null;
     }
