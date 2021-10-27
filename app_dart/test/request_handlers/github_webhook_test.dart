@@ -1325,10 +1325,10 @@ void main() {
 
     test('gets pull request from check run event', () async {
       final Map<String, dynamic> event = jsonDecode(generateCheckRunEvent()) as Map<String, dynamic>;
-      final PullRequest pullRequest = webhook.getPullRequestFromCheckRunEvent(event);
-      expect(pullRequest.head?.sha, 'ec26c3e57ca3a959ca5aad62de7213c562f8c821');
-      expect(pullRequest.base?.ref, 'master');
-      expect(pullRequest.number, 2);
+      final PullRequest? pullRequest = webhook.getPullRequestFromCheckRunEvent(event);
+      expect(pullRequest?.head?.sha, 'ec26c3e57ca3a959ca5aad62de7213c562f8c821');
+      expect(pullRequest?.base?.ref, 'master');
+      expect(pullRequest?.number, 2);
     });
   });
 }

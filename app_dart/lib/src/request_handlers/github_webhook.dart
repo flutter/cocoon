@@ -62,7 +62,7 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'check_run':
           final Map<String, dynamic> event = jsonDecode(stringRequest) as Map<String, dynamic>;
           final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(jsonDecode(stringRequest) as Map<String, dynamic>);
-          final PullRequest pullRequest = getPullRequestFromCheckRunEvent(event);
+          final PullRequest? pullRequest = getPullRequestFromCheckRunEvent(event);
           await scheduler.processCheckRun(pullRequest, checkRunEvent);
       }
 
@@ -177,10 +177,15 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  PullRequest getPullRequestFromCheckRunEvent(Map<String, dynamic> event) {
-    final Map<String, dynamic> pullRequestJson =
-        (event['check_run']['pull_requests'] as List<dynamic>).single as Map<String, dynamic>;
-    return PullRequest.fromJson(pullRequestJson);
+  PullRequest? getPullRequestFromCheckRunEvent(Map<String, dynamic> event) {
+    final List<dynamic> pullRequests = event['check_run']['pull_requests'] as List<dynamic>;
+    if (pullRequests.isEmpty) {
+      return null;
+    }
+    if (pullRequests.length != 1) {
+      throw Exception('Found ${pullRequests.length} pull requests, but expected 1');
+    }
+    return PullRequest.fromJson(pullRequests.single as Map<String, dynamic>);
   }
 
   Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {

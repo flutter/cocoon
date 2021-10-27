@@ -415,11 +415,11 @@ class Scheduler {
   /// the Github UI.
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(github.PullRequest pullRequest, CheckRunEvent checkRunEvent) async {
+  Future<bool> processCheckRun(github.PullRequest? pullRequest, CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
         final String? builderName = checkRunEvent.checkRun!.name;
-        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(pullRequest, checkRunEvent);
+        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(pullRequest!, checkRunEvent);
         log.fine('BuilderName: $builderName State: $success');
         return success;
     }
