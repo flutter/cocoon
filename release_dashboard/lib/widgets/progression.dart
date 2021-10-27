@@ -69,9 +69,7 @@ class MainProgressionState extends State<MainProgression> {
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           physics: const ClampingScrollPhysics(),
           children: <Widget>[
-            ConductorStatus(
-              releaseState: widget.releaseState,
-            ),
+            ConductorStatus(),
             const SizedBox(height: 20.0),
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),

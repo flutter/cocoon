@@ -4,9 +4,14 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:conductor_ui/main.dart';
+import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/conductor_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import '../src/services/fake_conductor.dart';
 
 void main() {
   group('conductor_status', () {
@@ -62,19 +67,12 @@ void main() {
     });
     testWidgets('Conductor_status displays nothing found when there is no state file', (WidgetTester tester) async {
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: const <Widget>[
-                    ConductorStatus(),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        Builder(builder: (context) {
+          return ChangeNotifierProvider(
+            create: (context) => StatusState(),
+            child: MyApp(FakeConductor()),
+          );
+        }),
       );
 
       expect(find.text('No persistent state file. Try starting a release.'), findsOneWidget);
@@ -83,21 +81,12 @@ void main() {
 
     testWidgets('Conductor_status displays correct status with a state file', (WidgetTester tester) async {
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    ConductorStatus(
-                      releaseState: state,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        Builder(builder: (context) {
+          return ChangeNotifierProvider(
+            create: (context) => StatusState(),
+            child: MyApp(FakeConductor(), testState: state),
+          );
+        }),
       );
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
@@ -122,48 +111,30 @@ void main() {
       );
 
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    ConductorStatus(
-                      releaseState: stateIncomplete,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        Builder(builder: (context) {
+          return ChangeNotifierProvider(
+            create: (context) => StatusState(),
+            child: MyApp(FakeConductor(), testState: stateIncomplete),
+          );
+        }),
       );
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
-      expect(find.text(releaseChannel), findsOneWidget);
+      expect(find.text(releaseChannel), findsNWidgets(2));
       expect(find.text('Unknown'), findsNWidgets(11));
     });
 
     testWidgets('Repo Info section displays corresponding info in a dropdown fashion', (WidgetTester tester) async {
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    ConductorStatus(
-                      releaseState: state,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        Builder(builder: (context) {
+          return ChangeNotifierProvider(
+            create: (context) => StatusState(),
+            child: MyApp(FakeConductor(), testState: state),
+          );
+        }),
       );
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);

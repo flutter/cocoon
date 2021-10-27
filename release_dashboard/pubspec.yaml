@@ -16,6 +16,7 @@ dependencies:
       ref: 125545da322048565911bf81118cce60f05036ce
   flutter:
     sdk: flutter
+  provider: ^6.0.1
 
 dev_dependencies:
   flutter_lints: ^1.0.4
