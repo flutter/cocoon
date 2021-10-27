@@ -133,23 +133,6 @@ class ConductorStatusState extends State<ConductorStatus> {
             ),
           ],
         ),
-        const SizedBox(height: 30.0),
-        Center(
-          child: ElevatedButton(
-            key: const Key('conductorClean'),
-            style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.red)),
-            onPressed: () {
-              dialogPrompt(
-                context: context,
-                title: 'Are you sure you want to clean up the persistent state file?',
-                content: 'This will abort a work in progress release.',
-                leftOption: 'Yes',
-                rightOption: 'No',
-              );
-            },
-            child: const Text('Clean'),
-          ),
-        ),
       ],
     );
   }
