@@ -9,15 +9,17 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:conductor_core/proto.dart' as pb;
 
+/// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
   Map<String, Object>? currentReleaseStatus;
 
-  Future<void> changeCurrentReleaseStatus(Map<String, Object>? data) async {
-    // setStatus needs to be asynchronous to make sure it is called before nofityListeners
-    Future<void> setStatus(Map<String, Object>? newStatus) async {
-      currentReleaseStatus = newStatus;
-    }
+  // setStatus needs to be asynchronous to make sure it is called before nofityListeners
+  Future<void> setStatus(Map<String, Object>? newStatus) async {
+    currentReleaseStatus = newStatus;
+  }
 
+  /// Method that modifies the global state in provider.
+  Future<void> changeCurrentReleaseStatus(Map<String, Object>? data) async {
     await setStatus(data);
     notifyListeners();
   }
@@ -36,7 +38,6 @@ Map<String, Object>? ReleaseStatusSetter(pb.ConductorState? testState) {
     const LocalPlatform platform = LocalPlatform();
     final String stateFilePath = defaultStateFilePath(platform);
     final File stateFile = fs.file(stateFilePath);
-
     state = stateFile.existsSync() ? readStateFromFile(stateFile) : null;
   }
 
