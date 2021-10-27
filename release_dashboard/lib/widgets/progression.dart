@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-
+import 'package:conductor_core/proto.dart' as pb;
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'substeps.dart';
