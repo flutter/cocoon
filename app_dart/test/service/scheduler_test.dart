@@ -320,6 +320,26 @@ targets:
             containsAll(<String>['Linux A', 'Linux C']));
       });
 
+      test('checks for release branches', () async {
+        const String branch = 'flutter-1.24-candidate.1';
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('''
+enabled_branches:
+  - master
+targets:
+  - name: Linux A
+    presubmit: true
+    scheduler: luci
+          ''', 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        config.luciBuildersValue = <LuciBuilder>[];
+        expect(scheduler.getPresubmitBuilders(generatePullRequest(branch: branch)),
+            throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
+      });
+
       test('triggers expected presubmit build checks', () async {
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
