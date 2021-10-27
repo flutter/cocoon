@@ -59,7 +59,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     DatastoreService? datastore,
     required GithubService githubService,
   }) async {
-    late List<RepositoryCommit> commits;
+    List<RepositoryCommit> commits = <RepositoryCommit>[];
     // Sliding window of times to add commits from.
     final DateTime queryAfter = DateTime.now().subtract(const Duration(days: 1));
     final DateTime queryBefore = DateTime.now().subtract(const Duration(minutes: 3));
