@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 import '../src/services/fake_conductor.dart';
 
 void main() {
-  group('conductor_status', () {
+  group('conductor_status, also tests StatusState', () {
     late pb.ConductorState state;
 
     const String conductorVersion = 'v1.0';
