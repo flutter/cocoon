@@ -38,27 +38,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(_title),
-          actions: [
-            Builder(builder: (context) {
-              return Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 40, 0),
-                child: IconButton(
-                  key: const Key('conductorClean'),
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    dialogPrompt(
-                      context: context,
-                      title: 'Are you sure you want to clean up the current release?',
-                      content: 'This will abort and delete a work in progress release. This process is not revertible!',
-                      leftOption: 'Yes',
-                      rightOption: 'No',
-                    );
-                  },
-                  tooltip: 'Clean up the current release.',
-                ),
-              );
-            }),
-          ],
+          actions: [cleanStatus()],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -75,6 +55,32 @@ class MyApp extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Widget upon clicking cleans the current release in progress.
+class cleanStatus extends StatelessWidget {
+  const cleanStatus({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 0, 40, 0),
+      child: IconButton(
+        key: const Key('conductorClean'),
+        icon: const Icon(Icons.delete),
+        onPressed: () {
+          dialogPrompt(
+            context: context,
+            title: 'Are you sure you want to clean up the current release?',
+            content: 'This will abort and delete a work in progress release. This process is not revertible!',
+            leftOption: 'Yes',
+            rightOption: 'No',
+          );
+        },
+        tooltip: 'Clean up the current release.',
       ),
     );
   }
