@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_core/conductor_core.dart';
+import '../logic/regex.dart';
 import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
@@ -36,6 +38,16 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   // Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
+  List<bool> isEachInputValid = List<bool>.filled(CreateReleaseSubsteps.substepTitles.length, false);
+
+  @override
+  void initState() {
+    // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
+    isEachInputValid[4] = true;
+    isEachInputValid[5] = true;
+    isEachInputValid[6] = true;
+    super.initState();
+  }
 
   /// Updates the corresponding [field] in [releaseData] with [data].
   void setReleaseData(String field, String data) {
@@ -44,6 +56,13 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
         ...releaseData,
         field: data,
       };
+    });
+  }
+
+  // When isEachInputValid[0] is true, the first parameter is valid. If it false, it is unvalid.
+  void changeIsEachInputValid(int index, bool isValid) {
+    setState(() {
+      isEachInputValid[index] = isValid;
     });
   }
 
@@ -56,53 +75,61 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           index: 0,
           setReleaseData: setReleaseData,
           hintText: 'The candidate branch the release will be based on.',
+          changeIsInputValid: changeIsEachInputValid,
         ),
         CheckboxListTileDropdown(
           index: 1,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['dev', 'beta', 'stable'],
+          changeIsDropdownValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
           index: 2,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Framework repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
           index: 3,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Engine repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
           index: 4,
           setReleaseData: setReleaseData,
           hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          changeIsInputValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
           index: 5,
           setReleaseData: setReleaseData,
           hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          changeIsInputValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
           index: 6,
           setReleaseData: setReleaseData,
           hintText: 'New Dart revision to cherrypick.',
+          changeIsInputValid: changeIsEachInputValid,
         ),
         CheckboxListTileDropdown(
           index: 7,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['y', 'z', 'm', 'n'],
+          changeIsDropdownValid: changeIsEachInputValid,
         ),
         const SizedBox(height: 20.0),
         Center(
-          // TODO(Yugue): Add regex validation for each parameter input
-          // before Continue button is enabled, https://github.com/flutter/flutter/issues/91925.
           child: ElevatedButton(
             key: const Key('step1continue'),
-            onPressed: () {
-              widget.nextStep();
-            },
+            onPressed: isEachInputValid.contains(false) // Continue button is disabled if any of the inputs are invalid
+                ? null
+                : () {
+                    widget.nextStep();
+                  },
             child: const Text('Continue'),
           ),
         ),
@@ -112,30 +139,67 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
 }
 
 typedef SetReleaseData = void Function(String name, String data);
+typedef ChangeIsEachInputValid = void Function(int index, bool isValid);
 
 /// Captures the input values and updates the corresponding field in [releaseData].
 class InputAsSubstep extends StatelessWidget {
-  const InputAsSubstep({
+  InputAsSubstep({
     Key? key,
     required this.index,
     required this.setReleaseData,
     this.hintText,
+    required this.changeIsInputValid,
   }) : super(key: key);
 
   final int index;
   final SetReleaseData setReleaseData;
   final String? hintText;
+  final ChangeIsEachInputValid changeIsInputValid;
 
   @override
   Widget build(BuildContext context) {
+    late RegExp formRegexValidator;
+    switch (index) {
+      case 0:
+        // formRegexValidator = releaseCandidateBranchRegex;
+        formRegexValidator = RegExp(r'^flutter-(\d+)\.(\d+)-candidate\.(\d+)$');
+        break;
+      case 2:
+      case 3:
+        formRegexValidator = githubRemotePattern;
+        break;
+      case 4:
+      case 5:
+        formRegexValidator = multiGitHashRegex;
+        break;
+      case 6:
+        formRegexValidator = gitHashRegex;
+        break;
+      default:
+        break;
+    }
+
     return TextFormField(
       key: Key(CreateReleaseSubsteps.substepTitles[index]),
+      autovalidateMode: AutovalidateMode.always,
       decoration: InputDecoration(
         labelText: CreateReleaseSubsteps.substepTitles[index],
         hintText: hintText,
       ),
       onChanged: (String data) {
         setReleaseData(CreateReleaseSubsteps.substepTitles[index], data);
+        if (!formRegexValidator.hasMatch(data)) {
+          changeIsInputValid(index, false);
+        } else {
+          changeIsInputValid(index, true);
+        }
+      },
+      validator: (String? value) {
+        if (!formRegexValidator.hasMatch(value ?? '')) {
+          return '${CreateReleaseSubsteps.substepTitles[index].replaceAll(' (if necessary)', '')} not in a valid format!';
+        } else {
+          return null;
+        }
       },
     );
   }
@@ -149,12 +213,14 @@ class CheckboxListTileDropdown extends StatelessWidget {
     required this.releaseData,
     required this.setReleaseData,
     required this.options,
+    required this.changeIsDropdownValid,
   }) : super(key: key);
 
   final int index;
   final Map<String, String?> releaseData;
   final SetReleaseData setReleaseData;
   final List<String> options;
+  final ChangeIsEachInputValid changeIsDropdownValid;
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +258,7 @@ z:    Indicates a hotfix to a stable release.''',
             );
           }).toList(),
           onChanged: (String? newValue) {
+            changeIsDropdownValid(index, true);
             setReleaseData(CreateReleaseSubsteps.substepTitles[index], newValue!);
           },
         ),
