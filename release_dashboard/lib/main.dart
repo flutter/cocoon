@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(_title),
-          actions: [cleanStatus()],
+          actions: [cleanRelease()],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -61,8 +61,8 @@ class MyApp extends StatelessWidget {
 }
 
 /// Widget upon clicking cleans the current release in progress.
-class cleanStatus extends StatelessWidget {
-  const cleanStatus({Key? key}) : super(key: key);
+class cleanRelease extends StatelessWidget {
+  const cleanRelease({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
