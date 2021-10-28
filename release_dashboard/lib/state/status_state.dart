@@ -46,7 +46,7 @@ Map<String, Object>? ReleaseStatusSetter(pb.ConductorState? testState) {
   return (getStateDesktop(state));
 }
 
-/// Returns the conductor state in a Map<K, V> format for the desktop app to consume.
+/// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
 Map<String, Object> getStateDesktop(pb.ConductorState state) {
   final List<Map<String, String>> engineCherrypicks = <Map<String, String>>[];
   for (final pb.Cherrypick cherrypick in state.engine.cherrypicks) {
