@@ -13,14 +13,13 @@ import 'package:conductor_core/proto.dart' as pb;
 class StatusState extends ChangeNotifier {
   Map<String, Object>? currentReleaseStatus;
 
-  // setStatus needs to be asynchronous to make sure it is called before nofityListeners
-  Future<void> setStatus(Map<String, Object>? newStatus) async {
-    currentReleaseStatus = newStatus;
-  }
-
   /// Method that modifies the global state in provider.
   Future<void> changeCurrentReleaseStatus(Map<String, Object>? data) async {
-    await setStatus(data);
+    // status modification needs to be asynchronous to make sure it is called before nofityListeners
+    await () async {
+      currentReleaseStatus = data;
+    }();
+
     notifyListeners();
   }
 }
@@ -28,7 +27,7 @@ class StatusState extends ChangeNotifier {
 /// Reads the current state filed saved in disk, and returns the state in a Map<K, V> format.
 ///
 /// Supports passing a testState to mock the release state.
-Map<String, Object>? ReleaseStatusSetter(pb.ConductorState? testState) {
+Map<String, Object>? getCurrentState(pb.ConductorState? testState) {
   final pb.ConductorState? state;
 
   if (testState != null) {
@@ -43,11 +42,11 @@ Map<String, Object>? ReleaseStatusSetter(pb.ConductorState? testState) {
 
   if (state == null) return null;
 
-  return (getStateDesktop(state));
+  return (stateToMap(state));
 }
 
 /// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
-Map<String, Object> getStateDesktop(pb.ConductorState state) {
+Map<String, Object> stateToMap(pb.ConductorState state) {
   final List<Map<String, String>> engineCherrypicks = <Map<String, String>>[];
   for (final pb.Cherrypick cherrypick in state.engine.cherrypicks) {
     engineCherrypicks.add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});

@@ -39,29 +39,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Update the status state with the current state file if it exists at the start of the app
-    context.read<StatusState>().changeCurrentReleaseStatus(ReleaseStatusSetter(testState));
-
-    return MaterialApp(
-      title: _title,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text(_title),
-          actions: const [CleanRelease()],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const SelectableText(
-                'Desktop app for managing a release of the Flutter SDK, currently in development',
-              ),
-              const SizedBox(height: 10.0),
-              MainProgression(
-                releaseState: testState ?? conductor.state,
-              ),
-            ],
+    return ChangeNotifierProvider(
+      create: (context) => StatusState(),
+      child: MaterialApp(
+        title: _title,
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text(_title),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const SelectableText(
+                  'Desktop app for managing a release of the Flutter SDK, currently in development',
+                ),
+                const SizedBox(height: 10.0),
+                MainProgression(
+                  releaseState: testState ?? conductor.state,
+                ),
+              ],
+            ),
           ),
         ),
       ),

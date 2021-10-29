@@ -2,11 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import '../state/status_state.dart';
 import 'package:flutter/material.dart';
-import 'package:conductor_core/proto.dart' as pb;
+import 'package:provider/src/provider.dart';
+
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'substeps.dart';
+import 'package:conductor_core/proto.dart' as pb;
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -34,6 +37,13 @@ class MainProgression extends StatefulWidget {
 
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
+
+  @override
+  void initState() {
+    // Update the status state with the current state file if it exists at the start of the app
+    context.read<StatusState>().changeCurrentReleaseStatus(getCurrentState(widget.releaseState));
+    super.initState();
+  }
 
   /// Move forward the stepper to the next step of the release.
   void nextStep() {
