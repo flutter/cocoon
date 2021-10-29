@@ -17,11 +17,9 @@ class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
     this.releaseState,
-    required this.stateFilePath,
   }) : super(key: key);
 
   final pb.ConductorState? releaseState;
-  final String stateFilePath;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -73,7 +71,6 @@ class MainProgressionState extends State<MainProgression> {
           children: <Widget>[
             ConductorStatus(
               releaseState: widget.releaseState,
-              stateFilePath: widget.stateFilePath,
             ),
             const SizedBox(height: 20.0),
             Stepper(

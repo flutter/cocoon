@@ -8,10 +8,12 @@ import 'package:conductor_ui/main.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'src/services/fake_conductor.dart';
+
 void main() {
   group('Main app', () {
     testWidgets('Scaffold Initialization', (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp(null));
+      await tester.pumpWidget(MyApp(FakeConductor()));
 
       expect(find.textContaining('Flutter Desktop Conductor'), findsOneWidget);
       expect(find.textContaining('Desktop app for managing a release'), findsOneWidget);

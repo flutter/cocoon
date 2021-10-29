@@ -70,9 +70,7 @@ void main() {
               home: Material(
                 child: ListView(
                   children: const <Widget>[
-                    ConductorStatus(
-                      stateFilePath: testPath,
-                    ),
+                    ConductorStatus(),
                   ],
                 ),
               ),
@@ -95,7 +93,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: state,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),
@@ -135,7 +132,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: stateIncomplete,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),
@@ -163,7 +159,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: state,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),
