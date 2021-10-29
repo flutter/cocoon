@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -93,7 +94,7 @@ void main() {
         branchHttpClient = MockClient((http.Request request) async {
           if (request.url.toString() ==
               'https://flutter.googlesource.com/mirrors/cocoon/+/ba7fe03781762603a1cdc364f8f5de56a0fdbf5c/.ci.yaml?format=text') {
-            return http.Response(branchRegExp, HttpStatus.ok);
+            return http.Response(base64Encode(branchRegExp.codeUnits), HttpStatus.ok);
           }
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
@@ -120,7 +121,7 @@ void main() {
         branchHttpClient = MockClient((http.Request request) async {
           if (request.url.toString() ==
               'https://flutter.googlesource.com/mirrors/cocoon/+/refs/heads/master/.ci.yaml?format=text') {
-            return http.Response(branchRegExp, HttpStatus.ok);
+            return http.Response(base64Encode(branchRegExp.codeUnits), HttpStatus.ok);
           }
           // Mock a GitHub outage
           return http.Response('', HttpStatus.serviceUnavailable);
