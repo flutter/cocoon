@@ -22,7 +22,11 @@ class FakeConductor extends ConductorService {
       required File stateFile}) async {}
 
   @override
-  ConductorState getState() {
-    return ConductorState.getDefault();
+  ConductorState? getState() {
+    return ConductorState(
+      conductorVersion: 'abcdef',
+      releaseChannel: 'dev',
+      releaseVersion: 'flutter-2.7-candidate.4',
+    );
   }
 }

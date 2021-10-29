@@ -33,8 +33,12 @@ class LocalConductorService extends ConductorService {
   static const String frameworkUpstream = 'https://github.com/flutter/flutter';
   static const String engineUpstream = 'https://github.com/flutter/engine';
 
-  pb.ConductorState getState() {
-    return readStateFromFile(stateFile);
+  pb.ConductorState? getState() {
+    if (stateFile.existsSync()) {
+      return readStateFromFile(stateFile);
+    }
+
+    return null;
   }
 
   Future<void> createRelease({

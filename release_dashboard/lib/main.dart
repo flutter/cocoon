@@ -15,7 +15,7 @@ const String _title = 'Flutter Desktop Conductor (Not ready, do not use)';
 Future<void> main() async {
   // The app currently only supports macOS and Linux.
   if (kIsWeb || io.Platform.isWindows) {
-    throw Exception('The conductor only supports MacOS and Linux desktop');
+    throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
   WidgetsFlutterBinding.ensureInitialized();
