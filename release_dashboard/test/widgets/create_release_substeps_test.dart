@@ -122,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
 
-    // the fields below are optional, the continue button should be enabled even they are empty
+    // the three fields below are optional, the continue button should be enabled even they are empty
     expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
     await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')), engineCherrypick);
     await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')), frameworkCherrypick);
