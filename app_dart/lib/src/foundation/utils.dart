@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -63,7 +64,8 @@ Future<String> githubFileContent(
     );
   } catch (e) {
     await retryOptions.retry(
-      () async => content = await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+      () async =>
+          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
       retryIf: (Exception e) => e is HttpException,
     );
   }

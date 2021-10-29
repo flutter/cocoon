@@ -180,7 +180,7 @@ class Scheduler {
     Commit commit, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
-    final String ciPath = '${commit.repository}/${commit.sha!}/.ci.yaml';
+    final String ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
     final Uint8List configBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,

@@ -12,7 +12,7 @@ import 'common.dart';
 
 /// List of repositories that have supported .ci.yaml config files.
 final List<SupportedConfig> configs = <SupportedConfig>[
-  SupportedConfig(RepositorySlug('flutter', 'cocoon')),
+  SupportedConfig(RepositorySlug('flutter', 'cocoon'), 'main'),
   SupportedConfig(RepositorySlug('flutter', 'engine')),
   SupportedConfig(RepositorySlug('flutter', 'flutter')),
   SupportedConfig(RepositorySlug('flutter', 'packages')),
@@ -24,7 +24,7 @@ Future<void> main() async {
     test('validate config file of $config', () async {
       final String configContent = await githubFileContent(
         config.slug,
-        'ci.yaml',
+        kCiYamlPath,
         httpClientProvider: () => http.Client(),
         ref: config.branch,
       );
