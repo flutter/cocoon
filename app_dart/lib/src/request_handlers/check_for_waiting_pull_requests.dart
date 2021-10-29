@@ -277,6 +277,18 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       'submit-queue', // plugins repo
     };
 
+    const Map<String, Set<String>> requiredStatus = <String, Set<String>>{
+      'flutter': <String>{'Google testing'}
+    };
+
+    log.info('Validating required statuses');
+    final Set<String> repoMandatoryStatuses = requiredStatus[name] ?? <String>{};
+    final Set<String> statusNames = <String>{};
+    for (Map<String, dynamic> status in statuses) {
+      statusNames.add(status['context'] as String);
+    }
+    allSuccess = statusNames.containsAll(repoMandatoryStatuses);
+
     log.info('Validating name: $name, branch: $branch, status: $statuses');
     for (Map<String, dynamic> status in statuses) {
       final String? name = status['context'] as String?;

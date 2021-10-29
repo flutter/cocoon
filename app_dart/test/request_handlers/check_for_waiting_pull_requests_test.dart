@@ -386,6 +386,7 @@ This pull request is not suitable for automatic merging in its current state.
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
+          StatusHelper.googleTestingSuccess,
         ],
         labels: <dynamic>[
           <String, dynamic>{'name': 'warning: land on red to fix tree breakage'}
@@ -411,6 +412,7 @@ This pull request is not suitable for automatic merging in its current state.
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
+          StatusHelper.googleTestingSuccess,
         ],
       );
       flutterRepoPRs.add(prRequested);
@@ -543,6 +545,7 @@ This pull request is not suitable for automatic merging in its current state.
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
+          StatusHelper.googleTestingSuccess,
         ],
       );
       flutterRepoPRs.add(prRequested);
@@ -989,6 +992,7 @@ class StatusHelper {
   static const StatusHelper cirrusSuccess = StatusHelper('Cirrus CI', 'SUCCESS');
   static const StatusHelper cirrusFailure = StatusHelper('Cirrus CI', 'FAILURE');
   static const StatusHelper flutterBuildSuccess = StatusHelper('luci-flutter', 'SUCCESS');
+  static const StatusHelper googleTestingSuccess = StatusHelper('Google testing', 'SUCCESS');
   static const StatusHelper flutterBuildFailure = StatusHelper('luci-flutter', 'FAILURE');
   static const StatusHelper otherStatusFailure = StatusHelper('other status', 'FAILURE');
   static const StatusHelper luciEngineBuildSuccess = StatusHelper('luci-engine', 'SUCCESS');
@@ -1027,7 +1031,7 @@ class PullRequestHelper {
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
     this.lastCommitHash = oid,
-    this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
+    this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess, StatusHelper.googleTestingSuccess],
     this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
     this.dateTime,
     this.labels = const <dynamic>[],
