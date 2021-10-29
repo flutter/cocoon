@@ -53,7 +53,6 @@ class LocalConductorService extends ConductorService {
     required String releaseChannel,
     required File stateFile,
   }) async {
-    final Platform platform = LocalPlatform();
     final Checkouts checkouts = Checkouts(
       parentDirectory: rootDirectory,
       processManager: processManager,
