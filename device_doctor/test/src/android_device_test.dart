@@ -170,6 +170,31 @@ void main() {
       expect(healthCheckResult.details, 'developer mode is off');
     });
 
+    test('returns success when screensaver is off', () async {
+      output = <List<int>>[utf8.encode('0')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kScreenSaverCheckKey);
+    });
+
+    test('returns failure when screensaver is on', () async {
+      output = <List<int>>[utf8.encode('1')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kScreenSaverCheckKey);
+      expect(healthCheckResult.details, 'Screensaver is on');
+    });
+
     test('returns failure when adb return none 0 code', () async {
       process = FakeProcess(1);
       when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
