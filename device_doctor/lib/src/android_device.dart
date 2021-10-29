@@ -228,6 +228,26 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     return healthCheckResult;
   }
 
+  /// The health check to validate screensaver is off.
+  ///
+  /// Screensaver`off` is expected for a healthy Android device.
+  Future<HealthCheckResult> screenSaverCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String result = await eval('adb', <String>['shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+          processManager: processManager);
+      // The output of `screensaver_enabled` is `0` when screensaver mode is off.
+      if (result == '0') {
+        healthCheckResult = HealthCheckResult.success(kScreenSaverCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, 'Screensaver is on');
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
   @override
   Future<void> prepareDevices() async {
     for (Device device in await discoverDevices()) {
