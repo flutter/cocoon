@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var gitHashPattern = r'[0-9a-f]{5,40}';
+const String gitHashPattern = r'[0-9a-f]{40}';
 
 // Allows empty string because the dart revision which is the only input using this regex could be empty
 final RegExp gitHashRegex = RegExp([r'^$|^', gitHashPattern, r'$'].join());

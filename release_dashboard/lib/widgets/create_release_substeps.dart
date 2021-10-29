@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
-import '../logic/regex.dart';
+import '../logic/git_regex.dart';
 import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
