@@ -35,6 +35,6 @@ void main() {
     await tester.tap(find.text('Initialize a New Flutter Release'));
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, equals(1));
+    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, equals(0));
   });
 }
