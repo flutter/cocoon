@@ -16,3 +16,5 @@ final RegExp gitHashRegex = RegExp([r'^$|^', gitHashPattern, r'$'].join());
 var multiGitHashPattern = [r'^$|^', gitHashPattern, r'(?:,', gitHashPattern, r')*$'].join();
 
 final RegExp multiGitHashRegex = RegExp(multiGitHashPattern);
+
+final RegExp candidateBranchRegex = RegExp(r'^flutter-(\d+)\.(\d+)-candidate\.(\d+)$');

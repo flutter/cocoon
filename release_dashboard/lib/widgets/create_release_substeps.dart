@@ -161,8 +161,7 @@ class InputAsSubstep extends StatelessWidget {
     late RegExp formRegexValidator;
     switch (index) {
       case 0:
-        // formRegexValidator = releaseCandidateBranchRegex;
-        formRegexValidator = RegExp(r'^flutter-(\d+)\.(\d+)-candidate\.(\d+)$');
+        formRegexValidator = candidateBranchRegex;
         break;
       case 2:
       case 3:

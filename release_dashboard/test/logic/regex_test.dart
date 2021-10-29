@@ -37,5 +37,18 @@ void main() {
       expect(multiGitHashRegex.hasMatch(invalidMultiHash2), false);
       expect(multiGitHashRegex.hasMatch(invalidMultiHash3), false);
     });
+
+    test('Candidate branch regex test', () {
+      String validCandidateBranch1 = 'flutter-2.7-candidate.3';
+      String validCandidateBranch2 = 'flutter-5.7-candidate.310';
+      String invalidCandidateBranch1 = 'flutter-5.c-candidate.3';
+      String invalidCandidateBranch2 = 'flutter-5.c-candidate.34';
+
+      expect(candidateBranchRegex.hasMatch(empty), false);
+      expect(candidateBranchRegex.hasMatch(validCandidateBranch1), true);
+      expect(candidateBranchRegex.hasMatch(validCandidateBranch2), true);
+      expect(candidateBranchRegex.hasMatch(invalidCandidateBranch1), false);
+      expect(candidateBranchRegex.hasMatch(invalidCandidateBranch2), false);
+    });
   });
 }
