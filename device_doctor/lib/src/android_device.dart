@@ -100,6 +100,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
       checks.add(await screenOnCheck(processManager: processManager));
+      checks.add(await screenSaverCheck(processManager: processManager));
       if (Platform.isMacOS) {
         checks.add(await userAutoLoginCheck(processManager: processManager));
       }
