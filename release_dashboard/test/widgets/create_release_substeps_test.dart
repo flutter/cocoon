@@ -95,21 +95,32 @@ void main() {
 
     final Finder continueButton = find.byKey(const Key('step1continue'));
     expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+    final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+    final CreateReleaseSubstepsState createReleaseSubstepsState =
+        createReleaseSubsteps.state as CreateReleaseSubstepsState;
+    final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+    expect(isEachInputValid, equals(<bool>[false, false, false, false, true, true, true, false]));
 
     await tester.enterText(find.byKey(const Key('Candidate Branch')), candidateBranch);
+    expect(isEachInputValid, equals(<bool>[true, false, false, false, true, true, true, false]));
 
     await tester.tap(find.byKey(const Key('Release Channel')));
     await tester.pumpAndSettle(); // finish the menu animation
     await tester.tap(find.text(releaseChannel).last);
+    await tester.pumpAndSettle();
+    expect(isEachInputValid, equals(<bool>[true, true, false, false, true, true, true, false]));
 
     await tester.enterText(find.byKey(const Key('Framework Mirror')), frameworkMirror);
+    expect(isEachInputValid, equals(<bool>[true, true, true, false, true, true, true, false]));
+
     await tester.enterText(find.byKey(const Key('Engine Mirror')), engineMirror);
-    expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+    expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, false]));
 
     await tester.tap(find.byKey(const Key('Increment')));
     await tester.pumpAndSettle(); // finish the menu animation
     await tester.tap(find.text(increment).last);
     await tester.pumpAndSettle();
+    expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
 
     // the fields below are optional, the continue button should be enabled even they are empty
     expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
@@ -118,9 +129,16 @@ void main() {
     await tester.enterText(find.byKey(const Key('Dart Revision (if necessary)')), dartRevision);
     await tester.pumpAndSettle();
     expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
+    expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
 
     await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')), '@@#@@@');
     await tester.pumpAndSettle();
     expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+    expect(isEachInputValid, equals(<bool>[true, true, true, true, false, true, true, true]));
+
+    await tester.enterText(find.byKey(const Key('Framework Mirror')), '@@#@@@');
+    await tester.pumpAndSettle();
+    expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+    expect(isEachInputValid, equals(<bool>[true, true, false, true, false, true, true, true]));
   });
 }

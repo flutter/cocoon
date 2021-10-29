@@ -38,6 +38,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   // Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
+  @visibleForTesting
   List<bool> isEachInputValid = List<bool>.filled(CreateReleaseSubsteps.substepTitles.length, false);
 
   @override
@@ -159,6 +160,7 @@ class InputAsSubstep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late RegExp formRegexValidator;
+    // assigns corresponding regex to each input
     switch (index) {
       case 0:
         formRegexValidator = candidateBranchRegex;
