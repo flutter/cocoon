@@ -62,7 +62,6 @@ void main() {
       );
     });
     testWidgets('Conductor_status displays nothing found when there is no state file', (WidgetTester tester) async {
-      const String testPath = './testPath';
       await tester.pumpWidget(
         StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -70,9 +69,7 @@ void main() {
               home: Material(
                 child: ListView(
                   children: const <Widget>[
-                    ConductorStatus(
-                      stateFilePath: testPath,
-                    ),
+                    ConductorStatus(),
                   ],
                 ),
               ),
@@ -81,7 +78,7 @@ void main() {
         ),
       );
 
-      expect(find.text('No persistent state file found at $testPath'), findsOneWidget);
+      expect(find.text('No persistent state file. Try starting a release.'), findsOneWidget);
       expect(find.text('Conductor version:'), findsNothing);
     });
 
@@ -95,7 +92,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: state,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),
@@ -135,7 +131,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: stateIncomplete,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),
@@ -163,7 +158,6 @@ void main() {
                   children: <Widget>[
                     ConductorStatus(
                       releaseState: state,
-                      stateFilePath: testPath,
                     ),
                   ],
                 ),

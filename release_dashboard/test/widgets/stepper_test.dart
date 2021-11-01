@@ -16,9 +16,7 @@ void main() {
             home: Material(
               child: Column(
                 children: const <Widget>[
-                  MainProgression(
-                    stateFilePath: './testPath',
-                  ),
+                  MainProgression(),
                 ],
               ),
             ),

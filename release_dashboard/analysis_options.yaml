@@ -3,3 +3,4 @@ linter:
     avoid_catches_without_on_clauses: true
     prefer_relative_imports: true
     unawaited_futures: true
+    ignore_todo: true

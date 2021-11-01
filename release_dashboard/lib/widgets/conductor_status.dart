@@ -13,11 +13,9 @@ class ConductorStatus extends StatefulWidget {
   const ConductorStatus({
     Key? key,
     this.releaseState,
-    required this.stateFilePath,
   }) : super(key: key);
 
   final pb.ConductorState? releaseState;
-  final String stateFilePath;
 
   @override
   State<ConductorStatus> createState() => ConductorStatusState();
@@ -90,7 +88,7 @@ class ConductorStatusState extends State<ConductorStatus> {
   Widget build(BuildContext context) {
     late final Map<String, Object> currentStatus;
     if (widget.releaseState == null) {
-      return SelectableText('No persistent state file found at ${widget.stateFilePath}');
+      return SelectableText('No persistent state file. Try starting a release.');
     } else {
       currentStatus = presentStateDesktop(widget.releaseState!);
     }
