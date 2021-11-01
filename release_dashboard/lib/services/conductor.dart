@@ -10,9 +10,9 @@ import 'package:file/file.dart';
 /// This exists as a common interface for user interface to rely on.
 abstract class ConductorService {
   /// Returns the current [pb.ConductorState] indicating the state of the current release.
-  /// 
-  /// Returns null when there is no active release, such as in the case when first initialized. 
-  pb.ConductorState? getState();
+  ///
+  /// Returns null when there is no active release, such as in the case when first initialized.
+  pb.ConductorState? get state;
 
   /// This is the first step of every release which creates the release branch.
   Future<void> createRelease({

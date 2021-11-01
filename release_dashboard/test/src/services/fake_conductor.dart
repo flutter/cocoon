@@ -22,7 +22,7 @@ class FakeConductor extends ConductorService {
       required File stateFile}) async {}
 
   @override
-  ConductorState? getState() {
+  ConductorState? get state {
     return ConductorState(
       conductorVersion: 'abcdef',
       releaseChannel: 'dev',

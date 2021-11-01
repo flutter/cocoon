@@ -33,7 +33,7 @@ class LocalConductorService extends ConductorService {
   static const String frameworkUpstream = 'https://github.com/flutter/flutter';
   static const String engineUpstream = 'https://github.com/flutter/engine';
 
-  pb.ConductorState? getState() {
+  pb.ConductorState? get state {
     if (stateFile.existsSync()) {
       return readStateFromFile(stateFile);
     }
@@ -63,6 +63,8 @@ class LocalConductorService extends ConductorService {
     final StartContext startContext = StartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
+      // TODO(yugue): Read conductor version. https://github.com/flutter/flutter/issues/92842
+      conductorVersion: 'local',
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,
@@ -70,7 +72,6 @@ class LocalConductorService extends ConductorService {
       frameworkCherrypickRevisions: frameworkCherrypickRevisions,
       frameworkMirror: frameworkMirror,
       frameworkUpstream: frameworkUpstream,
-      flutterRoot: flutterRoot,
       incrementLetter: incrementLetter,
       processManager: processManager,
       releaseChannel: releaseChannel,
