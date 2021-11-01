@@ -19,7 +19,7 @@ function install_salt() {
     sudo apt update
     sudo apt install salt-minion
   elif [[ "$(uname)" == 'Darwin' ]]; then
-    curl https://repo.saltstack.com/osx/salt-3002.1-py3-x86_64.pkg -o /tmp/salt.pkg
+    curl https://repo.saltstack.com/osx/salt-3002.1-py3-x86_64.pkg -Lo /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
   fi
 }
