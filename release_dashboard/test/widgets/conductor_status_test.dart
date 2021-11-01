@@ -12,7 +12,6 @@ void main() {
   group('conductor_status', () {
     late pb.ConductorState state;
 
-    const String testPath = './testPath';
     const String conductorVersion = 'v1.0';
     const String releaseChannel = 'beta';
     const String releaseVersion = '1.2.0-3.4.pre';
@@ -101,7 +100,7 @@ void main() {
         ),
       );
 
-      expect(find.text('No persistent state file found at $testPath'), findsNothing);
+      expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
@@ -140,7 +139,7 @@ void main() {
         ),
       );
 
-      expect(find.text('No persistent state file found at $testPath'), findsNothing);
+      expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
@@ -167,7 +166,7 @@ void main() {
         ),
       );
 
-      expect(find.text('No persistent state file found at $testPath'), findsNothing);
+      expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String repoElement in ConductorStatus.engineRepoElements) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
