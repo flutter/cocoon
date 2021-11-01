@@ -62,7 +62,7 @@ void main() {
     test('requested triggers all builds', () async {
       final CheckSuiteEvent checkSuiteEvent =
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output')))
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((_) async => generateCheckRun(1));
       final PullRequest pullRequest = generatePullRequest(id: 758);
       await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);

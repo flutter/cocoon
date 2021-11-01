@@ -19,6 +19,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
@@ -252,7 +253,8 @@ class Scheduler {
     );
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
-      pullRequest,
+      pullRequest.base!.repo!.slug(),
+      pullRequest.head!.sha!,
       'ci.yaml validation',
       output: const github.CheckRunOutput(
         title: '.ci.yaml validation',
@@ -361,11 +363,11 @@ class Scheduler {
   /// the Github UI.
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<bool> processCheckRun(github.PullRequest? pullRequest, CheckRunEvent checkRunEvent) async {
+  Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
         final String? builderName = checkRunEvent.checkRun!.name;
-        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(pullRequest!, checkRunEvent);
+        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
         log.fine('BuilderName: $builderName State: $success');
         return success;
     }

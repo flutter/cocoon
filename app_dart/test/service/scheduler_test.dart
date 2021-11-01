@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -90,7 +91,7 @@ void main() {
 
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output')))
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
       scheduler = Scheduler(
         cache: cache,
@@ -104,7 +105,7 @@ void main() {
         ),
       );
 
-      when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -266,17 +267,17 @@ void main() {
 
     group('process check run', () {
       test('rerequested triggers triggers a luci build', () async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
             'check_suite': <String, dynamic>{'id': 2}
           });
         });
-        final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
-        expect(await scheduler.processCheckRun(generatePullRequest(id: 1), checkRunEvent), true);
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
       });
     });
 
@@ -343,7 +344,8 @@ targets:
       test('triggers expected presubmit build checks', () async {
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, output: captureAnyNamed('output'))).captured,
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+              .captured,
           <dynamic>[
             'ci.yaml validation',
             const CheckRunOutput(

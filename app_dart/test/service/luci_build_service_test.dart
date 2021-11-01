@@ -67,7 +67,8 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        generatePullRequest(),
+        config.flutterSlug,
+        'shasha',
         'abcd',
       );
       expect(builds.first, macBuild);
@@ -105,7 +106,8 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        generatePullRequest(),
+        config.flutterSlug,
+        'shasha',
         'abcd',
       );
       expect(builds.first, linuxBuild);
@@ -183,7 +185,7 @@ void main() {
           ],
         );
       });
-      when(mockGithubChecksUtil.createCheckRun(any, pullRequest, any)).thenAnswer((_) async => generateCheckRun(1));
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
       final List<String> builderNames = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         builders: builders,
@@ -252,7 +254,7 @@ void main() {
           'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
     });
     test('Schedule builds throws when current list of builds is empty', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any)).thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',

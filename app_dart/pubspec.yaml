@@ -19,13 +19,13 @@ dependencies:
   file: ^6.1.2
   fixnum: ^1.0.0
   gcloud: ^0.8.4
-  github: ^8.2.1
+  github: ^8.2.3
   googleapis: ^6.0.0
   googleapis_auth: ^1.1.0
   gql: ^0.13.0
   graphql: ^5.0.0
   http: ^0.13.3
-  json_annotation: ^4.1.0
+  json_annotation: ^4.3.0
   mime: ^1.0.0
   neat_cache: ^2.0.1
   protobuf: ^2.0.0
@@ -34,7 +34,7 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.1.1
   fake_async: ^1.2.0
-  json_serializable: ^5.0.0
+  json_serializable: ^6.0.0
   mockito: ^5.0.14
   test: ^1.17.11
 

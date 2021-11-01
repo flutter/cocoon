@@ -89,12 +89,16 @@ class GithubChecksUtil {
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
 
-  /// Sends a request to github checks api to create a new [CheckRun] associated
-  /// with a task [name] and commit [headSha].
+  /// Sends a request to GitHub's Checks API to create a new [github.CheckRun].
+  ///
+  /// The newly created checkrun will be associated in [slug] to [sha] as [name].
+  ///
+  /// Optionally, will have [output] to give information to users.
   Future<github.CheckRun> createCheckRun(
     Config? cocoonConfig,
-    github.PullRequest pullRequest,
-    String? name, {
+    github.RepositorySlug slug,
+    String sha,
+    String name, {
     github.CheckRunOutput? output,
   }) async {
     const RetryOptions r = RetryOptions(
@@ -104,8 +108,9 @@ class GithubChecksUtil {
     return r.retry(() async {
       return _createCheckRun(
         cocoonConfig!,
-        pullRequest,
-        name!,
+        slug,
+        sha,
+        name,
         output: output,
       );
     }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
@@ -113,15 +118,16 @@ class GithubChecksUtil {
 
   Future<github.CheckRun> _createCheckRun(
     Config cocoonConfig,
-    github.PullRequest pullRequest,
+    github.RepositorySlug slug,
+    String sha,
     String name, {
     github.CheckRunOutput? output,
   }) async {
-    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(pullRequest: pullRequest);
+    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
-      pullRequest.base!.repo!.slug(),
+      slug,
       name: name,
-      headSha: pullRequest.head!.sha!,
+      headSha: sha,
       output: output,
     );
   }
