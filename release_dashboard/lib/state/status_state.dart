@@ -4,9 +4,6 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
-import 'package:platform/platform.dart';
-import 'package:file/file.dart';
-import 'package:file/local.dart';
 import 'package:conductor_core/proto.dart' as pb;
 
 /// Widget that saves the global state and provides a method to modify it.
@@ -24,29 +21,9 @@ class StatusState extends ChangeNotifier {
   }
 }
 
-/// Reads the current state filed saved in disk, and returns the state in a Map<K, V> format.
-///
-/// Supports passing a testState to mock the release state.
-Map<String, Object>? getCurrentState(pb.ConductorState? testState) {
-  final pb.ConductorState? state;
-
-  if (testState != null) {
-    state = testState;
-  } else {
-    const LocalFileSystem fs = LocalFileSystem();
-    const LocalPlatform platform = LocalPlatform();
-    final String stateFilePath = defaultStateFilePath(platform);
-    final File stateFile = fs.file(stateFilePath);
-    state = stateFile.existsSync() ? readStateFromFile(stateFile) : null;
-  }
-
-  if (state == null) return null;
-
-  return (stateToMap(state));
-}
-
 /// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
-Map<String, Object> stateToMap(pb.ConductorState state) {
+Map<String, Object>? stateToMap(pb.ConductorState? state) {
+  if (state == null) return null;
   final List<Map<String, String>> engineCherrypicks = <Map<String, String>>[];
   for (final pb.Cherrypick cherrypick in state.engine.cherrypicks) {
     engineCherrypicks.add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});

@@ -73,7 +73,7 @@ void main() {
     });
 
     testWidgets('Conductor_status displays correct status with a state file', (WidgetTester tester) async {
-      await tester.pumpWidget(MyApp(FakeConductor(), testState: state));
+      await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String headerElement in ConductorStatus.headerElements) {
@@ -96,7 +96,7 @@ void main() {
         releaseChannel: releaseChannel,
       );
 
-      await tester.pumpWidget(MyApp(FakeConductor(), testState: stateIncomplete));
+      await tester.pumpWidget(MyApp(FakeConductor(testState: stateIncomplete)));
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String headerElement in ConductorStatus.headerElements) {
@@ -107,7 +107,7 @@ void main() {
     });
 
     testWidgets('Repo Info section displays corresponding info in a dropdown fashion', (WidgetTester tester) async {
-      await tester.pumpWidget(MyApp(FakeConductor(), testState: state));
+      await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
       for (final String repoElement in ConductorStatus.engineRepoElements) {

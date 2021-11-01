@@ -10,7 +10,6 @@ import 'services/conductor.dart';
 import 'services/local_conductor.dart';
 import 'widgets/common/dialog_prompt.dart';
 import 'package:provider/provider.dart';
-import 'package:conductor_core/proto.dart' as pb;
 
 import 'state/status_state.dart';
 import 'widgets/progression.dart';
@@ -30,12 +29,10 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp(
     this.conductor, {
-    this.testState,
     Key? key,
   }) : super(key: key);
 
   final ConductorService conductor;
-  final pb.ConductorState? testState;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +54,7 @@ class MyApp extends StatelessWidget {
                 ),
                 const SizedBox(height: 10.0),
                 MainProgression(
-                  releaseState: testState ?? conductor.state,
+                  releaseState: conductor.state,
                 ),
               ],
             ),

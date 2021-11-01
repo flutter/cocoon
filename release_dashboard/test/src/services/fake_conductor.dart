@@ -8,6 +8,12 @@ import 'package:file/src/interface/file.dart';
 import 'package:file/src/interface/directory.dart';
 
 class FakeConductor extends ConductorService {
+  FakeConductor({
+    this.testState,
+  });
+
+  final ConductorState? testState;
+
   @override
   Future<void> createRelease(
       {required String candidateBranch,
@@ -23,10 +29,6 @@ class FakeConductor extends ConductorService {
 
   @override
   ConductorState? get state {
-    return ConductorState(
-      conductorVersion: 'abcdef',
-      releaseChannel: 'dev',
-      releaseVersion: 'flutter-2.7-candidate.4',
-    );
+    return testState;
   }
 }
