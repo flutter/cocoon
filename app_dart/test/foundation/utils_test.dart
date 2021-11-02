@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -51,6 +52,7 @@ void main() {
       test('returns branches', () async {
         branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
         final String branches = await githubFileContent(
+          RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
           retryOptions: noRetry,
@@ -71,6 +73,7 @@ void main() {
         final List<LogRecord> records = <LogRecord>[];
         log.onRecord.listen((LogRecord record) => records.add(record));
         final String branches = await githubFileContent(
+          RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
           httpClientProvider: () => branchHttpClient,
           retryOptions: const RetryOptions(
@@ -87,7 +90,60 @@ void main() {
         expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
       });
 
-      test('gives up after 3 tries', () async {
+      test('falls back to git on borg', () async {
+        branchHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter.googlesource.com/mirrors/cocoon/+/ba7fe03781762603a1cdc364f8f5de56a0fdbf5c/.ci.yaml?format=text') {
+            return http.Response(base64Encode(branchRegExp.codeUnits), HttpStatus.ok);
+          }
+          // Mock a GitHub outage
+          return http.Response('', HttpStatus.serviceUnavailable);
+        });
+        final List<LogRecord> records = <LogRecord>[];
+        log.onRecord.listen((LogRecord record) => records.add(record));
+        final String branches = await githubFileContent(
+          RepositorySlug('flutter', 'cocoon'),
+          '.ci.yaml',
+          httpClientProvider: () => branchHttpClient,
+          ref: 'ba7fe03781762603a1cdc364f8f5de56a0fdbf5c',
+          retryOptions: const RetryOptions(
+            maxAttempts: 1,
+            delayFactor: Duration.zero,
+            maxDelay: Duration.zero,
+          ),
+        );
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        branchList.removeWhere((String branch) => branch.isEmpty);
+        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+      });
+
+      test('falls back to git on borg when given sha', () async {
+        branchHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter.googlesource.com/mirrors/cocoon/+/refs/heads/master/.ci.yaml?format=text') {
+            return http.Response(base64Encode(branchRegExp.codeUnits), HttpStatus.ok);
+          }
+          // Mock a GitHub outage
+          return http.Response('', HttpStatus.serviceUnavailable);
+        });
+        final List<LogRecord> records = <LogRecord>[];
+        log.onRecord.listen((LogRecord record) => records.add(record));
+        final String branches = await githubFileContent(
+          RepositorySlug('flutter', 'cocoon'),
+          '.ci.yaml',
+          httpClientProvider: () => branchHttpClient,
+          retryOptions: const RetryOptions(
+            maxAttempts: 1,
+            delayFactor: Duration.zero,
+            maxDelay: Duration.zero,
+          ),
+        );
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        branchList.removeWhere((String branch) => branch.isEmpty);
+        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
+      });
+
+      test('gives up after 6 tries', () async {
         int retry = 0;
         branchHttpClient = MockClient((_) async {
           retry++;
@@ -97,6 +153,7 @@ void main() {
         log.onRecord.listen((LogRecord record) => records.add(record));
         await expectLater(
             githubFileContent(
+              RepositorySlug('flutter', 'cocoon'),
               'branches.txt',
               httpClientProvider: () => branchHttpClient,
               retryOptions: const RetryOptions(
@@ -106,7 +163,8 @@ void main() {
               ),
             ),
             throwsA(isA<HttpException>()));
-        expect(retry, 3);
+        // It will request from GitHub 3 times, fallback to GoB, then fail.
+        expect(retry, 6);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isNotEmpty);
       });
     });
