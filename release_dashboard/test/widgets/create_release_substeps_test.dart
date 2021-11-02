@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   /// Construct test inputs in a map that has the same names as [CreateReleaseSubsteps.substepTitles].
-  Map<String, String> testInputs = <String, String>{
+  Map<String, String> testInputsCorrect = <String, String>{
     CreateReleaseSubsteps.substepTitles[0]: 'flutter-1.2-candidate.3',
     CreateReleaseSubsteps.substepTitles[1]: 'dev',
     CreateReleaseSubsteps.substepTitles[2]: 'git@github.com:test/flutter.git',
@@ -46,7 +46,7 @@ void main() {
           isEachInputValid[parameterName] = false;
           await tester.tap(find.byKey(Key(parameterName)));
           await tester.pumpAndSettle();
-          await tester.tap(find.text(testInputs[parameterName]!).last);
+          await tester.tap(find.text(testInputsCorrect[parameterName]!).last);
           await tester.pumpAndSettle();
           isEachInputValid[parameterName] = true;
         });
@@ -77,7 +77,7 @@ void main() {
               createReleaseSubsteps.state as CreateReleaseSubstepsState;
           final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
-          await tester.enterText(find.byKey(Key(parameterName)), testInputs[parameterName]!);
+          await tester.enterText(find.byKey(Key(parameterName)), testInputsCorrect[parameterName]!);
           isEachInputValid[parameterName] = true;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           isEachInputValid[parameterName] = false;
@@ -113,7 +113,7 @@ void main() {
 
           isEachInputValid[parameterName] = false;
           // input field should trim any leading or trailing whitespaces
-          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputs[parameterName]!}  ');
+          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputsCorrect[parameterName]!}  ');
           isEachInputValid[parameterName] = true;
         });
       }
@@ -164,7 +164,7 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
+      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputsCorrect['Candidate Branch']!);
 
       final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
       final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -174,36 +174,36 @@ void main() {
       await tester.tap(find.byKey(const Key('Release Channel')));
       await tester.pumpAndSettle(); // finish the menu animation
       expect(createReleaseSubstepsState.releaseData['Release Channel'], equals(null));
-      await tester.tap(find.text(testInputs['Release Channel']!).last);
+      await tester.tap(find.text(testInputsCorrect['Release Channel']!).last);
       await tester.pumpAndSettle(); // finish the menu animation
 
-      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
-      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
-      await tester.enterText(
-          find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
+      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputsCorrect['Framework Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputsCorrect['Engine Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')),
+          testInputsCorrect['Engine Cherrypicks (if necessary)']!);
       await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
-          testInputs['Framework Cherrypicks (if necessary)']!);
+          testInputsCorrect['Framework Cherrypicks (if necessary)']!);
       await tester.enterText(
-          find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
+          find.byKey(const Key('Dart Revision (if necessary)')), testInputsCorrect['Dart Revision (if necessary)']!);
 
       /// Tests the Increment dropdown menu.
       await tester.tap(find.byKey(const Key('Increment')));
       await tester.pumpAndSettle(); // finish the menu animation
       expect(createReleaseSubstepsState.releaseData['Increment'], equals(null));
-      await tester.tap(find.text(testInputs['Increment']!).last);
+      await tester.tap(find.text(testInputsCorrect['Increment']!).last);
       await tester.pumpAndSettle(); // finish the menu animation
 
       expect(
           createReleaseSubstepsState.releaseData,
           equals(<String, String>{
-            'Candidate Branch': testInputs['Candidate Branch']!,
-            'Release Channel': testInputs['Release Channel']!,
-            'Framework Mirror': testInputs['Framework Mirror']!,
-            'Engine Mirror': testInputs['Engine Mirror']!,
-            'Engine Cherrypicks (if necessary)': testInputs['Engine Cherrypicks (if necessary)']!,
-            'Framework Cherrypicks (if necessary)': testInputs['Framework Cherrypicks (if necessary)']!,
-            'Dart Revision (if necessary)': testInputs['Dart Revision (if necessary)']!,
-            'Increment': testInputs['Increment']!,
+            'Candidate Branch': testInputsCorrect['Candidate Branch']!,
+            'Release Channel': testInputsCorrect['Release Channel']!,
+            'Framework Mirror': testInputsCorrect['Framework Mirror']!,
+            'Engine Mirror': testInputsCorrect['Engine Mirror']!,
+            'Engine Cherrypicks (if necessary)': testInputsCorrect['Engine Cherrypicks (if necessary)']!,
+            'Framework Cherrypicks (if necessary)': testInputsCorrect['Framework Cherrypicks (if necessary)']!,
+            'Dart Revision (if necessary)': testInputsCorrect['Dart Revision (if necessary)']!,
+            'Increment': testInputsCorrect['Increment']!,
           }));
     });
 
@@ -244,22 +244,22 @@ void main() {
 
       expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
 
-      // provide all the correct parameter inputs
-      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
+      // provide all correct parameter inputs
+      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputsCorrect['Candidate Branch']!);
       await tester.tap(find.byKey(const Key('Release Channel')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(testInputs['Release Channel']!).last);
-      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
-      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
-      await tester.enterText(
-          find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
+      await tester.tap(find.text(testInputsCorrect['Release Channel']!).last);
+      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputsCorrect['Framework Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputsCorrect['Engine Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')),
+          testInputsCorrect['Engine Cherrypicks (if necessary)']!);
       await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
-          testInputs['Framework Cherrypicks (if necessary)']!);
+          testInputsCorrect['Framework Cherrypicks (if necessary)']!);
       await tester.enterText(
-          find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
+          find.byKey(const Key('Dart Revision (if necessary)')), testInputsCorrect['Dart Revision (if necessary)']!);
       await tester.tap(find.byKey(const Key('Increment')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(testInputs['Increment']!).last);
+      await tester.tap(find.text(testInputsCorrect['Increment']!).last);
 
       await tester.pumpAndSettle();
       // continue button is enabled, and all the parameters are validated
