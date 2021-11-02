@@ -210,6 +210,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final Set<String?> changeRequestAuthors = <String?>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
+            pullRequest['authorAssociation'] as String,
             (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
             changeRequestAuthors,
           );
@@ -353,8 +354,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
 /// Parses the graphQL response reviews.
 ///
-/// Checks that the authorAssociation is of a MEMBER or OWNER (ignore reviews
-/// from people who don't have write access to the repo).
+/// If author is a MEMBER or OWNER then it only requires a single review from
+/// another MEMBER or OWNER. If the author is not a MEMBER or OWNER then it
+/// requires two reviews from MEMBERs or OWNERS.
 ///
 /// If there are any CHANGES_REQUESTED reviews, checks if the same author has
 /// subsequently APPROVED.  From testing, dismissing a review means it won't
@@ -371,14 +373,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
+  String authorAssociation,
   List<Map<String, dynamic>> reviewNodes,
   Set<String?> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors.isEmpty);
-  bool hasAtLeastOneApprove = false;
+  final Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
+  final bool authorIsOwnerOrMember = allowedReviewers.contains(authorAssociation);
+  final Set<String?> approvers = <String?>{};
   for (Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
+    if (!allowedReviewers.contains(review['authorAssociation'])) {
       continue;
     }
 
@@ -386,14 +391,14 @@ bool _checkApproval(
     final String? state = review['state'] as String?;
     final String? authorLogin = review['author']['login'] as String?;
     if (state == 'APPROVED') {
-      hasAtLeastOneApprove = true;
+      approvers.add(authorLogin);
       changeRequestAuthors.remove(authorLogin);
     } else if (state == 'CHANGES_REQUESTED') {
       changeRequestAuthors.add(authorLogin);
     }
   }
-
-  return hasAtLeastOneApprove && changeRequestAuthors.isEmpty;
+  final bool approved = (approvers.length > 1) || (authorIsOwnerOrMember && approvers.isNotEmpty);
+  return approved && changeRequestAuthors.isEmpty;
 }
 
 /// A model class describing the state of a pull request that has the "waiting
