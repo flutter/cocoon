@@ -347,7 +347,9 @@ class Scheduler {
   Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
-      repository: pullRequest.base!.repo!.fullName, sha: pullRequest.head!.sha,);
+      repository: pullRequest.base!.repo!.fullName,
+      sha: pullRequest.head!.sha,
+    );
     final CiYaml ciYaml = await getCiYaml(commit);
     final Iterable<Target> presubmitTargets =
         ciYaml.presubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
