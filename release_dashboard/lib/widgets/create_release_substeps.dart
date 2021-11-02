@@ -184,6 +184,7 @@ class InputAsSubstep extends StatelessWidget {
         hintText: hintText,
       ),
       onChanged: (String data) {
+        data = data.trim();
         setReleaseData(CreateReleaseSubsteps.substepTitles[index], data);
         if (!formRegexValidator.hasMatch(data)) {
           changeIsInputValid(index, false);
@@ -192,7 +193,7 @@ class InputAsSubstep extends StatelessWidget {
         }
       },
       validator: (String? value) {
-        if (!formRegexValidator.hasMatch(value ?? '')) {
+        if (!formRegexValidator.hasMatch(value == null ? '' : value.trim())) {
           return '${CreateReleaseSubsteps.substepTitles[index].replaceAll(' (if necessary)', '')} not in a valid format!';
         } else {
           return null;

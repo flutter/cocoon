@@ -133,6 +133,9 @@ void main() {
           final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
           isEachInputValid[i] = true;
+          // input field should trim any leading or trailing whitespaces
+          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputs[parameterName]!}  ');
+          isEachInputValid[i] = true;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           isEachInputValid[i] = false;
         });
