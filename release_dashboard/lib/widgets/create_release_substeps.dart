@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/conductor_core.dart';
-import '../logic/git_regex.dart';
+import '../logic/git.dart';
 import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
@@ -156,25 +155,11 @@ class InputAsSubstep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late RegExp formRegexValidator;
-    // assigns corresponding regex to each input
-    switch (index) {
-      case 0:
-        formRegexValidator = candidateBranchRegex;
-        break;
-      case 2:
-      case 3:
-        formRegexValidator = githubRemotePattern;
-        break;
-      case 4:
-      case 5:
-        formRegexValidator = multiGitHashRegex;
-        break;
-      case 6:
-        formRegexValidator = gitHashRegex;
-        break;
-      default:
-        break;
-    }
+    late String validatorErrorMsg;
+
+    Map<String, Object> RegexAndErrorMsg = git(index: index).getRegexAndErrorMsg();
+    formRegexValidator = RegexAndErrorMsg['regex'] as RegExp;
+    validatorErrorMsg = RegexAndErrorMsg['errorMsg'] as String;
 
     return TextFormField(
       key: Key(CreateReleaseSubsteps.substepTitles[index]),
@@ -194,7 +179,7 @@ class InputAsSubstep extends StatelessWidget {
       },
       validator: (String? value) {
         if (!formRegexValidator.hasMatch(value == null ? '' : value.trim())) {
-          return '${CreateReleaseSubsteps.substepTitles[index].replaceAll(' (if necessary)', '')} not in a valid format!';
+          return validatorErrorMsg;
         } else {
           return null;
         }

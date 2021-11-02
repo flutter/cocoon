@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_ui/logic/git.dart';
 import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,65 +20,7 @@ void main() {
     CreateReleaseSubsteps.substepTitles[7]: 'y',
   };
 
-  testWidgets('Widget should save all parameters correctly', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Material(
-          child: ListView(
-            children: <Widget>[
-              CreateReleaseSubsteps(
-                nextStep: () {},
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
-
-    final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
-    final CreateReleaseSubstepsState createReleaseSubstepsState =
-        createReleaseSubsteps.state as CreateReleaseSubstepsState;
-
-    /// Tests the Release Channel dropdown menu.
-    await tester.tap(find.byKey(const Key('Release Channel')));
-    await tester.pumpAndSettle(); // finish the menu animation
-    expect(createReleaseSubstepsState.releaseData['Release Channel'], equals(null));
-    await tester.tap(find.text(testInputs['Release Channel']!).last);
-    await tester.pumpAndSettle(); // finish the menu animation
-
-    await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
-    await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
-    await tester.enterText(
-        find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
-    await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
-        testInputs['Framework Cherrypicks (if necessary)']!);
-    await tester.enterText(
-        find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
-
-    /// Tests the Increment dropdown menu.
-    await tester.tap(find.byKey(const Key('Increment')));
-    await tester.pumpAndSettle(); // finish the menu animation
-    expect(createReleaseSubstepsState.releaseData['Increment'], equals(null));
-    await tester.tap(find.text(testInputs['Increment']!).last);
-    await tester.pumpAndSettle(); // finish the menu animation
-
-    expect(
-        createReleaseSubstepsState.releaseData,
-        equals(<String, String>{
-          'Candidate Branch': testInputs['Candidate Branch']!,
-          'Release Channel': testInputs['Release Channel']!,
-          'Framework Mirror': testInputs['Framework Mirror']!,
-          'Engine Mirror': testInputs['Engine Mirror']!,
-          'Engine Cherrypicks (if necessary)': testInputs['Engine Cherrypicks (if necessary)']!,
-          'Framework Cherrypicks (if necessary)': testInputs['Framework Cherrypicks (if necessary)']!,
-          'Dart Revision (if necessary)': testInputs['Dart Revision (if necessary)']!,
-          'Increment': testInputs['Increment']!,
-        }));
-  });
-
-  group("Test if every parameter's validator catches bad inputs and allows valid inputs to pass", () {
+  group('Dropdown validator', () {
     for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
       final String parameterName = CreateReleaseSubsteps.substepTitles[i];
 
@@ -109,7 +52,15 @@ void main() {
           await tester.pumpAndSettle();
           isEachInputValid[i] = true;
         });
-      } else {
+      }
+    }
+  });
+
+  group("Input textfield validator", () {
+    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
+      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
+
+      if (parameterName != 'Release Channel' && parameterName != 'Increment') {
         testWidgets('${parameterName} input test', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
@@ -125,16 +76,12 @@ void main() {
             ),
           );
 
-          await tester.enterText(find.byKey(Key(parameterName)), testInputs[parameterName]!);
-
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
               createReleaseSubsteps.state as CreateReleaseSubstepsState;
           final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
-          isEachInputValid[i] = true;
-          // input field should trim any leading or trailing whitespaces
-          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputs[parameterName]!}  ');
+          await tester.enterText(find.byKey(Key(parameterName)), testInputs[parameterName]!);
           isEachInputValid[i] = true;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           isEachInputValid[i] = false;
@@ -143,52 +90,176 @@ void main() {
     }
   });
 
-  testWidgets('Continue button should be enabled when all the parameters are entered correctly',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Material(
-          child: ListView(
-            children: <Widget>[
-              CreateReleaseSubsteps(
-                nextStep: () {},
+  group('Input textfields whitespaces', () {
+    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
+      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
+      // the test does not apply to dropdowns
+      if (parameterName != 'Release Channel' && parameterName != 'Increment') {
+        testWidgets('${parameterName} should trim leading and trailing whitespaces before validating',
+            (WidgetTester tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Material(
+                child: ListView(
+                  children: <Widget>[
+                    CreateReleaseSubsteps(
+                      nextStep: () {},
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
+          );
+
+          final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+          final CreateReleaseSubstepsState createReleaseSubstepsState =
+              createReleaseSubsteps.state as CreateReleaseSubstepsState;
+          final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+
+          isEachInputValid[i] = false;
+          // input field should trim any leading or trailing whitespaces
+          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputs[parameterName]!}  ');
+          isEachInputValid[i] = true;
+        });
+      }
+    }
+  });
+
+  group('Input textfields validator error messages', () {
+    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
+      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
+      // the test does not apply to dropdowns
+      if (parameterName != 'Release Channel' && parameterName != 'Increment') {
+        testWidgets('${parameterName} validator error message displays correctly', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Material(
+                child: ListView(
+                  children: <Widget>[
+                    CreateReleaseSubsteps(
+                      nextStep: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          final String validatorErrorMsg = git(index: i).getRegexAndErrorMsg()['errorMsg'] as String;
+          await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
+          await tester.pumpAndSettle();
+          expect(find.text(validatorErrorMsg), findsOneWidget);
+        });
+      }
+    }
+  });
+
+  group('Widget integration tests', () {
+    testWidgets('Widget should save all parameters correctly', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
-    final CreateReleaseSubstepsState createReleaseSubstepsState =
-        createReleaseSubsteps.state as CreateReleaseSubstepsState;
-    final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
-    final Finder continueButton = find.byKey(const Key('step1continue'));
-    // default isEachInputValid state values, optional fields are valid from the start
-    expect(isEachInputValid, equals(<bool>[false, false, false, false, true, true, true, false]));
+      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
 
-    expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+      final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+      final CreateReleaseSubstepsState createReleaseSubstepsState =
+          createReleaseSubsteps.state as CreateReleaseSubstepsState;
 
-    // provide all the correct parameter inputs
-    await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
-    await tester.tap(find.byKey(const Key('Release Channel')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(testInputs['Release Channel']!).last);
-    await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
-    await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
-    await tester.enterText(
-        find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
-    await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
-        testInputs['Framework Cherrypicks (if necessary)']!);
-    await tester.enterText(
-        find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
-    await tester.tap(find.byKey(const Key('Increment')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(testInputs['Increment']!).last);
+      /// Tests the Release Channel dropdown menu.
+      await tester.tap(find.byKey(const Key('Release Channel')));
+      await tester.pumpAndSettle(); // finish the menu animation
+      expect(createReleaseSubstepsState.releaseData['Release Channel'], equals(null));
+      await tester.tap(find.text(testInputs['Release Channel']!).last);
+      await tester.pumpAndSettle(); // finish the menu animation
 
-    await tester.pumpAndSettle();
-    // continue button is enabled, and all the parameters are validated
-    expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
-    expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
+      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
+      await tester.enterText(
+          find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
+      await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
+          testInputs['Framework Cherrypicks (if necessary)']!);
+      await tester.enterText(
+          find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
+
+      /// Tests the Increment dropdown menu.
+      await tester.tap(find.byKey(const Key('Increment')));
+      await tester.pumpAndSettle(); // finish the menu animation
+      expect(createReleaseSubstepsState.releaseData['Increment'], equals(null));
+      await tester.tap(find.text(testInputs['Increment']!).last);
+      await tester.pumpAndSettle(); // finish the menu animation
+
+      expect(
+          createReleaseSubstepsState.releaseData,
+          equals(<String, String>{
+            'Candidate Branch': testInputs['Candidate Branch']!,
+            'Release Channel': testInputs['Release Channel']!,
+            'Framework Mirror': testInputs['Framework Mirror']!,
+            'Engine Mirror': testInputs['Engine Mirror']!,
+            'Engine Cherrypicks (if necessary)': testInputs['Engine Cherrypicks (if necessary)']!,
+            'Framework Cherrypicks (if necessary)': testInputs['Framework Cherrypicks (if necessary)']!,
+            'Dart Revision (if necessary)': testInputs['Dart Revision (if necessary)']!,
+            'Increment': testInputs['Increment']!,
+          }));
+    });
+
+    testWidgets('Continue button should be enabled when all the parameters are entered correctly',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+      final CreateReleaseSubstepsState createReleaseSubstepsState =
+          createReleaseSubsteps.state as CreateReleaseSubstepsState;
+      final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+      final Finder continueButton = find.byKey(const Key('step1continue'));
+      // default isEachInputValid state values, optional fields are valid from the start
+      expect(isEachInputValid, equals(<bool>[false, false, false, false, true, true, true, false]));
+
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+
+      // provide all the correct parameter inputs
+      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputs['Candidate Branch']!);
+      await tester.tap(find.byKey(const Key('Release Channel')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(testInputs['Release Channel']!).last);
+      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputs['Framework Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputs['Engine Mirror']!);
+      await tester.enterText(
+          find.byKey(const Key('Engine Cherrypicks (if necessary)')), testInputs['Engine Cherrypicks (if necessary)']!);
+      await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
+          testInputs['Framework Cherrypicks (if necessary)']!);
+      await tester.enterText(
+          find.byKey(const Key('Dart Revision (if necessary)')), testInputs['Dart Revision (if necessary)']!);
+      await tester.tap(find.byKey(const Key('Increment')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(testInputs['Increment']!).last);
+
+      await tester.pumpAndSettle();
+      // continue button is enabled, and all the parameters are validated
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
+      expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
+    });
   });
 }
