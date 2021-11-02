@@ -17,9 +17,15 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+<<<<<<< HEAD
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
+||||||| parent of bb1d5180 (ci yaml wrapper models)
+=======
+import '../model/ci_yaml/ci_yaml.dart';
+import '../model/ci_yaml/target.dart';
+>>>>>>> bb1d5180 (ci yaml wrapper models)
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
