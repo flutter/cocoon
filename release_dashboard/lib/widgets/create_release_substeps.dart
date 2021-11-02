@@ -60,7 +60,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
-  // When isEachInputValid[0] is true, the first parameter is valid. If it false, it is unvalid.
+  // When isEachInputValid[0] is true, the first parameter is valid. If it false, it is invalid.
   void changeIsEachInputValid(int index, bool isValid) {
     setState(() {
       isEachInputValid[index] = isValid;
@@ -126,11 +126,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
         Center(
           child: ElevatedButton(
             key: const Key('step1continue'),
-            onPressed: isEachInputValid.contains(false) // Continue button is disabled if any of the inputs are invalid
-                ? null
-                : () {
-                    widget.nextStep();
-                  },
+            onPressed: isEachInputValid.contains(false) ? null : widget.nextStep,
             child: const Text('Continue'),
           ),
         ),
@@ -182,7 +178,7 @@ class InputAsSubstep extends StatelessWidget {
 
     return TextFormField(
       key: Key(CreateReleaseSubsteps.substepTitles[index]),
-      autovalidateMode: AutovalidateMode.always,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         labelText: CreateReleaseSubsteps.substepTitles[index],
         hintText: hintText,
