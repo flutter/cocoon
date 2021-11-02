@@ -21,9 +21,7 @@ void main() {
   };
 
   group('Dropdown validator', () {
-    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
-      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
-
+    for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       if (parameterName == 'Release Channel' || parameterName == 'Increment') {
         testWidgets('${parameterName} dropdown test', (WidgetTester tester) async {
           await tester.pumpWidget(
@@ -43,23 +41,21 @@ void main() {
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
               createReleaseSubsteps.state as CreateReleaseSubstepsState;
-          final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+          final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
-          isEachInputValid[i] = false;
+          isEachInputValid[parameterName] = false;
           await tester.tap(find.byKey(Key(parameterName)));
           await tester.pumpAndSettle();
           await tester.tap(find.text(testInputs[parameterName]!).last);
           await tester.pumpAndSettle();
-          isEachInputValid[i] = true;
+          isEachInputValid[parameterName] = true;
         });
       }
     }
   });
 
   group("Input textfield validator", () {
-    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
-      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
-
+    for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       if (parameterName != 'Release Channel' && parameterName != 'Increment') {
         testWidgets('${parameterName} input test', (WidgetTester tester) async {
           await tester.pumpWidget(
@@ -79,20 +75,19 @@ void main() {
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
               createReleaseSubsteps.state as CreateReleaseSubstepsState;
-          final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+          final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
           await tester.enterText(find.byKey(Key(parameterName)), testInputs[parameterName]!);
-          isEachInputValid[i] = true;
+          isEachInputValid[parameterName] = true;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
-          isEachInputValid[i] = false;
+          isEachInputValid[parameterName] = false;
         });
       }
     }
   });
 
   group('Input textfields whitespaces', () {
-    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
-      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
+    for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       // the test does not apply to dropdowns
       if (parameterName != 'Release Channel' && parameterName != 'Increment') {
         testWidgets('${parameterName} should trim leading and trailing whitespaces before validating',
@@ -114,20 +109,19 @@ void main() {
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
               createReleaseSubsteps.state as CreateReleaseSubstepsState;
-          final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+          final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
-          isEachInputValid[i] = false;
+          isEachInputValid[parameterName] = false;
           // input field should trim any leading or trailing whitespaces
           await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputs[parameterName]!}  ');
-          isEachInputValid[i] = true;
+          isEachInputValid[parameterName] = true;
         });
       }
     }
   });
 
   group('Input textfields validator error messages', () {
-    for (int i = 0; i < CreateReleaseSubsteps.substepTitles.length; i++) {
-      final String parameterName = CreateReleaseSubsteps.substepTitles[i];
+    for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       // the test does not apply to dropdowns
       if (parameterName != 'Release Channel' && parameterName != 'Increment') {
         testWidgets('${parameterName} validator error message displays correctly', (WidgetTester tester) async {
@@ -145,7 +139,7 @@ void main() {
             ),
           );
 
-          final String validatorErrorMsg = git(index: i).getRegexAndErrorMsg()['errorMsg'] as String;
+          final String validatorErrorMsg = git(name: parameterName).getRegexAndErrorMsg()['errorMsg'] as String;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           await tester.pumpAndSettle();
           expect(find.text(validatorErrorMsg), findsOneWidget);
@@ -232,10 +226,21 @@ void main() {
       final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
       final CreateReleaseSubstepsState createReleaseSubstepsState =
           createReleaseSubsteps.state as CreateReleaseSubstepsState;
-      final List<bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
       final Finder continueButton = find.byKey(const Key('step1continue'));
       // default isEachInputValid state values, optional fields are valid from the start
-      expect(isEachInputValid, equals(<bool>[false, false, false, false, true, true, true, false]));
+      expect(
+        createReleaseSubstepsState.isEachInputValid,
+        equals(<String, bool>{
+          'Candidate Branch': false,
+          'Release Channel': false,
+          'Framework Mirror': false,
+          'Engine Mirror': false,
+          'Engine Cherrypicks (if necessary)': true,
+          'Framework Cherrypicks (if necessary)': true,
+          'Dart Revision (if necessary)': true,
+          'Increment': false,
+        }),
+      );
 
       expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
 
@@ -259,7 +264,19 @@ void main() {
       await tester.pumpAndSettle();
       // continue button is enabled, and all the parameters are validated
       expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
-      expect(isEachInputValid, equals(<bool>[true, true, true, true, true, true, true, true]));
+      expect(
+        createReleaseSubstepsState.isEachInputValid,
+        equals(<String, bool>{
+          'Candidate Branch': true,
+          'Release Channel': true,
+          'Framework Mirror': true,
+          'Engine Mirror': true,
+          'Engine Cherrypicks (if necessary)': true,
+          'Framework Cherrypicks (if necessary)': true,
+          'Dart Revision (if necessary)': true,
+          'Increment': true,
+        }),
+      );
     });
   });
 }

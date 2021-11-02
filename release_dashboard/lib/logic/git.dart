@@ -25,22 +25,22 @@ final String githubRemoteErrorMsg = "Must be a valid Github remote string, e.g. 
 
 /// Class that accepts only the index parameter as an identifier to the type of input.
 class git {
-  git({required this.index});
+  git({required this.name});
 
-  final int index;
+  final String name;
 
   /// Return the regex and the error message if the regex fails in a map for each type of input.
   Map<String, Object> getRegexAndErrorMsg() {
-    switch (index) {
-      case 0:
+    switch (name) {
+      case 'Candidate Branch':
         return <String, Object>{'regex': candidateBranchRegex, 'errorMsg': candidateBranchErrorMsg};
-      case 2:
-      case 3:
+      case 'Framework Mirror':
+      case 'Engine Mirror':
         return <String, Object>{'regex': githubRemotePattern, 'errorMsg': githubRemoteErrorMsg};
-      case 4:
-      case 5:
+      case 'Engine Cherrypicks (if necessary)':
+      case 'Framework Cherrypicks (if necessary)':
         return <String, Object>{'regex': multiGitHashRegex, 'errorMsg': multiGitHashErrorMsg};
-      case 6:
+      case 'Dart Revision (if necessary)':
         return <String, Object>{'regex': gitHashRegex, 'errorMsg': gitHashErrorMsg};
       default:
         return <String, Object>{};
