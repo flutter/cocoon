@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/github_build_status_update.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
@@ -83,9 +82,8 @@ void main() {
       );
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciService = MockLuciService();
-      scheduler = FakeScheduler(config: config, schedulerConfig: exampleConfig);
-      builders = await scheduler.getPostSubmitBuilders(
-          Commit(repository: config.engineSlug.fullName, sha: 'master'), exampleConfig);
+      scheduler = FakeScheduler(config: config, ciYaml: exampleConfig);
+      builders = await scheduler.getPostSubmitBuilders(exampleConfig);
       handler = PushBuildStatusToGithub(
         config,
         FakeAuthenticationProvider(clientContext: clientContext),

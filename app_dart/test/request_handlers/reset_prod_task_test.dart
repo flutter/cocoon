@@ -48,7 +48,7 @@ void main() {
         mockLuciBuildService,
         FakeScheduler(
           config: config,
-          schedulerConfig: exampleConfig,
+          ciYaml: exampleConfig,
         ),
       );
       tester.requestData = <String, dynamic>{

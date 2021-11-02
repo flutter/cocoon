@@ -13,9 +13,9 @@ import '../../cocoon_service.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
+import '../model/ci_yaml/ci_yaml.dart';
 import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
-import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
@@ -86,8 +86,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       commitSha = commit.sha!;
       builder = task.builderName;
       if (builder == null) {
-        final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(commit);
-        final List<LuciBuilder> builders = await scheduler.getPostSubmitBuilders(commit, schedulerConfig);
+        final CiYaml ciYaml = await scheduler.getCiYaml(commit);
+        final List<LuciBuilder> builders = await scheduler.getPostSubmitBuilders(ciYaml);
         builder = builders
             .where((LuciBuilder builder) => builder.taskName == task!.name)
             .map((LuciBuilder builder) => builder.name)

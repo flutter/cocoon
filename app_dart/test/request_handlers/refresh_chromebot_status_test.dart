@@ -4,7 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/proto/protos.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -46,7 +46,7 @@ void main() {
       branchHttpClient = MockClient((_) async => http.Response('', 200));
       scheduler = FakeScheduler(
         config: config,
-        schedulerConfig: exampleConfig,
+        ciYaml: exampleConfig,
       );
       handler = RefreshChromebotStatus(
         config,
@@ -64,7 +64,7 @@ void main() {
         branch: config.defaultBranch,
         repository: config.flutterSlug.fullName,
       );
-      builders = await scheduler.getPostSubmitBuilders(commit, exampleConfig);
+      builders = await scheduler.getPostSubmitBuilders(exampleConfig);
     });
 
     group('without builder rerun', () {
@@ -322,10 +322,9 @@ void main() {
             buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        scheduler.schedulerConfig = exampleConfig;
-        final List<Target> targets = scheduler.getPostSubmitTargets(commit, await scheduler.getSchedulerConfig(commit));
+        scheduler.ciYaml = exampleConfig;
         final List<LuciBuilder> builders =
-            targets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+            scheduler.ciYaml!.postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),

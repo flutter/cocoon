@@ -17,8 +17,10 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/ci_yaml/ci_yaml.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/luci/buildbucket.dart';
-import '../model/proto/internal/scheduler.pb.dart';
+import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -166,102 +168,56 @@ class Scheduler {
 
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
-    final List<Task> tasks = <Task>[];
-    final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
-    final List<Target> initialTargets = _getInitialPostSubmitTargets(commit, schedulerConfig);
-    final List<Task> ciYamlTasks = targetsToTask(commit, initialTargets).toList();
-    tasks.addAll(ciYamlTasks);
-
-    return tasks;
+    final CiYaml ciYaml = await getCiYaml(commit);
+    final List<Target> initialTargets = _getInitialPostSubmitTargets(commit, ciYaml);
+    return targetsToTask(commit, initialTargets).toList();
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<SchedulerConfig> getSchedulerConfig(
-    Commit commit, {
+  Future<CiYaml> getCiYaml(Commit commit, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final String ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
-    final Uint8List configBytes = (await cache.getOrCreate(
+    final Uint8List ciYamlBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
-      createFn: () => _downloadSchedulerConfig(
+      createFn: () => _downloadCiYaml(
         commit,
+        ciPath,
         retryOptions: retryOptions,
       ),
       ttl: const Duration(hours: 1),
     ))!;
-    return SchedulerConfig.fromBuffer(configBytes);
+    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
+    return CiYaml(
+      config: schedulerConfig,
+      slug: commit.slug,
+      branch: commit.branch!,
+    );
   }
 
   /// Get all postsubmit targets that should be immediately started for [Commit].
-  List<Target> _getInitialPostSubmitTargets(Commit commit, SchedulerConfig config) {
-    final List<Target> postsubmitTargets = getPostSubmitTargets(commit, config);
-
+  List<Target> _getInitialPostSubmitTargets(Commit commit, CiYaml ciYaml) {
     // Filter targets to only those without dependencies.
     final List<Target> initialTargets =
-        postsubmitTargets.where((Target target) => target.dependencies.isEmpty).toList();
+        ciYaml.postsubmitTargets.where((Target target) => target.value.dependencies.isEmpty).toList();
     return initialTargets;
   }
 
-  /// Get all targets run on postsubmit for [Commit].
-  ///
-  /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
-  /// and that do not have any dependencies.
-  List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
-    // Filter targets to only those run in postsubmit.
-    final List<Target> postsubmitTargets = config.targets.where((Target target) => target.postsubmit).toList();
-    return _filterEnabledTargets(commit, config, postsubmitTargets);
-  }
-
-  /// Get all [LuciBuilder] run on postsubmit for [Commit].
-  Future<List<LuciBuilder>> getPostSubmitBuilders(Commit commit, SchedulerConfig schedulerConfig) async {
-    final List<Target> postsubmitLuciTargets = schedulerConfig.targets
-        .where((Target target) => target.postsubmit && target.scheduler == SchedulerSystem.luci)
-        .toList();
-    final List<Target> filteredTargets = _filterEnabledTargets(commit, schedulerConfig, postsubmitLuciTargets);
+  /// Get all [LuciBuilder] run for [ciYaml].
+  Future<List<LuciBuilder>> getPostSubmitBuilders(CiYaml ciYaml) async {
+    final List<Target> postsubmitLuciTargets =
+        ciYaml.postsubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci).toList();
     final List<LuciBuilder> builders =
-        filteredTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+        postsubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
     return builders;
   }
 
-  /// Get all targets run on presubmit for [Commit].
-  ///
-  /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
-  /// and that do not have any dependencies.
-  List<Target> getPreSubmitTargets(Commit commit, SchedulerConfig config) {
-    // Filter targets to only those run in presubmit.
-    final Iterable<Target> presubmitTargets =
-        config.targets.where((Target target) => target.presubmit && !target.bringup);
-
-    return _filterEnabledTargets(commit, config, presubmitTargets.toList());
-  }
-
-  /// Filter [targets] to only those that are expected to run for [Commit] with [SchedulerConfig].
-  ///
-  /// A [Target] is expected to run if:
-  ///   1. [Target.enabledBranches] exists and matches [Commit].
-  ///   2. Otherwise, [SchedulerConfig.enabledBranches] matches [Commit].
-  List<Target> _filterEnabledTargets(Commit commit, SchedulerConfig config, List<Target> targets) {
-    final List<Target> filteredTargets = <Target>[];
-
-    // 1. Add targets with local definition
-    final Iterable<Target> overrideBranchTargets = targets.where((Target target) => target.enabledBranches.isNotEmpty);
-    final Iterable<Target> enabledTargets =
-        overrideBranchTargets.where((Target target) => target.enabledBranches.contains(commit.branch));
-    filteredTargets.addAll(enabledTargets);
-
-    // 2. Add targets with global definition
-    if (config.enabledBranches.contains(commit.branch)) {
-      final Iterable<Target> defaultBranchTargets = targets.where((Target target) => target.enabledBranches.isEmpty);
-      filteredTargets.addAll(defaultBranchTargets);
-    }
-
-    return filteredTargets;
-  }
-
   /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.
-  Future<Uint8List> _downloadSchedulerConfig(
-    Commit commit, {
+  ///
+  /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
+  /// that commit does not support the scheduler config file.
+  Future<Uint8List> _downloadCiYaml(Commit commit, String ciPath, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final String configContent = await githubFileContent(
@@ -391,17 +347,12 @@ class Scheduler {
   Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
-      repository: pullRequest.base!.repo!.fullName,
-      sha: pullRequest.head!.sha,
-    );
-    final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
-    if (!schedulerConfig.enabledBranches.contains(commit.branch)) {
-      throw Exception('${commit.branch} is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
-    }
+      repository: pullRequest.base!.repo!.fullName, sha: pullRequest.head!.sha,);
+    final CiYaml ciYaml = await getCiYaml(commit);
     final Iterable<Target> presubmitTargets =
-        getPreSubmitTargets(commit, schedulerConfig).where((Target target) => target.scheduler == SchedulerSystem.luci);
+        ciYaml.presubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
     final List<LuciBuilder> presubmitBuilders =
-        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(pullRequest);

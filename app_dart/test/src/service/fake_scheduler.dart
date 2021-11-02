@@ -4,13 +4,15 @@
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/proto/protos.dart';
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import 'fake_luci_build_service.dart';
@@ -18,7 +20,7 @@ import 'fake_luci_build_service.dart';
 /// Fake for [Scheduler] to use for tests that rely on it.
 class FakeScheduler extends Scheduler {
   FakeScheduler({
-    this.schedulerConfig,
+    this.ciYaml,
     LuciBuildService? luciBuildService,
     BuildBucketClient? buildbucket,
     required Config config,
@@ -31,41 +33,48 @@ class FakeScheduler extends Scheduler {
               FakeLuciBuildService(config, buildbucket: buildbucket, githubChecksUtil: githubChecksUtil),
         );
 
-  final SchedulerConfig _defaultConfig = emptyConfig;
+  final CiYaml _defaultConfig = emptyConfig;
 
-  /// [SchedulerConfig] value to be injected on [getSchedulerConfig].
-  SchedulerConfig? schedulerConfig;
+  /// [CiYaml] value to be injected on [getCiYaml].
+  CiYaml? ciYaml;
 
   @override
-  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions? retryOptions}) async =>
-      schedulerConfig ?? _defaultConfig;
+  Future<CiYaml> getCiYaml(Commit commit, {RetryOptions? retryOptions}) async => ciYaml ?? _defaultConfig;
 }
 
-final SchedulerConfig emptyConfig = SchedulerConfig(
-  enabledBranches: <String>['master'],
-  targets: <Target>[],
+final CiYaml emptyConfig = CiYaml(
+  branch: 'master',
+  slug: RepositorySlug('flutter', 'flutter'),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>['master'],
+    targets: <pb.Target>[],
+  ),
 );
 
-SchedulerConfig exampleConfig = SchedulerConfig(enabledBranches: <String>[
-  'master'
-], targets: <Target>[
-  Target(
-    name: 'Linux A',
-    scheduler: SchedulerSystem.luci,
-  ),
-  Target(
-    name: 'Mac A',
-    scheduler: SchedulerSystem.luci,
-  ),
-  Target(
-    name: 'Windows A',
-    scheduler: SchedulerSystem.luci,
-  ),
-  Target(
-    bringup: false,
-    name: 'Google Internal Roll',
-    presubmit: false,
-    postsubmit: true,
-    scheduler: SchedulerSystem.google_internal,
-  ),
-]);
+CiYaml exampleConfig = CiYaml(
+  slug: RepositorySlug('flutter', 'flutter'),
+  branch: 'master',
+  config: pb.SchedulerConfig(enabledBranches: <String>[
+    'master'
+  ], targets: <pb.Target>[
+    pb.Target(
+      name: 'Linux A',
+      scheduler: pb.SchedulerSystem.luci,
+    ),
+    pb.Target(
+      name: 'Mac A',
+      scheduler: pb.SchedulerSystem.luci,
+    ),
+    pb.Target(
+      name: 'Windows A',
+      scheduler: pb.SchedulerSystem.luci,
+    ),
+    pb.Target(
+      bringup: false,
+      name: 'Google Internal Roll',
+      presubmit: false,
+      postsubmit: true,
+      scheduler: pb.SchedulerSystem.google_internal,
+    ),
+  ]),
+);

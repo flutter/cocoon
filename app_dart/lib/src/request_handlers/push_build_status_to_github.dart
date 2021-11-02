@@ -11,7 +11,7 @@ import '../../cocoon_service.dart';
 import '../../src/service/luci.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
-import '../model/proto/internal/scheduler.pb.dart';
+import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
@@ -64,8 +64,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       sha: config.defaultBranch,
       repository: slug.fullName,
     );
-    final SchedulerConfig schedulerConfig = await scheduler!.getSchedulerConfig(tipOfTreeCommit);
-    List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(tipOfTreeCommit, schedulerConfig);
+    final CiYaml ciYaml = await scheduler!.getCiYaml(tipOfTreeCommit);
+    List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(ciYaml);
     // Filter the builders to only those that can block the tree
     postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky!).toList();
     final LuciService luciService = luciServiceProvider(this);
