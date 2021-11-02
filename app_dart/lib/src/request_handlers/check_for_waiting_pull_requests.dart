@@ -210,6 +210,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final Set<String?> changeRequestAuthors = <String?>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
+            author,
             pullRequest['authorAssociation'] as String,
             (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
             changeRequestAuthors,
@@ -373,14 +374,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
+  String? author,
   String authorAssociation,
   List<Map<String, dynamic>> reviewNodes,
   Set<String?> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors.isEmpty);
-  final Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
-  final bool authorIsOwnerOrMember = allowedReviewers.contains(authorAssociation);
+  const Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
   final Set<String?> approvers = <String?>{};
+  if (allowedReviewers.contains(authorAssociation)) {
+    approvers.add(author);
+  }
   for (Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
     if (!allowedReviewers.contains(review['authorAssociation'])) {
@@ -397,7 +401,7 @@ bool _checkApproval(
       changeRequestAuthors.add(authorLogin);
     }
   }
-  final bool approved = (approvers.length > 1) || (authorIsOwnerOrMember && approvers.isNotEmpty);
+  final bool approved = (approvers.length > 1) && approvers.isNotEmpty;
   return approved && changeRequestAuthors.isEmpty;
 }
 
@@ -483,7 +487,8 @@ class _AutoMergeQueryResult {
         'current state.');
     buffer.writeln();
     if (!hasApprovedReview && changeRequestAuthors.isEmpty) {
-      buffer.writeln('- Please get at least one approved review before re-applying this '
+      buffer.writeln('- Please get at least one approved review if you are already '
+          'a member or two member reviews if you are not a member before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
