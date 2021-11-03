@@ -96,45 +96,40 @@ class ConductorStatusState extends State<ConductorStatus> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Table(
+          columnWidths: const <int, TableColumnWidth>{
+            0: FixedColumnWidth(200.0),
+          },
+          children: <TableRow>[
+            for (String headerElement in ConductorStatus.headerElements)
+              TableRow(
+                children: <Widget>[
+                  Text('$headerElement:'),
+                  SelectableText((currentStatus[headerElement] == null || currentStatus[headerElement] == '')
+                      ? 'Unknown'
+                      : currentStatus[headerElement]! as String),
+                ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 20.0),
+        Wrap(
           children: <Widget>[
-            Table(
-              columnWidths: const <int, TableColumnWidth>{
-                0: FixedColumnWidth(200.0),
-              },
-              children: <TableRow>[
-                for (String headerElement in ConductorStatus.headerElements)
-                  TableRow(
-                    children: <Widget>[
-                      Text('$headerElement:'),
-                      SelectableText((currentStatus[headerElement] == null || currentStatus[headerElement] == '')
-                          ? 'Unknown'
-                          : currentStatus[headerElement]! as String),
-                    ],
-                  ),
+            Column(
+              children: <Widget>[
+                RepoInfoExpansion(engineOrFramework: 'engine', currentStatus: currentStatus),
+                const SizedBox(height: 10.0),
+                CherrypickTable(engineOrFramework: 'engine', currentStatus: currentStatus),
               ],
             ),
-            const SizedBox(height: 20.0),
-            Wrap(
+            const SizedBox(width: 20.0),
+            Column(
               children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    RepoInfoExpansion(engineOrFramework: 'engine', currentStatus: currentStatus),
-                    const SizedBox(height: 10.0),
-                    CherrypickTable(engineOrFramework: 'engine', currentStatus: currentStatus),
-                  ],
-                ),
-                const SizedBox(width: 20.0),
-                Column(
-                  children: <Widget>[
-                    RepoInfoExpansion(engineOrFramework: 'framework', currentStatus: currentStatus),
-                    const SizedBox(height: 10.0),
-                    CherrypickTable(engineOrFramework: 'framework', currentStatus: currentStatus),
-                  ],
-                ),
+                RepoInfoExpansion(engineOrFramework: 'framework', currentStatus: currentStatus),
+                const SizedBox(height: 10.0),
+                CherrypickTable(engineOrFramework: 'framework', currentStatus: currentStatus),
               ],
-            )
+            ),
           ],
         ),
       ],

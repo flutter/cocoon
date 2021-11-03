@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'services/conductor.dart';
 import 'services/local_conductor.dart';
+import 'widgets/common/dialog_prompt.dart';
 import 'widgets/progression.dart';
 
 const String _title = 'Flutter Desktop Conductor (Not ready, do not use)';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(_title),
+          actions: [cleanRelease()],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -53,6 +55,32 @@ class MyApp extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Button to clean the current release.
+class cleanRelease extends StatelessWidget {
+  const cleanRelease({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 0, 40, 0),
+      child: IconButton(
+        key: const Key('conductorClean'),
+        icon: const Icon(Icons.delete),
+        onPressed: () {
+          dialogPrompt(
+            context: context,
+            title: 'Are you sure you want to clean up the current release?',
+            content: 'This will abort and delete a work in progress release. This process is not revertible!',
+            leftOptionTitle: 'Yes',
+            rightOptionTitle: 'No',
+          );
+        },
+        tooltip: 'Clean up the current release.',
       ),
     );
   }
