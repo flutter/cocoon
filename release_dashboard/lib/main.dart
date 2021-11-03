@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Widget upon clicking cleans the current release in progress.
+/// Button to clean the current release.
 class cleanRelease extends StatelessWidget {
   const cleanRelease({Key? key}) : super(key: key);
 
@@ -76,8 +76,8 @@ class cleanRelease extends StatelessWidget {
             context: context,
             title: 'Are you sure you want to clean up the current release?',
             content: 'This will abort and delete a work in progress release. This process is not revertible!',
-            leftOption: 'Yes',
-            rightOption: 'No',
+            leftOptionTitle: 'Yes',
+            rightOptionTitle: 'No',
           );
         },
         tooltip: 'Clean up the current release.',
