@@ -8,13 +8,13 @@ import 'package:conductor_core/proto.dart' as pb;
 
 /// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
-  Map<String, Object>? currentReleaseStatus;
+  Map<String, Object>? releaseStatus;
 
   /// Method that modifies the global state in provider.
-  Future<void> changeCurrentReleaseStatus(Map<String, Object>? data) async {
+  Future<void> changeReleaseStatus(Map<String, Object>? data) async {
     // status modification needs to be asynchronous to make sure it is called before nofityListeners
     await () async {
-      currentReleaseStatus = data;
+      releaseStatus = data;
     }();
 
     notifyListeners();

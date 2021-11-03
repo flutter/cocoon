@@ -44,11 +44,9 @@ class ConductorStatus extends StatefulWidget {
 class ConductorStatusState extends State<ConductorStatus> {
   @override
   Widget build(BuildContext context) {
-    late final Map<String, Object> currentStatus;
-    if (context.watch<StatusState>().currentReleaseStatus == null) {
+    final Map<String, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    if (context.watch<StatusState>().releaseStatus == null) {
       return SelectableText('No persistent state file. Try starting a release.');
-    } else {
-      currentStatus = context.watch<StatusState>().currentReleaseStatus!;
     }
 
     return Column(
@@ -102,11 +100,11 @@ class CherrypickTable extends StatefulWidget {
   const CherrypickTable({
     Key? key,
     required this.engineOrFramework,
-    required this.currentStatus,
+    required this.releaseStatus,
   }) : super(key: key);
 
   final String engineOrFramework;
-  final Map<String, Object> currentStatus;
+  final Map<String, Object> releaseStatus;
 
   @override
   State<CherrypickTable> createState() => CherrypickTableState();
@@ -116,8 +114,8 @@ class CherrypickTableState extends State<CherrypickTable> {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> cherrypicks = widget.engineOrFramework == 'engine'
-        ? widget.currentStatus['Engine Cherrypicks']! as List<Map<String, String>>
-        : widget.currentStatus['Framework Cherrypicks']! as List<Map<String, String>>;
+        ? widget.releaseStatus['Engine Cherrypicks']! as List<Map<String, String>>
+        : widget.releaseStatus['Framework Cherrypicks']! as List<Map<String, String>>;
 
     return DataTable(
       dataRowHeight: 30.0,
@@ -165,11 +163,11 @@ class RepoInfoExpansion extends StatefulWidget {
   const RepoInfoExpansion({
     Key? key,
     required this.engineOrFramework,
-    required this.currentStatus,
+    required this.releaseStatus,
   }) : super(key: key);
 
   final String engineOrFramework;
-  final Map<String, Object> currentStatus;
+  final Map<String, Object> releaseStatus;
 
   @override
   State<RepoInfoExpansion> createState() => RepoInfoExpansionState();
@@ -220,9 +218,9 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                       children: <Widget>[
                         Text('$repoElement:'),
                         SelectableText(
-                            (widget.currentStatus[repoElement] == null || widget.currentStatus[repoElement] == '')
+                            (widget.releaseStatus[repoElement] == null || widget.releaseStatus[repoElement] == '')
                                 ? 'Unknown'
-                                : widget.currentStatus[repoElement]! as String),
+                                : widget.releaseStatus[repoElement]! as String),
                       ],
                     ),
                 ],

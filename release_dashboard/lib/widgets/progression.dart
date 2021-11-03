@@ -41,7 +41,7 @@ class MainProgressionState extends State<MainProgression> {
   @override
   void initState() {
     // Update the status state with the current state file if it exists at the start of the app
-    context.read<StatusState>().changeCurrentReleaseStatus(stateToMap(widget.releaseState));
+    context.read<StatusState>().changeReleaseStatus(stateToMap(widget.releaseState));
     super.initState();
   }
 
