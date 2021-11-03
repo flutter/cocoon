@@ -253,6 +253,31 @@ void main() {
     test('Can file issue but not pr for shard test', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(limitedNumberOfBuildsResponse);
+      });
+      // When creates issue
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify issue is created correctly.
+      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[1], isA<IssueRequest>());
+      final IssueRequest issueRequest = captured[1] as IssueRequest;
+      expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Can file issue when limited number of successfuly builds exist', () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(frameworkTestResponse);
       });
       // When creates issue
