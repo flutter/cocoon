@@ -32,6 +32,12 @@ const String semanticsIntegrationTestResponse = '''
 }
 ''';
 
+const String noRecordsResponse = '''
+{
+  "jobComplete" : true
+}
+''';
+
 const String jobNotCompleteResponse = '''
 {
   "jobComplete" : false
@@ -84,5 +90,15 @@ void main() {
     expect(statisticList[0].flakyBuilds![2], '101');
     expect(statisticList[0].recentCommit, 'abc');
     expect(statisticList[0].flakyBuildOfRecentCommit, '103');
+  });
+
+  test('return empty build list when bigquery returns no rows', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+          QueryResponse.fromJson(jsonDecode(noRecordsResponse) as Map<dynamic, dynamic>));
+    });
+    final List<BuilderRecord> records =
+        await service.listRecentBuildRecordsForBuilder(expectedProjectId, builder: 'test', limit: 10);
+    expect(records.length, 0);
   });
 }
