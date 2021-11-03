@@ -174,7 +174,8 @@ class Scheduler {
   }
 
   /// Load in memory the `.ci.yaml`.
-  Future<CiYaml> getCiYaml(Commit commit, {
+  Future<CiYaml> getCiYaml(
+    Commit commit, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final String ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
@@ -209,7 +210,9 @@ class Scheduler {
   ///
   /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
   /// that commit does not support the scheduler config file.
-  Future<Uint8List> _downloadCiYaml(Commit commit, String ciPath, {
+  Future<Uint8List> _downloadCiYaml(
+    Commit commit,
+    String ciPath, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final String configContent = await githubFileContent(
