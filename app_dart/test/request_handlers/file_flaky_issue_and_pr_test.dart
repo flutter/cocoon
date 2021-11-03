@@ -250,7 +250,7 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Can file issue but not pr for shard test', () async {
+    test('Can file issue when limited number of successfuly builds exist', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(limitedNumberOfBuildsResponse);
@@ -270,12 +270,12 @@ void main() {
       expect(captured[0].toString(), config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
-      expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
+      expect(issueRequest.body, expectedLimitedNumberOfBuildsResponseBody);
 
       expect(result['Status'], 'success');
     });
 
-    test('Can file issue when limited number of successfuly builds exist', () async {
+    test('Can file issue but not pr for shard test', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(frameworkTestResponse);
