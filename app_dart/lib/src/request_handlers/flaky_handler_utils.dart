@@ -68,6 +68,11 @@ class IssueBuilder {
     return ownership.owner;
   }
 
+  /// Return `kSuccessBuildNumberLimit` successful builds if there are more. Otherwise return what's available.
+  int numberOfSuccessBuilds(int numberOfAvailableSuccessBuilds) {
+    return numberOfAvailableSuccessBuilds >= kSuccessBuildNumberLimit ? kSuccessBuildNumberLimit : numberOfAvailableSuccessBuilds;
+  }
+
   String get issueBody {
     return '''
 ${_buildHiddenMetaTags(name: statistic.name)}
@@ -79,7 +84,7 @@ Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
 
 Succeeded builds (3 most recent):
-${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, statistic.succeededBuilds!.length >= kSuccessBuildNumberLimit ? kSuccessBuildNumberLimit : statistic.succeededBuilds!.length))}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, numberOfSuccessBuilds(statistic.succeededBuilds!.length)))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
