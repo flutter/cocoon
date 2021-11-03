@@ -11,6 +11,7 @@ import 'package:github/hooks.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
@@ -191,9 +192,9 @@ class LuciBuildService {
     );
   }
 
-  /// Schedules presubmit [builders] on BuildBucket for [pullRequest].
+  /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   Future<List<String>> scheduleTryBuilds({
-    required List<LuciBuilder> builders,
+    required List<Target> targets,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
@@ -201,7 +202,7 @@ class LuciBuildService {
       throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
     }
     final List<String> builderNames = await _builderNamesForRepo(
-      builders,
+      targets,
       pullRequest,
     );
     int retryCount = 1;
@@ -222,7 +223,7 @@ class LuciBuildService {
   }
 
   Future<List<String>> _builderNamesForRepo(
-    List<LuciBuilder> builders,
+    List<Target> targets,
     github.PullRequest pullRequest,
   ) async {
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
@@ -234,9 +235,9 @@ class LuciBuildService {
       return <String>[];
     }
 
-    final List<String> builderNames = builders
-        .where((LuciBuilder builder) => builder.repo == pullRequest.base!.repo!.name)
-        .map<String>((LuciBuilder builder) => builder.name)
+    final List<String> builderNames = targets
+        .where((Target target) => target.slug == pullRequest.base!.repo!.slug())
+        .map<String>((Target target) => target.value.name)
         .toList();
     if (builderNames.isEmpty) {
       throw InternalServerError('${pullRequest.base!.repo} does not have any builders');
@@ -350,10 +351,10 @@ class LuciBuildService {
   /// Filters [builders] to only those that failed on [pullRequest].
   Future<List<Build?>> failedBuilds(
     github.PullRequest pullRequest,
-    List<LuciBuilder> builders,
+    List<Target> targets,
   ) async {
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
-    final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
+    final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
     final Iterable<Build?> failedBuilds = builds.values.where((Build? build) => failStatusSet.contains(build!.status));
     final Iterable<Build?> expectedFailedBuilds =

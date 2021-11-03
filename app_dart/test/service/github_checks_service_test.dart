@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
@@ -66,31 +66,18 @@ void main() {
           .thenAnswer((_) async => generateCheckRun(1));
       final PullRequest pullRequest = generatePullRequest(id: 758);
       await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
-      verify(
-        mockLuciBuildService.scheduleTryBuilds(
-          builders: <LuciBuilder>[
-            const LuciBuilder(
-              name: 'Linux A',
-              repo: 'flutter',
-              flaky: false,
-              taskName: 'Linux A',
-            ),
-            const LuciBuilder(
-              name: 'Mac A',
-              repo: 'flutter',
-              flaky: false,
-              taskName: 'Mac A',
-            ),
-            const LuciBuilder(
-              name: 'Windows A',
-              repo: 'flutter',
-              flaky: false,
-              taskName: 'Windows A',
-            ),
-          ],
-          pullRequest: pullRequest,
-        ),
-      ).called(1);
+      final List<Target> scheduledTargets = verify(mockLuciBuildService.scheduleTryBuilds(
+              targets: captureAnyNamed('targets'),
+              pullRequest: anyNamed('pullRequest'),
+              checkSuiteEvent: anyNamed('checkSuiteEvent')))
+          .captured
+          .single as List<Target>;
+      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
+      expect(scheduledTargetNames, <String>[
+        'Linux A',
+        'Mac A',
+        'Windows A',
+      ]);
     });
   });
 

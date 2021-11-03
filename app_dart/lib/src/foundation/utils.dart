@@ -13,8 +13,9 @@ import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
-import '../../protos.dart';
+import '../../protos.dart' as pb;
 import '../foundation/typedefs.dart';
+import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
@@ -152,13 +153,13 @@ Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String bu
 /// }
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<String?> files) async {
-  final List<LuciBuilder> filteredBuilders = <LuciBuilder>[];
-  for (LuciBuilder builder in builders) {
-    final List<String> globs = builder.runIf ?? <String>[''];
+Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
+  final List<Target> targetsToRun = <Target>[];
+  for (Target target in targets) {
+    final List<String> globs = target.value.runIf;
     // Handle case where [Target] initializes empty runif
     if (globs.isEmpty) {
-      filteredBuilders.add(builder);
+      targetsToRun.add(target);
     }
     for (String glob in globs) {
       glob = glob.replaceAll('**', '[a-zA-Z_\/]?');
@@ -166,12 +167,12 @@ Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<S
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
       final RegExp regExp = RegExp('^$glob');
       if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
-        filteredBuilders.add(builder);
+        targetsToRun.add(target);
         break;
       }
     }
   }
-  return filteredBuilders;
+  return targetsToRun;
 }
 
 Future<void> insertBigquery(String tableName, Map<String, dynamic> data, TabledataResource tabledataResourceApi) async {
@@ -195,14 +196,14 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
   }
 }
 
-/// Validate test ownership defined in `testOwnersContenct` for tests configured in `ciYamlContent`.
-List<String> validateOwnership(String ciYamlContent, String testOwnersContenct) {
+/// Validate test ownership defined in [testOwnersContent] for tests configured in `ciYamlContent`.
+List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
-  for (Target target in schedulerConfig.targets) {
+  final pb.SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ciYaml);
+  for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
-    final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContenct).owner;
+    final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;
     print('$builder: $owner');
     if (owner == null) {
       noOwnerBuilders.add(builder);

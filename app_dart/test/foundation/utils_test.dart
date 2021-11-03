@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
@@ -18,6 +19,7 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
+import '../src/utilities/entity_generators.dart';
 
 const String branchRegExp = '''
       master
@@ -233,60 +235,60 @@ void main() {
 
     group('getFilteredBuilders', () {
       List<String> files;
-      List<LuciBuilder> builders;
+      List<Target> targets;
 
       test('does not return builders when run_if does not match any file', () async {
-        builders = <LuciBuilder>[
-          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['d/'])
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['d/']),
         ];
         files = <String>['a/b', 'c/d'];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
-        expect(result.length, 0);
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result.isEmpty, isTrue);
       });
 
       test('returns builders when run_if is null', () async {
         files = <String>['a/b', 'c/d'];
-        builders = <LuciBuilder>[const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true)];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
-        expect(result, builders);
+        targets = <Target>[generateTarget(1)];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
       });
 
       test('returns builders when run_if matches files', () async {
         files = <String>['a/b', 'c/d'];
-        builders = <LuciBuilder>[
-          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/'])
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['a/'])
         ];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
-        expect(result, builders);
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
       });
 
       test('returns builders when run_if matches files with **', () async {
-        builders = <LuciBuilder>[
-          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/**'])
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['a/**']),
         ];
         files = <String>['a/b', 'c/d'];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
-        expect(result, builders);
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
       });
 
       test('returns builders when run_if matches files with both * and **', () async {
-        builders = <LuciBuilder>[
-          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/b*c/**'])
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['a/b*c/**']),
         ];
         files = <String>['a/baddsc/defg', 'c/d'];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
-        expect(result, builders);
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
       });
 
       test('returns correct builders when file and folder share the same name', () async {
-        builders = <LuciBuilder>[
-          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/b/']),
-          const LuciBuilder(name: 'jkl', repo: 'mno', taskName: 'pqr', flaky: true, runIf: <String>['a'])
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['a/b/']),
+          generateTarget(2, runIf: <String>['a']),
         ];
         files = <String>['a'];
-        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
+        final List<Target> result = await getTargetsToRun(targets, files);
         expect(result.length, 1);
-        expect(result[0], builders[1]);
+        expect(result.single, targets[1]);
       });
     });
   });

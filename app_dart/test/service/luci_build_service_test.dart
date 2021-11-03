@@ -7,6 +7,7 @@ import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -33,13 +34,8 @@ void main() {
   RepositorySlug? slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
-  const List<LuciBuilder> builders = <LuciBuilder>[
-    LuciBuilder(
-      flaky: false,
-      enabled: true,
-      name: 'Linux',
-      repo: 'flutter',
-    ),
+  final List<Target> targets = <Target>[
+    generateTarget(1),
   ];
   final PullRequest pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
 
@@ -188,14 +184,14 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
       final List<String> builderNames = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
-        builders: builders,
+        targets: targets,
       );
-      expect(builderNames, <String>['Linux']);
+      expect(builderNames, <String>['Linux 1']);
       final BatchRequest batchRequest = verify(mockBuildBucketClient.batch(captureAny)).captured.last as BatchRequest;
       expect(batchRequest.requests?.single.scheduleBuild, isNotNull);
       final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
       expect(scheduleBuild.builderId.bucket, 'try');
-      expect(scheduleBuild.builderId.builder, 'Linux');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
       expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds');
       final Map<String, dynamic> userData =
           jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
@@ -225,7 +221,7 @@ void main() {
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
-        builders: builders,
+        targets: targets,
       );
       expect(records[0].message,
           'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
@@ -248,7 +244,7 @@ void main() {
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
-        builders: builders,
+        targets: targets,
       );
       expect(records[0].message,
           'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
@@ -269,14 +265,14 @@ void main() {
       await expectLater(
           service.scheduleTryBuilds(
             pullRequest: pullRequest,
-            builders: builders,
+            targets: targets,
           ),
           throwsA(isA<InternalServerError>()));
     });
     test('Try to schedule build on a unsupported repo', () async {
       expect(
           () async => await service.scheduleTryBuilds(
-                builders: builders,
+                targets: targets,
                 pullRequest: generatePullRequest(repo: 'nonsupported'),
               ),
           throwsA(const TypeMatcher<BadRequestException>()));
@@ -341,7 +337,7 @@ void main() {
           responses: <Response>[],
         );
       });
-      final List<Build?> result = await service.failedBuilds(pullRequest, <LuciBuilder>[]);
+      final List<Build?> result = await service.failedBuilds(pullRequest, <Target>[]);
       expect(result, isEmpty);
     });
     test('Failed builds from a list of builds with failures', () async {
@@ -351,15 +347,14 @@ void main() {
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.failure),
+                  generateBuild(998, name: 'Linux 1', status: Status.failure),
                 ],
               ),
             )
           ],
         );
       });
-      final List<Build?> result = await service
-          .failedBuilds(pullRequest, <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
+      final List<Build?> result = await service.failedBuilds(pullRequest, <Target>[generateTarget(1)]);
       expect(result, hasLength(1));
     });
   });

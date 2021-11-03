@@ -4,9 +4,13 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
+
+import '../service/fake_scheduler.dart';
 
 Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('test-dashboard')).append<T>(type, id: id);
 
@@ -34,6 +38,21 @@ Task generateTask(int i,
       attempts: attempts,
       isFlaky: isFlaky,
       stageName: stage,
+    );
+
+Target generateTarget(
+  int i, {
+  pb.SchedulerConfig? schedulerConfig,
+  github.RepositorySlug? slug,
+  List<String>? runIf,
+}) =>
+    Target(
+      schedulerConfig: schedulerConfig ?? exampleConfig.config,
+      slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
+      value: pb.Target(
+        name: 'Linux $i',
+        runIf: runIf ?? <String>[],
+      ),
     );
 
 Build generateBuild(

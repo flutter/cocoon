@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -316,8 +317,8 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         config.luciBuildersValue = <LuciBuilder>[];
-        final List<LuciBuilder> presubmitBuilders = await scheduler.getPresubmitBuilders(pullRequest);
-        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
+        final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
+        expect(presubmitTargets.map((Target target) => target.value.name).toList(),
             containsAll(<String>['Linux A', 'Linux C']));
       });
 
@@ -337,7 +338,7 @@ targets:
           throw Exception('Failed to find ${request.url.path}');
         });
         config.luciBuildersValue = <LuciBuilder>[];
-        expect(scheduler.getPresubmitBuilders(generatePullRequest(branch: branch)),
+        expect(scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
             throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
       });
 
