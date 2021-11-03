@@ -46,6 +46,13 @@ class CiYaml {
     return _filterEnabledTargets(postsubmitTargets);
   }
 
+  /// Filters [targets] to those that should be started immediately.
+  ///
+  /// Targets with dependencies are triggered when there dependency pushes a notification that it has finished.
+  List<Target> getInitialTargets(List<Target> targets) {
+    return targets.where((Target target) => target.value.dependencies.isEmpty).toList();
+  }
+
   Iterable<Target> get _targets => config.targets.map((pb.Target target) => Target(
         schedulerConfig: config,
         value: target,

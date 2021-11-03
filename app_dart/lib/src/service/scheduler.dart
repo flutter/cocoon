@@ -166,10 +166,10 @@ class Scheduler {
     return true;
   }
 
-  /// Create [Tasks] specified in [commit] scheduler config.
+  /// Create all [Task] specified in the [CiYaml] for [Commit].
   Future<List<Task>> _getTasks(Commit commit) async {
     final CiYaml ciYaml = await getCiYaml(commit);
-    final List<Target> initialTargets = _getInitialPostSubmitTargets(commit, ciYaml);
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     return targetsToTask(commit, initialTargets).toList();
   }
 
@@ -194,14 +194,6 @@ class Scheduler {
       slug: commit.slug,
       branch: commit.branch!,
     );
-  }
-
-  /// Get all postsubmit targets that should be immediately started for [Commit].
-  List<Target> _getInitialPostSubmitTargets(Commit commit, CiYaml ciYaml) {
-    // Filter targets to only those without dependencies.
-    final List<Target> initialTargets =
-        ciYaml.postsubmitTargets.where((Target target) => target.value.dependencies.isEmpty).toList();
-    return initialTargets;
   }
 
   /// Get all [LuciBuilder] run for [ciYaml].
