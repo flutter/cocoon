@@ -70,7 +70,9 @@ class IssueBuilder {
 
   /// Return `kSuccessBuildNumberLimit` successful builds if there are more. Otherwise return what's available.
   int numberOfSuccessBuilds(int numberOfAvailableSuccessBuilds) {
-    return numberOfAvailableSuccessBuilds >= kSuccessBuildNumberLimit ? kSuccessBuildNumberLimit : numberOfAvailableSuccessBuilds;
+    return numberOfAvailableSuccessBuilds >= kSuccessBuildNumberLimit
+        ? kSuccessBuildNumberLimit
+        : numberOfAvailableSuccessBuilds;
   }
 
   String get issueBody {
