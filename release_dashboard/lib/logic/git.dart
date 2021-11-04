@@ -14,7 +14,7 @@ final String gitHashErrorMsg = 'Must be 40 alphanumeric characters or an empty s
 /// valid: c7714158950347
 /// invalid:   c7714158950347,@@cccccc
 /// invalid (cannot end with a comma):   c7714158950347,c7714158950347,
-var multiGitHashRegex = RegExp(r'^$|^[0-9a-z]{40}(?:,[0-9a-z]{40})*$');
+final RegExp multiGitHashRegex = RegExp(r'^$|^[0-9a-z]{40}(?:,[0-9a-z]{40})*$');
 final String multiGitHashErrorMsg =
     'Must be one or more groups of 40 alphanumeric characters delimited by a comma or an empty string.';
 

@@ -34,32 +34,27 @@ class CreateReleaseSubsteps extends StatefulWidget {
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
-  // Initialize a public state so it could be accessed in the test file
+  /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
-  // When isEachInputValid['substep1'] is true, 'substep1' is valid. If it false, it is invalid
+
+  /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
   @visibleForTesting
   Map<String, bool> isEachInputValid = <String, bool>{};
 
   @override
   void initState() {
+    const List<String> kOptionalInput = <String>[
+      'Engine Cherrypicks (if necessary)',
+      'Framework Cherrypicks (if necessary)',
+      'Dart Revision (if necessary)'
+    ];
     // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
     for (final String substep in CreateReleaseSubsteps.substepTitles) {
-      if (<String>[
-        'Engine Cherrypicks (if necessary)',
-        'Framework Cherrypicks (if necessary)',
-        'Dart Revision (if necessary)'
-      ].contains(substep)) {
-        isEachInputValid = <String, bool>{
-          ...isEachInputValid,
-          substep: true,
-        };
-      } else {
-        isEachInputValid = <String, bool>{
-          ...isEachInputValid,
-          substep: false,
-        };
-      }
+      isEachInputValid = <String, bool>{
+        ...isEachInputValid,
+        substep: kOptionalInput.contains(substep),
+      };
     }
     super.initState();
   }
