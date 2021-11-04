@@ -31,6 +31,9 @@ class Target {
   /// The [RepositorySlug] this [Target] is run for.
   final RepositorySlug slug;
 
+  /// Target prefixes that indicate it will run on an ios device.
+  static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
+
   /// Gets the assembled properties for this [pb.Target].
   ///
   /// Target properties are prioritized in:
@@ -73,7 +76,7 @@ class Target {
         'sdk_version': properties['xcode']!,
       };
 
-      if (<String>['mac_ios', 'mac_ios32'].contains(getPlatform())) {
+      if (iosPlatforms.contains(getPlatform())) {
         mergedProperties['\$flutter/devicelab_osx_sdk'] = xcodeVersion;
       } else {
         mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
@@ -114,13 +117,15 @@ class Target {
   /// Changes made here should also be made to [_platform_properties] and [_properties] in:
   ///  * https://cs.opensource.google/flutter/infra/+/main:config/lib/ci_yaml/ci_yaml.star
   Object _parseProperty(String key, String value) {
+    // Yaml will escape new lines unnecessarily for strings.
+    final List<String> newLineIssues = <String>['android_sdk_license', 'android_sdk_preview_license'];
     if (value == 'true') {
       return true;
     } else if (value == 'false') {
       return false;
     } else if (value.startsWith('[')) {
       return jsonDecode(value) as Object;
-    } else if (<String>['android_sdk_license', 'android_sdk_preview_license'].contains(key)) {
+    } else if (newLineIssues.contains(key)) {
       return value.replaceAll('\\n', '\n');
     } else if (int.tryParse(value) != null) {
       return int.parse(value);

@@ -7,9 +7,7 @@ import 'package:github/github.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 import 'target.dart';
 
-///
-///
-/// This is a wrapper class around the underlying protos.
+/// This is a wrapper class around S[pb.SchedulerConfig].
 ///
 /// See //CI_YAML.md for high level documentation.
 class CiYaml {
@@ -48,7 +46,9 @@ class CiYaml {
 
   /// Filters [targets] to those that should be started immediately.
   ///
-  /// Targets with dependencies are triggered when there dependency pushes a notification that it has finished.
+  /// Targets with a dependency are triggered when there dependency pushes a notification that it has finished.
+  /// This shouldn't be confused for targets that have the property named dependency, which is used by the
+  /// flutter_deps recipe module on LUCI.
   List<Target> getInitialTargets(List<Target> targets) {
     return targets.where((Target target) => target.value.dependencies.isEmpty).toList();
   }
@@ -74,7 +74,7 @@ class CiYaml {
         overrideBranchTargets.where((Target target) => target.value.enabledBranches.contains(branch));
     filteredTargets.addAll(enabledTargets);
 
-    // 2. Add targets with global definition
+    // 2. Add targets with global definition (this is the majority of targets)
     if (config.enabledBranches.contains(branch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
