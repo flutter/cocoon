@@ -41,6 +41,8 @@ const String kMasterRefs = 'heads/master';
 const String kModifyMode = '100755';
 const String kModifyType = 'blob';
 
+const int kSuccessBuildNumberLimit = 3;
+
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
 const String _flakeRecordPrefix =
@@ -66,6 +68,13 @@ class IssueBuilder {
     return ownership.owner;
   }
 
+  /// Return `kSuccessBuildNumberLimit` successful builds if there are more. Otherwise return what's available.
+  int numberOfSuccessBuilds(int numberOfAvailableSuccessBuilds) {
+    return numberOfAvailableSuccessBuilds >= kSuccessBuildNumberLimit
+        ? kSuccessBuildNumberLimit
+        : numberOfAvailableSuccessBuilds;
+  }
+
   String get issueBody {
     return '''
 ${_buildHiddenMetaTags(name: statistic.name)}
@@ -77,7 +86,7 @@ Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
 
 Succeeded builds (3 most recent):
-${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, 3))}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, numberOfSuccessBuilds(statistic.succeededBuilds!.length)))}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
