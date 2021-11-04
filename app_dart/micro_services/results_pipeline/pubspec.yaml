@@ -1,0 +1,19 @@
+# Copyright 2019 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+name: results_pipeline
+description: AppEngine service for processing LUCI build updates
+homepage: https://github.com/flutter/cocoon
+publish_to: none
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dependencies:
+  appengine: ^0.13.1
+  json_annotation: ^4.1.0
+  corsac_jwt: ^1.0.0-nullsafety.1
+
+dev_dependencies: 
+  lints: ^1.0.1
