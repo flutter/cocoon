@@ -1,6 +1,6 @@
+include: package:flutter_lints/flutter.yaml
+
 linter:
   rules:
-    avoid_catches_without_on_clauses: true
     prefer_relative_imports: true
-    unawaited_futures: true
-    ignore_todo: true
+    flutter_style_todos: true

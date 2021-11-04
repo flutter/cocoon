@@ -18,21 +18,22 @@ import 'conductor.dart';
 ///
 /// This is the production version of the conductor, only intended for releases.
 class LocalConductorService extends ConductorService {
-  final FileSystem fs = LocalFileSystem();
-  final Platform platform = LocalPlatform();
-  final ProcessManager processManager = LocalProcessManager();
+  final FileSystem fs = const LocalFileSystem();
+  final Platform platform = const LocalPlatform();
+  final ProcessManager processManager = const LocalProcessManager();
   final Stdio stdio = VerboseStdio(
     stdout: io.stdout,
     stderr: io.stderr,
     stdin: io.stdin,
   );
 
-  Directory get rootDirectory => fs.directory(String.fromEnvironment('HOME'));
+  Directory get rootDirectory => fs.directory(const String.fromEnvironment('HOME'));
   File get stateFile => fs.file(defaultStateFilePath(platform));
 
   static const String frameworkUpstream = 'https://github.com/flutter/flutter';
   static const String engineUpstream = 'https://github.com/flutter/engine';
 
+  @override
   pb.ConductorState? get state {
     if (stateFile.existsSync()) {
       return readStateFromFile(stateFile);
@@ -41,6 +42,7 @@ class LocalConductorService extends ConductorService {
     return null;
   }
 
+  @override
   Future<void> createRelease({
     required String candidateBranch,
     required String dartRevision,

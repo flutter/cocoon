@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text(_title),
-          actions: [cleanRelease()],
+          actions: const [CleanRelease()],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -61,13 +61,13 @@ class MyApp extends StatelessWidget {
 }
 
 /// Button to clean the current release.
-class cleanRelease extends StatelessWidget {
-  const cleanRelease({Key? key}) : super(key: key);
+class CleanRelease extends StatelessWidget {
+  const CleanRelease({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 40, 0),
+      padding: const EdgeInsets.fromLTRB(0, 0, 40, 0),
       child: IconButton(
         key: const Key('conductorClean'),
         icon: const Icon(Icons.delete),

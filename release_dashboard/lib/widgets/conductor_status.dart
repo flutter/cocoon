@@ -88,7 +88,7 @@ class ConductorStatusState extends State<ConductorStatus> {
   Widget build(BuildContext context) {
     late final Map<String, Object> currentStatus;
     if (widget.releaseState == null) {
-      return SelectableText('No persistent state file. Try starting a release.');
+      return const SelectableText('No persistent state file. Try starting a release.');
     } else {
       currentStatus = presentStateDesktop(widget.releaseState!);
     }
