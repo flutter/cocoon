@@ -47,7 +47,7 @@ group by builder_name;
 ''';
 
 const String getRecordsQuery = r'''
-select sha, is_flaky, failure_count from `flutter-dashboard.datasite.luci_prod_build_status`
+select sha, is_flaky, failure_count from `flutter-dashboard.datasite.luci_staging_build_status`
 where builder_name=@BUILDER_NAME
 order by time desc
 limit @LIMIT
@@ -139,6 +139,10 @@ class BigqueryService {
       throw 'job does not complete';
     }
     final List<BuilderRecord> result = <BuilderRecord>[];
+    // When a test is newly marked as flaky, it is possible no execution exists.
+    if (response.rows == null) {
+      return result;
+    }
     for (final TableRow row in response.rows!) {
       result.add(BuilderRecord(
         commit: row.f![0].v as String,
