@@ -56,7 +56,7 @@ abstract class gitValidation {
   String get errorMsg;
 
   /// Uses [regex] to validate the input provided. Returns true if it is valid, false otherwise.
-  bool validate(String? input);
+  bool isValidate(String? input);
 }
 
 /// Provides all the tools and methods to validate a single Git hash such as the dart revision.
@@ -69,7 +69,7 @@ class gitHash extends gitValidation {
 
   String get errorMsg => gitHashErrorMsg;
 
-  bool validate(String? input) {
+  bool isValidate(String? input) {
     return this.regex.hasMatch(input == null ? '' : input.trim()); // removes leading or trailing whitespaces
   }
 }
@@ -90,7 +90,7 @@ class multiGitHash extends gitValidation {
 
   String get errorMsg => multiGitHashErrorMsg;
 
-  bool validate(String? input) {
+  bool isValidate(String? input) {
     return this.regex.hasMatch(input == null ? '' : input.replaceAll(' ', '')); // removes any whitespaces
   }
 }
@@ -103,7 +103,7 @@ class gitBranch extends gitValidation {
 
   String get errorMsg => githubRemoteErrorMsg;
 
-  bool validate(String? input) {
+  bool isValidate(String? input) {
     return this.regex.hasMatch(input == null ? '' : input.trim()); // removes leading or trailing whitespaces
   }
 }
