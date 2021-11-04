@@ -152,13 +152,14 @@ class LuciBuildService {
   }
 
   /// Creates BuildBucket [Request] using [checkSuiteEvent], [pullRequest], [builder], [builderId], and [userData].
-  Future<Request> _createBuildRequest(
+  Future<Request> _createBuildRequest({
     CheckSuiteEvent? checkSuiteEvent,
-    github.PullRequest pullRequest,
-    String builder,
-    BuilderId builderId,
-    Map<String, dynamic> userData,
-  ) async {
+    required github.PullRequest pullRequest,
+    String? builder,
+    required BuilderId builderId,
+    required Map<String, dynamic> userData,
+    Map<String, dynamic>? properties,
+  }) async {
     int? checkRunId;
     if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
@@ -170,6 +171,11 @@ class LuciBuildService {
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
     }
+    properties ??= <String, dynamic>{};
+    properties.addAll(<String, String>{
+      'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
+      'git_ref': 'refs/pull/${pullRequest.number}/head',
+    });
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
@@ -179,10 +185,7 @@ class LuciBuildService {
           'github_link': <String>['https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'],
           'github_checkrun': <String>[checkRunId.toString()],
         },
-        properties: <String, String>{
-          'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
-          'git_ref': 'refs/pull/${pullRequest.number}/head',
-        },
+        properties: properties,
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
           userData: base64Encode(json.encode(userData).codeUnits),
@@ -193,7 +196,7 @@ class LuciBuildService {
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
-  Future<List<String>> scheduleTryBuilds({
+  Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
@@ -201,15 +204,11 @@ class LuciBuildService {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
     }
-    final List<String> builderNames = await _builderNamesForRepo(
-      targets,
-      pullRequest,
-    );
     int retryCount = 1;
-    List<String> remainingBuildersToSchedule = List<String>.from(builderNames);
-    while (builderNames.isNotEmpty) {
-      remainingBuildersToSchedule = await _scheduleTryBuilds(
-        builderNames: remainingBuildersToSchedule,
+    List<Target> remainingTargetsToSchedule = List<Target>.from(targets);
+    while (remainingTargetsToSchedule.isNotEmpty) {
+      remainingTargetsToSchedule = await _scheduleTryBuilds(
+        targets: remainingTargetsToSchedule,
         pullRequest: pullRequest,
         checkSuiteEvent: checkSuiteEvent,
       );
@@ -219,52 +218,36 @@ class LuciBuildService {
       }
     }
 
-    return builderNames;
+    return targets;
   }
 
-  Future<List<String>> _builderNamesForRepo(
-    List<Target> targets,
-    github.PullRequest pullRequest,
-  ) async {
-    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
-    if (builds.values.any((Build? build) {
-      return build?.status == Status.scheduled || build?.status == Status.started;
-    })) {
-      log.severe('Either builds are empty or they are already scheduled or started. '
-          'PR: ${pullRequest.number}, Commit: ${pullRequest.head!.sha}, Repository: ${pullRequest.base!.repo!.fullName}');
-      return <String>[];
-    }
-
-    final List<String> builderNames = targets
-        .where((Target target) => target.slug == pullRequest.base!.repo!.slug())
-        .map<String>((Target target) => target.value.name)
-        .toList();
-    if (builderNames.isEmpty) {
-      throw InternalServerError('${pullRequest.base!.repo} does not have any builders');
-    }
-    return builderNames;
-  }
-
-  /// Schedules [builderNames] against [pullRequest].
-  Future<List<String>> _scheduleTryBuilds({
-    required List<String> builderNames,
+  /// Schedules [targets] against [pullRequest].
+  Future<List<Target>> _scheduleTryBuilds({
+    required List<Target> targets,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
-    final List<String> builderNamesToRetry = <String>[];
-    for (String builder in builderNames) {
+    final List<Target> targetsToRetry = <Target>[];
+    for (Target target in targets) {
       final BuilderId builderId = BuilderId(
         project: 'flutter',
         bucket: 'try',
-        builder: builder,
+        builder: target.value.name,
       );
       final Map<String, dynamic> userData = <String, dynamic>{
         'repo_owner': pullRequest.base!.repo!.owner!.login,
         'repo_name': pullRequest.base!.repo!.name,
         'user_agent': 'flutter-cocoon',
       };
-      requestFutures.add(_createBuildRequest(checkSuiteEvent, pullRequest, builder, builderId, userData));
+      requestFutures.add(_createBuildRequest(
+        checkSuiteEvent: checkSuiteEvent,
+        pullRequest: pullRequest,
+        builder: target.value.name,
+        builderId: builderId,
+        userData: userData,
+        properties: target.getProperties(),
+      ));
     }
     final List<Request> requests = await Future.wait(requestFutures);
     List<BatchResponse> batchResponseList;
@@ -286,7 +269,9 @@ class LuciBuildService {
       if (response.scheduleBuild == null) {
         log.warning('$response does not contain scheduleBuild');
         if (response.getBuild?.builderId.builder != null) {
-          builderNamesToRetry.add(response.getBuild!.builderId.builder!);
+          final Target failedTarget =
+              targets.singleWhere((Target target) => target.value.name == response.getBuild!.builderId.builder!);
+          targetsToRetry.add(failedTarget);
         }
         continue;
       }
@@ -304,7 +289,9 @@ class LuciBuildService {
             await githubChecksUtil.getCheckRun(config, pullRequest.base!.repo!.slug(), checkRunId);
         if (errorText.isNotEmpty) {
           if (response.getBuild?.builderId.builder != null) {
-            builderNamesToRetry.add(response.getBuild!.builderId.builder!);
+            final Target failedTarget =
+                targets.singleWhere((Target target) => target.value.name == response.getBuild!.builderId.builder!);
+            targetsToRetry.add(failedTarget);
           }
           await githubChecksUtil.updateCheckRun(
             config,
@@ -321,7 +308,7 @@ class LuciBuildService {
         }
       }
     }
-    return builderNamesToRetry;
+    return targetsToRetry;
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].

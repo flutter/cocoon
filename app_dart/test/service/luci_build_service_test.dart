@@ -181,12 +181,13 @@ void main() {
           ],
         );
       });
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
-      final List<String> builderNames = await service.scheduleTryBuilds(
+      when(mockGithubChecksUtil.createCheckRun(any, pullRequest, any)).thenAnswer((_) async => generateCheckRun(1));
+      final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
       );
-      expect(builderNames, <String>['Linux 1']);
+      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
+      expect(scheduledTargetNames, <String>['Linux 1']);
       final BatchRequest batchRequest = verify(mockBuildBucketClient.batch(captureAny)).captured.last as BatchRequest;
       expect(batchRequest.requests?.single.scheduleBuild, isNotNull);
       final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
