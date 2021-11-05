@@ -6,7 +6,7 @@ import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../service/luci.dart';
-import '../proto/internal/scheduler.pb.dart';
+import '../ci_yaml/target.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -77,16 +77,16 @@ class Task extends Model<int> {
   }) {
     return Task(
       attempts: 1,
-      builderName: target.name,
+      builderName: target.value.name,
       commitKey: commit.key,
       createTimestamp: commit.timestamp!,
-      isFlaky: target.bringup,
+      isFlaky: target.value.bringup,
       key: commit.key.append(Task),
-      name: target.name,
-      requiredCapabilities: <String>[target.testbed],
-      stageName: target.scheduler.toString(),
+      name: target.value.name,
+      requiredCapabilities: <String>[target.value.testbed],
+      stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
-      timeoutInMinutes: target.timeout,
+      timeoutInMinutes: target.value.timeout,
     );
   }
 

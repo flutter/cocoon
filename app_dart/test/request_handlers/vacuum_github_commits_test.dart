@@ -80,7 +80,7 @@ void main() {
       auth = FakeAuthenticationProvider();
       scheduler = FakeScheduler(
         config: config,
-        schedulerConfig: exampleConfig,
+        ciYaml: exampleConfig,
       );
       tester = ApiRequestHandlerTester();
       handler = VacuumGithubCommits(

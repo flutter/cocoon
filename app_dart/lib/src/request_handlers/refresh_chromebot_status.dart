@@ -11,7 +11,7 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/proto/internal/scheduler.pb.dart';
+import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -57,8 +57,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
     final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
-    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
-    final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(latestCommit, schedulerConfig);
+    final CiYaml ciYaml = await scheduler.getCiYaml(latestCommit);
+    final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(ciYaml);
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = await luciService.getBranchRecentTasks(
       builders: postsubmitBuilders,
       requireTaskName: true,

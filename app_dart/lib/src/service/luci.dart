@@ -6,15 +6,15 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../model/appengine/task.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/luci/buildbucket.dart';
-import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
+
 import 'buildbucket.dart';
 import 'config.dart';
 
@@ -235,18 +235,14 @@ class LuciBuilder {
     this.taskName,
   });
 
-  /// Create a new [LuciBuilder] object from its JSON representation.
-  // TODO(chillers): Remove once *_builder.json is removed. https://github.com/flutter/flutter/issues/76140
-  factory LuciBuilder.fromJson(Map<String, dynamic> json) => _$LuciBuilderFromJson(json);
-
   /// Create a new [LuciBuilder] from a [Target].
-  factory LuciBuilder.fromTarget(Target target, RepositorySlug slug) {
+  factory LuciBuilder.fromTarget(Target target) {
     return LuciBuilder(
-      name: target.name,
-      repo: slug.name,
-      runIf: target.runIf,
-      taskName: target.name,
-      flaky: target.bringup,
+      name: target.value.name,
+      repo: target.slug.name,
+      runIf: target.value.runIf,
+      taskName: target.value.name,
+      flaky: target.value.bringup,
     );
   }
 

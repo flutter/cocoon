@@ -45,7 +45,7 @@ void main() {
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksUtil: mockGithubChecksUtil,
-      schedulerConfig: exampleConfig,
+      ciYaml: exampleConfig,
     );
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
@@ -64,26 +64,26 @@ void main() {
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
       when(mockGithubChecksUtil.createCheckRun(any, any, any, output: anyNamed('output')))
           .thenAnswer((_) async => generateCheckRun(1));
-      final PullRequest pullRequest = generatePullRequest(id: 758, repo: 'cocoon');
+      final PullRequest pullRequest = generatePullRequest(id: 758);
       await githubChecksService.handleCheckSuite(pullRequest, checkSuiteEvent, scheduler);
       verify(
         mockLuciBuildService.scheduleTryBuilds(
           builders: <LuciBuilder>[
             const LuciBuilder(
               name: 'Linux A',
-              repo: 'cocoon',
+              repo: 'flutter',
               flaky: false,
               taskName: 'Linux A',
             ),
             const LuciBuilder(
               name: 'Mac A',
-              repo: 'cocoon',
+              repo: 'flutter',
               flaky: false,
               taskName: 'Mac A',
             ),
             const LuciBuilder(
               name: 'Windows A',
-              repo: 'cocoon',
+              repo: 'flutter',
               flaky: false,
               taskName: 'Windows A',
             ),
