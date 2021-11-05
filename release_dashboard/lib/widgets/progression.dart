@@ -4,7 +4,7 @@
 
 import '../state/status_state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
@@ -78,7 +78,7 @@ class MainProgressionState extends State<MainProgression> {
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           physics: const ClampingScrollPhysics(),
           children: <Widget>[
-            ConductorStatus(),
+            const ConductorStatus(),
             const SizedBox(height: 20.0),
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),

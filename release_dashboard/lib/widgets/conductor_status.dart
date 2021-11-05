@@ -4,7 +4,7 @@
 
 import '../state/status_state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 
 import 'common/tooltip.dart';
 
@@ -46,7 +46,7 @@ class ConductorStatusState extends State<ConductorStatus> {
   Widget build(BuildContext context) {
     final Map<String, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
     if (context.watch<StatusState>().releaseStatus == null) {
-      return SelectableText('No persistent state file. Try starting a release.');
+      return const SelectableText('No persistent state file. Try starting a release.');
     }
 
     return Column(
@@ -61,9 +61,9 @@ class ConductorStatusState extends State<ConductorStatus> {
               TableRow(
                 children: <Widget>[
                   Text('$headerElement:'),
-                  SelectableText((currentStatus[headerElement] == null || currentStatus[headerElement] == '')
+                  SelectableText((releaseStatus![headerElement] == null || releaseStatus[headerElement] == '')
                       ? 'Unknown'
-                      : currentStatus[headerElement]! as String),
+                      : releaseStatus[headerElement]! as String),
                 ],
               ),
           ],
@@ -73,17 +73,17 @@ class ConductorStatusState extends State<ConductorStatus> {
           children: <Widget>[
             Column(
               children: <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'engine', currentStatus: currentStatus),
+                RepoInfoExpansion(engineOrFramework: 'engine', releaseStatus: releaseStatus!),
                 const SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'engine', currentStatus: currentStatus),
+                CherrypickTable(engineOrFramework: 'engine', releaseStatus: releaseStatus),
               ],
             ),
             const SizedBox(width: 20.0),
             Column(
               children: <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'framework', currentStatus: currentStatus),
+                RepoInfoExpansion(engineOrFramework: 'framework', releaseStatus: releaseStatus),
                 const SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'framework', currentStatus: currentStatus),
+                CherrypickTable(engineOrFramework: 'framework', releaseStatus: releaseStatus),
               ],
             ),
           ],
