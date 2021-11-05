@@ -166,7 +166,9 @@ class Config {
 
   String get missingTestsPullRequestMessage => 'It looks like this pull '
       'request may not have tests. Please make sure to add tests before merging. '
-      'If you need an exemption to this rule, contact Hixie on the #hackers '
+      'If you need '
+      '[an exemption](https://github.com/flutter/flutter/wiki/Tree-hygiene#tests) '
+      'to this rule, contact Hixie on the #hackers '
       'channel in [Chat](https://github.com/flutter/flutter/wiki/Chat).'
       '\n\n'
       'If you are not sure if you need tests, consider this rule of thumb: '
