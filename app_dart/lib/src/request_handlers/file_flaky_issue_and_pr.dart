@@ -71,22 +71,25 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     required _BuilderDetail builderDetail,
   }) async {
     Issue? issue = builderDetail.existingIssue;
-    // Don't create a new issue if there is a recent closed issue within
-    // kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
+
+    // Don't create a new issue or a new deflake PR if there is an open issue or a recent closed
+    // issue within kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
     // down after the fix is merged.
-    if (issue == null ||
-        (issue.state == 'closed' &&
-            DateTime.now().difference(issue.closedAt!) > const Duration(days: kGracePeriodForClosedFlake))) {
-      final IssueBuilder issueBuilder =
-          IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
-      issue = await gitHub.createIssue(
-        slug,
-        title: issueBuilder.issueTitle,
-        body: issueBuilder.issueBody,
-        labels: issueBuilder.issueLabels,
-        assignee: issueBuilder.issueAssignee,
-      );
+    if (issue != null &&
+        (issue.state != 'closed' ||
+            DateTime.now().difference(issue.closedAt!) <= const Duration(days: kGracePeriodForClosedFlake))) {
+      return;
     }
+
+    final IssueBuilder issueBuilder =
+        IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
+    issue = await gitHub.createIssue(
+      slug,
+      title: issueBuilder.issueTitle,
+      body: issueBuilder.issueBody,
+      labels: issueBuilder.issueLabels,
+      assignee: issueBuilder.issueAssignee,
+    );
 
     if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||

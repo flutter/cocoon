@@ -363,6 +363,8 @@ void main() {
           .single as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
+      // Verify no pr is created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
       expect(result['Status'], 'success');
     });
 
@@ -405,6 +407,8 @@ void main() {
           .single as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
+      // Verify no pr is created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
       expect(result['Status'], 'success');
     });
 
