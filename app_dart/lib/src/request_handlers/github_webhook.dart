@@ -382,15 +382,22 @@ class GithubWebhook extends RequestHandler<Body> {
 
     await for (PullRequestFile file in files) {
       final String filename = file.filename!;
-      if (filename.endsWith('.c') ||
-          filename.endsWith('.cc') ||
-          filename.endsWith('.cpp') ||
-          filename.endsWith('.dart') ||
-          filename.endsWith('.java') ||
-          filename.endsWith('.kt') ||
-          filename.endsWith('.m') ||
-          filename.endsWith('.mm') ||
-          filename.endsWith('.swift')) {
+
+      // When null, do not assume 0 lines have been added.
+      final int linesAdded = file.additionsCount ?? 1;
+      final int linesDeleted = file.deletionsCount ?? 0;
+      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
+
+      if (addedCode &&
+          !filename.endsWith('AUTHORS') &&
+          !filename.endsWith('CODEOWNERS') &&
+          !filename.endsWith('pubspec.yaml') &&
+          !filename.endsWith('.ci.yaml') &&
+          !filename.endsWith('.cirrus.yml') &&
+          !filename.contains('.ci/') &&
+          !filename.contains('.github/') &&
+          !filename.endsWith('.md')) {
         needsTests = true;
       }
 
