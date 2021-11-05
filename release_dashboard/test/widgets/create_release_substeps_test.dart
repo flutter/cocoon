@@ -8,16 +8,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  const String candidateBranch = 'flutter-1.2-candidate.3';
+  const String releaseChannel = 'dev';
+  const String frameworkMirror = 'git@github.com:test/flutter.git';
+  const String engineMirror = 'git@github.com:test/engine.git';
+  const String validGitHash1 = '5f9a38fc310908c832810f9d875ed8b56ecc7f75';
+  const String validGitHash2 = 'bfadad702e9f699f4ab024c335e7498152d26e34';
+  const String validGitHash3 = 'bfadad702e9f699f4ab024c335e7498152d26e35';
+  const String increment = 'y';
+
   /// Construct test inputs in a map that has the same names as [CreateReleaseSubsteps.substepTitles].
   Map<String, String> testInputsCorrect = <String, String>{
-    CreateReleaseSubsteps.substepTitles[0]: 'flutter-1.2-candidate.3',
-    CreateReleaseSubsteps.substepTitles[1]: 'dev',
-    CreateReleaseSubsteps.substepTitles[2]: 'git@github.com:test/flutter.git',
-    CreateReleaseSubsteps.substepTitles[3]: 'git@github.com:test/engine.git',
-    CreateReleaseSubsteps.substepTitles[4]: '5f9a38fc310908c832810f9d875ed8b56ecc7f75',
-    CreateReleaseSubsteps.substepTitles[5]: 'bfadad702e9f699f4ab024c335e7498152d26e34',
-    CreateReleaseSubsteps.substepTitles[6]: 'bfadad702e9f699f4ab024c335e7498152d26e35',
-    CreateReleaseSubsteps.substepTitles[7]: 'y',
+    CreateReleaseSubsteps.substepTitles[0]: candidateBranch,
+    CreateReleaseSubsteps.substepTitles[1]: releaseChannel,
+    CreateReleaseSubsteps.substepTitles[2]: frameworkMirror,
+    CreateReleaseSubsteps.substepTitles[3]: engineMirror,
+    CreateReleaseSubsteps.substepTitles[4]: validGitHash1,
+    CreateReleaseSubsteps.substepTitles[5]: validGitHash2,
+    CreateReleaseSubsteps.substepTitles[6]: validGitHash3,
+    CreateReleaseSubsteps.substepTitles[7]: increment,
   };
 
   group('Dropdown validator', () {
@@ -90,40 +99,140 @@ void main() {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       // the test does not apply to dropdowns
       if (parameterName != 'Release Channel' && parameterName != 'Increment') {
-        testWidgets('${parameterName} should trim leading and trailing whitespaces before validating',
-            (WidgetTester tester) async {
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                    ),
-                  ],
+        if (parameterName != 'Engine Cherrypicks (if necessary)' &&
+            parameterName != 'Framework Cherrypicks (if necessary)') {
+          testWidgets('${parameterName} should trim leading and trailing whitespaces before validating',
+              (WidgetTester tester) async {
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Material(
+                  child: ListView(
+                    children: <Widget>[
+                      CreateReleaseSubsteps(
+                        nextStep: () {},
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
+            );
 
-          final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
-          final CreateReleaseSubstepsState createReleaseSubstepsState =
-              createReleaseSubsteps.state as CreateReleaseSubstepsState;
-          final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+            final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+            final CreateReleaseSubstepsState createReleaseSubstepsState =
+                createReleaseSubsteps.state as CreateReleaseSubstepsState;
+            final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
 
-          isEachInputValid[parameterName] = false;
-          // input field should trim any leading or trailing whitespaces
-          await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputsCorrect[parameterName]!}  ');
-          isEachInputValid[parameterName] = true;
-        });
+            isEachInputValid[parameterName] = false;
+            // input field should trim any leading or trailing whitespaces
+            await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputsCorrect[parameterName]!}  ');
+            isEachInputValid[parameterName] = true;
+          });
+
+          testWidgets('${parameterName} should trim leading and trailing whitespaces before saving the value',
+              (WidgetTester tester) async {
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Material(
+                  child: ListView(
+                    children: <Widget>[
+                      CreateReleaseSubsteps(
+                        nextStep: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+            final CreateReleaseSubstepsState createReleaseSubstepsState =
+                createReleaseSubsteps.state as CreateReleaseSubstepsState;
+
+            await tester.enterText(find.byKey(Key(parameterName)), '   ${testInputsCorrect[parameterName]!}  ');
+            expect(createReleaseSubstepsState.releaseData[parameterName], equals(testInputsCorrect[parameterName]!));
+          });
+        } else {
+          testWidgets('${parameterName} should remove any whitespace before validating', (WidgetTester tester) async {
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Material(
+                  child: ListView(
+                    children: <Widget>[
+                      CreateReleaseSubsteps(
+                        nextStep: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+            final CreateReleaseSubstepsState createReleaseSubstepsState =
+                createReleaseSubsteps.state as CreateReleaseSubstepsState;
+            final Map<String, bool> isEachInputValid = createReleaseSubstepsState.isEachInputValid;
+
+            isEachInputValid[parameterName] = false;
+            // input field should remove any whitespace present
+            await tester.enterText(find.byKey(Key(parameterName)), '   $validGitHash1  ,  $validGitHash2    ');
+            isEachInputValid[parameterName] = true;
+          });
+          testWidgets('${parameterName} should remove any whitespace before saving the value',
+              (WidgetTester tester) async {
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Material(
+                  child: ListView(
+                    children: <Widget>[
+                      CreateReleaseSubsteps(
+                        nextStep: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+            final CreateReleaseSubstepsState createReleaseSubstepsState =
+                createReleaseSubsteps.state as CreateReleaseSubstepsState;
+
+            await tester.enterText(find.byKey(Key(parameterName)), '   $validGitHash1  ,  $validGitHash2    ');
+            expect(createReleaseSubstepsState.releaseData[parameterName], equals('$validGitHash1,$validGitHash2'));
+          });
+        }
       }
     }
   });
 
   group('Input textfields validator error messages', () {
+    final GitValidation gitHash = GitHash();
+    final GitValidation multiGitHash = MultiGitHash();
+    final GitValidation gitRemote = GitRemote();
+    final GitValidation candidateBranch = CandidateBranch();
     for (final String parameterName in CreateReleaseSubsteps.substepTitles) {
       // the test does not apply to dropdowns
       if (parameterName != 'Release Channel' && parameterName != 'Increment') {
+        // assign the corresponding error message manually to each type of input
+        late final String validatorErrorMsg;
+        switch (parameterName) {
+          case 'Candidate Branch':
+            validatorErrorMsg = candidateBranch.errorMsg;
+            break;
+          case 'Framework Mirror':
+          case 'Engine Mirror':
+            validatorErrorMsg = gitRemote.errorMsg;
+            break;
+          case 'Engine Cherrypicks (if necessary)':
+          case 'Framework Cherrypicks (if necessary)':
+            validatorErrorMsg = multiGitHash.errorMsg;
+            break;
+          case 'Dart Revision (if necessary)':
+            validatorErrorMsg = gitHash.errorMsg;
+            break;
+          default:
+            break;
+        }
         testWidgets('${parameterName} validator error message displays correctly', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
@@ -139,7 +248,6 @@ void main() {
             ),
           );
 
-          final String validatorErrorMsg = git(name: parameterName).getRegexAndErrorMsg()['errorMsg'] as String;
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           await tester.pumpAndSettle();
           expect(find.text(validatorErrorMsg), findsOneWidget);

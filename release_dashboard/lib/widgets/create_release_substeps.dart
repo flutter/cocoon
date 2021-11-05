@@ -81,6 +81,11 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
 
   @override
   Widget build(BuildContext context) {
+    final GitValidation candidateBranch = CandidateBranch();
+    final GitValidation gitRemote = GitRemote();
+    final GitValidation multiGitHash = MultiGitHash();
+    final GitValidation gitHash = GitHash();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -89,6 +94,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           setReleaseData: setReleaseData,
           hintText: 'The candidate branch the release will be based on.',
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: candidateBranch,
         ),
         CheckboxListTileDropdown(
           substepName: CreateReleaseSubsteps.substepTitles[1],
@@ -102,30 +108,35 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Framework repository mirror.",
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
         ),
         InputAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[3],
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Engine repository mirror.",
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
         ),
         InputAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[4],
           setReleaseData: setReleaseData,
-          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
         ),
         InputAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[5],
           setReleaseData: setReleaseData,
-          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
         ),
         InputAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[6],
           setReleaseData: setReleaseData,
           hintText: 'New Dart revision to cherrypick.',
           changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitHash,
         ),
         CheckboxListTileDropdown(
           substepName: CreateReleaseSubsteps.substepTitles[7],
@@ -158,22 +169,17 @@ class InputAsSubstep extends StatelessWidget {
     required this.setReleaseData,
     this.hintText,
     required this.changeIsInputValid,
+    required this.validationClass,
   }) : super(key: key);
 
   final String substepName;
   final SetReleaseData setReleaseData;
   final String? hintText;
   final ChangeIsEachInputValid changeIsInputValid;
+  final GitValidation validationClass;
 
   @override
   Widget build(BuildContext context) {
-    late RegExp formRegexValidator;
-    late String validatorErrorMsg;
-
-    Map<String, Object> RegexAndErrorMsg = git(name: substepName).getRegexAndErrorMsg();
-    formRegexValidator = RegexAndErrorMsg['regex'] as RegExp;
-    validatorErrorMsg = RegexAndErrorMsg['errorMsg'] as String;
-
     return TextFormField(
       key: Key(substepName),
       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -181,18 +187,17 @@ class InputAsSubstep extends StatelessWidget {
         labelText: substepName,
         hintText: hintText,
       ),
-      onChanged: (String data) {
-        data = data.trim();
-        setReleaseData(substepName, data);
-        if (!formRegexValidator.hasMatch(data)) {
+      onChanged: (String? data) {
+        setReleaseData(substepName, validationClass.sanitize(data));
+        if (!validationClass.isValidate(data)) {
           changeIsInputValid(substepName, false);
         } else {
           changeIsInputValid(substepName, true);
         }
       },
       validator: (String? value) {
-        if (!formRegexValidator.hasMatch(value == null ? '' : value.trim())) {
-          return validatorErrorMsg;
+        if (!validationClass.isValidate(value)) {
+          return validationClass.errorMsg;
         } else {
           return null;
         }
