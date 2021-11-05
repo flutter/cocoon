@@ -7,6 +7,17 @@ import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
 
+enum SubstepEnum {
+  candidateBranch,
+  releaseChannel,
+  frameworkMirror,
+  engineMirror,
+  engineCherrypicks,
+  frameworkCherrypicks,
+  dartRevision,
+  increment,
+}
+
 /// Displays all substeps related to the 1st step.
 ///
 /// Uses input fields and dropdowns to capture all the parameters of the conductor start command.
@@ -31,6 +42,16 @@ class CreateReleaseSubsteps extends StatefulWidget {
     'Dart Revision (if necessary)',
     'Increment',
   ];
+  // static Map<SubstepEnum, String> substepTitles = <SubstepEnum, String>{
+  //   SubstepEnum.candidateBranch: 'Candidate Branch',
+  //   SubstepEnum.releaseChannel: 'Release Channel',
+  //   SubstepEnum.frameworkMirror: 'Framework Mirror',
+  //   SubstepEnum.engineMirror: 'Engine Mirror',
+  //   SubstepEnum.engineCherrypicks: 'Engine Cherrypicks (if necessary)',
+  //   SubstepEnum.frameworkCherrypicks: 'Framework Cherrypicks (if necessary)',
+  //   SubstepEnum.dartRevision: 'Dart Revision (if necessary)',
+  //   SubstepEnum.increment: 'Increment',
+  // };
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
