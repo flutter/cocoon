@@ -242,6 +242,7 @@ class FakeConfig implements Config {
       RepositorySlug('flutter', 'engine'),
       RepositorySlug('flutter', 'cocoon'),
       RepositorySlug('flutter', 'packages'),
+      RepositorySlug('flutter', 'plugins'),
     ].contains(slug);
   }
 

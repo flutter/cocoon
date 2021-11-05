@@ -19,7 +19,12 @@ import '../service/logging.dart';
 import '../service/scheduler.dart';
 
 /// List of repos that require check for labels and tests.
-const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
+const Set<String> kNeedsCheckLabelsAndTests = <String>{
+  'flutter/engine',
+  'flutter/flutter',
+  'flutter/packages',
+  'flutter/plugins',
+};
 
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
@@ -170,6 +175,8 @@ class GithubWebhook extends RequestHandler<Body> {
           await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
         } else if (repo == 'flutter/engine') {
           await _applyEngineRepoLabels(gitHubClient, eventAction, pr);
+        } else if (repo == 'flutter/plugins' || repo == 'flutter/packages') {
+          await _applyPackageTestChecks(gitHubClient, eventAction, pr);
         }
       } finally {
         gitHubClient.dispose();
@@ -355,6 +362,53 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (labels.isNotEmpty) {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
+    }
+
+    if (!hasTests && needsTests && !pr.draft!) {
+      final String body = config.missingTestsPullRequestMessage;
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number!, body);
+        await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, kNeedsTestsLabels);
+      }
+    }
+  }
+
+  // Runs automated test checks for both flutter/packages and flutter/plugins.
+  Future<void> _applyPackageTestChecks(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
+    final RepositorySlug slug = pr.base!.repo!.slug();
+    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
+    bool hasTests = false;
+    bool needsTests = false;
+
+    await for (PullRequestFile file in files) {
+      final String filename = file.filename!;
+      if (filename.endsWith('.c') ||
+          filename.endsWith('.cc') ||
+          filename.endsWith('.cpp') ||
+          filename.endsWith('.dart') ||
+          filename.endsWith('.java') ||
+          filename.endsWith('.kt') ||
+          filename.endsWith('.m') ||
+          filename.endsWith('.mm') ||
+          filename.endsWith('.swift')) {
+        needsTests = true;
+      }
+
+      // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
+      // of various plugin test types and locations.
+      if (filename.endsWith('_test.dart') ||
+          // Native iOS/macOS tests.
+          filename.contains('RunnerTests/') ||
+          filename.contains('RunnerUITests/') ||
+          // Native Android tests.
+          filename.contains('android/src/test/') ||
+          filename.contains('androidTest/') ||
+          // Native Linux tests.
+          filename.endsWith('_test.cc') ||
+          // Native Windows tests.
+          filename.endsWith('_test.cpp')) {
+        hasTests = true;
+      }
     }
 
     if (!hasTests && needsTests && !pr.draft!) {
