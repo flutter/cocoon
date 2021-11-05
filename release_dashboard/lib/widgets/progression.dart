@@ -38,13 +38,6 @@ class MainProgression extends StatefulWidget {
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
 
-  @override
-  void initState() {
-    // Update the status state with the current state file if it exists at the start of the app
-    context.read<StatusState>().changeReleaseStatus(stateToMap(widget.releaseState));
-    super.initState();
-  }
-
   /// Move forward the stepper to the next step of the release.
   void nextStep() {
     if (_completedStep < MainProgression._stepTitles.length - 1) {

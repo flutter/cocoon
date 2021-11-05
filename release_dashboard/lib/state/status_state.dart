@@ -3,12 +3,19 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
+import '../services/conductor.dart';
 import 'package:flutter/material.dart';
 import 'package:conductor_core/proto.dart' as pb;
 
 /// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
-  Map<String, Object>? releaseStatus;
+  StatusState({
+    required this.conductor,
+  }) : releaseStatus = stateToMap(conductor.state);
+
+  final ConductorService conductor;
+
+  late Map<String, Object>? releaseStatus;
 
   /// Method that modifies the global state in provider.
   Future<void> changeReleaseStatus(Map<String, Object>? data) async {

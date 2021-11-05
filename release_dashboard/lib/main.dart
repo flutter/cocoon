@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => StatusState(),
+      create: (context) => StatusState(conductor: conductor),
       child: MaterialApp(
         title: _title,
         home: Scaffold(
