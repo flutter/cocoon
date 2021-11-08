@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'services/conductor.dart';
 import 'services/local_conductor.dart';
 import 'widgets/common/dialog_prompt.dart';
+import 'package:provider/provider.dart';
+
+import 'state/status_state.dart';
 import 'widgets/progression.dart';
 
 const String _title = 'Flutter Desktop Conductor (Not ready, do not use)';
@@ -33,26 +36,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: _title,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text(_title),
-          actions: const [CleanRelease()],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const SelectableText(
-                'Desktop app for managing a release of the Flutter SDK, currently in development',
-              ),
-              const SizedBox(height: 10.0),
-              MainProgression(
-                releaseState: conductor.state,
-              ),
-            ],
+    return ChangeNotifierProvider(
+      create: (context) => StatusState(conductor: conductor),
+      child: MaterialApp(
+        title: _title,
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text(_title),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const SelectableText(
+                  'Desktop app for managing a release of the Flutter SDK, currently in development',
+                ),
+                const SizedBox(height: 10.0),
+                MainProgression(
+                  releaseState: conductor.state,
+                ),
+              ],
+            ),
           ),
         ),
       ),

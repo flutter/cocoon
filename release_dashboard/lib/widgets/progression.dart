@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'substeps.dart';
+import 'package:conductor_core/proto.dart' as pb;
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -69,9 +69,7 @@ class MainProgressionState extends State<MainProgression> {
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           physics: const ClampingScrollPhysics(),
           children: <Widget>[
-            ConductorStatus(
-              releaseState: widget.releaseState,
-            ),
+            const ConductorStatus(),
             const SizedBox(height: 20.0),
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),
