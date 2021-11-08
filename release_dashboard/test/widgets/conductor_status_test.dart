@@ -137,20 +137,8 @@ void main() {
           equals(true));
     });
 
-    testWidgets('Repo Info section displays URLs', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Material(
-            child: ListView(
-              children: <Widget>[
-                ConductorStatus(
-                  releaseState: state,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+    testWidgets('Repo Info section displays UrlButton', (WidgetTester tester) async {
+      await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
 
       expect(find.byType(UrlButton), findsNWidgets(4));
     });

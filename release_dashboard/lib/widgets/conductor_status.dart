@@ -70,7 +70,7 @@ class ConductorStatusState extends State<ConductorStatus> {
               TableRow(
                 children: <Widget>[
                   Text('$headerElement:'),
-                  SelectableText(statusElementToString(currentStatus[headerElement])),
+                  SelectableText(statusElementToString(releaseStatus![headerElement])),
                 ],
               ),
           ],
@@ -239,11 +239,11 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                             ? Align(
                                 alignment: Alignment.centerLeft,
                                 child: UrlButton(
-                                  textToDisplay: statusElementToString(widget.currentStatus[repoElement]),
-                                  urlOrUri: statusElementToString(widget.currentStatus[repoElement]),
+                                  textToDisplay: statusElementToString(widget.releaseStatus[repoElement]),
+                                  urlOrUri: statusElementToString(widget.releaseStatus[repoElement]),
                                 ),
                               )
-                            : SelectableText(statusElementToString(widget.currentStatus[repoElement])),
+                            : SelectableText(statusElementToString(widget.releaseStatus[repoElement])),
                       ],
                     ),
                 ],
