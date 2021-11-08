@@ -23,7 +23,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Material(
-            child: UrlButton(textToDisplay: textToDisplay, isURL: true, urlOrUri: url),
+            child: UrlButton(textToDisplay: textToDisplay, urlOrUri: url),
           ),
         ),
       );
@@ -53,7 +53,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Material(
-            child: UrlButton(textToDisplay: textToDisplay, isURL: false, urlOrUri: uri),
+            child: UrlButton(textToDisplay: textToDisplay, urlOrUri: uri),
           ),
         ),
       );

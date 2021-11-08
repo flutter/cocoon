@@ -9,24 +9,24 @@ import 'package:url_launcher/link.dart';
 ///
 /// Clicking on [TextButton] will open [urlOrUri].
 /// Supports opening a URL in the web browser or URI in the local file system.
-/// When [isURL] is true, the widget opens a URL and [urlOrUri] must be a URL.
-/// Otherwise the widget opens a URI and [urlOrUri] must be a URI.
+/// The widget automatically detects if [urlOrUri] is a URL or URI.
 class UrlButton extends StatelessWidget {
   const UrlButton({
     Key? key,
     required this.textToDisplay,
-    required this.isURL,
     required this.urlOrUri,
   }) : super(key: key);
 
   final String textToDisplay;
-  final bool isURL;
   final String urlOrUri;
 
   @override
   Widget build(BuildContext context) {
     return Link(
-      uri: isURL ? Uri.parse(urlOrUri) : Uri.file(urlOrUri),
+      /// URL supports case insensitive links such as 'HTTP://...'.
+      ///
+      /// Converts [urlOrUri] to lowercase first then check if it matches with 'http' to support all cases.
+      uri: urlOrUri.toLowerCase().startsWith('http') ? Uri.parse(urlOrUri) : Uri.file(urlOrUri),
       target: LinkTarget.blank,
       builder: (ctx, openLink) {
         return TextButton(

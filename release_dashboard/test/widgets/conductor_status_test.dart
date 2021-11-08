@@ -111,10 +111,10 @@ void main() {
       await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
-      for (final String repoElement in ConductorStatus.engineRepoElements) {
+      for (final String repoElement in ConductorStatus.engineRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
-      for (final String repoElement in ConductorStatus.frameworkRepoElements) {
+      for (final String repoElement in ConductorStatus.frameworkRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
       expect(find.text(engineCandidateBranch), findsOneWidget);
