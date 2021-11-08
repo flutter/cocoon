@@ -174,7 +174,7 @@ typedef ChangeIsEachInputValid = void Function(String name, bool isValid);
 
 /// Captures the input values and updates the corresponding field in [releaseData].
 class InputAsSubstep extends StatelessWidget {
-  InputAsSubstep({
+  const InputAsSubstep({
     Key? key,
     required this.substepName,
     required this.setReleaseData,

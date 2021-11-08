@@ -33,7 +33,7 @@ void main() {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
       if (parameterName == CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! ||
           parameterName == CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
-        testWidgets('${parameterName} dropdown test', (WidgetTester tester) async {
+        testWidgets('$parameterName dropdown test', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Material(
@@ -68,7 +68,7 @@ void main() {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
       if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! &&
           parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
-        testWidgets('${parameterName} input test', (WidgetTester tester) async {
+        testWidgets('$parameterName input test', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Material(
@@ -104,7 +104,7 @@ void main() {
           parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
         if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]! &&
             parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!) {
-          testWidgets('${parameterName} should trim leading and trailing whitespaces before validating',
+          testWidgets('$parameterName should trim leading and trailing whitespaces before validating',
               (WidgetTester tester) async {
             await tester.pumpWidget(
               MaterialApp(
@@ -131,7 +131,7 @@ void main() {
             isEachInputValid[parameterName] = true;
           });
 
-          testWidgets('${parameterName} should trim leading and trailing whitespaces before saving the value',
+          testWidgets('$parameterName should trim leading and trailing whitespaces before saving the value',
               (WidgetTester tester) async {
             await tester.pumpWidget(
               MaterialApp(
@@ -155,7 +155,7 @@ void main() {
             expect(createReleaseSubstepsState.releaseData[parameterName], equals(testInputsCorrect[parameterName]!));
           });
         } else {
-          testWidgets('${parameterName} should remove any whitespace before validating', (WidgetTester tester) async {
+          testWidgets('$parameterName should remove any whitespace before validating', (WidgetTester tester) async {
             await tester.pumpWidget(
               MaterialApp(
                 home: Material(
@@ -180,7 +180,7 @@ void main() {
             await tester.enterText(find.byKey(Key(parameterName)), '   $validGitHash1  ,  $validGitHash2    ');
             isEachInputValid[parameterName] = true;
           });
-          testWidgets('${parameterName} should remove any whitespace before saving the value',
+          testWidgets('$parameterName should remove any whitespace before saving the value',
               (WidgetTester tester) async {
             await tester.pumpWidget(
               MaterialApp(
@@ -237,7 +237,7 @@ void main() {
           default:
             break;
         }
-        testWidgets('${parameterName} validator error message displays correctly', (WidgetTester tester) async {
+        testWidgets('$parameterName validator error message displays correctly', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Material(

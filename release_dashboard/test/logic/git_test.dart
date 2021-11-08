@@ -42,19 +42,19 @@ void main() {
     });
 
     test('GitHash class sanitizes and accepts leading or trailing whitespaces', () {
-      final String validGitHash3 = '   $validGitHash2    ';
+      const String validGitHash3 = '   $validGitHash2    ';
       expect(gitHash.isValidate(validGitHash3), true);
       expect(gitHash.sanitize(validGitHash3), equals(validGitHash2));
     });
   });
 
   group('Multi Git hash tests', () {
-    String validMultiHash1 = '$validGitHash1,$validGitHash2';
-    String validMultiHash2 = '$validGitHash1,$validGitHash2,$validGitHash2';
-    String validMultiHash3 = '$validGitHash1';
-    String invalidMultiHash1 = '$validGitHash1,$validGitHash2,$validGitHash2,';
-    String invalidMultiHash2 = '$validGitHash1,$invalidGitHash1,$validGitHash2';
-    String invalidMultiHash3 = '$invalidGitHash1';
+    const String validMultiHash1 = '$validGitHash1,$validGitHash2';
+    const String validMultiHash2 = '$validGitHash1,$validGitHash2,$validGitHash2';
+    const String validMultiHash3 = validGitHash1;
+    const String invalidMultiHash1 = '$validGitHash1,$validGitHash2,$validGitHash2,';
+    const String invalidMultiHash2 = '$validGitHash1,$invalidGitHash1,$validGitHash2';
+    const String invalidMultiHash3 = invalidGitHash1;
     test('Multi Git hash validaiton accepts an empty string, null or all whitespaces', () {
       expect(multiGitHash.isValidate(empty), true);
       expect(multiGitHash.isValidate(allWhitespaces), true);
@@ -83,17 +83,17 @@ void main() {
     });
 
     test('MultiGitHash class sanitizes and accepts whitespaces anywhere', () {
-      String validMultiHash4 = '   $validGitHash1   ,   $validGitHash2,    $validGitHash2       ';
+      const String validMultiHash4 = '   $validGitHash1   ,   $validGitHash2,    $validGitHash2       ';
       expect(multiGitHash.isValidate(validMultiHash4), true);
       expect(multiGitHash.sanitize(validMultiHash4), equals('$validGitHash1,$validGitHash2,$validGitHash2'));
     });
   });
 
   group('Candidate branch tests', () {
-    String validCandidateBranch1 = 'flutter-2.7-candidate.3';
-    String validCandidateBranch2 = 'flutter-5.7-candidate.310';
-    String invalidCandidateBranch1 = 'flutter-5.c-candidate.3';
-    String invalidCandidateBranch2 = 'flutter-5.c-candidate.34';
+    const String validCandidateBranch1 = 'flutter-2.7-candidate.3';
+    const String validCandidateBranch2 = 'flutter-5.7-candidate.310';
+    const String invalidCandidateBranch1 = 'flutter-5.c-candidate.3';
+    const String invalidCandidateBranch2 = 'flutter-5.c-candidate.34';
     test('Candidate branch validaiton does not accept an empty string or null', () {
       expect(candidateBranch.isValidate(empty), false);
       expect(candidateBranch.isValidate(null), false);
@@ -110,16 +110,16 @@ void main() {
     });
 
     test('Candidate branch sanitizes and accepts leading or trailing whitespaces', () {
-      final String validCandidateBranch3 = '   $validCandidateBranch2    ';
+      const String validCandidateBranch3 = '   $validCandidateBranch2    ';
       expect(candidateBranch.isValidate(validCandidateBranch3), true);
       expect(candidateBranch.sanitize(validCandidateBranch3), equals(validCandidateBranch2));
     });
   });
 
   group('Git remote tests', () {
-    String validGitRemote1 = 'git@github.com:user/flutter.git';
-    String validGitRemote2 = 'https://github.com/user/flutter';
-    String invalidGitRemote = 'git@github.com:user/flutter.git@@';
+    const String validGitRemote1 = 'git@github.com:user/flutter.git';
+    const String validGitRemote2 = 'https://github.com/user/flutter';
+    const String invalidGitRemote = 'git@github.com:user/flutter.git@@';
     test('Git remote validation does not accept an empty string or null', () {
       expect(gitRemote.isValidate(empty), false);
       expect(gitRemote.isValidate(null), false);
@@ -135,7 +135,7 @@ void main() {
     });
 
     test('Git remote sanitizes and accepts leading or trailing whitespaces', () {
-      final String validGitRemote3 = '   $validGitRemote2    ';
+      const String validGitRemote3 = '   $validGitRemote2    ';
       expect(gitRemote.isValidate(validGitRemote3), true);
       expect(gitRemote.sanitize(validGitRemote3), equals(validGitRemote2));
     });

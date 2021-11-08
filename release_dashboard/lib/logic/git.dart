@@ -25,16 +25,20 @@ class CandidateBranch extends GitValidation {
   final RegExp _candidateBranchRegex = RegExp(r'^flutter-(\d+)\.(\d+)-candidate\.(\d+)$');
   final String _candidateBranchErrorMsg = "Must be a valid candidate branch string, e.g. 'flutter-1.2-candidate.3'";
 
+  @override
   RegExp get regex => _candidateBranchRegex;
 
+  @override
   String get errorMsg => _candidateBranchErrorMsg;
 
+  @override
   String sanitize(String? input) {
     return (input == null ? '' : input.trim()); // removes leading or trailing whitespaces
   }
 
+  @override
   bool isValidate(String? input) {
-    return this.regex.hasMatch(this.sanitize(input));
+    return regex.hasMatch(sanitize(input));
   }
 }
 
@@ -42,16 +46,20 @@ class CandidateBranch extends GitValidation {
 class GitRemote extends GitValidation {
   final String _githubRemoteErrorMsg = "Must be a valid Github remote string, e.g. 'git@github.com:user/flutter.git'";
 
+  @override
   RegExp get regex => githubRemotePattern;
 
+  @override
   String get errorMsg => _githubRemoteErrorMsg;
 
+  @override
   String sanitize(String? input) {
     return (input == null ? '' : input.trim()); // removes leading or trailing whitespaces
   }
 
+  @override
   bool isValidate(String? input) {
-    return this.regex.hasMatch(this.sanitize(input));
+    return regex.hasMatch(sanitize(input));
   }
 }
 
@@ -67,18 +75,23 @@ class MultiGitHash extends GitValidation {
   final String _multiGitHashErrorMsg =
       'Must be one or more groups of 40 alphanumeric characters delimited by a comma or an empty string.';
 
+  @override
   RegExp get regex => _multiGitHashRegex;
 
+  @override
   String get errorMsg => _multiGitHashErrorMsg;
 
+  @override
   String sanitize(String? input) {
     return (input!.replaceAll(' ', '')); // removes any whitespaces
   }
 
+  @override
   bool isValidate(String? input) {
-    if (input == null || input == '' || this.sanitize(input) == '')
-      return true; // allows empty input, and a string of only whitesplaces
-    return this.regex.hasMatch(this.sanitize(input));
+    if (input == null || input == '' || sanitize(input) == '') {
+      return true;
+    } // allows empty input, and a string of only whitesplaces
+    return regex.hasMatch(sanitize(input));
   }
 }
 
@@ -87,17 +100,22 @@ class GitHash extends GitValidation {
   final RegExp _gitHashRegex = RegExp(r'^[0-9a-f]{40}$');
   final String _gitHashErrorMsg = 'Must be 40 alphanumeric characters or an empty string.';
 
+  @override
   RegExp get regex => _gitHashRegex;
 
+  @override
   String get errorMsg => _gitHashErrorMsg;
 
+  @override
   String sanitize(String? input) {
     return (input!.trim()); // removes leading or trailing whitespaces
   }
 
+  @override
   bool isValidate(String? input) {
-    if (input == null || input == '' || this.sanitize(input) == '')
-      return true; // allows empty input, but only whitespaces are not allowed
-    return this.regex.hasMatch(this.sanitize(input));
+    if (input == null || input == '' || sanitize(input) == '') {
+      return true;
+    } // allows empty input, but only whitespaces are not allowed
+    return regex.hasMatch(sanitize(input));
   }
 }
