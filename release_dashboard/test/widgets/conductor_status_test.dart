@@ -5,6 +5,7 @@
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:conductor_ui/main.dart';
+import 'package:conductor_ui/widgets/common/url_button.dart';
 import 'package:conductor_ui/widgets/conductor_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,10 +28,10 @@ void main() {
     const String frameworkCherrypick = '768cd702b691584b2c67b8d30b5cb33e0ef6f0';
     const String engineStartingGitHead = '083049e6cae311910c6a6619a6681b7eba4035b4';
     const String engineCurrentGitHead = '23otn2o3itn2o3int2oi3tno23itno2i3tn';
-    const String engineCheckoutPath = '/Users/alexchen/Desktop/flutter_conductor_checkouts/engine';
+    const String engineCheckoutPath = '/Users/engine';
     const String frameworkStartingGitHead = 'df6981e98rh49er8h149er8h19er8h1';
     const String frameworkCurrentGitHead = '239tnint023t09j2039tj0239tn';
-    const String frameworkCheckoutPath = '/Users/alexchen/Desktop/flutter_conductor_checkouts/framework';
+    const String frameworkCheckoutPath = '/Users/framework';
     final String engineLUCIDashboard = luciConsoleLink(releaseChannel, 'engine');
     final String frameworkLUCIDashboard = luciConsoleLink(releaseChannel, 'flutter');
 
@@ -110,10 +111,10 @@ void main() {
       await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
 
       expect(find.text('No persistent state file. Try starting a release.'), findsNothing);
-      for (final String repoElement in ConductorStatus.engineRepoElements) {
+      for (final String repoElement in ConductorStatus.engineRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
-      for (final String repoElement in ConductorStatus.frameworkRepoElements) {
+      for (final String repoElement in ConductorStatus.frameworkRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
       expect(find.text(engineCandidateBranch), findsOneWidget);
@@ -134,6 +135,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<ExpansionPanelList>(find.byType(ExpansionPanelList).first).children[0].isExpanded,
           equals(true));
+    });
+
+    testWidgets('Repo Info section displays UrlButton', (WidgetTester tester) async {
+      await tester.pumpWidget(MyApp(FakeConductor(testState: state)));
+
+      expect(find.byType(UrlButton), findsNWidgets(4));
     });
   });
 }

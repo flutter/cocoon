@@ -7,6 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'common/tooltip.dart';
+import 'common/url_button.dart';
+
+enum SubstepEnum {
+  candidateBranch,
+  startingGitHead,
+  currentGitHead,
+  checkoutPath,
+  dashboardLink,
+}
 
 /// Displays the current conductor state.
 class ConductorStatus extends StatefulWidget {
@@ -24,21 +33,21 @@ class ConductorStatus extends StatefulWidget {
     'Dart SDK Revision',
   ];
 
-  static final List<String> engineRepoElements = <String>[
-    'Engine Candidate Branch',
-    'Engine Starting Git HEAD',
-    'Engine Current Git HEAD',
-    'Engine Path to Checkout',
-    'Engine LUCI Dashboard',
-  ];
+  static final Map<SubstepEnum, String> engineRepoElements = <SubstepEnum, String>{
+    SubstepEnum.candidateBranch: 'Engine Candidate Branch',
+    SubstepEnum.startingGitHead: 'Engine Starting Git HEAD',
+    SubstepEnum.currentGitHead: 'Engine Current Git HEAD',
+    SubstepEnum.checkoutPath: 'Engine Path to Checkout',
+    SubstepEnum.dashboardLink: 'Engine LUCI Dashboard',
+  };
 
-  static final List<String> frameworkRepoElements = <String>[
-    'Framework Candidate Branch',
-    'Framework Starting Git HEAD',
-    'Framework Current Git HEAD',
-    'Framework Path to Checkout',
-    'Framework LUCI Dashboard',
-  ];
+  static final Map<SubstepEnum, String> frameworkRepoElements = <SubstepEnum, String>{
+    SubstepEnum.candidateBranch: 'Framework Candidate Branch',
+    SubstepEnum.startingGitHead: 'Framework Starting Git HEAD',
+    SubstepEnum.currentGitHead: 'Framework Current Git HEAD',
+    SubstepEnum.checkoutPath: 'Framework Path to Checkout',
+    SubstepEnum.dashboardLink: 'Framework LUCI Dashboard',
+  };
 }
 
 class ConductorStatusState extends State<ConductorStatus> {
@@ -61,9 +70,7 @@ class ConductorStatusState extends State<ConductorStatus> {
               TableRow(
                 children: <Widget>[
                   Text('$headerElement:'),
-                  SelectableText((releaseStatus![headerElement] == null || releaseStatus[headerElement] == '')
-                      ? 'Unknown'
-                      : releaseStatus[headerElement]! as String),
+                  SelectableText(statusElementToString(releaseStatus![headerElement])),
                 ],
               ),
           ],
@@ -183,6 +190,17 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
     });
   }
 
+  /// Helper function to determine if a clickable [UrlButton] should be rendered instead of a [SelectableText].
+  bool isClickable(String repoElement) {
+    List<String> clickableElements = <String>[
+      ConductorStatus.engineRepoElements[SubstepEnum.dashboardLink]!,
+      ConductorStatus.engineRepoElements[SubstepEnum.checkoutPath]!,
+      ConductorStatus.frameworkRepoElements[SubstepEnum.dashboardLink]!,
+      ConductorStatus.frameworkRepoElements[SubstepEnum.checkoutPath]!
+    ];
+    return (clickableElements.contains(repoElement));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -211,16 +229,21 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                 },
                 children: <TableRow>[
                   for (String repoElement in widget.engineOrFramework == 'engine'
-                      ? ConductorStatus.engineRepoElements
-                      : ConductorStatus.frameworkRepoElements)
+                      ? ConductorStatus.engineRepoElements.values
+                      : ConductorStatus.frameworkRepoElements.values)
                     TableRow(
                       decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.grey))),
                       children: <Widget>[
                         Text('$repoElement:'),
-                        SelectableText(
-                            (widget.releaseStatus[repoElement] == null || widget.releaseStatus[repoElement] == '')
-                                ? 'Unknown'
-                                : widget.releaseStatus[repoElement]! as String),
+                        isClickable(repoElement)
+                            ? Align(
+                                alignment: Alignment.centerLeft,
+                                child: UrlButton(
+                                  textToDisplay: statusElementToString(widget.releaseStatus[repoElement]),
+                                  urlOrUri: statusElementToString(widget.releaseStatus[repoElement]),
+                                ),
+                              )
+                            : SelectableText(statusElementToString(widget.releaseStatus[repoElement])),
                       ],
                     ),
                 ],
@@ -231,4 +254,11 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
       ),
     );
   }
+}
+
+/// Converts each status element from an Object to a String.
+///
+/// Returns [Unknown] string if the element is empty.
+String statusElementToString(Object? statusElement) {
+  return ((statusElement == null || statusElement == '') ? 'Unknown' : statusElement as String);
 }
