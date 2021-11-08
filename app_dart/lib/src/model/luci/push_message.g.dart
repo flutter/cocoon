@@ -74,21 +74,21 @@ Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
 Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       bucket: json['bucket'] as String?,
       canary: json['canary'] as bool?,
-      canaryPreference: _$enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
-      cancelationReason: _$enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
+      canaryPreference: $enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
+      cancelationReason: $enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
       completedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['completed_ts'] as String?),
       createdBy: json['created_by'] as String?,
       createdTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['created_ts'] as String?),
-      failureReason: _$enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
+      failureReason: $enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
       experimental: json['experimental'] as bool?,
       id: json['id'] as String?,
       buildParameters: const NestedJsonConverter().fromJson(json['parameters_json'] as String?),
       project: json['project'] as String?,
-      result: _$enumDecodeNullable(_$ResultEnumMap, json['result']),
+      result: $enumDecodeNullable(_$ResultEnumMap, json['result']),
       resultDetails: const NestedJsonConverter().fromJson(json['result_details_json'] as String?),
       serviceAccount: json['service_account'] as String?,
       startedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
-      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       updatedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
       utcNowTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
@@ -126,43 +126,6 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('url', instance.url);
   writeNotNull('utcnow_ts', const MillisecondsSinceEpochConverter().toJson(instance.utcNowTimestamp));
   return val;
-}
-
-K _$enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
-
-K? _$enumDecodeNullable<K, V>(
-  Map<K, V> enumValues,
-  dynamic source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    return null;
-  }
-  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$CanaryPreferenceEnumMap = {

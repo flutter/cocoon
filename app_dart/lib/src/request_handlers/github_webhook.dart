@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
+import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -66,9 +67,8 @@ class GithubWebhook extends RequestHandler<Body> {
           break;
         case 'check_run':
           final Map<String, dynamic> event = jsonDecode(stringRequest) as Map<String, dynamic>;
-          final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(jsonDecode(stringRequest) as Map<String, dynamic>);
-          final PullRequest? pullRequest = getPullRequestFromCheckRunEvent(event);
-          await scheduler.processCheckRun(pullRequest, checkRunEvent);
+          final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
+          await scheduler.processCheckRun(checkRunEvent);
       }
 
       return Body.empty;
@@ -182,15 +182,6 @@ class GithubWebhook extends RequestHandler<Body> {
         gitHubClient.dispose();
       }
     }
-  }
-
-  PullRequest? getPullRequestFromCheckRunEvent(Map<String, dynamic> event) {
-    final List<dynamic> pullRequests = event['check_run']['pull_requests'] as List<dynamic>;
-    // Cocoon only processes events on a single pull request. BatchRequests are currently not processed
-    if (pullRequests.isEmpty || pullRequests.length != 1) {
-      return null;
-    }
-    return PullRequest.fromJson(pullRequests.single as Map<String, dynamic>);
   }
 
   Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {

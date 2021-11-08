@@ -164,7 +164,7 @@ Map<String, dynamic> _$SearchBuildsRequestToJson(SearchBuildsRequest instance) {
 
 BuildPredicate _$BuildPredicateFromJson(Map<String, dynamic> json) => BuildPredicate(
       builderId: json['builder'] == null ? null : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
-      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       createdBy: json['createdBy'] as String?,
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       includeExperimental: json['includeExperimental'] as bool?,
@@ -185,43 +185,6 @@ Map<String, dynamic> _$BuildPredicateToJson(BuildPredicate instance) {
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
   writeNotNull('includeExperimental', instance.includeExperimental);
   return val;
-}
-
-K _$enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
-
-K? _$enumDecodeNullable<K, V>(
-  Map<K, V> enumValues,
-  dynamic source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    return null;
-  }
-  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$StatusEnumMap = {
@@ -258,7 +221,7 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) =
       requestId: json['requestId'] as String?,
       builderId: BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
       canary: json['canary'] as bool?,
-      experimental: _$enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
+      experimental: $enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
       gitilesCommit:
           json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
       properties: json['properties'] as Map<String, dynamic>?,
@@ -308,11 +271,11 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       canceledBy: json['canceledBy'] as String?,
       startTime: json['startTime'] == null ? null : DateTime.parse(json['startTime'] as String),
       endTime: json['endTime'] == null ? null : DateTime.parse(json['endTime'] as String),
-      status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
+      status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       tags: const TagsConverter().fromJson(json['tags'] as List?),
       input: json['input'] == null ? null : Input.fromJson(json['input'] as Map<String, dynamic>),
       summaryMarkdown: json['summaryMarkdown'] as String?,
-      critical: _$enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
+      critical: $enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
     );
 
 Map<String, dynamic> _$BuildToJson(Build instance) {

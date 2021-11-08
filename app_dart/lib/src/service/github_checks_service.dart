@@ -50,6 +50,7 @@ class GithubChecksService {
         break;
 
       case 'rerequested':
+        pullRequest.head = github.PullRequestHead(sha: checkSuiteEvent.checkSuite?.headSha);
         return await scheduler.retryPresubmitTargets(
           pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
