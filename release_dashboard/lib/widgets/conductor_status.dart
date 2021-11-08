@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'common/tooltip.dart';
+import 'common/url_button.dart';
 
 /// Displays the current conductor state.
 class ConductorStatus extends StatefulWidget {
@@ -61,9 +62,7 @@ class ConductorStatusState extends State<ConductorStatus> {
               TableRow(
                 children: <Widget>[
                   Text('$headerElement:'),
-                  SelectableText((releaseStatus![headerElement] == null || releaseStatus[headerElement] == '')
-                      ? 'Unknown'
-                      : releaseStatus[headerElement]! as String),
+                  SelectableText(statusElementToString(currentStatus[headerElement])),
                 ],
               ),
           ],
@@ -169,6 +168,13 @@ class RepoInfoExpansion extends StatefulWidget {
   final String engineOrFramework;
   final Map<String, Object> releaseStatus;
 
+  static const Map<String, int> urlElements = <String, int>{
+    'engine path to checkout': 3,
+    'framework path to checkout': 3,
+    'engine luci dashboard': 4,
+    'framework luci dashboard': 4,
+  };
+
   @override
   State<RepoInfoExpansion> createState() => RepoInfoExpansionState();
 }
@@ -181,6 +187,17 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+  }
+
+  /// Helper function to determine if a [UrlButton] should be rendered instead of a [SelectableText].
+  bool isClickable(String repoElement) {
+    return (repoElement ==
+            ConductorStatus.engineRepoElements[RepoInfoExpansion.urlElements['engine luci dashboard']!] ||
+        repoElement ==
+            ConductorStatus.frameworkRepoElements[RepoInfoExpansion.urlElements['framework luci dashboard']!] ||
+        repoElement == ConductorStatus.engineRepoElements[RepoInfoExpansion.urlElements['engine path to checkout']!] ||
+        repoElement ==
+            ConductorStatus.frameworkRepoElements[RepoInfoExpansion.urlElements['framework path to checkout']!]);
   }
 
   @override
@@ -217,10 +234,17 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                       decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.grey))),
                       children: <Widget>[
                         Text('$repoElement:'),
-                        SelectableText(
-                            (widget.releaseStatus[repoElement] == null || widget.releaseStatus[repoElement] == '')
-                                ? 'Unknown'
-                                : widget.releaseStatus[repoElement]! as String),
+                        isClickable(repoElement)
+                            ? Align(
+                                alignment: Alignment.centerLeft,
+                                child: UrlButton(
+                                  textToDisplay: statusElementToString(widget.currentStatus[repoElement]),
+                                  isURL: repoElement == ConductorStatus.engineRepoElements[4] ||
+                                      repoElement == ConductorStatus.frameworkRepoElements[4],
+                                  urlOrUri: statusElementToString(widget.currentStatus[repoElement]),
+                                ),
+                              )
+                            : SelectableText(statusElementToString(widget.currentStatus[repoElement])),
                       ],
                     ),
                 ],
@@ -231,4 +255,11 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
       ),
     );
   }
+}
+
+/// Converts each status element from an Object to a String.
+///
+/// Returns [Unknown] string if the element is empty.
+String statusElementToString(Object? statusElement) {
+  return ((statusElement == null || statusElement == '') ? 'Unknown' : statusElement as String);
 }
