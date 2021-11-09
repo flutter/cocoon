@@ -200,14 +200,14 @@ class InputAsSubstep extends StatelessWidget {
       ),
       onChanged: (String? data) {
         setReleaseData(substepName, validationClass.sanitize(data));
-        if (!validationClass.isValidate(data)) {
+        if (!validationClass.isValid(data)) {
           changeIsInputValid(substepName, false);
         } else {
           changeIsInputValid(substepName, true);
         }
       },
       validator: (String? value) {
-        if (!validationClass.isValidate(value)) {
+        if (!validationClass.isValid(value)) {
           return validationClass.errorMsg;
         } else {
           return null;
