@@ -2,9 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import '../logic/git.dart';
 import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
+
+enum SubstepEnum {
+  candidateBranch,
+  releaseChannel,
+  frameworkMirror,
+  engineMirror,
+  engineCherrypicks,
+  frameworkCherrypicks,
+  dartRevision,
+  increment,
+}
 
 /// Displays all substeps related to the 1st step.
 ///
@@ -20,22 +32,43 @@ class CreateReleaseSubsteps extends StatefulWidget {
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
 
-  static const List<String> substepTitles = <String>[
-    'Candidate Branch',
-    'Release Channel',
-    'Framework Mirror',
-    'Engine Mirror',
-    'Engine Cherrypicks (if necessary)',
-    'Framework Cherrypicks (if necessary)',
-    'Dart Revision (if necessary)',
-    'Increment',
-  ];
+  static Map<SubstepEnum, String> substepTitles = <SubstepEnum, String>{
+    SubstepEnum.candidateBranch: 'Candidate Branch',
+    SubstepEnum.releaseChannel: 'Release Channel',
+    SubstepEnum.frameworkMirror: 'Framework Mirror',
+    SubstepEnum.engineMirror: 'Engine Mirror',
+    SubstepEnum.engineCherrypicks: 'Engine Cherrypicks (if necessary)',
+    SubstepEnum.frameworkCherrypicks: 'Framework Cherrypicks (if necessary)',
+    SubstepEnum.dartRevision: 'Dart Revision (if necessary)',
+    SubstepEnum.increment: 'Increment',
+  };
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
-  // Initialize a public state so it could be accessed in the test file.
+  /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
+
+  /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
+  @visibleForTesting
+  Map<String, bool> isEachInputValid = <String, bool>{};
+
+  @override
+  void initState() {
+    List<String> kOptionalInput = <String>[
+      CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]!,
+      CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!,
+      CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]!,
+    ];
+    // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
+    for (final String substep in CreateReleaseSubsteps.substepTitles.values) {
+      isEachInputValid = <String, bool>{
+        ...isEachInputValid,
+        substep: kOptionalInput.contains(substep),
+      };
+    }
+    super.initState();
+  }
 
   /// Updates the corresponding [field] in [releaseData] with [data].
   void setReleaseData(String field, String data) {
@@ -47,62 +80,87 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
+  /// Modifies [name] in [isEachInputValid] with [isValid].
+  void changeIsEachInputValid(String name, bool isValid) {
+    setState(() {
+      isEachInputValid = <String, bool>{
+        ...isEachInputValid,
+        name: isValid,
+      };
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final GitValidation candidateBranch = CandidateBranch();
+    final GitValidation gitRemote = GitRemote();
+    final GitValidation multiGitHash = MultiGitHash();
+    final GitValidation gitHash = GitHash();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         InputAsSubstep(
-          index: 0,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.candidateBranch]!,
           setReleaseData: setReleaseData,
           hintText: 'The candidate branch the release will be based on.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: candidateBranch,
         ),
         CheckboxListTileDropdown(
-          index: 1,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['dev', 'beta', 'stable'],
+          changeIsDropdownValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
-          index: 2,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkMirror]!,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Framework repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
         ),
         InputAsSubstep(
-          index: 3,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.engineMirror]!,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Engine repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
         ),
         InputAsSubstep(
-          index: 4,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]!,
           setReleaseData: setReleaseData,
-          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
         ),
         InputAsSubstep(
-          index: 5,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!,
           setReleaseData: setReleaseData,
-          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma, no spaces.',
+          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
         ),
         InputAsSubstep(
-          index: 6,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]!,
           setReleaseData: setReleaseData,
           hintText: 'New Dart revision to cherrypick.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitHash,
         ),
         CheckboxListTileDropdown(
-          index: 7,
+          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['y', 'z', 'm', 'n'],
+          changeIsDropdownValid: changeIsEachInputValid,
         ),
         const SizedBox(height: 20.0),
         Center(
-          // TODO(Yugue): Add regex validation for each parameter input
-          // before Continue button is enabled, https://github.com/flutter/flutter/issues/91925.
           child: ElevatedButton(
             key: const Key('step1continue'),
-            onPressed: () {
-              widget.nextStep();
-            },
+            onPressed: isEachInputValid.containsValue(false) ? null : widget.nextStep,
             child: const Text('Continue'),
           ),
         ),
@@ -112,30 +170,48 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
 }
 
 typedef SetReleaseData = void Function(String name, String data);
+typedef ChangeIsEachInputValid = void Function(String name, bool isValid);
 
 /// Captures the input values and updates the corresponding field in [releaseData].
 class InputAsSubstep extends StatelessWidget {
   const InputAsSubstep({
     Key? key,
-    required this.index,
+    required this.substepName,
     required this.setReleaseData,
     this.hintText,
+    required this.changeIsInputValid,
+    required this.validationClass,
   }) : super(key: key);
 
-  final int index;
+  final String substepName;
   final SetReleaseData setReleaseData;
   final String? hintText;
+  final ChangeIsEachInputValid changeIsInputValid;
+  final GitValidation validationClass;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      key: Key(CreateReleaseSubsteps.substepTitles[index]),
+      key: Key(substepName),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
-        labelText: CreateReleaseSubsteps.substepTitles[index],
+        labelText: substepName,
         hintText: hintText,
       ),
-      onChanged: (String data) {
-        setReleaseData(CreateReleaseSubsteps.substepTitles[index], data);
+      onChanged: (String? data) {
+        setReleaseData(substepName, validationClass.sanitize(data));
+        if (!validationClass.isValid(data)) {
+          changeIsInputValid(substepName, false);
+        } else {
+          changeIsInputValid(substepName, true);
+        }
+      },
+      validator: (String? value) {
+        if (!validationClass.isValid(value)) {
+          return validationClass.errorMsg;
+        } else {
+          return null;
+        }
       },
     );
   }
@@ -145,27 +221,29 @@ class InputAsSubstep extends StatelessWidget {
 class CheckboxListTileDropdown extends StatelessWidget {
   const CheckboxListTileDropdown({
     Key? key,
-    required this.index,
+    required this.substepName,
     required this.releaseData,
     required this.setReleaseData,
     required this.options,
+    required this.changeIsDropdownValid,
   }) : super(key: key);
 
-  final int index;
+  final String substepName;
   final Map<String, String?> releaseData;
   final SetReleaseData setReleaseData;
   final List<String> options;
+  final ChangeIsEachInputValid changeIsDropdownValid;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
         Text(
-          CreateReleaseSubsteps.substepTitles[index],
+          substepName,
           style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.grey[700]),
         ),
         // Only add a tooltip for the increment dropdown
-        if (index == 7)
+        if (substepName == CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!)
           const Padding(
             padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
             child: InfoTooltip(
@@ -182,8 +260,8 @@ z:    Indicates a hotfix to a stable release.''',
         const SizedBox(width: 20.0),
         DropdownButton<String>(
           hint: const Text('-'), // Dropdown initially displays the hint when no option is selected.
-          key: Key(CreateReleaseSubsteps.substepTitles[index]),
-          value: releaseData[CreateReleaseSubsteps.substepTitles[index]],
+          key: Key(substepName),
+          value: releaseData[substepName],
           icon: const Icon(Icons.arrow_downward),
           items: options.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -192,7 +270,8 @@ z:    Indicates a hotfix to a stable release.''',
             );
           }).toList(),
           onChanged: (String? newValue) {
-            setReleaseData(CreateReleaseSubsteps.substepTitles[index], newValue!);
+            changeIsDropdownValid(substepName, true);
+            setReleaseData(substepName, newValue!);
           },
         ),
       ],
