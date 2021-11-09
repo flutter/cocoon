@@ -205,12 +205,9 @@ class LuciBuildService {
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
-      throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
+      throw BadRequestException('${pullRequest.base!.repo!.slug()} is not supported by this service.');
     }
-    if (targets.isEmpty) {
-      throw const InternalServerError('Cannot schedule presubmit checks if targets is empty');
-    }
-    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
+    targets = await _targetsNotScheduled(targets, pullRequest);
     int retryCount = 1;
     List<Target> remainingTargetsToSchedule = List<Target>.from(targets);
     while (remainingTargetsToSchedule.isNotEmpty) {
@@ -223,6 +220,24 @@ class LuciBuildService {
       if (retryCount >= config.schedulerRetries) {
         break;
       }
+    }
+
+    return targets;
+  }
+
+  /// List of targets that are not running.
+  ///
+  /// Throws [InternalServerError] if any target is scheduled or running on [pullRequest].
+  Future<List<Target>> _targetsNotScheduled(List<Target> targets, github.PullRequest pullRequest) async {
+    if (targets.isEmpty) {
+      throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
+    }
+
+    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
+    if (tryBuilds.values.any((Build? build) => build?.status == Status.scheduled || build?.status == Status.started)) {
+      log.severe('Either builds are empty or they are already scheduled or started. '
+          'PR: ${pullRequest.number}, Commit: ${pullRequest.head!.sha}, Repository: ${pullRequest.base!.repo!.fullName}');
+      return <Target>[];
     }
 
     return targets;
