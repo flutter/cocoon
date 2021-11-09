@@ -548,8 +548,9 @@ class GithubWebhook extends RequestHandler<Body> {
       return false;
     }
 
-    // Only handle single-line comments; identifying multi-line comments
-    // would require the full file and non-trivial parsing.
+    // Only handles single-line comments; identifying multi-line comments
+    // would require the full file and non-trivial parsing. Also doesn't handle
+    // end-of-line comments (e.g., "int x = 0; // Info about x").
     final RegExp commentRegex = RegExp(r'[+-]\s*//');
     for (String line in patch.split('\n')) {
       if (!line.startsWith('+') && !line.startsWith('-')) {
