@@ -542,8 +542,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'swift',
     };
     final String filename = file.filename!;
-    final String? extension = filename.contains('.') ?
-      filename.split('.').last.toLowerCase() : null;
+    final String? extension = filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
     if (extension == null || !codeExtensions.contains(extension)) {
       return false;
     }

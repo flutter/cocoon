@@ -1084,7 +1084,6 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
 
-
       const String patch = '''
 @@ -128,8 +128,8 @@
   NSString* foo = "";
@@ -1101,7 +1100,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
+          PullRequestFile()
+            ..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
             ..additionsCount = 2
             ..deletionsCount = 2
             ..changesCount = 4
@@ -1146,7 +1146,6 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
 
-
       const String patch = '''
 @@ -128,7 +128,7 @@
   int foo = 0;
@@ -1161,7 +1160,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
+          PullRequestFile()
+            ..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
             ..additionsCount = 1
             ..deletionsCount = 1
             ..changesCount = 2
@@ -1220,7 +1220,8 @@ void foo() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'packages/foo/lib/foo.dart'
+          PullRequestFile()
+            ..filename = 'packages/foo/lib/foo.dart'
             ..additionsCount = 1
             ..deletionsCount = 1
             ..changesCount = 2
