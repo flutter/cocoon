@@ -28,8 +28,11 @@ const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.sta
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
-  LuciBuildService(this.config, this.buildBucketClient, {GithubChecksUtil? githubChecksUtil})
-      : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
+  LuciBuildService(
+    this.config,
+    this.buildBucketClient, {
+    GithubChecksUtil? githubChecksUtil,
+  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   BuildBucketClient buildBucketClient;
   Config config;
@@ -166,7 +169,7 @@ class LuciBuildService {
         config,
         pullRequest.base!.repo!.slug(),
         pullRequest.head!.sha!,
-        builder,
+        builder!,
       );
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
@@ -204,6 +207,10 @@ class LuciBuildService {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       throw BadRequestException('Repository ${pullRequest.base!.repo!.fullName} is not supported by this service.');
     }
+    if (targets.isEmpty) {
+      throw const InternalServerError('Cannot schedule presubmit checks if targets is empty');
+    }
+    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
     int retryCount = 1;
     List<Target> remainingTargetsToSchedule = List<Target>.from(targets);
     while (remainingTargetsToSchedule.isNotEmpty) {

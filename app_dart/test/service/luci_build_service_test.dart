@@ -181,7 +181,7 @@ void main() {
           ],
         );
       });
-      when(mockGithubChecksUtil.createCheckRun(any, pullRequest, any)).thenAnswer((_) async => generateCheckRun(1));
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
@@ -211,7 +211,7 @@ void main() {
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.started),
+                  generateBuild(998, name: 'Linux 1', status: Status.started),
                 ],
               ),
             ),
@@ -219,13 +219,16 @@ void main() {
         );
       });
       final List<LogRecord> records = <LogRecord>[];
+      print(targets);
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
       );
-      expect(records[0].message,
-          'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
+      expect(
+          records.where((LogRecord record) => record.message.contains(
+              'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon')),
+          hasLength(1));
     });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -250,7 +253,7 @@ void main() {
       expect(records[0].message,
           'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
     });
-    test('Schedule builds throws when current list of builds is empty', () async {
+    test('Schedule builds throws when current list of targets is empty', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
@@ -266,7 +269,7 @@ void main() {
       await expectLater(
           service.scheduleTryBuilds(
             pullRequest: pullRequest,
-            targets: targets,
+            targets: <Target>[],
           ),
           throwsA(isA<InternalServerError>()));
     });

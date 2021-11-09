@@ -99,7 +99,6 @@ class Target {
 
   Map<String, Object> _getPlatformProperties() {
     if (!schedulerConfig.platformProperties.containsKey(getPlatform())) {
-      log.fine('${getPlatform()} was not found in platform properties');
       return <String, Object>{};
     }
 
