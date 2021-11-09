@@ -202,6 +202,13 @@ void main() {
         'user_agent': 'flutter-cocoon',
         'check_run_id': 1,
       });
+      final Map<String, dynamic> properties = scheduleBuild.properties!;
+      expect(properties, <String, dynamic>{
+        'dependencies': <dynamic>[],
+        'bringup': false,
+        'git_url': 'https://github.com/flutter/flutter',
+        'git_ref': 'refs/pull/123/head',
+      });
     });
 
     test('try to schedule builds already started', () async {

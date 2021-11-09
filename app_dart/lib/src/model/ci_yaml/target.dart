@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:github/github.dart';
 
-import '../../service/logging.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
 /// Wrapper class around [pb.Target] to support aggregate properties.
