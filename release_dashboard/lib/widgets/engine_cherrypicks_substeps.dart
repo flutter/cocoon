@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'common/checkbox_substep.dart';
 
-enum SubstepEnum {
+enum EngineCherrypicksSubstep {
   substep1,
   substep2,
   substep3,
@@ -15,8 +15,8 @@ enum SubstepEnum {
 /// Group and display all substeps related to the 'Apply Engine Cherrypicks' step into a widget.
 ///
 /// When all substeps are completed, [nextStep] can be executed to proceed to the next step.
-class ApplyEngineCherrypicks extends StatefulWidget {
-  const ApplyEngineCherrypicks({
+class EngineCherrypicksSubsteps extends StatefulWidget {
+  const EngineCherrypicksSubsteps({
     Key? key,
     required this.nextStep,
   }) : super(key: key);
@@ -24,22 +24,22 @@ class ApplyEngineCherrypicks extends StatefulWidget {
   final VoidCallback nextStep;
 
   @override
-  State<ApplyEngineCherrypicks> createState() => ConductorSubstepsState();
+  State<EngineCherrypicksSubsteps> createState() => ConductorSubstepsState();
 
-  static Map<SubstepEnum, String> substepTitles = <SubstepEnum, String>{
-    SubstepEnum.substep1: 'Substep 1',
-    SubstepEnum.substep2: 'Substep 2',
-    SubstepEnum.substep3: 'Substep 3',
+  static Map<EngineCherrypicksSubstep, String> substepTitles = <EngineCherrypicksSubstep, String>{
+    EngineCherrypicksSubstep.substep1: 'Substep 1',
+    EngineCherrypicksSubstep.substep2: 'Substep 2',
+    EngineCherrypicksSubstep.substep3: 'Substep 3',
   };
 
-  static Map<SubstepEnum, String> substepSubtitles = <SubstepEnum, String>{
-    SubstepEnum.substep1: 'Substep subtitle 1',
-    SubstepEnum.substep2: 'Substep subtitle 2',
-    SubstepEnum.substep3: 'Substep subtitle 3',
+  static Map<EngineCherrypicksSubstep, String> substepSubtitles = <EngineCherrypicksSubstep, String>{
+    EngineCherrypicksSubstep.substep1: 'Substep subtitle 1',
+    EngineCherrypicksSubstep.substep2: 'Substep subtitle 2',
+    EngineCherrypicksSubstep.substep3: 'Substep subtitle 3',
   };
 }
 
-class ConductorSubstepsState extends State<ApplyEngineCherrypicks> {
+class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
   Map<String, bool> _isEachSubstepChecked = <String, bool>{};
 
   @override
@@ -47,7 +47,7 @@ class ConductorSubstepsState extends State<ApplyEngineCherrypicks> {
     /// If [substep] in [_isEachSubstepChecked] is false, that [substep] is unchecked, otherwise, it is checked.
     ///
     /// All substeps are unchecked at the beginning.
-    for (final String substep in ApplyEngineCherrypicks.substepTitles.values) {
+    for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
       _isEachSubstepChecked = <String, bool>{
         ..._isEachSubstepChecked,
         substep: false,
@@ -68,20 +68,20 @@ class ConductorSubstepsState extends State<ApplyEngineCherrypicks> {
     return Column(
       children: <Widget>[
         CheckboxAsSubstep(
-          substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep1]!,
-          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!,
+          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),
         CheckboxAsSubstep(
-          substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep2]!,
-          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!,
+          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),
         CheckboxAsSubstep(
-          substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep3]!,
-          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!,
+          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),

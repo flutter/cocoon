@@ -2,23 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_ui/widgets/apply_engine_cherrypicks.dart';
+import 'package:conductor_ui/widgets/engine_cherrypicks_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Apply engine cherrypick tests', () {
+  group('Engine cherrypick substeps tests', () {
     testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
-            child: ApplyEngineCherrypicks(nextStep: () {}),
+            child: EngineCherrypicksSubsteps(nextStep: () {}),
           ),
         ),
       );
 
       expect(find.byKey(const Key('applyEngineCherrypicksContinue')), findsNothing);
-      for (final String substep in ApplyEngineCherrypicks.substepTitles.values) {
+      for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
         await tester.tap(find.text(substep));
       }
       await tester.pumpAndSettle();
@@ -32,12 +32,12 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
-            child: ApplyEngineCherrypicks(nextStep: nextStep),
+            child: EngineCherrypicksSubsteps(nextStep: nextStep),
           ),
         ),
       );
 
-      for (final String substep in ApplyEngineCherrypicks.substepTitles.values) {
+      for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
         await tester.tap(find.text(substep));
       }
       await tester.pumpAndSettle();
