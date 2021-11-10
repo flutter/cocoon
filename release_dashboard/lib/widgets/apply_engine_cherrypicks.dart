@@ -69,19 +69,19 @@ class ConductorSubstepsState extends State<ApplyEngineCherrypicks> {
       children: <Widget>[
         CheckboxAsSubstep(
           substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep1]!,
-          subtitle: ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!,
+          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),
         CheckboxAsSubstep(
           substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep2]!,
-          subtitle: ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep2]!,
+          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),
         CheckboxAsSubstep(
           substepName: ApplyEngineCherrypicks.substepTitles[SubstepEnum.substep3]!,
-          subtitle: ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep3]!,
+          subtitle: SelectableText(ApplyEngineCherrypicks.substepSubtitles[SubstepEnum.substep1]!),
           isEachSubstepChecked: _isEachSubstepChecked,
           clickCallback: substepPressed,
         ),

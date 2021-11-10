@@ -21,7 +21,7 @@ class CheckboxAsSubstep extends StatelessWidget {
   final Map<String, bool> isEachSubstepChecked;
   final ClickCallback clickCallback;
   final String substepName;
-  final String? subtitle;
+  final Widget? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class CheckboxAsSubstep extends StatelessWidget {
         clickCallback(substepName);
       },
       title: Text(substepName),
-      subtitle: subtitle != null ? SelectableText(subtitle!) : null,
+      subtitle: subtitle,
       controlAffinity: ListTileControlAffinity.leading,
       activeColor: Colors.grey,
       value: isEachSubstepChecked[substepName],
