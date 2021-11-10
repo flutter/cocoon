@@ -14,9 +14,11 @@ import '../fake_start_context.dart';
 class FakeConductor extends ConductorService {
   FakeConductor({
     this.fakeStartContextProvided,
+    this.testState,
   });
 
   final FakeStartContext? fakeStartContextProvided;
+  final ConductorState? testState;
 
   @override
   Future<void> createRelease({
@@ -49,9 +51,12 @@ class FakeConductor extends ConductorService {
   }
 
   @override
-  ConductorState? state = ConductorState(
-    conductorVersion: 'abcdef',
-    releaseChannel: 'dev',
-    releaseVersion: '1.2.0-3.4.pre',
-  );
+  ConductorState? get state {
+    return testState ??
+        ConductorState(
+          conductorVersion: 'abcdef',
+          releaseChannel: 'dev',
+          releaseVersion: '1.2.0-3.4.pre',
+        );
+  }
 }

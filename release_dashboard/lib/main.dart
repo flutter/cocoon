@@ -60,7 +60,6 @@ class MyApp extends StatelessWidget {
                 const SizedBox(height: 10.0),
                 MainProgression(
                   conductor: conductor,
-                  releaseState: conductor.state,
                 ),
               ],
             ),

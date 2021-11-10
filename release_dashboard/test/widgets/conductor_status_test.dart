@@ -9,7 +9,7 @@ import 'package:conductor_ui/widgets/conductor_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {

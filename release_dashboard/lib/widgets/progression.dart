@@ -19,12 +19,10 @@ import 'substeps.dart';
 class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
-    this.releaseState,
     this.previousCompletedStep,
     required this.conductor,
   }) : super(key: key);
 
-  final pb.ConductorState? releaseState;
   final int? previousCompletedStep;
   final ConductorService conductor;
 

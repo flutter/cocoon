@@ -80,23 +80,6 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     super.initState();
   }
 
-  /// Initialize a [startContext] and execute the [run] function to start a release.
-  Future<void> runCreateRelease() {
-    // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
-    return widget.conductor.createRelease(
-      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[0]] ?? '',
-      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[1]] ?? '',
-      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[2]] ?? '',
-      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[3]] ?? '',
-      engineCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[4]]),
-      frameworkCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[5]]),
-      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[6]] == ''
-          ? null
-          : releaseData[CreateReleaseSubsteps.substepTitles[6]],
-      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[7]] ?? '',
-    );
-  }
-
   /// Updates the corresponding [field] in [releaseData] with [data].
   void setReleaseData(String field, String data) {
     setState(() {
@@ -129,6 +112,25 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     setState(() {
       _isLoading = result;
     });
+  }
+
+  /// Initialize a [startContext] and execute the [run] function to start a release.
+  Future<void> runCreateRelease() {
+    // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
+    return widget.conductor.createRelease(
+      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.candidateBranch]] ?? '',
+      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]] ?? '',
+      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkMirror]] ?? '',
+      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.engineMirror]] ?? '',
+      engineCherrypickRevisions:
+          cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]]),
+      frameworkCherrypickRevisions:
+          cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]]),
+      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]] == ''
+          ? null
+          : releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]],
+      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]] ?? '',
+    );
   }
 
   /// Presents the error object in a string.

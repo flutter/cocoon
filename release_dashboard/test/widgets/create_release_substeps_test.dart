@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:conductor_core/conductor_core.dart';
+import 'package:conductor_ui/logic/git.dart';
 import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +19,10 @@ void main() {
   const String releaseChannel = 'dev';
   const String frameworkMirror = 'git@github.com:test/flutter.git';
   const String engineMirror = 'git@github.com:test/engine.git';
-  const String engineCherrypick = 'a5a25cd702b062c24b2c67b8d30b5cb33e0ef6f0,94d06a2e1d01a3b0c693b94d70c5e1df9d78d249';
-  const String frameworkCherrypick = '768cd702b691584b2c67b8d30b5cb33e0ef6f0';
-  const String dartRevision = 'fe9708ab688dcda9923f584ba370a66fcbc3811f';
   const String increment = 'y';
+  const String validGitHash1 = '5f9a38fc310908c832810f9d875ed8b56ecc7f75';
+  const String validGitHash2 = 'bfadad702e9f699f4ab024c335e7498152d26e34';
+  const String validGitHash3 = 'bfadad702e9f699f4ab024c335e7498152d26e35';
 
   /// Construct test inputs in a map that has the same names as [CreateReleaseSubsteps.substepTitles].
   Map<String, String> testInputsCorrect = <String, String>{
@@ -47,6 +48,7 @@ void main() {
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
+                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
@@ -82,6 +84,7 @@ void main() {
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
+                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
@@ -119,6 +122,7 @@ void main() {
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
+                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
@@ -146,6 +150,7 @@ void main() {
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
+                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
@@ -169,6 +174,7 @@ void main() {
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
+                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
@@ -195,6 +201,7 @@ void main() {
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
+                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
@@ -251,6 +258,7 @@ void main() {
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
+                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
@@ -283,7 +291,7 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byKey(const Key('Candidate Branch')), candidateBranch);
+      await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputsCorrect['Candidate Branch']!);
 
       final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
       final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -293,41 +301,97 @@ void main() {
       await tester.tap(find.byKey(const Key('Release Channel')));
       await tester.pumpAndSettle(); // finish the menu animation
       expect(createReleaseSubstepsState.releaseData['Release Channel'], equals(null));
-      await tester.tap(find.text(releaseChannel).last);
+      await tester.tap(find.text(testInputsCorrect['Release Channel']!).last);
       await tester.pumpAndSettle(); // finish the menu animation
 
-      await tester.enterText(find.byKey(const Key('Framework Mirror')), frameworkMirror);
-      await tester.enterText(find.byKey(const Key('Engine Mirror')), engineMirror);
-      await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')), engineCherrypick);
-      await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')), frameworkCherrypick);
-      await tester.enterText(find.byKey(const Key('Dart Revision (if necessary)')), dartRevision);
+      await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputsCorrect['Framework Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputsCorrect['Engine Mirror']!);
+      await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')),
+          testInputsCorrect['Engine Cherrypicks (if necessary)']!);
+      await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
+          testInputsCorrect['Framework Cherrypicks (if necessary)']!);
+      await tester.enterText(
+          find.byKey(const Key('Dart Revision (if necessary)')), testInputsCorrect['Dart Revision (if necessary)']!);
 
       /// Tests the Increment dropdown menu.
       await tester.tap(find.byKey(const Key('Increment')));
       await tester.pumpAndSettle(); // finish the menu animation
       expect(createReleaseSubstepsState.releaseData['Increment'], equals(null));
-      await tester.tap(find.text(increment).last);
+      await tester.tap(find.text(testInputsCorrect['Increment']!).last);
       await tester.pumpAndSettle(); // finish the menu animation
 
       expect(
-        createReleaseSubstepsState.releaseData,
-        equals(
-          <String, String>{
-            'Candidate Branch': candidateBranch,
-            'Release Channel': releaseChannel,
-            'Framework Mirror': frameworkMirror,
-            'Engine Mirror': engineMirror,
-            'Engine Cherrypicks (if necessary)': engineCherrypick,
-            'Framework Cherrypicks (if necessary)': frameworkCherrypick,
-            'Dart Revision (if necessary)': dartRevision,
-            'Increment': increment,
-          },
+          createReleaseSubstepsState.releaseData,
+          equals(<String, String>{
+            'Candidate Branch': testInputsCorrect['Candidate Branch']!,
+            'Release Channel': testInputsCorrect['Release Channel']!,
+            'Framework Mirror': testInputsCorrect['Framework Mirror']!,
+            'Engine Mirror': testInputsCorrect['Engine Mirror']!,
+            'Engine Cherrypicks (if necessary)': testInputsCorrect['Engine Cherrypicks (if necessary)']!,
+            'Framework Cherrypicks (if necessary)': testInputsCorrect['Framework Cherrypicks (if necessary)']!,
+            'Dart Revision (if necessary)': testInputsCorrect['Dart Revision (if necessary)']!,
+            'Increment': testInputsCorrect['Increment']!,
+          }));
+    });
+
+    testWidgets('Continue button should be enabled when all the parameters are entered correctly',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                  conductor: FakeConductor(),
+                ),
+              ],
+            ),
+          ),
         ),
+      );
+
+      final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
+      final CreateReleaseSubstepsState createReleaseSubstepsState =
+          createReleaseSubsteps.state as CreateReleaseSubstepsState;
+      final Finder continueButton = find.byKey(const Key('step1continue'));
+      // default isEachInputValid state values, optional fields are valid from the start
+      expect(
+        createReleaseSubstepsState.isEachInputValid,
+        equals(<String, bool>{
+          'Candidate Branch': false,
+          'Release Channel': false,
+          'Framework Mirror': false,
+          'Engine Mirror': false,
+          'Engine Cherrypicks (if necessary)': true,
+          'Framework Cherrypicks (if necessary)': true,
+          'Dart Revision (if necessary)': true,
+          'Increment': false,
+        }),
+      );
+
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
+
+      await fillAllParameters(tester, testInputsCorrect);
+      // continue button is enabled, and all the parameters are validated
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
+      expect(
+        createReleaseSubstepsState.isEachInputValid,
+        equals(<String, bool>{
+          'Candidate Branch': true,
+          'Release Channel': true,
+          'Framework Mirror': true,
+          'Engine Mirror': true,
+          'Engine Cherrypicks (if necessary)': true,
+          'Framework Cherrypicks (if necessary)': true,
+          'Dart Revision (if necessary)': true,
+          'Increment': true,
+        }),
       );
     });
   });
 
-  group('UI is connected with the conductor', () {
+  group('CLI connection', () {
     testWidgets('Is able to display a conductor exception in the UI', (WidgetTester tester) async {
       const String exceptionMsg = 'There is a conductor Exception';
       final FakeStartContext startContext = FakeStartContext(
@@ -350,6 +414,7 @@ void main() {
       );
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
+      await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
       await tester.pump();
@@ -380,6 +445,7 @@ void main() {
       );
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
+      await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
       await tester.pump();
@@ -411,6 +477,7 @@ void main() {
       );
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
+      await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
       await tester.pump();
@@ -441,25 +508,22 @@ void main() {
       ));
 
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                      conductor: FakeConductor(fakeStartContextProvided: startContext),
-                    ),
-                  ],
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       );
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
+      await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
       await tester.pump();
@@ -474,4 +538,24 @@ void main() {
       expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
     });
   });
+}
+
+/// Fills every input and dropdown with correct test data.
+Future<void> fillAllParameters(WidgetTester tester, Map<String, String> testInputsCorrect) async {
+  await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputsCorrect['Candidate Branch']!);
+  await tester.tap(find.byKey(const Key('Release Channel')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(testInputsCorrect['Release Channel']!).last);
+  await tester.enterText(find.byKey(const Key('Framework Mirror')), testInputsCorrect['Framework Mirror']!);
+  await tester.enterText(find.byKey(const Key('Engine Mirror')), testInputsCorrect['Engine Mirror']!);
+  await tester.enterText(find.byKey(const Key('Engine Cherrypicks (if necessary)')),
+      testInputsCorrect['Engine Cherrypicks (if necessary)']!);
+  await tester.enterText(find.byKey(const Key('Framework Cherrypicks (if necessary)')),
+      testInputsCorrect['Framework Cherrypicks (if necessary)']!);
+  await tester.enterText(
+      find.byKey(const Key('Dart Revision (if necessary)')), testInputsCorrect['Dart Revision (if necessary)']!);
+  await tester.tap(find.byKey(const Key('Increment')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(testInputsCorrect['Increment']!).last);
+  await tester.pumpAndSettle();
 }
