@@ -236,6 +236,32 @@ void main() {
               record.message.contains('Linux 1 has already been scheduled for this pull request')),
           hasLength(1));
     });
+
+    test('try to schedule builds already passed', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(998, name: 'Linux 1', status: Status.success),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
+      await service.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: targets,
+      );
+      expect(
+          records.where((LogRecord record) =>
+              record.message.contains('Linux 1 has already been scheduled for this pull request')),
+          hasLength(1));
+    });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(

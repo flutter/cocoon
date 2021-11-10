@@ -207,7 +207,7 @@ class LuciBuildService {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       throw BadRequestException('${pullRequest.base!.repo!.slug()} is not supported by this service.');
     }
-    targets = await _targetsNotScheduled(targets, pullRequest);
+    targets = await _targetsToSchedule(targets, pullRequest);
     int retryCount = 1;
     List<Target> remainingTargetsToSchedule = List<Target>.from(targets);
     while (remainingTargetsToSchedule.isNotEmpty) {
@@ -225,20 +225,22 @@ class LuciBuildService {
     return targets;
   }
 
-  /// List of targets that are not running.
+  /// List of targets that should be scheduled.
+  ///
+  /// If a [Target] has a [Build] that is already scheduled or was successful, it shouldn't be scheduled again.
   ///
   /// Throws [InternalServerError] is [targets] is empty.
-  Future<List<Target>> _targetsNotScheduled(List<Target> targets, github.PullRequest pullRequest) async {
+  Future<List<Target>> _targetsToSchedule(List<Target> targets, github.PullRequest pullRequest) async {
     if (targets.isEmpty) {
       throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
     }
 
     final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
-    final Iterable<Build?> runningBuilds =
-        tryBuilds.values.where((Build? build) => build?.status == Status.scheduled || build?.status == Status.started);
+    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where((Build? build) =>
+        build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success);
     final List<Target> notScheduledTargets = <Target>[];
     for (Target target in targets) {
-      if (runningBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
+      if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
         log.info('${target.value.name} has already been scheduled for this pull request');
         continue;
       }
