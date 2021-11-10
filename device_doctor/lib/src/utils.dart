@@ -24,6 +24,8 @@ const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 const String kCertCheckKey = 'codesigning_cert';
 const String kDevicePairCheckKey = 'device_pair';
 const String kScreenSaverCheckKey = 'screensaver';
+const String kBatteryLevelCheckKey = 'battery_level';
+const String kBatteryTemperatureCheckKey = 'battery_temperature';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
