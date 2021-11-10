@@ -292,20 +292,7 @@ void main() {
       flutterRepoPRs.add(prInProgress);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[
-        MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': flutterRepoPRs.first.id,
-            'labelId': base64LabelId,
-            'sBody': '''
-This pull request is not suitable for automatic merging in its current state.
-
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
-''',
-          },
-        ),
-      ]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
     test('Does not merge PR with queued checks', () async {
@@ -319,20 +306,7 @@ This pull request is not suitable for automatic merging in its current state.
       flutterRepoPRs.add(prQueued);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[
-        MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': flutterRepoPRs.first.id,
-            'labelId': base64LabelId,
-            'sBody': '''
-This pull request is not suitable for automatic merging in its current state.
-
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
-''',
-          },
-        ),
-      ]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
     test('Does not merge PR with requested checks', () async {
@@ -346,20 +320,7 @@ This pull request is not suitable for automatic merging in its current state.
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[
-        MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': flutterRepoPRs.first.id,
-            'labelId': base64LabelId,
-            'sBody': '''
-This pull request is not suitable for automatic merging in its current state.
-
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
-''',
-          },
-        ),
-      ]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
     test('Does not merge PR with failed status', () async {
@@ -476,7 +437,7 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+- This commit has no checks. Please check that ci.yaml validation has started and there are multiple checks. If not, try uploading an empty commit.
 ''',
           },
         ),
@@ -501,14 +462,14 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+- This commit has no checks. Please check that ci.yaml validation has started and there are multiple checks. If not, try uploading an empty commit.
 ''',
           },
         ),
       ]);
     });
 
-    test('Does not fail with null statuses', () async {
+    test('Merge PR with successful checks but null status checks', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -521,16 +482,8 @@ This pull request is not suitable for automatic merging in its current state.
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': flutterRepoPRs.first.id,
-            'labelId': base64LabelId,
-            'sBody': '''
-This pull request is not suitable for automatic merging in its current state.
-
-- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
-''',
-          },
+          document: mergePullRequestMutation,
+          variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
         ),
       ]);
     });

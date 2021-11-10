@@ -247,7 +247,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           title: title,
           sha: sha,
           labelId: labelId!,
-          emptyValidations: checkRuns.isEmpty && statuses.isEmpty,
+          emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
           labels: labels));
@@ -389,7 +389,7 @@ class _AutoMergeQueryResult {
     required this.title,
     required this.sha,
     required this.labelId,
-    required this.emptyValidations,
+    required this.emptyChecks,
     required this.isConflicting,
     required this.unknownMergeableState,
     required this.labels,
@@ -422,8 +422,8 @@ class _AutoMergeQueryResult {
   /// The GitHub GraphQL ID of the waiting label.
   final String labelId;
 
-  /// Whether the commit has empty validations or not.
-  final bool emptyValidations;
+  /// Whether the commit has checks or not.
+  final bool emptyChecks;
 
   /// Whether the PR has conflicts or not.
   final bool isConflicting;
@@ -440,13 +440,13 @@ class _AutoMergeQueryResult {
       failures.isEmpty &&
       hasApprovedReview &&
       changeRequestAuthors.isEmpty &&
-      !emptyValidations &&
+      !emptyChecks &&
       !unknownMergeableState &&
       !isConflicting;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations || isConflicting;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
@@ -469,10 +469,9 @@ class _AutoMergeQueryResult {
       buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
     }
-    if (emptyValidations) {
-      buffer.writeln('- This commit has empty status or empty checks. Please'
-          ' check the Google CLA status is present and Flutter Dashboard'
-          ' application has multiple checks.');
+    if (emptyChecks) {
+      buffer.writeln('- This commit has no checks. Please check that ci.yaml validation has started'
+          ' and there are multiple checks. If not, try uploading an empty commit.');
     }
     if (isConflicting) {
       buffer.writeln('- This commit is not mergeable and has conflicts. Please'
@@ -490,7 +489,7 @@ class _AutoMergeQueryResult {
         'hasApprovedReview: $hasApprovedReview, '
         'changeRequestAuthors: $changeRequestAuthors, '
         'labelId: $labelId, '
-        'emptyValidations: $emptyValidations, '
+        'emptyValidations: $emptyChecks, '
         'shouldMerge: $shouldMerge}';
   }
 }
