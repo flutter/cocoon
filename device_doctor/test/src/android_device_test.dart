@@ -339,8 +339,7 @@ void main() {
 
     test('returns success when adb power service is killed', () async {
       process = FakeProcess(0);
-      when(processManager
-              .start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
@@ -350,8 +349,7 @@ void main() {
 
     test('returns failure when adb returns none 0 code', () async {
       process = FakeProcess(1);
-      when(processManager
-              .start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
