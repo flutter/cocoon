@@ -327,7 +327,7 @@ void main() {
     });
   });
 
-  group('KillAdbServerrCheck', () {
+  group('KillAdbServerCheck', () {
     AndroidDeviceDiscovery deviceDiscovery;
     MockProcessManager processManager;
     Process process;
