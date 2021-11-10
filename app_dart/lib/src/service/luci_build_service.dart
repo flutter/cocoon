@@ -238,16 +238,16 @@ class LuciBuildService {
     final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
     final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where((Build? build) =>
         build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success);
-    final List<Target> notScheduledTargets = <Target>[];
+    final List<Target> targetsToSchedule = <Target>[];
     for (Target target in targets) {
       if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
         log.info('${target.value.name} has already been scheduled for this pull request');
         continue;
       }
-      notScheduledTargets.add(target);
+      targetsToSchedule.add(target);
     }
 
-    return notScheduledTargets;
+    return targetsToSchedule;
   }
 
   /// Schedules [targets] against [pullRequest].
