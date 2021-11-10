@@ -70,20 +70,26 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!,
           subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
-          isEachSubstepChecked: _isEachSubstepChecked,
-          clickCallback: substepPressed,
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]]!,
+          clickCallback: () {
+            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!);
+          },
         ),
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!,
-          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
-          isEachSubstepChecked: _isEachSubstepChecked,
-          clickCallback: substepPressed,
+          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep2]!),
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]]!,
+          clickCallback: () {
+            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!);
+          },
         ),
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!,
-          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
-          isEachSubstepChecked: _isEachSubstepChecked,
-          clickCallback: substepPressed,
+          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep3]!),
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]]!,
+          clickCallback: () {
+            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!);
+          },
         ),
         if (!_isEachSubstepChecked.containsValue(false))
           ElevatedButton(

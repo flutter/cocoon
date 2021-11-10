@@ -11,16 +11,12 @@ void main() {
     const String substepName = 'substep1';
     const String substepSubtitle = 'subtitle1';
     testWidgets('Displays elements correctly', (WidgetTester tester) async {
-      Map<String, bool> isEachSubstepChecked = <String, bool>{
-        substepName: false,
-      };
-
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
             child: CheckboxAsSubstep(
-              isEachSubstepChecked: isEachSubstepChecked,
-              clickCallback: (String data) {},
+              isChecked: false,
+              clickCallback: () {},
               substepName: substepName,
               subtitle: const SelectableText(substepSubtitle),
             ),
@@ -35,16 +31,14 @@ void main() {
     });
 
     testWidgets('Click on the checkbox checks or unchecks', (WidgetTester tester) async {
-      Map<String, bool> isEachSubstepChecked = <String, bool>{
-        substepName: false,
-      };
-      void updateSubstep(String substep) => isEachSubstepChecked[substep] = !isEachSubstepChecked[substep]!;
+      bool isChecked = false;
+      void updateSubstep() => isChecked = !isChecked;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
             child: CheckboxAsSubstep(
-              isEachSubstepChecked: isEachSubstepChecked,
+              isChecked: isChecked,
               clickCallback: updateSubstep,
               substepName: substepName,
               subtitle: const SelectableText(substepSubtitle),
@@ -56,11 +50,11 @@ void main() {
       Finder checkboxListTile = find.byType(CheckboxListTile);
       await tester.tap(checkboxListTile);
       await tester.pumpAndSettle();
-      expect(isEachSubstepChecked[substepName], equals(true));
+      expect(isChecked, equals(true));
 
       await tester.tap(checkboxListTile);
       await tester.pumpAndSettle();
-      expect(isEachSubstepChecked[substepName], equals(false));
+      expect(isChecked, equals(false));
     });
   });
 }

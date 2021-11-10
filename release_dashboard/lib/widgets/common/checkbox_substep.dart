@@ -4,22 +4,20 @@
 
 import 'package:flutter/material.dart';
 
-typedef ClickCallback = void Function(String substepName);
-
 /// A checkbox that toggles between checked and unchecked upon clicking.
 ///
 /// [clickCallback] is called every time the checkbox is clicked.
 class CheckboxAsSubstep extends StatelessWidget {
   const CheckboxAsSubstep({
     Key? key,
-    required this.isEachSubstepChecked,
+    required this.isChecked,
     required this.clickCallback,
     required this.substepName,
     this.subtitle,
   }) : super(key: key);
 
-  final Map<String, bool> isEachSubstepChecked;
-  final ClickCallback clickCallback;
+  final bool isChecked;
+  final VoidCallback clickCallback;
   final String substepName;
   final Widget? subtitle;
 
@@ -28,13 +26,13 @@ class CheckboxAsSubstep extends StatelessWidget {
     return CheckboxListTile(
       key: Key(substepName),
       onChanged: (bool? newValue) {
-        clickCallback(substepName);
+        clickCallback();
       },
       title: Text(substepName),
       subtitle: subtitle,
       controlAffinity: ListTileControlAffinity.leading,
       activeColor: Colors.grey,
-      value: isEachSubstepChecked[substepName],
+      value: isChecked,
     );
   }
 }
