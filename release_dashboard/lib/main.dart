@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'services/conductor.dart';
 import 'services/local_conductor.dart';
+import 'services/test_local_conductor.dart';
 import 'widgets/common/dialog_prompt.dart';
 import 'package:provider/provider.dart';
 
@@ -22,8 +23,10 @@ Future<void> main() async {
     throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
+  const bool isDev = true;
+
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(LocalConductorService()));
+  runApp(MyApp(isDev == true ? TestLocalConductorService() : LocalConductorService()));
 }
 
 class MyApp extends StatelessWidget {
