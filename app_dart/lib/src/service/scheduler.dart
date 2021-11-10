@@ -410,6 +410,10 @@ class Scheduler {
     }
   }
 
+  /// Whether [target] should be scheduled by Cocooon's [Scheduler].
+  ///
+  /// If presubmit, Cocoon schedules all LUCI based targets (cocoon and luci).
+  /// If postsubmit, Cocoon only schedules targets set to run on cocoon.
   bool _isCocoonSchedulable(Target target, {bool presubmit = true}) {
     if (presubmit) {
       return target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;

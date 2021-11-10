@@ -227,20 +227,25 @@ class LuciBuildService {
 
   /// List of targets that are not running.
   ///
-  /// Throws [InternalServerError] if any target is scheduled or running on [pullRequest].
+  /// Throws [InternalServerError] is [targets] is empty.
   Future<List<Target>> _targetsNotScheduled(List<Target> targets, github.PullRequest pullRequest) async {
     if (targets.isEmpty) {
       throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
     }
 
     final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
-    if (tryBuilds.values.any((Build? build) => build?.status == Status.scheduled || build?.status == Status.started)) {
-      log.severe('Either builds are empty or they are already scheduled or started. '
-          'PR: ${pullRequest.number}, Commit: ${pullRequest.head!.sha}, Repository: ${pullRequest.base!.repo!.fullName}');
-      return <Target>[];
+    final Iterable<Build?> runningBuilds =
+        tryBuilds.values.where((Build? build) => build?.status == Status.scheduled || build?.status == Status.started);
+    final List<Target> notScheduledTargets = <Target>[];
+    for (Target target in targets) {
+      if (runningBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
+        log.info('${target.value.name} has already been scheduled for this pull request');
+        continue;
+      }
+      notScheduledTargets.add(target);
     }
 
-    return targets;
+    return notScheduledTargets;
   }
 
   /// Schedules [targets] against [pullRequest].

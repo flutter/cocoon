@@ -226,15 +226,14 @@ void main() {
         );
       });
       final List<LogRecord> records = <LogRecord>[];
-      print(targets);
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
       );
       expect(
-          records.where((LogRecord record) => record.message.contains(
-              'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon')),
+          records.where((LogRecord record) =>
+              record.message.contains('Linux 1 has already been scheduled for this pull request')),
           hasLength(1));
     });
     test('try to schedule builds already scheduled', () async {
@@ -244,7 +243,7 @@ void main() {
             Response(
               searchBuilds: SearchBuildsResponse(
                 builds: <Build>[
-                  generateBuild(998, name: 'Linux', status: Status.scheduled),
+                  generateBuild(998, name: 'Linux 1', status: Status.scheduled),
                 ],
               ),
             ),
@@ -257,8 +256,7 @@ void main() {
         pullRequest: pullRequest,
         targets: targets,
       );
-      expect(records[0].message,
-          'Either builds are empty or they are already scheduled or started. PR: 123, Commit: abc, Repository: flutter/cocoon');
+      expect(records[0].message, 'Linux 1 has already been scheduled for this pull request');
     });
     test('Schedule builds throws when current list of targets is empty', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
