@@ -247,7 +247,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           title: title,
           sha: sha,
           labelId: labelId!,
-          emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
+          emptyValidations: checkRuns.isEmpty && statuses.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
           labels: labels));
