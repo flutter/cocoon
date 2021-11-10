@@ -252,7 +252,7 @@ void main() {
       expect(healthCheckResult.details, 'screen is off');
     });
 
-    test('returns failure when adb return none 0 code', () async {
+    test('returns failure when adb return non 0 code', () async {
       process = FakeProcess(1);
       when(processManager.start(
               <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
@@ -347,7 +347,7 @@ void main() {
       expect(healthCheckResult.name, kKillAdbServerCheckKey);
     });
 
-    test('returns failure when adb returns none 0 code', () async {
+    test('returns failure when adb returns non 0 code', () async {
       process = FakeProcess(1);
       when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
