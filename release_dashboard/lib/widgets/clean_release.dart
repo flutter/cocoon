@@ -2,13 +2,37 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import '../services/conductor.dart';
 import 'package:flutter/material.dart';
 
 import 'common/dialog_prompt.dart';
+import 'common/snackbar_prompt.dart';
 
 /// Button to clean the current release.
-class CleanRelease extends StatelessWidget {
-  const CleanRelease({Key? key}) : super(key: key);
+///
+/// When the button is clicked, a dialogue prompt will open for confirmation.
+/// Clicking on [Yes] will clean the release, [No] will close the dialogue prompt.
+class CleanRelease extends StatefulWidget {
+  const CleanRelease({
+    Key? key,
+    required this.conductor,
+  }) : super(key: key);
+
+  final ConductorService conductor;
+
+  @override
+  State<CleanRelease> createState() => _CleanReleaseState();
+}
+
+class _CleanReleaseState extends State<CleanRelease> {
+  String? _errorMsg;
+
+  /// Updates [_errorMsg] with [errorMsg].
+  void _updateErrorMsg(String? errorMsg) {
+    setState(() {
+      _errorMsg = errorMsg;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +48,12 @@ class CleanRelease extends StatelessWidget {
             content: 'This will abort and delete a work in progress release. This process is not revertible!',
             leftOptionTitle: 'Yes',
             rightOptionTitle: 'No',
+            leftOptionCallback: () {
+              _updateErrorMsg('This is a temporary error placeholder');
+              if (_errorMsg != null) {
+                snackbarPrompt(context: context, msg: _errorMsg!);
+              }
+            },
           );
         },
         tooltip: 'Clean up the current release.',
