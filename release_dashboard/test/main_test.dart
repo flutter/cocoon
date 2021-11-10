@@ -15,6 +15,7 @@ void main() {
 
       expect(find.textContaining('Flutter Desktop Conductor'), findsOneWidget);
       expect(find.textContaining('Desktop app for managing a release'), findsOneWidget);
+      expect(find.byType(CleanRelease), findsOneWidget);
     });
   }, skip: Platform.isWindows); // This app does not support Windows [intended]
 }
