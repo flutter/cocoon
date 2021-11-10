@@ -389,7 +389,7 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.contains('.ci/') &&
           !filename.contains('.github/') &&
           !filename.endsWith('.md')) {
-        needsTests = true;
+        needsTests = !_allChangesAreCodeComments(file);
       }
 
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
@@ -505,5 +505,51 @@ class GithubWebhook extends RequestHandler<Body> {
     } on FormatException {
       return null;
     }
+  }
+
+  /// Returns true if the changes to [file] are all code comments.
+  ///
+  /// If that cannot be determined with confidence, returns false. False
+  /// negatives (e.g., for /* */-style multi-line comments) should be expected.
+  bool _allChangesAreCodeComments(PullRequestFile file) {
+    final int? linesAdded = file.additionsCount;
+    final int? linesDeleted = file.deletionsCount;
+    final String? patch = file.patch;
+    // If information is missing, err or the side of assuming it's a non-comment
+    // change.
+    if (linesAdded == null || linesDeleted == null || patch == null) {
+      return false;
+    }
+
+    // Ensure that the file is a language reconized by the check below.
+    const Set<String> codeExtensions = <String>{
+      'cc',
+      'cpp',
+      'dart',
+      'java',
+      'kt',
+      'm',
+      'mm',
+      'swift',
+    };
+    final String filename = file.filename!;
+    final String? extension = filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
+    if (extension == null || !codeExtensions.contains(extension)) {
+      return false;
+    }
+
+    // Only handles single-line comments; identifying multi-line comments
+    // would require the full file and non-trivial parsing. Also doesn't handle
+    // end-of-line comments (e.g., "int x = 0; // Info about x").
+    final RegExp commentRegex = RegExp(r'[+-]\s*//');
+    for (String line in patch.split('\n')) {
+      if (!line.startsWith('+') && !line.startsWith('-')) {
+        continue;
+      }
+      if (!commentRegex.hasMatch(line)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

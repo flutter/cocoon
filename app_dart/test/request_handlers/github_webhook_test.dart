@@ -1025,7 +1025,7 @@ void main() {
       ));
     });
 
-    test('Plugins comments and labels if no tests', () async {
+    test('Plugins comments and labels if no tests and no patch info', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = generatePullRequestEvent(
@@ -1066,6 +1066,176 @@ void main() {
         issueNumber,
         <String>['needs tests'],
       )).called(1);
+    });
+
+    test('Plugins comments and labels for code change', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        repoName: 'plugins',
+        repoFullName: 'flutter/plugins',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
+
+      const String patch = '''
+@@ -128,8 +128,8 @@
+  NSString* foo = "";
+  int bar = 0;
+
+-  // Some incorrect code:
+-  int baz = 7 / bar;
++  // Better code:
++  int baz = 7 * bar;
+  return baz;
+}
+
+''';
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()
+            ..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
+            ..additionsCount = 2
+            ..deletionsCount = 2
+            ..changesCount = 4
+            ..patch = patch,
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['needs tests'],
+      )).called(1);
+    });
+
+    test('Plugins comments and labels for code removal with comment addition', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        repoName: 'plugins',
+        repoFullName: 'flutter/plugins',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
+
+      const String patch = '''
+@@ -128,7 +128,7 @@
+  int foo = 0;
+
+  int bar = 0;
+-  int baz = 0;
++  // int baz = 0;
+
+  // More code here:
+
+''';
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()
+            ..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m'
+            ..additionsCount = 1
+            ..deletionsCount = 1
+            ..changesCount = 2
+            ..patch = patch,
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['needs tests'],
+      )).called(1);
+    });
+
+    test('Plugins does not comment for comment-only changes', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        repoName: 'plugins',
+        repoFullName: 'flutter/plugins',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
+
+      const String patch = '''
+@@ -128,7 +128,7 @@
+
+/// Insert interesting comment here.
+///
+-/// More details here, but some of them are wrong.
++/// These are the right details!
+void foo() {
+  int bar = 0;
+  String baz = '';
+''';
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/foo/lib/foo.dart'
+            ..additionsCount = 1
+            ..deletionsCount = 1
+            ..changesCount = 2
+            ..patch = patch,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
     });
 
     test('Plugins does not comment if Dart tests', () async {
