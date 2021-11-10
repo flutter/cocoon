@@ -93,9 +93,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
+    final List<HealthCheckResult> defaultChecks = <HealthCheckResult>[];
+    defaultChecks.add(await killAdbServerCheck(processManager: processManager));
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (AndroidDevice device in await discoverDevices(processManager: processManager)) {
-      final List<HealthCheckResult> checks = <HealthCheckResult>[];
+      final List<HealthCheckResult> checks = defaultChecks;
       checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
@@ -202,6 +204,23 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kScreenOnCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  @visibleForTesting
+
+  /// The health check for Android device adb kill server.
+  ///
+  /// Kill adb server before running any health check to avoid device quarantine:
+  /// https://github.com/flutter/flutter/issues/93075.
+  Future<HealthCheckResult> killAdbServerCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      await eval('adb', <String>['kill-server'], processManager: processManager);
+      healthCheckResult = HealthCheckResult.success(kKillAdbServerCheckKey);
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kKillAdbServerCheckKey, error.toString());
     }
     return healthCheckResult;
   }
