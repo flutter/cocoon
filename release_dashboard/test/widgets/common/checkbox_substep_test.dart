@@ -34,7 +34,7 @@ void main() {
       expect(find.text(substepSubtitle), findsOneWidget);
     });
 
-    testWidgets('Click on the checkbox would check/uncheck', (WidgetTester tester) async {
+    testWidgets('Click on the checkbox checks or unchecks', (WidgetTester tester) async {
       Map<String, bool> isEachSubstepChecked = <String, bool>{
         substepName: false,
       };
