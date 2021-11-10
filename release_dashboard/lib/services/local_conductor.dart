@@ -36,8 +36,8 @@ class LocalConductorService extends ConductorService {
 
   @override
   pb.ConductorState? get state {
-    if (stateFile.existsSync()) {
-      return readStateFromFile(stateFile);
+    if (_stateFile.existsSync()) {
+      return readStateFromFile(_stateFile);
     }
 
     return null;
@@ -46,28 +46,27 @@ class LocalConductorService extends ConductorService {
   @override
   Future<void> createRelease({
     required String candidateBranch,
-    required String dartRevision,
+    required String? dartRevision,
     required List<String> engineCherrypickRevisions,
     required String engineMirror,
     required List<String> frameworkCherrypickRevisions,
     required String frameworkMirror,
-    required Directory flutterRoot,
     required String incrementLetter,
     required String releaseChannel,
-    required File stateFile,
   }) async {
     final Checkouts checkouts = Checkouts(
-      parentDirectory: rootDirectory,
+      parentDirectory: _rootDirectory,
       processManager: processManager,
       fileSystem: fs,
       platform: platform,
       stdio: stdio,
     );
+    final File stateFile = _stateFile;
     final StartContext startContext = StartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
       // TODO(yugue): Read conductor version. https://github.com/flutter/flutter/issues/92842
-      conductorVersion: 'local',
+      conductorVersion: 'ui_0.1',
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,

@@ -6,6 +6,8 @@ import 'package:conductor_ui/widgets/progression.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../fakes/services/fake_conductor.dart';
+
 void main() {
   testWidgets('When user clicks on a previously completed step, Stepper does not navigate back.',
       (WidgetTester tester) async {
@@ -15,9 +17,10 @@ void main() {
           return MaterialApp(
             home: Material(
               child: Column(
-                children: const <Widget>[
+                children: <Widget>[
                   MainProgression(
-                    completedStep: 1,
+                    previousCompletedStep: 1,
+                    conductor: FakeConductor(),
                   ),
                 ],
               ),

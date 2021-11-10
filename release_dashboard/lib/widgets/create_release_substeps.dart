@@ -3,13 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
-import 'package:file/file.dart';
 import 'package:flutter/material.dart';
-import 'package:platform/platform.dart';
-import 'package:process/process.dart';
 
+import '../logic/cherrypicks.dart';
 import '../logic/git.dart';
-import '../logic/helper_functions.dart';
+import '../services/conductor.dart';
 import 'common/tooltip.dart';
 
 enum CreateReleaseSubstep {
@@ -30,11 +28,11 @@ class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
     required this.nextStep,
-    this.startContext,
+    required this.conductor,
   }) : super(key: key);
 
   final VoidCallback nextStep;
-  final StartContext? startContext;
+  final ConductorService conductor;
 
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
@@ -82,46 +80,21 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     super.initState();
   }
 
-  /// Function that initializes and executes the equivalent of `conductor start` CLI command.
-  ///
-  /// Exceptions and errors can be thrown by this function and needed to be caught by the outer block.
-  Future<void> runStartContext(
-      {required FileSystem fileSystem,
-      required ProcessManager processManager,
-      required Platform platform,
-      required Stdio stdio}) async {
-    final Checkouts checkouts = Checkouts(
-      fileSystem: fileSystem,
-      parentDirectory: localFlutterRoot.parent,
-      platform: platform,
-      processManager: processManager,
-      stdio: stdio,
+  /// Initialize a [startContext] and execute the [run] function to start a release.
+  Future<void> runCreateRelease() {
+    // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
+    return widget.conductor.createRelease(
+      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[0]] ?? '',
+      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[1]] ?? '',
+      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[2]] ?? '',
+      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[3]] ?? '',
+      engineCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[4]]),
+      frameworkCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[5]]),
+      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[6]] == ''
+          ? null
+          : releaseData[CreateReleaseSubsteps.substepTitles[6]],
+      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[7]] ?? '',
     );
-    final String stateFilePath = defaultStateFilePath(platform);
-    final File stateFile = fileSystem.file(stateFilePath);
-
-    /// Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
-    final StartContext startContext = widget.startContext ??
-        StartContext(
-          candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[0]] ?? '',
-          releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[1]] ?? '',
-          frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[2]] ?? '',
-          engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[3]] ?? '',
-          engineCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[4]]),
-          frameworkCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[5]]),
-          dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[6]] == ''
-              ? null
-              : releaseData[CreateReleaseSubsteps.substepTitles[6]],
-          incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[7]] ?? '',
-          checkouts: checkouts,
-          engineUpstream: EngineRepository.defaultUpstream,
-          flutterRoot: localFlutterRoot,
-          frameworkUpstream: FrameworkRepository.defaultUpstream,
-          processManager: processManager,
-          stateFile: stateFile,
-          stdio: stdio,
-        );
-    await startContext.run();
   }
 
   /// Updates the corresponding [field] in [releaseData] with [data].
@@ -255,8 +228,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
                       setError(null);
                       try {
                         setIsLoading(true);
-                        await runStartContext(
-                            fileSystem: fileSystem, processManager: processManager, platform: platform, stdio: stdio);
+                        await runCreateRelease();
                         // ignore: avoid_catches_without_on_clauses
                       } catch (error) {
                         setError(error);

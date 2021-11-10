@@ -5,6 +5,7 @@
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
+import '../services/conductor.dart';
 import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
@@ -19,11 +20,13 @@ class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
     this.releaseState,
-    this.completedStep,
+    this.previousCompletedStep,
+    required this.conductor,
   }) : super(key: key);
 
   final pb.ConductorState? releaseState;
-  final int? completedStep;
+  final int? previousCompletedStep;
+  final ConductorService conductor;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -42,8 +45,9 @@ class MainProgressionState extends State<MainProgression> {
 
   @override
   void initState() {
-    if (widget.completedStep != null) {
-      _completedStep = widget.completedStep!;
+    /// Enables the stepper to resume from the step it was left on previously.
+    if (widget.previousCompletedStep != null) {
+      _completedStep = widget.previousCompletedStep!;
     }
     super.initState();
   }
@@ -93,7 +97,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[0]),
                   content: Column(
                     children: <Widget>[
-                      CreateReleaseSubsteps(nextStep: nextStep),
+                      CreateReleaseSubsteps(nextStep: nextStep, conductor: widget.conductor),
                     ],
                   ),
                   isActive: true,

@@ -2,21 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'create_release_substeps_test.mocks.dart';
 
-/// A fake class to be mocked in order to test if nextStep is being called.
-class FakeNextStep {
-  void nextStep() {}
-}
+import '../fakes/fake_start_context.dart';
+import '../fakes/fake_process_manager.dart';
+import '../fakes/services/fake_conductor.dart';
 
-@GenerateMocks(<Type>[StartContext, FakeNextStep])
 void main() {
   const String candidateBranch = 'flutter-1.2-candidate.3';
   const String releaseChannel = 'dev';
@@ -273,20 +269,17 @@ void main() {
   group('Widget integration tests', () {
     testWidgets('Widget should save all parameters correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                    ),
-                  ],
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                  conductor: FakeConductor(),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       );
 
@@ -334,29 +327,25 @@ void main() {
     });
   });
 
-  group('The desktop app is connected with the CLI conductor', () {
+  group('UI is connected with the conductor', () {
     testWidgets('Is able to display a conductor exception in the UI', (WidgetTester tester) async {
-      final StartContext startContext = MockStartContext();
       const String exceptionMsg = 'There is a conductor Exception';
-
-      when(startContext.run()).thenThrow(ConductorException(exceptionMsg));
+      final FakeStartContext startContext = FakeStartContext(
+        runOverride: () async => throw ConductorException(exceptionMsg),
+      );
 
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                      startContext: startContext,
-                    ),
-                  ],
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       );
 
@@ -366,32 +355,27 @@ void main() {
       await tester.pump();
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      verify(startContext.run()).called(1);
       expect(find.textContaining(exceptionMsg), findsOneWidget);
     });
 
     testWidgets('Is able to display a general exception in the UI', (WidgetTester tester) async {
-      final StartContext startContext = MockStartContext();
       const String exceptionMsg = 'There is a general Exception';
-
-      when(startContext.run()).thenThrow(Exception(exceptionMsg));
+      final FakeStartContext startContext = FakeStartContext(
+        runOverride: () async => throw Exception(exceptionMsg),
+      );
 
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                      startContext: startContext,
-                    ),
-                  ],
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () {},
+                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       );
 
@@ -401,30 +385,28 @@ void main() {
       await tester.pump();
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      verify(startContext.run()).called(1);
       expect(find.textContaining(exceptionMsg), findsOneWidget);
     });
 
     testWidgets('Proceeds to the next step if there is no exception', (WidgetTester tester) async {
-      final StartContext startContext = MockStartContext();
-      final FakeNextStep fakeNextStep = MockFakeNextStep();
+      bool contextRunCalled = false;
+      bool nextStepReached = false;
+      final FakeStartContext startContext = FakeStartContext(
+        runOverride: () async => contextRunCalled = true,
+      );
 
       await tester.pumpWidget(
-        StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return MaterialApp(
-              home: Material(
-                child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: fakeNextStep.nextStep,
-                      startContext: startContext,
-                    ),
-                  ],
+        MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                CreateReleaseSubsteps(
+                  nextStep: () => nextStepReached = true,
+                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       );
 
@@ -434,18 +416,29 @@ void main() {
       await tester.pump();
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      verify(startContext.run()).called(1);
-      verify(fakeNextStep.nextStep()).called(1);
+      expect(contextRunCalled, true);
+      expect(nextStepReached, true);
     });
 
-    testWidgets('Is able to display the loading UI, and hides it after release is done', (WidgetTester tester) async {
-      final StartContext startContext = MockStartContext();
-      const int delayInMS = 3000;
+    testWidgets('Is able to display the loading UI, and hides it after the release is done',
+        (WidgetTester tester) async {
+      final FakeStartContext startContext = FakeStartContext();
 
-      when(startContext.run()).thenAnswer((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: delayInMS));
-        return;
-      });
+      // This completer signifies the completion of `startContext.run()` function
+      final Completer<void> completer = Completer<void>();
+
+      startContext.addCommand(FakeCommand(
+        command: const <String>[
+          'git',
+          'clone',
+          '--origin',
+          'upstream',
+          '--',
+          EngineRepository.defaultUpstream,
+          '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
+        ],
+        completer: completer,
+      ));
 
       await tester.pumpWidget(
         StatefulBuilder(
@@ -456,7 +449,7 @@ void main() {
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
-                      startContext: startContext,
+                      conductor: FakeConductor(fakeStartContextProvided: startContext),
                     ),
                   ],
                 ),
@@ -475,6 +468,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(tester.widget<ElevatedButton>(continueButton).enabled, false);
 
+      completer.complete();
       await tester.pumpAndSettle();
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
