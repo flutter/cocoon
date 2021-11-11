@@ -203,6 +203,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       final String? author = pullRequest['author']['login'] as String?;
       final String id = pullRequest['id'] as String;
+      final String repoFullName = pullRequest['baseRepository']['nameWithOwner'] as String;
+      final RepositorySlug slug = RepositorySlug.full(repoFullName);
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
@@ -228,6 +230,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       checkRuns ??= <Map<String, dynamic>>[];
       final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
+        slug,
         sha,
         failures,
         statuses,
@@ -259,6 +262,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ///
   /// Also fills [failures] with the names of any status/check that has failed.
   Future<bool> _checkStatuses(
+    RepositorySlug slug,
     String sha,
     Set<_FailureDetail> failures,
     List<Map<String, dynamic>> statuses,
@@ -276,6 +280,23 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       'luci-engine', // engine repo
       'submit-queue', // plugins repo
     };
+
+    // Ensure repos with tree statuses have it set
+    if (Config.reposWithTreeStatus.contains(slug)) {
+      bool treeStatusExists = false;
+      final String treeStatusName = 'luci-${slug.name}';
+
+      // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+      for (Map<String, dynamic> status in statuses) {
+        if (status['context'] == treeStatusName) {
+          treeStatusExists = true;
+        }
+      }
+
+      if (!treeStatusExists) {
+        failures.add(_FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+      }
+    }
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
     for (Map<String, dynamic> status in statuses) {

@@ -5,6 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
 import 'package:cocoon_service/src/service/logging.dart';
+import 'package:github/github.dart';
 
 import 'package:graphql/client.dart';
 import 'package:logging/logging.dart';
@@ -287,7 +288,6 @@ void main() {
         lastCommitCheckRuns: const <CheckRunHelper>[
           CheckRunHelper.windowsInProgress,
         ],
-        lastCommitStatuses: const <StatusHelper>[],
       );
       flutterRepoPRs.add(prInProgress);
       await tester.get(handler);
@@ -301,7 +301,6 @@ void main() {
         lastCommitCheckRuns: const <CheckRunHelper>[
           CheckRunHelper.macQueued,
         ],
-        lastCommitStatuses: const <StatusHelper>[],
       );
       flutterRepoPRs.add(prQueued);
       await tester.get(handler);
@@ -315,7 +314,6 @@ void main() {
         lastCommitCheckRuns: const <CheckRunHelper>[
           CheckRunHelper.linuxRequested,
         ],
-        lastCommitStatuses: const <StatusHelper>[],
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -462,6 +460,7 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
+- The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 - This commit has no checks. Please check that ci.yaml validation has started and there are multiple checks. If not, try uploading an empty commit.
 ''',
           },
@@ -469,12 +468,14 @@ This pull request is not suitable for automatic merging in its current state.
       ]);
     });
 
-    test('Merge PR with successful checks but null status checks', () async {
+    test('Merge PR with successful checks on repo without tree status', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
+        repo: 'cocoon',
         lastCommitCheckRuns: const <CheckRunHelper>[
           CheckRunHelper.luciCompletedSuccess,
         ],
+        lastCommitStatuses: const <StatusHelper>[],
       );
       prRequested.lastCommitStatuses = null;
       flutterRepoPRs.add(prRequested);
@@ -975,6 +976,7 @@ class CheckRunHelper {
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
+    this.repo = 'flutter',
     this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
@@ -991,6 +993,7 @@ class PullRequestHelper {
   final int _count;
   String get id => _count.toString();
 
+  final String repo;
   final String author;
   final String title;
   final List<PullRequestReviewHelper> reviews;
@@ -1000,10 +1003,15 @@ class PullRequestHelper {
   final DateTime? dateTime;
   List<dynamic> labels;
 
+  RepositorySlug get slug => RepositorySlug('flutter', repo);
+
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'author': <String, dynamic>{'login': author},
       'id': id,
+      'baseRepository': <String, dynamic>{
+        'nameWithOwner': slug.fullName,
+      },
       'number': _count,
       'title': title,
       'reviews': <String, dynamic>{
