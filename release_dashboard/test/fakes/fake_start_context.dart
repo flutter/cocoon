@@ -41,9 +41,9 @@ class FakeStartContext extends StartContext {
       operatingSystem: const LocalPlatform().operatingSystem,
       pathSeparator: r'/',
     );
-    processManager = FakeProcessManager.list(<FakeCommand>[]);
+    processManager ??= FakeProcessManager.list(<FakeCommand>[]);
     stdio ??= TestStdio();
-    checkouts = Checkouts(
+    checkouts ??= Checkouts(
       fileSystem: fileSystem,
       parentDirectory: fileSystem.directory(kCheckoutsParentDirectory),
       platform: platform,
