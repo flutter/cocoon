@@ -12,21 +12,17 @@ void main() {
   testWidgets('When user clicks on a previously completed step, Stepper does not navigate back.',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return MaterialApp(
-            home: Material(
-              child: Column(
-                children: <Widget>[
-                  MainProgression(
-                    previousCompletedStep: 1,
-                    conductor: FakeConductor(),
-                  ),
-                ],
+      MaterialApp(
+        home: Builder(builder: (context) {
+          return Column(
+            children: <Widget>[
+              MainProgression(
+                previousCompletedStep: 1,
+                conductor: FakeConductor(),
               ),
-            ),
+            ],
           );
-        },
+        }),
       ),
     );
 

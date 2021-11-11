@@ -51,12 +51,11 @@ class FakeConductor extends ConductorService {
   }
 
   @override
+
+  /// If there is no [testState] parameter passed, this getter simply returns a null state.
+  ///
+  /// Missing [testState] parameter simulates a conductor withtout a release state file.
   ConductorState? get state {
-    return testState ??
-        ConductorState(
-          conductorVersion: 'abcdef',
-          releaseChannel: 'dev',
-          releaseVersion: '1.2.0-3.4.pre',
-        );
+    return testState;
   }
 }
