@@ -34,14 +34,11 @@ class TestLocalConductorService extends LocalConductorService {
       stdio: stdio,
     );
 
-    late final Repository localFrameworkUpstream;
-    late final Repository localEngineUpstream;
-
     final FrameworkRepository localFramework = FrameworkRepository(checkouts);
-    localFrameworkUpstream = await localFramework.cloneRepository('localFrameworkUpstream');
+    final Repository localFrameworkUpstream = await localFramework.cloneRepository('localFrameworkUpstream');
 
     final EngineRepository localEngine = EngineRepository(checkouts);
-    localEngineUpstream = await localEngine.cloneRepository('localEngineUpstream');
+    final Repository localEngineUpstream = await localEngine.cloneRepository('localEngineUpstream');
 
     final StartContext startContext = StartContext(
       candidateBranch: candidateBranch,
