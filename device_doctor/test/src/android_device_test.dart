@@ -252,7 +252,7 @@ void main() {
       expect(healthCheckResult.details, 'screen is off');
     });
 
-    test('returns failure when adb return none 0 code', () async {
+    test('returns failure when adb return non 0 code', () async {
       process = FakeProcess(1);
       when(processManager.start(
               <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
@@ -324,6 +324,38 @@ void main() {
 
       final bool result = await device.killProcesses(processManager: processManager);
       expect(result, false);
+    });
+  });
+
+  group('KillAdbServerCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when adb power service is killed', () async {
+      process = FakeProcess(0);
+      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kKillAdbServerCheckKey);
+    });
+
+    test('returns failure when adb returns non 0 code', () async {
+      process = FakeProcess(1);
+      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kKillAdbServerCheckKey);
+      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 }
