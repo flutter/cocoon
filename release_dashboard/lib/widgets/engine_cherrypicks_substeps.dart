@@ -40,18 +40,15 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
 }
 
 class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
-  Map<String, bool> _isEachSubstepChecked = <String, bool>{};
+  final Map<String, bool> _isEachSubstepChecked = <String, bool>{};
 
   @override
   void initState() {
     /// If [substep] in [_isEachSubstepChecked] is false, that [substep] is unchecked, otherwise, it is checked.
     ///
     /// All substeps are unchecked at the beginning.
-    for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
-      _isEachSubstepChecked = <String, bool>{
-        ..._isEachSubstepChecked,
-        substep: false,
-      };
+    for (final EngineCherrypicksSubstep substep in EngineCherrypicksSubstep.values) {
+      _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[substep]!] = false;
     }
     super.initState();
   }
