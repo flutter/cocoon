@@ -10,6 +10,7 @@ import 'dart:typed_data' as _i22;
 import 'package:appengine/appengine.dart' as _i16;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i9;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i32;
+import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i30;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i31;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i7;
 import 'package:cocoon_service/src/model/luci/push_message.dart' as _i26;
@@ -18,10 +19,10 @@ import 'package:cocoon_service/src/service/access_token_provider.dart' as _i19;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i20;
 import 'package:cocoon_service/src/service/buildbucket.dart' as _i15;
 import 'package:cocoon_service/src/service/config.dart' as _i3;
-import 'package:cocoon_service/src/service/datastore.dart' as _i33;
+import 'package:cocoon_service/src/service/datastore.dart' as _i34;
 import 'package:cocoon_service/src/service/github_checks_service.dart' as _i23;
 import 'package:cocoon_service/src/service/github_service.dart' as _i28;
-import 'package:cocoon_service/src/service/luci.dart' as _i30;
+import 'package:cocoon_service/src/service/luci.dart' as _i33;
 import 'package:cocoon_service/src/service/luci_build_service.dart' as _i27;
 import 'package:cocoon_service/src/service/scheduler.dart' as _i25;
 import 'package:github/hooks.dart' as _i24;
@@ -37,7 +38,7 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:neat_cache/neat_cache.dart' as _i18;
 
 import '../../service/cache_service_test.dart' as _i21;
-import 'mocks.dart' as _i34;
+import 'mocks.dart' as _i35;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: avoid_setters_without_getters
@@ -1409,19 +1410,19 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
               returnValue: Future<Map<String?, _i7.Build?>>.value(<String?, _i7.Build?>{}))
           as _i14.Future<Map<String?, _i7.Build?>>);
   @override
-  _i14.Future<List<String>> scheduleTryBuilds(
-          {List<_i30.LuciBuilder>? builders, _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent}) =>
+  _i14.Future<List<_i30.Target>> scheduleTryBuilds(
+          {List<_i30.Target>? targets, _i8.PullRequest? pullRequest, _i24.CheckSuiteEvent? checkSuiteEvent}) =>
       (super.noSuchMethod(
           Invocation.method(#scheduleTryBuilds, [],
-              {#builders: builders, #pullRequest: pullRequest, #checkSuiteEvent: checkSuiteEvent}),
-          returnValue: Future<List<String>>.value(<String>[])) as _i14.Future<List<String>>);
+              {#targets: targets, #pullRequest: pullRequest, #checkSuiteEvent: checkSuiteEvent}),
+          returnValue: Future<List<_i30.Target>>.value(<_i30.Target>[])) as _i14.Future<List<_i30.Target>>);
   @override
   _i14.Future<void> cancelBuilds(_i8.PullRequest? pullRequest, String? reason) =>
       (super.noSuchMethod(Invocation.method(#cancelBuilds, [pullRequest, reason]),
           returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i14.Future<void>);
   @override
-  _i14.Future<List<_i7.Build?>> failedBuilds(_i8.PullRequest? pullRequest, List<_i30.LuciBuilder>? builders) =>
-      (super.noSuchMethod(Invocation.method(#failedBuilds, [pullRequest, builders]),
+  _i14.Future<List<_i7.Build?>> failedBuilds(_i8.PullRequest? pullRequest, List<_i30.Target>? targets) =>
+      (super.noSuchMethod(Invocation.method(#failedBuilds, [pullRequest, targets]),
           returnValue: Future<List<_i7.Build?>>.value(<_i7.Build?>[])) as _i14.Future<List<_i7.Build?>>);
   @override
   _i14.Future<bool> rescheduleBuild(
@@ -1467,10 +1468,10 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
   @override
   _i14.Future<bool> checkRerunBuilder(
           {_i32.Commit? commit,
-          _i30.LuciTask? luciTask,
+          _i33.LuciTask? luciTask,
           int? retries,
           String? repo = r'flutter',
-          _i33.DatastoreService? datastore,
+          _i34.DatastoreService? datastore,
           bool? isFlaky}) =>
       (super.noSuchMethod(
           Invocation.method(#checkRerunBuilder, [], {
@@ -1490,7 +1491,7 @@ class MockLuciBuildService extends _i1.Mock implements _i27.LuciBuildService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockLuciService extends _i1.Mock implements _i30.LuciService {
+class MockLuciService extends _i1.Mock implements _i33.LuciService {
   MockLuciService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1506,33 +1507,33 @@ class MockLuciService extends _i1.Mock implements _i30.LuciService {
       (super.noSuchMethod(Invocation.getter(#clientContext), returnValue: _FakeClientContext_46())
           as _i16.ClientContext);
   @override
-  _i14.Future<Map<_i30.BranchLuciBuilder, Map<String, List<_i30.LuciTask>>>> getBranchRecentTasks(
-          {List<_i30.LuciBuilder>? builders, bool? requireTaskName = false}) =>
+  _i14.Future<Map<_i33.BranchLuciBuilder, Map<String, List<_i33.LuciTask>>>> getBranchRecentTasks(
+          {List<_i33.LuciBuilder>? builders, bool? requireTaskName = false}) =>
       (super.noSuchMethod(
               Invocation.method(#getBranchRecentTasks, [], {#builders: builders, #requireTaskName: requireTaskName}),
-              returnValue: Future<Map<_i30.BranchLuciBuilder, Map<String, List<_i30.LuciTask>>>>.value(
-                  <_i30.BranchLuciBuilder, Map<String, List<_i30.LuciTask>>>{}))
-          as _i14.Future<Map<_i30.BranchLuciBuilder, Map<String, List<_i30.LuciTask>>>>);
+              returnValue: Future<Map<_i33.BranchLuciBuilder, Map<String, List<_i33.LuciTask>>>>.value(
+                  <_i33.BranchLuciBuilder, Map<String, List<_i33.LuciTask>>>{}))
+          as _i14.Future<Map<_i33.BranchLuciBuilder, Map<String, List<_i33.LuciTask>>>>);
   @override
-  List<List<_i30.LuciBuilder>> getPartialBuildersList(List<_i30.LuciBuilder>? builders, int? builderBatchSize) =>
+  List<List<_i33.LuciBuilder>> getPartialBuildersList(List<_i33.LuciBuilder>? builders, int? builderBatchSize) =>
       (super.noSuchMethod(Invocation.method(#getPartialBuildersList, [builders, builderBatchSize]),
-          returnValue: <List<_i30.LuciBuilder>>[]) as List<List<_i30.LuciBuilder>>);
+          returnValue: <List<_i33.LuciBuilder>>[]) as List<List<_i33.LuciBuilder>>);
   @override
-  _i14.Future<List<_i7.Build>> getBuildsForBuilderList(List<_i30.LuciBuilder>? builders,
+  _i14.Future<List<_i7.Build>> getBuildsForBuilderList(List<_i33.LuciBuilder>? builders,
           {String? repo, bool? requireTaskName = false}) =>
       (super.noSuchMethod(
           Invocation.method(#getBuildsForBuilderList, [builders], {#repo: repo, #requireTaskName: requireTaskName}),
           returnValue: Future<List<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<List<_i7.Build>>);
   @override
-  _i14.Future<Map<_i30.LuciBuilder, List<_i30.LuciTask>>> getRecentTasks(
-          {List<_i30.LuciBuilder>? builders, bool? requireTaskName = false}) =>
+  _i14.Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>> getRecentTasks(
+          {List<_i33.LuciBuilder>? builders, bool? requireTaskName = false}) =>
       (super.noSuchMethod(
               Invocation.method(#getRecentTasks, [], {#builders: builders, #requireTaskName: requireTaskName}),
               returnValue:
-                  Future<Map<_i30.LuciBuilder, List<_i30.LuciTask>>>.value(<_i30.LuciBuilder, List<_i30.LuciTask>>{}))
-          as _i14.Future<Map<_i30.LuciBuilder, List<_i30.LuciTask>>>);
+                  Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>>.value(<_i33.LuciBuilder, List<_i33.LuciTask>>{}))
+          as _i14.Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>>);
   @override
-  _i14.Future<Iterable<_i7.Build>> getBuilds(String? repo, bool? requireTaskName, List<_i30.LuciBuilder>? builders) =>
+  _i14.Future<Iterable<_i7.Build>> getBuilds(String? repo, bool? requireTaskName, List<_i33.LuciBuilder>? builders) =>
       (super.noSuchMethod(Invocation.method(#getBuilds, [repo, requireTaskName, builders]),
           returnValue: Future<Iterable<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<Iterable<_i7.Build>>);
   @override
@@ -2256,7 +2257,7 @@ class MockGitHub extends _i1.Mock implements _i8.GitHub {
             #body: body,
             #preview: preview
           }),
-          returnValue: _i34.postJsonShim<S, T>(path,
+          returnValue: _i35.postJsonShim<S, T>(path,
               statusCode: statusCode,
               fail: fail,
               headers: headers,

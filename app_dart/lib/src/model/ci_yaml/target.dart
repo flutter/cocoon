@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:github/github.dart';
 
-import '../../service/logging.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
 /// Wrapper class around [pb.Target] to support aggregate properties.
@@ -99,7 +98,6 @@ class Target {
 
   Map<String, Object> _getPlatformProperties() {
     if (!schedulerConfig.platformProperties.containsKey(getPlatform())) {
-      log.fine('${getPlatform()} was not found in platform properties');
       return <String, Object>{};
     }
 

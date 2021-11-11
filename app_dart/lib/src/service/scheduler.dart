@@ -200,8 +200,8 @@ class Scheduler {
 
   /// Get all [LuciBuilder] run for [ciYaml].
   Future<List<LuciBuilder>> getPostSubmitBuilders(CiYaml ciYaml) async {
-    final List<Target> postsubmitLuciTargets =
-        ciYaml.postsubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci).toList();
+    final Iterable<Target> postsubmitLuciTargets =
+        ciYaml.postsubmitTargets.where((Target target) => _isCocoonSchedulable(target, presubmit: false));
     final List<LuciBuilder> builders =
         postsubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
     return builders;
@@ -264,9 +264,9 @@ class Scheduler {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
-      final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(pullRequest);
+      final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
       await luciBuildService.scheduleTryBuilds(
-        builders: presubmitBuilders,
+        targets: presubmitTargets,
         pullRequest: pullRequest,
       );
     } on FormatException catch (error, backtrace) {
@@ -322,8 +322,8 @@ class Scheduler {
       githubClient,
       checkSuiteEvent,
     );
-    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(pullRequest);
-    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitBuilders);
+    final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
+    final List<Build?> failedBuilds = await luciBuildService.failedBuilds(pullRequest, presubmitTargets);
     for (Build? build in failedBuilds) {
       final github.CheckRun checkRun = checkRuns[build!.builderId.builder!]!;
 
@@ -341,7 +341,7 @@ class Scheduler {
   }
 
   /// Get LUCI presubmit builders from .ci.yaml.
-  Future<List<LuciBuilder>> getPresubmitBuilders(github.PullRequest pullRequest) async {
+  Future<List<Target>> getPresubmitTargets(github.PullRequest pullRequest) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
@@ -350,12 +350,10 @@ class Scheduler {
     final CiYaml ciYaml = await getCiYaml(commit);
     final Iterable<Target> presubmitTargets =
         ciYaml.presubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
-    final List<LuciBuilder> presubmitBuilders =
-        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(pullRequest);
-    return await getFilteredBuilders(presubmitBuilders, files);
+    return await getTargetsToRun(presubmitTargets, files);
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
@@ -410,5 +408,17 @@ class Scheduler {
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
+  }
+
+  /// Whether [target] should be scheduled by Cocooon's [Scheduler].
+  ///
+  /// If presubmit, Cocoon schedules all LUCI based targets (cocoon and luci).
+  /// If postsubmit, Cocoon only schedules targets set to run on cocoon.
+  bool _isCocoonSchedulable(Target target, {bool presubmit = true}) {
+    if (presubmit) {
+      return target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;
+    }
+
+    return target.value.scheduler == pb.SchedulerSystem.luci;
   }
 }
