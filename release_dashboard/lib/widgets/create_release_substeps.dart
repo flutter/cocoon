@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'common/tooltip.dart';
 
-enum SubstepEnum {
+enum CreateReleaseSubstep {
   candidateBranch,
   releaseChannel,
   frameworkMirror,
@@ -32,15 +32,15 @@ class CreateReleaseSubsteps extends StatefulWidget {
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
 
-  static Map<SubstepEnum, String> substepTitles = <SubstepEnum, String>{
-    SubstepEnum.candidateBranch: 'Candidate Branch',
-    SubstepEnum.releaseChannel: 'Release Channel',
-    SubstepEnum.frameworkMirror: 'Framework Mirror',
-    SubstepEnum.engineMirror: 'Engine Mirror',
-    SubstepEnum.engineCherrypicks: 'Engine Cherrypicks (if necessary)',
-    SubstepEnum.frameworkCherrypicks: 'Framework Cherrypicks (if necessary)',
-    SubstepEnum.dartRevision: 'Dart Revision (if necessary)',
-    SubstepEnum.increment: 'Increment',
+  static Map<CreateReleaseSubstep, String> substepTitles = <CreateReleaseSubstep, String>{
+    CreateReleaseSubstep.candidateBranch: 'Candidate Branch',
+    CreateReleaseSubstep.releaseChannel: 'Release Channel',
+    CreateReleaseSubstep.frameworkMirror: 'Framework Mirror',
+    CreateReleaseSubstep.engineMirror: 'Engine Mirror',
+    CreateReleaseSubstep.engineCherrypicks: 'Engine Cherrypicks (if necessary)',
+    CreateReleaseSubstep.frameworkCherrypicks: 'Framework Cherrypicks (if necessary)',
+    CreateReleaseSubstep.dartRevision: 'Dart Revision (if necessary)',
+    CreateReleaseSubstep.increment: 'Increment',
   };
 }
 
@@ -56,9 +56,9 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   @override
   void initState() {
     List<String> kOptionalInput = <String>[
-      CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]!,
-      CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!,
-      CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]!,
+      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!,
+      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
+      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
     ];
     // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
     for (final String substep in CreateReleaseSubsteps.substepTitles.values) {
@@ -101,56 +101,56 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.candidateBranch]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]!,
           setReleaseData: setReleaseData,
           hintText: 'The candidate branch the release will be based on.',
           changeIsInputValid: changeIsEachInputValid,
           validationClass: candidateBranch,
         ),
         CheckboxListTileDropdown(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['dev', 'beta', 'stable'],
           changeIsDropdownValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkMirror]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Framework repository mirror.",
           changeIsInputValid: changeIsEachInputValid,
           validationClass: gitRemote,
         ),
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.engineMirror]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!,
           setReleaseData: setReleaseData,
           hintText: "Git remote of the Conductor user's Engine repository mirror.",
           changeIsInputValid: changeIsEachInputValid,
           validationClass: gitRemote,
         ),
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!,
           setReleaseData: setReleaseData,
           hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
           changeIsInputValid: changeIsEachInputValid,
           validationClass: multiGitHash,
         ),
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
           setReleaseData: setReleaseData,
           hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
           changeIsInputValid: changeIsEachInputValid,
           validationClass: multiGitHash,
         ),
         InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
           setReleaseData: setReleaseData,
           hintText: 'New Dart revision to cherrypick.',
           changeIsInputValid: changeIsEachInputValid,
           validationClass: gitHash,
         ),
         CheckboxListTileDropdown(
-          substepName: CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!,
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
           options: const <String>['y', 'z', 'm', 'n'],
@@ -243,7 +243,7 @@ class CheckboxListTileDropdown extends StatelessWidget {
           style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.grey[700]),
         ),
         // Only add a tooltip for the increment dropdown
-        if (substepName == CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!)
+        if (substepName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!)
           const Padding(
             padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
             child: InfoTooltip(

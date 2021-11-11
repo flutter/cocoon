@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'common/tooltip.dart';
 import 'common/url_button.dart';
 
-enum SubstepEnum {
+enum StatusSubstep {
   candidateBranch,
   startingGitHead,
   currentGitHead,
@@ -33,20 +33,20 @@ class ConductorStatus extends StatefulWidget {
     'Dart SDK Revision',
   ];
 
-  static final Map<SubstepEnum, String> engineRepoElements = <SubstepEnum, String>{
-    SubstepEnum.candidateBranch: 'Engine Candidate Branch',
-    SubstepEnum.startingGitHead: 'Engine Starting Git HEAD',
-    SubstepEnum.currentGitHead: 'Engine Current Git HEAD',
-    SubstepEnum.checkoutPath: 'Engine Path to Checkout',
-    SubstepEnum.dashboardLink: 'Engine LUCI Dashboard',
+  static final Map<StatusSubstep, String> engineRepoElements = <StatusSubstep, String>{
+    StatusSubstep.candidateBranch: 'Engine Candidate Branch',
+    StatusSubstep.startingGitHead: 'Engine Starting Git HEAD',
+    StatusSubstep.currentGitHead: 'Engine Current Git HEAD',
+    StatusSubstep.checkoutPath: 'Engine Path to Checkout',
+    StatusSubstep.dashboardLink: 'Engine LUCI Dashboard',
   };
 
-  static final Map<SubstepEnum, String> frameworkRepoElements = <SubstepEnum, String>{
-    SubstepEnum.candidateBranch: 'Framework Candidate Branch',
-    SubstepEnum.startingGitHead: 'Framework Starting Git HEAD',
-    SubstepEnum.currentGitHead: 'Framework Current Git HEAD',
-    SubstepEnum.checkoutPath: 'Framework Path to Checkout',
-    SubstepEnum.dashboardLink: 'Framework LUCI Dashboard',
+  static final Map<StatusSubstep, String> frameworkRepoElements = <StatusSubstep, String>{
+    StatusSubstep.candidateBranch: 'Framework Candidate Branch',
+    StatusSubstep.startingGitHead: 'Framework Starting Git HEAD',
+    StatusSubstep.currentGitHead: 'Framework Current Git HEAD',
+    StatusSubstep.checkoutPath: 'Framework Path to Checkout',
+    StatusSubstep.dashboardLink: 'Framework LUCI Dashboard',
   };
 }
 
@@ -193,10 +193,10 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
   /// Helper function to determine if a clickable [UrlButton] should be rendered instead of a [SelectableText].
   bool isClickable(String repoElement) {
     List<String> clickableElements = <String>[
-      ConductorStatus.engineRepoElements[SubstepEnum.dashboardLink]!,
-      ConductorStatus.engineRepoElements[SubstepEnum.checkoutPath]!,
-      ConductorStatus.frameworkRepoElements[SubstepEnum.dashboardLink]!,
-      ConductorStatus.frameworkRepoElements[SubstepEnum.checkoutPath]!
+      ConductorStatus.engineRepoElements[StatusSubstep.dashboardLink]!,
+      ConductorStatus.engineRepoElements[StatusSubstep.checkoutPath]!,
+      ConductorStatus.frameworkRepoElements[StatusSubstep.dashboardLink]!,
+      ConductorStatus.frameworkRepoElements[StatusSubstep.checkoutPath]!
     ];
     return (clickableElements.contains(repoElement));
   }

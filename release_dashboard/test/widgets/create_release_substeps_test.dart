@@ -19,20 +19,20 @@ void main() {
 
   /// Construct test inputs in a map that has the same names as [CreateReleaseSubsteps.substepTitles].
   Map<String, String> testInputsCorrect = <String, String>{
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.candidateBranch]!: candidateBranch,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]!: releaseChannel,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkMirror]!: frameworkMirror,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.engineMirror]!: engineMirror,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!: validGitHash1,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]!: validGitHash2,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]!: validGitHash3,
-    CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!: increment,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]!: candidateBranch,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!: releaseChannel,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!: frameworkMirror,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!: engineMirror,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!: validGitHash1,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!: validGitHash2,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!: validGitHash3,
+    CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!: increment,
   };
 
   group('Dropdown validator', () {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
-      if (parameterName == CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! ||
-          parameterName == CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
+      if (parameterName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! ||
+          parameterName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
         testWidgets('$parameterName dropdown test', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
@@ -66,8 +66,8 @@ void main() {
 
   group("Input textfield validator", () {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
-      if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! &&
-          parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
+      if (parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! &&
+          parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
         testWidgets('$parameterName input test', (WidgetTester tester) async {
           await tester.pumpWidget(
             MaterialApp(
@@ -100,10 +100,10 @@ void main() {
   group('Input textfields whitespaces', () {
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
       // the test does not apply to dropdowns
-      if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! &&
-          parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
-        if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]! &&
-            parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]!) {
+      if (parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! &&
+          parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
+        if (parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]! &&
+            parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!) {
           testWidgets('$parameterName should trim leading and trailing whitespaces before validating',
               (WidgetTester tester) async {
             await tester.pumpWidget(
@@ -215,8 +215,8 @@ void main() {
     final GitValidation candidateBranch = CandidateBranch();
     for (final String parameterName in CreateReleaseSubsteps.substepTitles.values) {
       // the test does not apply to dropdowns
-      if (parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]! &&
-          parameterName != CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]!) {
+      if (parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! &&
+          parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
         // assign the corresponding error message manually to each type of input
         late final String validatorErrorMsg;
         switch (parameterName) {
