@@ -358,4 +358,94 @@ void main() {
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
+
+  group('BatteryLevelCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    List<List<int>> output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when battery level is high', () async {
+      const String screenMessage = '''
+  level: 100
+  mod level: -1
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kBatteryLevelCheckKey);
+    });
+
+    test('returns failure when battery level is below threshold', () async {
+      const String screenMessage = '''
+  level: 10
+  mod level: -1
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kBatteryLevelCheckKey);
+      expect(healthCheckResult.details, 'Battery level (10) is below 15');
+    });
+  });
+
+  group('BatteryTemperatureCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    List<List<int>> output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when battery temperature is low', () async {
+      const String screenMessage = '''
+  temperature: 24
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult =
+          await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kBatteryTemperatureCheckKey);
+    });
+
+    test('returns failure when battery temperature is above threshold', () async {
+      const String screenMessage = '''
+  temperature: 350
+      ''';
+      output = <List<int>>[utf8.encode(screenMessage)];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult =
+          await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kBatteryTemperatureCheckKey);
+      expect(healthCheckResult.details, 'Battery temperature (35°C) is over 34°C');
+    });
+  });
 }

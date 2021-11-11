@@ -16,6 +16,11 @@ import 'host_utils.dart';
 import 'mac.dart';
 import 'utils.dart';
 
+// The minimum battery level to run a task with a scale of 100%.
+const int _kBatteryMinLevel = 15;
+// The maximum battery temprature to run a task with a Celsius degree.
+const int _kBatteryMaxTemperatureInCelsius = 34;
+
 class AndroidDeviceDiscovery implements DeviceDiscovery {
   factory AndroidDeviceDiscovery(String output) {
     return _instance ??= AndroidDeviceDiscovery._(output);
@@ -103,6 +108,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(await developerModeCheck(processManager: processManager));
       checks.add(await screenOnCheck(processManager: processManager));
       checks.add(await screenSaverCheck(processManager: processManager));
+      checks.add(await batteryLevelCheck(processManager: processManager));
+      checks.add(await batteryTemperatureCheck(processManager: processManager));
       if (Platform.isMacOS) {
         checks.add(await userAutoLoginCheck(processManager: processManager));
       }
@@ -264,6 +271,54 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  /// The health check for battery level.
+  Future<HealthCheckResult> batteryLevelCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      // The battery level returns two rows. For example:
+      //   level: 100
+      //   mod level: -1
+      final String levelResults = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+          processManager: processManager);
+      final RegExp levelRegExp = RegExp('level: (?<level>.+)');
+      final RegExpMatch match = levelRegExp.firstMatch(levelResults);
+      final int level = int.parse(match.namedGroup('level'));
+      if (level < _kBatteryMinLevel) {
+        healthCheckResult =
+            HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
+      } else {
+        healthCheckResult = HealthCheckResult.success(kBatteryLevelCheckKey);
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kScreenSaverCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  /// The health check for battery temperature.
+  Future<HealthCheckResult> batteryTemperatureCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      // The battery temperature returns one row. For example:
+      //  temperature: 240
+      // It means 24°C.
+      final String tempResult = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+          processManager: processManager);
+      final RegExp tempRegExp = RegExp('temperature: (?<temperature>.+)');
+      final RegExpMatch match = tempRegExp.firstMatch(tempResult);
+      final int temperature = int.parse(match.namedGroup('temperature'));
+      if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
+        healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey,
+            'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C');
+      } else {
+        healthCheckResult = HealthCheckResult.success(kBatteryTemperatureCheckKey);
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey, error.toString());
     }
     return healthCheckResult;
   }
