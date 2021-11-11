@@ -16,9 +16,9 @@ import 'host_utils.dart';
 import 'mac.dart';
 import 'utils.dart';
 
-// The minimum battery level to run a task with a scale of 100.
+// The minimum battery level to run a task with a scale of 100%.
 const int _kBatteryMinLevel = 15;
-// The maxium battery temprature to run a task with a Celsius degree.
+// The maximum battery temprature to run a task with a Celsius degree.
 const int _kBatteryMaxTemperatureInCelsius = 34;
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
@@ -284,8 +284,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       //   mod level: -1
       final String levelResults = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
           processManager: processManager);
-      final List<String> levels = levelResults.trim().split('\n').toList();
-      final int level = int.parse(levels.where((element) => element.startsWith('level:')).single.split(':')[1].trim());
+      final RegExp levelRegExp = RegExp('level: (?<level>.+)');
+      final RegExpMatch match = levelRegExp.firstMatch(levelResults);
+      final int level = int.parse(match.namedGroup('level'));
       if (level < _kBatteryMinLevel) {
         healthCheckResult =
             HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
@@ -307,7 +308,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       // It means 24°C.
       final String tempResult = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
           processManager: processManager);
-      final int temperature = int.parse(tempResult.split(':')[1].trim());
+      final RegExp tempRegExp = RegExp('temperature: (?<temperature>.+)');
+      final RegExpMatch match = tempRegExp.firstMatch(tempResult);
+      final int temperature = int.parse(match.namedGroup('temperature'));
       if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
         healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey,
             'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C');
