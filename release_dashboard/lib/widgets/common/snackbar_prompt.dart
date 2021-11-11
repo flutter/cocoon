@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 /// Function that prompts a snackbar at the bottom of the page.
 ///
-/// Clicking on [Ok] will close the snackbar.
-/// The snackbar will stay displayed for 2 minutes unless [Ok] is clicked.
+/// Clicking on 'Ok' will close the snackbar.
+/// The snackbar will stay displayed for 2 minutes unless 'Ok' is clicked.
 void snackbarPrompt({
   required BuildContext context,
   required String msg,

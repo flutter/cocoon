@@ -11,9 +11,9 @@ import 'common/snackbar_prompt.dart';
 /// Button to clean the current release.
 ///
 /// When the button is clicked, a dialogue prompt will open for confirmation.
-/// Clicking on [Yes] will clean the release, [No] will close the dialogue prompt.
-class CleanRelease extends StatefulWidget {
-  const CleanRelease({
+/// Clicking on 'Yes' will clean the release, 'No' will close the dialogue prompt.
+class CleanReleaseButton extends StatefulWidget {
+  const CleanReleaseButton({
     Key? key,
     required this.conductor,
   }) : super(key: key);
@@ -21,10 +21,10 @@ class CleanRelease extends StatefulWidget {
   final ConductorService conductor;
 
   @override
-  State<CleanRelease> createState() => _CleanReleaseState();
+  State<CleanReleaseButton> createState() => _CleanReleaseState();
 }
 
-class _CleanReleaseState extends State<CleanRelease> {
+class _CleanReleaseState extends State<CleanReleaseButton> {
   String? _errorMsg;
 
   /// Updates [_errorMsg] with [errorMsg].
@@ -49,7 +49,7 @@ class _CleanReleaseState extends State<CleanRelease> {
             leftOptionTitle: 'Yes',
             rightOptionTitle: 'No',
             leftOptionCallback: () {
-              _updateErrorMsg('This is a temporary error placeholder');
+              _updateErrorMsg('Feature has not been implemented yet. Please use conductor clean of the CLI tool!');
               if (_errorMsg != null) {
                 snackbarPrompt(context: context, msg: _errorMsg!);
               }

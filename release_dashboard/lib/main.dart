@@ -11,7 +11,7 @@ import 'services/local_conductor.dart';
 import 'package:provider/provider.dart';
 
 import 'state/status_state.dart';
-import 'widgets/clean_release.dart';
+import 'widgets/clean_release_button.dart';
 import 'widgets/progression.dart';
 
 const String _title = 'Flutter Desktop Conductor (Not ready, do not use)';
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
           appBar: AppBar(
             title: const Text(_title),
             actions: [
-              CleanRelease(
+              CleanReleaseButton(
                 conductor: conductor,
               ),
             ],
