@@ -16,8 +16,10 @@ import 'host_utils.dart';
 import 'mac.dart';
 import 'utils.dart';
 
+// The minimum battery level to run a task with a scale of 100.
 const int _kBatteryMinLevel = 15;
-const int _kBatteryMaxTemperature = 34;
+// The maxium battery temprature to run a task with a Celsius degree.
+const int _kBatteryMaxTemperatureInCelsius = 34;
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
   factory AndroidDeviceDiscovery(String output) {
@@ -306,9 +308,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       final String tempResult = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
           processManager: processManager);
       final int temperature = int.parse(tempResult.split(':')[1].trim());
-      if (temperature > _kBatteryMaxTemperature * 10) {
+      if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
         healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey,
-            'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperature°C');
+            'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C');
       } else {
         healthCheckResult = HealthCheckResult.success(kBatteryTemperatureCheckKey);
       }
