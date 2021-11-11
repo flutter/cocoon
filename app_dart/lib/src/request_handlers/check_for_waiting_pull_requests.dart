@@ -203,6 +203,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       final String? author = pullRequest['author']['login'] as String?;
       final String id = pullRequest['id'] as String;
+      final String repoFullName = pullRequest['baseRepository']['nameWithOwner'] as String;
+      final RepositorySlug slug = RepositorySlug.full(repoFullName);
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
@@ -228,6 +230,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       checkRuns ??= <Map<String, dynamic>>[];
       final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
+        slug,
         sha,
         failures,
         statuses,
@@ -247,7 +250,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           title: title,
           sha: sha,
           labelId: labelId!,
-          emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
+          emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
           labels: labels));
@@ -259,6 +262,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ///
   /// Also fills [failures] with the names of any status/check that has failed.
   Future<bool> _checkStatuses(
+    RepositorySlug slug,
     String sha,
     Set<_FailureDetail> failures,
     List<Map<String, dynamic>> statuses,
@@ -276,6 +280,23 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       'luci-engine', // engine repo
       'submit-queue', // plugins repo
     };
+
+    // Ensure repos with tree statuses have it set
+    if (Config.reposWithTreeStatus.contains(slug)) {
+      bool treeStatusExists = false;
+      final String treeStatusName = 'luci-${slug.name}';
+
+      // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+      for (Map<String, dynamic> status in statuses) {
+        if (status['context'] == treeStatusName) {
+          treeStatusExists = true;
+        }
+      }
+
+      if (!treeStatusExists) {
+        failures.add(_FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+      }
+    }
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
     for (Map<String, dynamic> status in statuses) {
@@ -389,7 +410,7 @@ class _AutoMergeQueryResult {
     required this.title,
     required this.sha,
     required this.labelId,
-    required this.emptyValidations,
+    required this.emptyChecks,
     required this.isConflicting,
     required this.unknownMergeableState,
     required this.labels,
@@ -422,8 +443,8 @@ class _AutoMergeQueryResult {
   /// The GitHub GraphQL ID of the waiting label.
   final String labelId;
 
-  /// Whether the commit has empty validations or not.
-  final bool emptyValidations;
+  /// Whether the commit has checks or not.
+  final bool emptyChecks;
 
   /// Whether the PR has conflicts or not.
   final bool isConflicting;
@@ -440,13 +461,13 @@ class _AutoMergeQueryResult {
       failures.isEmpty &&
       hasApprovedReview &&
       changeRequestAuthors.isEmpty &&
-      !emptyValidations &&
+      !emptyChecks &&
       !unknownMergeableState &&
       !isConflicting;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations || isConflicting;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
@@ -469,10 +490,9 @@ class _AutoMergeQueryResult {
       buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
     }
-    if (emptyValidations) {
-      buffer.writeln('- This commit has empty status or empty checks. Please'
-          ' check the Google CLA status is present and Flutter Dashboard'
-          ' application has multiple checks.');
+    if (emptyChecks) {
+      buffer.writeln('- This commit has no checks. Please check that ci.yaml validation has started'
+          ' and there are multiple checks. If not, try uploading an empty commit.');
     }
     if (isConflicting) {
       buffer.writeln('- This commit is not mergeable and has conflicts. Please'
@@ -490,7 +510,7 @@ class _AutoMergeQueryResult {
         'hasApprovedReview: $hasApprovedReview, '
         'changeRequestAuthors: $changeRequestAuthors, '
         'labelId: $labelId, '
-        'emptyValidations: $emptyValidations, '
+        'emptyValidations: $emptyChecks, '
         'shouldMerge: $shouldMerge}';
   }
 }

@@ -17,6 +17,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
               login
             }
             id
+            baseRepository
             number
             title
             mergeable

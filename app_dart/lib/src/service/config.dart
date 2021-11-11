@@ -52,6 +52,12 @@ class Config {
     RepositorySlug('flutter', 'flutter'),
   };
 
+  /// GitHub repositories that use CI status to determine if pull requests can be submitted.
+  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
+    RepositorySlug('flutter', 'engine'),
+    RepositorySlug('flutter', 'flutter'),
+  };
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
