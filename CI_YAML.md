@@ -31,6 +31,8 @@ targets:
 #         If none are passed, will always run in presubmit.
 # enabled_branches: List of strings of branches this target can run on.
 #                   This overrides the global enabled_branches.
+# properties: A map of string, string. Values are parsed to their closest data model.
+# postsubmit_properties: Properties that are only run on postsubmit.
 #
 # Minimal example:
 # Linux analyze will run on all presubmit and in postsubmit.
@@ -48,10 +50,13 @@ targets:
 #
 # Tags example:
 # This test will be categorized as host only framework test.
+# Postsubmit runs will be passed "upload: all".
  - name: Linux analyze
    properties:
      tags: >-
        ["framework", "hostonly"]
+   postsubmit_properties:
+     - upload: all
 ```
 
 ## Adding new targets
@@ -131,10 +136,9 @@ tags: >
     - If this is a Flutter managed package, look up its docs on uploading a new version
     - For example, JDK is at https://chrome-infra-packages.appspot.com/p/flutter_internal/java/openjdk/linux-amd64
 2. In `ci.yaml`, find a target that would be impacted by this change
-    - Duplicate the target with a bringup version (will only run in postsubmit, non-blocking)
-    - Override the `version` in like `{"dependency": "open_jdk", "version": "11"}
+    - Override the `version` specified in dependencies
       ```yaml
-      - name: Linux Host Engine Java 11
+      - name: Linux Host Engine
         recipe: engine
         properties:
           build_host: "true"
@@ -151,12 +155,9 @@ tags: >
         timeout: 60
         scheduler: luci
     ```
-    - Send PR, wait for it to propagate in LUCI
-3. If the target in (2) is red, send patches to get it green.
-4. When the bringup builder has validated the new dependency, and there is confidence
-   the new dependency is compatible, roll all targets to the new version in `.ci.yaml`.
-    - This is usually defined under `platform_properties`
-    - Remove the bringup builder from (2)
+    - Send PR, wait for the checks to go green (the change takes effect on presubmit)
+3. If the check is red, add patches to get it green
+4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
 
 ## External Tests
 
