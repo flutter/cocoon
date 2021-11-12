@@ -26,6 +26,8 @@ import 'access_client_provider.dart';
 /// success_count	    INTEGER
 /// failure_count	    INTEGER
 /// is_flaky	        INTEGER
+///
+/// This returns latest [LIMIT] number of build stats for each builder.
 const String getBuilderStatisticQuery = r'''
 select builder_name,
        sum(is_flaky) as flaky_number,
@@ -35,14 +37,15 @@ select builder_name,
        array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
        array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as flaky_build_of_recent_flaky_commit,
        sum(is_flaky)/count(*) as flaky_ratio
-from `flutter-dashboard.datasite.luci_prod_build_status`
-where date>=date_sub(current_date(), interval 14 day) and
-      date<=current_date() and
+from (select *, row_number() over (partition by builder_name order by time desc) as rank from `flutter-dashboard.datasite.luci_prod_build_status`)
+where date>=date_sub(current_date(), interval 30 day) and
       builder_name not like '%Drone' and
       repo='flutter' and
       branch='master' and
       pool = 'luci.flutter.prod' and
-      builder_name not like '%Beta%'
+      builder_name not like '%Beta%' and
+      builder_name not like '% beta %' and
+      rank<=@LIMIT
 group by builder_name;
 ''';
 
@@ -75,14 +78,23 @@ class BigqueryService {
     return BigqueryApi(client).jobs;
   }
 
-  /// Return the list of current builder statistic.
+  /// Return the top [limit] number of current builder statistic.
   ///
   /// See getBuilderStatisticQuery to get the detail information about the table
   /// schema
-  Future<List<BuilderStatistic>> listBuilderStatistic(String projectId) async {
+  Future<List<BuilderStatistic>> listBuilderStatistic(String projectId, {int limit = 100}) async {
     final JobsResource jobsResource = await defaultJobs();
-    final QueryRequest query =
-        QueryRequest.fromJson(<String, Object>{'query': getBuilderStatisticQuery, 'useLegacySql': false});
+    final QueryRequest query = QueryRequest.fromJson(<String, Object>{
+      'query': getBuilderStatisticQuery,
+      'queryParameters': <Map<String, Object>>[
+        <String, Object>{
+          'name': 'LIMIT',
+          'parameterType': <String, Object>{'type': 'INT64'},
+          'parameterValue': <String, Object>{'value': '$limit'},
+        },
+      ],
+      'useLegacySql': false,
+    });
     final QueryResponse response = await jobsResource.query(query, projectId);
     if (!response.jobComplete!) {
       throw 'job does not complete';

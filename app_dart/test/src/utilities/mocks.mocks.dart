@@ -279,8 +279,8 @@ class MockBigqueryService extends _i1.Mock implements _i20.BigqueryService {
   _i14.Future<_i6.JobsResource> defaultJobs() => (super.noSuchMethod(Invocation.method(#defaultJobs, []),
       returnValue: Future<_i6.JobsResource>.value(_FakeJobsResource_5())) as _i14.Future<_i6.JobsResource>);
   @override
-  _i14.Future<List<_i20.BuilderStatistic>> listBuilderStatistic(String? projectId) =>
-      (super.noSuchMethod(Invocation.method(#listBuilderStatistic, [projectId]),
+  _i14.Future<List<_i20.BuilderStatistic>> listBuilderStatistic(String? projectId, {int? limit = 100}) =>
+      (super.noSuchMethod(Invocation.method(#listBuilderStatistic, [projectId], {#limit: limit}),
               returnValue: Future<List<_i20.BuilderStatistic>>.value(<_i20.BuilderStatistic>[]))
           as _i14.Future<List<_i20.BuilderStatistic>>);
   @override
