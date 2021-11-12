@@ -40,7 +40,7 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
 }
 
 class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
-  final Map<String, bool> _isEachSubstepChecked = <String, bool>{};
+  final Map<EngineCherrypicksSubstep, bool> _isEachSubstepChecked = <EngineCherrypicksSubstep, bool>{};
 
   @override
   void initState() {
@@ -48,15 +48,15 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
     ///
     /// All substeps are unchecked at the beginning.
     for (final EngineCherrypicksSubstep substep in EngineCherrypicksSubstep.values) {
-      _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[substep]!] = false;
+      _isEachSubstepChecked[substep] = false;
     }
     super.initState();
   }
 
   /// Toggle the boolean value of [substepName] in [_isEachSubstepChecked].
-  void substepPressed(String substepName) {
+  void substepPressed(EngineCherrypicksSubstep substep) {
     setState(() {
-      _isEachSubstepChecked[substepName] = !_isEachSubstepChecked[substepName]!;
+      _isEachSubstepChecked[substep] = !_isEachSubstepChecked[substep]!;
     });
   }
 
@@ -67,25 +67,25 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!,
           subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]]!,
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep1]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!);
+            substepPressed(EngineCherrypicksSubstep.substep1);
           },
         ),
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!,
           subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep2]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]]!,
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep2]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!);
+            substepPressed(EngineCherrypicksSubstep.substep2);
           },
         ),
         CheckboxAsSubstep(
           substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!,
           subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep3]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]]!,
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep3]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!);
+            substepPressed(EngineCherrypicksSubstep.substep3);
           },
         ),
         if (!_isEachSubstepChecked.containsValue(false))
