@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'engine_cherrypicks_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'substeps.dart';
@@ -91,7 +92,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[1]),
                   content: Column(
                     children: <Widget>[
-                      ConductorSubsteps(nextStep: nextStep),
+                      EngineCherrypicksSubsteps(nextStep: nextStep),
                     ],
                   ),
                   isActive: true,
