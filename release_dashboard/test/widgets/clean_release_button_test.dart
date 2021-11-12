@@ -6,7 +6,7 @@ import 'package:conductor_ui/widgets/clean_release_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/services/fake_conductor.dart';
 
 void main() {
   group('Clean release button UI tests', () {

@@ -118,18 +118,18 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   Future<void> runCreateRelease() {
     // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
     return widget.conductor.createRelease(
-      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.candidateBranch]] ?? '',
-      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.releaseChannel]] ?? '',
-      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkMirror]] ?? '',
-      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.engineMirror]] ?? '',
-      engineCherrypickRevisions:
-          cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.engineCherrypicks]]),
-      frameworkCherrypickRevisions:
-          cherrypickStringtoArray(releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.frameworkCherrypicks]]),
-      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]] == ''
+      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]] ?? '',
+      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]] ?? '',
+      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]] ?? '',
+      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]] ?? '',
+      engineCherrypickRevisions: cherrypickStringtoArray(
+          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]]),
+      frameworkCherrypickRevisions: cherrypickStringtoArray(
+          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]]),
+      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]] == ''
           ? null
-          : releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.dartRevision]],
-      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[SubstepEnum.increment]] ?? '',
+          : releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]],
+      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]] ?? '',
     );
   }
 
