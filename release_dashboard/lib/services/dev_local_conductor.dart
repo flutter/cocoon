@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, EngineRepository, FrameworkRepository, StartContext;
+import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository, StartContext;
 import 'local_conductor.dart';
 
 /// Service class for using a test conductor in a local environment.
