@@ -30,6 +30,7 @@ class UrlButton extends StatelessWidget {
       target: LinkTarget.blank,
       builder: (ctx, openLink) {
         return TextButton(
+          style: TextButton.styleFrom(padding: EdgeInsets.zero),
           onPressed: openLink,
           child: Text(textToDisplay),
         );
