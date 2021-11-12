@@ -50,13 +50,13 @@ targets:
 #
 # Tags example:
 # This test will be categorized as host only framework test.
-# Postsubmit runs will be passed "upload: all".
+# Postsubmit runs will be passed "upload_metrics: true".
  - name: Linux analyze
    properties:
      tags: >-
        ["framework", "hostonly"]
    postsubmit_properties:
-     - upload: all
+     - upload_metrics: "true"
 ```
 
 ## Adding new targets
