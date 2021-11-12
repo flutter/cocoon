@@ -57,6 +57,8 @@ message Target {
     // Name of the LUCI recipe to use for the builder.
     optional string recipe = 13;
     reserved 14; // tags
+    // Properties to configure infrastructure tooling for only postsubmit runs.
+    map<string, string> postsubmit_properties = 15;
 }
 
 // Schedulers supported in SchedulerConfig.
