@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'services/conductor.dart';
+import 'services/dev_local_conductor.dart';
 import 'services/local_conductor.dart';
 import 'state/status_state.dart';
 import 'widgets/clean_release_button.dart';
@@ -22,8 +23,10 @@ Future<void> main() async {
     throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
+  const bool isDev = false;
+
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(LocalConductorService()));
+  runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));
 }
 
 class MyApp extends StatelessWidget {

@@ -2,47 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, StartContext, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
-import 'package:conductor_core/proto.dart' as pb;
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:platform/platform.dart';
-import 'package:process/process.dart';
+    show Checkouts, EngineRepository, FrameworkRepository, StartContext;
+import 'local_conductor.dart';
 
-import 'conductor.dart';
-
-/// Service class for using the conductor in a local environment.
+/// Service class for using a test conductor in a local environment.
 ///
-/// This is the production version of the conductor, only intended for releases.
-class LocalConductorService extends ConductorService {
-  final FileSystem fs = const LocalFileSystem();
-  final Platform platform = const LocalPlatform();
-  final ProcessManager processManager = const LocalProcessManager();
-  final Stdio stdio = VerboseStdio(
-    stdout: io.stdout,
-    stderr: io.stderr,
-    stdin: io.stdin,
-  );
-
-  @override
-  Directory get rootDirectory => fs.directory(platform.environment['HOME']);
-  File get stateFile => fs.file(defaultStateFilePath(platform));
-
-  static const String frameworkUpstream = 'https://github.com/flutter/flutter';
-  static const String engineUpstream = 'https://github.com/flutter/engine';
-
-  @override
-  pb.ConductorState? get state {
-    if (stateFile.existsSync()) {
-      return readStateFromFile(stateFile);
-    }
-
-    return null;
-  }
-
+/// This is not the production version of the conductor, only intended for test.
+/// This service creates fake local upstream repos to simulate the production repos.
+class DevLocalConductorService extends LocalConductorService {
   @override
   Future<void> createRelease({
     required String candidateBranch,
@@ -61,6 +29,11 @@ class LocalConductorService extends ConductorService {
       platform: platform,
       stdio: stdio,
     );
+
+    final FrameworkRepository localFrameworkUpstream = FrameworkRepository(checkouts, localUpstream: true);
+
+    final EngineRepository localEngineUpstream = EngineRepository(checkouts, localUpstream: true);
+
     final StartContext startContext = StartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
@@ -69,10 +42,10 @@ class LocalConductorService extends ConductorService {
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,
-      engineUpstream: engineUpstream,
+      engineUpstream: (await localFrameworkUpstream.checkoutDirectory).path,
       frameworkCherrypickRevisions: frameworkCherrypickRevisions,
       frameworkMirror: frameworkMirror,
-      frameworkUpstream: frameworkUpstream,
+      frameworkUpstream: (await localEngineUpstream.checkoutDirectory).path,
       incrementLetter: incrementLetter,
       processManager: processManager,
       releaseChannel: releaseChannel,
