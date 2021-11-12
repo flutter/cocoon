@@ -13,25 +13,23 @@ import '../fakes/services/fake_conductor.dart';
 void main() {
   testWidgets('When user clicks on a previously completed step, Stepper does not navigate back.',
       (WidgetTester tester) async {
-    await tester.pumpWidget(Builder(builder: (context) {
-      return ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor()),
-        child: MaterialApp(
-          home: Material(
-            child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return MainProgression(
-                    previousCompletedStep: 1,
-                    conductor: FakeConductor(),
-                  );
-                }),
-              ],
-            ),
+    await tester.pumpWidget(ChangeNotifierProvider(
+      create: (context) => StatusState(conductor: FakeConductor()),
+      child: MaterialApp(
+        home: Material(
+          child: Column(
+            children: <Widget>[
+              Builder(builder: (context) {
+                return MainProgression(
+                  previousCompletedStep: 1,
+                  conductor: FakeConductor(),
+                );
+              }),
+            ],
           ),
         ),
-      );
-    }));
+      ),
+    ));
 
     expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, equals(1));
 
