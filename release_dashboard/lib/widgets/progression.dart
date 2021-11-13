@@ -19,11 +19,9 @@ class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
     this.previousCompletedStep,
-    required this.conductor,
   }) : super(key: key);
 
   final int? previousCompletedStep;
-  final ConductorService conductor;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -94,7 +92,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[0]),
                   content: Column(
                     children: <Widget>[
-                      CreateReleaseSubsteps(nextStep: nextStep, conductor: widget.conductor),
+                      CreateReleaseSubsteps(nextStep: nextStep),
                     ],
                   ),
                   isActive: true,

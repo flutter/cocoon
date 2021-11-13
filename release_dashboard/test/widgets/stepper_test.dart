@@ -20,9 +20,8 @@ void main() {
           child: Column(
             children: <Widget>[
               Builder(builder: (context) {
-                return MainProgression(
+                return const MainProgression(
                   previousCompletedStep: 1,
-                  conductor: FakeConductor(),
                 );
               }),
             ],

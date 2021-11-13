@@ -56,14 +56,12 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const SelectableText(
+              children: const <Widget>[
+                SelectableText(
                   'Desktop app for managing a release of the Flutter SDK, currently in development',
                 ),
-                const SizedBox(height: 10.0),
-                MainProgression(
-                  conductor: conductor,
-                ),
+                SizedBox(height: 10.0),
+                MainProgression(),
               ],
             ),
           ),

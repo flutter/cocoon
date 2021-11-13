@@ -4,10 +4,12 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../logic/cherrypicks.dart';
 import '../logic/git.dart';
 import '../services/conductor.dart';
+import '../state/status_state.dart';
 import 'common/tooltip.dart';
 
 enum CreateReleaseSubstep {
@@ -28,11 +30,9 @@ class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
     required this.nextStep,
-    required this.conductor,
   }) : super(key: key);
 
   final VoidCallback nextStep;
-  final ConductorService conductor;
 
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
@@ -114,10 +114,10 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
-  /// Initialize a [startContext] and execute the [run] function to start a release.
-  Future<void> runCreateRelease() {
+  /// Initialize a [startContext] and execute the [run] function to start a release using the local conductor.
+  Future<void> runCreateRelease(ConductorService conductor) {
     // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
-    return widget.conductor.createRelease(
+    return conductor.createRelease(
       candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]] ?? '',
       releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]] ?? '',
       frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]] ?? '',
@@ -151,6 +151,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     final GitValidation gitRemote = GitRemote();
     final GitValidation multiGitHash = MultiGitHash();
     final GitValidation gitHash = GitHash();
+
+    final ConductorService conductor = context.watch<StatusState>().conductor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +232,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
                       setError(null);
                       try {
                         setIsLoading(true);
-                        await runCreateRelease();
+                        await runCreateRelease(conductor);
                         // ignore: avoid_catches_without_on_clauses
                       } catch (error) {
                         setError(error);

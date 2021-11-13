@@ -6,9 +6,11 @@ import 'dart:async';
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_ui/logic/git.dart';
+import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import '../fakes/fake_start_context.dart';
 import '../fakes/fake_process_manager.dart';
@@ -41,20 +43,20 @@ void main() {
       if (parameterName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! ||
           parameterName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
         testWidgets('$parameterName dropdown test', (WidgetTester tester) async {
-          await tester.pumpWidget(
-            MaterialApp(
+          await tester.pumpWidget(ChangeNotifierProvider(
+            create: (context) => StatusState(conductor: FakeConductor()),
+            child: MaterialApp(
               home: Material(
                 child: ListView(
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
-                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
               ),
             ),
-          );
+          ));
 
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -77,20 +79,20 @@ void main() {
       if (parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]! &&
           parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!) {
         testWidgets('$parameterName input test', (WidgetTester tester) async {
-          await tester.pumpWidget(
-            MaterialApp(
+          await tester.pumpWidget(ChangeNotifierProvider(
+            create: (context) => StatusState(conductor: FakeConductor()),
+            child: MaterialApp(
               home: Material(
                 child: ListView(
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
-                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
               ),
             ),
-          );
+          ));
 
           final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
           final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -115,20 +117,20 @@ void main() {
             parameterName != CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!) {
           testWidgets('$parameterName should trim leading and trailing whitespaces before validating',
               (WidgetTester tester) async {
-            await tester.pumpWidget(
-              MaterialApp(
+            await tester.pumpWidget(ChangeNotifierProvider(
+              create: (context) => StatusState(conductor: FakeConductor()),
+              child: MaterialApp(
                 home: Material(
                   child: ListView(
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
-                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
                 ),
               ),
-            );
+            ));
 
             final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
             final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -143,20 +145,20 @@ void main() {
 
           testWidgets('$parameterName should trim leading and trailing whitespaces before saving the value',
               (WidgetTester tester) async {
-            await tester.pumpWidget(
-              MaterialApp(
+            await tester.pumpWidget(ChangeNotifierProvider(
+              create: (context) => StatusState(conductor: FakeConductor()),
+              child: MaterialApp(
                 home: Material(
                   child: ListView(
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
-                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
                 ),
               ),
-            );
+            ));
 
             final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
             final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -167,20 +169,20 @@ void main() {
           });
         } else {
           testWidgets('$parameterName should remove any whitespace before validating', (WidgetTester tester) async {
-            await tester.pumpWidget(
-              MaterialApp(
+            await tester.pumpWidget(ChangeNotifierProvider(
+              create: (context) => StatusState(conductor: FakeConductor()),
+              child: MaterialApp(
                 home: Material(
                   child: ListView(
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
-                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
                 ),
               ),
-            );
+            ));
 
             final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
             final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -194,20 +196,20 @@ void main() {
           });
           testWidgets('$parameterName should remove any whitespace before saving the value',
               (WidgetTester tester) async {
-            await tester.pumpWidget(
-              MaterialApp(
+            await tester.pumpWidget(ChangeNotifierProvider(
+              create: (context) => StatusState(conductor: FakeConductor()),
+              child: MaterialApp(
                 home: Material(
                   child: ListView(
                     children: <Widget>[
                       CreateReleaseSubsteps(
                         nextStep: () {},
-                        conductor: FakeConductor(),
                       ),
                     ],
                   ),
                 ),
               ),
-            );
+            ));
 
             final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
             final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -251,20 +253,20 @@ void main() {
             break;
         }
         testWidgets('$parameterName validator error message displays correctly', (WidgetTester tester) async {
-          await tester.pumpWidget(
-            MaterialApp(
+          await tester.pumpWidget(ChangeNotifierProvider(
+            create: (context) => StatusState(conductor: FakeConductor()),
+            child: MaterialApp(
               home: Material(
                 child: ListView(
                   children: <Widget>[
                     CreateReleaseSubsteps(
                       nextStep: () {},
-                      conductor: FakeConductor(),
                     ),
                   ],
                 ),
               ),
             ),
-          );
+          ));
 
           await tester.enterText(find.byKey(Key(parameterName)), '@@invalidInput@@!!');
           await tester.pumpAndSettle();
@@ -276,20 +278,20 @@ void main() {
 
   group('Widget integration tests', () {
     testWidgets('Widget should save all parameters correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor()),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  conductor: FakeConductor(),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       await tester.enterText(find.byKey(const Key('Candidate Branch')), testInputsCorrect['Candidate Branch']!);
 
@@ -336,20 +338,20 @@ void main() {
 
     testWidgets('Continue button should be enabled when all the parameters are entered correctly',
         (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor()),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  conductor: FakeConductor(),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
       final CreateReleaseSubstepsState createReleaseSubstepsState =
@@ -398,20 +400,21 @@ void main() {
         runOverride: () async => throw ConductorException(exceptionMsg),
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  conductor: FakeConductor(fakeStartContextProvided: startContext),
+                  // conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
       await fillAllParameters(tester, testInputsCorrect);
@@ -429,20 +432,20 @@ void main() {
         runOverride: () async => throw Exception(exceptionMsg),
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
       await fillAllParameters(tester, testInputsCorrect);
@@ -461,20 +464,20 @@ void main() {
         runOverride: () async => contextRunCalled = true,
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () => nextStepReached = true,
-                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
       await fillAllParameters(tester, testInputsCorrect);
@@ -507,20 +510,20 @@ void main() {
         completer: completer,
       ));
 
-      await tester.pumpWidget(
-        MaterialApp(
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        child: MaterialApp(
           home: Material(
             child: ListView(
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
               ],
             ),
           ),
         ),
-      );
+      ));
 
       final Finder continueButton = find.byKey(const Key('step1continue'));
       await fillAllParameters(tester, testInputsCorrect);
