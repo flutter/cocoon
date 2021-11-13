@@ -2,14 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import '../state/status_state.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'common/checkbox_substep.dart';
+import 'common/url_button.dart';
 
 enum EngineCherrypicksSubstep {
-  substep1,
-  substep2,
-  substep3,
+  verifyRelease,
+  applyCherrypicks,
+  resolveConflicts,
+}
+
+enum CherrypickStates {
+  pending,
+  pendingWithConflict,
+  completed,
+  abandoned,
 }
 
 /// Group and display all substeps related to the 'Apply Engine Cherrypicks' step into a widget.
@@ -26,17 +36,21 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
   @override
   State<EngineCherrypicksSubsteps> createState() => ConductorSubstepsState();
 
-  static Map<EngineCherrypicksSubstep, String> substepTitles = <EngineCherrypicksSubstep, String>{
-    EngineCherrypicksSubstep.substep1: 'Substep 1',
-    EngineCherrypicksSubstep.substep2: 'Substep 2',
-    EngineCherrypicksSubstep.substep3: 'Substep 3',
+  static const Map<EngineCherrypicksSubstep, String> substepTitles = <EngineCherrypicksSubstep, String>{
+    EngineCherrypicksSubstep.verifyRelease: 'Verify the Release Number',
+    EngineCherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks that are in conflict',
+    EngineCherrypicksSubstep.resolveConflicts: 'Resolve any conflict',
   };
 
-  static Map<EngineCherrypicksSubstep, String> substepSubtitles = <EngineCherrypicksSubstep, String>{
-    EngineCherrypicksSubstep.substep1: 'Substep subtitle 1',
-    EngineCherrypicksSubstep.substep2: 'Substep subtitle 2',
-    EngineCherrypicksSubstep.substep3: 'Substep subtitle 3',
+  static const Map<CherrypickStates, String> cherrypickStates = <CherrypickStates, String>{
+    CherrypickStates.pending: 'PENDING',
+    CherrypickStates.pendingWithConflict: 'PENDING_WITH_CONFLICT',
+    CherrypickStates.completed: 'COMPLETED',
+    CherrypickStates.abandoned: 'ABANDONED',
   };
+
+  static const String releaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
+  static const String cherrypickHelpURL = 'https://github.com/flutter/flutter/wiki/Flutter-Cherrypick-Process';
 }
 
 class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
@@ -62,39 +76,89 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> engineCherrypicksInConflict = <String>[];
+    if (context.watch<StatusState>().releaseStatus != null &&
+        context.watch<StatusState>().releaseStatus?['Engine Cherrypicks'] != null) {
+      for (Map<String, String> engineCherrypick
+          in context.watch<StatusState>().releaseStatus?['Engine Cherrypicks'] as List<Map<String, String>>) {
+        if (engineCherrypick['state'] ==
+            EngineCherrypicksSubsteps.cherrypickStates[CherrypickStates.pendingWithConflict]) {
+          engineCherrypicksInConflict.add(engineCherrypick['trunkRevision']!);
+        }
+      }
+    }
+
     return Column(
       children: <Widget>[
         CheckboxAsSubstep(
-          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep1]!,
-          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep1]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep1]!,
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.verifyRelease]!,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                  'Verify if the release number: ${context.watch<StatusState>().releaseStatus?['Release Version']}'
+                  ' is correct based on existing published releases here: '),
+              const UrlButton(
+                textToDisplay: EngineCherrypicksSubsteps.releaseSDKURL,
+                urlOrUri: EngineCherrypicksSubsteps.releaseSDKURL,
+              ),
+            ],
+          ),
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.verifyRelease]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubstep.substep1);
+            substepPressed(EngineCherrypicksSubstep.verifyRelease);
           },
         ),
         CheckboxAsSubstep(
-          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep2]!,
-          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep2]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep2]!,
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.applyCherrypicks]!,
+          subtitle: engineCherrypicksInConflict.isEmpty
+              ? const SelectableText('No cherrypick conflicts, just check this substep.')
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SelectableText(
+                        "You must manually apply the following engine cherrypicks that are in conflict "
+                        "by doing 'git cherrypick [hash]' with the following hashes: "),
+                    SelectableText('${engineCherrypicksInConflict.join('\n')}\n'),
+                    const SelectableText('to the engine checkout at the following location: '),
+                    UrlButton(
+                      textToDisplay:
+                          '${context.watch<StatusState>().conductor.rootDirectory.path}/flutter_conductor_checkouts/engine',
+                      urlOrUri:
+                          '${context.watch<StatusState>().conductor.rootDirectory.path}/flutter_conductor_checkouts/engine',
+                    ),
+                    const SelectableText('See more information at: '),
+                    const UrlButton(
+                      textToDisplay: EngineCherrypicksSubsteps.cherrypickHelpURL,
+                      urlOrUri: EngineCherrypicksSubsteps.cherrypickHelpURL,
+                    ),
+                  ],
+                ),
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.applyCherrypicks]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubstep.substep2);
+            substepPressed(EngineCherrypicksSubstep.applyCherrypicks);
           },
         ),
         CheckboxAsSubstep(
-          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.substep3]!,
-          subtitle: SelectableText(EngineCherrypicksSubsteps.substepSubtitles[EngineCherrypicksSubstep.substep3]!),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.substep3]!,
+          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.resolveConflicts]!,
+          subtitle: SelectableText(engineCherrypicksInConflict.isEmpty
+              ? 'No conflict to resolve, just check this substep.'
+              : 'Resolve any conflict due to the cherrypicks'),
+          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.resolveConflicts]!,
           clickCallback: () {
-            substepPressed(EngineCherrypicksSubstep.substep3);
+            substepPressed(EngineCherrypicksSubstep.resolveConflicts);
           },
         ),
         if (!_isEachSubstepChecked.containsValue(false))
-          ElevatedButton(
-            key: const Key('applyEngineCherrypicksContinue'),
-            onPressed: () {
-              widget.nextStep();
-            },
-            child: const Text('Continue'),
+          Padding(
+            padding: const EdgeInsets.only(top: 30.0),
+            child: ElevatedButton(
+              key: const Key('applyEngineCherrypicksContinue'),
+              onPressed: () {
+                widget.nextStep();
+              },
+              child: const Text('Continue'),
+            ),
           ),
       ],
     );

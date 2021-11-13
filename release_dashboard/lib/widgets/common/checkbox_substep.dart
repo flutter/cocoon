@@ -28,7 +28,10 @@ class CheckboxAsSubstep extends StatelessWidget {
       onChanged: (bool? newValue) {
         clickCallback();
       },
-      title: Text(substepName),
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: Text(substepName),
+      ),
       subtitle: subtitle,
       controlAffinity: ListTileControlAffinity.leading,
       activeColor: Colors.grey,

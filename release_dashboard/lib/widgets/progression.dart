@@ -27,8 +27,8 @@ class MainProgression extends StatefulWidget {
 
   static const List<String> _stepTitles = <String>[
     'Initialize a New Flutter Release',
-    'Flutter Engine Cherrypicks',
-    'Flutter Framework Cherrypicks',
+    'Apply Engine Cherrypicks',
+    'Apply Framework Cherrypicks',
     'Publish the Release',
     'Release is Successfully published'
   ];
