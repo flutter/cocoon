@@ -285,4 +285,7 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
+
+  @override
+  bool isDefaultBranch(String branch) => branch == kDefaultBranchName || branch == 'main';
 }

@@ -443,7 +443,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       return;
     }
-    if (pr.base!.ref == config.defaultBranch) {
+    if (config.isDefaultBranch(pr.base!.ref!)) {
       return;
     }
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
