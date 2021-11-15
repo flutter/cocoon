@@ -58,7 +58,7 @@ select builder_name,
        array_agg(case when is_flaky = 1 then sha end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as recent_flaky_commit,
        array_agg(case when is_flaky = 1 then flaky_builds end IGNORE NULLS ORDER BY date DESC)[ordinal(1)] as flaky_build_of_recent_flaky_commit,
        sum(is_flaky)/count(*) as flaky_ratio
-from (select *, row_number() over (partition by builder_name order by time desc) as rank from `flutter-dashboard.datasite.luci_starging_build_status`)
+from (select *, row_number() over (partition by builder_name order by time desc) as rank from `flutter-dashboard.datasite.luci_staging_build_status`)
 where date>=date_sub(current_date(), interval 30 day) and
       builder_name not like '%Drone' and
       repo='flutter' and

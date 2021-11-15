@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../protos.dart' as pb;
-import '../service/scheduler/graph.dart';
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -17,6 +16,7 @@ import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
+import '../service/scheduler/graph.dart';
 import 'flaky_handler_utils.dart';
 
 /// This handler updates existing open flaky issues with the latest build
