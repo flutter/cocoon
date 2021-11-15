@@ -1,5 +1,10 @@
 #!/bin/sh
+# Copyright 2019 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+#
 # Run via ./prs_to_main.sh $GITHUB_USERNAME $GITHUB_TOKEN $REPOSITORY_NAME_WITH_OWNER
+#
 # To keep this script simple, you'll need to rerun this multiple times until it stops
 # outputting PRs (indicating it processed all PRs)
 
