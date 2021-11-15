@@ -137,6 +137,20 @@ void main() {
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
+    test('Cert check - failure with revoked certificates', () async {
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      StringBuffer sb = StringBuffer();
+      sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)" (CSSMERR_TP_CERT_REVOKED)');
+      sb.writeln('1 valid identities found');
+      output = <List<int>>[utf8.encode(sb.toString())];
+      process = FakeProcess(0, out: output);
+      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kCertCheckKey);
+      expect(healthCheckResult.details, sb.toString().trim());
+    });
+
     test('Cert check - exception', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
