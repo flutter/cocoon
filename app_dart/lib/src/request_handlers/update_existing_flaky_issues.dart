@@ -8,6 +8,8 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../protos.dart' as pb;
+import '../service/scheduler/graph.dart';
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -35,14 +37,22 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final RepositorySlug slug = config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
-    final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
+    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+    final pb.SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ci);
+
+    final List<BuilderStatistic> prodBuilderStatisticList =
+        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
+    final List<BuilderStatistic> stagingBuilderStatisticList =
+        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug, state: 'open');
-    for (final BuilderStatistic statistic in builderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name)) {
-        await _addCommentToExistingIssue(gitHub, slug,
-            statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
-      }
-    }
+    await _updateExistingFlakyIssue(
+      gitHub,
+      slug,
+      schedulerConfig,
+      prodBuilderStatisticList: prodBuilderStatisticList,
+      stagingBuilderStatisticList: stagingBuilderStatisticList,
+      nameToExistingIssue: nameToExistingIssue,
+    );
     return Body.forJson(const <String, dynamic>{
       'Status': 'success',
     });
@@ -58,6 +68,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _addCommentToExistingIssue(
     GithubService gitHub,
     RepositorySlug slug, {
+    required String bucket,
     required BuilderStatistic statistic,
     required Issue existingIssue,
   }) async {
@@ -65,7 +76,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       return;
     }
     final IssueUpdateBuilder updateBuilder =
-        IssueUpdateBuilder(statistic: statistic, threshold: _threshold, existingIssue: existingIssue);
+        IssueUpdateBuilder(statistic: statistic, threshold: _threshold, existingIssue: existingIssue, bucket: bucket);
     await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
     await gitHub.replaceLabelsForIssue(slug, issueNumber: existingIssue.number, labels: updateBuilder.issueLabels);
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
@@ -78,5 +89,49 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
         await gitHub.assignIssue(slug, issueNumber: existingIssue.number, assignee: testOwner);
       }
     }
+  }
+
+  /// Updates existing flaky issues based on corrresponding builder stats.
+  Future<void> _updateExistingFlakyIssue(
+    GithubService gitHub,
+    RepositorySlug slug,
+    pb.SchedulerConfig schedulerConfig, {
+    required List<BuilderStatistic> prodBuilderStatisticList,
+    required List<BuilderStatistic> stagingBuilderStatisticList,
+    required Map<String?, Issue> nameToExistingIssue,
+  }) async {
+    final Map<String, bool> builderFlakyMap = <String, bool>{};
+    for (pb.Target target in schedulerConfig.targets) {
+      builderFlakyMap[target.name] = target.bringup;
+    }
+    // For prod builder stats, updates an existing flaky bug when the builder is not marked as flaky.
+    //
+    // If a builder is marked as flaky, it is expected to run in `staging` pool.
+    // It is possible that a flaky bug exists for a builder, but the builder is not marked as flaky,
+    // such as a shard builder. For this case, it is still running in `prod` pool.
+    for (final BuilderStatistic statistic in prodBuilderStatisticList) {
+      if (nameToExistingIssue.containsKey(statistic.name) &&
+          builderFlakyMap.containsKey(statistic.name) &&
+          builderFlakyMap[statistic.name] == false) {
+        await _addCommentToExistingIssue(gitHub, slug,
+            bucket: _getBucket(builderFlakyMap, statistic.name),
+            statistic: statistic,
+            existingIssue: nameToExistingIssue[statistic.name]!);
+      }
+    }
+    // For all staging builder stats, updates any existing flaky bug.
+    for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
+      if (nameToExistingIssue.containsKey(statistic.name)) {
+        await _addCommentToExistingIssue(gitHub, slug,
+            bucket: _getBucket(builderFlakyMap, statistic.name),
+            statistic: statistic,
+            existingIssue: nameToExistingIssue[statistic.name]!);
+      }
+    }
+  }
+
+  /// Return bucket info for the builder runs.
+  String _getBucket(Map<String, bool> builderFlakyMap, String builderName) {
+    return builderFlakyMap[builderName] == true ? 'staging' : 'prod';
   }
 }
