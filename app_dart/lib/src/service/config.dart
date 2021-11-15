@@ -242,6 +242,8 @@ class Config {
 
   String get defaultBranch => kDefaultBranchName;
 
+  bool isDefaultBranch(String branch) => branch == kDefaultBranchName || branch == 'main';
+
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
