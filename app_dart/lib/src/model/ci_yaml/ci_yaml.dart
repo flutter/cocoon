@@ -62,8 +62,8 @@ class CiYaml {
   /// Filter [targets] to only those that are expected to run for [branch].
   ///
   /// A [Target] is expected to run if:
-  ///   1. [Target.enabledBranches] exists and contains [branch].
-  ///   2. Otherwise, [config.enabledBranches] contains [branch].
+  ///   1. [Target.enabledBranches] exists and matches [branch].
+  ///   2. Otherwise, [config.enabledBranches] matches [branch].
   List<Target> _filterEnabledTargets(Iterable<Target> targets) {
     final List<Target> filteredTargets = <Target>[];
 
@@ -71,11 +71,11 @@ class CiYaml {
     final Iterable<Target> overrideBranchTargets =
         targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
     final Iterable<Target> enabledTargets =
-        overrideBranchTargets.where((Target target) => target.value.enabledBranches.contains(branch));
+        overrideBranchTargets.where((Target target) => RegExp(target.value.enabledBranches.join('|')).hasMatch(branch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    if (config.enabledBranches.contains(branch)) {
+    if (RegExp(config.enabledBranches.join('|')).hasMatch(branch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
