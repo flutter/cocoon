@@ -5,6 +5,7 @@
 import '../state/status_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:conductor_core/proto.dart' as pb;
 
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
@@ -12,14 +13,6 @@ import 'common/url_button.dart';
 enum EngineCherrypicksSubstep {
   verifyRelease,
   applyCherrypicks,
-  resolveConflicts,
-}
-
-enum CherrypickStates {
-  pending,
-  pendingWithConflict,
-  completed,
-  abandoned,
 }
 
 /// Group and display all substeps related to the 'Apply Engine Cherrypicks' step into a widget.
@@ -39,14 +32,13 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
   static const Map<EngineCherrypicksSubstep, String> substepTitles = <EngineCherrypicksSubstep, String>{
     EngineCherrypicksSubstep.verifyRelease: 'Verify the Release Number',
     EngineCherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks that are in conflict',
-    EngineCherrypicksSubstep.resolveConflicts: 'Resolve any conflict',
   };
 
-  static const Map<CherrypickStates, String> cherrypickStates = <CherrypickStates, String>{
-    CherrypickStates.pending: 'PENDING',
-    CherrypickStates.pendingWithConflict: 'PENDING_WITH_CONFLICT',
-    CherrypickStates.completed: 'COMPLETED',
-    CherrypickStates.abandoned: 'ABANDONED',
+  static Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
+    pb.CherrypickState.PENDING: 'PENDING',
+    pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
+    pb.CherrypickState.COMPLETED: 'COMPLETED',
+    pb.CherrypickState.ABANDONED: 'ABANDONED',
   };
 
   static const String releaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
@@ -82,7 +74,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
       for (Map<String, String> engineCherrypick
           in context.watch<StatusState>().releaseStatus?['Engine Cherrypicks'] as List<Map<String, String>>) {
         if (engineCherrypick['state'] ==
-            EngineCherrypicksSubsteps.cherrypickStates[CherrypickStates.pendingWithConflict]) {
+            EngineCherrypicksSubsteps.cherrypickStates[pb.CherrypickState.PENDING_WITH_CONFLICT]) {
           engineCherrypicksInConflict.add(engineCherrypick['trunkRevision']!);
         }
       }
@@ -120,7 +112,8 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
                         "You must manually apply the following engine cherrypicks that are in conflict "
                         "by doing 'git cherrypick [hash]' with the following hashes: "),
                     SelectableText('${engineCherrypicksInConflict.join('\n')}\n'),
-                    const SelectableText('to the engine checkout at the following location: '),
+                    const SelectableText(
+                        'to the engine checkout at the following location and resolve any conflicts: '),
                     UrlButton(
                       textToDisplay:
                           '${context.watch<StatusState>().conductor.rootDirectory.path}/flutter_conductor_checkouts/engine',
@@ -137,16 +130,6 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
           isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.applyCherrypicks]!,
           clickCallback: () {
             substepPressed(EngineCherrypicksSubstep.applyCherrypicks);
-          },
-        ),
-        CheckboxAsSubstep(
-          substepName: EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.resolveConflicts]!,
-          subtitle: SelectableText(engineCherrypicksInConflict.isEmpty
-              ? 'No conflict to resolve, just check this substep.'
-              : 'Resolve any conflict due to the cherrypicks'),
-          isChecked: _isEachSubstepChecked[EngineCherrypicksSubstep.resolveConflicts]!,
-          clickCallback: () {
-            substepPressed(EngineCherrypicksSubstep.resolveConflicts);
           },
         ),
         if (!_isEachSubstepChecked.containsValue(false))

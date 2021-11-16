@@ -159,27 +159,6 @@ void main() {
           findsOneWidget);
       expect(find.textContaining('No cherrypick conflicts'), findsOneWidget);
     });
-
-    testWidgets("'Resolve conflicts' substep displays correctly", (WidgetTester tester) async {
-      await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
-        child: MaterialApp(
-          home: Material(
-            child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
-                }),
-              ],
-            ),
-          ),
-        ),
-      ));
-
-      expect(find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.resolveConflicts]!),
-          findsOneWidget);
-      expect(find.textContaining('No conflict to resolve'), findsOneWidget);
-    });
   });
 
   group('With cherrypick conflicts', () {
@@ -262,29 +241,11 @@ void main() {
           findsOneWidget);
       expect(find.textContaining(engineCherrypick1), findsOneWidget);
       expect(find.textContaining(engineCherrypick2), findsOneWidget);
-      expect(find.textContaining(fakeConductor.rootDirectory.path), findsOneWidget);
-      expect(find.text(EngineCherrypicksSubsteps.cherrypickHelpURL), findsOneWidget);
-    });
-
-    testWidgets("'Resolve conflicts' substep displays correctly", (WidgetTester tester) async {
-      await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithConflicts)),
-        child: MaterialApp(
-          home: Material(
-            child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
-                }),
-              ],
-            ),
-          ),
-        ),
-      ));
-
-      expect(find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.resolveConflicts]!),
+      expect(find.textContaining('to the engine checkout at the following location and resolve any conflicts:'),
           findsOneWidget);
-      expect(find.text('Resolve any conflict due to the cherrypicks'), findsOneWidget);
+      expect(find.textContaining(fakeConductor.rootDirectory.path), findsOneWidget);
+      expect(find.textContaining('See more information'), findsOneWidget);
+      expect(find.text(EngineCherrypicksSubsteps.cherrypickHelpURL), findsOneWidget);
     });
   });
 }
