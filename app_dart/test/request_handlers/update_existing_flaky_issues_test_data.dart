@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/bigquery.dart';
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
-Current flaky ratio for the past 15 days is 50.00%.
+Current flaky ratio for the past (up to) 100 commits is 50.00%.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -17,7 +17,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 ''';
 
 const String expectedStagingSemanticsIntegrationTestIssueComment = '''
-Current flaky ratio for the past 15 days is 50.00%.
+Current flaky ratio for the past (up to) 100 commits is 50.00%.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -27,7 +27,7 @@ https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%
 ''';
 
 const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
-Current flaky ratio for the past 15 days is 0.00%.
+Current flaky ratio for the past (up to) 100 commits is 0.00%.
 ''';
 
 final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <BuilderStatistic>[
