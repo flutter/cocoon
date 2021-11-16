@@ -8,11 +8,9 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
-import 'package:retry/retry.dart';
 
 import 'device.dart';
 import 'health.dart';
-import 'host_utils.dart';
 import 'mac.dart';
 import 'utils.dart';
 
@@ -45,26 +43,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
-    RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: retryDuration,
-    );
-    return await r.retry(
-      () async {
-        String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
-        return result.trim().split('\n');
-      },
-      retryIf: (Exception e) => e is TimeoutException,
-      onRetry: (Exception e) => _killAdbServer(processManager: processManager),
-    );
-  }
-
-  void _killAdbServer({ProcessManager processManager}) async {
-    if (Platform.isWindows) {
-      await killAllRunningProcessesOnWindows('adb', processManager: processManager);
-    } else {
-      await eval('adb', <String>['kill-server'], canFail: false, processManager: processManager);
-    }
+    String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
+    return result.trim().split('\n');
   }
 
   @override

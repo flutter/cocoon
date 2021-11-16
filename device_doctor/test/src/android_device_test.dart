@@ -28,7 +28,7 @@ void main() {
       processManager = MockProcessManager();
     });
 
-    test('deviceDiscovery no retries', () async {
+    test('deviceDiscovery succeeds', () async {
       StringBuffer sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
