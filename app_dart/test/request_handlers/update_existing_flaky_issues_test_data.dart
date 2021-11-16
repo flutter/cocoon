@@ -30,12 +30,16 @@ const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
 Current flaky ratio for the past (up to) 100 commits is 0.00%.
 ''';
 
+const String expectedSemanticsIntegrationTestNotEnoughDataComment = '''
+Current flaky ratio is not available (< 10 commits).
+''';
+
 final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.0,
     flakyBuilds: <String>[],
-    succeededBuilds: <String>[],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197', '196', '195', '194'],
     recentCommit: '',
     flakyBuildOfRecentCommit: '',
   )
@@ -46,7 +50,18 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
     flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
+
+final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
   )
@@ -57,7 +72,7 @@ final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderSta
     name: 'Mac build_tests_1_4',
     flakyRate: 0.5,
     flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
   )
@@ -68,7 +83,7 @@ final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderS
     name: 'Linux ci_yaml flutter roller',
     flakyRate: 0.5,
     flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
   )
