@@ -42,9 +42,11 @@ const String kModifyMode = '100755';
 const String kModifyType = 'blob';
 
 const int kSuccessBuildNumberLimit = 3;
+const int kFlayRatioBuildNumberList = 10;
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
-const String _buildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
+const String _prodBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
+const String _stagingBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/staging/';
 const String _flakeRecordPrefix =
     'https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:';
 
@@ -78,7 +80,7 @@ class IssueBuilder {
   String get issueBody {
     return '''
 ${_buildHiddenMetaTags(name: statistic.name)}
-The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past 15 days, which is above our ${_formatRate(threshold)}% threshold.
+The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past (up to) 100 commits, which is above our ${_formatRate(threshold)}% threshold.
 
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
@@ -113,11 +115,13 @@ class IssueUpdateBuilder {
     required this.statistic,
     required this.threshold,
     required this.existingIssue,
+    required this.bucket,
   });
 
   final BuilderStatistic statistic;
   final double threshold;
   final Issue existingIssue;
+  final Bucket bucket;
 
   bool get isBelow => statistic.flakyRate < threshold;
 
@@ -136,14 +140,14 @@ class IssueUpdateBuilder {
   }
 
   String get issueUpdateComment {
-    String result = 'Current flaky ratio for the past 15 days is ${_formatRate(statistic.flakyRate)}%.\n';
+    String result = 'Current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%.\n';
     if (statistic.flakyRate > 0.0) {
       result = result +
           '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, bucket: bucket)}
 ''';
     }
     return result;
@@ -462,12 +466,13 @@ Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
 
 String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
 
-String _issueBuildLinks({String? builder, required List<String> builds}) {
-  return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build)).join('\n')}';
+String _issueBuildLinks({String? builder, required List<String> builds, Bucket bucket = Bucket.prod}) {
+  return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n')}';
 }
 
-String _issueBuildLink({String? builder, String? build}) {
-  return Uri.encodeFull('$_buildPrefix$builder/$build');
+String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.prod}) {
+  final String buildPrefix = bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
+  return Uri.encodeFull('$buildPrefix$builder/$build');
 }
 
 Team _teamFromString(String teamString) {
@@ -506,6 +511,11 @@ enum BuilderType {
   shard,
   firebaselab,
   unknown,
+}
+
+enum Bucket {
+  prod,
+  staging,
 }
 
 enum Team {

@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/bigquery.dart';
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
-Current flaky ratio for the past 15 days is 50.00%.
+Current flaky ratio for the past (up to) 100 commits is 50.00%.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -16,8 +16,22 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 ''';
 
+const String expectedStagingSemanticsIntegrationTestIssueComment = '''
+Current flaky ratio for the past (up to) 100 commits is 50.00%.
+One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
+Commit: https://github.com/flutter/flutter/commit/abc
+Flaky builds:
+https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%20roller/103
+https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%20roller/102
+https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%20roller/101
+''';
+
 const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
-Current flaky ratio for the past 15 days is 0.00%.
+Current flaky ratio for the past (up to) 100 commits is 0.00%.
+''';
+
+const String expectedSemanticsIntegrationTestNotEnoughDataComment = '''
+Current flaky ratio is not available (< 10 commits).
 ''';
 
 final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <BuilderStatistic>[
@@ -25,7 +39,7 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.0,
     flakyBuilds: <String>[],
-    succeededBuilds: <String>[],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197', '196', '195', '194'],
     recentCommit: '',
     flakyBuildOfRecentCommit: '',
   )
@@ -36,7 +50,40 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     name: 'Mac_android android_semantics_integration_test',
     flakyRate: 0.5,
     flakyBuilds: <String>['103', '102', '101'],
-    succeededBuilds: <String>['203', '202', '201'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
+
+final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
+
+final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac build_tests_1_4',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
+
+final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Linux ci_yaml flutter roller',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
   )
@@ -68,6 +115,31 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
+const String expectedStagingSemanticsIntegrationTestResponseTitle = 'Linux ci_yaml flutter roller is 50.00% flaky';
+const String expectedStagingSemanticsIntegrationTestResponseBody = '''
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "Linux ci_yaml flutter roller"
+}
+-->
+
+The post-submit test builder `Linux ci_yaml flutter roller` had a flaky ratio 50.00% for the past 15 days, which is above our 2.00% threshold.
+
+One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
+Commit: https://github.com/flutter/flutter/commit/abc
+Flaky builds:
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/102
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/101
+
+Succeeded builds (3 most recent):
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/203
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/202
+https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/201
+
+Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
+''';
+
 const String ciYamlContent = '''
 # Describes the targets run in continuous integration environment.
 #
@@ -87,6 +159,37 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+
+  - name: Linux ci_yaml flutter roller
+    recipe: infra/ci_yaml
+    bringup: true # TODO(chillers): https://github.com/flutter/flutter/issues/93225
+    timeout: 30
+    properties:
+      tags: >
+        ["framework","hostonly","shard"]
+    scheduler: luci
+    runIf:
+      - .ci.yaml
+
+  - name: Mac build_tests_1_4
+    recipe: flutter/flutter_drone
+    timeout: 60
+    properties:
+      add_recipes_cq: "true"
+      dependencies: >-
+        [
+          {"dependency": "android_sdk", "version": "version:29.0"},
+          {"dependency": "chrome_and_driver", "version": "version:84"},
+          {"dependency": "open_jdk"},
+          {"dependency": "xcode"},
+          {"dependency": "gems"},
+          {"dependency": "goldctl"}
+        ]
+      shard: build_tests
+      subshard: "1_4"
+      tags: >
+        ["framework","hostonly","shard"]
+    scheduler: luci
 ''';
 
 const String testOwnersContent = '''
