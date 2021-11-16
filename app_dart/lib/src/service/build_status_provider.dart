@@ -17,6 +17,9 @@ import 'datastore.dart';
 /// Function signature for a [BuildStatusService] provider.
 typedef BuildStatusServiceProvider = BuildStatusService Function(DatastoreService datastoreService);
 
+/// Branches that are used to calculate the tree status.
+const Set<String> defaultBranches = <String>{'refs/heads/main', 'refs/heads/master'};
+
 /// Class that calculates the current build status.
 class BuildStatusService {
   const BuildStatusService(this.datastoreService);
@@ -129,7 +132,7 @@ class BuildStatusService {
   /// retrieved from BuildBucket using RPCs.
   Future<String> latestLUCIStatus(List<LuciTask> tasks) async {
     for (LuciTask task in tasks) {
-      if (task.ref != 'refs/heads/master') {
+      if (!defaultBranches.contains(task.ref)) {
         log.fine('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
         continue;
       }
