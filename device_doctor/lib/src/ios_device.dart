@@ -95,7 +95,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       final String certCheckResult =
           await eval('security', <String>['find-identity', '-p', 'codesigning', '-v'], processManager: processManager);
       if (certCheckResult.contains('Apple Development: Flutter Devicelab') &&
-          certCheckResult.contains('1 valid identities found')) {
+          certCheckResult.contains('1 valid identities found') &&
+          !certCheckResult.contains('CSSMERR_TP_CERT_REVOKED')) {
         healthCheckResult = HealthCheckResult.success(kCertCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(kCertCheckKey, certCheckResult);
