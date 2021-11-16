@@ -120,7 +120,7 @@ class IssueUpdateBuilder {
   final BuilderStatistic statistic;
   final double threshold;
   final Issue existingIssue;
-  final String bucket;
+  final Bucket bucket;
 
   bool get isBelow => statistic.flakyRate < threshold;
 
@@ -465,12 +465,12 @@ Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
 
 String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
 
-String _issueBuildLinks({String? builder, required List<String> builds, String bucket = 'prod'}) {
+String _issueBuildLinks({String? builder, required List<String> builds, Bucket bucket = Bucket.prod}) {
   return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n')}';
 }
 
-String _issueBuildLink({String? builder, String? build, String bucket = 'prod'}) {
-  final String buildPrefix = bucket == 'staging' ? _stagingBuildPrefix : _prodBuildPrefix;
+String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.prod}) {
+  final String buildPrefix = bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
   return Uri.encodeFull('$buildPrefix$builder/$build');
 }
 
@@ -510,6 +510,11 @@ enum BuilderType {
   shard,
   firebaselab,
   unknown,
+}
+
+enum Bucket {
+  prod,
+  staging,
 }
 
 enum Team {

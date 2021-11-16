@@ -68,7 +68,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _addCommentToExistingIssue(
     GithubService gitHub,
     RepositorySlug slug, {
-    required String bucket,
+    required Bucket bucket,
     required BuilderStatistic statistic,
     required Issue existingIssue,
   }) async {
@@ -131,7 +131,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   }
 
   /// Return bucket info for the builder runs.
-  String _getBucket(Map<String, bool> builderFlakyMap, String builderName) {
-    return builderFlakyMap[builderName] == true ? 'staging' : 'prod';
+  Bucket _getBucket(Map<String, bool> builderFlakyMap, String builderName) {
+    return builderFlakyMap[builderName] == true ? Bucket.staging : Bucket.prod;
   }
 }
