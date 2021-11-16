@@ -112,7 +112,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     for (final BuilderStatistic statistic in prodBuilderStatisticList) {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap.containsKey(statistic.name) &&
-          builderFlakyMap[statistic.name] == false) {
+          builderFlakyMap[statistic.name] == false &&
+          _buildsAreEnough(statistic)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: _getBucket(builderFlakyMap, statistic.name),
             statistic: statistic,
@@ -121,13 +122,20 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     }
     // For all staging builder stats, updates any existing flaky bug.
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name)) {
+      if (nameToExistingIssue.containsKey(statistic.name) && _buildsAreEnough(statistic)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: _getBucket(builderFlakyMap, statistic.name),
             statistic: statistic,
             existingIssue: nameToExistingIssue[statistic.name]!);
       }
     }
+  }
+
+  /// Check if there are enough builds to calculate the flaky ratio.
+  ///
+  /// Default threshold is [kFlayRatioBuildNumberList].
+  bool _buildsAreEnough(BuilderStatistic statistic) {
+    return statistic.flakyBuilds!.length + statistic.succeededBuilds!.length >= kFlayRatioBuildNumberList;
   }
 
   /// Return bucket info for the builder runs.

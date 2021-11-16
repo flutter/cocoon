@@ -140,9 +140,6 @@ class IssueUpdateBuilder {
   }
 
   String get issueUpdateComment {
-    if (statistic.flakyBuilds!.length + statistic.succeededBuilds!.length < kFlayRatioBuildNumberList) {
-      return 'Current flaky ratio is not available (< $kFlayRatioBuildNumberList commits).\n';
-    }
     String result = 'Current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%.\n';
     if (statistic.flakyRate > 0.0) {
       result = result +
