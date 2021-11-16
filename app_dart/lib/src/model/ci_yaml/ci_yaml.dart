@@ -28,13 +28,14 @@ class CiYaml {
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
-    if (!config.enabledBranches.contains(branch)) {
-      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
-    }
     final Iterable<Target> presubmitTargets =
         _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
 
-    return _filterEnabledTargets(presubmitTargets);
+    final List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
+    if (enabledTargets.isEmpty) {
+      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+    }
+    return enabledTargets;
   }
 
   /// Gets all [Target] that run on postsubmit for this config.
@@ -75,7 +76,8 @@ class CiYaml {
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    if (RegExp(config.enabledBranches.join('|')).hasMatch(branch)) {
+    final RegExp globallyEnabledBranches = RegExp(config.enabledBranches.join('|'));
+    if (globallyEnabledBranches.hasMatch(branch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);

@@ -337,6 +337,25 @@ targets:
             throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
       });
 
+      test('checks for release branch regex', () async {
+        const String branch = 'flutter-1.24-candidate.1';
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('''
+enabled_branches:
+  - main
+  - flutter-\\d+.\\d+-candidate.\\d+
+targets:
+  - name: Linux A
+    scheduler: luci
+          ''', 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        final List<Target> targets = await scheduler.getPresubmitTargets(generatePullRequest(branch: branch));
+        expect(targets.single.value.name, 'Linux A');
+      });
+
       test('triggers expected presubmit build checks', () async {
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(

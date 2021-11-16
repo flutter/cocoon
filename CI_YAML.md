@@ -17,6 +17,8 @@ Example config:
 # /.ci.yaml
 enabled_branches:
   - master
+  - flutter-\d+.\d+-candidate.\d+
+
 targets:
 # A Target is an individual unit of work that is scheduled by Flutter infra
 # Target's are composed of the following properties:
