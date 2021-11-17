@@ -23,19 +23,22 @@ class CheckboxAsSubstep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CheckboxListTile(
-      key: Key(substepName),
-      onChanged: (bool? newValue) {
-        clickCallback();
-      },
-      title: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0),
-        child: Text(substepName),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: CheckboxListTile(
+        key: Key(substepName),
+        onChanged: (bool? newValue) {
+          clickCallback();
+        },
+        title: Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: Text(substepName),
+        ),
+        subtitle: subtitle,
+        controlAffinity: ListTileControlAffinity.leading,
+        activeColor: Colors.grey,
+        value: isChecked,
       ),
-      subtitle: subtitle,
-      controlAffinity: ListTileControlAffinity.leading,
-      activeColor: Colors.grey,
-      value: isChecked,
     );
   }
 }

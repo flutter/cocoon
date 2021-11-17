@@ -68,14 +68,15 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> engineCherrypicksInConflict = <String>[];
-    if (context.watch<StatusState>().releaseStatus != null &&
-        context.watch<StatusState>().releaseStatus?['Engine Cherrypicks'] != null) {
+    final StatusState statusState = context.watch<StatusState>();
+    final StringBuffer engineCherrypicksInConflict = StringBuffer();
+
+    if (statusState.releaseStatus != null && statusState.releaseStatus?['Engine Cherrypicks'] != null) {
       for (Map<String, String> engineCherrypick
-          in context.watch<StatusState>().releaseStatus?['Engine Cherrypicks'] as List<Map<String, String>>) {
+          in statusState.releaseStatus?['Engine Cherrypicks'] as List<Map<String, String>>) {
         if (engineCherrypick['state'] ==
             EngineCherrypicksSubsteps.cherrypickStates[pb.CherrypickState.PENDING_WITH_CONFLICT]) {
-          engineCherrypicksInConflict.add(engineCherrypick['trunkRevision']!);
+          engineCherrypicksInConflict.writeln('git cherry-pick ${engineCherrypick['trunkRevision']!}');
         }
       }
     }
@@ -87,8 +88,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SelectableText(
-                  'Verify if the release number: ${context.watch<StatusState>().releaseStatus?['Release Version']}'
+              SelectableText('Verify if the release number: ${statusState.releaseStatus?['Release Version']}'
                   ' is correct based on existing published releases here: '),
               const UrlButton(
                 textToDisplay: EngineCherrypicksSubsteps.releaseSDKURL,
@@ -109,18 +109,20 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SelectableText(
-                        "You must manually apply the following engine cherrypicks that are in conflict "
-                        "by doing 'git cherrypick [hash]' with the following hashes: "),
-                    SelectableText('${engineCherrypicksInConflict.join('\n')}\n'),
-                    const SelectableText(
-                        'to the engine checkout at the following location and resolve any conflicts: '),
-                    UrlButton(
-                      textToDisplay:
-                          '${context.watch<StatusState>().conductor.rootDirectory.path}/flutter_conductor_checkouts/engine',
-                      urlOrUri:
-                          '${context.watch<StatusState>().conductor.rootDirectory.path}/flutter_conductor_checkouts/engine',
+                        'Navigate to the engine checkout by pasting the code below to your terminal: '),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
+                      child: SelectableText(
+                          'cd ${statusState.conductor.rootDirectory.path}/flutter_conductor_checkouts/engine'),
                     ),
-                    const SelectableText('See more information at: '),
+                    const SelectableText(
+                        "At that location, apply the following engine cherrypicks that are in conflict "
+                        "by pasting the code below to your terminal in order: "),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
+                      child: SelectableText(engineCherrypicksInConflict.toString()),
+                    ),
+                    const SelectableText('See more information about Flutter Cherrypick Process at: '),
                     const UrlButton(
                       textToDisplay: EngineCherrypicksSubsteps.cherrypickHelpURL,
                       urlOrUri: EngineCherrypicksSubsteps.cherrypickHelpURL,
