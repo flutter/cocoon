@@ -23,14 +23,15 @@ class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return AppBar(
       title: title,
       backgroundColor: backgroundColor,
       actions: <Widget>[
         ...?actions,
         if (actions != null && actions.isNotEmpty) const SizedBox(width: 8),
-        const SignInButton(
-          colorBrightness: Brightness.dark,
+        SignInButton(
+          colorBrightness: theme.brightness == Brightness.light ? Brightness.dark : Brightness.light,
         ),
       ],
     );
