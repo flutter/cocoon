@@ -42,7 +42,7 @@ Map<String, Object>? stateToMap(pb.ConductorState? state) {
         .add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});
   }
 
-// TODO(Yugue): Use enums as keys, https://github.com/flutter/flutter/issues/93730.
+// TODO(Yugue): Use enums as keys, https://github.com/flutter/flutter/issues/93748.
   return <String, Object>{
     'Conductor Version': state.conductorVersion,
     'Release Channel': state.releaseChannel,
