@@ -31,7 +31,7 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
 
   static const Map<EngineCherrypicksSubstep, String> substepTitles = <EngineCherrypicksSubstep, String>{
     EngineCherrypicksSubstep.verifyRelease: 'Verify the Release Number',
-    EngineCherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks that are in conflict',
+    EngineCherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks and resolve conflicts',
   };
 
   static Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
@@ -117,7 +117,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
                     ),
                     const SelectableText(
                         "At that location, apply the following engine cherrypicks that are in conflict "
-                        "by pasting the code below to your terminal in order: "),
+                        "by pasting the code below to your terminal in order and manually resolve any merge conflicts."),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
                       child: SelectableText(engineCherrypicksInConflict.toString()),
