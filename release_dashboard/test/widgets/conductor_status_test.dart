@@ -17,7 +17,7 @@ void main() {
     late pb.ConductorState state;
 
     setUp(() {
-      state = getTestState();
+      state = generateConductorState();
     });
     testWidgets('Conductor_status displays nothing found when there is no state file', (WidgetTester tester) async {
       await tester.pumpWidget(MyApp(
@@ -35,22 +35,22 @@ void main() {
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
-      expect(find.text(conductorVersion), findsOneWidget);
-      expect(find.text(releaseChannel), findsOneWidget);
-      expect(find.text(releaseVersion), findsOneWidget);
+      expect(find.text(conductorVersionDefault), findsOneWidget);
+      expect(find.text(releaseChannelDefault), findsOneWidget);
+      expect(find.text(releaseVersionDefault), findsOneWidget);
       expect(find.text('Release Started at:'), findsOneWidget);
       expect(find.text('Release Updated at:'), findsOneWidget);
-      expect(find.text(dartRevision), findsOneWidget);
-      expect(find.text(engineCherrypick1), findsOneWidget);
-      expect(find.text(engineCherrypick2), findsOneWidget);
-      expect(find.text(engineCherrypick3), findsOneWidget);
-      expect(find.text(frameworkCherrypick), findsOneWidget);
+      expect(find.text(dartRevisionDefault), findsOneWidget);
+      expect(find.text(engineCherrypick1Default), findsOneWidget);
+      expect(find.text(engineCherrypick2Default), findsOneWidget);
+      expect(find.text(engineCherrypick3Default), findsOneWidget);
+      expect(find.text(frameworkCherrypickDefault), findsOneWidget);
     });
 
     testWidgets('Conductor_status displays correct status with a null state file except a releaseChannel',
         (WidgetTester tester) async {
       final pb.ConductorState stateIncomplete = pb.ConductorState(
-        releaseChannel: releaseChannel,
+        releaseChannel: releaseChannelDefault,
       );
 
       await tester.pumpWidget(MyApp(FakeConductor(testState: stateIncomplete)));
@@ -59,7 +59,7 @@ void main() {
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
-      expect(find.text(releaseChannel), findsNWidgets(2));
+      expect(find.text(releaseChannelDefault), findsNWidgets(2));
       expect(find.text('Unknown'), findsNWidgets(11));
     });
 
@@ -73,17 +73,17 @@ void main() {
       for (final String repoElement in ConductorStatus.frameworkRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
-      expect(find.text(engineCandidateBranch), findsOneWidget);
-      expect(find.text(engineStartingGitHead), findsOneWidget);
-      expect(find.text(engineCurrentGitHead), findsOneWidget);
-      expect(find.text(engineCheckoutPath), findsOneWidget);
-      expect(find.text(engineLUCIDashboard), findsOneWidget);
+      expect(find.text(engineCandidateBranchDefault), findsOneWidget);
+      expect(find.text(engineStartingGitHeadDefault), findsOneWidget);
+      expect(find.text(engineCurrentGitHeadDefault), findsOneWidget);
+      expect(find.text(engineCheckoutPathDefault), findsOneWidget);
+      expect(find.text(engineLUCIDashboardDefault), findsOneWidget);
 
-      expect(find.text(frameworkCandidateBranch), findsOneWidget);
-      expect(find.text(frameworkStartingGitHead), findsOneWidget);
-      expect(find.text(frameworkCurrentGitHead), findsOneWidget);
-      expect(find.text(frameworkCheckoutPath), findsOneWidget);
-      expect(find.text(frameworkLUCIDashboard), findsOneWidget);
+      expect(find.text(frameworkCandidateBranchDefault), findsOneWidget);
+      expect(find.text(frameworkStartingGitHeadDefault), findsOneWidget);
+      expect(find.text(frameworkCurrentGitHeadDefault), findsOneWidget);
+      expect(find.text(frameworkCheckoutPathDefault), findsOneWidget);
+      expect(find.text(frameworkLUCIDashboardDefault), findsOneWidget);
 
       expect(tester.widget<ExpansionPanelList>(find.byType(ExpansionPanelList).first).children[0].isExpanded,
           equals(false));

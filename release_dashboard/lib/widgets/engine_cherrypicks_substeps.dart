@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_core/conductor_core.dart';
+
 import '../state/status_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,7 +44,6 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
   };
 
   static const String releaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
-  static const String cherrypickHelpURL = 'https://github.com/flutter/flutter/wiki/Flutter-Cherrypick-Process';
 }
 
 class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
@@ -124,8 +125,8 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
                     ),
                     const SelectableText('See more information about Flutter Cherrypick Process at: '),
                     const UrlButton(
-                      textToDisplay: EngineCherrypicksSubsteps.cherrypickHelpURL,
-                      urlOrUri: EngineCherrypicksSubsteps.cherrypickHelpURL,
+                      textToDisplay: kReleaseDocumentationUrl,
+                      urlOrUri: kReleaseDocumentationUrl,
                     ),
                   ],
                 ),
