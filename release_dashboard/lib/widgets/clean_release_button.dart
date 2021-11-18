@@ -50,7 +50,7 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
               'Are you sure you want to clean up the current releas?',
               style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
             ),
-            content: const Text('This will abort and delete a release in progress. This process is not reversible!'),
+            content: const Text('This will abort and delete a release in progress. This process is irreversible!'),
             leftButtonTitle: 'No',
             rightButtonTitle: 'Yes',
             rightButtonCallback: () {
