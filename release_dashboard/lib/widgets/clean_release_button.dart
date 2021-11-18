@@ -21,10 +21,12 @@ class CleanReleaseButton extends StatefulWidget {
   final ConductorService conductor;
 
   @override
-  State<CleanReleaseButton> createState() => _CleanReleaseState();
+  State<CleanReleaseButton> createState() => _CleanReleaseButtonState();
+
+  static const String requiredConfirmationString = 'clean release';
 }
 
-class _CleanReleaseState extends State<CleanReleaseButton> {
+class _CleanReleaseButtonState extends State<CleanReleaseButton> {
   String? _errorMsg;
 
   void _updateErrorMsg(String? errorMsg) {
@@ -40,21 +42,25 @@ class _CleanReleaseState extends State<CleanReleaseButton> {
       child: IconButton(
         key: const Key('conductorClean'),
         icon: const Icon(Icons.delete),
-        onPressed: () {
-          dialogPrompt(
-            context: context,
-            title: 'Are you sure you want to clean up the current release?',
-            content: 'This will abort and delete a work in progress release. This process is not revertible!',
-            leftOptionTitle: 'Yes',
-            rightOptionTitle: 'No',
-            leftOptionCallback: () {
+        onPressed: () => showDialog(
+          context: context,
+          builder: (_) => DialogPromptInputConfirm(
+            confirmationString: CleanReleaseButton.requiredConfirmationString,
+            title: Text(
+              'Are you sure you want to clean up the current releas?',
+              style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
+            ),
+            content: const Text('This will abort and delete a release in progress. This process is not reversible!'),
+            leftButtonTitle: 'No',
+            rightButtonTitle: 'Yes',
+            rightButtonCallback: () {
               _updateErrorMsg('Feature has not been implemented yet. Please use conductor clean of the CLI tool!');
               if (_errorMsg != null) {
                 snackbarPrompt(context: context, msg: _errorMsg!);
               }
             },
-          );
-        },
+          ),
+        ),
         tooltip: 'Clean up the current release.',
       ),
     );

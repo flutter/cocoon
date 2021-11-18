@@ -34,6 +34,8 @@ void main() {
       await tester.tap(find.byType(CleanReleaseButton));
       await tester.pumpAndSettle();
       expect(find.byType(SnackBar), findsNothing);
+      await tester.enterText(find.byType(TextFormField), CleanReleaseButton.requiredConfirmationString);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Yes'));
       await tester.pumpAndSettle();
       expect(find.byType(SnackBar), findsOneWidget);
