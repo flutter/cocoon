@@ -86,16 +86,16 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       }
     });
     await _insertBigquery(slug, status, defaultBranch, config);
-    await _updatePRs(slug, status, datastore);
+    await _updatePRs(slug, status, datastore, defaultBranch);
     log.fine('All the PRs for $repo have been updated with $status');
 
     return Body.empty;
   }
 
-  Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
+  Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore, String defaultBranch) async {
     final GitHub github = await config.createGitHubClient(slug: slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    await for (PullRequest pr in github.pullRequests.list(slug, base: config.defaultBranch)) {
+    await for (PullRequest pr in github.pullRequests.list(slug, base: defaultBranch)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
         log.fine('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
