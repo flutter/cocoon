@@ -43,7 +43,7 @@ class EngineCherrypicksSubsteps extends StatefulWidget {
     pb.CherrypickState.ABANDONED: 'ABANDONED',
   };
 
-  static const String releaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
+  static const String kReleaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
 }
 
 class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
@@ -92,8 +92,8 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
               SelectableText('Verify if the release number: ${statusState.releaseStatus?['Release Version']}'
                   ' is correct based on existing published releases here: '),
               const UrlButton(
-                textToDisplay: EngineCherrypicksSubsteps.releaseSDKURL,
-                urlOrUri: EngineCherrypicksSubsteps.releaseSDKURL,
+                textToDisplay: EngineCherrypicksSubsteps.kReleaseSDKURL,
+                urlOrUri: EngineCherrypicksSubsteps.kReleaseSDKURL,
               ),
             ],
           ),

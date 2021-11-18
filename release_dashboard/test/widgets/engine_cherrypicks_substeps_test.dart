@@ -94,9 +94,9 @@ void main() {
 
       expect(
           find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.verifyRelease]!), findsOneWidget);
-      expect(find.textContaining(releaseVersionDefault), findsOneWidget);
+      expect(find.textContaining(kReleaseVersion), findsOneWidget);
       expect(find.byType(UrlButton), findsOneWidget);
-      expect(find.text(EngineCherrypicksSubsteps.releaseSDKURL), findsOneWidget);
+      expect(find.text(EngineCherrypicksSubsteps.kReleaseSDKURL), findsOneWidget);
     });
 
     testWidgets("'Apply cherrypicks' substep displays correctly", (WidgetTester tester) async {
@@ -146,8 +146,8 @@ void main() {
 
       expect(
           find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.verifyRelease]!), findsOneWidget);
-      expect(find.textContaining(releaseVersionDefault), findsOneWidget);
-      expect(find.text(EngineCherrypicksSubsteps.releaseSDKURL), findsOneWidget);
+      expect(find.textContaining(kReleaseVersion), findsOneWidget);
+      expect(find.text(EngineCherrypicksSubsteps.kReleaseSDKURL), findsOneWidget);
       expect(find.byType(UrlButton), findsNWidgets(2));
     });
 
@@ -173,8 +173,8 @@ void main() {
       expect(find.textContaining('Navigate to the engine checkout'), findsOneWidget);
       expect(find.textContaining(fakeConductor.rootDirectory.path), findsOneWidget);
       expect(find.textContaining('apply the following engine cherrypicks'), findsOneWidget);
-      expect(find.textContaining('git cherry-pick $engineCherrypick1Default'), findsOneWidget);
-      expect(find.textContaining('git cherry-pick $engineCherrypick2Default'), findsOneWidget);
+      expect(find.textContaining('git cherry-pick $kEngineCherrypick1'), findsOneWidget);
+      expect(find.textContaining('git cherry-pick $kEngineCherrypick2'), findsOneWidget);
 
       expect(find.textContaining('See more information'), findsOneWidget);
       expect(find.text(kReleaseDocumentationUrl), findsOneWidget);

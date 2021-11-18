@@ -35,22 +35,22 @@ void main() {
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
-      expect(find.text(conductorVersionDefault), findsOneWidget);
-      expect(find.text(releaseChannelDefault), findsOneWidget);
-      expect(find.text(releaseVersionDefault), findsOneWidget);
+      expect(find.text(kConductorVersion), findsOneWidget);
+      expect(find.text(kReleaseChannel), findsOneWidget);
+      expect(find.text(kReleaseVersion), findsOneWidget);
       expect(find.text('Release Started at:'), findsOneWidget);
       expect(find.text('Release Updated at:'), findsOneWidget);
-      expect(find.text(dartRevisionDefault), findsOneWidget);
-      expect(find.text(engineCherrypick1Default), findsOneWidget);
-      expect(find.text(engineCherrypick2Default), findsOneWidget);
-      expect(find.text(engineCherrypick3Default), findsOneWidget);
-      expect(find.text(frameworkCherrypickDefault), findsOneWidget);
+      expect(find.text(kDartRevision), findsOneWidget);
+      expect(find.text(kEngineCherrypick1), findsOneWidget);
+      expect(find.text(kEngineCherrypick2), findsOneWidget);
+      expect(find.text(kEngineCherrypick3), findsOneWidget);
+      expect(find.text(kFrameworkCherrypick), findsOneWidget);
     });
 
     testWidgets('Conductor_status displays correct status with a null state file except a releaseChannel',
         (WidgetTester tester) async {
       final pb.ConductorState stateIncomplete = pb.ConductorState(
-        releaseChannel: releaseChannelDefault,
+        releaseChannel: kReleaseChannel,
       );
 
       await tester.pumpWidget(MyApp(FakeConductor(testState: stateIncomplete)));
@@ -59,7 +59,7 @@ void main() {
       for (final String headerElement in ConductorStatus.headerElements) {
         expect(find.text('$headerElement:'), findsOneWidget);
       }
-      expect(find.text(releaseChannelDefault), findsNWidgets(2));
+      expect(find.text(kReleaseChannel), findsNWidgets(2));
       expect(find.text('Unknown'), findsNWidgets(11));
     });
 
@@ -73,17 +73,17 @@ void main() {
       for (final String repoElement in ConductorStatus.frameworkRepoElements.values) {
         expect(find.text('$repoElement:'), findsOneWidget);
       }
-      expect(find.text(engineCandidateBranchDefault), findsOneWidget);
-      expect(find.text(engineStartingGitHeadDefault), findsOneWidget);
-      expect(find.text(engineCurrentGitHeadDefault), findsOneWidget);
-      expect(find.text(engineCheckoutPathDefault), findsOneWidget);
-      expect(find.text(engineLUCIDashboardDefault), findsOneWidget);
+      expect(find.text(kEngineCandidateBranch), findsOneWidget);
+      expect(find.text(kEngineStartingGitHead), findsOneWidget);
+      expect(find.text(kEngineCurrentGitHead), findsOneWidget);
+      expect(find.text(kEngineCheckoutPath), findsOneWidget);
+      expect(find.text(kEngineLUCIDashboard), findsOneWidget);
 
-      expect(find.text(frameworkCandidateBranchDefault), findsOneWidget);
-      expect(find.text(frameworkStartingGitHeadDefault), findsOneWidget);
-      expect(find.text(frameworkCurrentGitHeadDefault), findsOneWidget);
-      expect(find.text(frameworkCheckoutPathDefault), findsOneWidget);
-      expect(find.text(frameworkLUCIDashboardDefault), findsOneWidget);
+      expect(find.text(kFrameworkCandidateBranch), findsOneWidget);
+      expect(find.text(kFrameworkStartingGitHead), findsOneWidget);
+      expect(find.text(kFrameworkCurrentGitHead), findsOneWidget);
+      expect(find.text(kFrameworkCheckoutPath), findsOneWidget);
+      expect(find.text(kFrameworkLUCIDashboard), findsOneWidget);
 
       expect(tester.widget<ExpansionPanelList>(find.byType(ExpansionPanelList).first).children[0].isExpanded,
           equals(false));
