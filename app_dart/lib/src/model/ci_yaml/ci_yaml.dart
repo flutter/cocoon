@@ -71,18 +71,30 @@ class CiYaml {
     // 1. Add targets with local definition
     final Iterable<Target> overrideBranchTargets =
         targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
-    final Iterable<Target> enabledTargets =
-        overrideBranchTargets.where((Target target) => RegExp(target.value.enabledBranches.join('|')).hasMatch(branch));
+    final Iterable<Target> enabledTargets = overrideBranchTargets
+        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, branch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    final RegExp globallyEnabledBranches = RegExp(config.enabledBranches.join('|'));
-    if (globallyEnabledBranches.hasMatch(branch)) {
+    if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, branch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
     }
 
     return filteredTargets;
+  }
+
+  /// Whether any of the possible [RegExp] in [enabledBranches] match [branch].
+  static bool enabledBranchesMatchesCurrentBranch(List<String> enabledBranches, String branch) {
+    final List<String> regexes = <String>[];
+    for (String enabledBranch in enabledBranches) {
+      // Prefix with start of line and suffix with end of line
+      regexes.add('^$enabledBranch\$');
+    }
+    final String rawRegexp = regexes.join('|');
+    final RegExp regexp = RegExp(rawRegexp);
+
+    return regexp.hasMatch(branch);
   }
 }
