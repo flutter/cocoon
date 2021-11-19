@@ -4,6 +4,9 @@
 
 import 'package:conductor_core/src/proto/conductor_state.pb.dart';
 import 'package:conductor_ui/services/conductor.dart';
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
+import 'package:platform/platform.dart';
 
 import '../fake_start_context.dart';
 
@@ -19,6 +22,13 @@ class FakeConductor extends ConductorService {
 
   final FakeStartContext? fakeStartContextProvided;
   final ConductorState? testState;
+
+  final FileSystem fs = MemoryFileSystem.test();
+  final Platform platform = FakePlatform(
+    environment: <String, String>{'HOME': '/path/to/user/home'},
+    operatingSystem: const LocalPlatform().operatingSystem,
+    pathSeparator: r'/',
+  );
 
   @override
   Future<void> createRelease({
@@ -51,10 +61,12 @@ class FakeConductor extends ConductorService {
   }
 
   @override
+  Directory get rootDirectory => fs.directory(platform.environment['HOME']);
 
   /// If there is no [testState] parameter passed, this getter simply returns a null state.
   ///
   /// Missing [testState] parameter simulates a conductor withtout a release state file.
+  @override
   ConductorState? get state {
     return testState;
   }

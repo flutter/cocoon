@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:file/file.dart';
 
 /// Service class for interacting with the conductor library.
 ///
