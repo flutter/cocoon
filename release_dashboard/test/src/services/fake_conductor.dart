@@ -4,8 +4,9 @@
 
 import 'package:conductor_core/src/proto/conductor_state.pb.dart';
 import 'package:conductor_ui/services/conductor.dart';
-import 'package:file/src/interface/file.dart';
-import 'package:file/src/interface/directory.dart';
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
+import 'package:platform/platform.dart';
 
 class FakeConductor extends ConductorService {
   FakeConductor({
@@ -13,6 +14,12 @@ class FakeConductor extends ConductorService {
   });
 
   final ConductorState? testState;
+  final FileSystem fs = MemoryFileSystem.test();
+  final Platform platform = FakePlatform(
+    environment: <String, String>{'HOME': '/path/to/user/home'},
+    operatingSystem: const LocalPlatform().operatingSystem,
+    pathSeparator: r'/',
+  );
 
   @override
   Future<void> createRelease(
@@ -26,6 +33,9 @@ class FakeConductor extends ConductorService {
       required String incrementLetter,
       required String releaseChannel,
       required File stateFile}) async {}
+
+  @override
+  Directory get rootDirectory => fs.directory(platform.environment['HOME']);
 
   @override
   ConductorState? get state {

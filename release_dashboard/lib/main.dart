@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:io' as io;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'services/conductor.dart';
 import 'services/local_conductor.dart';
-import 'package:provider/provider.dart';
-
 import 'state/status_state.dart';
 import 'widgets/clean_release_button.dart';
 import 'widgets/progression.dart';

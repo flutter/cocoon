@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
-import '../services/conductor.dart';
-import 'package:flutter/material.dart';
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:flutter/material.dart';
+
+import '../services/conductor.dart';
 
 /// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
@@ -42,6 +43,7 @@ Map<String, Object>? stateToMap(pb.ConductorState? state) {
         .add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});
   }
 
+// TODO(Yugue): Use enums as keys, https://github.com/flutter/flutter/issues/93748.
   return <String, Object>{
     'Conductor Version': state.conductorVersion,
     'Release Channel': state.releaseChannel,

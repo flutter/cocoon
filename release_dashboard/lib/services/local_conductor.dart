@@ -27,7 +27,8 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
-  Directory get rootDirectory => fs.directory(const String.fromEnvironment('HOME'));
+  @override
+  Directory get rootDirectory => fs.directory(platform.environment['HOME']);
   File get stateFile => fs.file(defaultStateFilePath(platform));
 
   static const String frameworkUpstream = 'https://github.com/flutter/flutter';
