@@ -4,3 +4,4 @@ linter:
   rules:
     prefer_relative_imports: true
     flutter_style_todos: true
+    directives_ordering: true

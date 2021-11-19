@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import '../services/conductor.dart';
 import 'package:flutter/material.dart';
 
+import '../services/conductor.dart';
 import 'common/dialog_prompt.dart';
 import 'common/snackbar_prompt.dart';
 

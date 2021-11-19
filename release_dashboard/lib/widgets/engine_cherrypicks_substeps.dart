@@ -3,12 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
-
-import '../state/status_state.dart';
+import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:conductor_core/proto.dart' as pb;
 
+import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
 

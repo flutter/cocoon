@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
-import 'engine_cherrypicks_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
+import 'engine_cherrypicks_substeps.dart';
 import 'substeps.dart';
-import 'package:conductor_core/proto.dart' as pb;
 
 /// Displays the progression and each step of the release from the conductor.
 ///

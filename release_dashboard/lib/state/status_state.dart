@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
-import '../services/conductor.dart';
-import 'package:flutter/material.dart';
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:flutter/material.dart';
+
+import '../services/conductor.dart';
 
 /// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
