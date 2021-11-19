@@ -106,44 +106,15 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
-    testWidgets('Executes the left button callback when the left button is clicked', (WidgetTester tester) async {
+    testWidgets('Executes the left button callback when the left button is clicked, right callback is not called',
+        (WidgetTester tester) async {
       bool isLeftButtonCallbackCalled = false;
-      void leftButtonCallback() {
+      Future<void> leftButtonCallback() async {
         isLeftButtonCallbackCalled = true;
       }
 
-      await tester.pumpWidget(MaterialApp(
-        home: Material(
-          child: Builder(
-            builder: (BuildContext context) {
-              return ElevatedButton(
-                onPressed: () {
-                  dialogPrompt(
-                    context: context,
-                    title: const Text(title),
-                    content: const Text(content),
-                    leftButtonTitle: leftButtonTitle,
-                    rightButtonTitle: rightButtonTitle,
-                    leftButtonCallback: leftButtonCallback,
-                  );
-                },
-                child: const Text('Clean'),
-              );
-            },
-          ),
-        ),
-      ));
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(leftButtonTitle));
-      await tester.pumpAndSettle();
-      expect(isLeftButtonCallbackCalled, equals(true));
-    });
-
-    testWidgets('Executes the right button callback when the right button is clicked', (WidgetTester tester) async {
       bool isRightButtonCallbackCalled = false;
-      void rightButtonCallback() {
+      Future<void> rightButtonCallback() async {
         isRightButtonCallbackCalled = true;
       }
 
@@ -159,6 +130,50 @@ void main() {
                     content: const Text(content),
                     leftButtonTitle: leftButtonTitle,
                     rightButtonTitle: rightButtonTitle,
+                    leftButtonCallback: leftButtonCallback,
+                    rightButtonCallback: rightButtonCallback,
+                  );
+                },
+                child: const Text('Clean'),
+              );
+            },
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(leftButtonTitle));
+      await tester.pumpAndSettle();
+      expect(isLeftButtonCallbackCalled, equals(true));
+      expect(isRightButtonCallbackCalled, equals(false));
+    });
+
+    testWidgets('Executes the right button callback when the right button is clicked, left callback is not called',
+        (WidgetTester tester) async {
+      bool isLeftButtonCallbackCalled = false;
+      Future<void> leftButtonCallback() async {
+        isLeftButtonCallbackCalled = true;
+      }
+
+      bool isRightButtonCallbackCalled = false;
+      Future<void> rightButtonCallback() async {
+        isRightButtonCallbackCalled = true;
+      }
+
+      await tester.pumpWidget(MaterialApp(
+        home: Material(
+          child: Builder(
+            builder: (BuildContext context) {
+              return ElevatedButton(
+                onPressed: () {
+                  dialogPrompt(
+                    context: context,
+                    title: const Text(title),
+                    content: const Text(content),
+                    leftButtonTitle: leftButtonTitle,
+                    rightButtonTitle: rightButtonTitle,
+                    leftButtonCallback: leftButtonCallback,
                     rightButtonCallback: rightButtonCallback,
                   );
                 },
@@ -173,6 +188,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(rightButtonTitle));
       await tester.pumpAndSettle();
+      expect(isLeftButtonCallbackCalled, equals(false));
       expect(isRightButtonCallbackCalled, equals(true));
     });
   });
@@ -188,7 +204,7 @@ void main() {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => const DialogPromptInputConfirm(
+                    builder: (_) => const DialogPromptConfirmInput(
                       confirmationString: requiredConfirmationString,
                       title: Text(title),
                       content: Text(content),
@@ -207,7 +223,7 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
       await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
-      expect(find.byType(DialogPromptInputConfirm), findsOneWidget);
+      expect(find.byType(DialogPromptConfirmInput), findsOneWidget);
       expect(find.text(title), findsOneWidget);
       expect(find.text(content), findsOneWidget);
       expect(find.text(leftButtonTitle), findsOneWidget);
@@ -223,7 +239,7 @@ void main() {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => const DialogPromptInputConfirm(
+                    builder: (_) => const DialogPromptConfirmInput(
                       confirmationString: requiredConfirmationString,
                       title: Text(title),
                       content: Text(content),
@@ -241,16 +257,22 @@ void main() {
 
       await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
-      expect(find.byType(DialogPromptInputConfirm), findsOneWidget);
+      expect(find.byType(DialogPromptConfirmInput), findsOneWidget);
       await tester.tap(find.text(leftButtonTitle));
       await tester.pumpAndSettle();
-      expect(find.byType(DialogPromptInputConfirm), findsNothing);
+      expect(find.byType(DialogPromptConfirmInput), findsNothing);
     });
 
-    testWidgets('Executes the left button callback when the left button is clicked', (WidgetTester tester) async {
+    testWidgets('Executes the left button callback when the left button is clicked, right callback is not called',
+        (WidgetTester tester) async {
       bool isLeftButtonCallbackCalled = false;
-      void leftButtonCallback() {
+      Future<void> leftButtonCallback() async {
         isLeftButtonCallbackCalled = true;
+      }
+
+      bool isRightButtonCallbackCalled = false;
+      Future<void> rightButtonCallback() async {
+        isRightButtonCallbackCalled = true;
       }
 
       await tester.pumpWidget(MaterialApp(
@@ -261,13 +283,14 @@ void main() {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => DialogPromptInputConfirm(
+                    builder: (_) => DialogPromptConfirmInput(
                       confirmationString: requiredConfirmationString,
                       title: const Text(title),
                       content: const Text(content),
                       leftButtonTitle: leftButtonTitle,
                       rightButtonTitle: rightButtonTitle,
                       leftButtonCallback: leftButtonCallback,
+                      rightButtonCallback: rightButtonCallback,
                     ),
                   );
                 },
@@ -283,6 +306,7 @@ void main() {
       await tester.tap(find.text(leftButtonTitle));
       await tester.pumpAndSettle();
       expect(isLeftButtonCallbackCalled, equals(true));
+      expect(isRightButtonCallbackCalled, equals(false));
     });
 
     testWidgets('Right button enables when the user input is correct, disables otherwise', (WidgetTester tester) async {
@@ -294,7 +318,7 @@ void main() {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => const DialogPromptInputConfirm(
+                    builder: (_) => const DialogPromptConfirmInput(
                       confirmationString: requiredConfirmationString,
                       title: Text(title),
                       content: Text(content),
@@ -321,10 +345,16 @@ void main() {
       expect(tester.widget<TextButton>(find.byKey(const Key(rightButtonTitle))).enabled, equals(false));
     });
 
-    testWidgets('Executes the right button callback when the user input is correct and the right button is clicked',
+    testWidgets(
+        'Executes the right button callback when the user input is correct and the right button is clicked, left callback is not called',
         (WidgetTester tester) async {
+      bool isLeftButtonCallbackCalled = false;
+      Future<void> leftButtonCallback() async {
+        isLeftButtonCallbackCalled = true;
+      }
+
       bool isRightButtonCallbackCalled = false;
-      void rightButtonCallback() {
+      Future<void> rightButtonCallback() async {
         isRightButtonCallbackCalled = true;
       }
 
@@ -336,12 +366,13 @@ void main() {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (_) => DialogPromptInputConfirm(
+                    builder: (_) => DialogPromptConfirmInput(
                       confirmationString: requiredConfirmationString,
                       title: const Text(title),
                       content: const Text(content),
                       leftButtonTitle: leftButtonTitle,
                       rightButtonTitle: rightButtonTitle,
+                      leftButtonCallback: leftButtonCallback,
                       rightButtonCallback: rightButtonCallback,
                     ),
                   );
@@ -359,6 +390,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(rightButtonTitle));
       await tester.pumpAndSettle();
+      expect(isLeftButtonCallbackCalled, equals(false));
       expect(isRightButtonCallbackCalled, equals(true));
     });
   });

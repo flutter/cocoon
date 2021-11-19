@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 
+typedef DynamicFuture = Future<dynamic> Function();
+
 /// Function that prompts an alert to the current window and forces the user to choose between two options.
 Future<String?> dialogPrompt({
   required BuildContext context,
@@ -11,8 +13,8 @@ Future<String?> dialogPrompt({
   required Widget? content,
   required String leftButtonTitle,
   required String rightButtonTitle,
-  VoidCallback? leftButtonCallback,
-  VoidCallback? rightButtonCallback,
+  DynamicFuture? leftButtonCallback,
+  DynamicFuture? rightButtonCallback,
 }) {
   return showDialog<String>(
     context: context,
@@ -21,15 +23,15 @@ Future<String?> dialogPrompt({
       content: content,
       actions: <Widget>[
         TextButton(
-          onPressed: () {
-            if (leftButtonCallback != null) leftButtonCallback();
+          onPressed: () async {
+            if (leftButtonCallback != null) await leftButtonCallback();
             Navigator.pop(context, leftButtonTitle);
           },
           child: Text(leftButtonTitle),
         ),
         TextButton(
-          onPressed: () {
-            if (rightButtonCallback != null) rightButtonCallback();
+          onPressed: () async {
+            if (rightButtonCallback != null) await rightButtonCallback();
             Navigator.pop(context, rightButtonTitle);
           },
           child: Text(rightButtonTitle),
@@ -42,9 +44,9 @@ Future<String?> dialogPrompt({
 /// Widget that prompts an alert to the current window and forces the user to choose between two options.
 ///
 /// User also has to input [confirmationString] as an extra layer of validation.
-/// The right button becomes enabled when [_userInput] matches [confirmationString], otherwise it is disabled.
-class DialogPromptInputConfirm extends StatefulWidget {
-  const DialogPromptInputConfirm({
+/// The right button becomes enabled when the user input matches [confirmationString], otherwise it is disabled.
+class DialogPromptConfirmInput extends StatefulWidget {
+  const DialogPromptConfirmInput({
     required this.title,
     required this.content,
     required this.leftButtonTitle,
@@ -60,14 +62,14 @@ class DialogPromptInputConfirm extends StatefulWidget {
   final String leftButtonTitle;
   final String rightButtonTitle;
   final String confirmationString;
-  final VoidCallback? leftButtonCallback;
-  final VoidCallback? rightButtonCallback;
+  final DynamicFuture? leftButtonCallback;
+  final DynamicFuture? rightButtonCallback;
 
   @override
-  State<DialogPromptInputConfirm> createState() => _DialogPromptInputConfirmState();
+  State<DialogPromptConfirmInput> createState() => _DialogPromptConfirmInputState();
 }
 
-class _DialogPromptInputConfirmState extends State<DialogPromptInputConfirm> {
+class _DialogPromptConfirmInputState extends State<DialogPromptConfirmInput> {
   String _userInput = '';
 
   @override
@@ -94,8 +96,8 @@ class _DialogPromptInputConfirmState extends State<DialogPromptInputConfirm> {
       actions: <Widget>[
         TextButton(
           key: Key(widget.leftButtonTitle),
-          onPressed: () {
-            if (widget.leftButtonCallback != null) widget.leftButtonCallback!();
+          onPressed: () async {
+            if (widget.leftButtonCallback != null) await widget.leftButtonCallback!();
             Navigator.pop(context, widget.leftButtonTitle);
           },
           child: Text(widget.leftButtonTitle),
@@ -103,8 +105,8 @@ class _DialogPromptInputConfirmState extends State<DialogPromptInputConfirm> {
         TextButton(
           key: Key(widget.rightButtonTitle),
           onPressed: _userInput == widget.confirmationString
-              ? () {
-                  if (widget.rightButtonCallback != null) widget.rightButtonCallback!();
+              ? () async {
+                  if (widget.rightButtonCallback != null) await widget.rightButtonCallback!();
                   Navigator.pop(context, widget.rightButtonTitle);
                 }
               : null,

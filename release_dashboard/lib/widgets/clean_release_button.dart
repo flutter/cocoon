@@ -44,16 +44,16 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
         icon: const Icon(Icons.delete),
         onPressed: () => showDialog(
           context: context,
-          builder: (_) => DialogPromptInputConfirm(
+          builder: (_) => DialogPromptConfirmInput(
             confirmationString: CleanReleaseButton.requiredConfirmationString,
             title: Text(
-              'Are you sure you want to clean up the current releas?',
+              'Are you sure you want to clean up the current release',
               style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
             ),
             content: const Text('This will abort and delete a release in progress. This process is irreversible!'),
             leftButtonTitle: 'No',
             rightButtonTitle: 'Yes',
-            rightButtonCallback: () {
+            rightButtonCallback: () async {
               _updateErrorMsg('Feature has not been implemented yet. Please use conductor clean of the CLI tool!');
               if (_errorMsg != null) {
                 snackbarPrompt(context: context, msg: _errorMsg!);
