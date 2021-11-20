@@ -12,8 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import '../fakes/fake_start_context.dart';
 import '../fakes/fake_process_manager.dart';
+import '../fakes/fake_start_context.dart';
 import '../fakes/services/fake_conductor.dart';
 
 void main() {
