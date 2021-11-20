@@ -11,6 +11,9 @@ set -e
 gcloud app deploy --project "$1" --version "version-$2" -q "$3" --no-stop-previous-version
 gcloud app deploy --project "$1" cron.yaml
 gcloud app services set-traffic default --splits version-$2=1 --quiet
+# Cron jobs are triggered on any instances with a serving state. To avoid unexpected results when cron jobs logic changes
+# we stop all the instances but the one being deployed.
+gcloud app versions list | grep SERVING | awk {'print $2'} | tail -n +2 | grep -v "version-$2" | xargs -L1 -I% gcloud app versions stop %  --quiet
 # Google Cloud quota only allows 30 versions.
 # For daily builds, this will keep the 10 most recent versions, but wipe the rest.
 gcloud app versions list --format="value(version.id)" --sort-by="~version.createTime" | tail -n +11 | xargs -r gcloud app versions delete --quiet
