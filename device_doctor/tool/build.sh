@@ -29,7 +29,7 @@ fi
 
 mkdir -p build
 tool/dart-sdk/bin/pub get
-tool/dart-sdk/bin/dart2native bin/main.dart -o build/device_doctor
+tool/dart-sdk/bin/dart compile exe bin/main.dart -o build/device_doctor
 
 cp -f LICENSE build/
 
