@@ -20,12 +20,15 @@ for %%a in (%DIR:~0,-1%) do set "BUILD_DIR=%%~dpa"
 PUSHD %BUILD_DIR%
 if exist %BUILD_DIR%\build (
         ECHO "Please remove the build directory before proceeding"
-        EXIT
+        EXIT 1
 )
 MKDIR %BUILD_DIR%\build
 
 call tool\dart-sdk\bin\pub.bat get
 call tool\dart-sdk\bin\dart.exe compile exe bin\main.dart -o build\device_doctor.exe
+IF "%ERRORLEVEL%" NEQ "0" (
+        EXIT 1
+)
 
 REM Add PATH for xcopy
 SET "PATH=%PATH%;C:\Windows\system32"
