@@ -1,0 +1,4 @@
+enum cherrypick {
+  trunkRevision,
+  state,
+}
