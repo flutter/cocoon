@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 typedef DynamicFuture = Future<dynamic> Function();
 
-/// Function that prompts an alert to the current window and forces the user to choose between two options.
+/// Prompts an alert to the current window and forces the user to choose between two options.
 Future<String?> dialogPrompt({
   required BuildContext context,
   required Widget title,
