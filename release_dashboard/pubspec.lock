@@ -61,8 +61,8 @@ packages:
     dependency: "direct main"
     description:
       path: "dev/conductor/core"
-      ref: "125545da322048565911bf81118cce60f05036ce"
-      resolved-ref: "125545da322048565911bf81118cce60f05036ce"
+      ref: c8a315298b21e54fb6a22d5a0e2907da45d829c3
+      resolved-ref: c8a315298b21e54fb6a22d5a0e2907da45d829c3
       url: "git://github.com/flutter/flutter.git"
     source: git
     version: "0.0.0"
@@ -199,7 +199,7 @@ packages:
       name: process
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.3"
+    version: "4.2.4"
   protobuf:
     dependency: transitive
     description:

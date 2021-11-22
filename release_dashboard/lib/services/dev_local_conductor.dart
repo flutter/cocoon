@@ -49,7 +49,6 @@ class DevLocalConductorService extends LocalConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
-      stdio: stdio,
     );
     return startContext.run();
   }

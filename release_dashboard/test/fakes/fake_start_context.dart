@@ -31,7 +31,6 @@ class FakeStartContext extends StartContext {
     FakeProcessManager? processManager,
     String releaseChannel = 'dev',
     File? stateFile,
-    Stdio? stdio,
     Future<void> Function()? runOverride,
   }) {
     final FileSystem fileSystem = MemoryFileSystem.test();
@@ -42,7 +41,7 @@ class FakeStartContext extends StartContext {
       pathSeparator: r'/',
     );
     processManager ??= FakeProcessManager.list(<FakeCommand>[]);
-    stdio ??= TestStdio();
+    final Stdio stdio = TestStdio();
     checkouts ??= Checkouts(
       fileSystem: fileSystem,
       parentDirectory: fileSystem.directory(kCheckoutsParentDirectory),
@@ -65,7 +64,6 @@ class FakeStartContext extends StartContext {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
-      stdio: stdio,
       runOverride: runOverride,
     );
   }
@@ -85,7 +83,6 @@ class FakeStartContext extends StartContext {
     required ProcessManager processManager,
     required String releaseChannel,
     required File stateFile,
-    required Stdio stdio,
     this.runOverride,
   }) : super(
           candidateBranch: candidateBranch,
@@ -102,7 +99,6 @@ class FakeStartContext extends StartContext {
           processManager: processManager,
           releaseChannel: releaseChannel,
           stateFile: stateFile,
-          stdio: stdio,
         );
 
   /// An optional override async callback for the real [run] method.
