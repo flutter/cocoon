@@ -5,11 +5,11 @@
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
+import '../enums/engine_or_framework.dart';
+import 'cherrypicks_substeps.dart';
 import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
-import 'engine_cherrypicks_substeps.dart';
-import 'substeps.dart';
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -30,7 +30,7 @@ class MainProgression extends StatefulWidget {
     'Initialize a New Flutter Release',
     'Apply Engine Cherrypicks',
     'Codesign Engine Binaries',
-    'Publish the Release',
+    'Apply Framework Cherrypicks',
     'Release is Successfully published'
   ];
 }
@@ -93,7 +93,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[1]),
                   content: Column(
                     children: <Widget>[
-                      EngineCherrypicksSubsteps(nextStep: nextStep),
+                      CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: EngineOrFramework.engine),
                     ],
                   ),
                   isActive: true,
@@ -113,7 +113,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[3]),
                   content: Column(
                     children: <Widget>[
-                      ConductorSubsteps(nextStep: nextStep),
+                      CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: EngineOrFramework.framework),
                     ],
                   ),
                   isActive: true,
