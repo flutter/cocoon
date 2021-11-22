@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// Keys for the release status which is in [Map<K, V>] format.
 enum conductorStatus {
   conductorVersion,
   releaseChannel,
