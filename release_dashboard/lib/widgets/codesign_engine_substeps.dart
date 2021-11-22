@@ -42,7 +42,7 @@ class CodesignEngineSubsteps extends StatefulWidget {
     CodesignEngineSubstep.updateLicenseHash:
         'There might be a license failure under the Linux Unopt test for the engine PR. '
             "Visit the test's stdout, and there should be instructions on how to update the license hash number"
-            ' in the local checkout directory. After the update, please push the changes to the engine PR.\n\n'
+            ' in the local checkout directory. After the update, please push the changes to the feature branch on your mirror.\n\n'
             'Just check this substep if there is no Linux Unopt test failure.',
     CodesignEngineSubstep.preSubmitCI:
         'Make sure all tests on Github pass for the engine PR. Fix any test failures first. \n'
