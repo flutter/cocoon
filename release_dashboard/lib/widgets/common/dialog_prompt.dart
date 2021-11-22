@@ -7,6 +7,29 @@ import 'package:flutter/material.dart';
 typedef DynamicFuture = Future<dynamic> Function();
 
 /// Prompts an alert to the current window and forces the user to choose between two options.
+///
+/// The `context` argument is used to look up the [Navigator] for the dialog.
+/// It is only used when the method is called.
+///
+/// The `title` argument is used to display a [Widget] at the topmost area of the dialogue.
+///
+/// The `content` argument is used to display an optional [Widget] below the `title`.
+///
+/// The `leftButtonTitle` argument is used to display its content in a [Text]
+/// as the child of [TextButton], which is the left button of the dialogue.
+/// It is also being used as the result of the route that is popped when
+/// the left button is clicked.
+///
+/// The `rightButtonTitle` argument is used to display its content in a [Text]
+/// as the child of [TextButton], which is the right button of the dialogue.
+/// It is also being used as the result of the route that is popped when
+/// the right button is clicked.
+///
+/// The `leftButtonCallback` argument is used to be executed right after the left
+/// button is clicked. `leftButtonCallback` must asynchronous.
+///
+/// The `rightButtonCallback` argument is used to be executed right after the right
+/// button is clicked. `rightButtonCallback` must asynchronous.
 Future<String?> dialogPrompt({
   required BuildContext context,
   required Widget title,
