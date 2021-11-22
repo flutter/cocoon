@@ -58,7 +58,7 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
     ///
     /// All substeps are unchecked at the beginning.
     for (final CherrypicksSubstep substep in CherrypicksSubstep.values) {
-      /// Apply framework cherrypick step does not require to verify the release number as a substep.
+      /// Verify the release number is not required for the framework.
       if (widget.engineOrFramework == EngineOrFramework.framework && substep == CherrypicksSubstep.verifyRelease) {
         continue;
       }
