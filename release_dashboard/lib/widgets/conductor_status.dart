@@ -5,55 +5,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../enums/cherrypick.dart';
+import '../enums/conductor_status.dart';
 import '../state/status_state.dart';
 import 'common/tooltip.dart';
 import 'common/url_button.dart';
 
-enum StatusSubstep {
-  candidateBranch,
-  startingGitHead,
-  currentGitHead,
-  checkoutPath,
-  dashboardLink,
-}
-
-/// Displays the current conductor state.
+/// Widget that displays the current conductor state.
+///
+/// Engine and framework repo info such as the candidate branch, GIT heads, etc. are
+/// displayed in a dropdown widget, and they are collapsed by default.
 class ConductorStatus extends StatefulWidget {
   const ConductorStatus({Key? key}) : super(key: key);
 
   @override
   State<ConductorStatus> createState() => ConductorStatusState();
 
-  static final List<String> headerElements = <String>[
-    'Conductor Version',
-    'Release Channel',
-    'Release Version',
-    'Release Started at',
-    'Release Updated at',
-    'Dart SDK Revision',
-  ];
-
-  static final Map<StatusSubstep, String> engineRepoElements = <StatusSubstep, String>{
-    StatusSubstep.candidateBranch: 'Engine Candidate Branch',
-    StatusSubstep.startingGitHead: 'Engine Starting Git HEAD',
-    StatusSubstep.currentGitHead: 'Engine Current Git HEAD',
-    StatusSubstep.checkoutPath: 'Engine Path to Checkout',
-    StatusSubstep.dashboardLink: 'Engine LUCI Dashboard',
+  static const Map<conductorStatus, String> headerElements = <conductorStatus, String>{
+    conductorStatus.conductorVersion: 'Conductor Version',
+    conductorStatus.releaseChannel: 'Release Channel',
+    conductorStatus.releaseVersion: 'Release Version',
+    conductorStatus.startedAt: 'Release Started at',
+    conductorStatus.updatedAt: 'Release Updated at',
+    conductorStatus.dartRevision: 'Dart SDK Revision',
   };
 
-  static final Map<StatusSubstep, String> frameworkRepoElements = <StatusSubstep, String>{
-    StatusSubstep.candidateBranch: 'Framework Candidate Branch',
-    StatusSubstep.startingGitHead: 'Framework Starting Git HEAD',
-    StatusSubstep.currentGitHead: 'Framework Current Git HEAD',
-    StatusSubstep.checkoutPath: 'Framework Path to Checkout',
-    StatusSubstep.dashboardLink: 'Framework LUCI Dashboard',
+  static const Map<conductorStatus, String> engineRepoElements = <conductorStatus, String>{
+    conductorStatus.engineCandidateBranch: 'Engine Candidate Branch',
+    conductorStatus.engineStartingGitHead: 'Engine Starting Git HEAD',
+    conductorStatus.engineCurrentGitHead: 'Engine Current Git HEAD',
+    conductorStatus.engineCheckoutPath: 'Engine Path to Checkout',
+    conductorStatus.engineLUCIDashboard: 'Engine LUCI Dashboard',
+  };
+
+  static const Map<conductorStatus, String> frameworkRepoElements = <conductorStatus, String>{
+    conductorStatus.frameworkCandidateBranch: 'Framework Candidate Branch',
+    conductorStatus.frameworkStartingGitHead: 'Framework Starting Git HEAD',
+    conductorStatus.frameworkCurrentGitHead: 'Framework Current Git HEAD',
+    conductorStatus.frameworkCheckoutPath: 'Framework Path to Checkout',
+    conductorStatus.frameworkLUCIDashboard: 'Framework LUCI Dashboard',
   };
 }
 
 class ConductorStatusState extends State<ConductorStatus> {
   @override
   Widget build(BuildContext context) {
-    final Map<String, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
     if (context.watch<StatusState>().releaseStatus == null) {
       return const SelectableText('No persistent state file. Try starting a release.');
     }
@@ -66,11 +63,11 @@ class ConductorStatusState extends State<ConductorStatus> {
             0: FixedColumnWidth(200.0),
           },
           children: <TableRow>[
-            for (String headerElement in ConductorStatus.headerElements)
+            for (MapEntry headerElement in ConductorStatus.headerElements.entries)
               TableRow(
                 children: <Widget>[
-                  Text('$headerElement:'),
-                  SelectableText(statusElementToString(releaseStatus![headerElement])),
+                  Text('${headerElement.value}:'),
+                  SelectableText(statusElementToString(releaseStatus![headerElement.key])),
                 ],
               ),
           ],
@@ -79,18 +76,18 @@ class ConductorStatusState extends State<ConductorStatus> {
         Wrap(
           children: <Widget>[
             Column(
-              children: <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'engine', releaseStatus: releaseStatus!),
-                const SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'engine', releaseStatus: releaseStatus),
+              children: const <Widget>[
+                RepoInfoExpansion(engineOrFramework: 'engine'),
+                SizedBox(height: 10.0),
+                CherrypickTable(engineOrFramework: 'engine'),
               ],
             ),
             const SizedBox(width: 20.0),
             Column(
-              children: <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'framework', releaseStatus: releaseStatus),
-                const SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'framework', releaseStatus: releaseStatus),
+              children: const <Widget>[
+                RepoInfoExpansion(engineOrFramework: 'framework'),
+                SizedBox(height: 10.0),
+                CherrypickTable(engineOrFramework: 'framework'),
               ],
             ),
           ],
@@ -107,11 +104,9 @@ class CherrypickTable extends StatefulWidget {
   const CherrypickTable({
     Key? key,
     required this.engineOrFramework,
-    required this.releaseStatus,
   }) : super(key: key);
 
   final String engineOrFramework;
-  final Map<String, Object> releaseStatus;
 
   @override
   State<CherrypickTable> createState() => CherrypickTableState();
@@ -120,9 +115,11 @@ class CherrypickTable extends StatefulWidget {
 class CherrypickTableState extends State<CherrypickTable> {
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> cherrypicks = widget.engineOrFramework == 'engine'
-        ? widget.releaseStatus['Engine Cherrypicks']! as List<Map<String, String>>
-        : widget.releaseStatus['Framework Cherrypicks']! as List<Map<String, String>>;
+    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+
+    final List<Map<cherrypick, String>> cherrypicks = widget.engineOrFramework == 'engine'
+        ? releaseStatus![conductorStatus.engineCherrypicks]! as List<Map<cherrypick, String>>
+        : releaseStatus![conductorStatus.frameworkCherrypicks]! as List<Map<cherrypick, String>>;
 
     return DataTable(
       dataRowHeight: 30.0,
@@ -147,14 +144,14 @@ ABANDONED:   The cherrypick will NOT be applied in this release.''',
           ),
         ),
       ],
-      rows: cherrypicks.map((Map<String, String> cherrypick) {
+      rows: cherrypicks.map((Map<cherrypick, String> cherrypickMap) {
         return DataRow(
           cells: <DataCell>[
             DataCell(
-              SelectableText(cherrypick['trunkRevision']!),
+              SelectableText(cherrypickMap[cherrypick.trunkRevision]!),
             ),
             DataCell(
-              SelectableText(cherrypick['state']!),
+              SelectableText(cherrypickMap[cherrypick.state]!),
             ),
           ],
         );
@@ -170,11 +167,9 @@ class RepoInfoExpansion extends StatefulWidget {
   const RepoInfoExpansion({
     Key? key,
     required this.engineOrFramework,
-    required this.releaseStatus,
   }) : super(key: key);
 
   final String engineOrFramework;
-  final Map<String, Object> releaseStatus;
 
   @override
   State<RepoInfoExpansion> createState() => RepoInfoExpansionState();
@@ -191,18 +186,20 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
   }
 
   /// Helper function to determine if a clickable [UrlButton] should be rendered instead of a [SelectableText].
-  bool isClickable(String repoElement) {
-    List<String> clickableElements = <String>[
-      ConductorStatus.engineRepoElements[StatusSubstep.dashboardLink]!,
-      ConductorStatus.engineRepoElements[StatusSubstep.checkoutPath]!,
-      ConductorStatus.frameworkRepoElements[StatusSubstep.dashboardLink]!,
-      ConductorStatus.frameworkRepoElements[StatusSubstep.checkoutPath]!
+  bool isClickable(conductorStatus repoElement) {
+    List<conductorStatus> clickableElements = <conductorStatus>[
+      conductorStatus.engineLUCIDashboard,
+      conductorStatus.engineCheckoutPath,
+      conductorStatus.frameworkLUCIDashboard,
+      conductorStatus.frameworkCheckoutPath,
     ];
     return (clickableElements.contains(repoElement));
   }
 
   @override
   Widget build(BuildContext context) {
+    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+
     return SizedBox(
       width: 500.0,
       child: ExpansionPanelList(
@@ -228,22 +225,24 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                   0: FixedColumnWidth(240.0),
                 },
                 children: <TableRow>[
-                  for (String repoElement in widget.engineOrFramework == 'engine'
-                      ? ConductorStatus.engineRepoElements.values
-                      : ConductorStatus.frameworkRepoElements.values)
+                  // to do, navigate the map with enums
+
+                  for (MapEntry repoElement in widget.engineOrFramework == 'engine'
+                      ? ConductorStatus.engineRepoElements.entries
+                      : ConductorStatus.frameworkRepoElements.entries)
                     TableRow(
                       decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.grey))),
                       children: <Widget>[
-                        Text('$repoElement:'),
-                        isClickable(repoElement)
+                        Text('${repoElement.value}:'),
+                        isClickable(repoElement.key)
                             ? Align(
                                 alignment: Alignment.centerLeft,
                                 child: UrlButton(
-                                  textToDisplay: statusElementToString(widget.releaseStatus[repoElement]),
-                                  urlOrUri: statusElementToString(widget.releaseStatus[repoElement]),
+                                  textToDisplay: statusElementToString(releaseStatus![repoElement.key]),
+                                  urlOrUri: statusElementToString(releaseStatus[repoElement.key]),
                                 ),
                               )
-                            : SelectableText(statusElementToString(widget.releaseStatus[repoElement])),
+                            : SelectableText(statusElementToString(releaseStatus![repoElement.key])),
                       ],
                     ),
                 ],
