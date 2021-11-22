@@ -32,7 +32,7 @@ class CreateReleaseSubsteps extends StatefulWidget {
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
 
-  static Map<CreateReleaseSubstep, String> substepTitles = <CreateReleaseSubstep, String>{
+  static const Map<CreateReleaseSubstep, String> substepTitles = <CreateReleaseSubstep, String>{
     CreateReleaseSubstep.candidateBranch: 'Candidate Branch',
     CreateReleaseSubstep.releaseChannel: 'Release Channel',
     CreateReleaseSubstep.frameworkMirror: 'Framework Mirror',
@@ -42,6 +42,9 @@ class CreateReleaseSubsteps extends StatefulWidget {
     CreateReleaseSubstep.dartRevision: 'Dart Revision (if necessary)',
     CreateReleaseSubstep.increment: 'Increment',
   };
+
+  static const List<String> releaseChannels = <String>['dev', 'beta', 'stable'];
+  static const List<String> releaseIncrements = <String>['y', 'z', 'm', 'n'];
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
@@ -111,7 +114,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
-          options: const <String>['dev', 'beta', 'stable'],
+          options: CreateReleaseSubsteps.releaseChannels,
           changeIsDropdownValid: changeIsEachInputValid,
         ),
         InputAsSubstep(
@@ -153,7 +156,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
-          options: const <String>['y', 'z', 'm', 'n'],
+          options: CreateReleaseSubsteps.releaseIncrements,
           changeIsDropdownValid: changeIsEachInputValid,
         ),
         const SizedBox(height: 20.0),

@@ -27,7 +27,6 @@ class CleanReleaseButton extends StatefulWidget {
 class _CleanReleaseState extends State<CleanReleaseButton> {
   String? _errorMsg;
 
-  /// Updates [_errorMsg] with [errorMsg].
   void _updateErrorMsg(String? errorMsg) {
     setState(() {
       _errorMsg = errorMsg;

@@ -5,6 +5,7 @@
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
+import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'engine_cherrypicks_substeps.dart';
@@ -28,7 +29,7 @@ class MainProgression extends StatefulWidget {
   static const List<String> _stepTitles = <String>[
     'Initialize a New Flutter Release',
     'Apply Engine Cherrypicks',
-    'Apply Framework Cherrypicks',
+    'Codesign Engine Binaries',
     'Publish the Release',
     'Release is Successfully published'
   ];
@@ -46,7 +47,7 @@ class MainProgressionState extends State<MainProgression> {
     }
   }
 
-  /// Change each step's state according to [_completedStep].
+  /// Change each step's state according to the current completed step.
   StepState handleStepState(int index) {
     if (_completedStep > index) {
       return StepState.complete;
@@ -102,7 +103,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[2]),
                   content: Column(
                     children: <Widget>[
-                      ConductorSubsteps(nextStep: nextStep),
+                      CodesignEngineSubsteps(nextStep: nextStep),
                     ],
                   ),
                   isActive: true,
