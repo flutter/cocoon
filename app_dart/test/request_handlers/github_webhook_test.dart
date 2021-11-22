@@ -403,11 +403,14 @@ void main() {
             contains('f: scrolling'));
       });
 
-      test('integration_test label applied', () {
+      test('integration_test label is/isn\'t applied', () {
+        // Label does not apply to integration tests outside of the
+        // integration_test package.
         expect(
             GithubWebhook.getLabelsForFrameworkPath(
                 'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart'),
-            contains('integration_test'));
+            <String>{'team', 'a: text input'});
+        // Label applies to integration_test package
         expect(GithubWebhook.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
             contains('integration_test'));
       });

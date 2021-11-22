@@ -270,6 +270,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'packages/flutter_goldens_client/': <String>['framework', 'a: tests', 'team'],
       'packages/flutter_test/': <String>['framework', 'a: tests'],
       'packages/fuchsia_remote_debug_protocol/': <String>['tool'],
+      'packages/integration_test/': <String>['integration_test'],
     };
     const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
       'accessibility': <String>['a: accessibility'],
@@ -277,7 +278,6 @@ class GithubWebhook extends RequestHandler<Body> {
       'cupertino': <String>['f: cupertino'],
       'focus': <String>['f: focus'],
       'gestures': <String>['f: gestures'],
-      'integration_test': <String>['integration_test'],
       'material': <String>['f: material design'],
       'navigator': <String>['f: routes'],
       'route': <String>['f: routes'],
