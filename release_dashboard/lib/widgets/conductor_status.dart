@@ -214,7 +214,7 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
             isExpanded: _isExpanded,
             headerBuilder: (BuildContext context, bool isExpanded) {
               return ListTile(
-                  key: Key('${engineOrFrameworkStr(widget.engineOrFramework, true)}RepoInfoDropdown'),
+                  key: Key('${engineOrFrameworkStr(widget.engineOrFramework)}RepoInfoDropdown'),
                   title: Text('${engineOrFrameworkStr(widget.engineOrFramework, true)} Repo Info'),
                   onTap: () {
                     showHide();
