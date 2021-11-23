@@ -309,7 +309,7 @@ void main() {
       expect(isRightButtonCallbackCalled, equals(false));
     });
 
-    testWidgets('Right button enables when the user input is correct, disables otherwise', (WidgetTester tester) async {
+    testWidgets('Right button enables when the user input is correct', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Material(
           child: Builder(
@@ -337,6 +337,38 @@ void main() {
       await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
       expect(tester.widget<TextButton>(find.byKey(const Key(rightButtonTitle))).enabled, equals(false));
+      await tester.enterText(find.byType(TextFormField), requiredConfirmationString);
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextButton>(find.byKey(const Key(rightButtonTitle))).enabled, equals(true));
+    });
+
+    testWidgets('Right button disables when the user input becomes incorrect', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Material(
+          child: Builder(
+            builder: (BuildContext context) {
+              return ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => const DialogPromptConfirmInput(
+                      confirmationString: requiredConfirmationString,
+                      title: Text(title),
+                      content: Text(content),
+                      leftButtonTitle: leftButtonTitle,
+                      rightButtonTitle: rightButtonTitle,
+                    ),
+                  );
+                },
+                child: const Text('Clean'),
+              );
+            },
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), requiredConfirmationString);
       await tester.pumpAndSettle();
       expect(tester.widget<TextButton>(find.byKey(const Key(rightButtonTitle))).enabled, equals(true));
