@@ -17,6 +17,8 @@ class UrlButton extends StatelessWidget {
     required this.urlOrUri,
   }) : super(key: key);
 
+// TODO(Yugue): [release_dashboard] UrlButton textToDisplay should be a widget
+// https://github.com/flutter/flutter/issues/93931
   final String textToDisplay;
   final String urlOrUri;
 

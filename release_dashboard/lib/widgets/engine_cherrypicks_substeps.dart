@@ -52,7 +52,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
 
   @override
   void initState() {
-    /// If [substep] in [_isEachSubstepChecked] is false, that [substep] is unchecked, otherwise, it is checked.
+    /// If [substep] is false, that substep is unchecked, otherwise, it is checked.
     ///
     /// All substeps are unchecked at the beginning.
     for (final EngineCherrypicksSubstep substep in EngineCherrypicksSubstep.values) {
@@ -61,7 +61,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
     super.initState();
   }
 
-  /// Toggle the boolean value of [substepName] in [_isEachSubstepChecked].
+  /// Toggle the boolean value [substepName].
   void substepPressed(EngineCherrypicksSubstep substep) {
     setState(() {
       _isEachSubstepChecked[substep] = !_isEachSubstepChecked[substep]!;
