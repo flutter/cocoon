@@ -12,9 +12,9 @@
 /// An example of a cherrypick map:
 ///
 /// ```dart
-/// Map<Cherrypick, String> oneCherrypick = <Cherrypick, String>{
+/// Map<Cherrypick, String> singleCherrypick = <Cherrypick, String>{
 ///   Cherrypick.trunkRevision: 'fakeTrunkRevision',
-///   Cherrypick.state: 'fakestate',
+///   Cherrypick.state: 'fakeState',
 /// };
 /// ```
 /// {@end-tool}
@@ -26,8 +26,8 @@
 /// An example to get the values of a cherrypick map:
 ///
 /// ```dart
-/// const String fakeTrunkRevision = oneCherrypick[Cherrypick.trunkRevision];
-/// const String fakeState = oneCherrypick[Cherrypick.state];
+/// const String fakeTrunkRevision = singleCherrypick[Cherrypick.trunkRevision];
+/// const String fakeState = singleCherrypick[Cherrypick.state];
 /// ```
 /// {@end-tool}
 enum Cherrypick {
