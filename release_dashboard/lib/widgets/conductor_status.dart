@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../enums/cherrypick.dart';
-import '../enums/conductor_status.dart';
+import '../models/cherrypick.dart';
+import '../models/conductor_status.dart';
 import '../state/status_state.dart';
 import 'common/tooltip.dart';
 import 'common/url_button.dart';
@@ -21,36 +21,36 @@ class ConductorStatus extends StatefulWidget {
   @override
   State<ConductorStatus> createState() => ConductorStatusState();
 
-  static const Map<conductorStatus, String> headerElements = <conductorStatus, String>{
-    conductorStatus.conductorVersion: 'Conductor Version',
-    conductorStatus.releaseChannel: 'Release Channel',
-    conductorStatus.releaseVersion: 'Release Version',
-    conductorStatus.startedAt: 'Release Started at',
-    conductorStatus.updatedAt: 'Release Updated at',
-    conductorStatus.dartRevision: 'Dart SDK Revision',
+  static const Map<ConductorStatusEntry, String> headerElements = <ConductorStatusEntry, String>{
+    ConductorStatusEntry.conductorVersion: 'Conductor Version',
+    ConductorStatusEntry.releaseChannel: 'Release Channel',
+    ConductorStatusEntry.releaseVersion: 'Release Version',
+    ConductorStatusEntry.startedAt: 'Release Started at',
+    ConductorStatusEntry.updatedAt: 'Release Updated at',
+    ConductorStatusEntry.dartRevision: 'Dart SDK Revision',
   };
 
-  static const Map<conductorStatus, String> engineRepoElements = <conductorStatus, String>{
-    conductorStatus.engineCandidateBranch: 'Engine Candidate Branch',
-    conductorStatus.engineStartingGitHead: 'Engine Starting Git HEAD',
-    conductorStatus.engineCurrentGitHead: 'Engine Current Git HEAD',
-    conductorStatus.engineCheckoutPath: 'Engine Path to Checkout',
-    conductorStatus.engineLUCIDashboard: 'Engine LUCI Dashboard',
+  static const Map<ConductorStatusEntry, String> engineRepoElements = <ConductorStatusEntry, String>{
+    ConductorStatusEntry.engineCandidateBranch: 'Engine Candidate Branch',
+    ConductorStatusEntry.engineStartingGitHead: 'Engine Starting Git HEAD',
+    ConductorStatusEntry.engineCurrentGitHead: 'Engine Current Git HEAD',
+    ConductorStatusEntry.engineCheckoutPath: 'Engine Path to Checkout',
+    ConductorStatusEntry.engineLuciDashboard: 'Engine LUCI Dashboard',
   };
 
-  static const Map<conductorStatus, String> frameworkRepoElements = <conductorStatus, String>{
-    conductorStatus.frameworkCandidateBranch: 'Framework Candidate Branch',
-    conductorStatus.frameworkStartingGitHead: 'Framework Starting Git HEAD',
-    conductorStatus.frameworkCurrentGitHead: 'Framework Current Git HEAD',
-    conductorStatus.frameworkCheckoutPath: 'Framework Path to Checkout',
-    conductorStatus.frameworkLUCIDashboard: 'Framework LUCI Dashboard',
+  static const Map<ConductorStatusEntry, String> frameworkRepoElements = <ConductorStatusEntry, String>{
+    ConductorStatusEntry.frameworkCandidateBranch: 'Framework Candidate Branch',
+    ConductorStatusEntry.frameworkStartingGitHead: 'Framework Starting Git HEAD',
+    ConductorStatusEntry.frameworkCurrentGitHead: 'Framework Current Git HEAD',
+    ConductorStatusEntry.frameworkCheckoutPath: 'Framework Path to Checkout',
+    ConductorStatusEntry.frameworkLuciDashboard: 'Framework LUCI Dashboard',
   };
 }
 
 class ConductorStatusState extends State<ConductorStatus> {
   @override
   Widget build(BuildContext context) {
-    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
     if (context.watch<StatusState>().releaseStatus == null) {
       return const SelectableText('No persistent state file. Try starting a release.');
     }
@@ -115,11 +115,11 @@ class CherrypickTable extends StatefulWidget {
 class CherrypickTableState extends State<CherrypickTable> {
   @override
   Widget build(BuildContext context) {
-    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
 
-    final List<Map<cherrypick, String>> cherrypicks = widget.engineOrFramework == 'engine'
-        ? releaseStatus![conductorStatus.engineCherrypicks]! as List<Map<cherrypick, String>>
-        : releaseStatus![conductorStatus.frameworkCherrypicks]! as List<Map<cherrypick, String>>;
+    final List<Map<Cherrypick, String>> cherrypicks = widget.engineOrFramework == 'engine'
+        ? releaseStatus![ConductorStatusEntry.engineCherrypicks]! as List<Map<Cherrypick, String>>
+        : releaseStatus![ConductorStatusEntry.frameworkCherrypicks]! as List<Map<Cherrypick, String>>;
 
     return DataTable(
       dataRowHeight: 30.0,
@@ -144,14 +144,14 @@ ABANDONED:   The cherrypick will NOT be applied in this release.''',
           ),
         ),
       ],
-      rows: cherrypicks.map((Map<cherrypick, String> cherrypickMap) {
+      rows: cherrypicks.map((Map<Cherrypick, String> cherrypickMap) {
         return DataRow(
           cells: <DataCell>[
             DataCell(
-              SelectableText(cherrypickMap[cherrypick.trunkRevision]!),
+              SelectableText(cherrypickMap[Cherrypick.trunkRevision]!),
             ),
             DataCell(
-              SelectableText(cherrypickMap[cherrypick.state]!),
+              SelectableText(cherrypickMap[Cherrypick.state]!),
             ),
           ],
         );
@@ -186,19 +186,19 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
   }
 
   /// Helper function to determine if a clickable [UrlButton] should be rendered instead of a [SelectableText].
-  bool isClickable(conductorStatus repoElement) {
-    List<conductorStatus> clickableElements = <conductorStatus>[
-      conductorStatus.engineLUCIDashboard,
-      conductorStatus.engineCheckoutPath,
-      conductorStatus.frameworkLUCIDashboard,
-      conductorStatus.frameworkCheckoutPath,
+  bool isClickable(ConductorStatusEntry repoElement) {
+    List<ConductorStatusEntry> clickableElements = <ConductorStatusEntry>[
+      ConductorStatusEntry.engineLuciDashboard,
+      ConductorStatusEntry.engineCheckoutPath,
+      ConductorStatusEntry.frameworkLuciDashboard,
+      ConductorStatusEntry.frameworkCheckoutPath,
     ];
     return (clickableElements.contains(repoElement));
   }
 
   @override
   Widget build(BuildContext context) {
-    final Map<conductorStatus, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
 
     return SizedBox(
       width: 500.0,
@@ -225,8 +225,6 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                   0: FixedColumnWidth(240.0),
                 },
                 children: <TableRow>[
-                  // to do, navigate the map with enums
-
                   for (MapEntry repoElement in widget.engineOrFramework == 'engine'
                       ? ConductorStatus.engineRepoElements.entries
                       : ConductorStatus.frameworkRepoElements.entries)

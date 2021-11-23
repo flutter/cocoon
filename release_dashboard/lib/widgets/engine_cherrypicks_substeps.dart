@@ -7,8 +7,8 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../enums/cherrypick.dart';
-import '../enums/conductor_status.dart';
+import '../models/cherrypick.dart';
+import '../models/conductor_status.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
@@ -73,12 +73,13 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
     final StatusState statusState = context.watch<StatusState>();
     final StringBuffer engineCherrypicksInConflict = StringBuffer();
 
-    if (statusState.releaseStatus != null && statusState.releaseStatus?[conductorStatus.engineCherrypicks] != null) {
-      for (Map<cherrypick, String> engineCherrypick
-          in statusState.releaseStatus?[conductorStatus.engineCherrypicks] as List<Map<cherrypick, String>>) {
-        if (engineCherrypick[cherrypick.state] ==
+    if (statusState.releaseStatus != null &&
+        statusState.releaseStatus?[ConductorStatusEntry.engineCherrypicks] != null) {
+      for (Map<Cherrypick, String> engineCherrypick
+          in statusState.releaseStatus?[ConductorStatusEntry.engineCherrypicks] as List<Map<Cherrypick, String>>) {
+        if (engineCherrypick[Cherrypick.state] ==
             EngineCherrypicksSubsteps.cherrypickStates[pb.CherrypickState.PENDING_WITH_CONFLICT]) {
-          engineCherrypicksInConflict.writeln('git cherry-pick ${engineCherrypick[cherrypick.trunkRevision]!}');
+          engineCherrypicksInConflict.writeln('git cherry-pick ${engineCherrypick[Cherrypick.trunkRevision]!}');
         }
       }
     }
@@ -91,7 +92,7 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SelectableText(
-                  'Verify if the release number: ${statusState.releaseStatus?[conductorStatus.releaseVersion]}'
+                  'Verify if the release number: ${statusState.releaseStatus?[ConductorStatusEntry.releaseVersion]}'
                   ' is correct based on existing published releases here: '),
               const UrlButton(
                 textToDisplay: EngineCherrypicksSubsteps.kReleaseSDKURL,
