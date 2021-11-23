@@ -45,6 +45,8 @@ Future<String?> dialogPrompt({
       title: title,
       content: content,
       actions: <Widget>[
+        // TODO(Yugue): Add loading button to dialog_prompt action button,
+        // https://github.com/flutter/flutter/issues/94079.
         TextButton(
           onPressed: () async {
             if (leftButtonCallback != null) await leftButtonCallback();
