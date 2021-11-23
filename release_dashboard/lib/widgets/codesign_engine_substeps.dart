@@ -59,9 +59,8 @@ class ConductorSubstepsState extends State<CodesignEngineSubsteps> {
 
   @override
   void initState() {
-    /// If [substep] is false, that [substep] is unchecked, otherwise, it is checked.
-    ///
-    /// All substeps are unchecked at the beginning.
+    // If [substep] is false, that [substep] is unchecked, otherwise, it is checked.
+    // All substeps are unchecked at the beginning.
     for (final CodesignEngineSubstep substep in CodesignEngineSubstep.values) {
       _isEachSubstepChecked[substep] = false;
     }
