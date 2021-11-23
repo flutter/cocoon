@@ -7,6 +7,8 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/cherrypick.dart';
+import '../models/conductor_status.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
@@ -71,12 +73,13 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
     final StatusState statusState = context.watch<StatusState>();
     final StringBuffer engineCherrypicksInConflict = StringBuffer();
 
-    if (statusState.releaseStatus != null && statusState.releaseStatus?['Engine Cherrypicks'] != null) {
-      for (Map<String, String> engineCherrypick
-          in statusState.releaseStatus?['Engine Cherrypicks'] as List<Map<String, String>>) {
-        if (engineCherrypick['state'] ==
+    if (statusState.releaseStatus != null &&
+        statusState.releaseStatus?[ConductorStatusEntry.engineCherrypicks] != null) {
+      for (Map<Cherrypick, String> engineCherrypick
+          in statusState.releaseStatus?[ConductorStatusEntry.engineCherrypicks] as List<Map<Cherrypick, String>>) {
+        if (engineCherrypick[Cherrypick.state] ==
             EngineCherrypicksSubsteps.cherrypickStates[pb.CherrypickState.PENDING_WITH_CONFLICT]) {
-          engineCherrypicksInConflict.writeln('git cherry-pick ${engineCherrypick['trunkRevision']!}');
+          engineCherrypicksInConflict.writeln('git cherry-pick ${engineCherrypick[Cherrypick.trunkRevision]!}');
         }
       }
     }
@@ -88,7 +91,8 @@ class ConductorSubstepsState extends State<EngineCherrypicksSubsteps> {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SelectableText('Verify if the release number: ${statusState.releaseStatus?['Release Version']}'
+              SelectableText(
+                  'Verify if the release number: ${statusState.releaseStatus?[ConductorStatusEntry.releaseVersion]}'
                   ' is correct based on existing published releases here: '),
               const UrlButton(
                 textToDisplay: EngineCherrypicksSubsteps.kReleaseSDKURL,

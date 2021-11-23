@@ -6,6 +6,8 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
+import '../models/cherrypick.dart';
+import '../models/conductor_status.dart';
 import '../services/conductor.dart';
 
 /// Widget that saves the global state and provides a method to modify it.
@@ -16,10 +18,10 @@ class StatusState extends ChangeNotifier {
 
   final ConductorService conductor;
 
-  late Map<String, Object>? releaseStatus;
+  late Map<ConductorStatusEntry, Object>? releaseStatus;
 
   /// Method that modifies the global state in provider.
-  Future<void> changeReleaseStatus(Map<String, Object>? data) async {
+  Future<void> changeReleaseStatus(Map<ConductorStatusEntry, Object>? data) async {
     // status modification needs to be asynchronous to make sure it is called before nofityListeners
     await () async {
       releaseStatus = data;
@@ -30,39 +32,43 @@ class StatusState extends ChangeNotifier {
 }
 
 /// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
-Map<String, Object>? stateToMap(pb.ConductorState? state) {
+Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   if (state == null) return null;
-  final List<Map<String, String>> engineCherrypicks = <Map<String, String>>[];
-  for (final pb.Cherrypick cherrypick in state.engine.cherrypicks) {
-    engineCherrypicks.add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});
+  final List<Map<Cherrypick, String>> engineCherrypicks = <Map<Cherrypick, String>>[];
+  for (final pb.Cherrypick engineCherrypick in state.engine.cherrypicks) {
+    engineCherrypicks.add(<Cherrypick, String>{
+      Cherrypick.trunkRevision: engineCherrypick.trunkRevision,
+      Cherrypick.state: '${engineCherrypick.state}'
+    });
   }
 
-  final List<Map<String, String>> frameworkCherrypicks = <Map<String, String>>[];
-  for (final pb.Cherrypick cherrypick in state.framework.cherrypicks) {
-    frameworkCherrypicks
-        .add(<String, String>{'trunkRevision': cherrypick.trunkRevision, 'state': '${cherrypick.state}'});
+  final List<Map<Cherrypick, String>> frameworkCherrypicks = <Map<Cherrypick, String>>[];
+  for (final pb.Cherrypick frameworkCherrypick in state.framework.cherrypicks) {
+    frameworkCherrypicks.add(<Cherrypick, String>{
+      Cherrypick.trunkRevision: frameworkCherrypick.trunkRevision,
+      Cherrypick.state: '${frameworkCherrypick.state}'
+    });
   }
 
-// TODO(Yugue): Use enums as keys, https://github.com/flutter/flutter/issues/93748.
-  return <String, Object>{
-    'Conductor Version': state.conductorVersion,
-    'Release Channel': state.releaseChannel,
-    'Release Version': state.releaseVersion,
-    'Release Started at': DateTime.fromMillisecondsSinceEpoch(state.createdDate.toInt()).toString(),
-    'Release Updated at': DateTime.fromMillisecondsSinceEpoch(state.lastUpdatedDate.toInt()).toString(),
-    'Engine Candidate Branch': state.engine.candidateBranch,
-    'Engine Starting Git HEAD': state.engine.startingGitHead,
-    'Engine Current Git HEAD': state.engine.currentGitHead,
-    'Engine Path to Checkout': state.engine.checkoutPath,
-    'Engine LUCI Dashboard': luciConsoleLink(state.releaseChannel, 'engine'),
-    'Engine Cherrypicks': engineCherrypicks,
-    'Dart SDK Revision': state.engine.dartRevision,
-    'Framework Candidate Branch': state.framework.candidateBranch,
-    'Framework Starting Git HEAD': state.framework.startingGitHead,
-    'Framework Current Git HEAD': state.framework.currentGitHead,
-    'Framework Path to Checkout': state.framework.checkoutPath,
-    'Framework LUCI Dashboard': luciConsoleLink(state.releaseChannel, 'flutter'),
-    'Framework Cherrypicks': frameworkCherrypicks,
-    'Current Phase': state.currentPhase,
+  return <ConductorStatusEntry, Object>{
+    ConductorStatusEntry.conductorVersion: state.conductorVersion,
+    ConductorStatusEntry.releaseChannel: state.releaseChannel,
+    ConductorStatusEntry.releaseVersion: state.releaseVersion,
+    ConductorStatusEntry.startedAt: DateTime.fromMillisecondsSinceEpoch(state.createdDate.toInt()).toString(),
+    ConductorStatusEntry.updatedAt: DateTime.fromMillisecondsSinceEpoch(state.lastUpdatedDate.toInt()).toString(),
+    ConductorStatusEntry.engineCandidateBranch: state.engine.candidateBranch,
+    ConductorStatusEntry.engineStartingGitHead: state.engine.startingGitHead,
+    ConductorStatusEntry.engineCurrentGitHead: state.engine.currentGitHead,
+    ConductorStatusEntry.engineCheckoutPath: state.engine.checkoutPath,
+    ConductorStatusEntry.engineLuciDashboard: luciConsoleLink(state.releaseChannel, 'engine'),
+    ConductorStatusEntry.engineCherrypicks: engineCherrypicks,
+    ConductorStatusEntry.dartRevision: state.engine.dartRevision,
+    ConductorStatusEntry.frameworkCandidateBranch: state.framework.candidateBranch,
+    ConductorStatusEntry.frameworkStartingGitHead: state.framework.startingGitHead,
+    ConductorStatusEntry.frameworkCurrentGitHead: state.framework.currentGitHead,
+    ConductorStatusEntry.frameworkCheckoutPath: state.framework.checkoutPath,
+    ConductorStatusEntry.frameworkLuciDashboard: luciConsoleLink(state.releaseChannel, 'flutter'),
+    ConductorStatusEntry.frameworkCherrypicks: frameworkCherrypicks,
+    ConductorStatusEntry.currentPhase: state.currentPhase,
   };
 }
