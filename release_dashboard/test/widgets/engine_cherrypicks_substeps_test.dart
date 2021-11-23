@@ -4,7 +4,7 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
-import 'package:conductor_ui/enums/repositories.dart';
+import 'package:conductor_ui/models/repositories.dart';
 import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/cherrypicks_substeps.dart';
 import 'package:conductor_ui/widgets/common/url_button.dart';
@@ -25,7 +25,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -52,7 +52,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -85,7 +85,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -107,7 +107,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -135,7 +135,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -158,7 +158,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.engine);
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),

@@ -7,8 +7,8 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../enums/repositories.dart';
 import '../logic/repositories_str.dart';
+import '../models/repositories.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
@@ -25,11 +25,11 @@ class CherrypicksSubsteps extends StatefulWidget {
   const CherrypicksSubsteps({
     Key? key,
     required this.nextStep,
-    required this.engineOrFramework,
+    required this.repository,
   }) : super(key: key);
 
   final VoidCallback nextStep;
-  final Repositories engineOrFramework;
+  final Repositories repository;
 
   @override
   State<CherrypicksSubsteps> createState() => ConductorSubstepsState();
@@ -59,7 +59,7 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
     /// All substeps are unchecked at the beginning.
     for (final CherrypicksSubstep substep in CherrypicksSubstep.values) {
       /// Verify the release number is not required for the framework.
-      if (widget.engineOrFramework == Repositories.framework && substep == CherrypicksSubstep.verifyRelease) {
+      if (widget.repository == Repositories.framework && substep == CherrypicksSubstep.verifyRelease) {
         continue;
       }
       _isEachSubstepChecked[substep] = false;
@@ -78,7 +78,7 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
   Widget build(BuildContext context) {
     final StatusState statusState = context.watch<StatusState>();
     final StringBuffer cherrypicksInConflict = StringBuffer();
-    final String releaseStatusKey = '${repositoriesStr(widget.engineOrFramework, true)} Cherrypicks';
+    final String releaseStatusKey = '${repositoriesStr(widget.repository, true)} Cherrypicks';
 
     if (statusState.releaseStatus != null && statusState.releaseStatus?[releaseStatusKey] != null) {
       for (Map<String, String> cherrypick
@@ -91,7 +91,7 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
 
     return Column(
       children: <Widget>[
-        if (widget.engineOrFramework == Repositories.engine)
+        if (widget.repository == Repositories.engine)
           CheckboxAsSubstep(
             substepName: CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!,
             subtitle: Column(
@@ -114,21 +114,20 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
           substepName: CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!,
           subtitle: cherrypicksInConflict.isEmpty
               ? SelectableText(
-                  'No ${repositoriesStr(widget.engineOrFramework)} cherrypick conflicts, just check this substep.')
+                  'No ${repositoriesStr(widget.repository)} cherrypick conflicts, just check this substep.')
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SelectableText(
-                        'Navigate to the ${repositoriesStr(widget.engineOrFramework)} checkout directory '
+                    SelectableText('Navigate to the ${repositoriesStr(widget.repository)} checkout directory '
                         'by pasting the code below to your terminal: '),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
                       child:
                           SelectableText('cd ${statusState.conductor.rootDirectory.path}/flutter_conductor_checkouts/'
-                              '${repositoriesStr(widget.engineOrFramework)}'),
+                              '${repositoriesStr(widget.repository)}'),
                     ),
                     SelectableText(
-                        'At that location, apply the following ${repositoriesStr(widget.engineOrFramework)} cherrypicks '
+                        'At that location, apply the following ${repositoriesStr(widget.repository)} cherrypicks '
                         'that are in conflict by pasting the code below to your terminal and manually resolve any merge conflicts.'),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
@@ -150,7 +149,7 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
           Padding(
             padding: const EdgeInsets.only(top: 30.0),
             child: ElevatedButton(
-              key: Key('apply${repositoriesStr(widget.engineOrFramework, true)}CherrypicksContinue'),
+              key: Key('apply${repositoriesStr(widget.repository, true)}CherrypicksContinue'),
               onPressed: () {
                 widget.nextStep();
               },

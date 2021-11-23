@@ -2,21 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import '../enums/repositories.dart';
+import '../models/repositories.dart';
 
 const String kEngineStr = 'engine';
 const String kFrameworkStr = 'framework';
 
-/// Helper function that returns the string 'engine' or 'framework' based on the [engineOrFramework] enum.
+/// Helper function that returns the string 'engine' or 'framework' based on the [Repositories] enum.
 ///
 /// Also supports returning first letter capitalized string.
-String repositoriesStr(Repositories engineOrFramework, [bool? capitalized = false]) {
+String repositoriesStr(Repositories repository, [bool? capitalized = false]) {
   if (capitalized == true) {
-    return engineOrFramework == Repositories.engine
-        ? capitalizeFirstLetter(kEngineStr)
-        : capitalizeFirstLetter(kFrameworkStr);
+    return repository == Repositories.engine ? capitalizeFirstLetter(kEngineStr) : capitalizeFirstLetter(kFrameworkStr);
   }
-  return engineOrFramework == Repositories.engine ? kEngineStr : kFrameworkStr;
+  return repository == Repositories.engine ? kEngineStr : kFrameworkStr;
 }
 
 /// Capitalizes the first letter of a string.

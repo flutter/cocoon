@@ -5,7 +5,7 @@
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
-import '../enums/repositories.dart';
+import '../models/repositories.dart';
 import 'cherrypicks_substeps.dart';
 import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
@@ -93,7 +93,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[1]),
                   content: Column(
                     children: <Widget>[
-                      CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: Repositories.engine),
+                      CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine),
                     ],
                   ),
                   isActive: true,
@@ -113,7 +113,7 @@ class MainProgressionState extends State<MainProgression> {
                   title: Text(MainProgression._stepTitles[3]),
                   content: Column(
                     children: <Widget>[
-                      CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: Repositories.framework),
+                      CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework),
                     ],
                   ),
                   isActive: true,
