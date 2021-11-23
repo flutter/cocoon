@@ -4,7 +4,7 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
-import 'package:conductor_ui/enums/engine_or_framework.dart';
+import 'package:conductor_ui/enums/repositories.dart';
 import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/cherrypicks_substeps.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: EngineOrFramework.framework);
+                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.framework);
                 }),
               ],
             ),
@@ -51,7 +51,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: EngineOrFramework.framework);
+                  return CherrypicksSubsteps(nextStep: nextStep, engineOrFramework: Repositories.framework);
                 }),
               ],
             ),
@@ -82,7 +82,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: EngineOrFramework.framework);
+                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.framework);
                 }),
               ],
             ),
@@ -111,7 +111,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: EngineOrFramework.framework);
+                  return CherrypicksSubsteps(nextStep: () {}, engineOrFramework: Repositories.framework);
                 }),
               ],
             ),

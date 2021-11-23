@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 /// A toggle enum to switch between engine and framework.
-enum EngineOrFramework {
+enum Repositories {
   engine,
   framework,
 }
