@@ -134,7 +134,8 @@ class ConductorSubstepsState extends State<CherrypicksSubsteps> {
                     ),
                     SelectableText(
                         'At that location, apply the following ${repositoriesStr(widget.repository)} cherrypicks '
-                        'that are in conflict by pasting the code below to your terminal and manually resolve any merge conflicts.'),
+                        'that are in conflict by pasting the code below to your terminal and manually resolve any merge conflicts.'
+                        ' Then commit the changes without pushing.'),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
                       child: SelectableText(cherrypicksInConflict.toString()),
