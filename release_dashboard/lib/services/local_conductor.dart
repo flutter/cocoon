@@ -5,7 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, StartContext, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
+    show Checkouts, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -13,6 +13,7 @@ import 'package:platform/platform.dart';
 import 'package:process/process.dart';
 
 import 'conductor.dart';
+import 'release_dashboard_start_context.dart';
 
 /// Service class for using the conductor in a local environment.
 ///
@@ -61,7 +62,7 @@ class LocalConductorService extends ConductorService {
       platform: platform,
       stdio: stdio,
     );
-    final StartContext startContext = StartContext(
+    final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
       // TODO(yugue): Read conductor version. https://github.com/flutter/flutter/issues/92842

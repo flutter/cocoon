@@ -408,7 +408,6 @@ void main() {
               children: <Widget>[
                 CreateReleaseSubsteps(
                   nextStep: () {},
-                  // conductor: FakeConductor(fakeStartContextProvided: startContext),
                 ),
               ],
             ),
@@ -424,6 +423,7 @@ void main() {
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
       expect(find.textContaining(exceptionMsg), findsOneWidget);
+      expect(find.textContaining('Stack Trace'), findsOneWidget);
     });
 
     testWidgets('Is able to display a general exception in the UI', (WidgetTester tester) async {
@@ -455,6 +455,7 @@ void main() {
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
       expect(find.textContaining(exceptionMsg), findsOneWidget);
+      expect(find.textContaining('Stack Trace'), findsOneWidget);
     });
 
     testWidgets('Proceeds to the next step if there is no exception', (WidgetTester tester) async {

@@ -56,7 +56,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
-  Object? _error;
+  String? _error;
   bool _isLoading = false;
 
   /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
@@ -101,7 +101,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   }
 
   /// Updates [_error] with what the conductor throws.
-  void setError(Object? errorThrown) {
+  void setError(String? errorThrown) {
     setState(() {
       _error = errorThrown;
     });
@@ -133,16 +133,16 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     );
   }
 
-  /// Presents the error object in a string.
-  String presentError(Object? error) {
+  /// Converts the error and stack trace to strings.
+  String errorToString(Object error, StackTrace stackTrace) {
     final StringBuffer buffer = StringBuffer();
     if (error is ConductorException) {
-      buffer.writeln('Conductor Exception: $error');
-      return buffer.toString();
+      buffer.writeln('Conductor Exception:\n$error');
     } else {
-      buffer.writeln('Error: $error');
-      return buffer.toString();
+      buffer.writeln('Error:\n$error');
     }
+    buffer.writeln('Stack Trace:\n$stackTrace');
+    return buffer.toString();
   }
 
   @override
@@ -217,7 +217,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
         if (_error != null)
           Center(
             child: SelectableText(
-              presentError(_error),
+              _error!,
               style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
             ),
           ),
@@ -234,8 +234,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
                         setIsLoading(true);
                         await runCreateRelease(conductor);
                         // ignore: avoid_catches_without_on_clauses
-                      } catch (error) {
-                        setError(error);
+                      } catch (error, stacktrace) {
+                        setError(errorToString(error, stacktrace));
                       } finally {
                         setIsLoading(false);
                       }

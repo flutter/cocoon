@@ -23,7 +23,7 @@ Future<void> main() async {
     throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
-  const bool isDev = false;
+  const bool isDev = true;
 
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart';
+import 'package:conductor_ui/services/release_dashboard_start_context.dart';
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
@@ -14,8 +15,8 @@ import 'fake_stdio.dart';
 const String kFlutterRoot = '/flutter';
 const String kCheckoutsParentDirectory = '$kFlutterRoot/dev/tools/';
 
-/// Initializes a fake [StartContext] in a fake local environment.
-class FakeStartContext extends StartContext {
+/// Initializes a fake [ReleaseDashboardStartContext] in a fake local environment.
+class FakeStartContext extends ReleaseDashboardStartContext {
   factory FakeStartContext({
     String candidateBranch = 'flutter-1.2-candidate.3',
     Checkouts? checkouts,

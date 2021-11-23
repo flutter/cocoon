@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository, StartContext;
+import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository;
 import 'local_conductor.dart';
+import 'release_dashboard_start_context.dart';
 
 /// Service class for using a test conductor in a local environment.
 ///
@@ -29,11 +30,14 @@ class DevLocalConductorService extends LocalConductorService {
       stdio: stdio,
     );
 
-    final FrameworkRepository localFrameworkUpstream = FrameworkRepository(checkouts, localUpstream: true);
+    final FrameworkRepository localFrameworkUpstream =
+        FrameworkRepository(checkouts, localUpstream: true, additionalRequiredLocalBranches: [candidateBranch]);
 
-    final EngineRepository localEngineUpstream = EngineRepository(checkouts, localUpstream: true);
+    final EngineRepository localEngineUpstream =
+        EngineRepository(checkouts, localUpstream: true, additionalRequiredLocalBranches: [candidateBranch]);
 
-    final StartContext startContext = StartContext(
+    // TODO: turn force to false
+    final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
       // TODO(yugue): Read conductor version. https://github.com/flutter/flutter/issues/92842
@@ -49,6 +53,7 @@ class DevLocalConductorService extends LocalConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
+      force: true,
     );
     return startContext.run();
   }
