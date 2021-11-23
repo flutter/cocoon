@@ -76,10 +76,10 @@ class ConductorStatusState extends State<ConductorStatus> {
         Wrap(
           children: <Widget>[
             Column(
-              children: <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'engine', releaseStatus: releaseStatus),
-                const SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'engine', releaseStatus: releaseStatus),
+              children: const <Widget>[
+                RepoInfoExpansion(engineOrFramework: 'engine'),
+                SizedBox(height: 10.0),
+                CherrypickTable(engineOrFramework: 'engine'),
               ],
             ),
             const SizedBox(width: 20.0),

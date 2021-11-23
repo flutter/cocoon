@@ -6,6 +6,7 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/conductor_status.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
@@ -76,7 +77,7 @@ class ConductorSubstepsState extends State<CodesignEngineSubsteps> {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
+    final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
 
     return Column(
       children: <Widget>[
@@ -102,14 +103,15 @@ class ConductorSubstepsState extends State<CodesignEngineSubsteps> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SelectableText(CodesignEngineSubsteps.substepSubtitles[CodesignEngineSubstep.postSubmitCI]!),
-              releaseStatus == null || releaseStatus['Release Channel'] == null
+              releaseStatus == null || releaseStatus[ConductorStatusEntry.releaseChannel] == null
                   ? Text(
                       CodesignEngineSubsteps.releaseChannelMissingErr,
                       style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
                     )
                   : UrlButton(
-                      textToDisplay: luciConsoleLink(releaseStatus['Release Channel'] as String, 'engine'),
-                      urlOrUri: luciConsoleLink(releaseStatus['Release Channel'] as String, 'engine'),
+                      textToDisplay:
+                          luciConsoleLink(releaseStatus[ConductorStatusEntry.releaseChannel] as String, 'engine'),
+                      urlOrUri: luciConsoleLink(releaseStatus[ConductorStatusEntry.releaseChannel] as String, 'engine'),
                     ),
             ],
           ),
