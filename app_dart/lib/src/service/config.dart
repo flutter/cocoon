@@ -129,8 +129,6 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  Future<String> get githubFlakyBotOAuthToken => _getSingleValue('GitHubFlakyBotToken');
-
   String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
       '_${kDefaultBranchName}_. Since Flutter pull requests should not '
       'normally be opened against branches other than $kDefaultBranchName, I '
