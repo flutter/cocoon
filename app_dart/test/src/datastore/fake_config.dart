@@ -29,7 +29,6 @@ class FakeConfig implements Config {
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
-    this.githubFlakyBotOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
     this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
@@ -74,7 +73,6 @@ class FakeConfig implements Config {
   FakeKeyHelper? keyHelperValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
-  String? githubFlakyBotOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
   String? wrongBaseBranchPullRequestMessageValue;
@@ -189,9 +187,6 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
-
-  @override
-  Future<String> get githubFlakyBotOAuthToken async => githubFlakyBotOAuthTokenValue!;
 
   @override
   String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;
