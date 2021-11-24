@@ -20,7 +20,7 @@ dependencies:
   fixnum: ^1.0.0
   gcloud: ^0.8.4
   github: ^8.2.4
-  googleapis: ^6.0.0
+  googleapis: ^7.0.0
   googleapis_auth: ^1.1.0
   gql: ^0.13.0
   graphql: ^5.0.0
