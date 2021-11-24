@@ -36,6 +36,7 @@ dev_dependencies:
   fake_async: ^1.2.0
   json_serializable: ^6.0.0
   mockito: ^5.0.14
+  pedantic: ^1.11.1
   test: ^1.17.11
 
 builders:
