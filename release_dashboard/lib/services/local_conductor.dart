@@ -5,13 +5,24 @@
 import 'dart:io' as io;
 
 import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, EngineRepository, FrameworkRepository, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
+    show
+        Checkouts,
+        RunContext,
+        EngineRepository,
+        FrameworkRepository,
+        Stdio,
+        VerboseStdio,
+        defaultStateFilePath,
+        readStateFromFile;
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 import 'package:process/process.dart';
+import 'package:provider/provider.dart';
 
+import '../state/status_state.dart';
 import 'conductor.dart';
 import 'release_dashboard_start_context.dart';
 
@@ -89,5 +100,13 @@ class LocalConductorService extends ConductorService {
     await startContext.run();
     _engineCheckoutDirectory = await startContext.engine.checkoutDirectory;
     _frameworkCheckoutDirectory = await startContext.framework.checkoutDirectory;
+  }
+
+  /// Sync the release status after cleaning the state file.
+  @override
+  Future<void> cleanRelease(BuildContext context) async {
+    RunContext cleanContext = RunContext(stateFile: stateFile);
+    await cleanContext.run();
+    context.read<StatusState>().syncStatusWithState();
   }
 }

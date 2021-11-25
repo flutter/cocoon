@@ -9,26 +9,16 @@ import 'package:file/memory.dart';
 import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
-import '../../src/services/fake_clean_context.dart';
-import '../fake_start_context.dart';
+import 'fake_clean_context.dart';
 
-/// Fake service class for using the conductor in a fake local environment.
-///
-/// When [fakeStartContextProvided] is not provided, the class initializes
-/// a [createRelease] method that does not throw any error by default.
-///
-/// [testState] parameter accepts a fake test state and passes it to the
-/// release dashboard.
 class FakeConductor extends ConductorService {
   FakeConductor({
     this.fakeCleanContextProvided,
-    this.fakeStartContextProvided,
     this.testState,
   });
 
-  final FakeCleanContext? fakeCleanContextProvided;
-  final FakeStartContext? fakeStartContextProvided;
   final ConductorState? testState;
+  final FakeCleanContext? fakeCleanContextProvided;
 
   final FileSystem fs = MemoryFileSystem.test();
   final Platform platform = FakePlatform(
@@ -40,50 +30,23 @@ class FakeConductor extends ConductorService {
   @override
   Future<void> createRelease({
     required String candidateBranch,
-    required String? dartRevision,
+    required String dartRevision,
     required List<String> engineCherrypickRevisions,
     required String engineMirror,
     required List<String> frameworkCherrypickRevisions,
     required String frameworkMirror,
+    required Directory flutterRoot,
     required String incrementLetter,
     required String releaseChannel,
-  }) async {
-    if (fakeStartContextProvided != null) {
-      return fakeStartContextProvided!.run();
-    } else {
-      /// If there is no [fakeStartContextProvided], initialize a fakeStartContext
-      /// with no exception thrown when [run] is called.
-      final FakeStartContext fakeStartContext = FakeStartContext(
-        candidateBranch: candidateBranch,
-        dartRevision: dartRevision,
-        engineCherrypickRevisions: engineCherrypickRevisions,
-        engineMirror: engineMirror,
-        frameworkCherrypickRevisions: frameworkCherrypickRevisions,
-        frameworkMirror: frameworkMirror,
-        incrementLetter: incrementLetter,
-        releaseChannel: releaseChannel,
-      );
-      return fakeStartContext.run();
-    }
-  }
+  }) async {}
 
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
 
-  /// If there is no [testState] parameter passed, this getter simply returns a null state.
-  ///
-  /// A [testState] parameter simulates a conductor withtout a release state file initialized.
   @override
   ConductorState? get state {
     return testState;
   }
-
-  @override
-  Directory get engineCheckoutDirectory => fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/engine');
-
-  @override
-  Directory get frameworkCheckoutDirectory =>
-      fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/framework');
 
   /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
   /// with no exception thrown when [run] is called.
