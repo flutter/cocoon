@@ -28,6 +28,9 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
+  late final String engineCheckoutDirectory;
+  late final String frameworkCheckoutDirectory;
+
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
   File get stateFile => fs.file(defaultStateFilePath(platform));
@@ -78,6 +81,8 @@ class LocalConductorService extends ConductorService {
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );
-    return startContext.run();
+    await startContext.run();
+    engineCheckoutDirectory = (await startContext.engine.checkoutDirectory).path;
+    frameworkCheckoutDirectory = (await startContext.framework.checkoutDirectory).path;
   }
 }
