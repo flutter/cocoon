@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 Future<void> precacheTaskIcons(WidgetTester tester) async {
   // Depending on how we're invoked, Platform.script.path will have extra parts
   // after app_flutter. Just trim them off.
-  final List<String> pathParts = path.split(Platform.script.path);
+  final List<String> pathParts = path.split(Platform.script.toFilePath());
   while (pathParts.last != 'dashboard') {
     pathParts.removeLast();
   }
