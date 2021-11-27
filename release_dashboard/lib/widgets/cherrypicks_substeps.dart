@@ -34,7 +34,7 @@ class CherrypicksSubsteps extends StatefulWidget {
   final Repositories repository;
 
   @override
-  State<CherrypicksSubsteps> createState() => ConductorSubstepsState();
+  State<CherrypicksSubsteps> createState() => CherrypicksSubstepsState();
 
   static const Map<CherrypicksSubstep, String> substepTitles = <CherrypicksSubstep, String>{
     CherrypicksSubstep.verifyRelease: 'Verify the Release Number',
@@ -51,7 +51,7 @@ class CherrypicksSubsteps extends StatefulWidget {
   static const String kReleaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
 }
 
-class ConductorSubstepsState extends State<CherrypicksSubsteps> {
+class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
   final Map<CherrypicksSubstep, bool> _isEachSubstepChecked = <CherrypicksSubstep, bool>{};
 
   @override
