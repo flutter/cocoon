@@ -31,10 +31,20 @@ class DevLocalConductorService extends LocalConductorService {
     );
 
     final FrameworkRepository localFrameworkUpstream =
-        FrameworkRepository(checkouts, localUpstream: true, additionalRequiredLocalBranches: [candidateBranch]);
+        FrameworkRepository(
+          checkouts,
+          localUpstream: true,
+          name: 'framework-upstream',
+          additionalRequiredLocalBranches: [candidateBranch],
+        );
 
     final EngineRepository localEngineUpstream =
-        EngineRepository(checkouts, localUpstream: true, additionalRequiredLocalBranches: [candidateBranch]);
+        EngineRepository(
+          checkouts,
+          localUpstream: true,
+          name: 'engine-upstream',
+          additionalRequiredLocalBranches: [candidateBranch],
+        );
 
     // TODO: turn force to false
     final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
@@ -45,10 +55,10 @@ class DevLocalConductorService extends LocalConductorService {
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,
-      engineUpstream: (await localFrameworkUpstream.checkoutDirectory).path,
+      engineUpstream: (await localEngineUpstream.checkoutDirectory).path,
       frameworkCherrypickRevisions: frameworkCherrypickRevisions,
       frameworkMirror: frameworkMirror,
-      frameworkUpstream: (await localEngineUpstream.checkoutDirectory).path,
+      frameworkUpstream: (await localFrameworkUpstream.checkoutDirectory).path,
       incrementLetter: incrementLetter,
       processManager: processManager,
       releaseChannel: releaseChannel,
