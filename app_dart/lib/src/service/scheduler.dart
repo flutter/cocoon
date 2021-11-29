@@ -244,8 +244,13 @@ class Scheduler {
   Future<void> triggerPresubmitTargets({
     required github.PullRequest pullRequest,
     String reason = 'Newer commit available',
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
+    // Always cancel running builds so we don't ever schedule duplicates.
+    log.fine('about to cancel presubmit targets');
+    await cancelPreSubmitTargets(
+      pullRequest: pullRequest,
+      reason: reason,
+    );
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       pullRequest.base!.repo!.slug(),
@@ -257,10 +262,20 @@ class Scheduler {
       ),
     );
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final dynamic exception = await retryOptions.retry<dynamic>(() async => _triggerPresubmitTargets(
-          pullRequest: pullRequest,
-          reason: reason,
-        ));
+    dynamic exception;
+    try {
+      final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
+      await luciBuildService.scheduleTryBuilds(
+        targets: presubmitTargets,
+        pullRequest: pullRequest,
+      );
+    } on FormatException catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
+    } catch (error, backtrace) {
+      log.warning(backtrace.toString());
+      exception = error;
+    }
 
     // Update validate ci.yaml check
     if (exception == null) {
@@ -291,35 +306,6 @@ class Scheduler {
     }
     log.info(
         'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}');
-  }
-
-  /// Internal wrapper for [triggerPresubmitTargets] retry logic.
-  Future<dynamic> _triggerPresubmitTargets({
-    required github.PullRequest pullRequest,
-    String reason = 'Newer commit available',
-  }) async {
-    dynamic exception;
-    // Always cancel running builds so we don't ever schedule duplicates.
-    await cancelPreSubmitTargets(
-      pullRequest: pullRequest,
-      reason: reason,
-    );
-    log.fine('Cancelled existing presubmit runs');
-    try {
-      final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
-      await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets,
-        pullRequest: pullRequest,
-      );
-    } on FormatException catch (error, backtrace) {
-      log.warning(backtrace.toString());
-      exception = error;
-    } catch (error, backtrace) {
-      log.warning(backtrace.toString());
-      exception = error;
-    }
-
-    return exception;
   }
 
   /// Given a pull request event, retry all failed LUCI checks.

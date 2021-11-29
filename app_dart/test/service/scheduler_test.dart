@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
@@ -44,6 +43,7 @@ targets:
       - stable
     scheduler: luci
   - name: Google Internal Roll
+    postsubmit: true
     presubmit: false
     scheduler: google_internal
 ''';
@@ -291,11 +291,13 @@ enabled_branches:
   - master
 targets:
   - name: Linux A
+    presubmit: true
     scheduler: luci
   - name: Linux B
     scheduler: luci
     enabled_branches:
       - stable
+    presubmit: true
   - name: Linux C
     scheduler: luci
     enabled_branches:
@@ -304,10 +306,12 @@ targets:
   - name: Linux D
     scheduler: luci
     bringup: true
+    presubmit: true
   - name: Google-internal roll
     scheduler: google_internal
     enabled_branches:
       - master
+    presubmit: true
           ''', 200);
           }
           throw Exception('Failed to find ${request.url.path}');
@@ -327,6 +331,7 @@ enabled_branches:
   - master
 targets:
   - name: Linux A
+    presubmit: true
     scheduler: luci
           ''', 200);
           }
@@ -335,6 +340,25 @@ targets:
         config.luciBuildersValue = <LuciBuilder>[];
         expect(scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
             throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
+      });
+
+      test('checks for release branch regex', () async {
+        const String branch = 'flutter-1.24-candidate.1';
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response('''
+enabled_branches:
+  - main
+  - flutter-\\d+.\\d+-candidate.\\d+
+targets:
+  - name: Linux A
+    scheduler: luci
+          ''', 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        final List<Target> targets = await scheduler.getPresubmitTargets(generatePullRequest(branch: branch));
+        expect(targets.single.value.name, 'Linux A');
       });
 
       test('triggers expected presubmit build checks', () async {
@@ -366,34 +390,10 @@ targets:
             <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success]);
       });
 
-      test('ci.yaml validation passes with retry', () async {
-        bool retried = false;
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            if (retried) {
-              return http.Response(singleCiYaml, HttpStatus.ok);
-            }
-            retried = true;
-            return http.Response('FAILURE', HttpStatus.internalServerError);
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
-        when(mockGithubChecksUtil.getCheckRun(any, any, any))
-            .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
-        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
-                    status: captureAnyNamed('status'),
-                    conclusion: captureAnyNamed('conclusion'),
-                    output: anyNamed('output')))
-                .captured,
-            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success]);
-      });
-
       test('ci.yaml validation fails with empty config', () async {
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('', HttpStatus.ok);
+            return http.Response('', 200);
           }
           throw Exception('Failed to find ${request.url.path}');
         });

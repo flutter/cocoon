@@ -15,8 +15,13 @@ are welcome.
 Example config:
 ```yaml
 # /.ci.yaml
+
+# Enabled branches is a list of regexes, with the assumption that these are full line matches.
+# Internally, Cocoon prefixes these with $ and suffixes with ^ to enable matches.
 enabled_branches:
-  - master
+  - main
+  - flutter-\\d+\\.\\d+-candidate\\.\\d+
+
 targets:
 # A Target is an individual unit of work that is scheduled by Flutter infra
 # Target's are composed of the following properties:

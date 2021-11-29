@@ -28,13 +28,14 @@ class CiYaml {
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
-    if (!config.enabledBranches.contains(branch)) {
-      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
-    }
     final Iterable<Target> presubmitTargets =
         _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
 
-    return _filterEnabledTargets(presubmitTargets);
+    final List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
+    if (enabledTargets.isEmpty) {
+      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+    }
+    return enabledTargets;
   }
 
   /// Gets all [Target] that run on postsubmit for this config.
@@ -62,25 +63,38 @@ class CiYaml {
   /// Filter [targets] to only those that are expected to run for [branch].
   ///
   /// A [Target] is expected to run if:
-  ///   1. [Target.enabledBranches] exists and contains [branch].
-  ///   2. Otherwise, [config.enabledBranches] contains [branch].
+  ///   1. [Target.enabledBranches] exists and matches [branch].
+  ///   2. Otherwise, [config.enabledBranches] matches [branch].
   List<Target> _filterEnabledTargets(Iterable<Target> targets) {
     final List<Target> filteredTargets = <Target>[];
 
     // 1. Add targets with local definition
     final Iterable<Target> overrideBranchTargets =
         targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
-    final Iterable<Target> enabledTargets =
-        overrideBranchTargets.where((Target target) => target.value.enabledBranches.contains(branch));
+    final Iterable<Target> enabledTargets = overrideBranchTargets
+        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, branch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
-    if (config.enabledBranches.contains(branch)) {
+    if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, branch)) {
       final Iterable<Target> defaultBranchTargets =
           targets.where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
     }
 
     return filteredTargets;
+  }
+
+  /// Whether any of the possible [RegExp] in [enabledBranches] match [branch].
+  static bool enabledBranchesMatchesCurrentBranch(List<String> enabledBranches, String branch) {
+    final List<String> regexes = <String>[];
+    for (String enabledBranch in enabledBranches) {
+      // Prefix with start of line and suffix with end of line
+      regexes.add('^$enabledBranch\$');
+    }
+    final String rawRegexp = regexes.join('|');
+    final RegExp regexp = RegExp(rawRegexp);
+
+    return regexp.hasMatch(branch);
   }
 }
