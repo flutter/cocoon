@@ -4,17 +4,19 @@
 
 import '../models/repositories.dart';
 
-const String kEngineStr = 'engine';
-const String kFrameworkStr = 'framework';
+const String kEngineRepo = 'engine';
+const String kFrameworkRepo = 'framework';
 
 /// Helper function that returns the string 'engine' or 'framework' based on the [Repositories] enum.
 ///
 /// Also supports returning first letter capitalized string.
 String repositoriesStr(Repositories repository, [bool? capitalized = false]) {
   if (capitalized == true) {
-    return repository == Repositories.engine ? capitalizeFirstLetter(kEngineStr) : capitalizeFirstLetter(kFrameworkStr);
+    return repository == Repositories.engine
+        ? capitalizeFirstLetter(kEngineRepo)
+        : capitalizeFirstLetter(kFrameworkRepo);
   }
-  return repository == Repositories.engine ? kEngineStr : kFrameworkStr;
+  return repository == Repositories.engine ? kEngineRepo : kFrameworkRepo;
 }
 
 /// Capitalizes the first letter of a string.
