@@ -10,8 +10,8 @@ import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'publish_tag_substeps.dart';
+import 'push_release_substep.dart';
 import 'release_completed.dart';
-import 'substeps.dart';
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -147,7 +147,7 @@ class MainProgressionState extends State<MainProgression> {
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[6]),
-                  content: ConductorSubsteps(nextStep: nextStep),
+                  content: PushReleaseSubsteps(nextStep: nextStep),
                   isActive: true,
                   state: handleStepState(6),
                 ),
