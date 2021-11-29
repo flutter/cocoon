@@ -13,7 +13,7 @@ dependencies:
       path: dev/conductor/core
       # Any time the conductor_core is updated upstream, the revision should be
       # rolled
-      ref: c8a315298b21e54fb6a22d5a0e2907da45d829c3
+      ref: fc60e6690b6413645cb1fb940788494aa2025f1a
   flutter:
     sdk: flutter
   provider: ^6.0.1

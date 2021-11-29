@@ -46,7 +46,6 @@ class DevLocalConductorService extends LocalConductorService {
           additionalRequiredLocalBranches: [candidateBranch],
         );
 
-    // TODO: turn force to false
     final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
@@ -63,7 +62,8 @@ class DevLocalConductorService extends LocalConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
-      force: true,
+      // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
+      // https://github.com/flutter/flutter/issues/94384
     );
     return startContext.run();
   }

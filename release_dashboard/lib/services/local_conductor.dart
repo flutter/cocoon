@@ -78,6 +78,8 @@ class LocalConductorService extends ConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
+      // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
+      // https://github.com/flutter/flutter/issues/94384
     );
     return startContext.run();
   }

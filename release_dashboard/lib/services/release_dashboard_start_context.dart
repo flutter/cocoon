@@ -41,9 +41,10 @@ class ReleaseDashboardStartContext extends StartContext {
           force: force,
         );
 
-// TODO(Yugue)]: Add prompt UI to confirm tag creation at startContext, https://github.com/flutter/flutter/issues/94072.
+  // TODO(Yugue): Add prompt UI to confirm tag creation at startContext.
+  // https://github.com/flutter/flutter/issues/94072.
   @override
-  bool prompt(String message) {
+  Future<bool> prompt(String message) async {
     return true;
   }
 }
