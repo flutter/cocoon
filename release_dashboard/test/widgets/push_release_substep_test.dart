@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
