@@ -4,7 +4,7 @@
 
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:conductor_ui/state/status_state.dart';
-import 'package:conductor_ui/widgets/publish_channel_substeps.dart';
+import 'package:conductor_ui/widgets/publish_tag_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -35,9 +35,7 @@ void main() {
         ),
       ));
 
-      expect(
-          find.textContaining('Release tag $kReleaseVersion is ready to be published to the $kReleaseChannel channel'),
-          findsOneWidget);
+      expect(find.text('Release tag $kReleaseVersion is ready to be pushed to the remote repository.'), findsOneWidget);
       expect(find.text('Publish release tag'), findsOneWidget);
       expect(find.textContaining('Very Important'), findsOneWidget);
       expect(find.textContaining('Please verify if the tag and the channel are correct'), findsOneWidget);

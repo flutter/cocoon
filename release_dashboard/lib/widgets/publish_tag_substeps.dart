@@ -39,7 +39,7 @@ class PublishTagSubstepsState extends State<PublishTagSubsteps> {
             children: [
               Text(
                   'Release tag ${releaseStatus?[ConductorStatusEntry.releaseVersion]} is ready '
-                  'to be published to the ${releaseStatus?[ConductorStatusEntry.releaseChannel]} channel. ',
+                  'to be pushed to the remote repository.',
                   style: Theme.of(context).textTheme.subtitle1),
               const SizedBox(height: 20.0),
               Text(
@@ -55,7 +55,7 @@ class PublishTagSubstepsState extends State<PublishTagSubsteps> {
           ),
         ),
         ElevatedButton(
-          key: const Key('publisTagContinue'),
+          key: const Key('publishTagContinue'),
           onPressed: () {
             widget.nextStep();
           },
