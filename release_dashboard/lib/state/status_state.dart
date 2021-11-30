@@ -6,6 +6,7 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
+import '../logic/cherrypick_state.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
 import '../services/conductor.dart';
@@ -38,7 +39,7 @@ Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   for (final pb.Cherrypick engineCherrypick in state.engine.cherrypicks) {
     engineCherrypicks.add(<Cherrypick, String>{
       Cherrypick.trunkRevision: engineCherrypick.trunkRevision,
-      Cherrypick.state: '${engineCherrypick.state}'
+      Cherrypick.state: engineCherrypick.state.string(),
     });
   }
 
@@ -46,7 +47,7 @@ Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   for (final pb.Cherrypick frameworkCherrypick in state.framework.cherrypicks) {
     frameworkCherrypicks.add(<Cherrypick, String>{
       Cherrypick.trunkRevision: frameworkCherrypick.trunkRevision,
-      Cherrypick.state: '${frameworkCherrypick.state}'
+      Cherrypick.state: frameworkCherrypick.state.string(),
     });
   }
 
