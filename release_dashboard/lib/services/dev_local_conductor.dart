@@ -30,21 +30,19 @@ class DevLocalConductorService extends LocalConductorService {
       stdio: stdio,
     );
 
-    final FrameworkRepository localFrameworkUpstream =
-        FrameworkRepository(
-          checkouts,
-          localUpstream: true,
-          name: 'framework-upstream',
-          additionalRequiredLocalBranches: [candidateBranch],
-        );
+    final FrameworkRepository localFrameworkUpstream = FrameworkRepository(
+      checkouts,
+      localUpstream: true,
+      name: 'framework-upstream',
+      additionalRequiredLocalBranches: [candidateBranch],
+    );
 
-    final EngineRepository localEngineUpstream =
-        EngineRepository(
-          checkouts,
-          localUpstream: true,
-          name: 'engine-upstream',
-          additionalRequiredLocalBranches: [candidateBranch],
-        );
+    final EngineRepository localEngineUpstream = EngineRepository(
+      checkouts,
+      localUpstream: true,
+      name: 'engine-upstream',
+      additionalRequiredLocalBranches: [candidateBranch],
+    );
 
     final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
       candidateBranch: candidateBranch,
