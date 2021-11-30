@@ -11,6 +11,8 @@ const Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, St
   pb.CherrypickState.ABANDONED: 'ABANDONED',
 };
 
+// TODO(Yugue): [conductor] add extension method that returns the cherrypick state string,
+// https://github.com/flutter/flutter/issues/94387.
 extension CherrypickStateExtension on pb.CherrypickState {
   /// Extension method added on [CherrypickState] that returns its equivalent string state.
   ///
@@ -22,10 +24,10 @@ extension CherrypickStateExtension on pb.CherrypickState {
   /// import "cherrypick_state.dart";
   /// import 'package:conductor_core/proto.dart' as pb
   ///
-  /// final String cherrypickStateStr = pb.CherrypickState.PENDING_WITH_CONFLICT.cherrypickStateStr();
+  /// final String cherrypickStateStr = pb.CherrypickState.PENDING_WITH_CONFLICT.string();
   /// ```
   /// {@end-tool}
-  String cherrypickStateStr() {
+  String string() {
     return (cherrypickStates[this]!);
   }
 }

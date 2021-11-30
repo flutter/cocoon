@@ -39,7 +39,7 @@ Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   for (final pb.Cherrypick engineCherrypick in state.engine.cherrypicks) {
     engineCherrypicks.add(<Cherrypick, String>{
       Cherrypick.trunkRevision: engineCherrypick.trunkRevision,
-      Cherrypick.state: engineCherrypick.state.cherrypickStateStr(),
+      Cherrypick.state: engineCherrypick.state.string(),
     });
   }
 
@@ -47,7 +47,7 @@ Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   for (final pb.Cherrypick frameworkCherrypick in state.framework.cherrypicks) {
     frameworkCherrypicks.add(<Cherrypick, String>{
       Cherrypick.trunkRevision: frameworkCherrypick.trunkRevision,
-      Cherrypick.state: frameworkCherrypick.state.cherrypickStateStr(),
+      Cherrypick.state: frameworkCherrypick.state.string(),
     });
   }
 

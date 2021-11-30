@@ -42,15 +42,6 @@ class CherrypicksSubsteps extends StatefulWidget {
     CherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks and resolve conflicts',
   };
 
-  // TODO(Yugue): [conductor] add extension method that returns the cherrypick state string,
-  // https://github.com/flutter/flutter/issues/94387.
-  static Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
-    pb.CherrypickState.PENDING: 'PENDING',
-    pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
-    pb.CherrypickState.COMPLETED: 'COMPLETED',
-    pb.CherrypickState.ABANDONED: 'ABANDONED',
-  };
-
   static const String kReleaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
 }
 
@@ -90,7 +81,7 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
     if (statusState.releaseStatus != null && statusState.releaseStatus?[repositoryCherrypick] != null) {
       for (Map<Cherrypick, String> cherrypick
           in statusState.releaseStatus?[repositoryCherrypick] as List<Map<Cherrypick, String>>) {
-        if (cherrypick[Cherrypick.state] == pb.CherrypickState.PENDING_WITH_CONFLICT.cherrypickStateStr()) {
+        if (cherrypick[Cherrypick.state] == pb.CherrypickState.PENDING_WITH_CONFLICT.string()) {
           cherrypicksInConflict.writeln('git cherry-pick ${cherrypick[Cherrypick.trunkRevision]!}');
         }
       }
