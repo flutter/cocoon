@@ -7,7 +7,8 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../logic/repositories_str.dart';
+import '../logic/cherrypick_state.dart';
+import '../logic/repositories_name.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
@@ -89,8 +90,7 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
     if (statusState.releaseStatus != null && statusState.releaseStatus?[repositoryCherrypick] != null) {
       for (Map<Cherrypick, String> cherrypick
           in statusState.releaseStatus?[repositoryCherrypick] as List<Map<Cherrypick, String>>) {
-        if (cherrypick[Cherrypick.state] ==
-            CherrypicksSubsteps.cherrypickStates[pb.CherrypickState.PENDING_WITH_CONFLICT]) {
+        if (cherrypick[Cherrypick.state] == pb.CherrypickState.PENDING_WITH_CONFLICT.cherrypickStateStr()) {
           cherrypicksInConflict.writeln('git cherry-pick ${cherrypick[Cherrypick.trunkRevision]!}');
         }
       }

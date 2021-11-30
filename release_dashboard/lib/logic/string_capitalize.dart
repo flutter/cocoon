@@ -14,7 +14,7 @@ extension StringExtension on String {
   /// ```dart
   /// import "repositories_str.dart";
   ///
-  /// var capitalizedString = 'unCapitalized'.capitalize();
+  /// final String capitalizedString = 'unCapitalized'.capitalize();
   /// ```
   /// {@end-tool}
   String capitalize() {

@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../logic/repositories_str.dart';
+import '../logic/repositories_name.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
