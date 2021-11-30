@@ -9,7 +9,7 @@ import 'package:file/memory.dart';
 import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
-import '../../src/services/fake_clean_context.dart';
+import '../fake_clean_context.dart';
 import '../fake_start_context.dart';
 
 /// Fake service class for using the conductor in a fake local environment.
