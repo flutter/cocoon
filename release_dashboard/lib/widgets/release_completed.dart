@@ -25,7 +25,7 @@ class ReleaseCompletedState extends State<ReleaseCompleted> {
 
     return Text(
         'Congratulations! The release ${releaseStatus?[ConductorStatusEntry.releaseVersion]} '
-        'is successfully released to the ${releaseStatus?[ConductorStatusEntry.releaseChannel]} channel!!!',
+        'has been successfully released to the ${releaseStatus?[ConductorStatusEntry.releaseChannel]} channel!',
         style: Theme.of(context).textTheme.subtitle1);
   }
 }
