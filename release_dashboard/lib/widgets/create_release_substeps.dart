@@ -2,9 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../logic/cherrypicks.dart';
+import '../logic/error_to_string.dart';
 import '../logic/git.dart';
+import '../services/conductor.dart';
+import '../state/status_state.dart';
 import 'common/tooltip.dart';
 
 enum CreateReleaseSubstep {
@@ -51,6 +57,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
   late Map<String, String?> releaseData = <String, String?>{};
+  String? _error;
+  bool _isLoading = false;
 
   /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
   @visibleForTesting
@@ -63,7 +71,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
       CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
       CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
     ];
-    // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
+    // Engine cherrypicks, framework cherrypicks and dart revision are optional
+    // and valid with empty input at the beginning.
     for (final String substep in CreateReleaseSubsteps.substepTitles.values) {
       isEachInputValid = <String, bool>{
         ...isEachInputValid,
@@ -93,12 +102,47 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
+  /// Updates the error object with what the conductor throws.
+  void setError(String? errorThrown) {
+    setState(() {
+      _error = errorThrown;
+    });
+  }
+
+  /// Toggle if the widget is being loaded or not.
+  void setIsLoading(bool result) {
+    setState(() {
+      _isLoading = result;
+    });
+  }
+
+  /// Initialize a [StartContext] and execute the [run] function to start a release using the conductor.
+  Future<void> runCreateRelease(ConductorService conductor) {
+    // Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
+    return conductor.createRelease(
+      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]] ?? '',
+      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]] ?? '',
+      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]] ?? '',
+      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]] ?? '',
+      engineCherrypickRevisions: cherrypickStringtoArray(
+          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]]),
+      frameworkCherrypickRevisions: cherrypickStringtoArray(
+          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]]),
+      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]] == ''
+          ? null
+          : releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]],
+      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]] ?? '',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final GitValidation candidateBranch = CandidateBranch();
     final GitValidation gitRemote = GitRemote();
     final GitValidation multiGitHash = MultiGitHash();
     final GitValidation gitHash = GitHash();
+
+    final ConductorService conductor = context.watch<StatusState>().conductor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +154,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsInputValid: changeIsEachInputValid,
           validationClass: candidateBranch,
         ),
-        CheckboxListTileDropdown(
+        DropdownAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
@@ -152,7 +196,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsInputValid: changeIsEachInputValid,
           validationClass: gitHash,
         ),
-        CheckboxListTileDropdown(
+        DropdownAsSubstep(
           substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
           releaseData: releaseData,
           setReleaseData: setReleaseData,
@@ -160,12 +204,44 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           changeIsDropdownValid: changeIsEachInputValid,
         ),
         const SizedBox(height: 20.0),
-        Center(
-          child: ElevatedButton(
-            key: const Key('step1continue'),
-            onPressed: isEachInputValid.containsValue(false) ? null : widget.nextStep,
-            child: const Text('Continue'),
+        if (_error != null)
+          Center(
+            child: SelectableText(
+              _error!,
+              style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
+            ),
           ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              key: const Key('createReleaseContinue'),
+              // If the release initialization is loading or any substeps is unchecked, disable this button.
+              onPressed: isEachInputValid.containsValue(false) || _isLoading
+                  ? null
+                  : () async {
+                      setError(null);
+                      try {
+                        setIsLoading(true);
+                        await runCreateRelease(conductor);
+                        // ignore: avoid_catches_without_on_clauses
+                      } catch (error, stacktrace) {
+                        setError(errorToString(error, stacktrace));
+                      } finally {
+                        setIsLoading(false);
+                      }
+                      if (_error == null) {
+                        widget.nextStep();
+                      }
+                    },
+              child: const Text('Continue'),
+            ),
+            const SizedBox(width: 30.0),
+            if (_isLoading)
+              const CircularProgressIndicator(
+                semanticsLabel: 'Linear progress indicator',
+              ),
+          ],
         ),
       ],
     );
@@ -221,8 +297,8 @@ class InputAsSubstep extends StatelessWidget {
 }
 
 /// Captures the chosen option and updates the corresponding field in [releaseData].
-class CheckboxListTileDropdown extends StatelessWidget {
-  const CheckboxListTileDropdown({
+class DropdownAsSubstep extends StatelessWidget {
+  const DropdownAsSubstep({
     Key? key,
     required this.substepName,
     required this.releaseData,

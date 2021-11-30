@@ -2,48 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io' as io;
-
-import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
-import 'package:conductor_core/proto.dart' as pb;
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:platform/platform.dart';
-import 'package:process/process.dart';
-
-import 'conductor.dart';
+import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository;
+import 'local_conductor.dart';
 import 'release_dashboard_start_context.dart';
 
-/// Service class for using the conductor in a local environment.
+/// Service class for using a development conductor in a local environment.
 ///
-/// This is the production version of the conductor, only intended for releases.
-class LocalConductorService extends ConductorService {
-  final FileSystem fs = const LocalFileSystem();
-  final Platform platform = const LocalPlatform();
-  final ProcessManager processManager = const LocalProcessManager();
-  final Stdio stdio = VerboseStdio(
-    stdout: io.stdout,
-    stderr: io.stderr,
-    stdin: io.stdin,
-  );
-
-  @override
-  Directory get rootDirectory => fs.directory(platform.environment['HOME']);
-  File get stateFile => fs.file(defaultStateFilePath(platform));
-
-  static const String frameworkUpstream = 'https://github.com/flutter/flutter';
-  static const String engineUpstream = 'https://github.com/flutter/engine';
-
-  @override
-  pb.ConductorState? get state {
-    if (stateFile.existsSync()) {
-      return readStateFromFile(stateFile);
-    }
-
-    return null;
-  }
-
+/// This is not the production version of the conductor, only intended for development.
+///
+/// This service creates fake local upstream repos to simulate the production repos.
+/// This is because [run] of [StartContext] is disruptive and creates tags in the
+/// flutter repos. This class is used in a development environment to prevent
+/// accidently creating tags during development.
+class DevLocalConductorService extends LocalConductorService {
   @override
   Future<void> createRelease({
     required String candidateBranch,
@@ -62,6 +33,21 @@ class LocalConductorService extends ConductorService {
       platform: platform,
       stdio: stdio,
     );
+
+    final FrameworkRepository localFrameworkUpstream = FrameworkRepository(
+      checkouts,
+      localUpstream: true,
+      name: 'framework-upstream',
+      additionalRequiredLocalBranches: [candidateBranch],
+    );
+
+    final EngineRepository localEngineUpstream = EngineRepository(
+      checkouts,
+      localUpstream: true,
+      name: 'engine-upstream',
+      additionalRequiredLocalBranches: [candidateBranch],
+    );
+
     final ReleaseDashboardStartContext startContext = ReleaseDashboardStartContext(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
@@ -70,10 +56,10 @@ class LocalConductorService extends ConductorService {
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,
-      engineUpstream: engineUpstream,
+      engineUpstream: (await localEngineUpstream.checkoutDirectory).path,
       frameworkCherrypickRevisions: frameworkCherrypickRevisions,
       frameworkMirror: frameworkMirror,
-      frameworkUpstream: frameworkUpstream,
+      frameworkUpstream: (await localFrameworkUpstream.checkoutDirectory).path,
       incrementLetter: incrementLetter,
       processManager: processManager,
       releaseChannel: releaseChannel,

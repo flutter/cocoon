@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
 import 'codesign_engine_substeps.dart';
@@ -18,10 +17,10 @@ import 'substeps.dart';
 class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
-    this.releaseState,
+    this.previousCompletedStep,
   }) : super(key: key);
 
-  final pb.ConductorState? releaseState;
+  final int? previousCompletedStep;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -37,6 +36,15 @@ class MainProgression extends StatefulWidget {
 
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
+
+  @override
+  void initState() {
+    // Enables the stepper to resume from the step it was left on previously.
+    if (widget.previousCompletedStep != null) {
+      _completedStep = widget.previousCompletedStep!;
+    }
+    super.initState();
+  }
 
   /// Move forward the stepper to the next step of the release.
   void nextStep() {
