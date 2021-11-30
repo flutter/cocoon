@@ -227,6 +227,12 @@ class Config {
   /// Internal Google service account used to surface FRoB results.
   String get frobAccount => 'dart-sdk-rolls-jobs@system.gserviceaccount.com';
 
+  /// Service accounts used for LUCI PubSub messages.
+  static const Set<String> allowedLuciPubsubServiceAccounts = <String>{
+    'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
+    'flutter-dashboard@appspot.gserviceaccount.com'
+  };
+
   int get maxTaskRetries => 2;
 
   /// Max retries for Luci builder with infra failure.

@@ -27,7 +27,7 @@ abstract class Subscription extends ApiRequestHandler<Body> {
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   Future<String> get _requestString async {
-    final String requestString = await utf8.decodeStream(request!);
+    final String requestString = String.fromCharCodes(requestBody!);
     log.fine(requestString);
     return requestString;
   }

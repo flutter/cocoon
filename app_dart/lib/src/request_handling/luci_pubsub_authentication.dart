@@ -38,6 +38,8 @@ class LuciPubsubAuthenticationProvider extends AuthenticationProvider {
           httpClientProvider: httpClientProvider,
         );
 
+  static const String kBearerTokenPrefix = 'Bearer ';
+
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
   ///
@@ -61,7 +63,7 @@ class LuciPubsubAuthenticationProvider extends AuthenticationProvider {
     String? idToken, {
     required ClientContext clientContext,
   }) async {
-    if (idToken == null || !idToken.startsWith('Bearer ')) {
+    if (idToken == null || !idToken.startsWith(kBearerTokenPrefix)) {
       throw const Unauthenticated('${HttpHeaders.authorizationHeader} is null');
     }
     final Client client = httpClientProvider();
@@ -69,20 +71,15 @@ class LuciPubsubAuthenticationProvider extends AuthenticationProvider {
 
     // Get token from Google oauth
     final Tokeninfo info = await oauth2api.tokeninfo(
-      idToken: idToken.substring('Bearer '.length),
+      idToken: idToken.substring(kBearerTokenPrefix.length),
     );
     if (info.expiresIn == null || info.expiresIn! < 1) {
       throw const Unauthenticated('Token is expired');
     }
-    final Set<String> allowedServiceAccounts = <String>{
-      'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
-      'flutter-dashboard@appspot.gserviceaccount.com'
-    };
 
-    if (allowedServiceAccounts.contains(info.email) == false) {
-      throw Unauthenticated('${info.email} is not in the allowedServiceAccounts');
+    if (Config.allowedLuciPubsubServiceAccounts.contains(info.email)) {
+      return AuthenticatedContext(clientContext: clientContext);
     }
-
-    return AuthenticatedContext(clientContext: clientContext);
+    throw Unauthenticated('${info.email} is not in allowedLuciPubsubServiceAccounts');
   }
 }
