@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import '../fakes/services/fake_conductor.dart';
 
 void main() {
-  testWidgets('When user clicks on a previously completed step, Stepper does not navigate back.',
+  testWidgets('When the user clicks on a previously completed step, Stepper does not navigate back.',
       (WidgetTester tester) async {
     await tester.pumpWidget(ChangeNotifierProvider(
       create: (context) => StatusState(conductor: FakeConductor()),

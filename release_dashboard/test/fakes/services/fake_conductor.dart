@@ -14,6 +14,9 @@ import '../fake_start_context.dart';
 ///
 /// When [fakeStartContextProvided] is not provided, the class initializes
 /// a [createRelease] method that does not throw any error by default.
+///
+/// [testState] parameter accepts a fake test state and passes it to the
+/// release dashboard.
 class FakeConductor extends ConductorService {
   FakeConductor({
     this.fakeStartContextProvided,
@@ -65,7 +68,7 @@ class FakeConductor extends ConductorService {
 
   /// If there is no [testState] parameter passed, this getter simply returns a null state.
   ///
-  /// Missing [testState] parameter simulates a conductor withtout a release state file.
+  /// A [testState] parameter simulates a conductor withtout a release state file initialized.
   @override
   ConductorState? get state {
     return testState;

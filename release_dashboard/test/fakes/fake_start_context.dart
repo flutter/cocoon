@@ -15,7 +15,10 @@ import 'fake_stdio.dart';
 const String kFlutterRoot = '/flutter';
 const String kCheckoutsParentDirectory = '$kFlutterRoot/dev/tools/';
 
-/// Initializes a fake [ReleaseDashboardStartContext] in a fake local environment.
+/// Initializes a fake [ReleaseDashboardStartContext] in a fake local environment for testing.
+///
+/// [runOverride] parameter overrides the parent's [run] method if it is not null. Else the parent's
+/// [run] method is used.
 class FakeStartContext extends ReleaseDashboardStartContext {
   factory FakeStartContext({
     String candidateBranch = 'flutter-1.2-candidate.3',
@@ -105,7 +108,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
   /// An optional override async callback for the real [run] method.
   Future<void> Function()? runOverride;
 
-  /// Either call [runOverride] if it is not null, else call [super.run].
+  /// Call the [runOverride] parameter if it is not null, else call the parent [run] method.
   @override
   Future<void> run() {
     if (runOverride != null) {

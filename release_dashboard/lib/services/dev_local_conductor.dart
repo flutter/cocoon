@@ -6,10 +6,14 @@ import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineReposi
 import 'local_conductor.dart';
 import 'release_dashboard_start_context.dart';
 
-/// Service class for using a test conductor in a local environment.
+/// Service class for using a development conductor in a local environment.
 ///
-/// This is not the production version of the conductor, only intended for test.
+/// This is not the production version of the conductor, only intended for development.
+///
 /// This service creates fake local upstream repos to simulate the production repos.
+/// This is because [run] of [StartContext] is disruptive and creates tags in the
+/// flutter repos. This class is used in a development environment to prevent
+/// accidently creating tags during development.
 class DevLocalConductorService extends LocalConductorService {
   @override
   Future<void> createRelease({

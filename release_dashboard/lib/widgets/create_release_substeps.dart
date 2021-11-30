@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/cherrypicks.dart';
+import '../logic/error_to_string.dart';
 import '../logic/git.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
@@ -70,7 +71,8 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
       CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
       CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
     ];
-    // engine cherrypicks, framework cherrypicks and dart revision are optional and valid with empty input at the beginning
+    // Engine cherrypicks, framework cherrypicks and dart revision are optional
+    // and valid with empty input at the beginning.
     for (final String substep in CreateReleaseSubsteps.substepTitles.values) {
       isEachInputValid = <String, bool>{
         ...isEachInputValid,
@@ -100,23 +102,23 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     });
   }
 
-  /// Updates [_error] with what the conductor throws.
+  /// Updates the error object with what the conductor throws.
   void setError(String? errorThrown) {
     setState(() {
       _error = errorThrown;
     });
   }
 
-  /// Method to modify the state [_isLoading].
+  /// Toggle if the widget is being loaded or not.
   void setIsLoading(bool result) {
     setState(() {
       _isLoading = result;
     });
   }
 
-  /// Initialize a [startContext] and execute the [run] function to start a release using the local conductor.
+  /// Initialize a [StartContext] and execute the [run] function to start a release using the conductor.
   Future<void> runCreateRelease(ConductorService conductor) {
-    // data captured by the input forms and dropdowns are transformed to conform the formats of StartContext
+    // Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
     return conductor.createRelease(
       candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]] ?? '',
       releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]] ?? '',
@@ -131,18 +133,6 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           : releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]],
       incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]] ?? '',
     );
-  }
-
-  /// Converts the error and stack trace to strings.
-  String errorToString(Object error, StackTrace stackTrace) {
-    final StringBuffer buffer = StringBuffer();
-    if (error is ConductorException) {
-      buffer.writeln('Conductor Exception:\n$error');
-    } else {
-      buffer.writeln('Error:\n$error');
-    }
-    buffer.writeln('Stack Trace:\n$stackTrace');
-    return buffer.toString();
   }
 
   @override
@@ -225,9 +215,10 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              key: const Key('step1continue'),
+              key: const Key('createReleaseContinue'),
+              // If the release initialization is loading or any substeps is unchecked, disable this button.
               onPressed: isEachInputValid.containsValue(false) || _isLoading
-                  ? null // if the release initialization is loading, disable this button
+                  ? null
                   : () async {
                       setError(null);
                       try {

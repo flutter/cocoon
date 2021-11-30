@@ -39,7 +39,7 @@ class MainProgressionState extends State<MainProgression> {
 
   @override
   void initState() {
-    /// Enables the stepper to resume from the step it was left on previously.
+    // Enables the stepper to resume from the step it was left on previously.
     if (widget.previousCompletedStep != null) {
       _completedStep = widget.previousCompletedStep!;
     }

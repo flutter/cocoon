@@ -356,7 +356,7 @@ void main() {
       final StatefulElement createReleaseSubsteps = tester.element(find.byType(CreateReleaseSubsteps));
       final CreateReleaseSubstepsState createReleaseSubstepsState =
           createReleaseSubsteps.state as CreateReleaseSubstepsState;
-      final Finder continueButton = find.byKey(const Key('step1continue'));
+      final Finder continueButton = find.byKey(const Key('createReleaseContinue'));
       // default isEachInputValid state values, optional fields are valid from the start
       expect(
         createReleaseSubstepsState.isEachInputValid,
@@ -415,7 +415,7 @@ void main() {
         ),
       ));
 
-      final Finder continueButton = find.byKey(const Key('step1continue'));
+      final Finder continueButton = find.byKey(const Key('createReleaseContinue'));
       await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
@@ -447,7 +447,7 @@ void main() {
         ),
       ));
 
-      final Finder continueButton = find.byKey(const Key('step1continue'));
+      final Finder continueButton = find.byKey(const Key('createReleaseContinue'));
       await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
@@ -480,7 +480,7 @@ void main() {
         ),
       ));
 
-      final Finder continueButton = find.byKey(const Key('step1continue'));
+      final Finder continueButton = find.byKey(const Key('createReleaseContinue'));
       await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));
@@ -526,7 +526,7 @@ void main() {
         ),
       ));
 
-      final Finder continueButton = find.byKey(const Key('step1continue'));
+      final Finder continueButton = find.byKey(const Key('createReleaseContinue'));
       await fillAllParameters(tester, testInputsCorrect);
       expect(continueButton, findsOneWidget);
       await tester.drag(continueButton, const Offset(-250, 0));

@@ -4,6 +4,7 @@
 
 import 'package:conductor_core/conductor_core.dart';
 
+/// Fake [Stdio] for tesing purpuses.
 class TestStdio extends Stdio {
   TestStdio({
     this.verbose = false,
