@@ -128,14 +128,14 @@ class CherrypickTableState extends State<CherrypickTable> {
       headingRowHeight: 30.0,
       decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
       columns: <DataColumn>[
-        DataColumn(label: Text('${repositoriesStr(widget.repository, true)} Cherrypicks')),
+        DataColumn(label: Text('${repositoryName(widget.repository, true)} Cherrypicks')),
         DataColumn(
           label: Row(
             children: <Widget>[
               const Text('Status'),
               const SizedBox(width: 10.0),
               InfoTooltip(
-                tooltipName: repositoriesStr(widget.repository, true),
+                tooltipName: repositoryName(widget.repository, true),
                 tooltipMessage: '''
 PENDING:   The cherrypick has not yet been applied.
 PENDING_WITH_CONFLICT:   The cherrypick has not been applied and will require manual resolution.
@@ -214,8 +214,8 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
             isExpanded: _isExpanded,
             headerBuilder: (BuildContext context, bool isExpanded) {
               return ListTile(
-                  key: Key('${repositoriesStr(widget.repository)}RepoInfoDropdown'),
-                  title: Text('${repositoriesStr(widget.repository, true)} Repo Info'),
+                  key: Key('${repositoryName(widget.repository)}RepoInfoDropdown'),
+                  title: Text('${repositoryName(widget.repository, true)} Repo Info'),
                   onTap: () {
                     showHide();
                   });

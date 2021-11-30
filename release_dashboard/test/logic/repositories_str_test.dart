@@ -3,48 +3,49 @@
 // found in the LICENSE file.
 
 import 'package:conductor_ui/logic/repositories_str.dart';
+import 'package:conductor_ui/logic/string_capitalize.dart';
 import 'package:conductor_ui/models/repositories.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Capitalize first letter helper function tests', () {
     test('Returns the empty string', () {
-      expect(capitalizeFirstLetter(''), equals(''));
+      expect(('').capitalize(), equals(''));
     });
     test('Returns a single letter capitalized', () {
-      expect(capitalizeFirstLetter('a'), equals('A'));
+      expect(('a').capitalize(), equals('A'));
     });
     test('Returns a string with the first letter capitalized', () {
-      expect(capitalizeFirstLetter('aabasss'), equals('Aabasss'));
+      expect(('aabasss').capitalize(), equals('Aabasss'));
     });
     test('Returns a single whitespace unchanged', () {
-      expect(capitalizeFirstLetter(' '), equals(' '));
+      expect((' ').capitalize(), equals(' '));
     });
     test('Returns a string with a leading whitespace unchanged', () {
-      expect(capitalizeFirstLetter(' aabasss'), equals(' aabasss'));
+      expect((' aabasss').capitalize(), equals(' aabasss'));
     });
     test('Returns a string with a leading non-letter char unchanged', () {
-      expect(capitalizeFirstLetter('1aabasss'), equals('1aabasss'));
+      expect(('1aabasss').capitalize(), equals('1aabasss'));
     });
   });
 
   group('Not capitalized', () {
     test('engine', () {
-      expect(repositoriesStr(Repositories.engine), equals('engine'));
+      expect(repositoryName(Repositories.engine), equals('engine'));
     });
 
     test('framework', () {
-      expect(repositoriesStr(Repositories.framework), equals('framework'));
+      expect(repositoryName(Repositories.framework), equals('framework'));
     });
   });
 
   group('Capitalized', () {
     test('Engine', () {
-      expect(repositoriesStr(Repositories.engine, true), equals('Engine'));
+      expect(repositoryName(Repositories.engine, true), equals('Engine'));
     });
 
     test('Framework', () {
-      expect(repositoriesStr(Repositories.framework, true), equals('Framework'));
+      expect(repositoryName(Repositories.framework, true), equals('Framework'));
     });
   });
 }

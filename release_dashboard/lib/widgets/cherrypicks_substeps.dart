@@ -41,6 +41,8 @@ class CherrypicksSubsteps extends StatefulWidget {
     CherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks and resolve conflicts',
   };
 
+  // TODO(Yugue): [conductor] add extension method that returns the cherrypick state string,
+  // https://github.com/flutter/flutter/issues/94387.
   static Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
     pb.CherrypickState.PENDING: 'PENDING',
     pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
@@ -119,21 +121,20 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
         CheckboxAsSubstep(
           substepName: CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!,
           subtitle: cherrypicksInConflict.isEmpty
-              ? SelectableText(
-                  'No ${repositoriesStr(widget.repository)} cherrypick conflicts, just check this substep.')
+              ? SelectableText('No ${repositoryName(widget.repository)} cherrypick conflicts, just check this substep.')
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SelectableText('Navigate to the ${repositoriesStr(widget.repository)} checkout directory '
+                    SelectableText('Navigate to the ${repositoryName(widget.repository)} checkout directory '
                         'by pasting the code below to your terminal: '),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
                       child:
                           SelectableText('cd ${statusState.conductor.rootDirectory.path}/flutter_conductor_checkouts/'
-                              '${repositoriesStr(widget.repository)}'),
+                              '${repositoryName(widget.repository)}'),
                     ),
                     SelectableText(
-                        'At that location, apply the following ${repositoriesStr(widget.repository)} cherrypicks '
+                        'At that location, apply the following ${repositoryName(widget.repository)} cherrypicks '
                         'that are in conflict by pasting the code below to your terminal and manually resolve any merge conflicts.'
                         ' Then commit the changes without pushing.'),
                     Padding(
@@ -156,7 +157,7 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
           Padding(
             padding: const EdgeInsets.only(top: 30.0),
             child: ElevatedButton(
-              key: Key('apply${repositoriesStr(widget.repository, true)}CherrypicksContinue'),
+              key: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
               onPressed: () {
                 widget.nextStep();
               },
