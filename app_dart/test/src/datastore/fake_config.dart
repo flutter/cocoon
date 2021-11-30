@@ -225,9 +225,6 @@ class FakeConfig implements Config {
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   @override
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue!;
-
-  @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
 
   @override

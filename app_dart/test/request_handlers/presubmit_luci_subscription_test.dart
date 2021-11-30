@@ -14,6 +14,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_buildbucket.dart';
@@ -28,7 +29,7 @@ void main() {
   const String authHeader = 'Bearer $authToken';
   const String deviceLabEmail = 'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
 
-  late LuciStatusHandler handler;
+  late PresubmitLuciSubscription handler;
   late FakeBuildBucketClient buildbucket;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
@@ -42,8 +43,9 @@ void main() {
     buildbucket = FakeBuildBucketClient();
 
     mockGithubChecksService = MockGithubChecksService();
-    handler = LuciStatusHandler(
+    handler = PresubmitLuciSubscription(
       config,
+      FakeAuthenticationProvider(),
       buildbucket,
       FakeLuciBuildService(config),
       mockGithubChecksService,

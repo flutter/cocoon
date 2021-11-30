@@ -11,7 +11,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -256,11 +255,6 @@ class Config {
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
-
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async {
-    final String rawValue = await _getSingleValue('TaskLogServiceAccount');
-    return ServiceAccountCredentials.fromJson(json.decode(rawValue));
-  }
 
   /// The names of autoroller accounts for the repositories.
   ///
