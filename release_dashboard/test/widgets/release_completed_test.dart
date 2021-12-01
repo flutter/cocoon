@@ -35,7 +35,7 @@ void main() {
     ));
 
     expect(find.textContaining('Congratulations!'), findsOneWidget);
-    expect(find.textContaining('is successfully released'), findsOneWidget);
+    expect(find.textContaining('has been successfully released'), findsOneWidget);
     expect(find.textContaining(kReleaseChannel), findsOneWidget);
     expect(find.textContaining(kReleaseVersion), findsOneWidget);
   });
