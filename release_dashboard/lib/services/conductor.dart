@@ -17,6 +17,9 @@ abstract class ConductorService {
   /// Returns null when there is no active release, such as in the case when first initialized.
   pb.ConductorState? get state;
 
+  get engineCheckoutDirectory;
+  get frameworkCheckoutDirectory;
+
   /// This is the first step of every release which creates the release branch.
   Future<void> createRelease({
     required String candidateBranch,

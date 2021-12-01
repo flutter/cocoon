@@ -96,11 +96,7 @@ void main() {
       expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!), findsOneWidget);
       expect(find.textContaining(kReleaseVersion), findsOneWidget);
       expect(find.byType(UrlButton), findsOneWidget);
-<<<<<<< HEAD
-      expect(find.text(CherrypicksSubsteps.kReleaseSDKURL), findsOneWidget);
-=======
       expect(find.text(kWebsiteReleasesUrl), findsOneWidget);
->>>>>>> ec01a34 (rebased from main)
     });
 
     testWidgets("'Apply cherrypicks' substep displays correctly", (WidgetTester tester) async {

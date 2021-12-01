@@ -41,8 +41,6 @@ class CherrypicksSubsteps extends StatefulWidget {
     CherrypicksSubstep.verifyRelease: 'Verify the Release Number',
     CherrypicksSubstep.applyCherrypicks: 'Apply cherrypicks and resolve conflicts',
   };
-
-  static const String kReleaseSDKURL = 'https://flutter.dev/docs/development/tools/sdk/releases';
 }
 
 class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
@@ -99,8 +97,8 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
                     'Verify if the release number: ${statusState.releaseStatus?[ConductorStatusEntry.releaseVersion]}'
                     ' is correct based on existing published releases here: '),
                 const UrlButton(
-                  textToDisplay: CherrypicksSubsteps.kReleaseSDKURL,
-                  urlOrUri: CherrypicksSubsteps.kReleaseSDKURL,
+                  textToDisplay: kWebsiteReleasesUrl,
+                  urlOrUri: kWebsiteReleasesUrl,
                 ),
               ],
             ),
@@ -120,9 +118,8 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
                         'by pasting the code below to your terminal: '),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
-                      child:
-                          SelectableText('cd ${statusState.conductor.rootDirectory.path}/flutter_conductor_checkouts/'
-                              '${repositoryName(widget.repository)}'),
+                      child: SelectableText(
+                          'cd ${widget.repository == Repositories.engine ? statusState.conductor.engineCheckoutDirectory : statusState.conductor.frameworkCheckoutDirectory}'),
                     ),
                     SelectableText(
                         'At that location, apply the following ${repositoryName(widget.repository)} cherrypicks '
