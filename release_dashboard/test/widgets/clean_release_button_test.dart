@@ -37,7 +37,7 @@ void main() {
     });
   });
 
-  group('cleanContext integration tests', () {
+  group('CleanContext integration tests', () {
     late pb.ConductorState state;
 
     setUp(() {
