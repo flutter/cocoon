@@ -35,7 +35,7 @@ void main() {
     });
 
     group('Validate post-submit CI', () {
-      for (final String releaseChannel in CreateReleaseSubsteps.releaseChannels) {
+      for (final String releaseChannel in kBaseReleaseChannels) {
         testWidgets('Displays the correct $releaseChannel LUCI dashboard URL', (WidgetTester tester) async {
           final pb.ConductorState testState = pb.ConductorState(
             releaseChannel: releaseChannel,

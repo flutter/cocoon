@@ -60,6 +60,7 @@ class CreateReleaseSubsteps extends StatefulWidget {
     CreateReleaseSubstep.dartRevision: 'Dart Revision (if necessary)',
     CreateReleaseSubstep.increment: 'Increment',
   };
+<<<<<<< HEAD
 
   static const Map<CreateReleaseSubstep, String> inputHintText = <CreateReleaseSubstep, String>{
     CreateReleaseSubstep.candidateBranch: 'The candidate branch the release will be based on.',
@@ -79,6 +80,8 @@ class CreateReleaseSubsteps extends StatefulWidget {
 
   static const List<String> releaseChannels = <String>['dev', 'beta', 'stable'];
   static const List<String> releaseIncrements = <String>['y', 'z', 'm', 'n'];
+=======
+>>>>>>> 5b99b40 (updated the rest of the constants)
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
@@ -181,6 +184,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+<<<<<<< HEAD
         for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values)
           if (CreateReleaseSubsteps.dropdownElements.contains(substep)) ...[
             DropdownAsSubstep(
@@ -203,6 +207,64 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
               isLoading: _isLoading,
             )
           ],
+=======
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]!,
+          setReleaseData: setReleaseData,
+          hintText: 'The candidate branch the release will be based on.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: candidateBranch,
+        ),
+        DropdownAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
+          releaseData: releaseData,
+          setReleaseData: setReleaseData,
+          options: kBaseReleaseChannels,
+          changeIsDropdownValid: changeIsEachInputValid,
+        ),
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!,
+          setReleaseData: setReleaseData,
+          hintText: "Git remote of the Conductor user's Framework repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
+        ),
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!,
+          setReleaseData: setReleaseData,
+          hintText: "Git remote of the Conductor user's Engine repository mirror.",
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitRemote,
+        ),
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!,
+          setReleaseData: setReleaseData,
+          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
+        ),
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
+          setReleaseData: setReleaseData,
+          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: multiGitHash,
+        ),
+        InputAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
+          setReleaseData: setReleaseData,
+          hintText: 'New Dart revision to cherrypick.',
+          changeIsInputValid: changeIsEachInputValid,
+          validationClass: gitHash,
+        ),
+        DropdownAsSubstep(
+          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
+          releaseData: releaseData,
+          setReleaseData: setReleaseData,
+          options: KReleaseIncrements,
+          changeIsDropdownValid: changeIsEachInputValid,
+        ),
+>>>>>>> 5b99b40 (updated the rest of the constants)
         const SizedBox(height: 20.0),
         if (_error != null)
           Center(
