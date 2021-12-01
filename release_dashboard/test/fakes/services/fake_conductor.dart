@@ -87,8 +87,6 @@ class FakeConductor extends ConductorService {
 
   /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
   /// with no exception thrown when [run] is called.
-  ///
-  /// [run] also attempts to clean a fake state file.
   @override
   Future<void> cleanRelease(BuildContext context) async {
     if (fakeCleanContextProvided != null) {

@@ -49,7 +49,14 @@ void main() {
         runOverride: () async => throw Exception(exceptionMsg),
       );
 
-      await tester.pumpWidget(MyApp(FakeConductor(testState: state, fakeCleanContextProvided: fakeContext)));
+      await tester.pumpWidget(
+        MyApp(
+          FakeConductor(
+            testState: state,
+            fakeCleanContextProvided: fakeContext,
+          ),
+        ),
+      );
 
       await performClean(tester);
 
@@ -63,7 +70,14 @@ void main() {
         runOverride: () async => throw ConductorException(exceptionMsg),
       );
 
-      await tester.pumpWidget(MyApp(FakeConductor(testState: state, fakeCleanContextProvided: fakeContext)));
+      await tester.pumpWidget(
+        MyApp(
+          FakeConductor(
+            testState: state,
+            fakeCleanContextProvided: fakeContext,
+          ),
+        ),
+      );
 
       await performClean(tester);
 
@@ -77,7 +91,14 @@ void main() {
         runOverride: () async => releaseCleaned = true,
       );
 
-      await tester.pumpWidget(MyApp(FakeConductor(testState: state, fakeCleanContextProvided: fakeContext)));
+      await tester.pumpWidget(
+        MyApp(
+          FakeConductor(
+            testState: state,
+            fakeCleanContextProvided: fakeContext,
+          ),
+        ),
+      );
 
       await performClean(tester);
 

@@ -31,7 +31,7 @@ class FakeCleanContext extends CleanContext {
   /// An optional override async callback for the real [run] method.
   Future<void> Function()? runOverride;
 
-  /// Call the [runOverride] parameter if it is not null, else call the parent [run] method.
+  /// Call the [runOverride] parameter if it is not null, else call the parent's [run] method.
   @override
   Future<void> run() {
     if (runOverride != null) {
