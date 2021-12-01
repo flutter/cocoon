@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../logic/error_to_string.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/dialog_prompt.dart';
@@ -18,10 +18,7 @@ import 'common/snackbar_prompt.dart';
 class CleanReleaseButton extends StatefulWidget {
   const CleanReleaseButton({
     Key? key,
-    required this.conductor,
   }) : super(key: key);
-
-  final ConductorService conductor;
 
   @override
   State<CleanReleaseButton> createState() => _CleanReleaseButtonState();
@@ -36,18 +33,6 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
     setState(() {
       _errorMsg = errorMsg;
     });
-  }
-
-  /// Converts the error and stack trace to strings.
-  String errorToString(Object error, StackTrace stackTrace) {
-    final StringBuffer buffer = StringBuffer();
-    if (error is ConductorException) {
-      buffer.writeln('Conductor Exception:\n$error\n');
-    } else {
-      buffer.writeln('Error:\n$error\n');
-    }
-    buffer.writeln('Stack Trace:\n$stackTrace');
-    return buffer.toString();
   }
 
   @override

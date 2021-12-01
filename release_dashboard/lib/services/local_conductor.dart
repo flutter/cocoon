@@ -7,7 +7,7 @@ import 'dart:io' as io;
 import 'package:conductor_core/conductor_core.dart'
     show
         Checkouts,
-        RunContext,
+        CleanContext,
         EngineRepository,
         FrameworkRepository,
         Stdio,
@@ -105,7 +105,7 @@ class LocalConductorService extends ConductorService {
   /// Sync the release status after cleaning the state file.
   @override
   Future<void> cleanRelease(BuildContext context) async {
-    RunContext cleanContext = RunContext(stateFile: stateFile);
+    CleanContext cleanContext = CleanContext(stateFile: stateFile);
     await cleanContext.run();
     context.read<StatusState>().syncStatusWithState();
   }

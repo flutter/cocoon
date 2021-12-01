@@ -4,7 +4,7 @@
 
 import 'package:conductor_core/conductor_core.dart';
 
-/// Converts the error and stack trace objects to strings.
+/// Converts the error and stack trace objects to strings for display.
 String errorToString(Object error, StackTrace stackTrace) {
   final StringBuffer buffer = StringBuffer();
   if (error is ConductorException) {
@@ -12,6 +12,6 @@ String errorToString(Object error, StackTrace stackTrace) {
   } else {
     buffer.writeln('Error:\n$error');
   }
-  buffer.writeln('Stack Trace:\n$stackTrace');
+  buffer.writeln('\nStack Trace:\n$stackTrace');
   return buffer.toString();
 }
