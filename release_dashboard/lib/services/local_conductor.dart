@@ -28,8 +28,8 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
-  late Directory _engineCheckoutDirectory;
-  late Directory _frameworkCheckoutDirectory;
+  late final Directory _engineCheckoutDirectory;
+  late final Directory _frameworkCheckoutDirectory;
 
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
