@@ -300,33 +300,20 @@ void main() {
       final CreateReleaseSubstepsState createReleaseSubstepsState =
           createReleaseSubsteps.state as CreateReleaseSubstepsState;
 
-      /// Tests the Release Channel dropdown menu.
-      await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!)));
-      await tester.pumpAndSettle(); // finish the menu animation
-      expect(createReleaseSubstepsState.releaseData[CreateReleaseSubstep.releaseChannel], equals(null));
-      await tester.tap(find.text(testInputsCorrect[CreateReleaseSubstep.releaseChannel]!).last);
-      await tester.pumpAndSettle(); // finish the menu animation
-
-      await tester.enterText(
-          find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!)),
-          testInputsCorrect[CreateReleaseSubstep.frameworkMirror]!);
-      await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!)),
-          testInputsCorrect[CreateReleaseSubstep.engineMirror]!);
-      await tester.enterText(
-          find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!)),
-          testInputsCorrect[CreateReleaseSubstep.engineCherrypicks]!);
-      await tester.enterText(
-          find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!)),
-          testInputsCorrect[CreateReleaseSubstep.frameworkCherrypicks]!);
-      await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!)),
-          testInputsCorrect[CreateReleaseSubstep.dartRevision]!);
-
-      /// Tests the Increment dropdown menu.
-      await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!)));
-      await tester.pumpAndSettle(); // finish the menu animation
-      expect(createReleaseSubstepsState.releaseData[CreateReleaseSubstep.increment], equals(null));
-      await tester.tap(find.text(testInputsCorrect[CreateReleaseSubstep.increment]!).last);
-      await tester.pumpAndSettle(); // finish the menu animation
+      for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values) {
+        if (CreateReleaseSubsteps.dropdownElements.contains(substep)) {
+          /// Tests the dropdown menu.
+          await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!)));
+          await tester.pumpAndSettle(); // finish the menu animation
+          expect(createReleaseSubstepsState.releaseData[substep], equals(null));
+          await tester.tap(find.text(testInputsCorrect[substep]!).last);
+        } else {
+          /// Tests the input forms.
+          await tester.enterText(
+              find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!)), testInputsCorrect[substep]!);
+        }
+      }
+      await tester.pumpAndSettle();
 
       expect(createReleaseSubstepsState.releaseData, testInputsCorrect);
     });
@@ -589,27 +576,15 @@ void main() {
 
 /// Fills every input and dropdown with correct test data.
 Future<void> fillAllParameters(WidgetTester tester, Map<CreateReleaseSubstep, String> testInputsCorrect) async {
-  await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]!)),
-      testInputsCorrect[CreateReleaseSubstep.candidateBranch]!);
-
-  await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!)));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text(testInputsCorrect[CreateReleaseSubstep.releaseChannel]!).last);
-
-  await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!)),
-      testInputsCorrect[CreateReleaseSubstep.frameworkMirror]!);
-  await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!)),
-      testInputsCorrect[CreateReleaseSubstep.engineMirror]!);
-  await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!)),
-      testInputsCorrect[CreateReleaseSubstep.engineCherrypicks]!);
-  await tester.enterText(
-      find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!)),
-      testInputsCorrect[CreateReleaseSubstep.frameworkCherrypicks]!);
-  await tester.enterText(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!)),
-      testInputsCorrect[CreateReleaseSubstep.dartRevision]!);
-
-  await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!)));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text(testInputsCorrect[CreateReleaseSubstep.increment]!).last);
+  for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values) {
+    if (CreateReleaseSubsteps.dropdownElements.contains(substep)) {
+      await tester.tap(find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(testInputsCorrect[substep]!).last);
+    } else {
+      await tester.enterText(
+          find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!)), testInputsCorrect[substep]!);
+    }
+  }
   await tester.pumpAndSettle();
 }
