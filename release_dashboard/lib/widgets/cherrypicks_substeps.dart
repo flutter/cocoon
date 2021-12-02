@@ -119,7 +119,8 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 5, 0, 10),
                       child: SelectableText(
-                          'cd ${widget.repository == Repositories.engine ? statusState.conductor.engineCheckoutDirectory : statusState.conductor.frameworkCheckoutDirectory}'),
+                        'cd ${widget.repository == Repositories.engine ? statusState.conductor.engineCheckoutDirectory.path : statusState.conductor.frameworkCheckoutDirectory.path}',
+                      ),
                     ),
                     SelectableText(
                         'At that location, apply the following ${repositoryName(widget.repository)} cherrypicks '

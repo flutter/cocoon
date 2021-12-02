@@ -28,22 +28,24 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
+  Directory? _engineCheckoutDirectory;
+  Directory? _frameworkCheckoutDirectory;
+
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
   File get stateFile => fs.file(defaultStateFilePath(platform));
 
   @override
-  late String engineCheckoutDirectory;
+  Directory get engineCheckoutDirectory => _engineCheckoutDirectory ?? rootDirectory;
 
   @override
-  late String frameworkCheckoutDirectory;
+  Directory get frameworkCheckoutDirectory => _frameworkCheckoutDirectory ?? rootDirectory;
 
   @override
   pb.ConductorState? get state {
     if (stateFile.existsSync()) {
       return readStateFromFile(stateFile);
     }
-
     return null;
   }
 
@@ -85,7 +87,7 @@ class LocalConductorService extends ConductorService {
       // https://github.com/flutter/flutter/issues/94384
     );
     await startContext.run();
-    engineCheckoutDirectory = (await startContext.engine.checkoutDirectory).path;
-    frameworkCheckoutDirectory = (await startContext.framework.checkoutDirectory).path;
+    _engineCheckoutDirectory = await startContext.engine.checkoutDirectory;
+    _frameworkCheckoutDirectory = await startContext.framework.checkoutDirectory;
   }
 }
