@@ -28,18 +28,18 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
-  Directory? _engineCheckoutDirectory;
-  Directory? _frameworkCheckoutDirectory;
+  late Directory _engineCheckoutDirectory;
+  late Directory _frameworkCheckoutDirectory;
 
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
   File get stateFile => fs.file(defaultStateFilePath(platform));
 
   @override
-  Directory get engineCheckoutDirectory => _engineCheckoutDirectory ?? rootDirectory;
+  Directory get engineCheckoutDirectory => _engineCheckoutDirectory;
 
   @override
-  Directory get frameworkCheckoutDirectory => _frameworkCheckoutDirectory ?? rootDirectory;
+  Directory get frameworkCheckoutDirectory => _frameworkCheckoutDirectory;
 
   @override
   pb.ConductorState? get state {
