@@ -19,7 +19,7 @@ void main() {
         errorOutput = errorToString(err, stackTrace);
       }
 
-      expect(errorOutput.contains('Conductor Exception:'), true);
+      expect(errorOutput.contains('ConductorException:'), true);
       expect(errorOutput.contains(errorMsg), true);
       expect(errorOutput.contains('Stack Trace:'), true);
       expect(errorOutput.contains(stackTraceMsg), true);
@@ -27,13 +27,15 @@ void main() {
 
     test('errorToString displays the correct general exception with its stack trace', () async {
       late final String errorOutput;
+      late final String runtimeType;
       try {
         await Future.error(Exception(errorMsg), StackTrace.fromString(stackTraceMsg));
       } catch (err, stackTrace) {
+        runtimeType = '${err.runtimeType}';
         errorOutput = errorToString(err, stackTrace);
       }
 
-      expect(errorOutput.contains('Error:'), true);
+      expect(errorOutput.contains(runtimeType), true);
       expect(errorOutput.contains(errorMsg), true);
       expect(errorOutput.contains('Stack Trace:'), true);
       expect(errorOutput.contains(stackTraceMsg), true);

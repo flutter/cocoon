@@ -61,13 +61,8 @@ packages:
     dependency: "direct main"
     description:
       path: "dev/conductor/core"
-<<<<<<< HEAD
       ref: "0eeb026e58c270a3e46bf98913dbcdd26adb5e75"
       resolved-ref: "0eeb026e58c270a3e46bf98913dbcdd26adb5e75"
-=======
-      ref: "6b93dc5ccad13a3e2581a878f4bc48307474ab07"
-      resolved-ref: "6b93dc5ccad13a3e2581a878f4bc48307474ab07"
->>>>>>> 5737e3c (added tests)
       url: "git://github.com/flutter/flutter.git"
     source: git
     version: "0.0.0"

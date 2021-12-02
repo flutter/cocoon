@@ -24,9 +24,13 @@ class FakeConductor extends ConductorService {
     this.fakeCleanContextProvided,
     this.fakeStartContextProvided,
     this.testState,
-  });
+  }) {
+    /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
+    /// with no exception thrown when [run] is called.
+    fakeCleanContextProvided ??= FakeCleanContext();
+  }
 
-  final FakeCleanContext? fakeCleanContextProvided;
+  FakeCleanContext? fakeCleanContextProvided;
   final FakeStartContext? fakeStartContextProvided;
   final ConductorState? testState;
 
@@ -89,11 +93,6 @@ class FakeConductor extends ConductorService {
   /// with no exception thrown when [run] is called.
   @override
   Future<void> cleanRelease(BuildContext context) async {
-    if (fakeCleanContextProvided != null) {
-      return fakeCleanContextProvided!.run();
-    } else {
-      final FakeCleanContext fakeCleanContext = FakeCleanContext();
-      return fakeCleanContext.run();
-    }
+    return fakeCleanContextProvided?.run();
   }
 }

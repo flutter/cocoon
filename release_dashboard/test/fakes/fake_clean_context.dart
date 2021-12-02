@@ -19,11 +19,10 @@ class FakeCleanContext implements CleanContext {
 
   /// Call the [runOverride] parameter if it is not null, else return a future that doesn't throw any error.
   @override
-  Future<void> run() {
+  Future<void> run() async {
     if (runOverride != null) {
       return runOverride!();
     }
-    return Future.value();
   }
 
   @override
