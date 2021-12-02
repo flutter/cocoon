@@ -528,12 +528,8 @@ void main() {
       expect(tester.widget<ElevatedButton>(continueButton).enabled, true);
     });
 
-    testWidgets('Disable all inputs and dropdowns when loading, enable when loading is finished',
-        (WidgetTester tester) async {
-      const String exceptionMsg = 'There is a general Exception';
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => throw Exception(exceptionMsg),
-      );
+    testWidgets('Disable all inputs and dropdowns when loading', (WidgetTester tester) async {
+      final FakeStartContext startContext = FakeStartContext();
 
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
@@ -587,18 +583,6 @@ void main() {
 
       completer.complete();
       await tester.pumpAndSettle();
-
-      // Every input and dropdown is enabled.
-      for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values) {
-        if (CreateReleaseSubsteps.dropdownElements.contains(substep)) {
-          expect(
-              tester.widget<DropdownButton>(find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!))).onChanged,
-              isNot(equals(null)));
-        } else {
-          expect(tester.widget<TextFormField>(find.byKey(Key(CreateReleaseSubsteps.substepTitles[substep]!))).enabled,
-              equals(true));
-        }
-      }
     });
   });
 }
