@@ -6,6 +6,7 @@
 String errorToString(Object error, StackTrace stackTrace) {
   final StringBuffer buffer = StringBuffer();
   buffer.writeln('${error.runtimeType}:\n$error');
-  buffer.writeln('\nStack Trace:\n$stackTrace');
+  buffer.writeln('');
+  buffer.writeln('Stack Trace:\n$stackTrace');
   return buffer.toString();
 }
