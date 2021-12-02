@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
@@ -44,6 +45,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   final GitHubBackoffCalculator gitHubBackoffCalculator;
   final Scheduler scheduler;
 
+  static const String kRepoParam = 'repo';
+
   static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
       buildBucketClient: BuildBucketClient(),
@@ -54,9 +57,11 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
+    final String repoName = request!.uri.queryParameters[kRepoParam] ?? config.flutterSlug.name;
+    final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
+    final Commit latestCommit = await datastore.queryRecentCommits(limit: 1, slug: slug).single;
     final CiYaml ciYaml = await scheduler.getCiYaml(latestCommit);
     final List<LuciBuilder> postsubmitBuilders = await scheduler.getPostSubmitBuilders(ciYaml);
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = await luciService.getBranchRecentTasks(
@@ -71,6 +76,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           branchLuciBuilder.branch,
           datastore,
           luciTasks[branchLuciBuilder],
+          slug,
         );
       });
     }
@@ -79,10 +85,20 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   /// Update chromebot tasks statuses in datastore for [builder],
   /// based on latest [luciTasks] statuses.
-  Future<void> _updateStatus(LuciBuilder builder, String? branch, DatastoreService datastore,
-      Map<String, List<LuciTask>>? luciTasksMap) async {
-    final List<FullTask> datastoreTasks =
-        await datastore.queryRecentTasks(taskName: builder.taskName, branch: branch).toList();
+  Future<void> _updateStatus(
+    LuciBuilder builder,
+    String? branch,
+    DatastoreService datastore,
+    Map<String, List<LuciTask>>? luciTasksMap,
+    RepositorySlug slug,
+  ) async {
+    final List<FullTask> datastoreTasks = await datastore
+        .queryRecentTasks(
+          taskName: builder.taskName,
+          branch: branch,
+          slug: slug,
+        )
+        .toList();
 
     /// Update [devicelabTask] when first [luciTask] run finishes. There may be
     /// reruns for the same commit and same builder. Update [devicelabTask]

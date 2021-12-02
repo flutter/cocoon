@@ -117,7 +117,7 @@ void main() {
           'ahNzfmZsdXR0ZXItZGFzaGJvYXJkckcLEglDaGVja2xpc3QiOGZsdXR0ZXIvZmx1dHRlci9lYTI4YTljMzRkYzcwMWRlODkxZWFmNzQ1MDNjYTQ3MTcwMTlmODI5DA';
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
+        GetStatus.kLastCommitKeyParam: expectedLastCommitKeyEncoded,
       });
       final Map<String, dynamic> result = (await decodeHandlerBody())!;
 
@@ -158,7 +158,7 @@ void main() {
       expect(config.db.values.length, 2);
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        GetStatus.branchParam: branch,
+        GetStatus.kBranchParam: branch,
       });
       final Map<String, dynamic> result = (await decodeHandlerBody())!;
 

@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -32,6 +32,8 @@ void main() {
     late DatastoreService datastoreService;
     late Commit commit;
 
+    final RepositorySlug flutterSlug = RepositorySlug('flutter', 'flutter');
+
     setUp(() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
@@ -51,7 +53,7 @@ void main() {
         expect(DatastoreService.defaultProvider(config.db), isA<DatastoreService>());
       });
 
-      test('QueryRecentCommits', () async {
+      test('queryRecentCommits', () async {
         for (String branch in <String>['master', 'release']) {
           final Commit commit = Commit(
             key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
@@ -62,51 +64,34 @@ void main() {
           config.db.values[commit.key] = commit;
         }
         // Defaults to master
-        List<Commit> commits = await datastoreService.queryRecentCommits().toList();
+        List<Commit> commits = await datastoreService.queryRecentCommits(slug: flutterSlug).toList();
         expect(commits, hasLength(1));
         expect(commits[0].branch, equals('master'));
         // Explicit branch
-        commits = await datastoreService.queryRecentCommits(branch: 'release').toList();
+        commits = await datastoreService.queryRecentCommits(branch: 'release', slug: flutterSlug).toList();
         expect(commits, hasLength(1));
         expect(commits[0].branch, equals('release'));
       });
-      test('QueryRecentCommitsNoBranch', () async {
-        // Empty results
-        List<Commit> commits = await datastoreService.queryRecentCommits().toList();
-        expect(commits, isEmpty);
-        for (String branch in <String>['master', 'release']) {
+
+      test('queryRecentCommits with slug', () async {
+        for (String repo in <String>['flutter', 'engine']) {
           final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-            repository: config.flutterSlug.fullName,
-            sha: 'abc_$branch',
-            branch: branch,
+            key: config.db.emptyKey.append(Commit, id: 'flutter/$repo/main/abc'),
+            repository: 'flutter/$repo',
+            sha: 'abc',
+            branch: 'main',
           );
           config.db.values[commit.key] = commit;
         }
-        // Results from two branches
-        commits = await datastoreService.queryRecentCommitsNoBranch().toList();
-        expect(commits, hasLength(2));
-      });
-
-      test('QueryRecentTasksNoBranch - release branch', () async {
-        final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'abc'),
-            repository: config.flutterSlug.fullName,
-            sha: 'abc',
-            branch: 'release');
-        config.db.values[commit.key] = commit;
-        final Task task = Task(
-            key: commit.key.append(Task, id: 123),
-            commitKey: commit.key,
-            name: 'Linux A',
-            attempts: 1,
-            status: Task.statusInProgress,
-            startTimestamp: DateTime.now().millisecondsSinceEpoch);
-        db.values[task.key] = task;
-        final List<FullTask> fullTasks = await datastoreService.queryRecentTasksNoBranch().toList();
-        expect(fullTasks, hasLength(1));
-        expect(fullTasks[0].commit.branch, 'release');
-        expect(fullTasks[0].task.id, 123);
+        // Only retrieves flutter/flutter
+        List<Commit> commits = await datastoreService.queryRecentCommits(slug: flutterSlug, branch: 'main').toList();
+        expect(commits, hasLength(1));
+        expect(commits.single.repository, equals('flutter/flutter'));
+        // Only retrieves flutter/engine
+        final RepositorySlug engineSlug = RepositorySlug('flutter', 'engine');
+        commits = await datastoreService.queryRecentCommits(branch: 'main', slug: engineSlug).toList();
+        expect(commits, hasLength(1));
+        expect(commits.single.repository, equals('flutter/engine'));
       });
     });
 

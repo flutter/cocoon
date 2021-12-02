@@ -83,22 +83,18 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits({int limit = 100, int? timestamp, String? branch}) {
+  Stream<Commit> queryRecentCommits({
+    int limit = 100,
+    int? timestamp,
+    String? branch,
+    required RepositorySlug slug,
+  }) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= 'master';
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
+      ..filter('repository =', slug.fullName)
       ..filter('branch =', branch)
-      ..order('-timestamp')
-      ..filter('timestamp <', timestamp);
-    return query.run();
-  }
-
-  // Queries for recent commits without considering branches.
-  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int? timestamp}) {
-    timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    final Query<Commit> query = db.query<Commit>()
-      ..limit(limit)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
     return query.run();
@@ -120,23 +116,20 @@ class DatastoreService {
   ///
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
-  Stream<FullTask> queryRecentTasks(
-      {String? taskName, int commitLimit = 20, int taskLimit = 20, String? branch = 'master'}) async* {
-    await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch)) {
+  Stream<FullTask> queryRecentTasks({
+    String? taskName,
+    int commitLimit = 20,
+    int taskLimit = 20,
+    String? branch,
+    required RepositorySlug slug,
+  }) async* {
+    await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch, slug: slug)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
         ..limit(taskLimit)
         ..order('-createTimestamp');
       if (taskName != null) {
         query.filter('name =', taskName);
       }
-      yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
-    }
-  }
-
-  // Queries for recent tasks without considering branches.
-  Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20}) async* {
-    await for (Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
-      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
   }
