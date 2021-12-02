@@ -13,6 +13,8 @@ import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/tooltip.dart';
 
+/// Very important! The order of this enum decides which order the initialization
+/// parameter widgets get rendered.
 enum CreateReleaseSubstep {
   candidateBranch,
   releaseChannel,
@@ -24,9 +26,20 @@ enum CreateReleaseSubstep {
   increment,
 }
 
-/// Displays all substeps related to the 1st step.
+/// Displays all substeps related to initializing a release.
 ///
 /// Uses input fields and dropdowns to capture all the parameters of the conductor start command.
+///
+/// Validates each input value. Displays an error message if it is not valid.
+///
+/// The continue button becomes enabled when all inputs are valid. Disabled otherwise.
+///
+/// When the continue button is pressed, a release starts to initialize based on all inputs provided.
+/// While it is being initialized, the continue button becomes disabled, and a loading
+/// animation will display.
+///
+/// When the release is successfully initialized, proceed to the next step. Otherwise, display
+/// a red error message. The continue button will become enabled again.
 class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
@@ -49,6 +62,22 @@ class CreateReleaseSubsteps extends StatefulWidget {
     CreateReleaseSubstep.increment: 'Increment',
   };
 
+  static const Map<CreateReleaseSubstep, String> inputHintText = <CreateReleaseSubstep, String>{
+    CreateReleaseSubstep.candidateBranch: 'The candidate branch the release will be based on.',
+    CreateReleaseSubstep.engineMirror: "Git remote of the Conductor user's Engine repository mirror.",
+    CreateReleaseSubstep.frameworkMirror: "Git remote of the Conductor user's Framework repository mirror.",
+    CreateReleaseSubstep.engineCherrypicks:
+        'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+    CreateReleaseSubstep.frameworkCherrypicks:
+        'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
+    CreateReleaseSubstep.dartRevision: 'New Dart revision to cherrypick.',
+  };
+
+  static const List<CreateReleaseSubstep> dropdownElements = <CreateReleaseSubstep>[
+    CreateReleaseSubstep.releaseChannel,
+    CreateReleaseSubstep.increment,
+  ];
+
   static const List<String> releaseChannels = <String>['dev', 'beta', 'stable'];
   static const List<String> releaseIncrements = <String>['y', 'z', 'm', 'n'];
 }
@@ -56,25 +85,25 @@ class CreateReleaseSubsteps extends StatefulWidget {
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   /// Initialize a public state so it could be accessed in the test file.
   @visibleForTesting
-  late Map<String, String?> releaseData = <String, String?>{};
+  late Map<CreateReleaseSubstep, String?> releaseData = <CreateReleaseSubstep, String?>{};
   String? _error;
   bool _isLoading = false;
 
   /// When [substep] in [isEachInputValid] is true, [substep] is valid. Otherwise, it is invalid.
   @visibleForTesting
-  Map<String, bool> isEachInputValid = <String, bool>{};
+  Map<CreateReleaseSubstep, bool> isEachInputValid = <CreateReleaseSubstep, bool>{};
 
   @override
   void initState() {
-    List<String> kOptionalInput = <String>[
-      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!,
-      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
-      CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
+    List<CreateReleaseSubstep> kOptionalInput = <CreateReleaseSubstep>[
+      CreateReleaseSubstep.engineCherrypicks,
+      CreateReleaseSubstep.frameworkCherrypicks,
+      CreateReleaseSubstep.dartRevision,
     ];
     // Engine cherrypicks, framework cherrypicks and dart revision are optional
     // and valid with empty input at the beginning.
-    for (final String substep in CreateReleaseSubsteps.substepTitles.values) {
-      isEachInputValid = <String, bool>{
+    for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values) {
+      isEachInputValid = <CreateReleaseSubstep, bool>{
         ...isEachInputValid,
         substep: kOptionalInput.contains(substep),
       };
@@ -83,21 +112,21 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   }
 
   /// Updates the corresponding [field] in [releaseData] with [data].
-  void setReleaseData(String field, String data) {
+  void setReleaseData(CreateReleaseSubstep substep, String data) {
     setState(() {
-      releaseData = <String, String?>{
+      releaseData = <CreateReleaseSubstep, String?>{
         ...releaseData,
-        field: data,
+        substep: data,
       };
     });
   }
 
-  /// Modifies [name] in [isEachInputValid] with [isValid].
-  void changeIsEachInputValid(String name, bool isValid) {
+  /// Modifies [substep] in [isEachInputValid] with [isValid].
+  void changeIsEachInputValid(CreateReleaseSubstep substep, bool isValid) {
     setState(() {
-      isEachInputValid = <String, bool>{
+      isEachInputValid = <CreateReleaseSubstep, bool>{
         ...isEachInputValid,
-        name: isValid,
+        substep: isValid,
       };
     });
   }
@@ -120,18 +149,15 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   Future<void> runCreateRelease(ConductorService conductor) {
     // Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
     return conductor.createRelease(
-      candidateBranch: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]] ?? '',
-      releaseChannel: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]] ?? '',
-      frameworkMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]] ?? '',
-      engineMirror: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]] ?? '',
-      engineCherrypickRevisions: cherrypickStringtoArray(
-          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]]),
-      frameworkCherrypickRevisions: cherrypickStringtoArray(
-          releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]]),
-      dartRevision: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]] == ''
-          ? null
-          : releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]],
-      incrementLetter: releaseData[CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]] ?? '',
+      candidateBranch: releaseData[CreateReleaseSubstep.candidateBranch] ?? '',
+      releaseChannel: releaseData[CreateReleaseSubstep.releaseChannel] ?? '',
+      frameworkMirror: releaseData[CreateReleaseSubstep.frameworkMirror] ?? '',
+      engineMirror: releaseData[CreateReleaseSubstep.engineMirror] ?? '',
+      engineCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubstep.engineCherrypicks]),
+      frameworkCherrypickRevisions: cherrypickStringtoArray(releaseData[CreateReleaseSubstep.frameworkCherrypicks]),
+      dartRevision:
+          releaseData[CreateReleaseSubstep.dartRevision] == '' ? null : releaseData[CreateReleaseSubstep.dartRevision],
+      incrementLetter: releaseData[CreateReleaseSubstep.increment] ?? '',
     );
   }
 
@@ -142,67 +168,42 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
     final GitValidation multiGitHash = MultiGitHash();
     final GitValidation gitHash = GitHash();
 
+    final Map<CreateReleaseSubstep, GitValidation> gitValidatonMapping = <CreateReleaseSubstep, GitValidation>{
+      CreateReleaseSubstep.candidateBranch: candidateBranch,
+      CreateReleaseSubstep.frameworkMirror: gitRemote,
+      CreateReleaseSubstep.engineMirror: gitRemote,
+      CreateReleaseSubstep.engineCherrypicks: multiGitHash,
+      CreateReleaseSubstep.frameworkCherrypicks: multiGitHash,
+      CreateReleaseSubstep.dartRevision: gitHash,
+    };
+
     final ConductorService conductor = context.watch<StatusState>().conductor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.candidateBranch]!,
-          setReleaseData: setReleaseData,
-          hintText: 'The candidate branch the release will be based on.',
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: candidateBranch,
-        ),
-        DropdownAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.releaseChannel]!,
-          releaseData: releaseData,
-          setReleaseData: setReleaseData,
-          options: CreateReleaseSubsteps.releaseChannels,
-          changeIsDropdownValid: changeIsEachInputValid,
-        ),
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkMirror]!,
-          setReleaseData: setReleaseData,
-          hintText: "Git remote of the Conductor user's Framework repository mirror.",
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: gitRemote,
-        ),
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineMirror]!,
-          setReleaseData: setReleaseData,
-          hintText: "Git remote of the Conductor user's Engine repository mirror.",
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: gitRemote,
-        ),
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.engineCherrypicks]!,
-          setReleaseData: setReleaseData,
-          hintText: 'Engine cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: multiGitHash,
-        ),
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.frameworkCherrypicks]!,
-          setReleaseData: setReleaseData,
-          hintText: 'Framework cherrypick hashes to be applied. Multiple hashes delimited by a comma.',
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: multiGitHash,
-        ),
-        InputAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.dartRevision]!,
-          setReleaseData: setReleaseData,
-          hintText: 'New Dart revision to cherrypick.',
-          changeIsInputValid: changeIsEachInputValid,
-          validationClass: gitHash,
-        ),
-        DropdownAsSubstep(
-          substepName: CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!,
-          releaseData: releaseData,
-          setReleaseData: setReleaseData,
-          options: CreateReleaseSubsteps.releaseIncrements,
-          changeIsDropdownValid: changeIsEachInputValid,
-        ),
+        for (final CreateReleaseSubstep substep in CreateReleaseSubstep.values)
+          if (CreateReleaseSubsteps.dropdownElements.contains(substep)) ...[
+            DropdownAsSubstep(
+              substep: substep,
+              releaseData: releaseData[substep],
+              setReleaseData: setReleaseData,
+              options: substep == CreateReleaseSubstep.releaseChannel
+                  ? CreateReleaseSubsteps.releaseChannels
+                  : CreateReleaseSubsteps.releaseIncrements,
+              changeIsDropdownValid: changeIsEachInputValid,
+              isLoading: _isLoading,
+            )
+          ] else ...[
+            InputAsSubstep(
+              substep: substep,
+              setReleaseData: setReleaseData,
+              hintText: CreateReleaseSubsteps.inputHintText[substep],
+              changeIsInputValid: changeIsEachInputValid,
+              validationClass: gitValidatonMapping[substep]!,
+              isLoading: _isLoading,
+            )
+          ],
         const SizedBox(height: 20.0),
         if (_error != null)
           Center(
@@ -248,41 +249,63 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   }
 }
 
-typedef SetReleaseData = void Function(String name, String data);
-typedef ChangeIsEachInputValid = void Function(String name, bool isValid);
+typedef SetReleaseData = void Function(CreateReleaseSubstep name, String data);
+typedef ChangeIsEachInputValid = void Function(CreateReleaseSubstep name, bool isValid);
 
-/// Captures the input values and updates the corresponding field in [releaseData].
+/// Captures and validates the input values and updates the corresponding field in [releaseData].
+///
+/// [substep] parameter is a [CreateReleaseSubstep] enum that represents the current substep
+/// this widget renders.
+///
+/// [setReleaseData] parameter is the method for modifying the state that stores all release
+/// data needed for initialization.
+///
+/// [hintText] parameter is the optional hintText of [TextFormField]. If it is not provided,
+/// no hintText will be displayed.
+///
+/// [changeIsInputValid] parameter is the method for modifying the state that tracks if
+/// the current input field is valid.
+///
+/// [validationClass] parameter is the Git class used to validate the current input, and display
+/// corresponding error messages if the validation fails.
+///
+/// [isLoading] parameter keeps track if a current release is currently initializing.
+/// If it is true, [TextFormField] is disabled, not allowing users to modify the current input
+/// during a loading phase. Else, [TextFormField] is enabled, allowing editing.
 class InputAsSubstep extends StatelessWidget {
   const InputAsSubstep({
     Key? key,
-    required this.substepName,
+    required this.substep,
     required this.setReleaseData,
     this.hintText,
     required this.changeIsInputValid,
     required this.validationClass,
+    required this.isLoading,
   }) : super(key: key);
 
-  final String substepName;
+  final CreateReleaseSubstep substep;
   final SetReleaseData setReleaseData;
   final String? hintText;
   final ChangeIsEachInputValid changeIsInputValid;
   final GitValidation validationClass;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      key: Key(substepName),
+      key: Key(CreateReleaseSubsteps.substepTitles[substep]!),
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      enabled: !isLoading,
       decoration: InputDecoration(
-        labelText: substepName,
+        labelText: CreateReleaseSubsteps.substepTitles[substep]!,
         hintText: hintText,
       ),
       onChanged: (String? data) {
-        setReleaseData(substepName, validationClass.sanitize(data));
+        setReleaseData(substep, validationClass.sanitize(data));
         if (!validationClass.isValid(data)) {
-          changeIsInputValid(substepName, false);
+          changeIsInputValid(substep, false);
         } else {
-          changeIsInputValid(substepName, true);
+          changeIsInputValid(substep, true);
         }
       },
       validator: (String? value) {
@@ -296,33 +319,53 @@ class InputAsSubstep extends StatelessWidget {
   }
 }
 
-/// Captures the chosen option and updates the corresponding field in [releaseData].
+/// Captures the chosen option in a dropdown and updates the corresponding field in [releaseData].
+///
+/// [substep] parameter is a [CreateReleaseSubstep] enum that represents the current substep
+/// this widget renders.
+///
+/// [releaseData] parameter is current dropdown's value stored in the state that stores all release
+/// data needed for initialization.
+///
+/// [setReleaseData] parameter is the method for modifying the state that stores all release
+/// data needed for initialization.
+///
+/// [options] parameter is a list of all the choices of the dropdown.
+///
+/// [changeIsDropdownValid] parameter is the method for modifying the state that tracks if
+/// each dropdown value is valid.
+///
+/// [isLoading] parameter keeps track if a current release is currently initializing.
+/// If true, [DropdownButton] is disabled, not allowing users to modify the current dropdown during
+/// a loading phase. Else, [DropdownButton] is enabled, allowing editing.
 class DropdownAsSubstep extends StatelessWidget {
   const DropdownAsSubstep({
     Key? key,
-    required this.substepName,
+    required this.substep,
     required this.releaseData,
     required this.setReleaseData,
     required this.options,
     required this.changeIsDropdownValid,
+    required this.isLoading,
   }) : super(key: key);
 
-  final String substepName;
-  final Map<String, String?> releaseData;
+  final CreateReleaseSubstep substep;
+  final String? releaseData;
   final SetReleaseData setReleaseData;
   final List<String> options;
   final ChangeIsEachInputValid changeIsDropdownValid;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
         Text(
-          substepName,
+          CreateReleaseSubsteps.substepTitles[substep]!,
           style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.grey[700]),
         ),
         // Only add a tooltip for the increment dropdown
-        if (substepName == CreateReleaseSubsteps.substepTitles[CreateReleaseSubstep.increment]!)
+        if (substep == CreateReleaseSubstep.increment)
           const Padding(
             padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
             child: InfoTooltip(
@@ -339,8 +382,8 @@ z:    Indicates a hotfix to a stable release.''',
         const SizedBox(width: 20.0),
         DropdownButton<String>(
           hint: const Text('-'), // Dropdown initially displays the hint when no option is selected.
-          key: Key(substepName),
-          value: releaseData[substepName],
+          key: Key(CreateReleaseSubsteps.substepTitles[substep]!),
+          value: releaseData,
           icon: const Icon(Icons.arrow_downward),
           items: options.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -348,10 +391,12 @@ z:    Indicates a hotfix to a stable release.''',
               child: Text(value),
             );
           }).toList(),
-          onChanged: (String? newValue) {
-            changeIsDropdownValid(substepName, true);
-            setReleaseData(substepName, newValue!);
-          },
+          onChanged: isLoading == true
+              ? null
+              : (String? newValue) {
+                  changeIsDropdownValid(substep, true);
+                  setReleaseData(substep, newValue!);
+                },
         ),
       ],
     );
