@@ -7,7 +7,6 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/codesign_engine_substeps.dart';
 import 'package:conductor_ui/widgets/common/url_button.dart';
-import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
