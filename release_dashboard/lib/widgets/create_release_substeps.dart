@@ -13,8 +13,7 @@ import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/tooltip.dart';
 
-/// Very important! The order of this enum decides which order the initialization
-/// parameter widgets get rendered.
+/// The order of this enum decides which order the widgets in [CreateReleaseSubsteps] get rendered.
 enum CreateReleaseSubstep {
   candidateBranch,
   releaseChannel,
@@ -26,7 +25,7 @@ enum CreateReleaseSubstep {
   increment,
 }
 
-/// Displays all substeps related to initializing a release.
+/// Displays all substeps related to create a release.
 ///
 /// Uses input fields and dropdowns to capture all the parameters of the conductor start command.
 ///
@@ -254,22 +253,22 @@ typedef ChangeIsEachInputValid = void Function(CreateReleaseSubstep name, bool i
 
 /// Captures and validates the input values and updates the corresponding field in [releaseData].
 ///
-/// [substep] parameter is a [CreateReleaseSubstep] enum that represents the current substep
+/// [substep] is a [CreateReleaseSubstep] that represents the current substep
 /// this widget renders.
 ///
-/// [setReleaseData] parameter is the method for modifying the state that stores all release
+/// [setReleaseData] is the method for modifying the state that stores all release
 /// data needed for initialization.
 ///
-/// [hintText] parameter is the optional hintText of [TextFormField]. If it is not provided,
+/// [hintText] is the optional hintText of [TextFormField]. If it is not provided,
 /// no hintText will be displayed.
 ///
-/// [changeIsInputValid] parameter is the method for modifying the state that tracks if
+/// [changeIsInputValid] is the method for modifying the state that tracks if
 /// the current input field is valid.
 ///
-/// [validationClass] parameter is the Git class used to validate the current input, and display
+/// [validationClass] is the Git class used to validate the current input, and display
 /// corresponding error messages if the validation fails.
 ///
-/// [isLoading] parameter keeps track if a current release is currently initializing.
+/// [isLoading] keeps track if a current release is currently initializing.
 /// If it is true, [TextFormField] is disabled, not allowing users to modify the current input
 /// during a loading phase. Else, [TextFormField] is enabled, allowing editing.
 class InputAsSubstep extends StatelessWidget {
@@ -321,21 +320,21 @@ class InputAsSubstep extends StatelessWidget {
 
 /// Captures the chosen option in a dropdown and updates the corresponding field in [releaseData].
 ///
-/// [substep] parameter is a [CreateReleaseSubstep] enum that represents the current substep
+/// [substep] is a [CreateReleaseSubstep] that represents the current substep
 /// this widget renders.
 ///
-/// [releaseData] parameter is current dropdown's value stored in the state that stores all release
+/// [releaseData] is current dropdown's value stored in the state that stores all release
 /// data needed for initialization.
 ///
-/// [setReleaseData] parameter is the method for modifying the state that stores all release
+/// [setReleaseData] is the method for modifying the state that stores all release
 /// data needed for initialization.
 ///
-/// [options] parameter is a list of all the choices of the dropdown.
+/// [options] is a list of all the choices of the dropdown.
 ///
-/// [changeIsDropdownValid] parameter is the method for modifying the state that tracks if
+/// [changeIsDropdownValid] is the method for modifying the state that tracks if
 /// each dropdown value is valid.
 ///
-/// [isLoading] parameter keeps track if a current release is currently initializing.
+/// [isLoading] keeps track if a current release is currently initializing.
 /// If true, [DropdownButton] is disabled, not allowing users to modify the current dropdown during
 /// a loading phase. Else, [DropdownButton] is enabled, allowing editing.
 class DropdownAsSubstep extends StatelessWidget {
