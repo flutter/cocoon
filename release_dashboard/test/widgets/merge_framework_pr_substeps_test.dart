@@ -7,13 +7,12 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:conductor_ui/models/repositories.dart';
 import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/common/url_button.dart';
-import 'package:conductor_ui/widgets/create_release_substeps.dart';
 import 'package:conductor_ui/widgets/merge_pr_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
@@ -80,7 +79,7 @@ void main() {
       });
 
       group('Validate post-submit CI', () {
-        for (final String releaseChannel in CreateReleaseSubsteps.releaseChannels) {
+        for (final String releaseChannel in kBaseReleaseChannels) {
           testWidgets('Displays the correct $releaseChannel LUCI dashboard URL', (WidgetTester tester) async {
             stateWithFrameworkPR.releaseChannel = releaseChannel;
             await tester.pumpWidget(

@@ -160,8 +160,7 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SelectableText(MergePrSubsteps.substepSubtitles[MergePrSubstep.postSubmitCi]!),
-          releaseStatus == null ||
-                  !CreateReleaseSubsteps.releaseChannels.contains(releaseStatus[ConductorStatusEntry.releaseChannel])
+          releaseStatus == null || !kBaseReleaseChannels.contains(releaseStatus[ConductorStatusEntry.releaseChannel])
               ? Text(
                   MergePrSubsteps.releaseChannelInvalidErr,
                   style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
