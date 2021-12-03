@@ -58,7 +58,6 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
             rightButtonCallback: () async {
               try {
                 await conductor.cleanRelease(context);
-                // ignore: avoid_catches_without_on_clauses
               } catch (error, stackTrace) {
                 _updateErrorMsg(errorToString(error, stackTrace));
               }
