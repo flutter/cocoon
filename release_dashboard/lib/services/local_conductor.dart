@@ -5,7 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:conductor_core/conductor_core.dart'
-    show Checkouts, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
+    show Checkouts, EngineRepository, FrameworkRepository, Stdio, VerboseStdio, defaultStateFilePath, readStateFromFile;
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -28,19 +28,24 @@ class LocalConductorService extends ConductorService {
     stdin: io.stdin,
   );
 
+  late final Directory _engineCheckoutDirectory;
+  late final Directory _frameworkCheckoutDirectory;
+
   @override
   Directory get rootDirectory => fs.directory(platform.environment['HOME']);
   File get stateFile => fs.file(defaultStateFilePath(platform));
 
-  static const String frameworkUpstream = 'https://github.com/flutter/flutter';
-  static const String engineUpstream = 'https://github.com/flutter/engine';
+  @override
+  Directory get engineCheckoutDirectory => _engineCheckoutDirectory;
+
+  @override
+  Directory get frameworkCheckoutDirectory => _frameworkCheckoutDirectory;
 
   @override
   pb.ConductorState? get state {
     if (stateFile.existsSync()) {
       return readStateFromFile(stateFile);
     }
-
     return null;
   }
 
@@ -70,10 +75,10 @@ class LocalConductorService extends ConductorService {
       dartRevision: dartRevision,
       engineCherrypickRevisions: engineCherrypickRevisions,
       engineMirror: engineMirror,
-      engineUpstream: engineUpstream,
+      engineUpstream: EngineRepository.defaultUpstream,
       frameworkCherrypickRevisions: frameworkCherrypickRevisions,
       frameworkMirror: frameworkMirror,
-      frameworkUpstream: frameworkUpstream,
+      frameworkUpstream: FrameworkRepository.defaultUpstream,
       incrementLetter: incrementLetter,
       processManager: processManager,
       releaseChannel: releaseChannel,
@@ -81,6 +86,8 @@ class LocalConductorService extends ConductorService {
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );
-    return startContext.run();
+    await startContext.run();
+    _engineCheckoutDirectory = await startContext.engine.checkoutDirectory;
+    _frameworkCheckoutDirectory = await startContext.framework.checkoutDirectory;
   }
 }

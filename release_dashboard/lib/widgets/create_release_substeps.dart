@@ -76,9 +76,6 @@ class CreateReleaseSubsteps extends StatefulWidget {
     CreateReleaseSubstep.releaseChannel,
     CreateReleaseSubstep.increment,
   ];
-
-  static const List<String> releaseChannels = <String>['dev', 'beta', 'stable'];
-  static const List<String> releaseIncrements = <String>['y', 'z', 'm', 'n'];
 }
 
 class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
@@ -187,9 +184,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
               substep: substep,
               releaseData: releaseData[substep],
               setReleaseData: setReleaseData,
-              options: substep == CreateReleaseSubstep.releaseChannel
-                  ? CreateReleaseSubsteps.releaseChannels
-                  : CreateReleaseSubsteps.releaseIncrements,
+              options: substep == CreateReleaseSubstep.releaseChannel ? kBaseReleaseChannels : KReleaseIncrements,
               changeIsDropdownValid: changeIsEachInputValid,
               isLoading: _isLoading,
             )

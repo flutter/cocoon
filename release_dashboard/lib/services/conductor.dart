@@ -17,6 +17,18 @@ abstract class ConductorService {
   /// Returns null when there is no active release, such as in the case when first initialized.
   pb.ConductorState? get state;
 
+  /// Returns the directory where the engine checkout is being saved.
+  ///
+  /// Can only be called after [createRelease] has been ran correctly.
+  /// Returns [rootDirectory] if it is called before [createRelease] or has not been initialized.
+  Directory get engineCheckoutDirectory;
+
+  /// Returns the directory where the framework checkout is being saved.
+  ///
+  /// Can only be called after [createRelease] has been ran correctly.
+  /// Returns [rootDirectory] if it is called before [createRelease] or has not been initialized.
+  Directory get frameworkCheckoutDirectory;
+
   /// This is the first step of every release which creates the release branch.
   Future<void> createRelease({
     required String candidateBranch,

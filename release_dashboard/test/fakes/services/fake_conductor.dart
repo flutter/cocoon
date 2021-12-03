@@ -73,4 +73,11 @@ class FakeConductor extends ConductorService {
   ConductorState? get state {
     return testState;
   }
+
+  @override
+  Directory get engineCheckoutDirectory => fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/engine');
+
+  @override
+  Directory get frameworkCheckoutDirectory =>
+      fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/framework');
 }
