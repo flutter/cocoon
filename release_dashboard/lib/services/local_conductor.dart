@@ -25,6 +25,7 @@ import 'package:provider/provider.dart';
 import '../state/status_state.dart';
 import 'conductor.dart';
 import 'release_dashboard_start_context.dart';
+import 'release_dashboard_next_context.dart';
 
 /// Service class for using the conductor in a local environment.
 ///
@@ -58,6 +59,16 @@ class LocalConductorService extends ConductorService {
       return readStateFromFile(stateFile);
     }
     return null;
+  }
+
+  Checkouts get checkouts {
+    return Checkouts(
+      parentDirectory: rootDirectory,
+      processManager: processManager,
+      fileSystem: fs,
+      platform: platform,
+      stdio: stdio,
+    );
   }
 
   @override
@@ -112,5 +123,17 @@ class LocalConductorService extends ConductorService {
     CleanContext cleanContext = CleanContext(stateFile: stateFile);
     await cleanContext.run();
     context.read<StatusState>().syncStatusWithState();
+  }
+
+  @override
+  Future<void> conductorNext(BuildContext context) async {
+    final ReleaseDashboardNextContext nextContext = ReleaseDashboardNextContext(
+      autoAccept: false,
+      force: false,
+      checkouts: checkouts,
+      stateFile: stateFile,
+      context: context,
+    );
+    await nextContext.run(state!);
   }
 }
