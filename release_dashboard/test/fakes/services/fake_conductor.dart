@@ -89,8 +89,6 @@ class FakeConductor extends ConductorService {
   Directory get frameworkCheckoutDirectory =>
       fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/framework');
 
-  /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
-  /// with no exception thrown when [run] is called.
   @override
   Future<void> cleanRelease(BuildContext context) async {
     return fakeCleanContextProvided?.run();
