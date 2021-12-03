@@ -30,7 +30,7 @@ class FakeConductor extends ConductorService {
     fakeCleanContextProvided ??= FakeCleanContext();
   }
 
-  FakeCleanContext? fakeCleanContextProvided;
+  late FakeCleanContext? fakeCleanContextProvided;
   final FakeStartContext? fakeStartContextProvided;
   final ConductorState? testState;
 

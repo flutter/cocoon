@@ -102,6 +102,9 @@ class LocalConductorService extends ConductorService {
     _frameworkCheckoutDirectory = await startContext.framework.checkoutDirectory;
   }
 
+  /// Deletes the current release state..
+  ///
+  /// Throws an exception if the file cannot be deleted or is not found.
   /// Sync the release status after cleaning the state file.
   @override
   Future<void> cleanRelease(BuildContext context) async {

@@ -42,7 +42,7 @@ abstract class ConductorService {
     required String releaseChannel,
   });
 
-  /// Deletes the current release in progress by deleting the state file.
+  /// Deletes the current release state..
   ///
   /// Throws an exception if the file cannot be deleted or is not found.
   Future<void> cleanRelease(BuildContext context);

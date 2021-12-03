@@ -12,12 +12,7 @@ void main() {
 
   group('errorToString tests', () {
     test('errorToString displays the correct Conductor Exception with its stack trace', () async {
-      late final String errorOutput;
-      try {
-        await Future.error(ConductorException(errorMsg), StackTrace.fromString(stackTraceMsg));
-      } catch (err, stackTrace) {
-        errorOutput = errorToString(err, stackTrace);
-      }
+      final String errorOutput = errorToString(ConductorException(errorMsg), StackTrace.fromString(stackTraceMsg));
 
       expect(errorOutput.contains('ConductorException:'), true);
       expect(errorOutput.contains(errorMsg), true);
