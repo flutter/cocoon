@@ -58,6 +58,15 @@ class Config {
     RepositorySlug('flutter', 'flutter'),
   };
 
+  /// The tip of tree branch for [slug].
+  static String defaultBranch(RepositorySlug slug) {
+    if (slug == flutterSlug) {
+      return 'master';
+    }
+
+    return 'main';
+  }
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
@@ -238,10 +247,6 @@ class Config {
 
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
-  String get defaultBranch => kDefaultBranchName;
-
-  bool isDefaultBranch(String branch) => branch == kDefaultBranchName || branch == 'main';
-
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
@@ -252,8 +257,8 @@ class Config {
   String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
-  RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
