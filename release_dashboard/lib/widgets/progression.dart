@@ -100,7 +100,7 @@ class MainProgressionState extends State<MainProgression> {
                       CreateReleaseSubsteps(nextStep: nextStep),
                     ],
                   ),
-                  isActive: true,
+                  isActive: _completedStep >= 0,
                   state: handleStepState(0),
                 ),
                 Step(
@@ -110,7 +110,7 @@ class MainProgressionState extends State<MainProgression> {
                       CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine),
                     ],
                   ),
-                  isActive: true,
+                  isActive: _completedStep >= 1,
                   state: handleStepState(1),
                 ),
                 Step(
@@ -120,7 +120,7 @@ class MainProgressionState extends State<MainProgression> {
                       CodesignEngineSubsteps(nextStep: nextStep),
                     ],
                   ),
-                  isActive: true,
+                  isActive: _completedStep >= 2,
                   state: handleStepState(2),
                 ),
                 Step(
@@ -130,19 +130,19 @@ class MainProgressionState extends State<MainProgression> {
                       CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework),
                     ],
                   ),
-                  isActive: true,
+                  isActive: _completedStep >= 3,
                   state: handleStepState(3),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[4]),
                   content: Column(),
-                  isActive: true,
+                  isActive: _completedStep >= 4,
                   state: handleStepState(4),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[5]),
                   content: PublishTagSubsteps(nextStep: nextStep),
-                  isActive: true,
+                  isActive: _completedStep >= 5,
                   state: handleStepState(5),
                 ),
                 Step(
