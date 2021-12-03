@@ -219,7 +219,6 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
                       try {
                         setIsLoading(true);
                         await runCreateRelease(conductor);
-                        // ignore: avoid_catches_without_on_clauses
                       } catch (error, stacktrace) {
                         setError(errorToString(error, stacktrace));
                       } finally {
