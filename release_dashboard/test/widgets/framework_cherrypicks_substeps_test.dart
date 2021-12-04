@@ -22,7 +22,7 @@ void main() {
     stateWithoutConflicts = generateConductorState();
   });
   group('Framework cherrypick substeps tests', () {
-    testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
+    testWidgets('Continue button enables when all substeps are checked', (WidgetTester tester) async {
       await tester.pumpWidget(ChangeNotifierProvider(
         create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
