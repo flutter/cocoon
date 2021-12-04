@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository;
+import 'package:flutter/material.dart';
 import 'local_conductor.dart';
 import 'release_dashboard_start_context.dart';
 
@@ -25,6 +26,7 @@ class DevLocalConductorService extends LocalConductorService {
     required String frameworkMirror,
     required String incrementLetter,
     required String releaseChannel,
+    required BuildContext context,
   }) async {
     final Checkouts checkouts = Checkouts(
       parentDirectory: rootDirectory,
@@ -64,6 +66,7 @@ class DevLocalConductorService extends LocalConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
+      context: context,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );

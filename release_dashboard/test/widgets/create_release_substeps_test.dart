@@ -369,12 +369,16 @@ void main() {
   group('CLI connection', () {
     testWidgets('Is able to display a conductor exception in the UI', (WidgetTester tester) async {
       const String exceptionMsg = 'There is a conductor Exception';
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => throw ConductorException(exceptionMsg),
-      );
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: FakeStartContext(
+              runOverride: () async => throw ConductorException(exceptionMsg),
+              context: context,
+            ),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
@@ -401,12 +405,16 @@ void main() {
 
     testWidgets('Is able to display a general exception in the UI', (WidgetTester tester) async {
       const String exceptionMsg = 'There is a general Exception';
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => throw Exception(exceptionMsg),
-      );
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: FakeStartContext(
+              runOverride: () async => throw Exception(exceptionMsg),
+              context: context,
+            ),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
@@ -434,12 +442,16 @@ void main() {
     testWidgets('Proceeds to the next step if there is no exception', (WidgetTester tester) async {
       bool contextRunCalled = false;
       bool nextStepReached = false;
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => contextRunCalled = true,
-      );
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: FakeStartContext(
+              runOverride: () async => contextRunCalled = true,
+              context: context,
+            ),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
@@ -466,26 +478,32 @@ void main() {
 
     testWidgets('Is able to display the loading UI, and hides it after the release is done',
         (WidgetTester tester) async {
-      final FakeStartContext startContext = FakeStartContext();
-
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
 
-      startContext.addCommand(FakeCommand(
-        command: const <String>[
-          'git',
-          'clone',
-          '--origin',
-          'upstream',
-          '--',
-          EngineRepository.defaultUpstream,
-          '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
-        ],
-        completer: completer,
-      ));
+      FakeStartContext buildStartContext(BuildContext context) {
+        final FakeStartContext startContext = FakeStartContext(context: context);
+        startContext.addCommand(FakeCommand(
+          command: const <String>[
+            'git',
+            'clone',
+            '--origin',
+            'upstream',
+            '--',
+            EngineRepository.defaultUpstream,
+            '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
+          ],
+          completer: completer,
+        ));
+        return startContext;
+      }
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: buildStartContext(context),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
@@ -516,26 +534,32 @@ void main() {
     });
 
     testWidgets('Disable all inputs and dropdowns when loading', (WidgetTester tester) async {
-      final FakeStartContext startContext = FakeStartContext();
-
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
 
-      startContext.addCommand(FakeCommand(
-        command: const <String>[
-          'git',
-          'clone',
-          '--origin',
-          'upstream',
-          '--',
-          EngineRepository.defaultUpstream,
-          '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
-        ],
-        completer: completer,
-      ));
+      FakeStartContext buildStartContext(BuildContext context) {
+        final FakeStartContext startContext = FakeStartContext(context: context);
+        startContext.addCommand(FakeCommand(
+          command: const <String>[
+            'git',
+            'clone',
+            '--origin',
+            'upstream',
+            '--',
+            EngineRepository.defaultUpstream,
+            '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
+          ],
+          completer: completer,
+        ));
+        return startContext;
+      }
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: buildStartContext(context),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(

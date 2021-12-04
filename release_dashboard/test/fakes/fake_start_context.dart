@@ -7,6 +7,7 @@ import 'package:conductor_ui/services/release_dashboard_start_context.dart';
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
+import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
 import 'fake_process_manager.dart';
@@ -36,6 +37,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     String releaseChannel = 'dev',
     File? stateFile,
     Future<void> Function()? runOverride,
+    required BuildContext context,
   }) {
     final FileSystem fileSystem = MemoryFileSystem.test();
     stateFile ??= fileSystem.file(kStateFileName);
@@ -69,6 +71,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
       releaseChannel: releaseChannel,
       stateFile: stateFile,
       runOverride: runOverride,
+      context: context,
     );
   }
 
@@ -88,6 +91,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     required String releaseChannel,
     required File stateFile,
     this.runOverride,
+    required BuildContext context,
   }) : super(
           candidateBranch: candidateBranch,
           checkouts: checkouts,
@@ -103,6 +107,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
           processManager: processManager,
           releaseChannel: releaseChannel,
           stateFile: stateFile,
+          context: context,
         );
 
   /// An optional override async callback for the real [run] method.
