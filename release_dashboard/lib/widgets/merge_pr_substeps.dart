@@ -6,14 +6,13 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../logic/repositories_str.dart';
+import '../logic/repositories_name.dart';
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
 import 'common/url_button.dart';
-import 'create_release_substeps.dart';
 
 enum MergePrSubstep {
   openPr,
@@ -116,7 +115,7 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
       userName: githubAccount(widget.repository == Repositories.engine
           ? conductor.state!.engine.mirror.url
           : conductor.state!.framework.mirror.url),
-      repoName: repositoriesStrFlutter(widget.repository),
+      repoName: repositoryNameAlt(widget.repository),
       state: conductor.state!,
     );
 
@@ -168,11 +167,11 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
               : UrlButton(
                   textToDisplay: luciConsoleLink(
                     releaseStatus[ConductorStatusEntry.releaseChannel] as String,
-                    repositoriesStrFlutter(widget.repository),
+                    repositoryNameAlt(widget.repository),
                   ),
                   urlOrUri: luciConsoleLink(
                     releaseStatus[ConductorStatusEntry.releaseChannel] as String,
-                    repositoriesStrFlutter(widget.repository),
+                    repositoryNameAlt(widget.repository),
                   ),
                 ),
         ],
@@ -202,7 +201,7 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
             child: ElevatedButton(
-              key: Key('merge${repositoriesStr(widget.repository, true)}CherrypicksSubstepsContinue'),
+              key: Key('merge${repositoryName(widget.repository, true)}CherrypicksSubstepsContinue'),
               onPressed: () {
                 widget.nextStep();
               },

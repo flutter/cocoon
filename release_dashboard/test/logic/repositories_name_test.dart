@@ -29,23 +29,47 @@ void main() {
     });
   });
 
-  group('Not capitalized', () {
-    test('engine', () {
-      expect(repositoryName(Repositories.engine), equals('engine'));
+  group('repositoryName tests', () {
+    group('Not capitalized', () {
+      test('engine', () {
+        expect(repositoryName(Repositories.engine), equals('engine'));
+      });
+
+      test('framework', () {
+        expect(repositoryName(Repositories.framework), equals('framework'));
+      });
     });
 
-    test('framework', () {
-      expect(repositoryName(Repositories.framework), equals('framework'));
+    group('Capitalized', () {
+      test('Engine', () {
+        expect(repositoryName(Repositories.engine, true), equals('Engine'));
+      });
+
+      test('Framework', () {
+        expect(repositoryName(Repositories.framework, true), equals('Framework'));
+      });
     });
   });
 
-  group('Capitalized', () {
-    test('Engine', () {
-      expect(repositoryName(Repositories.engine, true), equals('Engine'));
+  group('repositoryNameAlt tests', () {
+    group('Not capitalized', () {
+      test('engine', () {
+        expect(repositoryNameAlt(Repositories.engine), equals('engine'));
+      });
+
+      test('flutter', () {
+        expect(repositoryNameAlt(Repositories.framework), equals('flutter'));
+      });
     });
 
-    test('Framework', () {
-      expect(repositoryName(Repositories.framework, true), equals('Framework'));
+    group('Capitalized', () {
+      test('Engine', () {
+        expect(repositoryNameAlt(Repositories.engine, true), equals('Engine'));
+      });
+
+      test('Flutter', () {
+        expect(repositoryNameAlt(Repositories.framework, true), equals('Flutter'));
+      });
     });
   });
 }
