@@ -106,18 +106,25 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
   Widget build(BuildContext context) {
     final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
     final ConductorService conductor = context.watch<StatusState>().conductor;
+    late bool isPrRequired;
+    late String newPrLink;
 
-    final bool isPrRequired = widget.repository == Repositories.engine
-        ? requiresEnginePR(conductor.state!)
-        : requiresFrameworkPR(conductor.state!);
+    if (releaseStatus == null) {
+      isPrRequired = true;
+      newPrLink = 'Could not create a PR pink.';
+    } else {
+      isPrRequired = widget.repository == Repositories.engine
+          ? requiresEnginePR(conductor.state!)
+          : requiresFrameworkPR(conductor.state!);
 
-    final String newPrLink = getNewPrLink(
-      userName: githubAccount(widget.repository == Repositories.engine
-          ? conductor.state!.engine.mirror.url
-          : conductor.state!.framework.mirror.url),
-      repoName: repositoryNameAlt(widget.repository),
-      state: conductor.state!,
-    );
+      newPrLink = getNewPrLink(
+        userName: githubAccount(widget.repository == Repositories.engine
+            ? conductor.state!.engine.mirror.url
+            : conductor.state!.framework.mirror.url),
+        repoName: repositoryNameAlt(widget.repository),
+        state: conductor.state!,
+      );
+    }
 
     // Construct a list to keep track of the substeps required based on if a PR is needed
     // and the type of repository.
