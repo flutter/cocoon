@@ -11,14 +11,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import '../fakes/fake_next_context.dart';
 import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
+  late pb.ConductorState stateWithoutConflicts;
+
+  setUp(() {
+    stateWithoutConflicts = generateConductorState();
+  });
   group('Framework cherrypick substeps tests', () {
     testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor()),
+        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
           home: Material(
             child: Column(
@@ -32,12 +38,15 @@ void main() {
         ),
       ));
 
-      expect(find.byKey(const Key('applyFrameworkCherrypicksContinue')), findsNothing);
+      Finder continueButton = find.byKey(const Key('applyFrameworkCherrypicksContinue'));
+      expect(continueButton, findsOneWidget);
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
       expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!), findsNothing);
       expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!), findsOneWidget);
+
       await tester.tap(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('applyFrameworkCherrypicksContinue')), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
     });
 
     testWidgets('Clicking on the continue button proceeds to the next step', (WidgetTester tester) async {
@@ -45,7 +54,7 @@ void main() {
       void nextStep() => isNextStep = true;
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor()),
+        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
           home: Material(
             child: Column(
@@ -128,6 +137,92 @@ void main() {
 
       expect(find.textContaining('See more information'), findsOneWidget);
       expect(find.text(kReleaseDocumentationUrl), findsOneWidget);
+    });
+  });
+
+  group('NextContext tests', () {
+    late pb.ConductorState stateWithoutConflicts;
+    const pb.ReleasePhase currentPhase = pb.ReleasePhase.APPLY_FRAMEWORK_CHERRYPICKS;
+
+    setUp(() {
+      stateWithoutConflicts = generateConductorState(currentPhase: currentPhase);
+    });
+    testWidgets('Clicking on the continue button proceeds to the next phase of the release',
+        (WidgetTester tester) async {
+      const pb.ReleasePhase nextPhase = pb.ReleasePhase.PUBLISH_VERSION;
+      final pb.ConductorState nextPhaseState = generateConductorState(currentPhase: nextPhase);
+
+      FakeConductor fakeConductor = FakeConductor(
+        testState: stateWithoutConflicts,
+      );
+      // Initialize a [FakeNextContext] that changes the state of the conductor to be at the
+      // next phase, and attach it to the conductor. That simulates the scenario when
+      // 'fakeNextContext.run()` is called, proceeds to the next phase of the release.
+      FakeNextContext fakeNextContext = FakeNextContext(
+        runOverride: () async => fakeConductor.testState = nextPhaseState,
+      );
+      fakeConductor.fakeNextContextProvided = fakeNextContext;
+
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(
+          conductor: fakeConductor,
+        ),
+        child: MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                Builder(builder: (context) {
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
+                }),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      expect(fakeConductor.state?.currentPhase, equals(currentPhase));
+      await tester.tap(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('applyFrameworkCherrypicksContinue')));
+      await tester.pumpAndSettle();
+      expect(fakeConductor.state?.currentPhase, equals(nextPhase));
+    });
+
+    testWidgets('Catch an exception correctly', (WidgetTester tester) async {
+      const String exceptionMsg = 'There is a general Exception';
+
+      // Initialize a [FakeNextContext] that throws an error and attach it to the conductor.
+      // That simulates the scenario when 'fakeNextContext.run()` is called, an error is thrown.
+      final FakeConductor fakeConductor = FakeConductor(
+        testState: stateWithoutConflicts,
+        fakeNextContextProvided: FakeNextContext(
+          runOverride: () async => throw Exception(exceptionMsg),
+        ),
+      );
+
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(
+          conductor: fakeConductor,
+        ),
+        child: MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                Builder(builder: (context) {
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
+                }),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('applyFrameworkCherrypicksContinue')));
+      await tester.pumpAndSettle();
+      expect(fakeConductor.state?.currentPhase, equals(currentPhase));
+      expect(find.textContaining(exceptionMsg), findsOneWidget);
     });
   });
 }

@@ -24,8 +24,8 @@ import 'package:provider/provider.dart';
 
 import '../state/status_state.dart';
 import 'conductor.dart';
-import 'release_dashboard_start_context.dart';
 import 'release_dashboard_next_context.dart';
+import 'release_dashboard_start_context.dart';
 
 /// Service class for using the conductor in a local environment.
 ///

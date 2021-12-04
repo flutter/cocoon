@@ -4,11 +4,11 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
-import 'package:conductor_ui/logic/error_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/cherrypick_state.dart';
+import '../logic/error_to_string.dart';
 import '../logic/repositories_name.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
