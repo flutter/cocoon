@@ -158,14 +158,13 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
             error: _error,
             onPressedCallback: () async {
               setError(null);
-              try {
-                await statusState.conductor.conductorNext(context);
-              } catch (error, stackTrace) {
+              statusState.conductor.conductorNext(context).catchError((error, stackTrace) {
                 setError(errorToString(error, stackTrace));
-              }
-              if (_error == null) {
-                widget.nextStep();
-              }
+              }).whenComplete(() {
+                if (_error == null) {
+                  widget.nextStep();
+                }
+              });
             },
             isLoading: false),
       ],
