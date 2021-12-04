@@ -120,6 +120,9 @@ void main() {
 
     group('Checksteps and continue button logic tests', () {
       testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
+        // Make sure the screen is large enough for the widgets to be found.
+        tester.binding.window.physicalSizeTestValue = const Size(5000, 5000);
+
         await tester.pumpWidget(
           ChangeNotifierProvider(
             create: (context) => StatusState(conductor: FakeConductor(testState: stateWithEnginePR)),
@@ -148,6 +151,9 @@ void main() {
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {
+        // Make sure the screen is large enough for the widgets to be found.
+        tester.binding.window.physicalSizeTestValue = const Size(5000, 5000);
+
         bool isNextStep = false;
         void nextStep() => isNextStep = true;
 
