@@ -39,15 +39,14 @@ void main() {
         ),
       ));
 
-      expect(find.byKey(const Key('applyEngineCherrypicksContinue')), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(find.byKey(const Key('applyEngineCherrypicksContinue'))).enabled,
-          equals(false));
+      final Finder continueButton = find.byKey(const Key('applyEngineCherrypicksContinue'));
+      expect((continueButton), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
       for (final String substep in CherrypicksSubsteps.substepTitles.values) {
         await tester.tap(find.text(substep));
       }
       await tester.pumpAndSettle();
-      expect(
-          tester.widget<ElevatedButton>(find.byKey(const Key('applyEngineCherrypicksContinue'))).enabled, equals(true));
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
     });
 
     testWidgets('Clicking on the continue button proceeds to the next step', (WidgetTester tester) async {

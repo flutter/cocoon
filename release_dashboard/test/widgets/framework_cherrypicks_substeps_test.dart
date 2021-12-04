@@ -38,7 +38,7 @@ void main() {
         ),
       ));
 
-      Finder continueButton = find.byKey(const Key('applyFrameworkCherrypicksContinue'));
+      final Finder continueButton = find.byKey(const Key('applyFrameworkCherrypicksContinue'));
       expect(continueButton, findsOneWidget);
       expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
       expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!), findsNothing);
