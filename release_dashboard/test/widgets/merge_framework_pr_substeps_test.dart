@@ -125,7 +125,7 @@ void main() {
     });
 
     group('Checksteps and continue button logic tests', () {
-      testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
+      testWidgets('Continue button enables when all substeps are checked', (WidgetTester tester) async {
         await tester.pumpWidget(
           ChangeNotifierProvider(
             create: (context) => StatusState(conductor: FakeConductor(testState: stateWithFrameworkPR)),
@@ -142,7 +142,8 @@ void main() {
         );
 
         final Finder continueButton = find.byKey(const Key('mergeFrameworkCherrypicksSubstepsContinue'));
-        expect(continueButton, findsNothing);
+        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
 
         for (final MergePrSubstep substep in MergePrSubstep.values) {
           if (substep != MergePrSubstep.updateLicenseHash && substep != MergePrSubstep.codesign) {
@@ -152,7 +153,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.drag(find.byType(ListView), const Offset(0.0, -500.0));
         await tester.pump();
-        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {
@@ -219,7 +220,7 @@ void main() {
     });
 
     group('Checksteps and continue button logic tests', () {
-      testWidgets('Continue button is displayed', (WidgetTester tester) async {
+      testWidgets('Continue button is enabled', (WidgetTester tester) async {
         await tester.pumpWidget(
           ChangeNotifierProvider(
             create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutFrameworkPR)),
@@ -235,7 +236,9 @@ void main() {
           ),
         );
 
-        expect(find.byKey(const Key('mergeFrameworkCherrypicksSubstepsContinue')), findsOneWidget);
+        final Finder continueButton = find.byKey(const Key('mergeFrameworkCherrypicksSubstepsContinue'));
+        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {

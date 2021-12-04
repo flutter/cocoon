@@ -119,7 +119,7 @@ void main() {
     });
 
     group('Checksteps and continue button logic tests', () {
-      testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
+      testWidgets('Continue button enables when all substeps are checked', (WidgetTester tester) async {
         // Make sure the screen is large enough for the widgets to be found.
         tester.binding.window.physicalSizeTestValue = const Size(2000, 4000);
 
@@ -139,13 +139,14 @@ void main() {
         );
 
         final Finder continueButton = find.byKey(const Key('mergeEngineCherrypicksSubstepsContinue'));
-        expect(continueButton, findsNothing);
+        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
 
         for (final MergePrSubstep substep in MergePrSubstep.values) {
           await tester.tap(find.text(MergePrSubsteps.substepTitles[substep]!));
         }
         await tester.pumpAndSettle();
-        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {
@@ -217,7 +218,7 @@ void main() {
     });
 
     group('Checksteps and continue button logic tests', () {
-      testWidgets('Continue button appears when the codesign step is checked', (WidgetTester tester) async {
+      testWidgets('Continue button enables when the codesign step is checked', (WidgetTester tester) async {
         await tester.pumpWidget(
           ChangeNotifierProvider(
             create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutEnginePR)),
@@ -234,11 +235,12 @@ void main() {
         );
 
         final Finder continueButton = find.byKey(const Key('mergeEngineCherrypicksSubstepsContinue'));
-        expect(continueButton, findsNothing);
+        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
 
         await tester.tap(find.text(MergePrSubsteps.substepTitles[MergePrSubstep.codesign]!));
         await tester.pumpAndSettle();
-        expect(continueButton, findsOneWidget);
+        expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {
