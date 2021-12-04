@@ -24,10 +24,8 @@ void main() {
       child: MaterialApp(
         home: Material(
           child: Column(
-            children: <Widget>[
-              Builder(builder: (context) {
-                return const ReleaseCompleted();
-              }),
+            children: const <Widget>[
+              ReleaseCompleted(),
             ],
           ),
         ),
