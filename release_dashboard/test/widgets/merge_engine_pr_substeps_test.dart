@@ -121,7 +121,7 @@ void main() {
     group('Checksteps and continue button logic tests', () {
       testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
         // Make sure the screen is large enough for the widgets to be found.
-        tester.binding.window.physicalSizeTestValue = const Size(5000, 5000);
+        tester.binding.window.physicalSizeTestValue = const Size(2000, 4000);
 
         await tester.pumpWidget(
           ChangeNotifierProvider(
@@ -145,14 +145,12 @@ void main() {
           await tester.tap(find.text(MergePrSubsteps.substepTitles[substep]!));
         }
         await tester.pumpAndSettle();
-        await tester.drag(find.byType(ListView), const Offset(0.0, -500.0));
-        await tester.pump();
         expect(continueButton, findsOneWidget);
       });
 
       testWidgets('Click on the continue button proceeds to the next step', (WidgetTester tester) async {
         // Make sure the screen is large enough for the widgets to be found.
-        tester.binding.window.physicalSizeTestValue = const Size(5000, 5000);
+        tester.binding.window.physicalSizeTestValue = const Size(2000, 4000);
 
         bool isNextStep = false;
         void nextStep() => isNextStep = true;
@@ -176,8 +174,6 @@ void main() {
           await tester.tap(find.text(MergePrSubsteps.substepTitles[substep]!));
         }
         await tester.pumpAndSettle();
-        await tester.drag(find.byType(ListView), const Offset(0.0, -500.0));
-        await tester.pump();
         await tester.tap(find.byKey(const Key('mergeEngineCherrypicksSubstepsContinue')));
         await tester.pumpAndSettle();
         expect(isNextStep, equals(true));
