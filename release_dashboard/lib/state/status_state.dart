@@ -52,12 +52,12 @@ class StatusState extends ChangeNotifier {
 
   /// Updates the release status with the latest values saved in the state file.
   ///
+  /// [context] is the [BuildContext] of the widget which is calling this method.
+  /// [read] is from 'package:provider/provider.dart'.
+  ///
   /// Use the code below to call the method:
   ///
   /// {@tool snippet}
-  ///
-  /// [context] is the [BuildContext] of the widget which is calling this method.
-  /// [read] is from 'package:provider/provider.dart'.
   ///
   /// An example on how to call this method:
   ///
