@@ -46,10 +46,8 @@ class MyApp extends StatelessWidget {
         home: Scaffold(
           appBar: AppBar(
             title: const Text(_title),
-            actions: [
-              CleanReleaseButton(
-                conductor: conductor,
-              ),
+            actions: const [
+              CleanReleaseButton(),
             ],
           ),
           body: Padding(

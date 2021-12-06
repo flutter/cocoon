@@ -4,6 +4,7 @@
 
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
+import 'package:flutter/material.dart';
 
 /// Service class for interacting with the conductor library.
 ///
@@ -40,4 +41,9 @@ abstract class ConductorService {
     required String incrementLetter,
     required String releaseChannel,
   });
+
+  /// Deletes the current release state..
+  ///
+  /// Throws an exception if the file cannot be deleted or is not found.
+  Future<void> cleanRelease(BuildContext context);
 }

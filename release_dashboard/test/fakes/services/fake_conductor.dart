@@ -6,8 +6,10 @@ import 'package:conductor_core/src/proto/conductor_state.pb.dart';
 import 'package:conductor_ui/services/conductor.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
+import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
+import '../fake_clean_context.dart';
 import '../fake_start_context.dart';
 
 /// Fake service class for using the conductor in a fake local environment.
@@ -19,10 +21,16 @@ import '../fake_start_context.dart';
 /// release dashboard.
 class FakeConductor extends ConductorService {
   FakeConductor({
+    this.fakeCleanContextProvided,
     this.fakeStartContextProvided,
     this.testState,
-  });
+  }) {
+    /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
+    /// with no exception thrown when [run] is called.
+    fakeCleanContextProvided ??= FakeCleanContext();
+  }
 
+  late FakeCleanContext? fakeCleanContextProvided;
   final FakeStartContext? fakeStartContextProvided;
   final ConductorState? testState;
 
@@ -80,4 +88,9 @@ class FakeConductor extends ConductorService {
   @override
   Directory get frameworkCheckoutDirectory =>
       fs.directory('${rootDirectory.path}/flutter_conductor_checkouts/framework');
+
+  @override
+  Future<void> cleanRelease(BuildContext context) async {
+    return fakeCleanContextProvided?.run();
+  }
 }
