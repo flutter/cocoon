@@ -87,6 +87,8 @@ class MainProgressionState extends State<MainProgression> {
           children: <Widget>[
             const ConductorStatus(),
             const SizedBox(height: 20.0),
+            // TODO(Yugue):  render stepper content widget only if the release is at that step,
+            // https://github.com/flutter/flutter/issues/94755.
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),
               physics: const ScrollPhysics(),
