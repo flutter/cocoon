@@ -38,7 +38,7 @@ class GetStatus extends RequestHandler<Body> {
     final String? encodedLastCommitKey = request!.uri.queryParameters[kLastCommitKeyParam];
     final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
-    final String branch = request!.uri.queryParameters[kBranchParam] ?? 'master';
+    final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
