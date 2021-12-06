@@ -1533,14 +1533,18 @@ class MockLuciService extends _i1.Mock implements _i32.LuciService {
                   Future<Map<_i32.LuciBuilder, List<_i32.LuciTask>>>.value(<_i32.LuciBuilder, List<_i32.LuciTask>>{}))
           as _i14.Future<Map<_i32.LuciBuilder, List<_i32.LuciTask>>>);
   @override
+<<<<<<< HEAD
   _i14.Future<Iterable<_i7.Build>> getBuilds(bool? requireTaskName, List<_i32.LuciBuilder>? builders) =>
+=======
+<<<<<<< HEAD
+  _i14.Future<Iterable<_i7.Build>> getBuilds(bool? requireTaskName, List<_i33.LuciBuilder>? builders) =>
+>>>>>>> 52de8724 (merge clean revert)
       (super.noSuchMethod(Invocation.method(#getBuilds, [requireTaskName, builders]),
-          returnValue: Future<Iterable<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<Iterable<_i7.Build>>);
-  @override
-  String toString() => super.toString();
+=======
+  _i14.Future<Iterable<_i7.Build>> getBuilds(String? repo, bool? requireTaskName, List<_i32.LuciBuilder>? builders) =>
+      (super.noSuchMethod(Invocation.method(#getBuilds, [repo, requireTaskName, builders]),
 }
 
-/// A class which mocks [PullRequestsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPullRequestsService extends _i1.Mock implements _i8.PullRequestsService {
@@ -2273,7 +2277,7 @@ class MockGitHub extends _i1.Mock implements _i8.GitHub {
             #body: body,
             #preview: preview
           }),
-          returnValue: _i35.postJsonShim<S, T>(path,
+          returnValue: _i34.postJsonShim<S, T>(path,
               statusCode: statusCode,
               fail: fail,
               headers: headers,

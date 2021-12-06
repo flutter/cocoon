@@ -22,6 +22,9 @@ import 'refresh_cirrus_status.dart';
 /// goes green.
 const int _kMergeCountPerCycle = 2;
 
+/// The regular expression string of the default revert commit message.
+const String _regExpCommitMessage = 'This reverts commit (?<revertCommitSha>.+).';
+
 /// Injected latency per repository. Engine and Flutter use an injected latency of 1h meaning
 /// that the bot skips any commits younger than 1h. However 1h is too long for some repositories
 /// whose builds are faster. Use this constant to override the default 1h latency for a given repository.
@@ -67,7 +70,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
     for (_AutoMergeQueryResult queryResult in queryResults) {
-      if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
+      final RegExp commitRegExp = RegExp(_regExpCommitMessage);
+      final RegExpMatch? match = commitRegExp.firstMatch(queryResult.message);
+      String? revertCommitSha;
+      if (match != null) {
+        revertCommitSha = match.namedGroup('revertCommitSha');
+      }
+      // If the PR is a revert of the tot commit, merge without waiting for checks passing.
+      if (await isShaFromTOT(revertCommitSha, slug) || mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
@@ -88,6 +98,16 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         );
       }
     }
+  }
+
+  /// Check if the `commitSha` is from TOT.
+  Future<bool> isShaFromTOT(
+    String? commitSha,
+    RepositorySlug slug,
+  ) async {
+    final GitHub github = await config.createGitHubClient(slug: slug);
+    final RepositoryCommit totCommit = await github.repositories.getCommit(slug, 'HEAD');
+    return commitSha != null && totCommit.sha == commitSha;
   }
 
   Future<Map<String, dynamic>> _queryGraphQL(
@@ -217,6 +237,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit['oid'] as String;
+      // The commit message will be used to identify is a revert happens, and further to check if a
+      // TOT commit is being reverted. If yes, merge the PR without waiting for all tests passing.
+      final String message = commit['message'] as String;
       List<Map<String, dynamic>>? statuses;
       if (commit['status'] != null &&
           commit['status']['contexts'] != null &&
@@ -251,6 +274,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           number: number,
           title: title,
           sha: sha,
+          message: message,
           labelId: labelId!,
           emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
@@ -417,6 +441,7 @@ class _AutoMergeQueryResult {
     required this.number,
     required this.title,
     required this.sha,
+    required this.message,
     required this.labelId,
     required this.emptyChecks,
     required this.isConflicting,
@@ -447,6 +472,9 @@ class _AutoMergeQueryResult {
 
   /// The git SHA to be merged.
   final String sha;
+
+  /// The git commit message.
+  final String message;
 
   /// The GitHub GraphQL ID of the waiting label.
   final String labelId;

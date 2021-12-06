@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:mockito/src/mock.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -17,6 +18,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_graphql_client.dart';
+import '../src/utilities/mocks.dart';
 
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
@@ -106,6 +108,8 @@ void main() {
     FakeAuthenticationProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
     FakeGraphQLClient cirrusGraphQLClient;
+    final MockGitHub mockGitHubClient = MockGitHub();
+    final RepositoriesService mockRepositoriesService = MockRepositoriesService();
 
     late ApiRequestHandlerTester tester;
 
@@ -116,24 +120,34 @@ void main() {
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String? branch;
+    String? totSha;
 
     setUp(() {
       request = FakeHttpRequest();
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
+
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
-        rollerAccountsValue: <String>{},
-        cirrusGraphQLClient: cirrusGraphQLClient,
-        githubGraphQLClient: githubGraphQLClient,
-      );
+          rollerAccountsValue: <String>{},
+          cirrusGraphQLClient: cirrusGraphQLClient,
+          githubGraphQLClient: githubGraphQLClient,
+          githubClient: mockGitHubClient);
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
+
+      when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD')).thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD')).thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
 
       cirrusGraphQLClient.mutateResultForOptions =
           (MutationOptions options) => QueryResult(source: QueryResultSource.network);
@@ -352,6 +366,33 @@ void main() {
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
+    test('Merge a clean revert PR with in progress tests', () async {
+      totSha = 'abc';
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      branch = 'pull/0';
+
+      final PullRequestHelper prRequested = PullRequestHelper(lastCommitCheckRuns: const <CheckRunHelper>[
+        CheckRunHelper.linuxCompletedRunning,
+      ], lastCommitStatuses: const <StatusHelper>[
+        StatusHelper.flutterBuildSuccess,
+      ], lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.');
+      flutterRepoPRs.add(prRequested);
+
+      await tester.get(handler);
+
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
@@ -1048,6 +1089,7 @@ class PullRequestHelper {
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
+    this.lastCommitMessage = '',
     this.dateTime,
     this.labels = const <dynamic>[],
   }) : _count = _counter++;
@@ -1065,6 +1107,7 @@ class PullRequestHelper {
   final String lastCommitHash;
   List<StatusHelper>? lastCommitStatuses;
   List<CheckRunHelper>? lastCommitCheckRuns;
+  final String? lastCommitMessage;
   final DateTime? dateTime;
   List<dynamic> labels;
 
@@ -1095,6 +1138,7 @@ class PullRequestHelper {
             'commit': <String, dynamic>{
               'oid': lastCommitHash,
               'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
+              'message': lastCommitMessage,
               'status': <String, dynamic>{
                 'contexts': lastCommitStatuses != null
                     ? lastCommitStatuses!.map((StatusHelper status) {
