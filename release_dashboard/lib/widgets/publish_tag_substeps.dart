@@ -46,6 +46,8 @@ class PublishTagSubstepsState extends State<PublishTagSubsteps> {
                 '*** Very Important ***',
                 style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
               ),
+              // TODO(Yugue): Add DialoguePrompt to confirm tag creation,
+              // https://github.com/flutter/flutter/issues/94222.
               Text(
                 'Please verify if the tag and the channel are correct. The action below is disruptive and irreversible',
                 style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
