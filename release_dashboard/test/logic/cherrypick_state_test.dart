@@ -9,9 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Cherrypick State extension tests', () {
     cherrypickStates.forEach(
-      (pb.CherrypickState state, String stateValue) => {
+      (pb.CherrypickState state, String stateStr) => {
         test('$state state is able to be converted to its corresponding string correctly', () {
-          expect(state.string(), equals(stateValue));
+          expect(state.string(), equals(stateStr));
         })
       },
     );
