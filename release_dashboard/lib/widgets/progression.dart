@@ -9,6 +9,8 @@ import 'cherrypicks_substeps.dart';
 import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
+import 'release_completed.dart';
+import 'substeps.dart';
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -30,7 +32,10 @@ class MainProgression extends StatefulWidget {
     'Apply Engine Cherrypicks',
     'Codesign Engine Binaries',
     'Apply Framework Cherrypicks',
-    'Release is Successfully published'
+    'Merge the Framework PR',
+    'Publish the Version Tag',
+    'Push and Verify the Release',
+    'Release is Completed',
   ];
 }
 
@@ -132,6 +137,24 @@ class MainProgressionState extends State<MainProgression> {
                   content: Column(),
                   isActive: true,
                   state: handleStepState(4),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[5]),
+                  content: ConductorSubsteps(nextStep: nextStep),
+                  isActive: true,
+                  state: handleStepState(5),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[6]),
+                  content: ConductorSubsteps(nextStep: nextStep),
+                  isActive: true,
+                  state: handleStepState(6),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[7]),
+                  content: const ReleaseCompleted(),
+                  isActive: true,
+                  state: handleStepState(7),
                 ),
               ],
             ),
