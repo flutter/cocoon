@@ -131,7 +131,7 @@ void main() {
       // Verify comment is created correctly.
       List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
       expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
 
@@ -143,7 +143,7 @@ void main() {
       )).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
+      expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
 
       expect(result['Status'], 'success');
@@ -252,7 +252,7 @@ void main() {
       // Verify comment is created correctly.
       List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
       expect(captured[2], expectedStagingSemanticsIntegrationTestIssueComment);
 
@@ -264,7 +264,7 @@ void main() {
       )).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
+      expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P1']));
 
       expect(result['Status'], 'success');
@@ -316,7 +316,7 @@ void main() {
       // Verify comment is created correctly.
       final List<dynamic> captured = verify(mockIssuesService.edit(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
       final IssueRequest request = captured[2] as IssueRequest;
       expect(request.assignee, 'HansMuller');
@@ -371,7 +371,7 @@ void main() {
       // Verify issue is created correctly.
       List<dynamic> captured = verify(mockIssuesService.createComment(captureAny, captureAny, captureAny)).captured;
       expect(captured.length, 3);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
       expect(captured[2], expectedSemanticsIntegrationTestZeroFlakeIssueComment);
 
@@ -383,7 +383,7 @@ void main() {
       )).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
-      expect(captured[1], '/repos/${config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
+      expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
       expect(captured[2], GitHubJson.encode(<String>['some random label', 'P2']));
 
       expect(result['Status'], 'success');

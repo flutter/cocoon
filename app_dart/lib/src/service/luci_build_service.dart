@@ -586,7 +586,12 @@ class LuciBuildService {
     if (!taskFailStatusSet.contains(luciTask.status) || retries >= config.maxLuciTaskRetries) {
       return false;
     }
-    final Commit latestCommit = await datastore!.queryRecentCommits(limit: 1).single;
+    final Commit latestCommit = await datastore!
+        .queryRecentCommits(
+          limit: 1,
+          slug: commit.slug,
+        )
+        .single;
     return latestCommit.sha == commit.sha;
   }
 }

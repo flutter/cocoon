@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -89,6 +90,8 @@ void main() {
     FakeConfig config;
     DatastoreService datastoreService;
 
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
     setUp(() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
@@ -98,14 +101,14 @@ void main() {
 
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>[]));
       });
 
       test('returns success if top commit is all green', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
@@ -115,14 +118,14 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? allGreen : middleTaskFailed;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
       test('returns failure if last commit contains any red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -130,14 +133,14 @@ void main() {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
 
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('ignores failures on flaky commits', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
@@ -147,7 +150,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : allGreen;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
@@ -157,7 +160,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -167,7 +170,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskRerunning : allGreen;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -177,7 +180,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInfraFailure : allGreen;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
@@ -187,7 +190,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskRerunGreen : allRed;
         });
-        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus();
+        final BuildStatus? status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
       });
 
@@ -207,13 +210,23 @@ void main() {
         db.values[task1.key] = task1;
 
         // Test master branch.
-        final List<CommitStatus> statuses1 = await buildStatusService.retrieveCommitStatus(limit: 5).toList();
+        final List<CommitStatus> statuses1 = await buildStatusService
+            .retrieveCommitStatus(
+              limit: 5,
+              slug: slug,
+            )
+            .toList();
         expect(statuses1.length, 1);
         expect(statuses1.first.commit.branch, 'master');
 
         // Test dev branch.
-        final List<CommitStatus> statuses2 =
-            await buildStatusService.retrieveCommitStatus(limit: 5, branch: 'flutter-0.0-candidate.0').toList();
+        final List<CommitStatus> statuses2 = await buildStatusService
+            .retrieveCommitStatus(
+              limit: 5,
+              branch: 'flutter-0.0-candidate.0',
+              slug: slug,
+            )
+            .toList();
         expect(statuses2.length, 1);
         expect(statuses2.first.commit.branch, 'flutter-0.0-candidate.0');
       });

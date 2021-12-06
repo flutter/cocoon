@@ -127,9 +127,6 @@ class FakeConfig implements Config {
   FakeDatastoreDB get db => dbValue;
 
   @override
-  String get defaultBranch => kDefaultBranchName;
-
-  @override
   int get maxTaskRetries => maxTaskRetriesValue!;
 
   /// Size of the shards to send to buildBucket when scheduling builds.
@@ -222,9 +219,6 @@ class FakeConfig implements Config {
   String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue!;
 
   @override
-  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
-
-  @override
   Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue!;
 
   @override
@@ -270,9 +264,6 @@ class FakeConfig implements Config {
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue!;
 
   @override
-  RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-
-  @override
   Future<GithubService> createDefaultGitHubService() async => githubService!;
 
   @override
@@ -280,7 +271,4 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
-
-  @override
-  bool isDefaultBranch(String branch) => branch == kDefaultBranchName || branch == 'main';
 }

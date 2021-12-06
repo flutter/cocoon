@@ -443,7 +443,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       return;
     }
-    if (config.isDefaultBranch(pr.base!.ref!)) {
+    if (Config.defaultBranch(pr.base!.repo!.slug()) == pr.base!.ref!) {
       return;
     }
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
@@ -462,7 +462,7 @@ class GithubWebhook extends RequestHandler<Body> {
       await gitHubClient.pullRequests.edit(
         slug,
         pr.number!,
-        base: config.defaultBranch,
+        base: Config.defaultBranch(slug),
       );
       await gitHubClient.issues.createComment(slug, pr.number!, body);
     }

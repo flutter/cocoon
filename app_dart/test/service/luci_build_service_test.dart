@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -63,7 +64,7 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        config.flutterSlug,
+        Config.flutterSlug,
         'shasha',
         'abcd',
       );
@@ -102,7 +103,7 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-        config.flutterSlug,
+        Config.flutterSlug,
         'shasha',
         'abcd',
       );

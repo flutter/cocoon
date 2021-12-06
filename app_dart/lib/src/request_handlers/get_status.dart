@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
@@ -28,13 +29,16 @@ class GetStatus extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
 
-  static const String lastCommitKeyParam = 'lastCommitKey';
-  static const String branchParam = 'branch';
+  static const String kLastCommitKeyParam = 'lastCommitKey';
+  static const String kBranchParam = 'branch';
+  static const String kRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
-    final String? encodedLastCommitKey = request!.uri.queryParameters[lastCommitKeyParam];
-    final String branch = request!.uri.queryParameters[branchParam] ?? 'master';
+    final String? encodedLastCommitKey = request!.uri.queryParameters[kLastCommitKeyParam];
+    final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
+    final RepositorySlug slug = RepositorySlug('flutter', repoName);
+    final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
@@ -42,7 +46,12 @@ class GetStatus extends RequestHandler<Body> {
     final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
     final List<SerializableCommitStatus> statuses = await buildStatusService
-        .retrieveCommitStatus(limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
+        .retrieveCommitStatus(
+          limit: commitNumber,
+          timestamp: lastCommitTimestamp,
+          branch: branch,
+          slug: slug,
+        )
         .map<SerializableCommitStatus>(
             (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
         .toList();

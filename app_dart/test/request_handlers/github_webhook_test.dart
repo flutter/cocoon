@@ -72,7 +72,7 @@ void main() {
     when(issuesService.listCommentsByIssue(any, any))
         .thenAnswer((_) => Stream<IssueComment>.fromIterable(<IssueComment>[IssueComment()]));
     pullRequestsService = MockPullRequestsService();
-    when(pullRequestsService.listFiles(config.flutterSlug, any))
+    when(pullRequestsService.listFiles(Config.flutterSlug, any))
         .thenAnswer((_) => const Stream<PullRequestFile>.empty());
     when(pullRequestsService.edit(any, any, title: anyNamed('title'), state: anyNamed('state'), base: anyNamed('base')))
         .thenAnswer((_) async => PullRequest());
@@ -160,13 +160,13 @@ void main() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
-      when(pullRequestsService.listFiles(config.flutterSlug, issueNumber)).thenAnswer(
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
       );
 
-      when(issuesService.listCommentsByIssue(config.flutterSlug, issueNumber)).thenAnswer(
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
           IssueComment()..body = 'some other comment',
         ),
@@ -175,13 +175,13 @@ void main() {
       await tester.post(webhook);
 
       verify(pullRequestsService.edit(
-        config.flutterSlug,
+        Config.flutterSlug,
         issueNumber,
         state: 'closed',
       )).called(1);
 
       verify(issuesService.createComment(
-        config.flutterSlug,
+        Config.flutterSlug,
         issueNumber,
         argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
       )).called(1);
@@ -849,7 +849,7 @@ void main() {
       request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
-        kDefaultBranchName,
+        'main',
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
@@ -1786,7 +1786,7 @@ void foo() {
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
-        verify(issuesService.createComment(config.flutterSlug, issueNumber, config.mergeConflictPullRequestMessage));
+        verify(issuesService.createComment(Config.flutterSlug, issueNumber, config.mergeConflictPullRequestMessage));
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
