@@ -10,8 +10,8 @@ import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'publish_tag_substeps.dart';
+import 'push_release_substep.dart';
 import 'release_completed.dart';
-import 'substeps.dart';
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -87,6 +87,8 @@ class MainProgressionState extends State<MainProgression> {
           children: <Widget>[
             const ConductorStatus(),
             const SizedBox(height: 20.0),
+            // TODO(Yugue):  render stepper content widget only if the release is at that step,
+            // https://github.com/flutter/flutter/issues/94755.
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),
               physics: const ScrollPhysics(),
@@ -147,7 +149,7 @@ class MainProgressionState extends State<MainProgression> {
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[6]),
-                  content: ConductorSubsteps(nextStep: nextStep),
+                  content: PushReleaseSubsteps(nextStep: nextStep),
                   isActive: true,
                   state: handleStepState(6),
                 ),
