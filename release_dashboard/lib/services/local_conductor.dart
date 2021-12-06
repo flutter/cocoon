@@ -110,7 +110,7 @@ class LocalConductorService extends ConductorService {
       // the methods of [BuildContext] should not be cached beyond the execution of a
       // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
-      // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
+      // TODO(yugue): Add a button switch to toggle the force parameter.
       // https://github.com/flutter/flutter/issues/94384
     );
     await startContext.run();
@@ -129,6 +129,8 @@ class LocalConductorService extends ConductorService {
   Future<void> conductorNext(BuildContext context) async {
     final ReleaseDashboardNextContext nextContext = ReleaseDashboardNextContext(
       autoAccept: false,
+      // TODO(yugue): Add a button switch to toggle the force parameter.
+      // https://github.com/flutter/flutter/issues/94384
       force: false,
       checkouts: checkouts,
       stateFile: stateFile,
