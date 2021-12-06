@@ -4,6 +4,13 @@
 
 import 'package:conductor_core/proto.dart' as pb;
 
+const Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
+  pb.CherrypickState.PENDING: 'PENDING',
+  pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
+  pb.CherrypickState.COMPLETED: 'COMPLETED',
+  pb.CherrypickState.ABANDONED: 'ABANDONED',
+};
+
 // TODO(Yugue): [conductor] add extension method that returns the cherrypick state string,
 // https://github.com/flutter/flutter/issues/94387.
 extension CherrypickStateExtension on pb.CherrypickState {
@@ -21,12 +28,6 @@ extension CherrypickStateExtension on pb.CherrypickState {
   /// ```
   /// {@end-tool}
   String string() {
-    const Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
-      pb.CherrypickState.PENDING: 'PENDING',
-      pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
-      pb.CherrypickState.COMPLETED: 'COMPLETED',
-      pb.CherrypickState.ABANDONED: 'ABANDONED',
-    };
     return (cherrypickStates[this]!);
   }
 }
