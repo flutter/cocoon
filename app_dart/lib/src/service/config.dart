@@ -47,11 +47,6 @@ class Config {
     RepositorySlug('flutter', 'plugins'),
   };
 
-  /// List of GitHub repositories that are supported by [Scheduler].
-  static Set<RepositorySlug> schedulerSupportedRepos = <RepositorySlug>{
-    RepositorySlug('flutter', 'flutter'),
-  };
-
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
     RepositorySlug('flutter', 'engine'),

@@ -117,7 +117,7 @@ class Scheduler {
   }
 
   Future<void> _addCommit(Commit commit) async {
-    if (!Config.schedulerSupportedRepos.contains(commit.slug)) {
+    if (!Config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
