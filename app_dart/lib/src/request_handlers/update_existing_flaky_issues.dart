@@ -34,7 +34,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final RepositorySlug slug = config.flutterSlug;
+    final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;

@@ -36,7 +36,7 @@ class GetStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final String? encodedLastCommitKey = request!.uri.queryParameters[kLastCommitKeyParam];
-    final String repoName = request!.uri.queryParameters[kRepoParam] ?? config.flutterSlug.name;
+    final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final String branch = request!.uri.queryParameters[kBranchParam] ?? 'master';
     final DatastoreService datastore = datastoreProvider(config.db);

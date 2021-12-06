@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
@@ -41,7 +42,7 @@ void main() {
       commit = Commit(
         key: config.db.emptyKey.append(Commit, id: 'abc_master'),
         sha: 'abc_master',
-        repository: config.flutterSlug.fullName,
+        repository: Config.flutterSlug.fullName,
         branch: 'master',
       );
     });
@@ -57,7 +58,7 @@ void main() {
         for (String branch in <String>['master', 'release']) {
           final Commit commit = Commit(
             key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-            repository: config.flutterSlug.fullName,
+            repository: Config.flutterSlug.fullName,
             sha: 'abc_$branch',
             branch: branch,
           );

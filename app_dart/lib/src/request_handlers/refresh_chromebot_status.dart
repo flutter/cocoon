@@ -57,7 +57,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String repoName = request!.uri.queryParameters[kRepoParam] ?? config.flutterSlug.name;
+    final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);

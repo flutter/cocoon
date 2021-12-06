@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' hide Team;
 import 'package:mockito/mockito.dart';
@@ -110,7 +111,7 @@ abc_test.sh @ghi @flutter/framework
         final FakeConfig config = FakeConfig(
           githubService: GithubService(mockGitHubClient),
         );
-        expect(() => getExistingPRs(config.githubService!, config.flutterSlug), throwsA(predicate<String>((String e) {
+        expect(() => getExistingPRs(config.githubService!, Config.flutterSlug), throwsA(predicate<String>((String e) {
           return e.contains('Unable to parse body of $expectedHtml');
         })));
       });
@@ -128,7 +129,7 @@ abc_test.sh @ghi @flutter/framework
         final FakeConfig config = FakeConfig(
           githubService: GithubService(mockGitHubClient),
         );
-        expect(await getExistingPRs(config.githubService!, config.flutterSlug), <String?, PullRequest>{});
+        expect(await getExistingPRs(config.githubService!, Config.flutterSlug), <String?, PullRequest>{});
       });
     });
   });

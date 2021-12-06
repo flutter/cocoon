@@ -59,11 +59,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug.full(repo);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
-    // TODO(godofredoc): remove after https://github.com/flutter/flutter/issues/90476 is complete.
-    final String defaultBranch = repo == 'flutter/engine' ? 'main' : config.defaultBranch;
 
     final Commit tipOfTreeCommit = Commit(
-      sha: defaultBranch,
+      sha: Config.defaultBranch(slug),
       repository: slug.fullName,
     );
     final CiYaml ciYaml = await scheduler!.getCiYaml(tipOfTreeCommit);
@@ -85,8 +83,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         status = GithubBuildStatusUpdate.statusFailure;
       }
     });
-    await _insertBigquery(slug, status, defaultBranch, config);
-    await _updatePRs(slug, status, datastore, defaultBranch);
+    await _insertBigquery(slug, status, Config.defaultBranch(slug), config);
+    await _updatePRs(slug, status, datastore, Config.defaultBranch(slug));
     log.fine('All the PRs for $repo have been updated with $status');
 
     return Body.empty;

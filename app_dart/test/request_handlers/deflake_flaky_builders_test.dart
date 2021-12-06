@@ -149,7 +149,7 @@ void main() {
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0], config.flutterSlug);
+      expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
 
       // Verify tree is created correctly.
@@ -190,7 +190,7 @@ void main() {
       // Verify pr is created correctly.
       captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
       final CreatePullRequest pr = captured[1] as CreatePullRequest;
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
@@ -286,7 +286,7 @@ void main() {
       // Verify pr is created correctly.
       captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
       final CreatePullRequest pr = captured[1] as CreatePullRequest;
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
@@ -335,7 +335,7 @@ void main() {
       // Verify it gets the correct issue.
       final List<dynamic> captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0], config.flutterSlug);
+      expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
 
       // Verify pr is not created.
@@ -374,7 +374,7 @@ void main() {
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0], config.flutterSlug);
+      expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
 
       // Verify pr is not created.
@@ -413,7 +413,7 @@ void main() {
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0], config.flutterSlug);
+      expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
 
       // Verify pr is not created.
@@ -480,7 +480,7 @@ void main() {
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0], config.flutterSlug);
+      expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
 
       // Verify pr is not created.

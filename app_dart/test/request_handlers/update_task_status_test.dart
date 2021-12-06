@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -42,7 +43,7 @@ void main() {
       );
       commit = Commit(
         key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
-        repository: config.flutterSlug.fullName,
+        repository: Config.flutterSlug.fullName,
         sha: commitSha,
         timestamp: 123,
       );

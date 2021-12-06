@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/appengine/github_build_status_update.da
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
@@ -54,7 +55,7 @@ void main() {
     GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
       return GithubBuildStatusUpdate(
         key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
-        repository: config.flutterSlug.fullName,
+        repository: Config.flutterSlug.fullName,
         status: status.githubStatus,
         pr: pr.number!,
         head: pr.head!.sha,
@@ -96,7 +97,7 @@ void main() {
       when(github.pullRequests).thenReturn(pullRequestsService);
       when(github.issues).thenReturn(issuesService);
       when(github.repositories).thenReturn(repositoriesService);
-      when(pullRequestsService.list(any, base: config.defaultBranch)).thenAnswer((Invocation _) {
+      when(pullRequestsService.list(any, base: Config.defaultBranch(Config.flutterSlug))).thenAnswer((Invocation _) {
         return Stream<PullRequest>.fromIterable(prsFromGitHub);
       });
       when(repositoriesService.createStatus(any, any, any)).thenAnswer(
@@ -238,7 +239,7 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-      builders.add(LuciBuilder(name: 'flaky', repo: config.engineSlug.name, flaky: true));
+      builders.add(LuciBuilder(name: 'flaky', repo: Config.engineSlug.name, flaky: true));
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         builders,
         key: (dynamic builder) => builder as LuciBuilder,
