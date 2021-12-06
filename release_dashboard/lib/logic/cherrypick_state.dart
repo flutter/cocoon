@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:flutter/material.dart';
 
+@visibleForTesting
 const Map<pb.CherrypickState, String> cherrypickStates = <pb.CherrypickState, String>{
   pb.CherrypickState.PENDING: 'PENDING',
   pb.CherrypickState.PENDING_WITH_CONFLICT: 'PENDING_WITH_CONFLICT',
