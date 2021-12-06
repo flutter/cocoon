@@ -142,10 +142,12 @@ void main() {
       PullRequestHelper._counter = 0;
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
-      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD')).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD'))
+          .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
       });
-      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD')).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD'))
+          .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
       });
 
