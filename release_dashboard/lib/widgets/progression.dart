@@ -9,6 +9,7 @@ import 'cherrypicks_substeps.dart';
 import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
+import 'publish_channel_substeps.dart';
 import 'release_completed.dart';
 import 'substeps.dart';
 
@@ -140,7 +141,7 @@ class MainProgressionState extends State<MainProgression> {
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[5]),
-                  content: ConductorSubsteps(nextStep: nextStep),
+                  content: PublishTagSubsteps(nextStep: nextStep),
                   isActive: true,
                   state: handleStepState(5),
                 ),
