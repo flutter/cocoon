@@ -3,32 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:conductor_ui/logic/repositories_name.dart';
-import 'package:conductor_ui/logic/string_capitalize.dart';
 import 'package:conductor_ui/models/repositories.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Capitalize first letter helper function tests', () {
-    test('Returns the empty string', () {
-      expect(('').capitalize(), equals(''));
-    });
-    test('Returns a single letter capitalized', () {
-      expect(('a').capitalize(), equals('A'));
-    });
-    test('Returns a string with the first letter capitalized', () {
-      expect(('aabasss').capitalize(), equals('Aabasss'));
-    });
-    test('Returns a single whitespace unchanged', () {
-      expect((' ').capitalize(), equals(' '));
-    });
-    test('Returns a string with a leading whitespace unchanged', () {
-      expect((' aabasss').capitalize(), equals(' aabasss'));
-    });
-    test('Returns a string with a leading non-letter char unchanged', () {
-      expect(('1aabasss').capitalize(), equals('1aabasss'));
-    });
-  });
-
   group('repositoryName tests', () {
     group('Not capitalized', () {
       test('engine', () {
