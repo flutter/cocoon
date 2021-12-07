@@ -21,6 +21,8 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
+const String kRepoParam = 'repo';
+
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   PushGoldStatusToGithub(
@@ -46,7 +48,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    final RepositorySlug slug = Config.flutterSlug;
+    final String repo = request!.uri.queryParameters[kRepoParam] ?? 'flutter/flutter';
+    final RepositorySlug slug = RepositorySlug.full(repo);
     final GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.fine('Beginning Gold checks...');
@@ -109,7 +112,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       for (Map<String, dynamic> checkRun in checkRuns) {
         log.fine('Check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
-        if (name.contains('framework')) {
+        if (name.contains('framework') || name.contains('web engine')) {
           runsGoldenFileTests = true;
         }
         if (checkRun['conclusion'] == null || checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
