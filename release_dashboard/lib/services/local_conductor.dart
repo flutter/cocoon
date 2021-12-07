@@ -119,6 +119,9 @@ class LocalConductorService extends ConductorService {
   @override
   Future<void> conductorNext(BuildContext context) async {
     final ReleaseDashboardNextContext nextContext = ReleaseDashboardNextContext(
+      // [context] cannot be passed beyong this point, because values returned from
+      // the methods of [BuildContext] should not be cached beyond the execution of a
+      // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       autoAccept: false,
       // TODO(yugue): Add a button switch to toggle the force parameter.
