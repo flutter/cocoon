@@ -478,27 +478,24 @@ void main() {
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
 
-      FakeStartContext buildStartContext(BuildContext context) {
-        final FakeStartContext startContext = FakeStartContext();
-        startContext.addCommand(FakeCommand(
-          command: const <String>[
-            'git',
-            'clone',
-            '--origin',
-            'upstream',
-            '--',
-            EngineRepository.defaultUpstream,
-            '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
-          ],
-          completer: completer,
-        ));
-        return startContext;
-      }
+      final FakeStartContext startContext = FakeStartContext();
+      startContext.addCommand(FakeCommand(
+        command: const <String>[
+          'git',
+          'clone',
+          '--origin',
+          'upstream',
+          '--',
+          EngineRepository.defaultUpstream,
+          '${kCheckoutsParentDirectory}flutter_conductor_checkouts/engine'
+        ],
+        completer: completer,
+      ));
 
       await tester.pumpWidget(ChangeNotifierProvider(
         create: (context) => StatusState(
           conductor: FakeConductor(
-            fakeStartContextProvided: buildStartContext(context),
+            fakeStartContextProvided: startContext,
           ),
         ),
         child: MaterialApp(
