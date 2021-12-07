@@ -72,7 +72,7 @@ class MergePrSubsteps extends StatefulWidget {
         ' in the local checkout directory. After the update, please push the changes to the feature branch on your mirror.\n\n'
         'This box can be checked if Linux Unopt passes the pre-submit CI.',
     MergePrSubstep.preSubmitCi:
-        'Make sure all pre-submit tests on Github pass for this PR. Fix any test failures first. \n'
+        'Make sure all pre-submit tests on GitHub pass for this PR. Fix any test failures first. \n'
             'Get the PR reviewed, approved and merged.',
     MergePrSubstep.postSubmitCi: 'Make sure all post-submit CI tests pass here: ',
     MergePrSubstep.codesign: 'An authorized person has to codesign the engine binaries.',
@@ -110,6 +110,8 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
     late bool isPrRequired;
     late String newPrLink;
 
+    // TODO(Yugue): Remove the null check, since after this issue has been resolved,
+    // it is impossible for releaseStatus to be null here, https://github.com/flutter/flutter/issues/93822.
     if (releaseStatus == null) {
       isPrRequired = true;
       newPrLink = 'Could not create a PR pink.';

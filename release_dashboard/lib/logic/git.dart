@@ -46,7 +46,7 @@ class CandidateBranch extends GitValidation {
 
 /// Provides all the tools and methods to validate a Git remote such as the engine mirror.
 class GitRemote extends GitValidation {
-  final String _githubRemoteErrorMsg = "Must be a valid Github remote string, e.g. 'git@github.com:user/flutter.git'";
+  final String _githubRemoteErrorMsg = "Must be a valid GitHub remote string, e.g. 'git@github.com:user/flutter.git'";
 
   @override
   RegExp get regex => githubRemotePattern;
