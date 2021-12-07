@@ -54,5 +54,5 @@ class FakeNextContext implements ReleaseDashboardNextContext {
   void updateState(ConductorState state, [List<String> logs = const <String>[]]) {}
 
   @override
-  BuildContext get context => throw UnimplementedError();
+  VoidCallback get syncStatusWithState => throw UnimplementedError();
 }
