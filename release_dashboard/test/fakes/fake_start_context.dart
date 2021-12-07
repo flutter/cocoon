@@ -37,7 +37,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     String releaseChannel = 'dev',
     File? stateFile,
     Future<void> Function()? runOverride,
-    required BuildContext context,
+    void Function()? syncStatusWithState,
   }) {
     final FileSystem fileSystem = MemoryFileSystem.test();
     stateFile ??= fileSystem.file(kStateFileName);
@@ -55,6 +55,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
       processManager: processManager,
       stdio: stdio,
     );
+    syncStatusWithState ??= () {};
     return FakeStartContext._(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
@@ -71,7 +72,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
       releaseChannel: releaseChannel,
       stateFile: stateFile,
       runOverride: runOverride,
-      context: context,
+      syncStatusWithState: syncStatusWithState,
     );
   }
 
@@ -91,7 +92,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     required String releaseChannel,
     required File stateFile,
     this.runOverride,
-    required BuildContext context,
+    required void Function() syncStatusWithState,
   }) : super(
           candidateBranch: candidateBranch,
           checkouts: checkouts,
@@ -107,7 +108,7 @@ class FakeStartContext extends ReleaseDashboardStartContext {
           processManager: processManager,
           releaseChannel: releaseChannel,
           stateFile: stateFile,
-          context: context,
+          syncStatusWithState: syncStatusWithState,
         );
 
   /// An optional override async callback for the real [run] method.

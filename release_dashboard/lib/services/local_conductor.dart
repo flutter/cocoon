@@ -95,7 +95,10 @@ class LocalConductorService extends ConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
-      context: context,
+      // [context] cannot be passed beyong this point, because values returned from
+      // the methods of [BuildContext] should not be cached beyond the execution of a
+      // single synchronous function.
+      syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );

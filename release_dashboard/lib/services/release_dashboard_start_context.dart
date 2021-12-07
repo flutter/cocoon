@@ -7,13 +7,10 @@ import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:flutter/material.dart';
 import 'package:process/process.dart';
-import 'package:provider/provider.dart';
-
-import '../state/status_state.dart';
 
 class ReleaseDashboardStartContext extends StartContext {
   ReleaseDashboardStartContext({
-    required this.context,
+    required this.syncStatusWithState,
     required String candidateBranch,
     required String? dartRevision,
     required List<String> engineCherrypickRevisions,
@@ -47,12 +44,12 @@ class ReleaseDashboardStartContext extends StartContext {
           force: force,
         );
 
-  final BuildContext context;
+  final VoidCallback syncStatusWithState;
 
   @override
   void updateState(pb.ConductorState state, [List<String> logs = const <String>[]]) {
     super.updateState(state, logs);
-    context.read<StatusState>().syncStatusWithState();
+    syncStatusWithState();
   }
 
   // TODO(Yugue): Add prompt UI to confirm tag creation at startContext.

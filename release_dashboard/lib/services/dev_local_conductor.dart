@@ -4,6 +4,8 @@
 
 import 'package:conductor_core/conductor_core.dart' show Checkouts, EngineRepository, FrameworkRepository;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../state/status_state.dart';
 import 'local_conductor.dart';
 import 'release_dashboard_start_context.dart';
 
@@ -66,7 +68,10 @@ class DevLocalConductorService extends LocalConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
-      context: context,
+      // [context] cannot be passed beyong this point, because values returned from
+      // the methods of [BuildContext] should not be cached beyond the execution of a
+      // single synchronous function.
+      syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );
