@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 
 import '../models/repositories.dart';
 import 'cherrypicks_substeps.dart';
-import 'codesign_engine_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
+import 'merge_pr_substeps.dart';
 import 'publish_tag_substeps.dart';
 import 'push_release_substep.dart';
 import 'release_completed.dart';
@@ -97,47 +97,37 @@ class MainProgressionState extends State<MainProgression> {
               steps: <Step>[
                 Step(
                   title: Text(MainProgression._stepTitles[0]),
-                  content: Column(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(nextStep: nextStep),
-                    ],
-                  ),
+                  content: CreateReleaseSubsteps(nextStep: nextStep),
                   isActive: _completedStep >= 0,
                   state: handleStepState(0),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[1]),
-                  content: Column(
-                    children: <Widget>[
-                      CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine),
-                    ],
-                  ),
+                  content: CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine),
                   isActive: _completedStep >= 1,
                   state: handleStepState(1),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[2]),
-                  content: Column(
-                    children: <Widget>[
-                      CodesignEngineSubsteps(nextStep: nextStep),
-                    ],
+                  content: MergePrSubsteps(
+                    nextStep: nextStep,
+                    repository: Repositories.engine,
                   ),
                   isActive: _completedStep >= 2,
                   state: handleStepState(2),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[3]),
-                  content: Column(
-                    children: <Widget>[
-                      CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework),
-                    ],
-                  ),
+                  content: CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework),
                   isActive: _completedStep >= 3,
                   state: handleStepState(3),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[4]),
-                  content: Column(),
+                  content: MergePrSubsteps(
+                    nextStep: nextStep,
+                    repository: Repositories.framework,
+                  ),
                   isActive: _completedStep >= 4,
                   state: handleStepState(4),
                 ),

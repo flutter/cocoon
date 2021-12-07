@@ -70,6 +70,7 @@ class LocalConductorService extends ConductorService {
     required String frameworkMirror,
     required String incrementLetter,
     required String releaseChannel,
+    required BuildContext context,
   }) async {
     final Checkouts checkouts = Checkouts(
       parentDirectory: rootDirectory,
@@ -94,6 +95,10 @@ class LocalConductorService extends ConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
+      // [context] cannot be passed beyong this point, because values returned from
+      // the methods of [BuildContext] should not be cached beyond the execution of a
+      // single synchronous function.
+      syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );

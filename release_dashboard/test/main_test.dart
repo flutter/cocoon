@@ -6,6 +6,7 @@ import 'dart:io' show Platform;
 
 import 'package:conductor_ui/main.dart';
 import 'package:conductor_ui/widgets/clean_release_button.dart';
+import 'package:conductor_ui/widgets/progression.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes/services/fake_conductor.dart';
@@ -17,7 +18,9 @@ void main() {
 
       expect(find.textContaining('Flutter Desktop Conductor'), findsOneWidget);
       expect(find.textContaining('Desktop app for managing a release'), findsOneWidget);
+      expect(find.text('Please follow each step and substep in order.'), findsOneWidget);
       expect(find.byType(CleanReleaseButton), findsOneWidget);
+      expect(find.byType(MainProgression), findsOneWidget);
     });
   }, skip: Platform.isWindows); // This app does not support Windows [intended]
 }

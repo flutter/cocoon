@@ -122,7 +122,9 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     }
     // For all staging builder stats, updates any existing flaky bug.
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) && _buildsAreEnough(statistic)) {
+      if (nameToExistingIssue.containsKey(statistic.name) &&
+          builderFlakyMap[statistic.name] == true &&
+          _buildsAreEnough(statistic)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: _getBucket(builderFlakyMap, statistic.name),
             statistic: statistic,
