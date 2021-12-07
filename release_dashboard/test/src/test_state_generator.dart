@@ -24,13 +24,34 @@ const String kFrameworkCurrentGitHead = '239tnint023t09j2039tj0239tn';
 const String kFrameworkCheckoutPath = '/Users/framework';
 final String kEngineLUCIDashboard = luciConsoleLink(kReleaseChannel, 'engine');
 final String kFrameworkLUCIDashboard = luciConsoleLink(kReleaseChannel, 'flutter');
+const String kEngineMirror = 'git@github.com:User/engine.git';
+const String kFrameworkMirror = 'git@github.com:User/engine.git';
+const String kEngineUpstream = 'https://github.com/org/engine.git';
+const String kFrameworkUpstream = 'https://github.com/org/framework.git';
 
-/// Helper function that generates a test conductor state.
+/// Generates a test conductor state.
 ///
-/// Default state has all the info complete and valid with no cherrypick conflicts.
+/// Default state has all the fields complete and valid with no cherrypick conflicts,
+/// and an engine PR and a framework PR are required.
+///
+/// If [engineCherrypicksInConflict] is true, the function generates a state
+/// with 2/3 of the engine cherrypicks in conflict.
+///
+/// If [frameworkCherrypicksInConflict] is true, the function generates a state
+/// with 1/1 of the framework cherrypick in conflict.
+///
+/// If [isEnginePrRequired] is false, the function generates a state with no engine
+/// cherrypicks, and no engine dart revision to similate the conditions where an engine PR
+/// is not needed.
+///
+/// If [isFrameworkPrRequired] is false, the function generates a state with no engine
+/// cherrypicks, no engine dart revision, and no framework cherrypicks
+/// to similate the conditions where a framework PR is not needed.
 pb.ConductorState generateConductorState({
   bool? engineCherrypicksInConflict,
   bool? frameworkCherrypicksInConflict,
+  bool? isEnginePrRequired,
+  bool? isFrameworkPrRequired,
   String? conductorVersion = kConductorVersion,
   String? releaseChannel = kReleaseChannel,
   String? releaseVersion = kReleaseVersion,
@@ -52,33 +73,40 @@ pb.ConductorState generateConductorState({
   return pb.ConductorState(
     engine: pb.Repository(
       candidateBranch: engineCandidateBranch,
-      cherrypicks: <pb.Cherrypick>[
-        /// When [engineCherrypicksInConflict] trigger is on, only turns two cherrypicks into conflict, and leave one as pending.
-        pb.Cherrypick(
-            trunkRevision: engineCherrypick1,
-            state: engineCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
-        pb.Cherrypick(
-            trunkRevision: engineCherrypick2,
-            state: engineCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
-        pb.Cherrypick(trunkRevision: engineCherrypick3),
-      ],
-      dartRevision: dartRevision,
+      cherrypicks: (isEnginePrRequired == false || isFrameworkPrRequired == false)
+          ? null
+          : <pb.Cherrypick>[
+              pb.Cherrypick(
+                  trunkRevision: engineCherrypick1,
+                  state: engineCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
+              pb.Cherrypick(
+                  trunkRevision: engineCherrypick2,
+                  state: engineCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
+              pb.Cherrypick(trunkRevision: engineCherrypick3),
+            ],
+      dartRevision: (isEnginePrRequired == false || isFrameworkPrRequired == false) ? null : dartRevision,
       workingBranch: workingBranch,
       startingGitHead: engineStartingGitHead,
       currentGitHead: engineCurrentGitHead,
       checkoutPath: engineCheckoutPath,
+      mirror: pb.Remote(name: 'mirror', url: kEngineMirror),
+      upstream: pb.Remote(name: 'upstream', url: kEngineUpstream),
     ),
     framework: pb.Repository(
       candidateBranch: frameworkCandidateBranch,
-      cherrypicks: <pb.Cherrypick>[
-        pb.Cherrypick(
-            trunkRevision: frameworkCherrypick,
-            state: frameworkCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
-      ],
+      cherrypicks: isFrameworkPrRequired == false
+          ? null
+          : <pb.Cherrypick>[
+              pb.Cherrypick(
+                  trunkRevision: frameworkCherrypick,
+                  state: frameworkCherrypicksInConflict == true ? pb.CherrypickState.PENDING_WITH_CONFLICT : null),
+            ],
       workingBranch: workingBranch,
       startingGitHead: frameworkStartingGitHead,
       currentGitHead: frameworkCurrentGitHead,
       checkoutPath: frameworkCheckoutPath,
+      mirror: pb.Remote(name: 'mirror', url: kFrameworkMirror),
+      upstream: pb.Remote(name: 'upstream', url: kFrameworkUpstream),
     ),
     conductorVersion: conductorVersion,
     releaseChannel: releaseChannel,
