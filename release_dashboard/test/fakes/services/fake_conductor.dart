@@ -51,7 +51,7 @@ class FakeConductor extends ConductorService {
     required String frameworkMirror,
     required String incrementLetter,
     required String releaseChannel,
-    required BuildContext context,
+    BuildContext? context,
   }) async {
     if (fakeStartContextProvided != null) {
       return fakeStartContextProvided!.run();
