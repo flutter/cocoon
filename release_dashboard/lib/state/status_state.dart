@@ -51,6 +51,9 @@ class StatusState extends ChangeNotifier {
   }
 }
 
+// TODO(Yugue): Add another abstraction between services and state,
+// https://github.com/flutter/flutter/issues/94816.
+
 /// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
 Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {
   if (state == null) return null;
