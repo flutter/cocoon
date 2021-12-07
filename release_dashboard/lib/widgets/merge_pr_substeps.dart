@@ -12,7 +12,6 @@ import '../models/repositories.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
-import 'common/continue_button.dart';
 import 'common/url_button.dart';
 
 enum MergePrSubstep {
@@ -207,16 +206,15 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
             },
           ),
         // Only if all required substeps are checked, enable the continue button.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
-          child: ContinueButton(
-            elevatedButtonKey: Key('merge${repositoryName(widget.repository, true)}CherrypicksSubstepsContinue'),
-            enabled: !isRequiredSubstepChecked.containsValue(false),
-            onPressedCallback: () async {
-              widget.nextStep();
-            },
-            isLoading: false,
-          ),
+        const SizedBox(height: 25.0),
+        ElevatedButton(
+          key: Key('merge${repositoryName(widget.repository, true)}CherrypicksSubstepsContinue'),
+          onPressed: !isRequiredSubstepChecked.containsValue(false)
+              ? () async {
+                  widget.nextStep();
+                }
+              : null,
+          child: const Text('Continue'),
         ),
       ],
     );
