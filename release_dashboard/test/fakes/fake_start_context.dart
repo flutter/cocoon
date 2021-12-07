@@ -7,7 +7,6 @@ import 'package:conductor_ui/services/release_dashboard_start_context.dart';
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
-import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
 import 'fake_process_manager.dart';
