@@ -48,8 +48,16 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    final String repository = request!.uri.queryParameters[kRepoParam] ?? 'flutter/flutter';
-    final RepositorySlug slug = RepositorySlug.full(repository);
+    await _sendStatusUpdates(datastore, Config.flutterSlug);
+    await _sendStatusUpdates(datastore, Config.engineSlug);
+
+    return Body.empty;
+  }
+
+  Future<void> _sendStatusUpdates(
+    DatastoreService datastore,
+    RepositorySlug slug,
+  ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.fine('Beginning Gold checks...');
@@ -184,9 +192,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     await datastore.insert(statusUpdates);
-    log.fine('Committed all updates');
-
-    return Body.empty;
+    log.fine('Committed all updates for $slug');
   }
 
   /// Returns a GitHub Status for the given state and description.
