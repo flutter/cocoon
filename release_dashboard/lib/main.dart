@@ -26,19 +26,22 @@ Future<void> main() async {
   const bool isDev = true;
 
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));
+  runApp(const MyApp(isDev: isDev));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp(
-    this.conductor, {
+  const MyApp({
+    this.isDev = true,
     Key? key,
   }) : super(key: key);
 
-  final ConductorService conductor;
+  final bool isDev;
 
   @override
   Widget build(BuildContext context) {
+    final ConductorService conductor =
+        isDev == true ? DevLocalConductorService(context: context) : LocalConductorService(context: context);
+
     return ChangeNotifierProvider(
       create: (context) => StatusState(conductor: conductor),
       child: MaterialApp(
@@ -54,12 +57,12 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const <Widget>[
-                SelectableText(
+              children: <Widget>[
+                const SelectableText(
                   'Desktop app for managing a release of the Flutter SDK, currently in development',
                 ),
-                SizedBox(height: 10.0),
-                MainProgression(),
+                const SizedBox(height: 10.0),
+                MainProgression(context: context),
               ],
             ),
           ),

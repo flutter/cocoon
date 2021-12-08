@@ -438,6 +438,13 @@ void main() {
         runOverride: () async => contextRunCalled = true,
       );
 
+      // late bool called;
+      // startContext.runOverride = () async {
+      //   contextRunCalled = true;
+      //   called = await startContext.prompt('1231312');
+      //   expect(await startContext.prompt('1231312'), true);
+      // };
+
       await tester.pumpWidget(ChangeNotifierProvider(
         create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
         child: MaterialApp(

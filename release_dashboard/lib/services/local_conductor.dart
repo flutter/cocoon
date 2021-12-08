@@ -30,6 +30,11 @@ import 'release_dashboard_start_context.dart';
 ///
 /// This is the production version of the conductor, only intended for releases.
 class LocalConductorService extends ConductorService {
+  LocalConductorService({
+    required this.context,
+  });
+
+  final BuildContext context;
   final FileSystem fs = const LocalFileSystem();
   final Platform platform = const LocalPlatform();
   final ProcessManager processManager = const LocalProcessManager();
@@ -94,6 +99,7 @@ class LocalConductorService extends ConductorService {
       processManager: processManager,
       releaseChannel: releaseChannel,
       stateFile: stateFile,
+      context: context,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
     );

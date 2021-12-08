@@ -2,10 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/repositories.dart';
+import '../state/status_state.dart';
 import 'cherrypicks_substeps.dart';
+import 'common/dialog_prompt.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'merge_pr_substeps.dart';
@@ -20,10 +25,12 @@ import 'release_completed.dart';
 class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
+    required this.context,
     this.previousCompletedStep,
   }) : super(key: key);
 
   final int? previousCompletedStep;
+  final BuildContext context;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -40,8 +47,20 @@ class MainProgression extends StatefulWidget {
   ];
 }
 
+typedef DialogueChanger = void Function(String data, Completer<bool>? callback);
+
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
+
+  String? _dialogueContent;
+  Completer<bool>? _dialogueRightCallback;
+
+  void dialogueChanger(String data, Completer<bool>? callback) {
+    setState(() {
+      _dialogueContent = data;
+      _dialogueRightCallback = callback;
+    });
+  }
 
   @override
   void initState() {
@@ -49,6 +68,7 @@ class MainProgressionState extends State<MainProgression> {
     if (widget.previousCompletedStep != null) {
       _completedStep = widget.previousCompletedStep!;
     }
+    context.read<StatusState>().updateDialogueChanger(dialogueChanger);
     super.initState();
   }
 
@@ -76,6 +96,25 @@ class MainProgressionState extends State<MainProgression> {
 
   @override
   Widget build(BuildContext context) {
+    if (_dialogueContent != null) {
+      Future.delayed(Duration.zero, () {
+        dialogPrompt(
+          context: context,
+          title: const Text(
+              'Please read the instruction below carefully. Some processes are disruptive and irrevertible.'),
+          content: SelectableText(_dialogueContent ?? ''),
+          leftButtonTitle: 'No',
+          rightButtonTitle: 'Yes',
+          leftButtonCallback: () async {
+            _dialogueRightCallback!.complete(false);
+          },
+          rightButtonCallback: () async {
+            _dialogueRightCallback!.complete(true);
+          },
+        );
+      });
+    }
+
     return Expanded(
       child: Scrollbar(
         isAlwaysShown: true,

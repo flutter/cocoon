@@ -10,6 +10,7 @@ import '../logic/cherrypick_state.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
 import '../services/conductor.dart';
+import '../widgets/progression.dart';
 
 /// Widget that saves the global state and provides a method to modify it.
 class StatusState extends ChangeNotifier {
@@ -20,6 +21,7 @@ class StatusState extends ChangeNotifier {
   final ConductorService conductor;
 
   late Map<ConductorStatusEntry, Object>? releaseStatus;
+  late DialogueChanger dialogueChanger;
 
   /// Method that modifies the global state in provider.
   Future<void> changeReleaseStatus(Map<ConductorStatusEntry, Object>? data) async {
@@ -47,6 +49,13 @@ class StatusState extends ChangeNotifier {
   /// {@end-tool}
   void syncStatusWithState() {
     releaseStatus = stateToMap(conductor.state);
+    notifyListeners();
+  }
+
+  Future<void> updateDialogueChanger(DialogueChanger changer) async {
+    await () async {
+      dialogueChanger = changer;
+    }();
     notifyListeners();
   }
 }
