@@ -143,10 +143,8 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded builds (3 most recent):
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/203
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/202
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
+Recent test runs:
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -230,8 +228,8 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded builds (3 most recent):
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
+Recent test runs:
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
