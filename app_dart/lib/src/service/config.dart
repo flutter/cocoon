@@ -23,6 +23,7 @@ import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
+import 'logging.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
@@ -45,11 +46,6 @@ class Config {
     flutterSlug,
     packagesSlug,
     pluginsSlug,
-  };
-
-  /// List of GitHub repositories that are supported by [Scheduler].
-  static Set<RepositorySlug> schedulerSupportedRepos = <RepositorySlug>{
-    flutterSlug,
   };
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
@@ -309,6 +305,10 @@ class Config {
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
     final http.Response response = await http.post(githubAccessTokensUri, headers: headers);
     final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+    if (jsonBody.containsKey('token') == false) {
+      log.warning(response.body);
+      throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
+    }
     return jsonBody['token'] as String;
   }
 
