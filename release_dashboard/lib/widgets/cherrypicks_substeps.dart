@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/cherrypick_state.dart';
+import '../logic/error_to_string.dart';
 import '../logic/repositories_name.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
+import 'common/continue_button.dart';
 import 'common/url_button.dart';
 
 enum CherrypicksSubstep {
@@ -45,6 +47,7 @@ class CherrypicksSubsteps extends StatefulWidget {
 
 class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
   final Map<CherrypicksSubstep, bool> _isEachSubstepChecked = <CherrypicksSubstep, bool>{};
+  String? _error;
 
   @override
   void initState() {
@@ -65,6 +68,13 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
   void substepPressed(CherrypicksSubstep substep) {
     setState(() {
       _isEachSubstepChecked[substep] = !_isEachSubstepChecked[substep]!;
+    });
+  }
+
+  /// Updates the error object with what the conductor throws.
+  void setError(String? errorThrown) {
+    setState(() {
+      _error = errorThrown;
     });
   }
 
@@ -142,17 +152,21 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
             substepPressed(CherrypicksSubstep.applyCherrypicks);
           },
         ),
-        if (!_isEachSubstepChecked.containsValue(false))
-          Padding(
-            padding: const EdgeInsets.only(top: 30.0),
-            child: ElevatedButton(
-              key: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
-              onPressed: () {
-                widget.nextStep();
-              },
-              child: const Text('Continue'),
-            ),
-          ),
+        ContinueButton(
+            elevatedButtonKey: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
+            enabled: !_isEachSubstepChecked.containsValue(false),
+            error: _error,
+            onPressedCallback: () async {
+              setError(null);
+              statusState.conductor.conductorNext(context).catchError((error, stackTrace) {
+                setError(errorToString(error, stackTrace));
+              }).whenComplete(() {
+                if (_error == null) {
+                  widget.nextStep();
+                }
+              });
+            },
+            isLoading: false),
       ],
     );
   }

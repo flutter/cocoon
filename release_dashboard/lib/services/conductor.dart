@@ -47,4 +47,7 @@ abstract class ConductorService {
   ///
   /// Throws an exception if the file cannot be deleted or is not found.
   Future<void> cleanRelease(BuildContext context);
+
+  /// Proceeds to the next phase of the release.
+  Future<void> conductorNext(BuildContext context);
 }
