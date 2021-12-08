@@ -152,6 +152,7 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
             substepPressed(CherrypicksSubstep.applyCherrypicks);
           },
         ),
+        const SizedBox(height: 20.0),
         ContinueButton(
             elevatedButtonKey: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
             enabled: !_isEachSubstepChecked.containsValue(false),
