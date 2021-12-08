@@ -107,6 +107,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       bool runsGoldenFileTests = false;
       final Map<String, dynamic> data = (await _queryGraphQL(
         gitHubGraphQLClient,
+        slug,
         pr.number,
       ))!;
       final Map<String, dynamic> prData = data['repository']['pullRequest'] as Map<String, dynamic>;
@@ -151,7 +152,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // should just be pending. Any draft PRs are skipped
           // until marked ready for review.
           log.fine('Waiting for checks to be completed.');
-          statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, slug, pr.number);
+          statusRequest =
+              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, slug, pr.number);
         } else {
           // We do not want to query Gold on a draft PR.
           assert(!pr.draft!);
@@ -318,13 +320,19 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 }
 
-Future<Map<String, dynamic>?> _queryGraphQL(GraphQLClient client, int? prNumber) async {
+Future<Map<String, dynamic>?> _queryGraphQL(
+  GraphQLClient client,
+  RepositorySlug slug,
+  int? prNumber,
+) async {
   final QueryResult result = await client.query(
     QueryOptions(
       document: lang.parseString(pullRequestChecksQuery),
       fetchPolicy: FetchPolicy.noCache,
       variables: <String, dynamic>{
         'sPullRequest': prNumber,
+        'sRepoOwner': slug.owner,
+        'sRepoName': slug.name,
       },
     ),
   );
@@ -338,13 +346,14 @@ Future<Map<String, dynamic>?> _queryGraphQL(GraphQLClient client, int? prNumber)
 
 const String pullRequestChecksQuery = r'''
 query ChecksForPullRequest($sPullRequest: Int!) {
-  repository(owner: "flutter", name: "flutter") {
+  repository(owner: $sRepoOwner, name: $sRepoName) {
     pullRequest(number: $sPullRequest) {
       commits(last: 1) {
         nodes {
           commit {
             # (appId: 64368) == flutter-dashboard. We only care about
             # flutter-dashboard checks.
+
             checkSuites(last: 1, filterBy: {appId: 64368}) {
               nodes {
                 checkRuns(first: 100) {
