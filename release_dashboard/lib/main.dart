@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'services/conductor.dart';
+import 'services/dev_local_conductor.dart';
 import 'services/local_conductor.dart';
 import 'state/status_state.dart';
 import 'widgets/clean_release_button.dart';
@@ -22,8 +23,10 @@ Future<void> main() async {
     throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
+  const bool isDev = true;
+
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(LocalConductorService()));
+  runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));
 }
 
 class MyApp extends StatelessWidget {
@@ -43,10 +46,8 @@ class MyApp extends StatelessWidget {
         home: Scaffold(
           appBar: AppBar(
             title: const Text(_title),
-            actions: [
-              CleanReleaseButton(
-                conductor: conductor,
-              ),
+            actions: const [
+              CleanReleaseButton(),
             ],
           ),
           body: Padding(
@@ -54,13 +55,17 @@ class MyApp extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const SelectableText(
+                SelectableText(
                   'Desktop app for managing a release of the Flutter SDK, currently in development',
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
                 const SizedBox(height: 10.0),
-                MainProgression(
-                  releaseState: conductor.state,
+                SelectableText(
+                  'Please follow each step and substep in order.',
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
+                const SizedBox(height: 10.0),
+                const MainProgression(),
               ],
             ),
           ),

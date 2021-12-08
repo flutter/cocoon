@@ -5,8 +5,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../logic/repositories_name.dart';
 import '../models/cherrypick.dart';
 import '../models/conductor_status.dart';
+import '../models/repositories.dart';
 import '../state/status_state.dart';
 import 'common/tooltip.dart';
 import 'common/url_button.dart';
@@ -77,17 +79,17 @@ class ConductorStatusState extends State<ConductorStatus> {
           children: <Widget>[
             Column(
               children: const <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'engine'),
+                RepoInfoExpansion(repository: Repositories.engine),
                 SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'engine'),
+                CherrypickTable(repository: Repositories.engine),
               ],
             ),
             const SizedBox(width: 20.0),
             Column(
               children: const <Widget>[
-                RepoInfoExpansion(engineOrFramework: 'framework'),
+                RepoInfoExpansion(repository: Repositories.framework),
                 SizedBox(height: 10.0),
-                CherrypickTable(engineOrFramework: 'framework'),
+                CherrypickTable(repository: Repositories.framework),
               ],
             ),
           ],
@@ -103,10 +105,10 @@ class ConductorStatusState extends State<ConductorStatus> {
 class CherrypickTable extends StatefulWidget {
   const CherrypickTable({
     Key? key,
-    required this.engineOrFramework,
+    required this.repository,
   }) : super(key: key);
 
-  final String engineOrFramework;
+  final Repositories repository;
 
   @override
   State<CherrypickTable> createState() => CherrypickTableState();
@@ -117,7 +119,7 @@ class CherrypickTableState extends State<CherrypickTable> {
   Widget build(BuildContext context) {
     final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
 
-    final List<Map<Cherrypick, String>> cherrypicks = widget.engineOrFramework == 'engine'
+    final List<Map<Cherrypick, String>> cherrypicks = widget.repository == Repositories.engine
         ? releaseStatus![ConductorStatusEntry.engineCherrypicks]! as List<Map<Cherrypick, String>>
         : releaseStatus![ConductorStatusEntry.frameworkCherrypicks]! as List<Map<Cherrypick, String>>;
 
@@ -126,14 +128,14 @@ class CherrypickTableState extends State<CherrypickTable> {
       headingRowHeight: 30.0,
       decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
       columns: <DataColumn>[
-        DataColumn(label: Text('${widget.engineOrFramework == 'engine' ? 'Engine' : 'Framework'} Cherrypicks')),
+        DataColumn(label: Text('${repositoryName(widget.repository, true)} Cherrypicks')),
         DataColumn(
           label: Row(
             children: <Widget>[
               const Text('Status'),
               const SizedBox(width: 10.0),
               InfoTooltip(
-                tooltipName: widget.engineOrFramework,
+                tooltipName: repositoryName(widget.repository, true),
                 tooltipMessage: '''
 PENDING:   The cherrypick has not yet been applied.
 PENDING_WITH_CONFLICT:   The cherrypick has not been applied and will require manual resolution.
@@ -166,10 +168,10 @@ ABANDONED:   The cherrypick will NOT be applied in this release.''',
 class RepoInfoExpansion extends StatefulWidget {
   const RepoInfoExpansion({
     Key? key,
-    required this.engineOrFramework,
+    required this.repository,
   }) : super(key: key);
 
-  final String engineOrFramework;
+  final Repositories repository;
 
   @override
   State<RepoInfoExpansion> createState() => RepoInfoExpansionState();
@@ -212,8 +214,8 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
             isExpanded: _isExpanded,
             headerBuilder: (BuildContext context, bool isExpanded) {
               return ListTile(
-                  key: Key('${widget.engineOrFramework}RepoInfoDropdown'),
-                  title: Text('${widget.engineOrFramework == 'engine' ? 'Engine' : 'Framework'} Repo Info'),
+                  key: Key('${repositoryName(widget.repository)}RepoInfoDropdown'),
+                  title: Text('${repositoryName(widget.repository, true)} Repo Info'),
                   onTap: () {
                     showHide();
                   });
@@ -225,7 +227,7 @@ class RepoInfoExpansionState extends State<RepoInfoExpansion> {
                   0: FixedColumnWidth(240.0),
                 },
                 children: <TableRow>[
-                  for (MapEntry repoElement in widget.engineOrFramework == 'engine'
+                  for (MapEntry repoElement in widget.repository == Repositories.engine
                       ? ConductorStatus.engineRepoElements.entries
                       : ConductorStatus.frameworkRepoElements.entries)
                     TableRow(

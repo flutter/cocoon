@@ -4,27 +4,34 @@
 
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
+import 'package:conductor_ui/models/repositories.dart';
 import 'package:conductor_ui/state/status_state.dart';
+import 'package:conductor_ui/widgets/cherrypicks_substeps.dart';
 import 'package:conductor_ui/widgets/common/url_button.dart';
-import 'package:conductor_ui/widgets/engine_cherrypicks_substeps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/fake_next_context.dart';
+import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
+  late pb.ConductorState stateWithoutConflicts;
+
+  setUp(() {
+    stateWithoutConflicts = generateConductorState();
+  });
   group('Engine cherrypick substeps tests', () {
-    testWidgets('Continue button appears when all substeps are checked', (WidgetTester tester) async {
+    testWidgets('Continue button enables when all substeps are checked', (WidgetTester tester) async {
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor()),
+        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
           home: Material(
-            child: Column(
+            child: ListView(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -32,12 +39,14 @@ void main() {
         ),
       ));
 
-      expect(find.byKey(const Key('applyEngineCherrypicksContinue')), findsNothing);
-      for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
+      final Finder continueButton = find.byKey(const Key('applyEngineCherrypicksContinue'));
+      expect((continueButton), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(false));
+      for (final String substep in CherrypicksSubsteps.substepTitles.values) {
         await tester.tap(find.text(substep));
       }
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('applyEngineCherrypicksContinue')), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
     });
 
     testWidgets('Clicking on the continue button proceeds to the next step', (WidgetTester tester) async {
@@ -45,13 +54,13 @@ void main() {
       void nextStep() => isNextStep = true;
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor()),
+        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
           home: Material(
-            child: Column(
+            child: ListView(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: nextStep);
+                  return CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -59,12 +68,7 @@ void main() {
         ),
       ));
 
-      for (final String substep in EngineCherrypicksSubsteps.substepTitles.values) {
-        await tester.tap(find.text(substep));
-      }
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('applyEngineCherrypicksContinue')));
-      await tester.pumpAndSettle();
+      await checkAllContinue(tester);
       expect(isNextStep, equals(true));
     });
   });
@@ -84,7 +88,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -92,11 +96,10 @@ void main() {
         ),
       ));
 
-      expect(
-          find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.verifyRelease]!), findsOneWidget);
+      expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!), findsOneWidget);
       expect(find.textContaining(kReleaseVersion), findsOneWidget);
       expect(find.byType(UrlButton), findsOneWidget);
-      expect(find.text(EngineCherrypicksSubsteps.kReleaseSDKURL), findsOneWidget);
+      expect(find.text(kWebsiteReleasesUrl), findsOneWidget);
     });
 
     testWidgets("'Apply cherrypicks' substep displays correctly", (WidgetTester tester) async {
@@ -107,7 +110,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -115,9 +118,8 @@ void main() {
         ),
       ));
 
-      expect(find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.applyCherrypicks]!),
-          findsOneWidget);
-      expect(find.textContaining('No cherrypick conflicts'), findsOneWidget);
+      expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!), findsOneWidget);
+      expect(find.textContaining('No engine cherrypick conflicts'), findsOneWidget);
     });
   });
 
@@ -136,7 +138,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -144,10 +146,9 @@ void main() {
         ),
       ));
 
-      expect(
-          find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.verifyRelease]!), findsOneWidget);
+      expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.verifyRelease]!), findsOneWidget);
       expect(find.textContaining(kReleaseVersion), findsOneWidget);
-      expect(find.text(EngineCherrypicksSubsteps.kReleaseSDKURL), findsOneWidget);
+      expect(find.text(kWebsiteReleasesUrl), findsOneWidget);
       expect(find.byType(UrlButton), findsNWidgets(2));
     });
 
@@ -160,7 +161,7 @@ void main() {
             child: Column(
               children: <Widget>[
                 Builder(builder: (context) {
-                  return EngineCherrypicksSubsteps(nextStep: () {});
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
                 }),
               ],
             ),
@@ -168,10 +169,10 @@ void main() {
         ),
       ));
 
-      expect(find.text(EngineCherrypicksSubsteps.substepTitles[EngineCherrypicksSubstep.applyCherrypicks]!),
-          findsOneWidget);
+      expect(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!), findsOneWidget);
       expect(find.textContaining('Navigate to the engine checkout'), findsOneWidget);
-      expect(find.textContaining(fakeConductor.rootDirectory.path), findsOneWidget);
+      expect(find.textContaining('${fakeConductor.rootDirectory.path}/flutter_conductor_checkouts/engine'),
+          findsOneWidget);
       expect(find.textContaining('apply the following engine cherrypicks'), findsOneWidget);
       expect(find.textContaining('git cherry-pick $kEngineCherrypick1'), findsOneWidget);
       expect(find.textContaining('git cherry-pick $kEngineCherrypick2'), findsOneWidget);
@@ -180,4 +181,93 @@ void main() {
       expect(find.text(kReleaseDocumentationUrl), findsOneWidget);
     });
   });
+
+  group('NextContext tests', () {
+    late pb.ConductorState stateWithoutConflicts;
+
+    setUp(() {
+      stateWithoutConflicts = generateConductorState();
+    });
+    testWidgets('Clicking on the continue button proceeds to the next phase of the release',
+        (WidgetTester tester) async {
+      const pb.ReleasePhase nextPhase = pb.ReleasePhase.CODESIGN_ENGINE_BINARIES;
+      final pb.ConductorState nextPhaseState = generateConductorState(currentPhase: nextPhase);
+
+      FakeConductor fakeConductor = FakeConductor(
+        testState: stateWithoutConflicts,
+      );
+      // Initialize a [FakeNextContext] that changes the state of the conductor to be at the
+      // next phase, and attach it to the conductor. That simulates the scenario when
+      // 'fakeNextContext.run()` is called, proceeds to the next phase of the release.
+      FakeNextContext fakeNextContext = FakeNextContext(
+        runOverride: () async => fakeConductor.testState = nextPhaseState,
+      );
+      fakeConductor.fakeNextContextProvided = fakeNextContext;
+
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(
+          conductor: fakeConductor,
+        ),
+        child: MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                Builder(builder: (context) {
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
+                }),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      expect(fakeConductor.state?.currentPhase, equals(kCurrentPhase));
+      await checkAllContinue(tester);
+      expect(fakeConductor.state?.currentPhase, equals(nextPhase));
+    });
+
+    testWidgets('Catch an exception correctly', (WidgetTester tester) async {
+      const String exceptionMsg = 'There is a general Exception';
+
+      // Initialize a [FakeNextContext] that throws an error and attach it to the conductor.
+      // That simulates the scenario when 'fakeNextContext.run()` is called, an error is thrown.
+      final FakeConductor fakeConductor = FakeConductor(
+        testState: stateWithoutConflicts,
+        fakeNextContextProvided: FakeNextContext(
+          runOverride: () async => throw Exception(exceptionMsg),
+        ),
+      );
+
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(
+          conductor: fakeConductor,
+        ),
+        child: MaterialApp(
+          home: Material(
+            child: ListView(
+              children: <Widget>[
+                Builder(builder: (context) {
+                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.engine);
+                }),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      await checkAllContinue(tester);
+      expect(fakeConductor.state?.currentPhase, equals(kCurrentPhase));
+      expect(find.textContaining(exceptionMsg), findsOneWidget);
+    });
+  });
+}
+
+/// Check all substeps and press on the continue button.
+Future<void> checkAllContinue(WidgetTester tester) async {
+  for (final String substep in CherrypicksSubsteps.substepTitles.values) {
+    await tester.tap(find.text(substep));
+  }
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('applyEngineCherrypicksContinue')));
+  await tester.pumpAndSettle();
 }

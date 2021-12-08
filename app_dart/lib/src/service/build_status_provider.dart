@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../src/service/luci.dart';
@@ -54,10 +55,12 @@ class BuildStatusService {
   /// the latest commit status, so it does not impact the build status.
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
-  Future<BuildStatus?> calculateCumulativeStatus({String? branch}) async {
+  ///
+  /// Tree status is only for [defaultBranches].
+  Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
     final List<CommitStatus> statuses = await retrieveCommitStatus(
       limit: numberOfCommitsToReferenceForTreeStatus,
-      branch: branch,
+      slug: slug,
     ).toList();
     if (statuses.isEmpty) {
       return BuildStatus.failure();
@@ -119,9 +122,18 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus({required int limit, int? timestamp, String? branch}) async* {
-    await for (Commit commit
-        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
+  Stream<CommitStatus> retrieveCommitStatus({
+    required int limit,
+    int? timestamp,
+    String? branch,
+    required RepositorySlug slug,
+  }) async* {
+    await for (Commit commit in datastoreService.queryRecentCommits(
+      limit: limit,
+      timestamp: timestamp,
+      branch: branch,
+      slug: slug,
+    )) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }

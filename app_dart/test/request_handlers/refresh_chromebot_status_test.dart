@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
@@ -39,7 +40,7 @@ void main() {
     setUp(() async {
       tabledataResource = FakeTabledataResource();
       config = FakeConfig(tabledataResource: tabledataResource);
-      config.flutterBranchesValue = <String>[config.defaultBranch];
+      config.flutterBranchesValue = <String>[Config.defaultBranch(Config.flutterSlug)];
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
       mockLuciBuildService = MockLuciBuildService();
@@ -61,8 +62,8 @@ void main() {
       commit = Commit(
         key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/abc'),
         sha: 'abc',
-        branch: config.defaultBranch,
-        repository: config.flutterSlug.fullName,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        repository: Config.flutterSlug.fullName,
       );
       builders = await scheduler.getPostSubmitBuilders(exampleConfig);
     });
@@ -149,7 +150,7 @@ void main() {
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/test/abc'),
           sha: 'abc',
           branch: 'test',
-          repository: config.flutterSlug.fullName,
+          repository: Config.flutterSlug.fullName,
         );
         final Task task = Task(
           key: branchCommit.key.append(Task, id: 123),
@@ -355,14 +356,14 @@ void main() {
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/test/def'),
           sha: 'def',
           branch: 'test',
-          repository: config.flutterSlug.fullName,
+          repository: Config.flutterSlug.fullName,
         );
         final Task task = Task(
             key: branchCommit.key.append(Task, id: 456),
             commitKey: branchCommit.key,
             name: 'Linux A',
             status: Task.statusNew);
-        config.flutterBranchesValue = <String>[config.defaultBranch, 'test'];
+        config.flutterBranchesValue = <String>[Config.defaultBranch(Config.flutterSlug), 'test'];
         config.db.values[commit.key] = commit;
         config.db.values[branchCommit.key] = branchCommit;
         config.db.values[task.key] = task;
@@ -430,7 +431,7 @@ void main() {
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(<LuciBuilder>[
-          LuciBuilder(name: 'Mac abc', repo: config.flutterSlug.name, taskName: 'def', flaky: false)
+          LuciBuilder(name: 'Mac abc', repo: Config.flutterSlug.name, taskName: 'def', flaky: false)
         ],
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{

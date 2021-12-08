@@ -2,14 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 
-import 'codesign_engine_substeps.dart';
+import '../models/repositories.dart';
+import 'cherrypicks_substeps.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
-import 'engine_cherrypicks_substeps.dart';
-import 'substeps.dart';
+import 'merge_pr_substeps.dart';
+import 'publish_tag_substeps.dart';
+import 'push_release_substep.dart';
+import 'release_completed.dart';
 
 /// Displays the progression and each step of the release from the conductor.
 ///
@@ -18,10 +20,10 @@ import 'substeps.dart';
 class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
-    this.releaseState,
+    this.previousCompletedStep,
   }) : super(key: key);
 
-  final pb.ConductorState? releaseState;
+  final int? previousCompletedStep;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -30,13 +32,25 @@ class MainProgression extends StatefulWidget {
     'Initialize a New Flutter Release',
     'Apply Engine Cherrypicks',
     'Codesign Engine Binaries',
-    'Publish the Release',
-    'Release is Successfully published'
+    'Apply Framework Cherrypicks',
+    'Merge the Framework PR',
+    'Publish the Version Tag',
+    'Push and Verify the Release',
+    'Release is Completed',
   ];
 }
 
 class MainProgressionState extends State<MainProgression> {
   int _completedStep = 0;
+
+  @override
+  void initState() {
+    // Enables the stepper to resume from the step it was left on previously.
+    if (widget.previousCompletedStep != null) {
+      _completedStep = widget.previousCompletedStep!;
+    }
+    super.initState();
+  }
 
   /// Move forward the stepper to the next step of the release.
   void nextStep() {
@@ -73,6 +87,8 @@ class MainProgressionState extends State<MainProgression> {
           children: <Widget>[
             const ConductorStatus(),
             const SizedBox(height: 20.0),
+            // TODO(Yugue):  render stepper content widget only if the release is at that step,
+            // https://github.com/flutter/flutter/issues/94755.
             Stepper(
               controlsBuilder: (BuildContext context, ControlsDetails details) => Row(),
               physics: const ScrollPhysics(),
@@ -81,49 +97,57 @@ class MainProgressionState extends State<MainProgression> {
               steps: <Step>[
                 Step(
                   title: Text(MainProgression._stepTitles[0]),
-                  content: Column(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(nextStep: nextStep),
-                    ],
-                  ),
-                  isActive: true,
+                  content: CreateReleaseSubsteps(nextStep: nextStep),
+                  isActive: _completedStep >= 0,
                   state: handleStepState(0),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[1]),
-                  content: Column(
-                    children: <Widget>[
-                      EngineCherrypicksSubsteps(nextStep: nextStep),
-                    ],
-                  ),
-                  isActive: true,
+                  content: CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.engine),
+                  isActive: _completedStep >= 1,
                   state: handleStepState(1),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[2]),
-                  content: Column(
-                    children: <Widget>[
-                      CodesignEngineSubsteps(nextStep: nextStep),
-                    ],
+                  content: MergePrSubsteps(
+                    nextStep: nextStep,
+                    repository: Repositories.engine,
                   ),
-                  isActive: true,
+                  isActive: _completedStep >= 2,
                   state: handleStepState(2),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[3]),
-                  content: Column(
-                    children: <Widget>[
-                      ConductorSubsteps(nextStep: nextStep),
-                    ],
-                  ),
-                  isActive: true,
+                  content: CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework),
+                  isActive: _completedStep >= 3,
                   state: handleStepState(3),
                 ),
                 Step(
                   title: Text(MainProgression._stepTitles[4]),
-                  content: Column(),
-                  isActive: true,
+                  content: MergePrSubsteps(
+                    nextStep: nextStep,
+                    repository: Repositories.framework,
+                  ),
+                  isActive: _completedStep >= 4,
                   state: handleStepState(4),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[5]),
+                  content: PublishTagSubsteps(nextStep: nextStep),
+                  isActive: _completedStep >= 5,
+                  state: handleStepState(5),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[6]),
+                  content: PushReleaseSubsteps(nextStep: nextStep),
+                  isActive: true,
+                  state: handleStepState(6),
+                ),
+                Step(
+                  title: Text(MainProgression._stepTitles[7]),
+                  content: const ReleaseCompleted(),
+                  isActive: true,
+                  state: handleStepState(7),
                 ),
               ],
             ),

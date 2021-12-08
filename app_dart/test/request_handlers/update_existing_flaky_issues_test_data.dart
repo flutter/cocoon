@@ -56,6 +56,17 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
   )
 ];
 
+final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+  )
+];
+
 final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',

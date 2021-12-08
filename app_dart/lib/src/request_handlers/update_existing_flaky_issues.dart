@@ -34,7 +34,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final RepositorySlug slug = config.flutterSlug;
+    final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
@@ -122,7 +122,9 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     }
     // For all staging builder stats, updates any existing flaky bug.
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) && _buildsAreEnough(statistic)) {
+      if (nameToExistingIssue.containsKey(statistic.name) &&
+          builderFlakyMap[statistic.name] == true &&
+          _buildsAreEnough(statistic)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: _getBucket(builderFlakyMap, statistic.name),
             statistic: statistic,

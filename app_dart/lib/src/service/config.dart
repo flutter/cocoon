@@ -39,23 +39,36 @@ class Config {
   ///
   /// Relies on the GitHub Checks API being enabled for this repo.
   static Set<RepositorySlug> supportedRepos = <RepositorySlug>{
-    RepositorySlug('flutter', 'cocoon'),
-    RepositorySlug('flutter', 'engine'),
-    RepositorySlug('flutter', 'flutter'),
-    RepositorySlug('flutter', 'packages'),
-    RepositorySlug('flutter', 'plugins'),
+    cocoonSlug,
+    engineSlug,
+    flutterSlug,
+    packagesSlug,
+    pluginsSlug,
   };
 
   /// List of GitHub repositories that are supported by [Scheduler].
   static Set<RepositorySlug> schedulerSupportedRepos = <RepositorySlug>{
-    RepositorySlug('flutter', 'flutter'),
+    flutterSlug,
   };
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
-    RepositorySlug('flutter', 'engine'),
-    RepositorySlug('flutter', 'flutter'),
+    engineSlug,
+    flutterSlug,
   };
+
+  /// The tip of tree branch for [slug].
+  static String defaultBranch(RepositorySlug slug) {
+    final Map<RepositorySlug, String> defaultBranches = <RepositorySlug, String>{
+      cocoonSlug: 'main',
+      flutterSlug: 'master',
+      engineSlug: 'main',
+      pluginsSlug: 'master',
+      packagesSlug: 'master',
+    };
+
+    return defaultBranches[slug] ?? kDefaultBranchName;
+  }
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
@@ -243,10 +256,6 @@ class Config {
 
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
-  String get defaultBranch => kDefaultBranchName;
-
-  bool isDefaultBranch(String branch) => branch == kDefaultBranchName || branch == 'main';
-
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
@@ -257,8 +266,11 @@ class Config {
   String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
-  RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+  static RepositorySlug get cocoonSlug => RepositorySlug('flutter', 'cocoon');
+  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+  static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
+  static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 

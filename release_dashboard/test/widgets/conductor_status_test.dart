@@ -9,7 +9,7 @@ import 'package:conductor_ui/widgets/conductor_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../src/services/fake_conductor.dart';
+import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
@@ -49,9 +49,13 @@ void main() {
 
     testWidgets('Conductor_status displays correct status with a null state file except a releaseChannel',
         (WidgetTester tester) async {
-      final pb.ConductorState stateIncomplete = pb.ConductorState(
-        releaseChannel: kReleaseChannel,
-      );
+      final pb.ConductorState stateIncomplete = generateConductorState();
+      stateIncomplete.engine.startingGitHead = '';
+      stateIncomplete.engine.currentGitHead = '';
+      stateIncomplete.engine.checkoutPath = '';
+      stateIncomplete.framework.startingGitHead = '';
+      stateIncomplete.framework.currentGitHead = '';
+      stateIncomplete.framework.checkoutPath = '';
 
       await tester.pumpWidget(MyApp(FakeConductor(testState: stateIncomplete)));
 
@@ -59,8 +63,8 @@ void main() {
       for (MapEntry headerElement in ConductorStatus.headerElements.entries) {
         expect(find.text('${headerElement.value}:'), findsOneWidget);
       }
-      expect(find.text(kReleaseChannel), findsNWidgets(2));
-      expect(find.text('Unknown'), findsNWidgets(11));
+      expect(find.text(kReleaseChannel), findsNWidgets(1));
+      expect(find.text('Unknown'), findsNWidgets(6));
     });
 
     testWidgets('Engine Repo Info section displays correctly in a dropdown fashion', (WidgetTester tester) async {

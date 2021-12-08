@@ -144,7 +144,7 @@ void main() {
       // Verify issue is created correctly.
       List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.title, expectedSemanticsIntegrationTestResponseTitle);
@@ -191,7 +191,7 @@ void main() {
       // Verify pr is created correctly.
       captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
       final CreatePullRequest pr = captured[1] as CreatePullRequest;
       expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
@@ -235,7 +235,7 @@ void main() {
       // Verify issue is created correctly.
       List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
@@ -244,7 +244,7 @@ void main() {
       // Verify pr is created correctly.
       captured = verify(mockPullRequestsService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
 
       expect(result['Status'], 'success');
@@ -267,7 +267,7 @@ void main() {
       // Verify issue is created correctly.
       final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.body, expectedLimitedNumberOfBuildsResponseBody);
@@ -292,7 +292,7 @@ void main() {
       // Verify issue is created correctly.
       final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedFrameworkTestResponseAssignee);
@@ -320,7 +320,7 @@ void main() {
       // Verify issue is created correctly.
       final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
@@ -452,7 +452,7 @@ void main() {
       // Verify issue is created correctly.
       final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
       expect(captured.length, 2);
-      expect(captured[0].toString(), config.flutterSlug.toString());
+      expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.title, expectedSemanticsIntegrationTestResponseTitle);

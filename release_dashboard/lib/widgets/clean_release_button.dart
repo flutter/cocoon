@@ -3,8 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../logic/error_to_string.dart';
 import '../services/conductor.dart';
+import '../state/status_state.dart';
 import 'common/dialog_prompt.dart';
 import 'common/snackbar_prompt.dart';
 
@@ -15,10 +18,7 @@ import 'common/snackbar_prompt.dart';
 class CleanReleaseButton extends StatefulWidget {
   const CleanReleaseButton({
     Key? key,
-    required this.conductor,
   }) : super(key: key);
-
-  final ConductorService conductor;
 
   @override
   State<CleanReleaseButton> createState() => _CleanReleaseButtonState();
@@ -37,6 +37,8 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
 
   @override
   Widget build(BuildContext context) {
+    final ConductorService conductor = context.watch<StatusState>().conductor;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 40, 0),
       child: IconButton(
@@ -54,7 +56,11 @@ class _CleanReleaseButtonState extends State<CleanReleaseButton> {
             leftButtonTitle: 'No',
             rightButtonTitle: 'Yes',
             rightButtonCallback: () async {
-              _updateErrorMsg('Feature has not been implemented yet. Please use conductor clean of the CLI tool!');
+              try {
+                await conductor.cleanRelease(context);
+              } catch (error, stackTrace) {
+                _updateErrorMsg(errorToString(error, stackTrace));
+              }
               if (_errorMsg != null) {
                 snackbarPrompt(context: context, msg: _errorMsg!);
               }
