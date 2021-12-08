@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -12,7 +9,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/request_handler_tester.dart';
+import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/mocks.dart';
@@ -26,7 +23,7 @@ void main() {
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
   late FakeHttpRequest request;
-  late RequestHandlerTester tester;
+  late SubscriptionTester tester;
   late MockRepositoriesService mockRepositoriesService;
   late MockGithubChecksService mockGithubChecksService;
 
@@ -44,7 +41,7 @@ void main() {
     );
     request = FakeHttpRequest();
 
-    tester = RequestHandlerTester(
+    tester = SubscriptionTester(
       request: request,
     );
 
@@ -55,11 +52,11 @@ void main() {
   });
 
   test('Requests without repo_owner and repo_name do not update checks', () async {
-    request.bodyBytes = utf8.encode(pushMessageJsonNoBuildset(
+    tester.message = pushMessageJsonNoBuildset(
       'COMPLETED',
       result: 'SUCCESS',
       builderName: 'Linux Host Engine',
-    )) as Uint8List;
+    );
 
     await tester.post(handler);
     verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
@@ -67,12 +64,12 @@ void main() {
 
   test('Requests with repo_owner and repo_name update checks', () async {
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    request.bodyBytes = utf8.encode(pushMessageJson(
+    tester.message = pushMessageJson(
       'COMPLETED',
       result: 'SUCCESS',
       builderName: 'Linux Host Engine',
       userData: '{\\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"cocoon\\"}',
-    )) as Uint8List;
+    );
     await tester.post(handler);
     verify(mockGithubChecksService.updateCheckStatus(any, any, any)).called(1);
   });
