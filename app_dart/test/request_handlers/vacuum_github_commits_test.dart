@@ -177,8 +177,8 @@ void main() {
         }
       };
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 2 + Config.supportedRepos.length);
-      expect(db.values.values.whereType<Task>().length, 4 + (4 * Config.supportedRepos.length));
+      expect(db.values.values.whereType<Commit>().length, 4 + Config.supportedRepos.length);
+      expect(db.values.values.whereType<Task>().length, 2 + (2 * 3 * Config.supportedRepos.length));
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);
