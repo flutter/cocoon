@@ -23,17 +23,19 @@ enum CherrypicksSubstep {
   applyCherrypicks,
 }
 
-/// Group and display all substeps related to Apply Engine/Framework Cherrypicks step into a widget.
+/// Group and display all substeps related to Apply Engine/Framework Cherrypicks step.
 ///
-/// When all substeps are completed, [nextStep] can be executed to proceed to the next step.
+/// [repository] parameter enables the widget to adapt to the engine/framework repository.
+///
+/// The continue button becomes enabled when all substeps are checked. Disabled otherwise.
+/// When the continue button is pressed, proceed to the next step. Any errors will be displayed
+/// above the continue button in red.
 class CherrypicksSubsteps extends StatefulWidget {
   const CherrypicksSubsteps({
     Key? key,
-    required this.nextStep,
     required this.repository,
   }) : super(key: key);
 
-  final VoidCallback nextStep;
   final Repositories repository;
 
   @override
@@ -48,6 +50,7 @@ class CherrypicksSubsteps extends StatefulWidget {
 class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
   final Map<CherrypicksSubstep, bool> _isEachSubstepChecked = <CherrypicksSubstep, bool>{};
   String? _error;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -78,6 +81,13 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
     });
   }
 
+  /// Toggle if the widget is being loaded or not.
+  void setIsLoading(bool result) {
+    setState(() {
+      _isLoading = result;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final StatusState statusState = context.watch<StatusState>();
@@ -86,9 +96,9 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
         ? ConductorStatusEntry.engineCherrypicks
         : ConductorStatusEntry.frameworkCherrypicks;
 
-    if (statusState.releaseStatus != null && statusState.releaseStatus?[repositoryCherrypick] != null) {
+    if (statusState.releaseStatus![repositoryCherrypick] != null) {
       for (Map<Cherrypick, String> cherrypick
-          in statusState.releaseStatus?[repositoryCherrypick] as List<Map<Cherrypick, String>>) {
+          in statusState.releaseStatus![repositoryCherrypick] as List<Map<Cherrypick, String>>) {
         if (cherrypick[Cherrypick.state] == pb.CherrypickState.PENDING_WITH_CONFLICT.string()) {
           cherrypicksInConflict.writeln('git cherry-pick ${cherrypick[Cherrypick.trunkRevision]!}');
         }
@@ -104,7 +114,7 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SelectableText(
-                    'Verify if the release number: ${statusState.releaseStatus?[ConductorStatusEntry.releaseVersion]}'
+                    'Verify if the release number: ${statusState.releaseStatus![ConductorStatusEntry.releaseVersion]}'
                     ' is correct based on existing published releases here: '),
                 const UrlButton(
                   textToDisplay: kWebsiteReleasesUrl,
@@ -154,20 +164,22 @@ class CherrypicksSubstepsState extends State<CherrypicksSubsteps> {
         ),
         const SizedBox(height: 20.0),
         ContinueButton(
-            elevatedButtonKey: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
-            enabled: !_isEachSubstepChecked.containsValue(false),
-            error: _error,
-            onPressedCallback: () async {
-              setError(null);
-              statusState.conductor.conductorNext(context).catchError((error, stackTrace) {
-                setError(errorToString(error, stackTrace));
-              }).whenComplete(() {
-                if (_error == null) {
-                  widget.nextStep();
-                }
-              });
-            },
-            isLoading: false),
+          elevatedButtonKey: Key('apply${repositoryName(widget.repository, true)}CherrypicksContinue'),
+          enabled: !_isEachSubstepChecked.containsValue(false),
+          error: _error,
+          onPressedCallback: () async {
+            setError(null);
+            setIsLoading(true);
+            try {
+              await statusState.conductor.conductorNext(context);
+            } catch (error, stacktrace) {
+              setError(errorToString(error, stacktrace));
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          isLoading: _isLoading,
+        ),
       ],
     );
   }

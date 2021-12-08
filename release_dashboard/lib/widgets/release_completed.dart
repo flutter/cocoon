@@ -24,8 +24,8 @@ class ReleaseCompletedState extends State<ReleaseCompleted> {
     Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
 
     return Text(
-        'Congratulations! The release ${releaseStatus?[ConductorStatusEntry.releaseVersion]} '
-        'has been successfully released to the ${releaseStatus?[ConductorStatusEntry.releaseChannel]} channel!',
+        'Congratulations! The release ${releaseStatus![ConductorStatusEntry.releaseVersion]} '
+        'has been successfully released to the ${releaseStatus[ConductorStatusEntry.releaseChannel]} channel!',
         style: Theme.of(context).textTheme.subtitle1);
   }
 }

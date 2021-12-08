@@ -32,4 +32,11 @@ class ReleaseDashboardNextContext extends NextContext {
     super.updateState(state, logs);
     syncStatusWithState();
   }
+
+  // TODO(Yugue): [release_dashboard] Add DialoguePrompt for all NextContext command,
+  // https://github.com/flutter/flutter/issues/94222.
+  @override
+  Future<bool> prompt(String message) async {
+    return true;
+  }
 }
