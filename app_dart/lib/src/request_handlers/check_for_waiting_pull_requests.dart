@@ -401,8 +401,7 @@ bool _checkApproval(
       changeRequestAuthors.add(authorLogin);
     }
   }
-  final bool approved = (approvers.length > 1) && approvers.isNotEmpty;
-  return approved && changeRequestAuthors.isEmpty;
+  return (approvers.length > 1) && changeRequestAuthors.isEmpty;
 }
 
 /// A model class describing the state of a pull request that has the "waiting
