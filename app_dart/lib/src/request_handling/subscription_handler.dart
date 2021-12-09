@@ -19,9 +19,9 @@ import 'body.dart';
 ///  * All requests must be authenticated per [AuthenticationProvider].
 ///  * Request body is passed following the format of [PushMessageEnvelope].
 @immutable
-abstract class Subscription extends ApiRequestHandler<Body> {
-  /// Creates a new [Subscription].
-  const Subscription({
+abstract class SubscriptionHandler extends ApiRequestHandler<Body> {
+  /// Creates a new [SubscriptionHandler].
+  const SubscriptionHandler({
     required Config config,
     required AuthenticationProvider authenticationProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);

@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
 
 import '../request_handling/fake_authentication.dart';
@@ -41,7 +40,6 @@ class FakeConfig implements Config {
     this.bigqueryService,
     this.githubGraphQLClient,
     this.cirrusGraphQLClient,
-    this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
@@ -83,7 +81,6 @@ class FakeConfig implements Config {
   String? flutterBuildDescriptionValue;
   Logging? loggingServiceValue;
   String? waitingForTreeToGoGreenLabelNameValue;
-  ServiceAccountCredentials? taskLogServiceAccountValue;
   Set<String>? rollerAccountsValue;
   List<String>? flutterBranchesValue;
   int? maxRecordsValue;

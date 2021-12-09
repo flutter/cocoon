@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/request_handling/subscription.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
@@ -19,7 +19,7 @@ import '../src/request_handling/fake_authentication.dart';
 void main() {
   group('Subscription', () {
     late HttpServer server;
-    late Subscription subscription;
+    late SubscriptionHandler subscription;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -84,8 +84,8 @@ void main() {
   });
 }
 
-/// Test stub of [Subscription] to validate unauthenticated requests.
-class UnauthTest extends Subscription {
+/// Test stub of [SubscriptionHandler] to validate unauthenticated requests.
+class UnauthTest extends SubscriptionHandler {
   UnauthTest()
       : super(
           config: FakeConfig(),
@@ -96,8 +96,8 @@ class UnauthTest extends Subscription {
   Future<Body> get() async => throw StateError('Unreachable');
 }
 
-/// Test stub of [Subscription] to validate authenticated requests.
-class AuthTest extends Subscription {
+/// Test stub of [SubscriptionHandler] to validate authenticated requests.
+class AuthTest extends SubscriptionHandler {
   AuthTest()
       : super(
           config: FakeConfig(),
@@ -108,8 +108,8 @@ class AuthTest extends Subscription {
   Future<Body> get() async => Body.empty;
 }
 
-/// Test stub of [Subscription] to validate push messages can be read.
-class ReadMessageTest extends Subscription {
+/// Test stub of [SubscriptionHandler] to validate push messages can be read.
+class ReadMessageTest extends SubscriptionHandler {
   ReadMessageTest()
       : super(
           config: FakeConfig(),
