@@ -207,6 +207,7 @@ void main() {
       expect(properties, <String, dynamic>{
         'dependencies': <dynamic>[],
         'bringup': false,
+        'git_branch': 'master',
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
       });
