@@ -80,6 +80,26 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 DropdownButton<String>(
+                  value: _buildState.currentRepo,
+                  icon: const Icon(
+                    Icons.arrow_downward,
+                  ),
+                  iconSize: 24,
+                  elevation: 16,
+                  underline: Container(
+                    height: 2,
+                  ),
+                  onChanged: (String repo) {
+                    _buildState.updateCurrentRepo(repo);
+                  },
+                  items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: theme.primaryTextTheme.bodyText1),
+                    );
+                  }).toList(),
+                ),
+                DropdownButton<String>(
                   value: _buildState.currentBranch,
                   icon: const Icon(
                     Icons.arrow_downward,

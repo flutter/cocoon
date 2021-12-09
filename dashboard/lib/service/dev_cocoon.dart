@@ -73,6 +73,7 @@ class DevelopmentCocoonService implements CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
     String branch,
+    String repo,
   }) async {
     final CocoonResponse<List<CommitStatus>> data =
         CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus));
@@ -99,8 +100,14 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<String>>> fetchRepos() async {
+    return const CocoonResponse<List<String>>.data(<String>['flutter', 'engine', 'cocoon']);
+  }
+
+  @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
+    String repo,
   }) async {
     final bool failed = _random.nextBool();
     final BuildStatusResponse response = BuildStatusResponse()

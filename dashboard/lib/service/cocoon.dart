@@ -34,15 +34,20 @@ abstract class CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
     String branch,
+    String repo,
   });
 
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
+    String repo,
   });
 
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<String>>> fetchFlutterBranches();
+
+  /// Get the current list of version branches in flutter/flutter.
+  Future<CocoonResponse<List<String>>> fetchRepos();
 
   /// Send rerun [Task] command to devicelab.
   ///
