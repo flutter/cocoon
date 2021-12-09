@@ -159,9 +159,6 @@ class AppEngineCocoonService implements CocoonService {
         },
         body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
-          // This prepares this api to support different repos.
-          'Owner': 'flutter',
-          'Repo': 'flutter',
         }));
 
     return response.statusCode == HttpStatus.ok;
