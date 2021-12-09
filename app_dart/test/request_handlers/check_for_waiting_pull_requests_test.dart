@@ -510,6 +510,69 @@ This pull request is not suitable for automatic merging in its current state.
       ]);
     });
 
+    test('Does not merge if non member does not have at least 2 member reviews', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        authorAssociation: '',
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'sBody': '''This pull request is not suitable for automatic merging in its current state.
+
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+''',
+            'labelId': base64LabelId,
+          },
+        ),
+      ]);
+    });
+
+    test('Self review is disallowed', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        author: 'some_rando',
+        authorAssociation: 'MEMBER',
+        reviews: <PullRequestReviewHelper>[
+          const PullRequestReviewHelper(
+              authorName: 'some_rando', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+        ],
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'sBody': '''This pull request is not suitable for automatic merging in its current state.
+
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+''',
+            'labelId': base64LabelId,
+          },
+        ),
+      ]);
+    });
+
     test('Ignores cirrus tasks statuses when no matched branch', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
@@ -604,7 +667,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': engineRepoPRs.first.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -615,7 +678,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': flutterRepoPRs.first.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -679,7 +742,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': flutterRepoPRs[1].id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -807,7 +870,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': prNonMemberApprove.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -818,7 +881,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': prNonMemberChangeRequest.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -890,7 +953,7 @@ This pull request is not suitable for automatic merging in its current state.
               'id': prNoReviews.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+- Please get at least one approved review if you are already a member or two member reviews if you are not a member before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
               'labelId': base64LabelId,
             },
@@ -977,6 +1040,7 @@ class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
     this.repo = 'flutter',
+    this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
@@ -995,6 +1059,7 @@ class PullRequestHelper {
 
   final String repo;
   final String author;
+  final String authorAssociation;
   final String title;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
@@ -1008,6 +1073,7 @@ class PullRequestHelper {
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'author': <String, dynamic>{'login': author},
+      'authorAssociation': authorAssociation,
       'id': id,
       'baseRepository': <String, dynamic>{
         'nameWithOwner': slug.fullName,
