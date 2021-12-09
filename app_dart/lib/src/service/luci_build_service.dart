@@ -176,6 +176,7 @@ class LuciBuildService {
     }
     properties ??= <String, dynamic>{};
     properties.addAll(<String, String>{
+      'git_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
       'git_ref': 'refs/pull/${pullRequest.number}/head',
     });
