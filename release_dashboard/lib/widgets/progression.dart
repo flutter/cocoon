@@ -89,6 +89,17 @@ class MainProgression extends StatefulWidget {
 class MainProgressionState extends State<MainProgression> {
   final ScrollController _scrollController = ScrollController();
 
+  /// Change each step's state according to the current completed step.
+  StepState handleStepState(int currentStep, int index) {
+    if (currentStep > index) {
+      return StepState.complete;
+    } else if (currentStep == index) {
+      return StepState.indexed;
+    } else {
+      return StepState.disabled;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
@@ -96,17 +107,6 @@ class MainProgressionState extends State<MainProgression> {
     // If there is no test state, start from the first step: creating a release.
     final int currentStep =
         releaseStatus == null ? 0 : MainProgression.stepPosition[releaseStatus[ConductorStatusEntry.currentPhase]]!;
-
-    /// Change each step's state according to the current completed step.
-    StepState handleStepState(int index) {
-      if (currentStep > index) {
-        return StepState.complete;
-      } else if (currentStep == index) {
-        return StepState.indexed;
-      } else {
-        return StepState.disabled;
-      }
-    }
 
     // The values of the map are widgets that each [Step] renders as its content.
     const Map<Object, Widget> stepWidgetMapping = <Object, Widget>{
@@ -143,7 +143,7 @@ class MainProgressionState extends State<MainProgression> {
                     content: currentStep == step.value ? stepWidgetMapping[step.key]! : Container(),
                     // All previously completed steps and the current steps are active.
                     isActive: currentStep >= step.value,
-                    state: handleStepState(step.value),
+                    state: handleStepState(currentStep, step.value),
                   ),
               ],
             ),
