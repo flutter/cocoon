@@ -210,8 +210,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final Set<String?> changeRequestAuthors = <String?>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
-            author,
-            pullRequest['authorAssociation'] as String,
             (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
             changeRequestAuthors,
           );
@@ -374,31 +372,30 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-  String? author,
-  String authorAssociation,
   List<Map<String, dynamic>> reviewNodes,
   Set<String?> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors.isEmpty);
   const Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
   final Set<String?> approvers = <String?>{};
-  if (allowedReviewers.contains(authorAssociation)) {
-    approvers.add(author);
-  }
+
   for (Map<String, dynamic> review in reviewNodes) {
+    final String? state = review['state'] as String?;
+    final String? reviewerAuthorLogin = review['author']['login'] as String?;
+    final String? authorAssociation = review['authorAssociation'] as String?;
     // Ignore reviews from non-members/owners.
-    if (!allowedReviewers.contains(review['authorAssociation'])) {
+    if (!allowedReviewers.contains(authorAssociation)) {
       continue;
+    } else {
+      approvers.add(reviewerAuthorLogin);
     }
 
     // Reviews come back in order of creation.
-    final String? state = review['state'] as String?;
-    final String? authorLogin = review['author']['login'] as String?;
     if (state == 'APPROVED') {
-      approvers.add(authorLogin);
-      changeRequestAuthors.remove(authorLogin);
+      approvers.add(reviewerAuthorLogin);
+      changeRequestAuthors.remove(reviewerAuthorLogin);
     } else if (state == 'CHANGES_REQUESTED') {
-      changeRequestAuthors.add(authorLogin);
+      changeRequestAuthors.add(reviewerAuthorLogin);
     }
   }
   return (approvers.length > 1) && changeRequestAuthors.isEmpty;

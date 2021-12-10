@@ -513,12 +513,14 @@ This pull request is not suitable for automatic merging in its current state.
     test('Does not merge if non member does not have at least 2 member reviews', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
-        authorAssociation: '',
         lastCommitCheckRuns: const <CheckRunHelper>[
           CheckRunHelper.luciCompletedSuccess,
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
+        ],
+        reviews: const <PullRequestReviewHelper>[
+          memberApprove,
         ],
       );
       flutterRepoPRs.add(prRequested);
@@ -815,6 +817,7 @@ This pull request is not suitable for automatic merging in its current state.
         reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
           changePleaseApprove,
+          memberApprove,
         ],
       );
 
@@ -837,6 +840,7 @@ This pull request is not suitable for automatic merging in its current state.
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           nonMemberApprove,
+          memberApprove,
         ],
       );
       final PullRequestHelper prNonMemberChangeRequest = PullRequestHelper(
@@ -847,6 +851,7 @@ This pull request is not suitable for automatic merging in its current state.
       final PullRequestHelper prNonMemberChangeRequestWithMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           ownerApprove,
+          memberApprove,
           nonMemberChangeRequest,
         ],
       );
@@ -1043,7 +1048,8 @@ class PullRequestHelper {
     this.authorAssociation = 'MEMBER',
     this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+      PullRequestReviewHelper(authorName: 'member1', state: ReviewState.APPROVED, memberType: MemberType.MEMBER),
+      PullRequestReviewHelper(authorName: 'member2', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
