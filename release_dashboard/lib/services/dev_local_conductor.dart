@@ -72,8 +72,7 @@ class DevLocalConductorService extends LocalConductorService {
       // the methods of [BuildContext] should not be cached beyond the execution of a
       // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
-      // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
-      // https://github.com/flutter/flutter/issues/94384
+      force: super.force,
       dialogPromptChanger: super.dialogPromptChanger,
     );
     return startContext.run();

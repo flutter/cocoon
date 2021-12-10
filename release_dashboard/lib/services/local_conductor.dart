@@ -103,8 +103,7 @@ class LocalConductorService extends ConductorService {
       // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       dialogPromptChanger: super.dialogPromptChanger,
-      // TODO(yugue): Add a button switch to toggle the force parameter.
-      // https://github.com/flutter/flutter/issues/94384
+      force: super.force,
     );
     await startContext.run();
     _engineCheckoutDirectory = await startContext.engine.checkoutDirectory;
@@ -126,9 +125,7 @@ class LocalConductorService extends ConductorService {
       // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       autoAccept: false,
-      // TODO(yugue): Add a button switch to toggle the force parameter.
-      // https://github.com/flutter/flutter/issues/94384
-      force: false,
+      force: super.force,
       checkouts: checkouts,
       stateFile: stateFile,
       dialogPromptChanger: super.dialogPromptChanger,

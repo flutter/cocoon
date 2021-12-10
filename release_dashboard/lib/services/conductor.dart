@@ -15,6 +15,7 @@ import '../widgets/progression.dart' show DialogPromptChanger;
 /// This exists as a common interface for user interface to rely on.
 abstract class ConductorService {
   late DialogPromptChanger dialogPromptChanger;
+  bool force = false;
 
   /// Returns the directory where checkout is saved.
   Directory get rootDirectory;

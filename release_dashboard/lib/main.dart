@@ -29,7 +29,7 @@ Future<void> main() async {
   runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp(
     this.conductor, {
     Key? key,
@@ -38,16 +38,43 @@ class MyApp extends StatelessWidget {
   final ConductorService conductor;
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _force = false;
+
+  void setForce(bool value) {
+    setState(() {
+      _force = value;
+      widget.conductor.force = value;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => StatusState(conductor: conductor),
+      create: (context) => StatusState(conductor: widget.conductor),
       child: MaterialApp(
         title: _title,
         home: Scaffold(
           appBar: AppBar(
             title: const Text(_title),
-            actions: const [
-              CleanReleaseButton(),
+            actions: [
+              Row(children: [
+                Text('Force push if ${_force == true ? 'on' : 'off'}'),
+                Switch(
+                  key: const Key('forceSwitch'),
+                  value: _force,
+                  onChanged: (bool value) {
+                    setForce(value);
+                  },
+                  activeTrackColor: Colors.lightGreenAccent,
+                  activeColor: Colors.green,
+                ),
+              ]),
+              const SizedBox(width: 20.0),
+              const CleanReleaseButton(),
             ],
           ),
           body: Padding(
@@ -65,7 +92,7 @@ class MyApp extends StatelessWidget {
                   style: Theme.of(context).textTheme.subtitle1,
                 ),
                 const SizedBox(height: 10.0),
-                MainProgression(conductor: conductor),
+                MainProgression(conductor: widget.conductor),
               ],
             ),
           ),
