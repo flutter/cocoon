@@ -26,16 +26,27 @@ Future<void> main() async {
   const bool isDev = true;
 
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(isDev == true ? DevLocalConductorService() : LocalConductorService()));
+  runApp(MyApp(
+    isDev == true ? DevLocalConductorService() : LocalConductorService(),
+    isDev: isDev,
+  ));
 }
 
+/// Root app of the release dashboard.
+///
+/// [conductor] is the conductor service currently used.
+///
+/// When [isDev] is true, the app is in development mode, else, it is in production
+/// mode. The release dashboard is in development mode by default.
 class MyApp extends StatelessWidget {
   const MyApp(
     this.conductor, {
+    this.isDev = true,
     Key? key,
   }) : super(key: key);
 
   final ConductorService conductor;
+  final bool isDev;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +67,8 @@ class MyApp extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SelectableText(
-                  'Desktop app for managing a release of the Flutter SDK',
+                  'Desktop app for managing a release of the Flutter SDK, currently in '
+                  '${isDev == true ? 'dev' : 'prod'} mode (mode can be changed in main.dart).',
                   style: Theme.of(context).textTheme.subtitle1,
                 ),
                 const SizedBox(height: 10.0),

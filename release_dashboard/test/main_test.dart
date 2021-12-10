@@ -22,5 +22,23 @@ void main() {
       expect(find.byType(CleanReleaseButton), findsOneWidget);
       expect(find.byType(MainProgression), findsOneWidget);
     });
+
+    testWidgets('Scaffold Initialization', (WidgetTester tester) async {
+      await tester.pumpWidget(MyApp(
+        FakeConductor(),
+        isDev: true,
+      ));
+
+      expect(find.textContaining('currently in dev mode'), findsOneWidget);
+    });
+
+    testWidgets('Scaffold Initialization', (WidgetTester tester) async {
+      await tester.pumpWidget(MyApp(
+        FakeConductor(),
+        isDev: false,
+      ));
+
+      expect(find.textContaining('currently in prod mode'), findsOneWidget);
+    });
   }, skip: Platform.isWindows); // This app does not support Windows [intended]
 }

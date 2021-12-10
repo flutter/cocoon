@@ -8,6 +8,11 @@ Also see
 https://github.com/flutter/flutter/wiki/Release-process for more information on
 the release process.
 
+Demo:
+
+![Demo](demo.gif)
+
+
 ## Requirements
 
 Some basic requirements to use the release dashboard:
