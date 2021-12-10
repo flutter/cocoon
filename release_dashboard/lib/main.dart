@@ -47,8 +47,8 @@ class _MyAppState extends State<MyApp> {
   void setForce(bool value) {
     setState(() {
       _force = value;
-      widget.conductor.force = value;
     });
+    widget.conductor.force = value;
   }
 
   @override
