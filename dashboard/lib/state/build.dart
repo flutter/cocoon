@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/build_dashboard_page.dart';
 
 import '../logic/brooks.dart';
 import '../model/build_status_response.pb.dart';
@@ -40,7 +42,7 @@ class BuildState extends ChangeNotifier {
 
   /// The current repo from [repos] to show data from.
   String get currentRepo => _currentRepo;
-  String _currentRepo = Uri.base.queryParameters['repo'] ?? 'flutter';
+  String _currentRepo = 'flutter';
 
   /// Repos in the Flutter organization this dashboard supports.
   List<String> get repos => _repos;
@@ -149,10 +151,11 @@ class BuildState extends ChangeNotifier {
   ///
   /// If fetched [statuses] is not on the current branch it will be discarded.
   Future<void> _fetchStatusUpdates([Timer timer]) async {
+    print('_fetchStatusUpdate for $currentRepo $currentBranch');
     await Future.wait<void>(<Future<void>>[
       () async {
         final CocoonResponse<List<CommitStatus>> response =
-            await cocoonService.fetchCommitStatuses(branch: _currentBranch);
+            await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
         if (!_active) {
           return null;
         }
@@ -164,8 +167,10 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<BuildStatusResponse> response =
-            await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
+          branch: currentBranch,
+          repo: currentRepo,
+        );
         if (!_active) {
           return null;
         }
@@ -200,22 +205,20 @@ class BuildState extends ChangeNotifier {
   }
 
   /// Update build state to be on [repo] and erase previous data.
-  Future<void> updateCurrentRepo(String repo) {
-    if (currentRepo == repo) {
+  void updateCurrentRepoBranch(String repo, String branch) {
+    if (currentRepo == repo && currentBranch == branch) {
       // Do nothing if the repo hasn't changed.
-      return Future<void>.value();
+      return;
     }
     _currentRepo = repo;
+    _currentBranch = branch;
+
     _moreStatusesExist = true;
     _isTreeBuilding = null;
     _failingTasks = <String>[];
     _statuses = <CommitStatus>[];
 
-    /// Clear previous data from the widgets
-    notifyListeners();
-
-    /// To prevent delays, make an immediate request for dashboard data.
-    return _fetchStatusUpdates();
+    _fetchStatusUpdates();
   }
 
   /// Handle merging status updates with the current data in [statuses].
@@ -322,7 +325,8 @@ class BuildState extends ChangeNotifier {
 
     final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
-      branch: _currentBranch,
+      branch: currentBranch,
+      repo: currentRepo,
     );
     if (!_active) {
       return;

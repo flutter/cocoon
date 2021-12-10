@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:provider/provider.dart';
 
 import 'logic/task_grid_filter.dart';
@@ -22,11 +23,16 @@ class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
     Key key,
     this.queryParameters,
+    this.repo,
+    this.branch,
   }) : super(key: key);
 
   static const String routeName = '/build';
 
   final Map<String, String> queryParameters;
+
+  final String repo;
+  final String branch;
 
   @override
   State createState() => BuildDashboardPageState();
@@ -90,7 +96,13 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     height: 2,
                   ),
                   onChanged: (String repo) {
-                    _buildState.updateCurrentRepo(repo);
+                    final BuildDashboardArguments args =
+                        BuildDashboardArguments(repo: repo, branch: _buildState.currentBranch);
+                    Navigator.pushNamed(
+                      context,
+                      BuildDashboardPage.routeName,
+                      arguments: args,
+                    );
                   },
                   items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
@@ -243,8 +255,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
+    BuildDashboardArguments args;
+    if (ModalRoute.of(context).settings.arguments != null) {
+      args = ModalRoute.of(context).settings.arguments as BuildDashboardArguments;
+    } else {
+      args = BuildDashboardArguments();
+    }
     final BuildState _buildState = Provider.of<BuildState>(context);
-
+    _buildState.updateCurrentRepoBranch(args.repo, args.branch);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(
@@ -282,4 +300,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       ),
     );
   }
+}
+
+class BuildDashboardArguments {
+  BuildDashboardArguments({this.repo = 'flutter', String branch = 'master'}) {
+    if (branch == 'master' || branch == 'main') {
+      this.branch = defaultBranches[repo];
+    }
+  }
+
+  final String repo;
+  String branch;
 }

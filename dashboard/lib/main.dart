@@ -76,12 +76,14 @@ class MyApp extends StatelessWidget {
         final Uri uriData = Uri.parse(settings.name);
         if (uriData.path == BuildDashboardPage.routeName) {
           return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (BuildContext context) {
-              return BuildDashboardPage(queryParameters: uriData.queryParameters);
-
-            }
-          );
+              settings: settings,
+              builder: (BuildContext context) {
+                return BuildDashboardPage(
+                  queryParameters: uriData.queryParameters,
+                  repo: uriData.queryParameters['repo'],
+                  branch: uriData.queryParameters['branch'],
+                );
+              });
         }
         return null;
       },

@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
 
-import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
@@ -101,7 +100,12 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchRepos() async {
-    return const CocoonResponse<List<String>>.data(<String>['flutter', 'engine', 'cocoon']);
+    return const CocoonResponse<List<String>>.data(<String>[
+      'flutter',
+      'engine',
+      'cocoon',
+      'plugins',
+    ]);
   }
 
   @override
@@ -121,7 +125,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    return const CocoonResponse<List<String>>.data(<String>['master', 'dev', 'beta', 'stable']);
+    return const CocoonResponse<List<String>>.data(<String>['master', 'main', 'dev', 'beta', 'stable']);
   }
 
   @override
@@ -146,7 +150,7 @@ class DevelopmentCocoonService implements CocoonService {
       final math.Random random = math.Random(commitTimestamp);
       final Commit commit = _createFakeCommit(commitTimestamp, random, repo);
       final CommitStatus status = CommitStatus()
-        ..branch = 'master'
+        ..branch = defaultBranches[repo]
         ..commit = commit
         ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
@@ -174,16 +178,18 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   static const Map<String, int> _repoTaskCount = <String, int>{
-    'flutter/cocoon': 2,
+    'flutter/cocoon': 3,
     'flutter/flutter': 100,
     'flutter/engine': 20,
+    'flutter/plugins': 10,
   };
 
   List<Task> _createFakeTasks(int commitTimestamp, Commit commit, math.Random random) {
-    final List<Task> tasks = <Task>[];
-    tasks.addAll(List<Task>.generate(
-          _repoTaskCount[commit.repository], (int i) => _createFakeTask(commitTimestamp, i, 'luci', random)));
-    return tasks;
+    if (_repoTaskCount.containsKey(commit.repository) == false) {
+      throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
+    }
+    return List<Task>.generate(
+        _repoTaskCount[commit.repository], (int i) => _createFakeTask(commitTimestamp, i, 'luci', random));
   }
 
   static const List<String> _statuses = <String>[
@@ -271,8 +277,8 @@ class DevelopmentCocoonService implements CocoonService {
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + index + 10000)
       ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
-      ..name = 'task $index'
-      ..builderName = 'task $index'
+      ..name = 'Linux_android $index'
+      ..builderName = 'Linux_android $index'
       ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13
       ..requiredCapabilities.add('[linux/android]')
@@ -280,13 +286,6 @@ class DevelopmentCocoonService implements CocoonService {
       ..stageName = stageName
       ..status = status
       ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
-
-    if (stageName == StageName.luci) {
-      task
-        ..buildNumberList = '$index'
-        ..builderName = 'Linux'
-        ..luciBucket = 'luci.flutter.prod';
-    }
 
     return task;
   }

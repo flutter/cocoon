@@ -72,3 +72,12 @@ class CocoonResponse<T> {
   /// Error information that can be used for debugging.
   final String error;
 }
+
+/// This must be kept up to date with what's in app_dart/lib/src/service/config.dart.
+final Map<String, String> defaultBranches = <String, String>{
+  'cocoon': 'main',
+  'engine': 'main',
+  'flutter': 'master',
+  'packages': 'master',
+  'plugins': 'master',
+};
