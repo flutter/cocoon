@@ -10,7 +10,10 @@ the release process.
 
 Demo:
 
-![Demo](demo.gif)
+
+https://user-images.githubusercontent.com/20194490/145641091-82d09383-6e72-4f20-8196-2a63faaea28f.mp4
+
+
 
 
 ## Requirements
