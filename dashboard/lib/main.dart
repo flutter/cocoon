@@ -74,9 +74,13 @@ class MyApp extends StatelessWidget {
       },
       onGenerateRoute: (RouteSettings settings) {
         final Uri uriData = Uri.parse(settings.name);
+        final BuildDashboardArguments args = BuildDashboardArguments.fromQueryParameters(uriData.queryParameters);
         if (uriData.path == BuildDashboardPage.routeName) {
           return MaterialPageRoute<void>(
-              settings: settings,
+              settings: RouteSettings(
+                arguments: args,
+                name: args.toRoute(),
+              ),
               builder: (BuildContext context) {
                 return BuildDashboardPage(
                   queryParameters: uriData.queryParameters,

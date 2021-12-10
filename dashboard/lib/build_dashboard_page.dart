@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:provider/provider.dart';
 
 import 'logic/task_grid_filter.dart';
 import 'navigation_drawer.dart';
+import 'service/cocoon.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
@@ -100,7 +100,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                         BuildDashboardArguments(repo: repo, branch: _buildState.currentBranch);
                     Navigator.pushNamed(
                       context,
-                      BuildDashboardPage.routeName,
+                      args.toRoute(),
                       arguments: args,
                     );
                   },
@@ -309,6 +309,22 @@ class BuildDashboardArguments {
     }
   }
 
+  factory BuildDashboardArguments.fromQueryParameters(Map<String, String> queryParameters) {
+    return BuildDashboardArguments(
+      repo: queryParameters['repo'],
+      branch: queryParameters['branch'],
+    );
+  }
+
   final String repo;
   String branch;
+
+  String toRoute() {
+    final Uri uri = Uri(path: BuildDashboardPage.routeName, queryParameters: <String, String>{
+      'repo': repo,
+      'branch': branch,
+    });
+
+    return uri.toString();
+  }
 }

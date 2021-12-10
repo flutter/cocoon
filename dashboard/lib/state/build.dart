@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/build_dashboard_page.dart';
 
 import '../logic/brooks.dart';
 import '../model/build_status_response.pb.dart';
@@ -151,7 +150,6 @@ class BuildState extends ChangeNotifier {
   ///
   /// If fetched [statuses] is not on the current branch it will be discarded.
   Future<void> _fetchStatusUpdates([Timer timer]) async {
-    print('_fetchStatusUpdate for $currentRepo $currentBranch');
     await Future.wait<void>(<Future<void>>[
       () async {
         final CocoonResponse<List<CommitStatus>> response =

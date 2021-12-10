@@ -77,5 +77,5 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   List<String> get repos => <String>['flutter', 'engine', 'cocoon'];
 
   @override
-  Future<void> updateCurrentRepo(String repo) => throw UnimplementedError();
+  Future<void> updateCurrentRepoBranch(String repo, String branch) => throw UnimplementedError();
 }
