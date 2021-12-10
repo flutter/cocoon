@@ -2,14 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
+import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'cherrypicks_substeps.dart';
+import 'common/dialog_prompt.dart';
 import 'conductor_status.dart';
 import 'create_release_substeps.dart';
 import 'merge_pr_substeps.dart';
@@ -29,6 +33,11 @@ enum ReleaseSteps {
 }
 
 /// Displays the progression and each step of the release.
+///
+/// [conductor] is the conductor service currently used.
+///
+/// [initialDialogPrompt] is an optional parameter. The app displays this string inside
+/// a [dialogPrompt] if it is not null when the app loads for the first time.
 ///
 /// The steps in the release dashboard correspond to the release phases in the conductor core.
 ///
@@ -53,7 +62,12 @@ enum ReleaseSteps {
 class MainProgression extends StatefulWidget {
   const MainProgression({
     Key? key,
+    required this.conductor,
+    this.initialDialogPrompt,
   }) : super(key: key);
+
+  final ConductorService conductor;
+  final String? initialDialogPrompt;
 
   @override
   State<MainProgression> createState() => MainProgressionState();
@@ -86,6 +100,8 @@ class MainProgression extends StatefulWidget {
   };
 }
 
+typedef DialogPromptChanger = void Function(String? data, Completer<bool>? callback);
+
 class MainProgressionState extends State<MainProgression> {
   final ScrollController _scrollController = ScrollController();
 
@@ -98,6 +114,28 @@ class MainProgressionState extends State<MainProgression> {
     } else {
       return StepState.disabled;
     }
+  }
+
+  String? _dialogueContent;
+  Completer<bool>? _dialogueCallback;
+
+  /// Update what the [dialogPrompt] should display as its content, and the callback
+  /// it should execute if 'Yes' or 'No' are pressed.
+  void dialogPromptChanger(String? data, Completer<bool>? callback) {
+    setState(() {
+      _dialogueContent = data;
+      _dialogueCallback = callback;
+    });
+  }
+
+  @override
+  void initState() {
+    // Give [dialogPromptChanger] to the conductor service for [StartContext] and [NextContext]'s
+    // prompts to call.
+    widget.conductor.dialogPromptChanger = dialogPromptChanger;
+    // Enables the app to initially display a dialogue prompt at start-up.
+    if (widget.initialDialogPrompt != null) _dialogueContent = widget.initialDialogPrompt;
+    super.initState();
   }
 
   @override
@@ -119,6 +157,40 @@ class MainProgressionState extends State<MainProgression> {
       pb.ReleasePhase.VERIFY_RELEASE: VerifyReleaseSubsteps(),
       pb.ReleasePhase.RELEASE_COMPLETED: ReleaseCompleted(),
     };
+
+    if (_dialogueContent != null) {
+      // Whenever [StartContext] or [NextContext]'s prompt returns a message, it would update
+      // [_dialogueContent] which triggers the [dialogPrompt] below with the
+      // message displayed as the content. The prompt will also initialize a completer.
+      // If [dialogPrompt]'s 'Yes' is pressed, complete the completer
+      // with 'true' (equivalent of replying 'y' to the prompt in the command line when using
+      // the CLI version). Otherwise, complete with 'false' (equivalent of replying 'n' to
+      // the prompt in the command line when using the CLI version).
+      Future.delayed(Duration.zero, () {
+        dialogPrompt(
+          context: context,
+          title: const Text(
+              'Please read the instructions below carefully. Some processes are disruptive and irreversible.'),
+          content: SelectableText(_dialogueContent!),
+          leftButtonTitle: 'No',
+          rightButtonTitle: 'Yes',
+          leftButtonCallback: () async {
+            if (_dialogueCallback != null) {
+              _dialogueCallback!.complete(false);
+            }
+            // Have to set the message to null, otherwise the [dialogPrompt] gets displayed again.
+            dialogPromptChanger(null, null);
+          },
+          rightButtonCallback: () async {
+            if (_dialogueCallback != null) {
+              _dialogueCallback!.complete(true);
+            }
+            // Have to set the message to null, otherwise the [dialogPrompt] gets displayed again.
+            dialogPromptChanger(null, null);
+          },
+        );
+      });
+    }
 
     return Expanded(
       child: Scrollbar(

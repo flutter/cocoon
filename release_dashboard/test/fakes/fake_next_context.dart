@@ -5,6 +5,7 @@
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/src/proto/conductor_state.pb.dart';
 import 'package:conductor_ui/services/release_dashboard_next_context.dart';
+import 'package:conductor_ui/widgets/progression.dart';
 import 'package:file/file.dart';
 import 'package:flutter/material.dart';
 
@@ -55,4 +56,7 @@ class FakeNextContext implements ReleaseDashboardNextContext {
 
   @override
   VoidCallback get syncStatusWithState => throw UnimplementedError();
+
+  @override
+  DialogPromptChanger get dialogPromptChanger => throw UnimplementedError();
 }

@@ -2,14 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/progression.dart' show DialogPromptChanger;
 
 /// Service class for interacting with the conductor library.
 ///
 /// This exists as a common interface for user interface to rely on.
 abstract class ConductorService {
+  late DialogPromptChanger dialogPromptChanger;
+
   /// Returns the directory where checkout is saved.
   Directory get rootDirectory;
 

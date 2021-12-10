@@ -2,10 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart' show File;
 import 'package:flutter/material.dart';
+
+import '../widgets/progression.dart' show DialogPromptChanger;
 
 /// Service class for using [NextContext] in the local release dashboard environment.
 class ReleaseDashboardNextContext extends NextContext {
@@ -15,6 +19,7 @@ class ReleaseDashboardNextContext extends NextContext {
     required Checkouts checkouts,
     required File stateFile,
     required this.syncStatusWithState,
+    required this.dialogPromptChanger,
   }) : super(
           autoAccept: autoAccept,
           force: force,
@@ -23,6 +28,7 @@ class ReleaseDashboardNextContext extends NextContext {
         );
 
   final VoidCallback syncStatusWithState;
+  final DialogPromptChanger dialogPromptChanger;
 
   /// Update the release's state file based on the current progression.
   ///
@@ -33,10 +39,10 @@ class ReleaseDashboardNextContext extends NextContext {
     syncStatusWithState();
   }
 
-  // TODO(Yugue): [release_dashboard] Add DialoguePrompt for all NextContext command,
-  // https://github.com/flutter/flutter/issues/94222.
   @override
   Future<bool> prompt(String message) async {
-    return true;
+    final Completer<bool> completer = Completer<bool>();
+    dialogPromptChanger(message, completer);
+    return completer.future;
   }
 }
