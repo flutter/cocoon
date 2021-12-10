@@ -122,6 +122,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -204,11 +206,13 @@ Issue link: $expectedSemanticsIntegrationTestNewIssueURL
 final List<BuilderStatistic> limitedNumberOfBuildsResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.5,
+    flakyRate: 0.25,
     flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 1,
+    totalNumber: 4,
   )
 ];
 
@@ -242,6 +246,8 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
@@ -260,6 +266,8 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -271,6 +279,8 @@ final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';

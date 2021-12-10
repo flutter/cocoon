@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/bigquery.dart';
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
-Current flaky ratio for the past (up to) 100 commits is 50.00%.
+Current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -20,7 +20,7 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_s
 ''';
 
 const String expectedStagingSemanticsIntegrationTestIssueComment = '''
-Current flaky ratio for the past (up to) 100 commits is 50.00%.
+Current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/103
 Commit: https://github.com/flutter/flutter/commit/abc
 Flaky builds:
@@ -33,7 +33,7 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutt
 ''';
 
 const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
-Current flaky ratio for the past (up to) 100 commits is 0.00%.
+Current flaky ratio for the past (up to) 100 commits is 0.00%. Flaky number: 0; total number: 10.
 ''';
 
 const String expectedSemanticsIntegrationTestNotEnoughDataComment = '''
@@ -48,6 +48,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseZeroFlake = <Builde
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197', '196', '195', '194'],
     recentCommit: '',
     flakyBuildOfRecentCommit: '',
+    flakyNumber: 0,
+    totalNumber: 10,
   )
 ];
 
@@ -59,6 +61,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
   )
 ];
 
@@ -70,6 +74,8 @@ final List<BuilderStatistic> stagingSameBuilderSemanticsIntegrationTestResponse 
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
   )
 ];
 
@@ -81,6 +87,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     succeededBuilds: <String>['203', '202', '201', '200'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 7,
   )
 ];
 
@@ -92,6 +100,8 @@ final List<BuilderStatistic> shardSemanticsIntegrationTestResponse = <BuilderSta
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
   )
 ];
 
@@ -103,6 +113,8 @@ final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderS
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
   )
 ];
 
