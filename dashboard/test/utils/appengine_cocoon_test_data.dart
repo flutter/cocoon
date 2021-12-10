@@ -66,6 +66,14 @@ const String jsonGetBranchesResponse = '''
   }
 ''';
 
+const String jsonGetReposResponse = '''
+  [
+    "flutter",
+    "cocoon",
+    "engine"
+  ]
+''';
+
 const String jsonBuildStatusTrueResponse = '{"1":1}';
 
 const String jsonBuildStatusFalseResponse = '{"1":2,"2":["failed_task_1"]}';

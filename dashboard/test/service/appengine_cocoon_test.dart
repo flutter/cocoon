@@ -214,6 +214,40 @@ void main() {
     });
   });
 
+  group('AppEngine CocoonService fetchRepos', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetReposResponse, 200);
+      }));
+    });
+
+    test('data should be expected list of branches', () async {
+      final CocoonResponse<List<String>> repos = await service.fetchRepos();
+
+      expect(repos.data, <String>[
+        'flutter',
+        'cocoon',
+        'engine',
+      ]);
+    });
+
+    test('should have error if given non-200 response', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
+
+      final CocoonResponse<List<String>> response = await service.fetchRepos();
+      expect(response.error, isNotNull);
+    });
+
+    test('should have error if given bad response', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
+
+      final CocoonResponse<List<String>> response = await service.fetchRepos();
+      expect(response.error, isNotNull);
+    });
+  });
+
   group('AppEngine CocoonService apiEndpoint', () {
     final AppEngineCocoonService service = AppEngineCocoonService(client: MockClient((Request request) async {
       return Response('{"Token": "abc123"}', 200);
