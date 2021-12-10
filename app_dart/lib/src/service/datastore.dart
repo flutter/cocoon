@@ -17,6 +17,7 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
+import 'config.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
 /// be touched in any given transaction, or the backing datastore will throw
@@ -90,7 +91,7 @@ class DatastoreService {
     required RepositorySlug slug,
   }) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    branch ??= 'master';
+    branch ??= Config.defaultBranch(slug);
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
       ..filter('repository =', slug.fullName)

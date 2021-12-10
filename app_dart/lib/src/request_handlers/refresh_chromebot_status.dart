@@ -19,6 +19,7 @@ import '../request_handling/body.dart';
 import '../service/buildbucket.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
+import '../service/logging.dart';
 import '../service/luci.dart';
 import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
@@ -68,6 +69,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       builders: postsubmitBuilders,
       requireTaskName: true,
     );
+    log.fine('${luciTasks.keys.length} builders retrieved');
 
     for (BranchLuciBuilder branchLuciBuilder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
