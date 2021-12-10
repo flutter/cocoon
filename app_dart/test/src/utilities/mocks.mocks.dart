@@ -1521,9 +1521,8 @@ class MockLuciService extends _i1.Mock implements _i33.LuciService {
           returnValue: <List<_i33.LuciBuilder>>[]) as List<List<_i33.LuciBuilder>>);
   @override
   _i14.Future<List<_i7.Build>> getBuildsForBuilderList(List<_i33.LuciBuilder>? builders,
-          {String? repo, bool? requireTaskName = false}) =>
-      (super.noSuchMethod(
-          Invocation.method(#getBuildsForBuilderList, [builders], {#repo: repo, #requireTaskName: requireTaskName}),
+          {bool? requireTaskName = false}) =>
+      (super.noSuchMethod(Invocation.method(#getBuildsForBuilderList, [builders], {#requireTaskName: requireTaskName}),
           returnValue: Future<List<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<List<_i7.Build>>);
   @override
   _i14.Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>> getRecentTasks(
@@ -1534,8 +1533,8 @@ class MockLuciService extends _i1.Mock implements _i33.LuciService {
                   Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>>.value(<_i33.LuciBuilder, List<_i33.LuciTask>>{}))
           as _i14.Future<Map<_i33.LuciBuilder, List<_i33.LuciTask>>>);
   @override
-  _i14.Future<Iterable<_i7.Build>> getBuilds(String? repo, bool? requireTaskName, List<_i33.LuciBuilder>? builders) =>
-      (super.noSuchMethod(Invocation.method(#getBuilds, [repo, requireTaskName, builders]),
+  _i14.Future<Iterable<_i7.Build>> getBuilds(bool? requireTaskName, List<_i33.LuciBuilder>? builders) =>
+      (super.noSuchMethod(Invocation.method(#getBuilds, [requireTaskName, builders]),
           returnValue: Future<Iterable<_i7.Build>>.value(<_i7.Build>[])) as _i14.Future<Iterable<_i7.Build>>);
   @override
   String toString() => super.toString();

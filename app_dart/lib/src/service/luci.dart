@@ -109,7 +109,6 @@ class LuciService {
   /// retries for [repo] including the task name or not.
   Future<List<Build>> getBuildsForBuilderList(
     List<LuciBuilder> builders, {
-    String? repo,
     bool requireTaskName = false,
   }) async {
     final List<Build> builds = <Build>[];
@@ -119,7 +118,7 @@ class LuciService {
     for (List<LuciBuilder> partialBuilders in partialBuildersList) {
       await r.retry(
         () async {
-          final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
+          final Iterable<Build> partialBuilds = await getBuilds(requireTaskName, partialBuilders);
           builds.addAll(partialBuilds);
         },
         retryIf: (Exception e) => e is BuildBucketException,
@@ -165,11 +164,8 @@ class LuciService {
   /// predefined in cocoon config.
   ///
   /// Latest builds of each builder will be returned from new to old.
-  Future<Iterable<Build>> getBuilds(String? repo, bool requireTaskName, List<LuciBuilder> builders) async {
+  Future<Iterable<Build>> getBuilds(bool requireTaskName, List<LuciBuilder> builders) async {
     bool includeBuilder(LuciBuilder builder) {
-      if (repo != null && builder.repo != repo) {
-        return false;
-      }
       if (requireTaskName && builder.taskName == null) {
         return false;
       }

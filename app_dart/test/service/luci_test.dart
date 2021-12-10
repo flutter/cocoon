@@ -88,7 +88,7 @@ void main() {
         ],
       );
     });
-    final List<Build> resultBuilds = await service.getBuildsForBuilderList(<LuciBuilder>[builder], repo: 'flutter');
+    final List<Build> resultBuilds = await service.getBuildsForBuilderList(<LuciBuilder>[builder]);
     expect(resultBuilds, builds);
   });
 
