@@ -23,6 +23,8 @@ Future<void> main() async {
     throw Exception('The conductor only supports desktop on MacOS and Linux');
   }
 
+  // TODO(unassigned): [release_dashboard] make isDev a List arg,
+  // https://github.com/flutter/flutter/issues/95051.
   const bool isDev = true;
 
   WidgetsFlutterBinding.ensureInitialized();
