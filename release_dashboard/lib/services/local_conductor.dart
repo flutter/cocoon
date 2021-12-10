@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:conductor_core/conductor_core.dart'
@@ -101,6 +102,7 @@ class LocalConductorService extends ConductorService {
       // the methods of [BuildContext] should not be cached beyond the execution of a
       // single synchronous function.
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
+      dialogPromptChanger: super.dialogPromptChanger,
       // TODO(yugue): Add a button switch to toggle the force parameter.
       // https://github.com/flutter/flutter/issues/94384
     );
@@ -129,6 +131,7 @@ class LocalConductorService extends ConductorService {
       force: false,
       checkouts: checkouts,
       stateFile: stateFile,
+      dialogPromptChanger: super.dialogPromptChanger,
     );
     await nextContext.run(state!);
   }

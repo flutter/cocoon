@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
                   style: Theme.of(context).textTheme.subtitle1,
                 ),
                 const SizedBox(height: 10.0),
-                const MainProgression(),
+                MainProgression(conductor: conductor),
               ],
             ),
           ),

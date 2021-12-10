@@ -27,13 +27,15 @@ void main() {
     });
     testWidgets('When the user clicks on a previously completed step, Stepper does not navigate back.',
         (WidgetTester tester) async {
+      final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
+
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
+        create: (context) => StatusState(conductor: fakeConductor),
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: const <Widget>[
-                MainProgression(),
+              children: <Widget>[
+                MainProgression(conductor: fakeConductor),
               ],
             ),
           ),
@@ -51,13 +53,15 @@ void main() {
     });
 
     testWidgets('Stepper only renders the widget of the current step', (WidgetTester tester) async {
+      final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
+
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
+        create: (context) => StatusState(conductor: fakeConductor),
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: const <Widget>[
-                MainProgression(),
+              children: <Widget>[
+                MainProgression(conductor: fakeConductor),
               ],
             ),
           ),
@@ -73,13 +77,15 @@ void main() {
     });
 
     testWidgets('Only previously completed steps or the current step are active', (WidgetTester tester) async {
+      final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
+
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
+        create: (context) => StatusState(conductor: fakeConductor),
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: const <Widget>[
-                MainProgression(),
+              children: <Widget>[
+                MainProgression(conductor: fakeConductor),
               ],
             ),
           ),
@@ -96,13 +102,15 @@ void main() {
     });
 
     testWidgets('Each step status changes according to the current step', (WidgetTester tester) async {
+      final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
+
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
+        create: (context) => StatusState(conductor: fakeConductor),
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: const <Widget>[
-                MainProgression(),
+              children: <Widget>[
+                MainProgression(conductor: fakeConductor),
               ],
             ),
           ),
@@ -131,13 +139,15 @@ void main() {
     for (MapEntry step in MainProgression.stepPosition.entries) {
       if (step.key == ReleaseSteps.initializeRelease) {
         testWidgets('If there is no test state, start from creating a release step', (WidgetTester tester) async {
+          final FakeConductor fakeConductor = FakeConductor();
+
           await tester.pumpWidget(ChangeNotifierProvider(
-            create: (context) => StatusState(conductor: FakeConductor(testState: null)),
+            create: (context) => StatusState(conductor: fakeConductor),
             child: MaterialApp(
               home: Material(
                 child: Column(
-                  children: const <Widget>[
-                    MainProgression(),
+                  children: <Widget>[
+                    MainProgression(conductor: fakeConductor),
                   ],
                 ),
               ),
@@ -150,14 +160,15 @@ void main() {
         testWidgets('Widget is able to resume from step ${step.key}', (WidgetTester tester) async {
           // Set the current phase of state to aligh with this step.
           stateWithoutConflicts.currentPhase = step.key;
+          final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
 
           await tester.pumpWidget(ChangeNotifierProvider(
-            create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
+            create: (context) => StatusState(conductor: fakeConductor),
             child: MaterialApp(
               home: Material(
                 child: Column(
-                  children: const <Widget>[
-                    MainProgression(),
+                  children: <Widget>[
+                    MainProgression(conductor: fakeConductor),
                   ],
                 ),
               ),
@@ -168,5 +179,41 @@ void main() {
         });
       }
     }
+  });
+
+  group('DialogPrompt appears correctly', () {
+    late pb.ConductorState stateWithoutConflicts;
+
+    setUp(() {
+      stateWithoutConflicts = generateConductorState(currentPhase: pb.ReleasePhase.PUBLISH_VERSION);
+    });
+
+    testWidgets('Display a prompt if there is a message', (WidgetTester tester) async {
+      const String initialPromptMessage = 'There is a prompt';
+      final FakeConductor fakeConductor = FakeConductor(testState: stateWithoutConflicts);
+
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (context) => StatusState(conductor: fakeConductor),
+        child: MaterialApp(
+          home: Material(
+            child: Column(
+              children: <Widget>[
+                Builder(builder: (context) {
+                  return MainProgression(
+                    conductor: fakeConductor,
+                    initialDialogPrompt: initialPromptMessage,
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byKey(const Key('mergeFrameworkCherrypicksSubstepsContinue')));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text(initialPromptMessage), findsOneWidget);
+    });
   });
 }

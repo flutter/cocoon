@@ -74,6 +74,7 @@ class DevLocalConductorService extends LocalConductorService {
       syncStatusWithState: context.read<StatusState>().syncStatusWithState,
       // TODO(yugue): Add a button switch to toggle the force parameter of StartContext.
       // https://github.com/flutter/flutter/issues/94384
+      dialogPromptChanger: super.dialogPromptChanger,
     );
     return startContext.run();
   }

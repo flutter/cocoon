@@ -18,7 +18,6 @@ class StatusState extends ChangeNotifier {
   }) : releaseStatus = stateToMap(conductor.state);
 
   final ConductorService conductor;
-
   late Map<ConductorStatusEntry, Object>? releaseStatus;
 
   /// Method that modifies the global state in provider.

@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_core/proto.dart' as pb;
 import 'package:file/file.dart';
 import 'package:flutter/material.dart';
 import 'package:process/process.dart';
+
+import '../widgets/progression.dart' show DialogPromptChanger;
 
 class ReleaseDashboardStartContext extends StartContext {
   ReleaseDashboardStartContext({
@@ -26,6 +30,7 @@ class ReleaseDashboardStartContext extends StartContext {
     required Checkouts checkouts,
     required File stateFile,
     bool force = false,
+    required this.dialogPromptChanger,
   }) : super(
           candidateBranch: candidateBranch,
           checkouts: checkouts,
@@ -45,6 +50,7 @@ class ReleaseDashboardStartContext extends StartContext {
         );
 
   final VoidCallback syncStatusWithState;
+  final DialogPromptChanger dialogPromptChanger;
 
   @override
   void updateState(pb.ConductorState state, [List<String> logs = const <String>[]]) {
@@ -52,10 +58,10 @@ class ReleaseDashboardStartContext extends StartContext {
     syncStatusWithState();
   }
 
-  // TODO(Yugue): Add prompt UI to confirm tag creation at startContext.
-  // https://github.com/flutter/flutter/issues/94072.
   @override
   Future<bool> prompt(String message) async {
-    return true;
+    final Completer<bool> completer = Completer<bool>();
+    dialogPromptChanger(message, completer);
+    return completer.future;
   }
 }
