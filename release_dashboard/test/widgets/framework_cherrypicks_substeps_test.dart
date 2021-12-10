@@ -16,23 +16,21 @@ import '../fakes/services/fake_conductor.dart';
 import '../src/test_state_generator.dart';
 
 void main() {
-  late pb.ConductorState stateWithoutConflicts;
-
-  setUp(() {
-    stateWithoutConflicts = generateConductorState();
-  });
+  const pb.ReleasePhase currentPhase = pb.ReleasePhase.APPLY_FRAMEWORK_CHERRYPICKS;
+  const pb.ReleasePhase nextPhase = pb.ReleasePhase.PUBLISH_VERSION;
   group('Framework cherrypick substeps tests', () {
+    late pb.ConductorState stateWithoutConflicts;
+
+    setUp(() {
+      stateWithoutConflicts = generateConductorState(currentPhase: currentPhase);
+    });
     testWidgets('Continue button enables when all substeps are checked', (WidgetTester tester) async {
       await tester.pumpWidget(ChangeNotifierProvider(
         create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
-                }),
-              ],
+              children: const <Widget>[CherrypicksSubsteps(repository: Repositories.framework)],
             ),
           ),
         ),
@@ -48,39 +46,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<ElevatedButton>(continueButton).enabled, equals(true));
     });
-
-    testWidgets('Clicking on the continue button proceeds to the next step', (WidgetTester tester) async {
-      bool isNextStep = false;
-      void nextStep() => isNextStep = true;
-
-      await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(testState: stateWithoutConflicts)),
-        child: MaterialApp(
-          home: Material(
-            child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: nextStep, repository: Repositories.framework);
-                }),
-              ],
-            ),
-          ),
-        ),
-      ));
-
-      await tester.tap(find.text(CherrypicksSubsteps.substepTitles[CherrypicksSubstep.applyCherrypicks]!));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('applyFrameworkCherrypicksContinue')));
-      await tester.pumpAndSettle();
-      expect(isNextStep, equals(true));
-    });
   });
 
   group('Without cherrypick conflicts', () {
     late pb.ConductorState stateWithoutConflicts;
 
     setUp(() {
-      stateWithoutConflicts = generateConductorState();
+      stateWithoutConflicts = generateConductorState(currentPhase: currentPhase);
     });
 
     testWidgets("'Apply cherrypicks' substep displays correctly", (WidgetTester tester) async {
@@ -89,11 +61,7 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
-                }),
-              ],
+              children: const <Widget>[CherrypicksSubsteps(repository: Repositories.framework)],
             ),
           ),
         ),
@@ -108,7 +76,7 @@ void main() {
     late pb.ConductorState stateWithConflicts;
 
     setUp(() {
-      stateWithConflicts = generateConductorState(frameworkCherrypicksInConflict: true);
+      stateWithConflicts = generateConductorState(currentPhase: currentPhase, frameworkCherrypicksInConflict: true);
     });
 
     testWidgets("'Apply cherrypicks' substep displays correctly", (WidgetTester tester) async {
@@ -118,11 +86,7 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: Column(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
-                }),
-              ],
+              children: const <Widget>[CherrypicksSubsteps(repository: Repositories.framework)],
             ),
           ),
         ),
@@ -142,14 +106,13 @@ void main() {
 
   group('NextContext tests', () {
     late pb.ConductorState stateWithoutConflicts;
-    const pb.ReleasePhase currentPhase = pb.ReleasePhase.APPLY_FRAMEWORK_CHERRYPICKS;
 
     setUp(() {
       stateWithoutConflicts = generateConductorState(currentPhase: currentPhase);
     });
+
     testWidgets('Clicking on the continue button proceeds to the next phase of the release',
         (WidgetTester tester) async {
-      const pb.ReleasePhase nextPhase = pb.ReleasePhase.PUBLISH_VERSION;
       final pb.ConductorState nextPhaseState = generateConductorState(currentPhase: nextPhase);
 
       FakeConductor fakeConductor = FakeConductor(
@@ -170,11 +133,7 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
-                }),
-              ],
+              children: const <Widget>[CherrypicksSubsteps(repository: Repositories.framework)],
             ),
           ),
         ),
@@ -207,11 +166,7 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                Builder(builder: (context) {
-                  return CherrypicksSubsteps(nextStep: () {}, repository: Repositories.framework);
-                }),
-              ],
+              children: const <Widget>[CherrypicksSubsteps(repository: Repositories.framework)],
             ),
           ),
         ),

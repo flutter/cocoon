@@ -43,10 +43,7 @@ enum CreateReleaseSubstep {
 class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
-    required this.nextStep,
   }) : super(key: key);
-
-  final VoidCallback nextStep;
 
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
@@ -212,9 +209,6 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
               setError(errorToString(error, stacktrace));
             }).whenComplete(() {
               setIsLoading(false);
-              if (_error == null) {
-                widget.nextStep();
-              }
             });
           },
           isLoading: _isLoading,

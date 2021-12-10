@@ -6,12 +6,14 @@ import 'package:conductor_core/conductor_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../logic/error_to_string.dart';
 import '../logic/repositories_name.dart';
 import '../models/conductor_status.dart';
 import '../models/repositories.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
 import 'common/checkbox_substep.dart';
+import 'common/continue_button.dart';
 import 'common/url_button.dart';
 
 enum MergePrSubstep {
@@ -23,8 +25,6 @@ enum MergePrSubstep {
 }
 
 /// Group and display all substeps related to merging the engine/framework PR.
-///
-/// When all substeps are completed, [nextStep] can be executed to proceed to the next step.
 ///
 /// [repository] parameters makes it possible to toggle the widget to accommodate for an engine
 /// PR or framework PR.
@@ -43,14 +43,16 @@ enum MergePrSubstep {
 /// determine if a PR is needed.
 ///
 /// If a PR is needed, [getNewPrLink] is called to retrieve the PR creation link.
+///
+/// The continue button becomes enabled when all required substeps are checked. Disabled otherwise.
+/// When the continue button is pressed, proceed to the next step. Any errors will be displayed
+/// above the continue button in red.
 class MergePrSubsteps extends StatefulWidget {
   const MergePrSubsteps({
     Key? key,
-    required this.nextStep,
     required this.repository,
   }) : super(key: key);
 
-  final VoidCallback nextStep;
   final Repositories repository;
 
   @override
@@ -84,6 +86,8 @@ class MergePrSubsteps extends StatefulWidget {
 
 class MergePrSubstepsState extends State<MergePrSubsteps> {
   final Map<MergePrSubstep, bool> _isEachSubstepChecked = <MergePrSubstep, bool>{};
+  String? _error;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -102,31 +106,37 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
     });
   }
 
+  /// Updates the error object with what the conductor throws.
+  void setError(String? errorThrown) {
+    setState(() {
+      _error = errorThrown;
+    });
+  }
+
+  /// Toggle if the widget is being loaded or not.
+  void setIsLoading(bool result) {
+    setState(() {
+      _isLoading = result;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<ConductorStatusEntry, Object>? releaseStatus = context.watch<StatusState>().releaseStatus;
-    final ConductorService conductor = context.watch<StatusState>().conductor;
-    late bool isPrRequired;
-    late String newPrLink;
+    final StatusState statusState = context.watch<StatusState>();
+    final Map<ConductorStatusEntry, Object>? releaseStatus = statusState.releaseStatus;
+    final ConductorService conductor = statusState.conductor;
 
-    // TODO(Yugue): Remove the null check, since after this issue has been resolved,
-    // it is impossible for releaseStatus to be null here, https://github.com/flutter/flutter/issues/93822.
-    if (releaseStatus == null) {
-      isPrRequired = true;
-      newPrLink = 'Could not create a PR pink.';
-    } else {
-      isPrRequired = widget.repository == Repositories.engine
-          ? requiresEnginePR(conductor.state!)
-          : requiresFrameworkPR(conductor.state!);
+    final bool isPrRequired = widget.repository == Repositories.engine
+        ? requiresEnginePR(conductor.state!)
+        : requiresFrameworkPR(conductor.state!);
 
-      newPrLink = getNewPrLink(
-        userName: githubAccount(widget.repository == Repositories.engine
-            ? conductor.state!.engine.mirror.url
-            : conductor.state!.framework.mirror.url),
-        repoName: repositoryNameAlt(widget.repository),
-        state: conductor.state!,
-      );
-    }
+    final String newPrLink = getNewPrLink(
+      userName: githubAccount(widget.repository == Repositories.engine
+          ? conductor.state!.engine.mirror.url
+          : conductor.state!.framework.mirror.url),
+      repoName: repositoryNameAlt(widget.repository),
+      state: conductor.state!,
+    );
 
     // Construct a list to keep track of the substeps required based on if a PR is needed
     // and the type of repository.
@@ -207,14 +217,22 @@ class MergePrSubstepsState extends State<MergePrSubsteps> {
           ),
         // Only if all required substeps are checked, enable the continue button.
         const SizedBox(height: 25.0),
-        ElevatedButton(
-          key: Key('merge${repositoryName(widget.repository, true)}CherrypicksSubstepsContinue'),
-          onPressed: !isRequiredSubstepChecked.containsValue(false)
-              ? () async {
-                  widget.nextStep();
-                }
-              : null,
-          child: const Text('Continue'),
+        ContinueButton(
+          elevatedButtonKey: Key('merge${repositoryName(widget.repository, true)}CherrypicksSubstepsContinue'),
+          enabled: !isRequiredSubstepChecked.containsValue(false),
+          error: _error,
+          onPressedCallback: () async {
+            setError(null);
+            setIsLoading(true);
+            try {
+              await statusState.conductor.conductorNext(context);
+            } catch (error, stacktrace) {
+              setError(errorToString(error, stacktrace));
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          isLoading: _isLoading,
         ),
       ],
     );
