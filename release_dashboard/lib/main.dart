@@ -15,7 +15,7 @@ import 'state/status_state.dart';
 import 'widgets/clean_release_button.dart';
 import 'widgets/progression.dart';
 
-const String _title = 'Flutter Desktop Conductor (Not ready, do not use)';
+const String _title = 'Flutter Desktop Conductor';
 
 Future<void> main() async {
   // The app currently only supports macOS and Linux.
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SelectableText(
-                  'Desktop app for managing a release of the Flutter SDK, currently in development',
+                  'Desktop app for managing a release of the Flutter SDK',
                   style: Theme.of(context).textTheme.subtitle1,
                 ),
                 const SizedBox(height: 10.0),
