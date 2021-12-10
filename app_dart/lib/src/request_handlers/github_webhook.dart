@@ -218,7 +218,9 @@ class GithubWebhook extends RequestHandler<Body> {
 
       if (file.filename!.endsWith('_test.dart') ||
           file.filename!.endsWith('.expect') ||
-          file.filename!.contains('test_fixes')) {
+          file.filename!.contains('test_fixes') ||
+          file.filename!.startsWith('dev/bots/test.dart') ||
+          file.filename!.startsWith('dev/bots/analyze.dart')) {
         hasTests = true;
       }
       labels.addAll(getLabelsForFrameworkPath(file.filename!));
