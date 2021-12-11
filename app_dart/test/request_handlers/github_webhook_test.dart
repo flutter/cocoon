@@ -794,6 +794,66 @@ void main() {
       ));
     });
 
+    test('Framework labels PRs, no comment if tests (dev/bots/test.dart)', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'dev/bots/test.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
+          PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework labels PRs, no comment if tests (dev/bots/analyze.dart)', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'dev/bots/analyze.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
+          PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Engine labels PRs, comment and labels if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
