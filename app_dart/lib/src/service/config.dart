@@ -60,7 +60,7 @@ class Config {
       flutterSlug: 'master',
       engineSlug: 'main',
       pluginsSlug: 'master',
-      packagesSlug: 'master',
+      packagesSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
