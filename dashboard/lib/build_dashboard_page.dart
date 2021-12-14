@@ -302,6 +302,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 }
 
+/// Arguments passed from [Navigator] that initialize the state.
 class BuildDashboardArguments {
   BuildDashboardArguments({this.repo = 'flutter', String branch = 'master'}) {
     if (branch == 'master' || branch == 'main') {
@@ -316,9 +317,18 @@ class BuildDashboardArguments {
     );
   }
 
+  /// Current Flutter repository to view.
   final String repo;
+
+  /// Git branch in [repo] to view.
+  /// 
+  /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
+  /// master on one repo, to main for a different repo.
   String branch;
 
+  /// Convert the fields from this class into a URL.
+  /// 
+  /// This enables bookmarking state specific values, like [repo].
   String toRoute() {
     final Uri uri = Uri(path: BuildDashboardPage.routeName, queryParameters: <String, String>{
       'repo': repo,

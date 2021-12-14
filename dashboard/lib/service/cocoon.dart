@@ -78,6 +78,6 @@ final Map<String, String> defaultBranches = <String, String>{
   'cocoon': 'main',
   'engine': 'main',
   'flutter': 'master',
-  'packages': 'master',
+  'packages': 'main',
   'plugins': 'master',
 };
