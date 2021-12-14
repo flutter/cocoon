@@ -183,25 +183,6 @@ class BuildState extends ChangeNotifier {
     ]);
   }
 
-  /// Update build state to be on [branch] and erase previous branch data.
-  Future<void> updateCurrentBranch(String branch) {
-    if (_currentBranch == branch) {
-      // Do nothing if the branch hasn't changed.
-      return Future<void>.value();
-    }
-    _currentBranch = branch;
-    _moreStatusesExist = true;
-    _isTreeBuilding = null;
-    _failingTasks = <String>[];
-    _statuses = <CommitStatus>[];
-
-    /// Clear previous branch data from the widgets
-    notifyListeners();
-
-    /// To prevent delays, make an immediate request for dashboard data.
-    return _fetchStatusUpdates();
-  }
-
   /// Update build state to be on [repo] and erase previous data.
   void updateCurrentRepoBranch(String repo, String branch) {
     if (currentRepo == repo && currentBranch == branch) {

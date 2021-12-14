@@ -26,6 +26,12 @@ import 'utils/output.dart';
 import 'utils/task_icons.dart';
 
 void main() {
+  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    binding.window.physicalSizeTestValue = const Size(1000, 2000);
+  });
+
   testWidgets('shows sign in button', (WidgetTester tester) async {
     final BuildState buildState = BuildState(
       cocoonService: MockCocoonService(),
@@ -35,10 +41,15 @@ void main() {
     throwOnMissingStub(buildState.cocoonService as Mock);
     when(buildState.cocoonService.fetchFlutterBranches())
         .thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(buildState.cocoonService.fetchCommitStatuses(branch: anyNamed('branch')))
-        .thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(buildState.cocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-        .thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
+    when(buildState.cocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(buildState.cocoonService.fetchCommitStatuses(
+      branch: anyNamed('branch'),
+      repo: anyNamed('repo'),
+    )).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
+    when(buildState.cocoonService.fetchTreeBuildStatus(
+      branch: anyNamed('branch'),
+      repo: anyNamed('repo'),
+    )).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -102,7 +113,7 @@ void main() {
     expect(find.text('Ran more than once'), findsOneWidget);
   });
 
-  testWidgets('shows branch dropdown button', (WidgetTester tester) async {
+  testWidgets('shows branch and repo dropdown button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
@@ -124,7 +135,7 @@ void main() {
       onChanged: (_) {},
       items: const <DropdownMenuItem<String>>[],
     ).runtimeType;
-    expect(find.byType(dropdownButtonType), findsOneWidget);
+    expect(find.byType(dropdownButtonType), findsNWidgets(2));
   });
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {

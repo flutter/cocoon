@@ -122,7 +122,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     height: 2,
                   ),
                   onChanged: (String branch) {
-                    _buildState.updateCurrentBranch(branch);
+                    _buildState.updateCurrentRepoBranch(_buildState.currentRepo, branch);
                   },
                   items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(

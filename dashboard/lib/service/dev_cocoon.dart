@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
 
+import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
 import '../model/commit_status.pb.dart';
@@ -189,7 +190,7 @@ class DevelopmentCocoonService implements CocoonService {
       throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
     }
     return List<Task>.generate(
-        _repoTaskCount[commit.repository], (int i) => _createFakeTask(commitTimestamp, i, 'luci', random));
+        _repoTaskCount[commit.repository], (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random));
   }
 
   static const List<String> _statuses = <String>[
