@@ -295,6 +295,19 @@ class Config {
   }
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
+    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
+    final Uint8List? cacheValue = await _cache.getOrCreate(
+      configCacheName,
+      'githubToken-${slug.fullName}',
+      createFn: () => _generateGithubToken(slug),
+      // Tokens are minted for 10 minutes
+      ttl: const Duration(minutes: 8),
+    );
+
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
@@ -309,7 +322,8 @@ class Config {
       log.warning(response.body);
       throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
     }
-    return jsonBody['token'] as String;
+    final String token = jsonBody['token'] as String;
+    return Uint8List.fromList(token.codeUnits);
   }
 
   Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async {
