@@ -8,10 +8,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../../src/service/luci.dart';
-import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
-import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
@@ -22,30 +19,17 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   const PushBuildStatusToGithub(
     Config config,
     AuthenticationProvider authenticationProvider,
-    this.luciBuildService, {
-    this.scheduler,
-    @visibleForTesting LuciServiceProvider? luciServiceProvider,
+     {
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
-  })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
+  })  : 
         datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
-  final LuciBuildService luciBuildService;
-  final LuciServiceProvider luciServiceProvider;
   final BuildStatusServiceProvider buildStatusServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler? scheduler;
   static const String fullNameRepoParam = 'repo';
-
-  static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
-    return LuciService(
-      buildBucketClient: BuildBucketClient(),
-      config: handler.config,
-      clientContext: handler.authContext!.clientContext,
-    );
-  }
 
   @override
   Future<Body> get() async {
@@ -55,37 +39,15 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    final String repo = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
-    final RepositorySlug slug = RepositorySlug.full(repo);
+    final String repository = request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
+    final RepositorySlug slug = RepositorySlug.full(repository);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
 
-    final Commit tipOfTreeCommit = Commit(
-      sha: Config.defaultBranch(slug),
-      repository: slug.fullName,
-    );
-    final CiYaml ciYaml = await scheduler!.getCiYaml(tipOfTreeCommit);
-    List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(ciYaml);
-    // Filter the builders to only those that can block the tree
-    postsubmitBuilders = postsubmitBuilders.where((LuciBuilder builder) => !builder.flaky!).toList();
-    final LuciService luciService = luciServiceProvider(this);
-    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
-
-    String status = GithubBuildStatusUpdate.statusSuccess;
-
-    await Future.forEach(luciTasks.entries, (MapEntry<LuciBuilder, List<LuciTask>> luciTask) async {
-      final List<LuciTask> tasks = luciTask.value;
-      if (tasks.isEmpty) {
-        log.fine('No tasks returned for builder: ${luciTask.key.name}');
-      }
-      final String latestStatus = await buildStatusService.latestLUCIStatus(tasks);
-      if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
-        status = GithubBuildStatusUpdate.statusFailure;
-      }
-    });
-    await _insertBigquery(slug, status, Config.defaultBranch(slug), config);
-    await _updatePRs(slug, status, datastore, Config.defaultBranch(slug));
-    log.fine('All the PRs for $repo have been updated with $status');
+    final BuildStatus status = (await buildStatusService.calculateCumulativeStatus(slug))!;
+    await _insertBigquery(slug, status.githubStatus, Config.defaultBranch(slug), config);
+    await _updatePRs(slug, status.githubStatus, datastore, Config.defaultBranch(slug));
+    log.fine('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
   }
