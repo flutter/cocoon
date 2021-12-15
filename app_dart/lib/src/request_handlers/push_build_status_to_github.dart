@@ -18,12 +18,10 @@ import '../service/logging.dart';
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   const PushBuildStatusToGithub(
     Config config,
-    AuthenticationProvider authenticationProvider,
-     {
+    AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
-  })  : 
-        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 

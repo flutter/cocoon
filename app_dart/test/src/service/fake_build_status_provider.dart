@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 
 class FakeBuildStatusService implements BuildStatusService {
@@ -42,9 +41,4 @@ class FakeBuildStatusService implements BuildStatusService {
 
   @override
   DatastoreService get datastoreService => throw UnimplementedError();
-
-  @override
-  Future<String> latestLUCIStatus(List<LuciTask> tasks) {
-    throw UnimplementedError();
-  }
 }

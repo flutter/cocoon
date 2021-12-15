@@ -167,6 +167,7 @@ class DatastoreService {
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
+        key: db.emptyKey.append<int>(GithubBuildStatusUpdate),
         repository: slug.fullName,
         pr: pr.number!,
         head: pr.head!.sha,
