@@ -2,22 +2,46 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/protos.dart';
-import 'package:cocoon_service/src/foundation/providers.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
+import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
+import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
 
+Future<String> githubFileContent(
+  RepositorySlug slug,
+  String filePath, {
+  String ref = 'master',
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
+  return getUrl(githubUrl);
+}
+
+FutureOr<String> getUrl(Uri url) async {
+  final http.Client client = http.Client();
+  try {
+    final http.Response response = await client.get(url);
+
+    if (response.statusCode == HttpStatus.ok) {
+      return response.body;
+    } else {
+      throw HttpException('HTTP ${response.statusCode}: $url');
+    }
+  } finally {
+    client.close();
+  }
+}
+
+
 Future<String> getRemoteConfigContent(String repo, String ref) async {
-  const HttpClientProvider httpClientProvider = Providers.freshHttpClient;
   final String configContent = await githubFileContent(
     RepositorySlug('flutter', repo),
     '.ci.yaml',
-    httpClientProvider: httpClientProvider,
     ref: ref,
   );
   return configContent;
@@ -43,6 +67,6 @@ Future<void> main(List<String> args) async {
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
-  final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
+  final pb.SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }
