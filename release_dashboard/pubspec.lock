@@ -61,8 +61,8 @@ packages:
     dependency: "direct main"
     description:
       path: "dev/conductor/core"
-      ref: "0eeb026e58c270a3e46bf98913dbcdd26adb5e75"
-      resolved-ref: "0eeb026e58c270a3e46bf98913dbcdd26adb5e75"
+      ref: "935d1478aac8329016846131c4d0091ed011be87"
+      resolved-ref: "935d1478aac8329016846131c4d0091ed011be87"
       url: "git://github.com/flutter/flutter.git"
     source: git
     version: "0.0.0"
@@ -158,13 +158,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.11"
-  material_color_utilities:
-    dependency: transitive
-    description:
-      name: material_color_utilities
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.2"
   meta:
     dependency: transitive
     description:
@@ -192,7 +185,7 @@ packages:
       name: platform
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.2"
+    version: "3.1.0"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -213,7 +206,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   provider:
     dependency: "direct main"
     description:
@@ -267,7 +260,7 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.8"
+    version: "0.4.3"
   typed_data:
     dependency: transitive
     description:
