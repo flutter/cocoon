@@ -41,8 +41,10 @@ void main() {
     late PushGoldStatusToGithub handler;
     FakeGraphQLClient githubGraphQLClient;
     List<dynamic> checkRuns = <dynamic>[];
+    List<dynamic> engineCheckRuns = <dynamic>[];
     late MockClient mockHttpClient;
     late RepositorySlug slug;
+    late RepositorySlug engineSlug;
     late RetryOptions retryOptions;
 
     final List<LogRecord> records = <LogRecord>[];
@@ -68,7 +70,13 @@ void main() {
             source: QueryResultSource.network,
           );
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createGithubQueryResult(checkRuns);
+        if (options.variables['sRepoName'] == slug.name) {
+          return createGithubQueryResult(checkRuns);
+        }
+        if (options.variables['sRepoName'] == engineSlug.name) {
+          return createGithubQueryResult(engineCheckRuns);
+        }
+        return createGithubQueryResult(<dynamic>[]);
       };
       config.githubGraphQLClient = githubGraphQLClient;
       config.flutterGoldPendingValue = 'pending';
@@ -95,7 +103,9 @@ void main() {
       );
 
       slug = RepositorySlug('flutter', 'flutter');
+      engineSlug = RepositorySlug('flutter', 'engine');
       checkRuns.clear();
+      engineCheckRuns.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
@@ -122,7 +132,8 @@ void main() {
       MockPullRequestsService pullRequestsService;
       late MockIssuesService issuesService;
       late MockRepositoriesService repositoriesService;
-      late List<PullRequest> prsFromGitHub;
+      List<PullRequest> prsFromGitHub = <PullRequest>[];
+      List<PullRequest> enginePrsFromGitHub = <PullRequest>[];
 
       setUp(() {
         github = MockGitHub();
@@ -132,9 +143,17 @@ void main() {
         when(github.pullRequests).thenReturn(pullRequestsService);
         when(github.issues).thenReturn(issuesService);
         when(github.repositories).thenReturn(repositoriesService);
-        when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
+
+        prsFromGitHub.clear();
+        when(pullRequestsService.list(slug)).thenAnswer((Invocation _) {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
         });
+
+        enginePrsFromGitHub.clear();
+        when(pullRequestsService.list(engineSlug)).thenAnswer((Invocation _) {
+          return Stream<PullRequest>.fromIterable(enginePrsFromGitHub);
+        });
+
         when(repositoriesService.createStatus(any, any, any)).thenAnswer((_) async => RepositoryStatus());
         when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
         when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
@@ -142,22 +161,22 @@ void main() {
         clientContext.isDevelopmentEnvironment = false;
       });
 
-      GithubGoldStatusUpdate newStatusUpdate(PullRequest pr, String statusUpdate, String sha, String description) {
+      GithubGoldStatusUpdate newStatusUpdate(RepositorySlug slug, PullRequest pr, String statusUpdate, String sha, String description) {
         return GithubGoldStatusUpdate(
-          key: db.emptyKey.append(GithubGoldStatusUpdate),
+          key: db.emptyKey.append(GithubGoldStatusUpdate, id: pr.number),
           status: statusUpdate,
           pr: pr.number!,
           head: sha,
           updates: 0,
           description: description,
-          repository: 'flutter/flutter',
+          repository: slug.fullName,
         );
       }
 
       PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false, DateTime? updated}) {
         return PullRequest()
-          ..number = 123
-          ..head = (PullRequestHead()..sha = 'abc')
+          ..number = number
+          ..head = (PullRequestHead()..sha = sha)
           ..base = (PullRequestHead()..ref = baseRef)
           ..draft = draft
           ..updatedAt = updated ?? DateTime.now();
@@ -178,14 +197,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
         });
 
-        test('if there are no framework tests for this PR', () async {
+        test('if there are no framework or web engine tests for this PR', () async {
           checkRuns = <dynamic>[
             <String, String>{'name': 'tool-test1', 'status': 'completed', 'conclusion': 'success'}
           ];
-          final PullRequest pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final PullRequest flutterPr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[flutterPr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, flutterPr, '', '', '');
           db.values[status.key] = status;
+
+          engineCheckRuns = <dynamic>[
+            <String, String>{'name': 'linux-host1', 'status': 'completed', 'conclusion': 'success'}
+          ];
+          final PullRequest enginePr = newPullRequest(456, 'def', 'main');
+          enginePrsFromGitHub = <PullRequest>[enginePr];
+          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
+          db.values[engineStatus.key] = engineStatus;
+
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
@@ -194,7 +222,14 @@ void main() {
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number!,
+            flutterPr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+          verifyNever(issuesService.addLabelsToIssue(
+            engineSlug,
+            enginePr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -202,8 +237,13 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            flutterPr.number!,
+            argThat(contains(config.flutterGoldCommentID(flutterPr))),
+          ));
+          verifyNever(issuesService.createComment(
+            engineSlug,
+            enginePr.number!,
+            argThat(contains(config.flutterGoldCommentID(enginePr))),
           ));
         });
 
@@ -213,7 +253,7 @@ void main() {
           ];
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -241,6 +281,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
+            slug,
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
@@ -250,7 +291,8 @@ void main() {
 
           // Checks still running
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'}
+            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'},
+            <String, String>{'name': 'web engine', 'status': 'in_progress', 'conclusion': 'neutral'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -280,6 +322,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
+            slug,
             pr,
             GithubGoldStatusUpdate.statusCompleted,
             'abc',
@@ -289,7 +332,8 @@ void main() {
 
           // Checks complete
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
+            <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -320,6 +364,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
+            slug,
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
@@ -329,7 +374,8 @@ void main() {
 
           // Checks complete
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
+            <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
           ];
 
           // Gold status is running
@@ -383,11 +429,11 @@ void main() {
           ));
         });
 
-        test('does nothing for branches not staged to land on master', () async {
+        test('does nothing for branches not staged to land on main/master', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'release');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // All checks completed
@@ -421,7 +467,7 @@ void main() {
           // New commit, draft PR
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -455,7 +501,7 @@ void main() {
           // New commit, draft PR
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -490,7 +536,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -532,7 +578,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -574,7 +620,7 @@ void main() {
           final PullRequest pr =
               newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -615,27 +661,45 @@ void main() {
       group('updates GitHub and/or Datastore', () {
         test('new commit, checks running', () async {
           // New commit
-          final PullRequest pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final PullRequest flutterPr = newPullRequest(123, 'f-abc', 'master');
+          prsFromGitHub = <PullRequest>[flutterPr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, flutterPr, '', '', '');
+
+          final PullRequest enginePr = newPullRequest(567, 'e-abc', 'main');
+          enginePrsFromGitHub = <PullRequest>[enginePr];
+          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
+
           db.values[status.key] = status;
+          db.values[engineStatus.key] = engineStatus;
 
           // Checks running
           checkRuns = <dynamic>[
-            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'}
+            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'},
+          ];
+          engineCheckRuns = <dynamic>[
+            <String, String>{'name': 'web engine', 'status': 'in_progress', 'conclusion': 'neutral'},
           ];
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(engineStatus.updates, 1);
+          expect(engineStatus.status, GithubGoldStatusUpdate.statusRunning);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
-            pr.number!,
+            flutterPr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+          verifyNever(issuesService.addLabelsToIssue(
+            engineSlug,
+            enginePr.number!,
             <String>[
               kGoldenFileLabel,
             ],
@@ -643,8 +707,13 @@ void main() {
 
           verifyNever(issuesService.createComment(
             slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            flutterPr.number!,
+            argThat(contains(config.flutterGoldCommentID(flutterPr))),
+          ));
+          verifyNever(issuesService.createComment(
+            engineSlug,
+            enginePr.number!,
+            argThat(contains(config.flutterGoldCommentID(enginePr))),
           ));
         });
 
@@ -652,7 +721,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -709,7 +778,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -775,7 +844,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+              newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks complete
@@ -839,7 +908,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+              newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks complete
@@ -913,7 +982,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+              newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
@@ -977,7 +1046,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+              newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
@@ -1017,7 +1086,7 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
+              newStatusUpdate(slug, pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue!);
           db.values[status.key] = status;
 
           // Checks completed
@@ -1056,7 +1125,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks failed
@@ -1096,8 +1165,8 @@ void main() {
           followUpPR,
         ];
         final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
-            completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue!);
-        final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(followUpPR, '', '', '');
+            slug, completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue!);
+        final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(slug, followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
 
@@ -1153,6 +1222,7 @@ void main() {
         final PullRequest pr = newPullRequest(123, 'abc', 'master');
         prsFromGitHub = <PullRequest>[pr];
         final GithubGoldStatusUpdate status = newStatusUpdate(
+          slug,
           pr,
           GithubGoldStatusUpdate.statusRunning,
           'abc',

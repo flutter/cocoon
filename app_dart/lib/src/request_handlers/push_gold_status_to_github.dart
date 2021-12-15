@@ -77,7 +77,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       final String? baseRef = pr.base!.ref;
-      if (baseRef != 'master' && baseRef != 'main') {
+      if (baseRef != Config.defaultBranch(slug)) {
         log.fine('This change is not staged to land on main or master, skipping.');
         // This is potentially a release branch, or another change not landing
         // on master, we don't need a Gold check.
@@ -227,7 +227,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
       final List<dynamic> patchsets = jsonResponseTriage['patchsets'] as List<dynamic>;
       int untriaged = 0;
-      for (int i = 0; i <= patchsets.length; i++) {
+      for (int i = 0; i < patchsets.length; i++) {
         final Map<String, dynamic> patchset = patchsets[i] as Map<String, dynamic>;
         if (patchset['patchset_id'] == pr.head!.sha) {
           untriaged = patchset['new_untriaged_images'] as int;
