@@ -79,9 +79,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       if (task!.status == 'Succeeded') {
         return Body.empty;
       }
-      commit = await datastore.db.lookupValue<Commit>(task.commitKey!, orElse: () {
-        throw BadRequestException('No such commit: ${task!.commitKey}');
-      });
+      commit = await datastore.db.lookupValue<Commit>(task.commitKey!);
       slug = commit.slug;
       commitSha = commit.sha!;
       builder = task.builderName;

@@ -112,9 +112,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
-    final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
-      throw BadRequestException('No such commit: $id');
-    });
+    final Commit commit = await config.db.lookupValue<Commit>(commitKey);
     return commit.key;
   }
 }
