@@ -37,7 +37,6 @@ FutureOr<String> getUrl(Uri url) async {
   }
 }
 
-
 Future<String> getRemoteConfigContent(String repo, String ref) async {
   final String configContent = await githubFileContent(
     RepositorySlug('flutter', repo),
