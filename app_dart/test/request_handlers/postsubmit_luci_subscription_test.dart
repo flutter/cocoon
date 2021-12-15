@@ -18,19 +18,23 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
+  final FakeClientContext clientContext = FakeClientContext();
+  final FakeKeyHelper keyHelper = FakeKeyHelper(
+    applicationContext: clientContext.applicationContext,
+  );
+
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
   late SubscriptionTester tester;
 
-  const String rawKey =
-      'ahFmbHV0dGVyLWRhc2hib2FyZHJfCxIJQ2hlY2tsaXN0Ij9mbHV0dGVyL2ZsdXR0ZXIvbWFzdGVyLzg3Zjg4NzM0NzQ3ODA1NTg5ZjIxMzE3NTM2MjBkNjFiMjI5MjI4MjIMCxIEVGFzaxiAgNiftvKACAw';
-
   setUp(() async {
     config = FakeConfig();
     handler = PostsubmitLuciSubscription(
       config,
-      FakeAuthenticationProvider(),
+      FakeAuthenticationProvider(
+        clientContext: clientContext,
+      ),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
@@ -51,6 +55,7 @@ void main() {
   });
 
   test('throws exception if task key does not exist in datastore', () {
+    final String rawKey = keyHelper.encode(generateTask(1).key);
     tester.message = pushMessageJson(
       'COMPLETED',
       result: 'SUCCESS',
@@ -67,6 +72,7 @@ void main() {
       parent: commit,
     );
 
+    final String rawKey = keyHelper.encode(task.key);
     tester.message = pushMessageJson(
       'COMPLETED',
       result: 'SUCCESS',
@@ -81,6 +87,6 @@ void main() {
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
-    expect(task.endTimestamp, 123);
+    expect(task.endTimestamp, 1565049193786090);
   });
 }

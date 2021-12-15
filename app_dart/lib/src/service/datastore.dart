@@ -246,8 +246,8 @@ class DatastoreService {
   }
 
   /// Looks up registers by value using a single [key].
-  Future<T?> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
-    T? result;
+  Future<T> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
+    late T result;
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {
         result = await db.lookupValue<T>(key, orElse: orElse);

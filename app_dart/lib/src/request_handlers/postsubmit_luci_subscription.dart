@@ -52,10 +52,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       throw const BadRequestException('userData does not contain task_key');
     }
     final Key<int> key = keyHelper.decode(taskKey) as Key<int>;
-    final Task? task = await datastore.lookupByValue<Task>(key);
-    if (task == null) {
-      throw InternalServerError('$taskKey does not exist');
-    }
+    final Task task = await datastore.lookupByValue<Task>(key);
 
     task.updateFromBuildPushMessage(buildPushMessage);
     await datastore.insert(<Task>[task]);

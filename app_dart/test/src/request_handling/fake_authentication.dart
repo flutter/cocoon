@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:gcloud/db.dart';
 
 // ignore: must_be_immutable
 class FakeAuthenticationProvider implements AuthenticationProvider {
@@ -94,7 +93,7 @@ class FakeClientContext implements ClientContext {
 
 class FakeAppEngineContext implements AppEngineContext {
   @override
-  late String applicationID;
+  late String applicationID = 'flutter-dashboard';
 
   @override
   late String fullQualifiedApplicationId;
@@ -112,7 +111,7 @@ class FakeAppEngineContext implements AppEngineContext {
   late String module;
 
   @override
-  late String partition;
+  late String partition = '[default]';
 
   @override
   late String version;
@@ -121,10 +120,5 @@ class FakeAppEngineContext implements AppEngineContext {
 class FakeKeyHelper extends KeyHelper {
   FakeKeyHelper({
     AppEngineContext? applicationContext,
-  }) : super(applicationContext: applicationContext);
-
-  @override
-  String encode(Key<dynamic> key) {
-    return '';
-  }
+  }) : super(applicationContext: applicationContext ?? FakeAppEngineContext());
 }
