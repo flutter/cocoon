@@ -97,10 +97,6 @@ void main() {
       when(githubService.github.repositories).thenReturn(repositories);
     });
 
-    tearDown(() {
-      db.values.clear();
-    });
-
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
       config.flutterBranchesValue = <String>['master'];
