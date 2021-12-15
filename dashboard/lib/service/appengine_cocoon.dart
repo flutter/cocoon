@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart' show compute, kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../logic/qualified_task.dart';
@@ -56,7 +56,8 @@ class AppEngineCocoonService implements CocoonService {
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<CommitStatus>>.data(_commitStatusesFromJson(jsonResponse['Statuses']));
+      return CocoonResponse<List<CommitStatus>>.data(
+          await compute<List<Object>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
