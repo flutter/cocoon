@@ -213,7 +213,7 @@ class GithubWebhook extends RequestHandler<Body> {
           !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename!.startsWith('dev/devicelab/lib/tasks') &&
           !file.filename!.startsWith('dev/bots/')) {
-        needsTests = true;
+        needsTests = !_allChangesAreCodeComments(file);
       }
 
       if (file.filename!.endsWith('_test.dart') ||

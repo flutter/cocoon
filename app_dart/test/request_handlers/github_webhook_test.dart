@@ -794,6 +794,48 @@ void main() {
       ));
     });
 
+    test('Framework no comment if only comments changed', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      const String patch = '''
+@@ -128,7 +128,7 @@
+
+/// Insert interesting comment here.
+///
+-/// More details here, but some of them are wrong.
++/// These are the right details!
+void foo() {
+  int bar = 0;
+  String baz = '';
+''';
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'packages/foo/lib/foo.dart'
+            ..additionsCount = 1
+            ..deletionsCount = 1
+            ..changesCount = 2
+            ..patch = patch,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Framework labels PRs, no comment if tests (dev/bots/test.dart)', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
