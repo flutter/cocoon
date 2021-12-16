@@ -43,14 +43,17 @@ Task generateTask(int i,
 Target generateTarget(
   int i, {
   pb.SchedulerConfig? schedulerConfig,
-  github.RepositorySlug? slug,
+  String platform = 'Linux',
+  Map<String, String>? properties,
   List<String>? runIf,
+  github.RepositorySlug? slug,
 }) =>
     Target(
       schedulerConfig: schedulerConfig ?? exampleConfig.config,
       slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
       value: pb.Target(
-        name: 'Linux $i',
+        name: '$platform $i',
+        properties: properties,
         runIf: runIf ?? <String>[],
       ),
     );

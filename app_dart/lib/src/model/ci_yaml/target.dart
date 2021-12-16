@@ -70,9 +70,9 @@ class Target {
     mergedProperties['dependencies'] = mergedDependencies.values.map((Dependency dep) => dep.toJson()).toList();
 
     // xcode is a special property as there's different download policies if its in the devicelab.
-    if (properties.containsKey('xcode')) {
+    if (mergedProperties.containsKey('xcode')) {
       final Object xcodeVersion = <String, Object>{
-        'sdk_version': properties['xcode']!,
+        'sdk_version': mergedProperties['xcode']!,
       };
 
       if (iosPlatforms.contains(getPlatform())) {
