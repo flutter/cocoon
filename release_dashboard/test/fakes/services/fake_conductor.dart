@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
 import '../fake_clean_context.dart';
+import '../fake_next_context.dart';
 import '../fake_start_context.dart';
 
 /// Fake service class for using the conductor in a fake local environment.
@@ -17,12 +18,16 @@ import '../fake_start_context.dart';
 /// When [fakeStartContextProvided] is not provided, the class initializes
 /// a [createRelease] method that does not throw any error by default.
 ///
+/// When [fakeNextContextProvided] is not provided, the class initializes
+/// a [conductorNext] method that does not throw any error by default.
+///
 /// [testState] parameter accepts a fake test state and passes it to the
 /// release dashboard.
 class FakeConductor extends ConductorService {
   FakeConductor({
     this.fakeCleanContextProvided,
     this.fakeStartContextProvided,
+    this.fakeNextContextProvided,
     this.testState,
   }) {
     /// If there is no [fakeCleanContextProvided], initialize a [FakeCleanContext]
@@ -31,8 +36,9 @@ class FakeConductor extends ConductorService {
   }
 
   late FakeCleanContext? fakeCleanContextProvided;
-  final FakeStartContext? fakeStartContextProvided;
-  final ConductorState? testState;
+  FakeStartContext? fakeStartContextProvided;
+  FakeNextContext? fakeNextContextProvided;
+  ConductorState? testState;
 
   final FileSystem fs = MemoryFileSystem.test();
   final Platform platform = FakePlatform(
@@ -51,6 +57,7 @@ class FakeConductor extends ConductorService {
     required String frameworkMirror,
     required String incrementLetter,
     required String releaseChannel,
+    BuildContext? context,
   }) async {
     if (fakeStartContextProvided != null) {
       return fakeStartContextProvided!.run();
@@ -68,6 +75,16 @@ class FakeConductor extends ConductorService {
         releaseChannel: releaseChannel,
       );
       return fakeStartContext.run();
+    }
+  }
+
+  @override
+  Future<void> conductorNext(BuildContext context) async {
+    if (fakeNextContextProvided != null) {
+      return fakeNextContextProvided!.run(testState!);
+    } else {
+      final FakeNextContext fakeNextContext = FakeNextContext();
+      return fakeNextContext.run(testState!);
     }
   }
 

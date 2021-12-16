@@ -122,6 +122,8 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -143,10 +145,8 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded builds (3 most recent):
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/203
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/202
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
+Recent test runs:
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -206,11 +206,13 @@ Issue link: $expectedSemanticsIntegrationTestNewIssueURL
 final List<BuilderStatistic> limitedNumberOfBuildsResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
-    flakyRate: 0.5,
+    flakyRate: 0.25,
     flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 1,
+    totalNumber: 4,
   )
 ];
 
@@ -230,8 +232,8 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semanti
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/101
 
-Succeeded builds (3 most recent):
-https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/201
+Recent test runs:
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -244,6 +246,8 @@ final List<BuilderStatistic> analyzeTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 const String expectedAnalyzeTestResponseAssignee = 'HansMuller';
@@ -262,6 +266,8 @@ final List<BuilderStatistic> frameworkTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -273,6 +279,8 @@ final List<BuilderStatistic> unknownTestResponse = <BuilderStatistic>[
     succeededBuilds: <String>['203', '202', '201'],
     recentCommit: 'abc',
     flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 const String expectedFrameworkTestResponseAssignee = 'HansMuller';

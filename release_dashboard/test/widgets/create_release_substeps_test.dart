@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:conductor_core/conductor_core.dart';
+import 'package:conductor_core/proto.dart' as pb;
 import 'package:conductor_ui/logic/git.dart';
 import 'package:conductor_ui/state/status_state.dart';
 import 'package:conductor_ui/widgets/create_release_substeps.dart';
@@ -15,6 +16,7 @@ import 'package:provider/provider.dart';
 import '../fakes/fake_process_manager.dart';
 import '../fakes/fake_start_context.dart';
 import '../fakes/services/fake_conductor.dart';
+import '../src/test_state_generator.dart';
 
 void main() {
   const String candidateBranch = 'flutter-1.2-candidate.3';
@@ -47,10 +49,8 @@ void main() {
             child: MaterialApp(
               home: Material(
                 child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                    ),
+                  children: const <Widget>[
+                    CreateReleaseSubsteps(),
                   ],
                 ),
               ),
@@ -82,10 +82,8 @@ void main() {
             child: MaterialApp(
               home: Material(
                 child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                    ),
+                  children: const <Widget>[
+                    CreateReleaseSubsteps(),
                   ],
                 ),
               ),
@@ -119,10 +117,8 @@ void main() {
               child: MaterialApp(
                 home: Material(
                   child: ListView(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(
-                        nextStep: () {},
-                      ),
+                    children: const <Widget>[
+                      CreateReleaseSubsteps(),
                     ],
                   ),
                 ),
@@ -148,10 +144,8 @@ void main() {
               child: MaterialApp(
                 home: Material(
                   child: ListView(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(
-                        nextStep: () {},
-                      ),
+                    children: const <Widget>[
+                      CreateReleaseSubsteps(),
                     ],
                   ),
                 ),
@@ -173,10 +167,8 @@ void main() {
               child: MaterialApp(
                 home: Material(
                   child: ListView(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(
-                        nextStep: () {},
-                      ),
+                    children: const <Widget>[
+                      CreateReleaseSubsteps(),
                     ],
                   ),
                 ),
@@ -200,10 +192,8 @@ void main() {
               child: MaterialApp(
                 home: Material(
                   child: ListView(
-                    children: <Widget>[
-                      CreateReleaseSubsteps(
-                        nextStep: () {},
-                      ),
+                    children: const <Widget>[
+                      CreateReleaseSubsteps(),
                     ],
                   ),
                 ),
@@ -257,10 +247,8 @@ void main() {
             child: MaterialApp(
               home: Material(
                 child: ListView(
-                  children: <Widget>[
-                    CreateReleaseSubsteps(
-                      nextStep: () {},
-                    ),
+                  children: const <Widget>[
+                    CreateReleaseSubsteps(),
                   ],
                 ),
               ),
@@ -282,10 +270,8 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -325,10 +311,8 @@ void main() {
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -367,21 +351,28 @@ void main() {
   });
 
   group('CLI connection', () {
+    late pb.ConductorState stateWithoutConflicts;
+
+    setUp(() {
+      stateWithoutConflicts = generateConductorState();
+    });
+
     testWidgets('Is able to display a conductor exception in the UI', (WidgetTester tester) async {
       const String exceptionMsg = 'There is a conductor Exception';
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => throw ConductorException(exceptionMsg),
-      );
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: FakeStartContext(
+              runOverride: () async => throw ConductorException(exceptionMsg),
+            ),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -401,19 +392,20 @@ void main() {
 
     testWidgets('Is able to display a general exception in the UI', (WidgetTester tester) async {
       const String exceptionMsg = 'There is a general Exception';
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => throw Exception(exceptionMsg),
-      );
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: FakeStartContext(
+              runOverride: () async => throw Exception(exceptionMsg),
+            ),
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -432,21 +424,23 @@ void main() {
     });
 
     testWidgets('Proceeds to the next step if there is no exception', (WidgetTester tester) async {
-      bool contextRunCalled = false;
-      bool nextStepReached = false;
-      final FakeStartContext startContext = FakeStartContext(
-        runOverride: () async => contextRunCalled = true,
+      FakeConductor fakeConductor = FakeConductor();
+      // When [FakeStartContext] is run, it assigns the testState to [FakeConductor].
+      // This simulates the scenario where a test state is created after a release initialization.
+      FakeStartContext fakeStartContext = FakeStartContext(
+        runOverride: () async => fakeConductor.testState = stateWithoutConflicts,
       );
+      fakeConductor.fakeStartContextProvided = fakeStartContext;
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: fakeConductor,
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () => nextStepReached = true,
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -460,17 +454,15 @@ void main() {
       await tester.pump();
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(contextRunCalled, true);
-      expect(nextStepReached, true);
+      expect(fakeConductor.testState!.currentPhase, kCurrentPhase);
     });
 
     testWidgets('Is able to display the loading UI, and hides it after the release is done',
         (WidgetTester tester) async {
-      final FakeStartContext startContext = FakeStartContext();
-
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
 
+      final FakeStartContext startContext = FakeStartContext();
       startContext.addCommand(FakeCommand(
         command: const <String>[
           'git',
@@ -485,14 +477,16 @@ void main() {
       ));
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: startContext,
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),
@@ -516,11 +510,10 @@ void main() {
     });
 
     testWidgets('Disable all inputs and dropdowns when loading', (WidgetTester tester) async {
-      final FakeStartContext startContext = FakeStartContext();
-
       // This completer signifies the completion of `startContext.run()` function
       final Completer<void> completer = Completer<void>();
 
+      final FakeStartContext startContext = FakeStartContext();
       startContext.addCommand(FakeCommand(
         command: const <String>[
           'git',
@@ -535,14 +528,16 @@ void main() {
       ));
 
       await tester.pumpWidget(ChangeNotifierProvider(
-        create: (context) => StatusState(conductor: FakeConductor(fakeStartContextProvided: startContext)),
+        create: (context) => StatusState(
+          conductor: FakeConductor(
+            fakeStartContextProvided: startContext,
+          ),
+        ),
         child: MaterialApp(
           home: Material(
             child: ListView(
-              children: <Widget>[
-                CreateReleaseSubsteps(
-                  nextStep: () {},
-                ),
+              children: const <Widget>[
+                CreateReleaseSubsteps(),
               ],
             ),
           ),

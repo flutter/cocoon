@@ -45,6 +45,7 @@ const int kSuccessBuildNumberLimit = 3;
 const int kFlayRatioBuildNumberList = 10;
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
+const String _buildDashboardPrefix = 'https://flutter-dashboard.appspot.com/#/build';
 const String _prodBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
 const String _stagingBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/staging/';
 const String _flakeRecordPrefix =
@@ -84,11 +85,12 @@ The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate
 
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
+
 Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
 
-Succeeded builds (3 most recent):
-${_issueBuildLinks(builder: statistic.name, builds: statistic.succeededBuilds!.sublist(0, numberOfSuccessBuilds(statistic.succeededBuilds!.length)))}
+Recent test runs:
+${_issueBuilderLink(statistic.name)}
 
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -140,7 +142,8 @@ class IssueUpdateBuilder {
   }
 
   String get issueUpdateComment {
-    String result = 'Current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%.\n';
+    String result =
+        'Current flaky ratio for the past (up to) 100 commits is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
     if (statistic.flakyRate > 0.0) {
       result = result +
           '''
@@ -148,6 +151,9 @@ One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, bucket: bucket)}
+
+Recent test runs:
+${_issueBuilderLink(statistic.name)}
 ''';
     }
     return result;
@@ -473,6 +479,10 @@ String _issueBuildLinks({String? builder, required List<String> builds, Bucket b
 String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.prod}) {
   final String buildPrefix = bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
   return Uri.encodeFull('$buildPrefix$builder/$build');
+}
+
+String _issueBuilderLink(String? builder) {
+  return Uri.encodeFull('$_buildDashboardPrefix?taskFilter=$builder');
 }
 
 Team _teamFromString(String teamString) {

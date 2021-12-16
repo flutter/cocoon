@@ -131,12 +131,15 @@ class BigqueryService {
       succeededBuilds?.sort();
       succeededBuilds = succeededBuilds?.reversed.toList();
       result.add(BuilderStatistic(
-          name: builder,
-          flakyRate: double.parse(row.f![7].v as String),
-          flakyBuilds: flakyBuilds ?? const <String>[],
-          succeededBuilds: succeededBuilds ?? const <String>[],
-          recentCommit: row.f![5].v as String?,
-          flakyBuildOfRecentCommit: row.f![6].v as String?));
+        name: builder,
+        flakyRate: double.parse(row.f![7].v as String),
+        flakyBuilds: flakyBuilds ?? const <String>[],
+        succeededBuilds: succeededBuilds ?? const <String>[],
+        recentCommit: row.f![5].v as String?,
+        flakyBuildOfRecentCommit: row.f![6].v as String?,
+        flakyNumber: int.parse(row.f![1].v as String),
+        totalNumber: int.parse(row.f![2].v as String),
+      ));
     }
     return result;
   }
@@ -204,6 +207,8 @@ class BuilderStatistic {
   BuilderStatistic({
     required this.name,
     required this.flakyRate,
+    required this.flakyNumber,
+    required this.totalNumber,
     this.flakyBuilds,
     this.succeededBuilds,
     this.recentCommit,
@@ -216,4 +221,6 @@ class BuilderStatistic {
   final List<String>? succeededBuilds;
   final String? recentCommit;
   final String? flakyBuildOfRecentCommit;
+  final int flakyNumber;
+  final int totalNumber;
 }

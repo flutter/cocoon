@@ -54,12 +54,18 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const <Widget>[
+              children: <Widget>[
                 SelectableText(
                   'Desktop app for managing a release of the Flutter SDK, currently in development',
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
-                SizedBox(height: 10.0),
-                MainProgression(),
+                const SizedBox(height: 10.0),
+                SelectableText(
+                  'Please follow each step and substep in order.',
+                  style: Theme.of(context).textTheme.subtitle1,
+                ),
+                const SizedBox(height: 10.0),
+                MainProgression(conductor: conductor),
               ],
             ),
           ),

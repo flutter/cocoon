@@ -16,6 +16,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
             author {
               login
             }
+            authorAssociation
             id
             baseRepository {
               nameWithOwner

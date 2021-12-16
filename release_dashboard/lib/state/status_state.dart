@@ -18,7 +18,6 @@ class StatusState extends ChangeNotifier {
   }) : releaseStatus = stateToMap(conductor.state);
 
   final ConductorService conductor;
-
   late Map<ConductorStatusEntry, Object>? releaseStatus;
 
   /// Method that modifies the global state in provider.
@@ -32,12 +31,12 @@ class StatusState extends ChangeNotifier {
 
   /// Updates the release status with the latest values saved in the state file.
   ///
+  /// [context] is the [BuildContext] of the widget which is calling this method.
+  /// [read] is from 'package:provider/provider.dart'.
+  ///
   /// Use the code below to call the method:
   ///
   /// {@tool snippet}
-  ///
-  /// [context] is the [BuildContext] of the widget which is calling this method.
-  /// [read] is from 'package:provider/provider.dart'.
   ///
   /// An example on how to call this method:
   ///
@@ -50,6 +49,9 @@ class StatusState extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+// TODO(Yugue): Add another abstraction between services and state,
+// https://github.com/flutter/flutter/issues/94816.
 
 /// Returns the conductor state in a [Map<K, V>] format for the widgets to consume.
 Map<ConductorStatusEntry, Object>? stateToMap(pb.ConductorState? state) {

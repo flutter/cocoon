@@ -28,11 +28,12 @@ const String kEngineMirror = 'git@github.com:User/engine.git';
 const String kFrameworkMirror = 'git@github.com:User/engine.git';
 const String kEngineUpstream = 'https://github.com/org/engine.git';
 const String kFrameworkUpstream = 'https://github.com/org/framework.git';
+const pb.ReleasePhase kCurrentPhase = pb.ReleasePhase.APPLY_ENGINE_CHERRYPICKS;
 
 /// Generates a test conductor state.
 ///
 /// Default state has all the fields complete and valid with no cherrypick conflicts,
-/// and an engine PR and a framework PR are required.
+/// an engine is PR, a framework PR is required, and at the `apply engine cherrypicks` phase.
 ///
 /// If [engineCherrypicksInConflict] is true, the function generates a state
 /// with 2/3 of the engine cherrypicks in conflict.
@@ -69,6 +70,7 @@ pb.ConductorState generateConductorState({
   String? frameworkStartingGitHead = kFrameworkStartingGitHead,
   String? frameworkCurrentGitHead = kFrameworkCurrentGitHead,
   String? frameworkCheckoutPath = kFrameworkCheckoutPath,
+  pb.ReleasePhase? currentPhase = kCurrentPhase,
 }) {
   return pb.ConductorState(
     engine: pb.Repository(
@@ -111,5 +113,6 @@ pb.ConductorState generateConductorState({
     conductorVersion: conductorVersion,
     releaseChannel: releaseChannel,
     releaseVersion: releaseVersion,
+    currentPhase: currentPhase,
   );
 }

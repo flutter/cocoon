@@ -37,7 +37,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    for (RepositorySlug slug in Config.schedulerSupportedRepos) {
+    for (RepositorySlug slug in Config.supportedRepos) {
       await _vacuumRepository(slug, datastore: datastore);
     }
 

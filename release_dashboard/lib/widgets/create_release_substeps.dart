@@ -11,6 +11,7 @@ import '../logic/error_to_string.dart';
 import '../logic/git.dart';
 import '../services/conductor.dart';
 import '../state/status_state.dart';
+import 'common/continue_button.dart';
 import 'common/tooltip.dart';
 
 /// The order of this enum decides which order the widgets in [CreateReleaseSubsteps] get rendered.
@@ -42,10 +43,7 @@ enum CreateReleaseSubstep {
 class CreateReleaseSubsteps extends StatefulWidget {
   const CreateReleaseSubsteps({
     Key? key,
-    required this.nextStep,
   }) : super(key: key);
-
-  final VoidCallback nextStep;
 
   @override
   State<CreateReleaseSubsteps> createState() => CreateReleaseSubstepsState();
@@ -142,7 +140,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
   }
 
   /// Initialize a [StartContext] and execute the [run] function to start a release using the conductor.
-  Future<void> runCreateRelease(ConductorService conductor) {
+  Future<void> runCreateRelease(ConductorService conductor, BuildContext context) {
     // Data captured by the input forms and dropdowns are transformed to conform the formats of StartContext.
     return conductor.createRelease(
       candidateBranch: releaseData[CreateReleaseSubstep.candidateBranch] ?? '',
@@ -154,6 +152,7 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
       dartRevision:
           releaseData[CreateReleaseSubstep.dartRevision] == '' ? null : releaseData[CreateReleaseSubstep.dartRevision],
       incrementLetter: releaseData[CreateReleaseSubstep.increment] ?? '',
+      context: context,
     );
   }
 
@@ -199,43 +198,20 @@ class CreateReleaseSubstepsState extends State<CreateReleaseSubsteps> {
             )
           ],
         const SizedBox(height: 20.0),
-        if (_error != null)
-          Center(
-            child: SelectableText(
-              _error!,
-              style: Theme.of(context).textTheme.subtitle1!.copyWith(color: Colors.red),
-            ),
-          ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              key: const Key('createReleaseContinue'),
-              // If the release initialization is loading or any substeps is unchecked, disable this button.
-              onPressed: isEachInputValid.containsValue(false) || _isLoading
-                  ? null
-                  : () async {
-                      setError(null);
-                      try {
-                        setIsLoading(true);
-                        await runCreateRelease(conductor);
-                      } catch (error, stacktrace) {
-                        setError(errorToString(error, stacktrace));
-                      } finally {
-                        setIsLoading(false);
-                      }
-                      if (_error == null) {
-                        widget.nextStep();
-                      }
-                    },
-              child: const Text('Continue'),
-            ),
-            const SizedBox(width: 30.0),
-            if (_isLoading)
-              const CircularProgressIndicator(
-                semanticsLabel: 'Linear progress indicator',
-              ),
-          ],
+        ContinueButton(
+          elevatedButtonKey: const Key('createReleaseContinue'),
+          error: _error,
+          enabled: !isEachInputValid.containsValue(false) && !_isLoading,
+          onPressedCallback: () async {
+            setError(null);
+            setIsLoading(true);
+            runCreateRelease(conductor, context).catchError((error, stacktrace) {
+              setError(errorToString(error, stacktrace));
+            }).whenComplete(() {
+              setIsLoading(false);
+            });
+          },
+          isLoading: _isLoading,
         ),
       ],
     );

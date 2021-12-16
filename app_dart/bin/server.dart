@@ -22,6 +22,7 @@ Future<void> main() async {
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
+    final AuthenticationProvider luciPubSubProvider = LuciPubsubAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
@@ -75,8 +76,17 @@ Future<void> main() async {
       /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
       /// of a POST request.
       '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
-      '/api/luci-status-handler': LuciStatusHandler(
+      // TODO(chillers): Remove once prod PubSub is updated to point to new endpoint. https://github.com/flutter/flutter/issues/81795
+      '/api/luci-status-handler': PresubmitLuciSubscription(
         config,
+        luciPubSubProvider,
+        buildBucketClient,
+        luciBuildService,
+        githubChecksService,
+      ),
+      '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
+        config,
+        luciPubSubProvider,
         buildBucketClient,
         luciBuildService,
         githubChecksService,

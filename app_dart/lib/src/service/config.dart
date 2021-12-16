@@ -11,7 +11,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -23,6 +22,7 @@ import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
+import 'logging.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
@@ -40,31 +40,30 @@ class Config {
   ///
   /// Relies on the GitHub Checks API being enabled for this repo.
   static Set<RepositorySlug> supportedRepos = <RepositorySlug>{
-    RepositorySlug('flutter', 'cocoon'),
-    RepositorySlug('flutter', 'engine'),
-    RepositorySlug('flutter', 'flutter'),
-    RepositorySlug('flutter', 'packages'),
-    RepositorySlug('flutter', 'plugins'),
-  };
-
-  /// List of GitHub repositories that are supported by [Scheduler].
-  static Set<RepositorySlug> schedulerSupportedRepos = <RepositorySlug>{
-    RepositorySlug('flutter', 'flutter'),
+    cocoonSlug,
+    engineSlug,
+    flutterSlug,
+    packagesSlug,
+    pluginsSlug,
   };
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
-    RepositorySlug('flutter', 'engine'),
-    RepositorySlug('flutter', 'flutter'),
+    engineSlug,
+    flutterSlug,
   };
 
   /// The tip of tree branch for [slug].
   static String defaultBranch(RepositorySlug slug) {
-    if (slug == flutterSlug) {
-      return 'master';
-    }
+    final Map<RepositorySlug, String> defaultBranches = <RepositorySlug, String>{
+      cocoonSlug: 'main',
+      flutterSlug: 'master',
+      engineSlug: 'main',
+      pluginsSlug: 'master',
+      packagesSlug: 'main',
+    };
 
-    return 'main';
+    return defaultBranches[slug] ?? kDefaultBranchName;
   }
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
@@ -242,6 +241,12 @@ class Config {
   /// Internal Google service account used to surface FRoB results.
   String get frobAccount => 'dart-sdk-rolls-jobs@system.gserviceaccount.com';
 
+  /// Service accounts used for LUCI PubSub messages.
+  static const Set<String> allowedLuciPubsubServiceAccounts = <String>{
+    'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
+    'flutter-dashboard@appspot.gserviceaccount.com'
+  };
+
   int get maxTaskRetries => 2;
 
   /// Max retries for Luci builder with infra failure.
@@ -262,15 +267,13 @@ class Config {
   String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
+  static RepositorySlug get cocoonSlug => RepositorySlug('flutter', 'cocoon');
   static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+  static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
+  static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
-
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async {
-    final String rawValue = await _getSingleValue('TaskLogServiceAccount');
-    return ServiceAccountCredentials.fromJson(json.decode(rawValue));
-  }
 
   /// The names of autoroller accounts for the repositories.
   ///
@@ -297,6 +300,19 @@ class Config {
   }
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
+    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
+    final Uint8List? cacheValue = await _cache.getOrCreate(
+      configCacheName,
+      'githubToken-${slug.fullName}',
+      createFn: () => _generateGithubToken(slug),
+      // Tokens are minted for 10 minutes
+      ttl: const Duration(minutes: 8),
+    );
+
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
@@ -307,7 +323,12 @@ class Config {
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appInstallation/access_tokens');
     final http.Response response = await http.post(githubAccessTokensUri, headers: headers);
     final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
-    return jsonBody['token'] as String;
+    if (jsonBody.containsKey('token') == false) {
+      log.warning(response.body);
+      throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
+    }
+    final String token = jsonBody['token'] as String;
+    return Uint8List.fromList(token.codeUnits);
   }
 
   Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async {

@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -53,10 +53,10 @@ void main() {
       return commits;
     }
 
-    Commit shaToCommit(String sha, String branch) {
+    Commit shaToCommit(String sha, String branch, RepositorySlug slug) {
       return Commit(
-          key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-          repository: 'flutter/flutter',
+          key: db.emptyKey.append(Commit, id: '${slug.fullName}/$branch/$sha'),
+          repository: slug.fullName,
           sha: sha,
           branch: branch,
           timestamp: int.parse(sha));
@@ -113,7 +113,7 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().first;
-      expect(db.values.values.whereType<Commit>().length, 2);
+      expect(db.values.values.whereType<Commit>().length, 2 * Config.supportedRepos.length);
       expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
@@ -123,7 +123,7 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 1);
+      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length);
       expect(db.values.values.whereType<Commit>().first.sha, '9');
     });
 
@@ -147,24 +147,27 @@ void main() {
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, 'flutter/flutter');
+      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length);
+      final List<Commit> commits = db.values.values.whereType<Commit>().toList();
+      final Commit commit = commits.first;
+      expect(commit.repository, 'flutter/cocoon');
       expect(commit.branch, 'master');
       expect(commit.sha, '1');
       expect(commit.timestamp, 1);
       expect(commit.author, 'Username');
       expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
       expect(commit.message, 'commit message');
+      expect(commits[1].repository, Config.engineSlug.fullName);
+      expect(commits[2].repository, Config.flutterSlug.fullName);
     });
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['2', '3', '4'];
-      config.flutterBranchesValue = <String>['master'];
+      config.flutterBranchesValue = <String>['main'];
 
       /// This test is simulating an existing branch, which must already
       /// have at least one commit in the datastore.
-      final Commit commit = shaToCommit('1', 'master');
+      final Commit commit = shaToCommit('1', 'main', Config.engineSlug);
       db.values[commit.key] = commit;
 
       db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
@@ -173,8 +176,7 @@ void main() {
         }
       };
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 3);
-      expect(db.values.values.whereType<Task>().length, 8);
+      expect(db.values.values.whereType<Commit>().length, githubCommits.length + Config.supportedRepos.length);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);

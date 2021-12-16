@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:conductor_core/conductor_core.dart';
 import 'package:conductor_ui/services/release_dashboard_start_context.dart';
+import 'package:conductor_ui/widgets/progression.dart';
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
@@ -36,6 +39,8 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     String releaseChannel = 'dev',
     File? stateFile,
     Future<void> Function()? runOverride,
+    void Function()? syncStatusWithState,
+    DialogPromptChanger? dialogPromptChanger,
   }) {
     final FileSystem fileSystem = MemoryFileSystem.test();
     stateFile ??= fileSystem.file(kStateFileName);
@@ -53,6 +58,8 @@ class FakeStartContext extends ReleaseDashboardStartContext {
       processManager: processManager,
       stdio: stdio,
     );
+    dialogPromptChanger ??= (String? data, Completer<bool>? callback) {};
+    syncStatusWithState ??= () {};
     return FakeStartContext._(
       candidateBranch: candidateBranch,
       checkouts: checkouts,
@@ -69,6 +76,8 @@ class FakeStartContext extends ReleaseDashboardStartContext {
       releaseChannel: releaseChannel,
       stateFile: stateFile,
       runOverride: runOverride,
+      syncStatusWithState: syncStatusWithState,
+      dialogPromptChanger: dialogPromptChanger,
     );
   }
 
@@ -88,6 +97,8 @@ class FakeStartContext extends ReleaseDashboardStartContext {
     required String releaseChannel,
     required File stateFile,
     this.runOverride,
+    required void Function() syncStatusWithState,
+    required DialogPromptChanger dialogPromptChanger,
   }) : super(
           candidateBranch: candidateBranch,
           checkouts: checkouts,
@@ -103,6 +114,8 @@ class FakeStartContext extends ReleaseDashboardStartContext {
           processManager: processManager,
           releaseChannel: releaseChannel,
           stateFile: stateFile,
+          syncStatusWithState: syncStatusWithState,
+          dialogPromptChanger: dialogPromptChanger,
         );
 
   /// An optional override async callback for the real [run] method.

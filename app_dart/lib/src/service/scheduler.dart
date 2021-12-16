@@ -117,7 +117,7 @@ class Scheduler {
   }
 
   Future<void> _addCommit(Commit commit) async {
-    if (!Config.schedulerSupportedRepos.contains(commit.slug)) {
+    if (!Config.supportedRepos.contains(commit.slug)) {
       log.fine('Skipping ${commit.id} as repo is not supported');
       return;
     }
@@ -191,6 +191,7 @@ class Scheduler {
       ttl: const Duration(hours: 1),
     ))!;
     final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
+    log.fine('Retrieved .ci.yaml for $ciPath');
     return CiYaml(
       config: schedulerConfig,
       slug: commit.slug,
@@ -201,7 +202,7 @@ class Scheduler {
   /// Get all [LuciBuilder] run for [ciYaml].
   Future<List<LuciBuilder>> getPostSubmitBuilders(CiYaml ciYaml) async {
     final Iterable<Target> postsubmitLuciTargets =
-        ciYaml.postsubmitTargets.where((Target target) => _isCocoonSchedulable(target, presubmit: false));
+        ciYaml.postsubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
     final List<LuciBuilder> builders =
         postsubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
     return builders;
@@ -408,17 +409,5 @@ class Scheduler {
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
-  }
-
-  /// Whether [target] should be scheduled by Cocooon's [Scheduler].
-  ///
-  /// If presubmit, Cocoon schedules all LUCI based targets (cocoon and luci).
-  /// If postsubmit, Cocoon only schedules targets set to run on cocoon.
-  bool _isCocoonSchedulable(Target target, {bool presubmit = true}) {
-    if (presubmit) {
-      return target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon;
-    }
-
-    return target.value.scheduler == pb.SchedulerSystem.luci;
   }
 }
