@@ -23,16 +23,11 @@ class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
     Key key,
     this.queryParameters,
-    this.repo,
-    this.branch,
   }) : super(key: key);
 
   static const String routeName = '/build';
 
   final Map<String, String> queryParameters;
-
-  final String repo;
-  final String branch;
 
   @override
   State createState() => BuildDashboardPageState();
@@ -42,21 +37,51 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter _filter;
   TaskGridFilter _settingsBasis;
 
+  /// Current Flutter repository to view.
+  String repo;
+
+  /// Git branch in [repo] to view.
+  ///
+  /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
+  /// master on one repo, to main for a different repo.
+  String branch;
+
   @override
   void initState() {
     super.initState();
+    if (widget.queryParameters != null) {
+      repo = widget.queryParameters['repo'] ?? 'flutter';
+      branch = widget.queryParameters['branch'] ?? 'master';
+    }
+    repo ??= 'flutter';
+    branch ??= 'master';
+    if (branch == 'master' || branch == 'main') {
+      branch = defaultBranches[repo];
+    }
     _filter = TaskGridFilter.fromMap(widget.queryParameters);
     _filter.addListener(() {
       setState(() {});
     });
   }
 
-  void _navigateWithSettings(BuildContext context, TaskGridFilter filter) {
-    if (filter.isDefault) {
-      Navigator.pushNamed(context, BuildDashboardPage.routeName);
-    } else {
-      Navigator.pushNamed(context, '${BuildDashboardPage.routeName}?${filter.queryParameters}');
+  /// Convert the fields from this class into a URL.
+  ///
+  /// This enables bookmarking state specific values, like [repo].
+  void _updateNavigation(BuildContext context) {
+    final Map<String, String> queryParameters = <String, String>{};
+    if (widget.queryParameters != null) {
+      queryParameters.addAll(widget.queryParameters);
     }
+    if (_filter != null) {
+      queryParameters.addAll(_filter.toMap(includeDefaults: false));
+    }
+    queryParameters['repo'] = repo;
+    queryParameters['branch'] = branch;
+    final Uri uri = Uri(
+      path: BuildDashboardPage.routeName,
+      queryParameters: queryParameters,
+    );
+    Navigator.pushNamed(context, uri.toString());
   }
 
   void _removeSettingsDialog() {
@@ -95,14 +120,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   underline: Container(
                     height: 2,
                   ),
-                  onChanged: (String repo) {
-                    final BuildDashboardArguments args =
-                        BuildDashboardArguments(repo: repo, branch: _buildState.currentBranch);
-                    Navigator.pushNamed(
-                      context,
-                      args.toRoute(),
-                      arguments: args,
-                    );
+                  onChanged: (String selectedRepo) {
+                    repo = selectedRepo;
+                    _updateNavigation(context);
                   },
                   items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
@@ -121,8 +141,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   underline: Container(
                     height: 2,
                   ),
-                  onChanged: (String branch) {
-                    _buildState.updateCurrentRepoBranch(_buildState.currentRepo, branch);
+                  onChanged: (String selectedBranch) {
+                    branch = selectedBranch;
+                    _updateNavigation(context);
                   },
                   items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
@@ -146,7 +167,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     ),
                     TextButton(
                       child: const Text('Apply'),
-                      onPressed: _filter == _settingsBasis ? null : () => _navigateWithSettings(context, _filter),
+                      onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
                     ),
                     TextButton(
                       child: const Text('Cancel'),
@@ -255,14 +276,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
-    BuildDashboardArguments args;
-    if (ModalRoute.of(context).settings.arguments != null) {
-      args = ModalRoute.of(context).settings.arguments as BuildDashboardArguments;
-    } else {
-      args = BuildDashboardArguments();
-    }
     final BuildState _buildState = Provider.of<BuildState>(context);
-    _buildState.updateCurrentRepoBranch(args.repo, args.branch);
+    _buildState.updateCurrentRepoBranch(repo, branch);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(
@@ -299,42 +314,5 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         drawer: const NavigationDrawer(),
       ),
     );
-  }
-}
-
-/// Arguments passed from [Navigator] that initialize the state.
-class BuildDashboardArguments {
-  BuildDashboardArguments({this.repo = 'flutter', String branch = 'master'}) {
-    if (branch == 'master' || branch == 'main') {
-      this.branch = defaultBranches[repo];
-    }
-  }
-
-  factory BuildDashboardArguments.fromQueryParameters(Map<String, String> queryParameters) {
-    return BuildDashboardArguments(
-      repo: queryParameters['repo'],
-      branch: queryParameters['branch'],
-    );
-  }
-
-  /// Current Flutter repository to view.
-  final String repo;
-
-  /// Git branch in [repo] to view.
-  /// 
-  /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
-  /// master on one repo, to main for a different repo.
-  String branch;
-
-  /// Convert the fields from this class into a URL.
-  /// 
-  /// This enables bookmarking state specific values, like [repo].
-  String toRoute() {
-    final Uri uri = Uri(path: BuildDashboardPage.routeName, queryParameters: <String, String>{
-      'repo': repo,
-      'branch': branch,
-    });
-
-    return uri.toString();
   }
 }
