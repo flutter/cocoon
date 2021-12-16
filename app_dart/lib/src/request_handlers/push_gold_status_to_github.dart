@@ -21,8 +21,6 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
-const String kRepoParam = 'repo';
-
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   PushGoldStatusToGithub(
@@ -76,9 +74,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      final String? baseRef = pr.base!.ref;
-      if (baseRef != Config.defaultBranch(slug)) {
-        log.fine('This change is not staged to land on main or master, skipping.');
+      final String defaultBranch = Config.defaultBranch(slug);
+      if (pr.base!.ref != defaultBranch) {
+        log.fine('This change is not staged to land on $defaultBranch, skipping.');
         // This is potentially a release branch, or another change not landing
         // on master, we don't need a Gold check.
         continue;
