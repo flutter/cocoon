@@ -161,7 +161,8 @@ void main() {
         clientContext.isDevelopmentEnvironment = false;
       });
 
-      GithubGoldStatusUpdate newStatusUpdate(RepositorySlug slug, PullRequest pr, String statusUpdate, String sha, String description) {
+      GithubGoldStatusUpdate newStatusUpdate(
+          RepositorySlug slug, PullRequest pr, String statusUpdate, String sha, String description) {
         return GithubGoldStatusUpdate(
           key: db.emptyKey.append(GithubGoldStatusUpdate, id: pr.number),
           status: statusUpdate,
