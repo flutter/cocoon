@@ -266,6 +266,43 @@ void main() {
     });
   });
 
+  group('AndroidScreenRotationCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    List<List<int>> output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when rotation is disabled', () async {
+      output = <List<int>>[utf8.encode('0')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kScreenRotationCheckKey);
+    });
+
+    test('returns failure when screen rotation is enabled', () async {
+      output = <List<int>>[utf8.encode('1')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kScreenRotationCheckKey);
+      expect(healthCheckResult.details, 'Screen rotation is enabled');
+    });
+  });
+
   group('AndroidDeviceKillProcesses', () {
     AndroidDevice device;
     MockProcessManager processManager;

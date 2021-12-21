@@ -108,6 +108,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(await developerModeCheck(processManager: processManager));
       checks.add(await screenOnCheck(processManager: processManager));
       checks.add(await screenSaverCheck(processManager: processManager));
+      checks.add(await screenRotationCheck(processManager: processManager));
       checks.add(await batteryLevelCheck(processManager: processManager));
       checks.add(await batteryTemperatureCheck(processManager: processManager));
       if (Platform.isMacOS) {
@@ -251,6 +252,26 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kDeveloperModeCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  /// The health check to validate screen rotation is off.
+  ///
+  /// Screen rotation is expected disabled for a healthy Android device.
+  Future<HealthCheckResult> screenRotationCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String result = await eval('adb', <String>['shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+          processManager: processManager);
+      // The output of `screensaver_enabled` is `0` when screensaver mode is off.
+      if (result == '0') {
+        healthCheckResult = HealthCheckResult.success(kScreenRotationCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kScreenRotationCheckKey, 'Screen rotation is enabled');
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kScreenRotationCheckKey, error.toString());
     }
     return healthCheckResult;
   }
