@@ -235,9 +235,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit['oid'] as String;
-      // The commit message will be used to identify is a revert happens, and further to check if a
-      // TOT commit is being reverted. If yes, merge the PR without waiting for all tests passing.
-      final String message = commit['message'] as String;
       List<Map<String, dynamic>>? statuses;
       if (commit['status'] != null &&
           commit['status']['contexts'] != null &&
@@ -272,7 +269,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           number: number,
           title: title,
           sha: sha,
-          message: message,
           labelId: labelId!,
           emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
@@ -439,7 +435,6 @@ class _AutoMergeQueryResult {
     required this.number,
     required this.title,
     required this.sha,
-    required this.message,
     required this.labelId,
     required this.emptyChecks,
     required this.isConflicting,
@@ -470,9 +465,6 @@ class _AutoMergeQueryResult {
 
   /// The git SHA to be merged.
   final String sha;
-
-  /// The git commit message.
-  final String message;
 
   /// The GitHub GraphQL ID of the waiting label.
   final String labelId;

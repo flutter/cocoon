@@ -31,7 +31,6 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                   oid
                   committedDate
                   pushedDate
-                  message
                   status {
                     contexts {
                       context
