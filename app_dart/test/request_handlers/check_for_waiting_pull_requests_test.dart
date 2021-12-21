@@ -121,6 +121,7 @@ void main() {
     List<dynamic> statuses = <dynamic>[];
     String? branch;
     String? totSha;
+    GitHubComparison? githubComparison;
 
     setUp(() {
       request = FakeHttpRequest();
@@ -142,13 +143,21 @@ void main() {
       PullRequestHelper._counter = 0;
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
-      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD'))
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD~'))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
       });
-      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD'))
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD~'))
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), 'deadbeef', 'abc'))
+          .thenAnswer((Invocation invocation) {
+        return Future<GitHubComparison>.value(githubComparison);
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), 'deadbeef', 'abc'))
+          .thenAnswer((Invocation invocation) {
+        return Future<GitHubComparison>.value(githubComparison);
       });
 
       cirrusGraphQLClient.mutateResultForOptions =
@@ -380,6 +389,7 @@ void main() {
 
     test('Merge a clean revert PR with in progress tests', () async {
       totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
@@ -428,6 +438,8 @@ void main() {
     });
 
     test('Does not merge PR with failed checks', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -458,6 +470,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not fail with null checks', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[],
@@ -486,6 +500,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Empty validations do not merge', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[],
@@ -554,6 +570,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge if non member does not have at least 2 member reviews', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         authorAssociation: '',
@@ -583,6 +601,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Self review is disallowed', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         author: 'some_rando',
@@ -663,6 +683,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge PR with failed tests', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
@@ -694,6 +716,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge unapproved PR from a hacker', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(author: 'skia-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
@@ -759,6 +783,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merges 1st and 3rd PR, 2nd failed', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
 
@@ -822,6 +848,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Unlabels red PRs', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
@@ -877,6 +905,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Ignores non-member/owner reviews', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           nonMemberApprove,
@@ -938,6 +968,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Remove labels', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prOneBadReview = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           changePleaseChange,

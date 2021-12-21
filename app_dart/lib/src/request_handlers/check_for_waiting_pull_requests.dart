@@ -22,9 +22,6 @@ import 'refresh_cirrus_status.dart';
 /// goes green.
 const int _kMergeCountPerCycle = 2;
 
-/// The regular expression string of the default revert commit message.
-const String _regExpCommitMessage = 'This reverts commit (?<revertCommitSha>.+).';
-
 /// Injected latency per repository. Engine and Flutter use an injected latency of 1h meaning
 /// that the bot skips any commits younger than 1h. However 1h is too long for some repositories
 /// whose builds are faster. Use this constant to override the default 1h latency for a given repository.
@@ -70,14 +67,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
     for (_AutoMergeQueryResult queryResult in queryResults) {
-      final RegExp commitRegExp = RegExp(_regExpCommitMessage);
-      final RegExpMatch? match = commitRegExp.firstMatch(queryResult.message);
-      String? revertCommitSha;
-      if (match != null) {
-        revertCommitSha = match.namedGroup('revertCommitSha');
-      }
       // If the PR is a revert of the tot commit, merge without waiting for checks passing.
-      if (await isShaFromTOT(revertCommitSha, slug) || mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
+      if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge || await isTOTRevert(queryResult.sha, slug)) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
@@ -100,14 +91,21 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
   }
 
-  /// Check if the `commitSha` is from TOT.
-  Future<bool> isShaFromTOT(
-    String? commitSha,
+  /// Check if the `commitSha` is a clean revert of TOT commit.
+  ///
+  /// By comparing the current commit with second TOT commit, an empty `files` in
+  /// `GitHubComparison` validates a clean revert of TOT commit.
+  Future<bool> isTOTRevert(
+    String commitSha,
     RepositorySlug slug,
   ) async {
     final GitHub github = await config.createGitHubClient(slug: slug);
-    final RepositoryCommit totCommit = await github.repositories.getCommit(slug, 'HEAD');
-    return commitSha != null && totCommit.sha == commitSha;
+    final RepositoryCommit secondTotCommit = await github.repositories.getCommit(slug, 'HEAD~');
+    log.info('Current commit is: $commitSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
+    final GitHubComparison gitHubComparison =
+        await github.repositories.compareCommits(slug, commitSha, secondTotCommit.sha!);
+    return gitHubComparison.files!.isEmpty;
   }
 
   Future<Map<String, dynamic>> _queryGraphQL(
