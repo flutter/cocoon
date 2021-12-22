@@ -106,7 +106,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> data = (await _queryGraphQL(
         gitHubGraphQLClient,
         slug,
-        pr.number,
+        pr.number!,
       ))!;
       final Map<String, dynamic> prData = data['repository']['pullRequest'] as Map<String, dynamic>;
       final Map<String, dynamic> commit = prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
@@ -151,7 +151,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // until marked ready for review.
           log.fine('Waiting for checks to be completed.');
           statusRequest =
-              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, slug, pr.number);
+              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, slug, pr.number!);
         } else {
           // We do not want to query Gold on a draft PR.
           assert(!pr.draft!);
@@ -163,7 +163,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                   ? config.flutterGoldChanges
                   : config.flutterGoldSuccess,
               slug,
-              pr.number);
+              pr.number!);
           log.fine('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
@@ -196,7 +196,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 
   /// Returns a GitHub Status for the given state and description.
-  CreateStatus _createStatus(String state, String description, RepositorySlug slug, int? prNumber) {
+  CreateStatus _createStatus(String state, String description, RepositorySlug slug, int prNumber) {
     final CreateStatus statusUpdate = CreateStatus(state)
       ..targetUrl = _getTriageUrl(slug, prNumber)
       ..context = 'flutter-gold'
@@ -256,7 +256,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
   }
 
-  String _getTriageUrl(RepositorySlug slug, int? number) {
+  String _getTriageUrl(RepositorySlug slug, int number) {
     if (slug == Config.flutterSlug) {
       return 'https://flutter-gold.skia.org/cl/github/$number';
     }
@@ -277,9 +277,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     String body;
     if (await _isFirstComment(gitHubClient, pr, slug)) {
-      body = config.flutterGoldInitialAlert(_getTriageUrl(slug, pr.number));
+      body = config.flutterGoldInitialAlert(_getTriageUrl(slug, pr.number!));
     } else {
-      body = config.flutterGoldFollowUpAlert(_getTriageUrl(slug, pr.number));
+      body = config.flutterGoldFollowUpAlert(_getTriageUrl(slug, pr.number!));
     }
     body += config.flutterGoldAlertConstant(slug) + config.flutterGoldCommentID(pr);
     await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -310,7 +310,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number!);
     await for (IssueComment comment in comments) {
-      if (comment.body!.contains(config.flutterGoldInitialAlert(_getTriageUrl(slug, pr.number)))) {
+      if (comment.body!.contains(config.flutterGoldInitialAlert(_getTriageUrl(slug, pr.number!)))) {
         return false;
       }
     }
@@ -321,7 +321,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 Future<Map<String, dynamic>?> _queryGraphQL(
   GraphQLClient client,
   RepositorySlug slug,
-  int? prNumber,
+  int prNumber,
 ) async {
   final QueryResult result = await client.query(
     QueryOptions(
