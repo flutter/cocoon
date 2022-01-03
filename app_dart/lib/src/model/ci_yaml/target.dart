@@ -59,13 +59,11 @@ class Target {
     }
     // Lookup map to make merging [targetDependencies] and [platformDependencies] simpler.
     final Map<String, Dependency> mergedDependencies = <String, Dependency>{};
-    for (Dependency dep in targetDependencies) {
+    for (Dependency dep in platformDependencies) {
       mergedDependencies[dep.name] = dep;
     }
-    for (Dependency dep in platformDependencies) {
-      if (!mergedDependencies.containsKey(dep.name)) {
-        mergedDependencies[dep.name] = dep;
-      }
+    for (Dependency dep in targetDependencies) {
+      mergedDependencies[dep.name] = dep;
     }
     mergedProperties['dependencies'] = mergedDependencies.values.map((Dependency dep) => dep.toJson()).toList();
 
