@@ -63,6 +63,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final Commit tipOfTreeCommit = Commit(
       sha: Config.defaultBranch(slug),
       repository: slug.fullName,
+      branch: Config.defaultBranch(slug),
     );
     final CiYaml ciYaml = await scheduler!.getCiYaml(tipOfTreeCommit);
     List<LuciBuilder> postsubmitBuilders = await scheduler!.getPostSubmitBuilders(ciYaml);
