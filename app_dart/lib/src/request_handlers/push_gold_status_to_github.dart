@@ -60,6 +60,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.fine('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
+      assert(pr.number != null);
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
