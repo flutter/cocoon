@@ -22,11 +22,11 @@ const int _kBatteryMinLevel = 15;
 const int _kBatteryMaxTemperatureInCelsius = 34;
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
-  factory AndroidDeviceDiscovery(String output) {
+  factory AndroidDeviceDiscovery(File output) {
     return _instance ??= AndroidDeviceDiscovery._(output);
   }
 
-  final String _outputFilePath;
+  final File _outputFilePath;
   AndroidDeviceDiscovery._(this._outputFilePath);
 
   @visibleForTesting

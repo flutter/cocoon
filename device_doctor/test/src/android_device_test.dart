@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file/src/backends/memory/memory_file_system.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +25,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -59,7 +60,7 @@ void main() {
     String output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -106,7 +107,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -141,7 +142,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -215,7 +216,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -273,7 +274,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -370,7 +371,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -403,7 +404,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -448,7 +449,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 

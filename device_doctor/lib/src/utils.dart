@@ -115,8 +115,7 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
 }
 
 /// Write [results] to [filePath].
-void writeToFile(String results, String filePath) {
-  final File file = File(filePath);
+void writeToFile(String results, File file) {
   if (file.existsSync()) {
     try {
       file.deleteSync();

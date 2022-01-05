@@ -23,11 +23,11 @@ final Set<String> noRebootList = <String>{
 ///
 /// Discovers available ios devices and chooses one to work with.
 class IosDeviceDiscovery implements DeviceDiscovery {
-  factory IosDeviceDiscovery(String output) {
+  factory IosDeviceDiscovery(File output) {
     return _instance ??= IosDeviceDiscovery._(output);
   }
 
-  final String _outputFilePath;
+  final File _outputFilePath;
 
   IosDeviceDiscovery._(this._outputFilePath);
 
