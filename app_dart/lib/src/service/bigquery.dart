@@ -45,6 +45,10 @@ where date>=date_sub(current_date(), interval 30 day) and
       pool = 'luci.flutter.prod' and
       builder_name not like '%Beta%' and
       builder_name not like '% beta %' and
+      builder_name not like '%Stable%' and
+      builder_name not like '% stable %' and
+      builder_name not like '%Dev%' and
+      builder_name not like '% dev %' and
       rank<=@LIMIT
 group by builder_name;
 ''';
