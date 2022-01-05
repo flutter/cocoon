@@ -197,7 +197,6 @@ class LuciBuildService {
         ),
         fields: 'id,builder,number,status,tags',
         exe: <String, dynamic>{
-          'cipdPackage': 'flutter/recipe_bundles/flutter.googlesource.com/recipes',
           'cipdVersion': pullRequest.base!.ref!,
         },
       ),
