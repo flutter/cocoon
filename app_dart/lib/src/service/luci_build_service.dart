@@ -180,6 +180,7 @@ class LuciBuildService {
       'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
       'git_ref': 'refs/pull/${pullRequest.number}/head',
     });
+
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
@@ -195,6 +196,10 @@ class LuciBuildService {
           userData: base64Encode(json.encode(userData).codeUnits),
         ),
         fields: 'id,builder,number,status,tags',
+        exe: <String, dynamic>{
+          'cipdPackage': 'flutter/recipe_bundles/flutter.googlesource.com/recipes',
+          'cipdVersion': pullRequest.base!.ref!,
+        },
       ),
     );
   }
