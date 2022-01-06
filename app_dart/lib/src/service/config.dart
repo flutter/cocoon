@@ -59,7 +59,7 @@ class Config {
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
-      pluginsSlug: 'master',
+      pluginsSlug: 'main',
       packagesSlug: 'main',
     };
 
