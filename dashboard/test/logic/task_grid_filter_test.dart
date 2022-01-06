@@ -5,7 +5,6 @@
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -17,11 +16,11 @@ void main() {
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
-    expect(filter.showAndroid, true);
-    expect(filter.showIos, true);
-    expect(filter.showWindows, true);
-    expect(filter.showCirrus, true);
-    expect(filter.showLuci, true);
+    expect(filter.isDefault, true);
+    expect(filter.commitFilterMode, CommitFilterMode.highlight);
+    // These booleans need commit query parameters to be non-default before they return true
+    expect(filter.isHighlightingCommits, false);
+    expect(filter.isFilteringCommits, false);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
@@ -29,11 +28,10 @@ void main() {
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.cirrus)), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
 
-    expect(filter.matchesCommit(CommitStatus()), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = Commit()), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'joe')), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = '0x45c3fd')), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'LGTM!')), true);
+    expect(filter.matchesCommit(Commit()), true);
+    expect(filter.matchesCommit(Commit()..author = 'joe'), true);
+    expect(filter.matchesCommit(Commit()..sha = '0x45c3fd'), true);
+    expect(filter.matchesCommit(Commit()..message = 'LGTM!'), true);
   }
 
   test('default task grid filter', () {
@@ -60,11 +58,6 @@ void main() {
     expect(TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
         TaskGridFilter()..messageFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'showAndroid': 'false'}), TaskGridFilter()..showAndroid = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showIos': 'false'}), TaskGridFilter()..showIos = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showWindows': 'false'}), TaskGridFilter()..showWindows = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showCirrus': 'false'}), TaskGridFilter()..showCirrus = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showLuci': 'false'}), TaskGridFilter()..showLuci = false);
   });
 
   test('cross check on inequality', () {
@@ -74,11 +67,6 @@ void main() {
       TaskGridFilter()..authorFilter = RegExp('foo'),
       TaskGridFilter()..messageFilter = RegExp('foo'),
       TaskGridFilter()..hashFilter = RegExp('foo'),
-      TaskGridFilter()..showAndroid = false,
-      TaskGridFilter()..showIos = false,
-      TaskGridFilter()..showWindows = false,
-      TaskGridFilter()..showCirrus = false,
-      TaskGridFilter()..showLuci = false,
     ];
     for (final TaskGridFilter filter in nonDefaultFilters) {
       expect(filter, isNot(equals(defaultFilter)));
@@ -122,42 +110,6 @@ void main() {
     }
   });
 
-  void testStage({String stageName, String fieldName, TaskGridFilter trueFilter, TaskGridFilter falseFilter}) {
-    final TaskGridFilter trueFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'true'});
-    final TaskGridFilter falseFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'false'});
-
-    expect(trueFilter, trueFilterMap);
-    expect(trueFilter, isNot(equals(falseFilterMap)));
-    expect(trueFilter, isNot(equals(falseFilter)));
-    expect(falseFilter, falseFilterMap);
-    expect(falseFilter, isNot(equals(trueFilterMap)));
-    expect(falseFilter, isNot(equals(trueFilter)));
-
-    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
-    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
-
-    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
-    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
-  }
-
-  test('matches Cirrus stage', () {
-    testStage(
-      stageName: StageName.cirrus,
-      fieldName: 'showCirrus',
-      trueFilter: TaskGridFilter()..showCirrus = true,
-      falseFilter: TaskGridFilter()..showCirrus = false,
-    );
-  });
-
-  test('matches Luci stage', () {
-    testStage(
-      stageName: StageName.luci,
-      fieldName: 'showLuci',
-      trueFilter: TaskGridFilter()..showLuci = true,
-      falseFilter: TaskGridFilter()..showLuci = false,
-    );
-  });
-
   test('matches author name simple substring', () {
     final List<TaskGridFilter> filters = <TaskGridFilter>[
       TaskGridFilter.fromMap(<String, String>{'authorFilter': 'foo'}),
@@ -165,9 +117,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'fo')), false);
+      expect(filter.matchesCommit(Commit()..author = 'foo'), true);
+      expect(filter.matchesCommit(Commit()..author = 'blah foo blah'), true);
+      expect(filter.matchesCommit(Commit()..author = 'fo'), false);
     }
   });
 
@@ -178,10 +130,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'foo')), false);
+      expect(filter.matchesCommit(Commit()..author = 'z bc'), true);
+      expect(filter.matchesCommit(Commit()..author = 'z bc z'), false);
+      expect(filter.matchesCommit(Commit()..author = 'z b c'), false);
+      expect(filter.matchesCommit(Commit()..author = 'foo'), false);
     }
   });
 
@@ -192,9 +144,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'fo')), false);
+      expect(filter.matchesCommit(Commit()..message = 'foo'), true);
+      expect(filter.matchesCommit(Commit()..message = 'blah foo blah'), true);
+      expect(filter.matchesCommit(Commit()..message = 'fo'), false);
     }
   });
 
@@ -205,10 +157,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'foo')), false);
+      expect(filter.matchesCommit(Commit()..message = 'z bc'), true);
+      expect(filter.matchesCommit(Commit()..message = 'z bc z'), false);
+      expect(filter.matchesCommit(Commit()..message = 'z b c'), false);
+      expect(filter.matchesCommit(Commit()..message = 'foo'), false);
     }
   });
 
@@ -219,9 +171,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'fo')), false);
+      expect(filter.matchesCommit(Commit()..sha = 'foo'), true);
+      expect(filter.matchesCommit(Commit()..sha = 'blah foo blah'), true);
+      expect(filter.matchesCommit(Commit()..sha = 'fo'), false);
     }
   });
 
@@ -232,10 +184,74 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')), false);
+      expect(filter.matchesCommit(Commit()..sha = 'z bc'), true);
+      expect(filter.matchesCommit(Commit()..sha = 'z bc z'), false);
+      expect(filter.matchesCommit(Commit()..sha = 'z b c'), false);
+      expect(filter.matchesCommit(Commit()..sha = 'foo'), false);
     }
+  });
+
+  test('isHighlightingCommits requires a commit query', () {
+    final TaskGridFilter filter = TaskGridFilter();
+    filter.commitFilterMode = CommitFilterMode.highlight;
+    expect(filter.isHighlightingCommits, false);
+
+    filter.authorFilter = RegExp('foo');
+    expect(filter.isHighlightingCommits, true);
+    filter.authorFilter = null;
+    expect(filter.isHighlightingCommits, false);
+
+    filter.messageFilter = RegExp('foo');
+    expect(filter.isHighlightingCommits, true);
+    filter.messageFilter = null;
+    expect(filter.isHighlightingCommits, false);
+
+    filter.hashFilter = RegExp('foo');
+    expect(filter.isHighlightingCommits, true);
+    filter.hashFilter = null;
+    expect(filter.isHighlightingCommits, false);
+
+    filter.authorFilter = RegExp('foo');
+    filter.messageFilter = RegExp('foo');
+    filter.hashFilter = RegExp('foo');
+    expect(filter.isHighlightingCommits, true);
+    filter.authorFilter = null;
+    expect(filter.isHighlightingCommits, true);
+    filter.messageFilter = null;
+    expect(filter.isHighlightingCommits, true);
+    filter.hashFilter = null;
+    expect(filter.isHighlightingCommits, false);
+  });
+
+  test('isFilteringCommits requires a commit query', () {
+    final TaskGridFilter filter = TaskGridFilter();
+    filter.commitFilterMode = CommitFilterMode.filter;
+    expect(filter.isFilteringCommits, false);
+
+    filter.authorFilter = RegExp('foo');
+    expect(filter.isFilteringCommits, true);
+    filter.authorFilter = null;
+    expect(filter.isFilteringCommits, false);
+
+    filter.messageFilter = RegExp('foo');
+    expect(filter.isFilteringCommits, true);
+    filter.messageFilter = null;
+    expect(filter.isFilteringCommits, false);
+
+    filter.hashFilter = RegExp('foo');
+    expect(filter.isFilteringCommits, true);
+    filter.hashFilter = null;
+    expect(filter.isFilteringCommits, false);
+
+    filter.authorFilter = RegExp('foo');
+    filter.messageFilter = RegExp('foo');
+    filter.hashFilter = RegExp('foo');
+    expect(filter.isFilteringCommits, true);
+    filter.authorFilter = null;
+    expect(filter.isFilteringCommits, true);
+    filter.messageFilter = null;
+    expect(filter.isFilteringCommits, true);
+    filter.hashFilter = null;
+    expect(filter.isFilteringCommits, false);
   });
 }

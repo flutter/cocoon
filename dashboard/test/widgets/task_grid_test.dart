@@ -228,7 +228,7 @@ void main() {
     buildState.dispose();
   });
 
-  Future<void> testGrid(WidgetTester tester, TaskGridFilter filter, int rows, int cols) async {
+  Future<void> testGridFilter(WidgetTester tester, TaskGridFilter filter, int rows, int cols) async {
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: MockGoogleSignInService(),
@@ -261,21 +261,28 @@ void main() {
     buildState.dispose();
   }
 
+  TaskGridFilter overrideMode(TaskGridFilter filter, CommitFilterMode mode) {
+    return TaskGridFilter.fromMap(filter.toMap())..commitFilterMode = mode;
+  }
+
+  Future<void> testGridCommitFilter(WidgetTester tester, TaskGridFilter filter, int rows, int cols) async {
+    await testGridFilter(tester, overrideMode(filter, CommitFilterMode.filter), rows, cols);
+    await testGridFilter(tester, overrideMode(filter, CommitFilterMode.highlight), 27, 111);
+  }
+
   testWidgets('Task name filter affects grid', (WidgetTester tester) async {
     // Default filters
-    await testGrid(tester, null, 27, 111);
-    await testGrid(tester, TaskGridFilter(), 27, 111);
-    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 111);
+    await testGridFilter(tester, null, 27, 111);
+    await testGridFilter(tester, TaskGridFilter(), 27, 111);
+    await testGridFilter(tester, TaskGridFilter.fromMap(null), 27, 111);
 
     // QualifiedTask (column) filters
-    await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 30);
-    await testGrid(tester, TaskGridFilter()..showCirrus = false, 27, 109);
-    await testGrid(tester, TaskGridFilter()..showLuci = false, 27, 111);
+    await testGridFilter(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 30);
 
     // CommitStatus (row) filters
-    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 111);
-    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 111);
-    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 111);
+    await testGridCommitFilter(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 111);
+    await testGridCommitFilter(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 111);
+    await testGridCommitFilter(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 111);
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
