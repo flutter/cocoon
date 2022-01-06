@@ -14,32 +14,9 @@ enum CommitFilterMode {
   /// Show only those commits that match the relevant properties in the filter.
   filter,
 
-  /// Highlight the commits that match the relevant properties (and scroll to the
-  /// first matching commit).
+  /// Highlight the commits that match the relevant properties.
   highlight
 }
-
-// class CommitFilterModeProperty extends ValueFilterProperty<CommitFilterMode> {
-//   CommitFilterModeProperty({CommitFilterMode value = defaultValue})
-//       : _value = value,
-//         super(fieldName: 'commitFilterMode', label: 'Matching Commits:');
-//
-//   static const CommitFilterMode defaultValue = CommitFilterMode.filter;
-//
-//   CommitFilterMode _value;
-//
-//   @override
-//   String stringValue;
-//
-//   @override
-//   bool get isDefault => _value == defaultValue;
-//
-//   @override
-//   void reset() => _value = defaultValue;
-//
-//   @override
-//   CommitFilterMode get value => _value;
-// }
 
 /// A filter object for controlling which entries are visible in the Build dashboard grid
 /// of tasks. This filter object can filter on a number of properties of the tasks including
