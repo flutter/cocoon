@@ -184,6 +184,51 @@ class BoolFilterPropertyGroup extends FilterPropertyNode {
   final List<BoolFilterProperty> members;
 }
 
+/// A class used to represent an enumerated list of values (usually from an enum).
+/// The toString() method of the values is assumed to be of the form 'SomeEnumName.valueName'.
+class EnumFilterProperty<T> extends ValueFilterProperty<T> {
+  EnumFilterProperty({String fieldName, String label, List<T> allValues})
+      : _allValues = List<T>.unmodifiable(allValues),
+        _value = allValues.first,
+        super(fieldName: fieldName, label: label);
+
+  final List<T> _allValues;
+  T _value;
+
+  String nameOf(T value) {
+    return value.toString().split('.')[1];
+  }
+
+  @override
+  String get stringValue => nameOf(_value);
+  @override
+  set stringValue(String newValue) {
+    for (final T value in _allValues) {
+      if (newValue == nameOf(value)) {
+        this.value = value;
+        return;
+      }
+    }
+    throw ArgumentError('Unable to find $newValue in list of values: $_allValues');
+  }
+
+  @override
+  bool get isDefault => _value == _allValues.first;
+
+  @override
+  void reset() => _value = _allValues.first;
+
+  @override T get value => _value;
+  set value(T newValue) {
+    if (_value != newValue) {
+      _value = newValue;
+      notifyListeners();
+    }
+  }
+
+  List<T> get allValues => _allValues;
+}
+
 /// A [Widget] used to display the values of the properties of a filter object and to allow
 /// a user to edit those properties. The changes are recorded in new filter objects using the
 /// [FilterPropertySource.copyWithMap] method and communicated back to the app live via
@@ -287,12 +332,37 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     );
   }
 
+  TableRow _makeEnumRow(EnumFilterProperty<dynamic> property) {
+    return _makeRow(
+      property.label,
+      Wrap(
+        spacing: 10,
+        children: property.allValues.map<Widget>((dynamic value) {
+          final String name = property.nameOf(value);
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(name, style: _labelStyle),
+              Checkbox(
+                value: property.stringValue == name,
+                onChanged: (bool newValue) => property.stringValue = name,
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   TableRow _makeTableRow(FilterPropertyNode property) {
     if (property is RegExpFilterProperty) {
       return _makeTextFilterRow(property);
     }
     if (property is BoolFilterProperty) {
       return _makeBoolRow(property);
+    }
+    if (property is EnumFilterProperty) {
+      return _makeEnumRow(property);
     }
     if (property is BoolFilterPropertyGroup) {
       return _makeRow(

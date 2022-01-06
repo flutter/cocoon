@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 typedef ShowSnackBarCallback = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar snackBar);
 
+// ignore: avoid_classes_with_only_static_members
 class TaskBox {
   /// How big to make each square in the grid.
   static const double cellSize = 36;
@@ -30,4 +31,9 @@ class TaskBox {
     statusInfraFailure: Colors.purple,
     statusInProgress: Colors.yellow,
   };
+
+  /// The color to highlight a row that matches a commit search query.
+  ///
+  /// This color was chosen to contrast well with the status colors.
+  static final Color highlightColor = Colors.cyan.shade200;
 }

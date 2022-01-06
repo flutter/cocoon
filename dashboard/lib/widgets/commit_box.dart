@@ -22,11 +22,15 @@ class CommitBox extends StatefulWidget {
   const CommitBox({
     Key key,
     @required this.commit,
+    this.highlightColor,
   })  : assert(commit != null),
         super(key: key);
 
   /// The commit being shown
   final Commit commit;
+
+  /// Color to highlight this cell
+  final Color highlightColor;
 
   @override
   _CommitBoxState createState() => _CommitBoxState();
@@ -39,9 +43,12 @@ class _CommitBoxState extends State<CommitBox> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: _handleTap,
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: CommitAuthorAvatar(commit: widget.commit),
+      child: Container(
+        color: widget.highlightColor,
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: CommitAuthorAvatar(commit: widget.commit),
+        ),
       ),
     );
   }

@@ -198,10 +198,13 @@ class _TaskGridState extends State<TaskGrid> {
   List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final List<CommitStatus> filteredStatuses =
-        commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
-    final List<_Row> rows =
-        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<CommitStatus> filteredStatuses = filter.isFilteringCommits
+        ? commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus.commit)).toList()
+        : commitStatuses;
+    final bool isHighlighting = filter.isHighlightingCommits;
+    final List<_Row> rows = filteredStatuses.map<_Row>((CommitStatus commitStatus) {
+      return _Row(commitStatus.commit, isHighlighting && filter.matchesCommit(commitStatus.commit));
+    }).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
@@ -240,7 +243,7 @@ class _TaskGridState extends State<TaskGrid> {
           );
         }
         rows[commitCount - 1].cells[qualifiedTask] = LatticeCell(
-          painter: _painterFor(task),
+          painter: _painterFor(task, rows[commitCount - 1].isHighlighted),
           builder: _builderFor(task),
           onTap: _tapHandlerFor(status.commit, task),
         );
@@ -271,7 +274,11 @@ class _TaskGridState extends State<TaskGrid> {
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
           LatticeCell(
-            builder: (BuildContext context) => CommitBox(commit: row.commit),
+            builder: (BuildContext context) =>
+                CommitBox(
+                  commit: row.commit,
+                  highlightColor: row.isHighlighted ? TaskBox.highlightColor : null,
+                ),
           ),
           ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
         ],
@@ -280,18 +287,25 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  Painter _painterFor(Task task) {
+  Painter _painterFor(Task task, bool isHighlighted) {
     final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
+    final Paint highlightPaint = Paint()..color = TaskBox.highlightColor;
     final Paint paint = Paint()
       ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status] : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
       return (Canvas canvas, Rect rect) {
+        if (isHighlighted) {
+          canvas.drawRect(rect, highlightPaint);
+        }
         canvas.drawRect(rect.deflate(6.0), paint);
       };
     }
     return (Canvas canvas, Rect rect) {
+      if (isHighlighted) {
+        canvas.drawRect(rect, highlightPaint);
+      }
       canvas.drawRect(rect.deflate(2.0), paint);
       if (task.attempts > 1 || task.isTestFlaky) {
         canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
@@ -371,7 +385,8 @@ class _TaskGridState extends State<TaskGrid> {
 }
 
 class _Row {
-  _Row(this.commit);
+  _Row(this.commit, this.isHighlighted);
   final Commit commit;
+  final bool isHighlighted;
   final Map<QualifiedTask, LatticeCell> cells = <QualifiedTask, LatticeCell>{};
 }
