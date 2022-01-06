@@ -180,6 +180,7 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
       final Object? value = filter.comparisonObject;
       if (filterString.contains('branch =') ||
           filterString.contains('head =') ||
+          filterString.contains('pr =') ||
           filterString.contains('repository =')) {
         resultsView = resultsView.where((T result) => result.toString().contains(value.toString()));
       }
