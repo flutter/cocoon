@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:device_doctor/src/ios_device.dart';
 
 class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
-  FakeIosDeviceDiscovery(String output) : super.testing(output);
+  FakeIosDeviceDiscovery(File output) : super.testing(output);
 
   List<dynamic> _outputs;
   int _pos = 0;

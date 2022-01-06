@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file/src/backends/memory/memory_file_system.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +25,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -59,7 +60,7 @@ void main() {
     String output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -106,7 +107,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -141,7 +142,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -215,7 +216,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -263,6 +264,43 @@ void main() {
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenOnCheckKey);
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
+    });
+  });
+
+  group('AndroidScreenRotationCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    List<List<int>> output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when rotation is disabled', () async {
+      output = <List<int>>[utf8.encode('0')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kScreenRotationCheckKey);
+    });
+
+    test('returns failure when screen rotation is enabled', () async {
+      output = <List<int>>[utf8.encode('1')];
+      process = FakeProcess(0, out: output);
+      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kScreenRotationCheckKey);
+      expect(healthCheckResult.details, 'Screen rotation is enabled');
     });
   });
 
@@ -333,7 +371,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -366,7 +404,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -411,7 +449,7 @@ void main() {
     List<List<int>> output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 

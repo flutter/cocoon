@@ -20,7 +20,7 @@ const String defaultOutputPath = '.output';
 /// and used in `main` function.
 String _action;
 String _deviceOS;
-String _output;
+File _output;
 
 /// Manage `healthcheck`, `prepare, `recovery`, and `properties` for devices.
 ///
@@ -58,7 +58,7 @@ Future<void> main(List<String> args) async {
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
-  _output = argResults[outputFlag] ?? defaultOutputPath;
+  _output = File(argResults[outputFlag] ?? defaultOutputPath);
 
   final DeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS, _output);
 

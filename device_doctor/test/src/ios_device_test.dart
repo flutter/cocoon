@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file/src/backends/memory/memory_file_system.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -23,7 +24,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = FakeIosDeviceDiscovery('/tmp/output');
+      deviceDiscovery = FakeIosDeviceDiscovery(MemoryFileSystem().file('output'));
       processManager = MockProcessManager();
     });
 
@@ -74,7 +75,7 @@ void main() {
 
     setUp(() {
       processManager = MockProcessManager();
-      deviceDiscovery = DeviceDiscovery('ios', '/tmp');
+      deviceDiscovery = DeviceDiscovery('ios', MemoryFileSystem().file('output'));
     });
 
     test('Keychain unlock check - success', () async {
