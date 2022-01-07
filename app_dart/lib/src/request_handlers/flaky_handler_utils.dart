@@ -49,7 +49,7 @@ const String _buildDashboardPrefix = 'https://flutter-dashboard.appspot.com/#/bu
 const String _prodBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/prod/';
 const String _stagingBuildPrefix = 'https://ci.chromium.org/ui/p/flutter/builders/staging/';
 const String _flakeRecordPrefix =
-    'https://dashboards.corp.google.com/flutter_check_prod_test_flakiness_status_dashboard?p=BUILDER_NAME:';
+    'https://data.corp.google.com/sites/flutter_infra_metrics_datasite/flutter_check_test_flakiness_status_dashboard/?p=BUILDER_NAME:';
 
 /// A builder to build a new issue for a flake.
 class IssueBuilder {
