@@ -53,14 +53,10 @@ class TaskGridFilter extends FilterPropertySource {
   final RegExpFilterProperty _messageProperty =
       RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message');
   final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
-  final EnumFilterProperty<CommitFilterMode> _commitFilterModeProperty =
-  EnumFilterProperty<CommitFilterMode>(
+  final EnumFilterProperty<CommitFilterMode> _commitFilterModeProperty = EnumFilterProperty<CommitFilterMode>(
     fieldName: 'commitFilterMode',
     label: 'Matching Commits',
-    allValues: <CommitFilterMode>[
-      CommitFilterMode.highlight,
-      CommitFilterMode.filter
-    ],
+    allValues: <CommitFilterMode>[CommitFilterMode.highlight, CommitFilterMode.filter],
   );
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
@@ -76,7 +72,9 @@ class TaskGridFilter extends FilterPropertySource {
   List<ValueFilterProperty<dynamic>> _allCommitPropertiesList;
   List<ValueFilterProperty<dynamic>> get _allCommitProperties =>
       _allCommitPropertiesList ??= <ValueFilterProperty<dynamic>>[
-        _authorProperty, _messageProperty, _hashProperty,
+        _authorProperty,
+        _messageProperty,
+        _hashProperty,
       ];
 
   /// The [taskFilter] property is a regular expression that must match the name of the
@@ -107,12 +105,12 @@ class TaskGridFilter extends FilterPropertySource {
   /// Returns true if the filter is hiding or showing commits based on their match.
   bool get isFilteringCommits =>
       _commitFilterModeProperty.value == CommitFilterMode.filter &&
-          _allCommitProperties.any((ValueFilterProperty<dynamic> property) => !property.isDefault);
+      _allCommitProperties.any((ValueFilterProperty<dynamic> property) => !property.isDefault);
 
   /// Returns true if the filter is highlighting commits based on their match.
   bool get isHighlightingCommits =>
       _commitFilterModeProperty.value == CommitFilterMode.highlight &&
-          _allCommitProperties.any((ValueFilterProperty<dynamic> property) => !property.isDefault);
+      _allCommitProperties.any((ValueFilterProperty<dynamic> property) => !property.isDefault);
 
   /// Check the values in the [Commit] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
@@ -157,12 +155,12 @@ class TaskGridFilter extends FilterPropertySource {
   /// [FilterPropertySheet] to display the fields to a user and allow them to edit the values.
   @override
   List<FilterPropertyNode> get sheetLayout => _layout ??= <FilterPropertyNode>[
-    _taskProperty,
-    _authorProperty,
-    _messageProperty,
-    _hashProperty,
-    _commitFilterModeProperty,
-  ];
+        _taskProperty,
+        _authorProperty,
+        _messageProperty,
+        _hashProperty,
+        _commitFilterModeProperty,
+      ];
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   String get _values => _allProperties.values

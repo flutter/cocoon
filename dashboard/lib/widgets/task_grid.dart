@@ -162,6 +162,16 @@ class _TaskGridState extends State<TaskGrid> {
     'Skipped': 0.0,
   };
 
+  /// The cell used for tasks that are missing for a given non-highlighted commit row.
+  static const LatticeCell emptyCell = LatticeCell();
+
+  /// The cell used for tasks that are missing for a given highlighted commit row.
+  static final LatticeCell highlightedCell = LatticeCell(
+    painter: (Canvas canvas, Rect rect) {
+      canvas.drawRect(rect, Paint()..color = TaskBox.highlightColor);
+    },
+  );
+
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
   /// [CommitStatus] objects, into the data that describes the rendering as used by the
   /// [LatticeScrollView], a list of lists of [LatticeCell]s.
@@ -274,13 +284,13 @@ class _TaskGridState extends State<TaskGrid> {
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
           LatticeCell(
-            builder: (BuildContext context) =>
-                CommitBox(
-                  commit: row.commit,
-                  highlightColor: row.isHighlighted ? TaskBox.highlightColor : null,
-                ),
+            builder: (BuildContext context) => CommitBox(
+              commit: row.commit,
+              highlightColor: row.isHighlighted ? TaskBox.highlightColor : null,
+            ),
           ),
-          ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
+          ...tasks.map<LatticeCell>(
+              (QualifiedTask task) => row.cells[task] ?? (row.isHighlighted ? highlightedCell : emptyCell)),
         ],
       ),
       if (widget.buildState.moreStatusesExist) _generateLoadingRow(tasks.length),

@@ -218,7 +218,8 @@ class EnumFilterProperty<T> extends ValueFilterProperty<T> {
   @override
   void reset() => _value = _allValues.first;
 
-  @override T get value => _value;
+  @override
+  T get value => _value;
   set value(T newValue) {
     if (_value != newValue) {
       _value = newValue;
