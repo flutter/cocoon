@@ -103,7 +103,7 @@ void main() {
     );
 
     config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
-    config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
+    config.wrongBaseBranchPullRequestMessageValue = '{{target_branch}} -> {{default_branch}}';
     config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
     config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
     config.githubOAuthTokenValue = 'githubOAuthKey';
@@ -221,7 +221,51 @@ void main() {
       verify(issuesService.createComment(
         slug,
         issueNumber,
-        argThat(contains(config.wrongBaseBranchPullRequestMessage)),
+        argThat(contains('dev -> master')),
+      )).called(1);
+    });
+
+    test('Acts on opened against master when default is main', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        'master',
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(pullRequestsService.edit(
+        slug,
+        issueNumber,
+        base: 'main',
+      )).called(1);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains('master -> main')),
       )).called(1);
     });
 

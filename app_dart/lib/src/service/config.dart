@@ -138,14 +138,14 @@ class Config {
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
   String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
-      '_${kDefaultBranchName}_. Since Flutter pull requests should not '
-      'normally be opened against branches other than $kDefaultBranchName, I '
-      'have changed the base to $kDefaultBranchName. If this was intended, you '
-      'may modify the base back to {{branch}}. See the [Release Process]'
+      '_{{default_branch}}_. Since Flutter pull requests should not '
+      'normally be opened against branches other than {{default_branch}}, I '
+      'have changed the base to {{default_branch}}. If this was intended, you '
+      'may modify the base back to {{target_branch}}. See the [Release Process]'
       '(https://github.com/flutter/flutter/wiki/Release-process) for information '
       'about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
-      'than $kDefaultBranchName, unless this is an intentional hotfix/cherrypick.';
+      'than {{default_branch}}, unless this is an intentional hotfix/cherrypick.';
 
   String wrongHeadBranchPullRequestMessage(String branch) =>
       'This pull request is trying merge the branch $branch, which is the name '
