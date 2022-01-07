@@ -187,7 +187,8 @@ class LuciBuildService {
     });
 
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : 'refs/heads/main';
+    log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');
+    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
