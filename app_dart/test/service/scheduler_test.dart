@@ -55,6 +55,7 @@ void main() {
   late MockClient httpClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
+  late MockGerritService mockGerritService;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -94,6 +95,8 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
+      mockGerritService = MockGerritService();
+      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -103,6 +106,7 @@ void main() {
         luciBuildService: FakeLuciBuildService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
+          gerritService: mockGerritService,
         ),
       );
 

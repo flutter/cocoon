@@ -20,6 +20,7 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'buildbucket.dart';
+import 'gerrit_service.dart';
 import 'luci.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
@@ -32,11 +33,14 @@ class LuciBuildService {
     this.config,
     this.buildBucketClient, {
     GithubChecksUtil? githubChecksUtil,
-  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
+    GerritService? gerritService,
+  })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
+        gerritService = gerritService ?? GerritService();
 
   BuildBucketClient buildBucketClient;
   Config config;
   GithubChecksUtil githubChecksUtil;
+  GerritService gerritService;
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
 
@@ -162,6 +166,7 @@ class LuciBuildService {
     required BuilderId builderId,
     required Map<String, dynamic> userData,
     Map<String, dynamic>? properties,
+    List<String>? branches,
   }) async {
     int? checkRunId;
     if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
@@ -181,6 +186,8 @@ class LuciBuildService {
       'git_ref': 'refs/pull/${pullRequest.number}/head',
     });
 
+    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
+    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : 'refs/heads/main';
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
@@ -197,7 +204,7 @@ class LuciBuildService {
         ),
         fields: 'id,builder,number,status,tags',
         exe: <String, dynamic>{
-          'cipdVersion': pullRequest.base!.ref!,
+          'cipdVersion': 'refs/heads/${pullRequest.base!.ref!}',
         },
       ),
     );
@@ -263,6 +270,8 @@ class LuciBuildService {
   }) async {
     final List<Future<Request>> requestFutures = <Future<Request>>[];
     final List<Target> targetsToRetry = <Target>[];
+    final List<String> branches =
+        await gerritService.branches('flutter-review.googlesource.com', 'recipes', 'flutter-');
     for (Target target in targets) {
       final BuilderId builderId = BuilderId(
         project: 'flutter',
@@ -281,6 +290,7 @@ class LuciBuildService {
         builderId: builderId,
         userData: userData,
         properties: target.getProperties(),
+        branches: branches,
       ));
     }
     final List<Request> requests = await Future.wait(requestFutures);
