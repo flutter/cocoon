@@ -204,7 +204,7 @@ class LuciBuildService {
         ),
         fields: 'id,builder,number,status,tags',
         exe: <String, dynamic>{
-          'cipdVersion': 'refs/heads/${pullRequest.base!.ref!}',
+          'cipdVersion': cipdVersion,
         },
       ),
     );
