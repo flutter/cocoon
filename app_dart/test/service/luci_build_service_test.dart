@@ -34,6 +34,7 @@ void main() {
   late LuciBuildService service;
   RepositorySlug? slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+  final MockGerritService mockGerritService = MockGerritService();
 
   final List<Target> targets = <Target>[
     generateTarget(1),
@@ -48,7 +49,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      service = LuciBuildService(config, mockBuildBucketClient, gerritService: mockGerritService);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Null build', () async {
@@ -163,11 +164,8 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
-        githubChecksUtil: mockGithubChecksUtil,
-      );
+      service = LuciBuildService(config, mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil, gerritService: mockGerritService);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -183,6 +181,7 @@ void main() {
         );
       });
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
+      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,

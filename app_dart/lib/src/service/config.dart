@@ -115,6 +115,10 @@ class Config {
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
+  // Default recipe bundle used when the PR's base branch name does not exist in
+  // the recipes GoB project.
+  String get defaultRecipeBundleRef => 'refs/heads/main';
+
   DatastoreDB get db => _db;
 
   /// Size of the shards to send to buildBucket when scheduling builds.

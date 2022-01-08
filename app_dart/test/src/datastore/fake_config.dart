@@ -265,4 +265,7 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
+
+  @override
+  String get defaultRecipeBundleRef => 'refs/heads/main';
 }
