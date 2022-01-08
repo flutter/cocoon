@@ -13,11 +13,14 @@ void main() {
   late MockClient mockHttpClient;
   late GerritService gerritService;
   group('getBranches', () {
-    test('Error in request', () async {
+    test('Too many retries raise an exception', () async {
       mockHttpClient = MockClient((_) async => http.Response(')]}\'\n[]', HttpStatus.forbidden));
       gerritService = GerritService(httpClient: mockHttpClient);
-      final List<String> branches = await gerritService.branches('myhost', 'a/b/c', 'flutter-');
-      expect(branches, equals(<String>[]));
+      try {
+        await gerritService.branches('myhost', 'a/b/c', 'flutter-');
+      } catch (e) {
+        expect(e, isA<RetryException>());
+      }
     });
     test('Returns a list of branches', () async {
       const String body =
