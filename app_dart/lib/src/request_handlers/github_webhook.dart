@@ -491,9 +491,7 @@ class GithubWebhook extends RequestHandler<Body> {
     required String defaultBranch,
   }) {
     final String messageTemplate = config.wrongBaseBranchPullRequestMessage;
-    return messageTemplate
-      .replaceAll('{{target_branch}}', base)
-      .replaceAll('{{default_branch}}', defaultBranch);
+    return messageTemplate.replaceAll('{{target_branch}}', base).replaceAll('{{default_branch}}', defaultBranch);
   }
 
   Future<bool> _validateRequest(
