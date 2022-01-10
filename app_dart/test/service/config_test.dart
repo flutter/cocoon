@@ -5,7 +5,6 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_datastore.dart';
@@ -44,17 +43,6 @@ void main() {
 
       final String githubToken = await config.generateGithubToken(Config.flutterSlug);
       expect(githubToken, 'githubToken');
-    });
-
-    test('Returns the right flutter gold alert', () {
-      expect(
-        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/flutter')),
-        contains('package:flutter'),
-      );
-      expect(
-        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
-        isNot(contains('package:flutter')),
-      );
     });
   });
 }
