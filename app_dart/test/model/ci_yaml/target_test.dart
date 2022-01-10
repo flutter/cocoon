@@ -17,10 +17,14 @@ void main() {
       });
     });
 
-    test('properties with xcode', () {
+    test('properties with xcode overrides platform properties', () {
       final Target target = generateTarget(
         1,
         platform: 'Mac_ios',
+        platformProperties: <String, String>{
+          // This should be overrided by the target specific property
+          'xcode': 'abc',
+        },
         properties: <String, String>{
           'xcode': '12abc',
         },
