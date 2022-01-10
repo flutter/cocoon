@@ -445,11 +445,13 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       return;
     }
-    if (Config.defaultBranch(pr.base!.repo!.slug()) == pr.base!.ref!) {
+    final String defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
+    final String baseName = pr.base!.ref!;
+    if (baseName == defaultBranchName) {
       return;
     }
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (candidateTest.hasMatch(pr.base!.ref!) && candidateTest.hasMatch(pr.head!.ref!)) {
+    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
       // This is most likely a release branch
       body = config.releaseBranchPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
@@ -459,7 +461,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     // Assume this PR should be based against config.defaultBranch.
-    body = _getWrongBaseComment(pr.base!.ref!);
+    body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
     if (!await _alreadyCommented(gitHubClient, pr, body)) {
       await gitHubClient.pullRequests.edit(
         slug,
@@ -484,9 +486,12 @@ class GithubWebhook extends RequestHandler<Body> {
     return false;
   }
 
-  String _getWrongBaseComment(String base) {
+  String _getWrongBaseComment({
+    required String base,
+    required String defaultBranch,
+  }) {
     final String messageTemplate = config.wrongBaseBranchPullRequestMessage;
-    return messageTemplate.replaceAll('{{branch}}', base);
+    return messageTemplate.replaceAll('{{target_branch}}', base).replaceAll('{{default_branch}}', defaultBranch);
   }
 
   Future<bool> _validateRequest(
