@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:process/process.dart';
 
@@ -12,7 +13,7 @@ import 'ios_device.dart';
 
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
-  factory DeviceDiscovery(String deviceOs, String output) {
+  factory DeviceDiscovery(String deviceOs, File output) {
     switch (deviceOs) {
       case 'ios':
         return IosDeviceDiscovery(output);

@@ -390,6 +390,7 @@ class ScheduleBuildRequest extends JsonBody {
     this.tags,
     this.notify,
     this.fields,
+    this.exe,
   });
 
   /// Creates a [ScheduleBuildRequest] from JSON.
@@ -467,12 +468,15 @@ class ScheduleBuildRequest extends JsonBody {
   /// in the response.
   final String? fields;
 
+  /// The CIPD package with the recipes.
+  final Map<String, dynamic>? exe;
+
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
 
   @override
   String toString() {
-    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit, fields: $fields, notify: $notify)';
+    return 'scheduleBuildRequest(requestId: $requestId, builderId: $builderId, gitilesCommit: $gitilesCommit, fields: $fields, notify: $notify, exe: $exe)';
   }
 }
 

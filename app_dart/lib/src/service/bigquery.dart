@@ -45,6 +45,10 @@ where date>=date_sub(current_date(), interval 30 day) and
       pool = 'luci.flutter.prod' and
       builder_name not like '%Beta%' and
       builder_name not like '% beta %' and
+      builder_name not like '%Stable%' and
+      builder_name not like '% stable %' and
+      builder_name not like '%Dev%' and
+      builder_name not like '% dev %' and
       rank<=@LIMIT
 group by builder_name;
 ''';
@@ -70,9 +74,10 @@ where date>=date_sub(current_date(), interval 30 day) and
 group by builder_name;
 ''';
 
+// Returns builds in the past 30 days to exclude obsolete historical data.
 const String getRecordsQuery = r'''
 select sha, is_flaky, failure_count from `flutter-dashboard.datasite.luci_staging_build_status`
-where builder_name=@BUILDER_NAME
+where builder_name=@BUILDER_NAME and TIMESTAMP_DIFF(time,current_timestamp,day)<30
 order by time desc
 limit @LIMIT
 ''';

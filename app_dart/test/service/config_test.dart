@@ -5,12 +5,13 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_datastore.dart';
 
 void main() {
-  group('githubAppInstallations', () {
+  group('Config', () {
     FakeDatastoreDB datastore;
     late CacheService cacheService;
     late Config config;
@@ -19,7 +20,7 @@ void main() {
       cacheService = CacheService(inMemory: true);
       config = Config(datastore, cacheService);
     });
-    test('Builder config does not exist', () async {
+    test('githubAppInstallations when builder config does not exist', () async {
       const String configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
 
@@ -30,6 +31,30 @@ void main() {
       );
       final Map<String, dynamic> installation = await config.githubAppInstallations;
       expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
+    });
+
+    test('generateGithubToken pulls from cache', () async {
+      const String configValue = 'githubToken';
+      final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
+      await cacheService.set(
+        'config',
+        'githubToken-${Config.flutterSlug}',
+        cachedValue,
+      );
+
+      final String githubToken = await config.generateGithubToken(Config.flutterSlug);
+      expect(githubToken, 'githubToken');
+    });
+
+    test('Returns the right flutter gold alert', () {
+      expect(
+        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/flutter')),
+        contains('package:flutter'),
+      );
+      expect(
+        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
+        isNot(contains('package:flutter')),
+      );
     });
   });
 }

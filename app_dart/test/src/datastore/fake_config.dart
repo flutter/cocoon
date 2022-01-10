@@ -162,7 +162,7 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue!;
 
   @override
-  String get flutterGoldAlertConstant => flutterGoldAlertConstantValue!;
+  String flutterGoldAlertConstant(RepositorySlug slug) => flutterGoldAlertConstantValue!;
 
   @override
   String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
@@ -265,4 +265,7 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
+
+  @override
+  String get defaultRecipeBundleRef => 'refs/heads/main';
 }

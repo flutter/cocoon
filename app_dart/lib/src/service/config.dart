@@ -59,7 +59,7 @@ class Config {
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
-      pluginsSlug: 'master',
+      pluginsSlug: 'main',
       packagesSlug: 'main',
     };
 
@@ -114,6 +114,10 @@ class Config {
     final String installations = await _getSingleValue('githubapp_installations');
     return jsonDecode(installations) as Map<String, dynamic>;
   }
+
+  // Default recipe bundle used when the PR's base branch name does not exist in
+  // the recipes GoB project.
+  String get defaultRecipeBundleRef => 'refs/heads/main';
 
   DatastoreDB get db => _db;
 
@@ -222,10 +226,15 @@ class Config {
   String flutterGoldFollowUpAlert(String url) => 'Golden file changes are available for triage from new commit, '
       'Click [here to view]($url).\n\n';
 
-  String get flutterGoldAlertConstant => '\n\nFor more guidance, visit '
-      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
-      '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
-      'and make sure this patch meets those guidelines before LGTMing.\n\n';
+  String flutterGoldAlertConstant(RepositorySlug slug) {
+    if (slug == Config.flutterSlug) {
+      return '\n\nFor more guidance, visit '
+          '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
+          '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+          'and make sure this patch meets those guidelines before LGTMing.\n\n';
+    }
+    return '';
+  }
 
   String flutterGoldCommentID(PullRequest pr) =>
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
@@ -295,6 +304,19 @@ class Config {
   }
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
+    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
+    final Uint8List? cacheValue = await _cache.getOrCreate(
+      configCacheName,
+      'githubToken-${slug.fullName}',
+      createFn: () => _generateGithubToken(slug),
+      // Tokens are minted for 10 minutes
+      ttl: const Duration(minutes: 8),
+    );
+
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
@@ -309,7 +331,8 @@ class Config {
       log.warning(response.body);
       throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
     }
-    return jsonBody['token'] as String;
+    final String token = jsonBody['token'] as String;
+    return Uint8List.fromList(token.codeUnits);
   }
 
   Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async {

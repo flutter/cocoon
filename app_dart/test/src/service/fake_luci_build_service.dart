@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import '../utilities/mocks.dart';
@@ -16,9 +17,11 @@ class FakeLuciBuildService extends LuciBuildService {
     Config config, {
     BuildBucketClient? buildbucket,
     GithubChecksUtil? githubChecksUtil,
+    GerritService? gerritService,
   }) : super(
           config,
           buildbucket ?? FakeBuildBucketClient(),
           githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
+          gerritService: gerritService ?? MockGerritService(),
         );
 }

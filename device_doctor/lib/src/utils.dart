@@ -24,6 +24,7 @@ const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 const String kCertCheckKey = 'codesigning_cert';
 const String kDevicePairCheckKey = 'device_pair';
 const String kScreenSaverCheckKey = 'screensaver';
+const String kScreenRotationCheckKey = 'screen_rotation';
 const String kBatteryLevelCheckKey = 'battery_level';
 const String kBatteryTemperatureCheckKey = 'battery_temperature';
 final Logger logger = Logger('DeviceDoctor');
@@ -114,8 +115,7 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
 }
 
 /// Write [results] to [filePath].
-void writeToFile(String results, String filePath) {
-  final File file = File(filePath);
+void writeToFile(String results, File file) {
   if (file.existsSync()) {
     try {
       file.deleteSync();

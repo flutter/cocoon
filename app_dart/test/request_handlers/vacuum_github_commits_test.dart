@@ -76,7 +76,7 @@ void main() {
           tabledataResource: tabledataResourceApi,
           githubService: githubService,
           dbValue: db,
-          supportedBranchesValue: <String>['master']);
+          supportedBranchesValue: <String>['master', 'main']);
       auth = FakeAuthenticationProvider();
       scheduler = FakeScheduler(
         config: config,
@@ -147,7 +147,8 @@ void main() {
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length);
+      const int supportedBranchesCount = 2;
+      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length * supportedBranchesCount);
       final List<Commit> commits = db.values.values.whereType<Commit>().toList();
       final Commit commit = commits.first;
       expect(commit.repository, 'flutter/cocoon');
@@ -157,8 +158,8 @@ void main() {
       expect(commit.author, 'Username');
       expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
       expect(commit.message, 'commit message');
-      expect(commits[1].repository, Config.engineSlug.fullName);
-      expect(commits[2].repository, Config.flutterSlug.fullName);
+      expect(commits[1].repository, Config.cocoonSlug.fullName);
+      expect(commits[2].repository, Config.engineSlug.fullName);
     });
 
     test('skips commits for which transaction commit fails', () async {
@@ -176,7 +177,9 @@ void main() {
         }
       };
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, githubCommits.length + Config.supportedRepos.length);
+
+      /// The +1 is coming from the engine repository and manually added commit on the top of this test.
+      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length * githubCommits.length + 1);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);
