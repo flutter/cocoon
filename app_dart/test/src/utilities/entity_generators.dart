@@ -43,17 +43,26 @@ Task generateTask(int i,
 Target generateTarget(
   int i, {
   pb.SchedulerConfig? schedulerConfig,
-  github.RepositorySlug? slug,
+  String platform = 'Linux',
+  Map<String, String>? platformProperties,
+  Map<String, String>? properties,
   List<String>? runIf,
-}) =>
-    Target(
-      schedulerConfig: schedulerConfig ?? exampleConfig.config,
-      slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
-      value: pb.Target(
-        name: 'Linux $i',
-        runIf: runIf ?? <String>[],
-      ),
-    );
+  github.RepositorySlug? slug,
+}) {
+  final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
+  if (platformProperties != null) {
+    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_Properties(properties: platformProperties);
+  }
+  return Target(
+    schedulerConfig: config,
+    slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
+    value: pb.Target(
+      name: '$platform $i',
+      properties: properties,
+      runIf: runIf ?? <String>[],
+    ),
+  );
+}
 
 Build generateBuild(
   int i, {

@@ -59,20 +59,18 @@ class Target {
     }
     // Lookup map to make merging [targetDependencies] and [platformDependencies] simpler.
     final Map<String, Dependency> mergedDependencies = <String, Dependency>{};
-    for (Dependency dep in targetDependencies) {
+    for (Dependency dep in platformDependencies) {
       mergedDependencies[dep.name] = dep;
     }
-    for (Dependency dep in platformDependencies) {
-      if (!mergedDependencies.containsKey(dep.name)) {
-        mergedDependencies[dep.name] = dep;
-      }
+    for (Dependency dep in targetDependencies) {
+      mergedDependencies[dep.name] = dep;
     }
     mergedProperties['dependencies'] = mergedDependencies.values.map((Dependency dep) => dep.toJson()).toList();
 
     // xcode is a special property as there's different download policies if its in the devicelab.
-    if (properties.containsKey('xcode')) {
+    if (mergedProperties.containsKey('xcode')) {
       final Object xcodeVersion = <String, Object>{
-        'sdk_version': properties['xcode']!,
+        'sdk_version': mergedProperties['xcode']!,
       };
 
       if (iosPlatforms.contains(getPlatform())) {
