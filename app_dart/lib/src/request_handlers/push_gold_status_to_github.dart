@@ -344,7 +344,7 @@ Future<Map<String, dynamic>?> _queryGraphQL(
 }
 
 const String pullRequestChecksQuery = r'''
-query ChecksForPullRequest($sPullRequest: Int!) {
+query ChecksForPullRequest($sPullRequest: Int!, $sRepoOwner: String!, $sRepoName: String!) {
   repository(owner: $sRepoOwner, name: $sRepoName) {
     pullRequest(number: $sPullRequest) {
       commits(last: 1) {
