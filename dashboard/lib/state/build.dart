@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import '../logic/brooks.dart';
 import '../model/build_status_response.pb.dart';
@@ -30,13 +31,21 @@ class BuildState extends ChangeNotifier {
   /// Authentication service for managing Google Sign In.
   final GoogleSignInService authService;
 
-  /// Git branches from flutter/flutter for managing Flutter releases.
+  /// Recent branches for flutter related to releases.
   List<String> get branches => _branches;
   List<String> _branches = <String>['master'];
 
-  /// The current flutter/flutter git branch to show data from.
+  /// The active flutter branches to show data from.
   String get currentBranch => _currentBranch;
   String _currentBranch = 'master';
+
+  /// The current repo from [repos] to show data from.
+  String get currentRepo => _currentRepo;
+  String _currentRepo = 'flutter';
+
+  /// Repos in the Flutter organization this dashboard supports.
+  List<String> get repos => _repos;
+  List<String> _repos = <String>['flutter'];
 
   /// The current status of the commits loaded.
   List<CommitStatus> get statuses => _statuses;
@@ -108,8 +117,33 @@ class BuildState extends ChangeNotifier {
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   void _startFetchingStatusUpdates() {
     assert(refreshTimer == null);
+    _fetchBranches();
+    _fetchRepos();
     _fetchStatusUpdates();
     refreshTimer = Timer.periodic(refreshRate, _fetchStatusUpdates);
+  }
+
+  /// Request the latest [branches] from [CocoonService].
+  Future<void> _fetchBranches() async {
+    final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
+
+    if (response.error != null) {
+      _errors.send('$errorMessageFetchingBranches: ${response.error}');
+    } else {
+      _branches = response.data;
+      notifyListeners();
+    }
+  }
+
+  /// Request the latest [repos] from [CocoonService].
+  Future<void> _fetchRepos() async {
+    final CocoonResponse<List<String>> response = await cocoonService.fetchRepos();
+    if (response.error != null) {
+      _errors.send('$errorMessageFetchingBranches: ${response.error}');
+    } else {
+      _repos = response.data;
+      notifyListeners();
+    }
   }
 
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
@@ -118,20 +152,8 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchStatusUpdates([Timer timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
-        final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
-        if (!_active) {
-          return null;
-        }
-        if (response.error != null) {
-          _errors.send('$errorMessageFetchingBranches: ${response.error}');
-        } else {
-          _branches = response.data;
-          notifyListeners();
-        }
-      }(),
-      () async {
         final CocoonResponse<List<CommitStatus>> response =
-            await cocoonService.fetchCommitStatuses(branch: _currentBranch);
+            await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
         if (!_active) {
           return null;
         }
@@ -143,8 +165,10 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<BuildStatusResponse> response =
-            await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
+          branch: currentBranch,
+          repo: currentRepo,
+        );
         if (!_active) {
           return null;
         }
@@ -159,23 +183,21 @@ class BuildState extends ChangeNotifier {
     ]);
   }
 
-  /// Update build state to be on [branch] and erase previous branch data.
-  Future<void> updateCurrentBranch(String branch) {
-    if (_currentBranch == branch) {
-      // Do nothing if the branch hasn't changed.
-      return Future<void>.value();
+  /// Update build state to be on [repo] and erase previous data.
+  void updateCurrentRepoBranch(String repo, String branch) {
+    if (currentRepo == repo && currentBranch == branch) {
+      // Do nothing if the repo hasn't changed.
+      return;
     }
+    _currentRepo = repo;
     _currentBranch = branch;
+
     _moreStatusesExist = true;
     _isTreeBuilding = null;
     _failingTasks = <String>[];
     _statuses = <CommitStatus>[];
 
-    /// Clear previous branch data from the widgets
-    notifyListeners();
-
-    /// To prevent delays, make an immediate request for dashboard data.
-    return _fetchStatusUpdates();
+    _fetchStatusUpdates();
   }
 
   /// Handle merging status updates with the current data in [statuses].
@@ -282,7 +304,8 @@ class BuildState extends ChangeNotifier {
 
     final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
-      branch: _currentBranch,
+      branch: currentBranch,
+      repo: currentRepo,
     );
     if (!_active) {
       return;

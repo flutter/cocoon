@@ -8,7 +8,7 @@ import 'package:localstorage/localstorage.dart';
 
 const String _kPausedTabIndexStorageKey = 'paused-tab-index';
 
-final LocalStorage storage = new LocalStorage('github.json');
+final LocalStorage storage = LocalStorage('github.json');
 
 int get pausedTabIndex {
   final String storedValue = storage.getItem(_kPausedTabIndexStorageKey);

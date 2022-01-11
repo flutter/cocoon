@@ -66,10 +66,9 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
       ),
       const _RepositoryTabMapper(
           tab: Tab(text: 'Infrastructure', icon: Icon(Icons.build, size: tabIconSize)),
-          tabContents: const InfrastructureDetails()),
+          tabContents: InfrastructureDetails()),
       const _RepositoryTabMapper(
-          tab: Tab(text: 'Roll History', icon: Icon(Icons.merge_type, size: tabIconSize)),
-          tabContents: const RollDetails()),
+          tab: Tab(text: 'Roll History', icon: Icon(Icons.merge_type, size: tabIconSize)), tabContents: RollDetails()),
     ];
   }
 

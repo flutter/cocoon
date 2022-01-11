@@ -13,7 +13,7 @@ Future<Null> main(List<String> rawArgs) async {
   ArgResults args = argParser.parse(rawArgs);
 
   // Load tests yaml file.
-  File file = new File(args['tests-file']);
+  File file = File(args['tests-file']);
   var doc = loadYaml(file.readAsStringSync());
   // Execute the tests
   String baseDir = normalize(join(dirname(Platform.script.toFilePath()), '..', '..'));

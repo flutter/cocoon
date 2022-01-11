@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'logic/task_grid_filter.dart';
 import 'navigation_drawer.dart';
+import 'service/cocoon.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
@@ -36,21 +37,51 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter _filter;
   TaskGridFilter _settingsBasis;
 
+  /// Current Flutter repository to view.
+  String repo;
+
+  /// Git branch in [repo] to view.
+  ///
+  /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
+  /// master on one repo, to main for a different repo.
+  String branch;
+
   @override
   void initState() {
     super.initState();
+    if (widget.queryParameters != null) {
+      repo = widget.queryParameters['repo'] ?? 'flutter';
+      branch = widget.queryParameters['branch'] ?? 'master';
+    }
+    repo ??= 'flutter';
+    branch ??= 'master';
+    if (branch == 'master' || branch == 'main') {
+      branch = defaultBranches[repo];
+    }
     _filter = TaskGridFilter.fromMap(widget.queryParameters);
     _filter.addListener(() {
       setState(() {});
     });
   }
 
-  void _navigateWithSettings(BuildContext context, TaskGridFilter filter) {
-    if (filter.isDefault) {
-      Navigator.pushNamed(context, BuildDashboardPage.routeName);
-    } else {
-      Navigator.pushNamed(context, '${BuildDashboardPage.routeName}?${filter.queryParameters}');
+  /// Convert the fields from this class into a URL.
+  ///
+  /// This enables bookmarking state specific values, like [repo].
+  void _updateNavigation(BuildContext context) {
+    final Map<String, String> queryParameters = <String, String>{};
+    if (widget.queryParameters != null) {
+      queryParameters.addAll(widget.queryParameters);
     }
+    if (_filter != null) {
+      queryParameters.addAll(_filter.toMap(includeDefaults: false));
+    }
+    queryParameters['repo'] = repo;
+    queryParameters['branch'] = branch;
+    final Uri uri = Uri(
+      path: BuildDashboardPage.routeName,
+      queryParameters: queryParameters,
+    );
+    Navigator.pushNamed(context, uri.toString());
   }
 
   void _removeSettingsDialog() {
@@ -80,6 +111,27 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 DropdownButton<String>(
+                  value: _buildState.currentRepo,
+                  icon: const Icon(
+                    Icons.arrow_downward,
+                  ),
+                  iconSize: 24,
+                  elevation: 16,
+                  underline: Container(
+                    height: 2,
+                  ),
+                  onChanged: (String selectedRepo) {
+                    repo = selectedRepo;
+                    _updateNavigation(context);
+                  },
+                  items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: theme.primaryTextTheme.bodyText1),
+                    );
+                  }).toList(),
+                ),
+                DropdownButton<String>(
                   value: _buildState.currentBranch,
                   icon: const Icon(
                     Icons.arrow_downward,
@@ -89,8 +141,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   underline: Container(
                     height: 2,
                   ),
-                  onChanged: (String branch) {
-                    _buildState.updateCurrentBranch(branch);
+                  onChanged: (String selectedBranch) {
+                    branch = selectedBranch;
+                    _updateNavigation(context);
                   },
                   items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
@@ -114,7 +167,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     ),
                     TextButton(
                       child: const Text('Apply'),
-                      onPressed: _filter == _settingsBasis ? null : () => _navigateWithSettings(context, _filter),
+                      onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
                     ),
                     TextButton(
                       child: const Text('Cancel'),
@@ -224,7 +277,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final BuildState _buildState = Provider.of<BuildState>(context);
-
+    _buildState.updateCurrentRepoBranch(repo, branch);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(

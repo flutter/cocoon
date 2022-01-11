@@ -34,15 +34,20 @@ abstract class CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
     String branch,
+    String repo,
   });
 
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
+    String repo,
   });
 
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<String>>> fetchFlutterBranches();
+
+  /// Get the current list of version branches in flutter/flutter.
+  Future<CocoonResponse<List<String>>> fetchRepos();
 
   /// Send rerun [Task] command to devicelab.
   ///
@@ -67,3 +72,12 @@ class CocoonResponse<T> {
   /// Error information that can be used for debugging.
   final String error;
 }
+
+/// This must be kept up to date with what's in app_dart/lib/src/service/config.dart.
+final Map<String, String> defaultBranches = <String, String>{
+  'cocoon': 'main',
+  'engine': 'main',
+  'flutter': 'master',
+  'packages': 'main',
+  'plugins': 'master',
+};
