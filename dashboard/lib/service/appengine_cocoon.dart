@@ -40,12 +40,10 @@ class AppEngineCocoonService implements CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
     String branch,
-    String repo,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
       if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
       'branch': branch ?? _defaultBranch,
-      'repo': repo,
     };
     final Uri getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
 
@@ -66,33 +64,11 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<String>>> fetchRepos() async {
-    final Uri getReposUrl = apiEndpoint('/api/public/repos');
-
-    // This endpoint returns a JSON array of strings.1
-    final http.Response response = await _client.get(getReposUrl);
-
-    if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>.error('$getReposUrl returned ${response.statusCode}');
-    }
-
-    List<String> repos;
-    try {
-      repos = List<String>.from(jsonDecode(response.body) as List<dynamic>);
-    } on FormatException {
-      return CocoonResponse<List<String>>.error('$getReposUrl had a malformed response');
-    }
-    return CocoonResponse<List<String>>.data(repos);
-  }
-
-  @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
-    String repo,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
       'branch': branch ?? _defaultBranch,
-      'repo': repo,
     };
     final Uri getBuildStatusUrl = apiEndpoint('/api/public/build-status', queryParameters: queryParameters);
 
@@ -160,6 +136,9 @@ class AppEngineCocoonService implements CocoonService {
         },
         body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
+          // This prepares this api to support different repos.
+          'Owner': 'flutter',
+          'Repo': 'flutter',
         }));
 
     return response.statusCode == HttpStatus.ok;

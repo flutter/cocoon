@@ -6,7 +6,7 @@ import 'package:localstorage/localstorage.dart';
 
 const String _kTokenStorageKey = 'github-token';
 
-final LocalStorage storage = LocalStorage('github.json');
+final LocalStorage storage = new LocalStorage('github.json');
 
 String get token => storage.getItem(_kTokenStorageKey);
 set token(String value) => storage.setItem(_kTokenStorageKey, value);

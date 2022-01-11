@@ -219,7 +219,7 @@ class _CommitResultWidget extends StatelessWidget {
       icon = const Icon(Icons.error);
       backgroundColor = Colors.redAccent;
     } else if (commitTestResult.inProgressTestCount > 0) {
-      icon = const _PendingIcon(child: Icon(Icons.sync));
+      icon = const _PendingIcon(child: const Icon(Icons.sync));
       backgroundColor = Colors.grey[600];
     } else {
       icon = const Icon(Icons.check);

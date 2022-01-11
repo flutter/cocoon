@@ -48,8 +48,8 @@ void main() {
     testDefault(TaskGridFilter.fromMap(<String, String>{}));
   });
 
-  test('map constructor allows unused values', () {
-    expect(TaskGridFilter.fromMap(<String, String>{'repo': 'flutter'}), TaskGridFilter());
+  test('map constructor refuses unrecognized values', () {
+    expect(() => TaskGridFilter.fromMap(<String, String>{'foo': 'bar'}), throwsNoSuchMethodError);
   });
 
   test('map constructor result matches field setters', () {

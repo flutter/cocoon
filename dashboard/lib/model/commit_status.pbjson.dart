@@ -10,12 +10,12 @@ import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use commitStatusDescriptor instead')
-const CommitStatus$json = {
+const CommitStatus$json = const {
   '1': 'CommitStatus',
-  '2': [
-    {'1': 'commit', '3': 1, '4': 1, '5': 11, '6': '.Commit', '10': 'commit'},
-    {'1': 'tasks', '3': 2, '4': 3, '5': 11, '6': '.Task', '10': 'tasks'},
-    {'1': 'branch', '3': 3, '4': 1, '5': 9, '10': 'branch'},
+  '2': const [
+    const {'1': 'commit', '3': 1, '4': 1, '5': 11, '6': '.Commit', '10': 'commit'},
+    const {'1': 'tasks', '3': 2, '4': 3, '5': 11, '6': '.Task', '10': 'tasks'},
+    const {'1': 'branch', '3': 3, '4': 1, '5': 9, '10': 'branch'},
   ],
 };
 

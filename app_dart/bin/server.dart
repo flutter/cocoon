@@ -254,7 +254,6 @@ Future<void> main() async {
         ttl: const Duration(minutes: 1),
         delegate: GithubRateLimitStatus(config),
       ),
-      '/api/public/repos': GetRepos(config),
 
       /// Handler for AppEngine to identify when dart server is ready to serve requests.
       '/readiness_check': ReadinessCheck(config: config),
