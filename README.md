@@ -58,7 +58,7 @@ All the commands in this section assume that you are in the
 ### Running a local dev server
 
 ```sh
-$ export GCLOUD_PROJECT=flutter-dashboard-dev # or flutter-dashboard for prod data
+$ export GOOGLE_CLOUD_PROJECT=flutter-dashboard-dev # or flutter-dashboard for prod data
 $ export GCLOUD_KEY=#your_secret # Required for reading/writing from Google Cloud
 $ export COCOON_USE_IN_MEMORY_CACHE=true # Use an in mememory cache locally instead of redis to prevent corruption
 $ dart bin/server.dart
