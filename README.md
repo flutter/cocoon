@@ -57,20 +57,15 @@ All the commands in this section assume that you are in the
 
 ### Running a local dev server
 
-This is useful for developing backend functionality locally. This
-local dev server can be connected to the frontend applications by
-running `dart dev/deploy.dart --project test --version test`, and
-answering `N` when asked about deploying to App Engine. This will
-build the frontend files and copy them to the directory from which the
-server will serve them.
+```sh
+$ export GCLOUD_PROJECT=flutter-dashboard-dev # or flutter-dashboard for prod data
+$ export GCLOUD_KEY=#your_secret # Required for reading/writing from Google Cloud
+$ export COCOON_USE_IN_MEMORY_CACHE=true # Use an in mememory cache locally instead of redis to prevent corruption
+$ dart bin/server.dart
+```
+This will output `Serving requests at 0.0.0.0:8080` indicating the server is working.
 
-Set the environment variables `GCLOUD_PROJECT` and `GCLOUD_KEY`.
-Running `dart bin/server.dart` will give more explanation on what
-these values should be. You should also set `COCOON_USE_IN_MEMORY_CACHE`
-to `true` as you typically don't have access to the remote redis
-instance during local development.
-
-If you see `Serving requests at 0.0.0.0:8080` the dev server is working.
+New requests will be logged to the console.
 
 To develop and test some features, you need to have a local service 
 account(key.json) with access to the project you will be connecting to.
@@ -78,9 +73,9 @@ account(key.json) with access to the project you will be connecting to.
 If you work for Google you can use the key with flutter-dashboard project
 via [internal doc](https://g3doc.corp.google.com/company/teams/flutter/cocoon/local_development.md?cl=head).
 
-### Building the server for deployment
+### Deploying a test version on Google Cloud
 
-To run tests, build the app, and provide instructions for deploying to
+To run live tests, build the app, and provide instructions for deploying to
 Google App Engine, run this command:
 
 ```sh
@@ -97,6 +92,8 @@ Cloud Console UI:
 
 `--profile`: Deploy a profile mode of `dashboard` application for debugging purposes.
 
+`--ignore-version-check`: Ignore the version of Flutter on path (expects to be relatively recent)
+
 
 ## Developing the dashboard
 
@@ -110,9 +107,5 @@ your browser to view the application. (The dashboard should also be
 able to run on non-Web platforms, but since the Web is our main target
 that is the one that should generally be used for development.)
 
-You may need to run `flutter config --enable-web` to enable Web
-support if you haven't done so in the past.
-
 You can run `flutter packages upgrade` to update the dependencies.
 This may be necessary if you see a failure in the dependencies.
-
