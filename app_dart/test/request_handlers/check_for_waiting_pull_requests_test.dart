@@ -151,11 +151,11 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
       });
-      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), 'deadbeef', 'abc'))
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), 'abc', 'deadbeef'))
           .thenAnswer((Invocation invocation) {
         return Future<GitHubComparison>.value(githubComparison);
       });
-      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), 'deadbeef', 'abc'))
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), 'abc', 'deadbeef'))
           .thenAnswer((Invocation invocation) {
         return Future<GitHubComparison>.value(githubComparison);
       });
