@@ -107,7 +107,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ///
   /// By comparing the current commit with second TOT commit, an empty `files` in
   /// `GitHubComparison` validates a clean revert of TOT commit.
-  /// 
+  ///
   /// Note: [compareCommits] expects base commit first, and then head commit.
   Future<bool> isTOTRevert(
     String headSha,
@@ -119,11 +119,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     log.info('Second TOT commit is: ${secondTotCommit.sha}');
     final GitHubComparison githubComparison =
         await github.repositories.compareCommits(slug, secondTotCommit.sha!, headSha);
-    final bool emptyFiles =  githubComparison.files!.isEmpty;
-    if (emptyFiles) {
+    final bool filesIsEmpty = githubComparison.files!.isEmpty;
+    if (filesIsEmpty) {
       log.info('This is a TOT revert. Merge ignoring tests statuses.');
     }
-    return githubComparison.files!.isEmpty;
+    return filesIsEmpty;
   }
 
   Future<Map<String, dynamic>> _queryGraphQL(
