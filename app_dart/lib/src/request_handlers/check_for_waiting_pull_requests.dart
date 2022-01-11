@@ -67,8 +67,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
     for (_AutoMergeQueryResult queryResult in queryResults) {
-      // If the PR is a revert of the tot commit, merge without waiting for checks passing.
-      if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge || await isTOTRevert(queryResult.sha, slug)) {
+      if (await shouldMergePullRequest(mergeCount, queryResult, slug)) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
@@ -91,6 +90,19 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
   }
 
+  /// Check if the pull request should be merged.
+  ///
+  /// A pull request should be merged on either cases:
+  /// 1) All tests have finished running and satified basic merge requests
+  /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
+  Future<bool> shouldMergePullRequest(int mergeCount, _AutoMergeQueryResult queryResult, RepositorySlug slug) async {
+    if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
+      return true;
+    }
+    // If the PR is a revert of the tot commit, merge without waiting for checks passing.
+    return await isTOTRevert(queryResult.sha, slug);
+  }
+
   /// Check if the `commitSha` is a clean revert of TOT commit.
   ///
   /// By comparing the current commit with second TOT commit, an empty `files` in
@@ -103,9 +115,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final RepositoryCommit secondTotCommit = await github.repositories.getCommit(slug, 'HEAD~');
     log.info('Current commit is: $commitSha');
     log.info('Second TOT commit is: ${secondTotCommit.sha}');
-    final GitHubComparison gitHubComparison =
+    final GitHubComparison githubComparison =
         await github.repositories.compareCommits(slug, commitSha, secondTotCommit.sha!);
-    return gitHubComparison.files!.isEmpty;
+    return githubComparison.files!.isEmpty;
   }
 
   Future<Map<String, dynamic>> _queryGraphQL(
