@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:mockito/src/mock.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -17,6 +18,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_graphql_client.dart';
+import '../src/utilities/mocks.dart';
 
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
@@ -106,6 +108,8 @@ void main() {
     FakeAuthenticationProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
     FakeGraphQLClient cirrusGraphQLClient;
+    final MockGitHub mockGitHubClient = MockGitHub();
+    final RepositoriesService mockRepositoriesService = MockRepositoriesService();
 
     late ApiRequestHandlerTester tester;
 
@@ -116,24 +120,45 @@ void main() {
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String? branch;
+    String? totSha;
+    GitHubComparison? githubComparison;
 
     setUp(() {
       request = FakeHttpRequest();
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
+
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
-        rollerAccountsValue: <String>{},
-        cirrusGraphQLClient: cirrusGraphQLClient,
-        githubGraphQLClient: githubGraphQLClient,
-      );
+          rollerAccountsValue: <String>{},
+          cirrusGraphQLClient: cirrusGraphQLClient,
+          githubGraphQLClient: githubGraphQLClient,
+          githubClient: mockGitHubClient);
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
+
+      when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD~'))
+          .thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'engine'), 'HEAD~'))
+          .thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), 'deadbeef', 'abc'))
+          .thenAnswer((Invocation invocation) {
+        return Future<GitHubComparison>.value(githubComparison);
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), 'deadbeef', 'abc'))
+          .thenAnswer((Invocation invocation) {
+        return Future<GitHubComparison>.value(githubComparison);
+      });
 
       cirrusGraphQLClient.mutateResultForOptions =
           (MutationOptions options) => QueryResult(source: QueryResultSource.network);
@@ -362,6 +387,34 @@ void main() {
       ]);
     });
 
+    test('Merge a clean revert PR with in progress tests', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[]);
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      branch = 'pull/0';
+
+      final PullRequestHelper prRequested = PullRequestHelper(lastCommitCheckRuns: const <CheckRunHelper>[
+        CheckRunHelper.linuxCompletedRunning,
+      ], lastCommitStatuses: const <StatusHelper>[
+        StatusHelper.flutterBuildSuccess,
+      ], lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.');
+      flutterRepoPRs.add(prRequested);
+
+      await tester.get(handler);
+
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
     test('Merges PR with check that is successful but still considered running', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -385,6 +438,8 @@ void main() {
     });
 
     test('Does not merge PR with failed checks', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -415,6 +470,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not fail with null checks', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[],
@@ -443,6 +500,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Empty validations do not merge', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[],
@@ -511,6 +570,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge if non member does not have at least 2 member reviews', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         authorAssociation: '',
@@ -540,6 +601,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Self review is disallowed', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         author: 'some_rando',
@@ -620,6 +683,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge PR with failed tests', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
@@ -651,6 +716,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge unapproved PR from a hacker', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(author: 'skia-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
@@ -716,6 +783,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merges 1st and 3rd PR, 2nd failed', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
 
@@ -779,6 +848,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Unlabels red PRs', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
@@ -834,6 +905,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Ignores non-member/owner reviews', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           nonMemberApprove,
@@ -895,6 +968,8 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Remove labels', () async {
+      totSha = 'abc';
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prOneBadReview = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
@@ -1048,6 +1123,7 @@ class PullRequestHelper {
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
+    this.lastCommitMessage = '',
     this.dateTime,
     this.labels = const <dynamic>[],
   }) : _count = _counter++;
@@ -1065,6 +1141,7 @@ class PullRequestHelper {
   final String lastCommitHash;
   List<StatusHelper>? lastCommitStatuses;
   List<CheckRunHelper>? lastCommitCheckRuns;
+  final String? lastCommitMessage;
   final DateTime? dateTime;
   List<dynamic> labels;
 
@@ -1095,6 +1172,7 @@ class PullRequestHelper {
             'commit': <String, dynamic>{
               'oid': lastCommitHash,
               'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
+              'message': lastCommitMessage,
               'status': <String, dynamic>{
                 'contexts': lastCommitStatuses != null
                     ? lastCommitStatuses!.map((StatusHelper status) {
