@@ -46,6 +46,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     log.fine(buildPushMessage.userData);
+    // Example user data:
+    // {
+    //   "task_key": "key123",
+    // }
     final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     final String? taskKey = userData['task_key'] as String?;
     if (taskKey == null) {

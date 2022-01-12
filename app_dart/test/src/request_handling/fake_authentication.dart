@@ -93,7 +93,7 @@ class FakeClientContext implements ClientContext {
 
 class FakeAppEngineContext implements AppEngineContext {
   @override
-  late String applicationID = 'flutter-dashboard';
+  String applicationID = 'flutter-dashboard';
 
   @override
   late String fullQualifiedApplicationId;
@@ -111,7 +111,7 @@ class FakeAppEngineContext implements AppEngineContext {
   late String module;
 
   @override
-  late String partition = '[default]';
+  String partition = '[default]';
 
   @override
   late String version;
