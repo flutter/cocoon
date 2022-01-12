@@ -42,14 +42,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                   # flutter-dashboard checks.
                   checkSuites(last:1, filterBy: { appId: 64368 } ) {
                     nodes {
-                      checkRuns(first:100) {
-                        nodes {
-                          name
-                          status
-                          conclusion
-                          detailsUrl
-                        }
-                      }
+                      conclusion
                     }
                   }
                 }
@@ -62,11 +55,6 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                 }
                 authorAssociation
                 state
-              }
-            }
-            labels(first: 100) {
-              nodes {
-                name
               }
             }
           }
