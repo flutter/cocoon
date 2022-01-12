@@ -32,9 +32,10 @@ import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
-const String singleCiYaml = '''
+const String singleCiYaml = r'''
 enabled_branches:
   - master
+  - flutter-\d+\.\d+-candidate\.\d+
 targets:
   - name: Linux A
     scheduler: luci
@@ -42,6 +43,9 @@ targets:
     enabled_branches:
       - stable
     scheduler: luci
+  - name: Linux runIf
+    runIf:
+      - dev/**
   - name: Google Internal Roll
     postsubmit: true
     presubmit: false
@@ -179,8 +183,8 @@ void main() {
         // Commits are expect from newest to oldest timestamps
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 2);
+        // The 2 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 2 * 3);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -201,8 +205,8 @@ void main() {
         // Commits are expect from newest to oldest timestamps
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 2);
+        // The 2 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 2 * 3);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -230,7 +234,7 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 2);
+        expect(db.values.values.whereType<Task>().length, 3);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -376,6 +380,28 @@ targets:
                 title: '.ci.yaml validation',
                 summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
             'Linux A',
+            null,
+            // Linux runIf is not run as this is for tip of tree and the files weren't affected
+          ],
+        );
+      });
+
+      test('triggers all presubmit targets on release branch pull request', () async {
+        final PullRequest releasePullRequest = generatePullRequest(
+          branch: 'flutter-1.24-candidate.1',
+        );
+        await scheduler.triggerPresubmitTargets(pullRequest: releasePullRequest);
+        expect(
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+              .captured,
+          <dynamic>[
+            'ci.yaml validation',
+            const CheckRunOutput(
+                title: '.ci.yaml validation',
+                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+            'Linux A',
+            null,
+            'Linux runIf',
             null,
           ],
         );
