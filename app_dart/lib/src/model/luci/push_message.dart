@@ -266,6 +266,8 @@ enum Result {
   canceled,
   @JsonValue('FAILURE')
   failure,
+  @JsonValue('INFRA_FAILURE')
+  infraFailure,
   @JsonValue('SUCCESS')
   success,
 }

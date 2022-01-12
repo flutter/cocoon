@@ -130,7 +130,7 @@ void main() {
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
-      expect(tester.post(handler), throwsA(isA<BadRequestException>()));
+      expect(tester.post(handler), throwsA(isA<KeyNotFoundException>()));
     });
 
     test('task name request updates when input has whitespace', () async {

@@ -15,6 +15,7 @@ export 'src/request_handlers/get_repos.dart';
 export 'src/request_handlers/get_status.dart';
 export 'src/request_handlers/github_rate_limit_status.dart';
 export 'src/request_handlers/github_webhook.dart';
+export 'src/request_handlers/postsubmit_luci_subscription.dart';
 export 'src/request_handlers/presubmit_luci_subscription.dart';
 export 'src/request_handlers/push_build_status_to_github.dart';
 export 'src/request_handlers/push_gold_status_to_github.dart';

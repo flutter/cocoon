@@ -91,6 +91,7 @@ String buildPushMessageString(String status,
     "canary_preference": "PROD",
     "created_by": "user:dnfield@google.com",
     "created_ts": "1565049186247524",
+    "completed_ts": "1565049193786090",
     "experimental": false,
     ${failureReason != null ? '"failure_reason": "$failureReason",' : ''}
     "id": "8905920700440101120",

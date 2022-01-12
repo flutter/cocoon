@@ -5,8 +5,11 @@
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../request_handling/exceptions.dart';
+import '../../service/logging.dart';
 import '../../service/luci.dart';
 import '../ci_yaml/target.dart';
+import '../luci/push_message.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -257,6 +260,27 @@ class Task extends Model<int> {
       throw ArgumentError('Invalid state: "$value"');
     }
     _status = value;
+  }
+
+  /// Update [Task] related fields based on LUCI's [BuildPushMessage].
+  String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
+    if (pushMessage.build?.status == Status.started) {
+      return status = statusInProgress;
+    }
+    endTimestamp = pushMessage.build!.completedTimestamp?.millisecondsSinceEpoch;
+    switch (pushMessage.build!.result) {
+      case Result.success:
+        return status = statusSucceeded;
+      case Result.canceled:
+        log.warning('${pushMessage.build} was cancelled');
+        return status = statusNew;
+      case Result.infraFailure:
+        return status = statusInfraFailure;
+      case Result.failure:
+        return status = statusFailed;
+      default:
+        throw BadRequestException('${pushMessage.build!.result} is unknown');
+    }
   }
 
   /// Comparator that sorts tasks by fewest attempts first.

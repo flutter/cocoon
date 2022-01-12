@@ -12,29 +12,36 @@ import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('test-dashboard')).append<T>(type, id: id);
+Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
 
 Commit generateCommit(
   int i, {
+  String? sha,
   String branch = 'master',
 }) =>
     Commit(
-      sha: '$i',
+      sha: sha ?? '$i',
       repository: 'flutter/flutter',
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/flutter/$branch/$i',
+        'flutter/flutter/$branch/' + (sha ?? '$i'),
       ),
     );
 
-Task generateTask(int i,
-        {String status = Task.statusNew, int attempts = 1, bool isFlaky = false, String stage = 'test-stage'}) =>
+Task generateTask(
+  int i, {
+  String status = Task.statusNew,
+  int attempts = 1,
+  bool isFlaky = false,
+  String stage = 'test-stage',
+  Commit? parent,
+}) =>
     Task(
       name: 'task$i',
       status: status,
-      commitKey: generateCommit(i).key,
-      key: generateKey<int>(Task, i),
+      commitKey: parent?.key ?? generateCommit(i).key,
+      key: (parent ?? generateCommit(i)).key.append(Task, id: i),
       attempts: attempts,
       isFlaky: isFlaky,
       stageName: stage,

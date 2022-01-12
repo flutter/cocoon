@@ -82,7 +82,20 @@ class FakeDatastoreDB implements DatastoreDB {
 
   @override
   Future<List<T?>> lookup<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
-    return keys.map<T?>((Key<dynamic> key) => values[key] as T?).toList();
+    final List<T?> found = <T?>[];
+    for (Key<dynamic> key in keys) {
+      for (Model<dynamic> model in values.values) {
+        if (model.key.id == key.id) {
+          found.add(model as T?);
+        }
+      }
+
+      if (found.isEmpty) {
+        throw KeyNotFoundException(key);
+      }
+    }
+
+    return found;
   }
 
   @override
