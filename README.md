@@ -57,6 +57,8 @@ All the commands in this section assume that you are in the
 
 ### Running a local dev server
 
+**This is for legacy users who were granted old security keys. Due to overground, this is no longer supported.**
+
 ```sh
 $ export GOOGLE_CLOUD_PROJECT=flutter-dashboard-dev # or flutter-dashboard for prod data
 $ export GCLOUD_KEY=#your_secret # Required for reading/writing from Google Cloud
