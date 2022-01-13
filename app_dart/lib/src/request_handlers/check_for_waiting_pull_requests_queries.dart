@@ -48,13 +48,18 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                 }
               }
             }
-            reviews(first: 100, states: [APPROVED, CHANGES_REQUESTED]) {
+            reviews(first: 25, states: [APPROVED, CHANGES_REQUESTED]) {
               nodes {
                 author {
                   login
                 }
                 authorAssociation
                 state
+              }
+            }
+            labels(first: 25) {
+              nodes {
+                name
               }
             }
           }

@@ -264,8 +264,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       statuses ??= <Map<String, dynamic>>[];
       String? flutterDashboardCheckSuiteConclusion;
-      if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-        flutterDashboardCheckSuiteConclusion = commit['checkSuites']['nodes'].first['conclusion'] as String?;
+      if (commit['checkSuites']['nodes'] != null) {
+        flutterDashboardCheckSuiteConclusion = commit['checkSuites']['nodes']['conclusion'] as String?;
       }
       final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
@@ -352,7 +352,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
     log.info(
         'Validating name: $name, branch: $branch, flutterDashboardCheckSuiteConclusion: $flutterDashboardCheckSuiteConclusion');
-    if (flutterDashboardCheckSuiteConclusion == 'COMPLETED') {
+    if (flutterDashboardCheckSuiteConclusion != CheckRunConclusion.success.value) {
       allSuccess = false;
     }
 
@@ -526,6 +526,9 @@ class _AutoMergeQueryResult {
     for (String? author in changeRequestAuthors) {
       buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
+    }
+    if (ciSuccessful == false) {
+      buffer.writeln('- Some checks or statuses are failing. Ensure they are passing before re-applying.');
     }
     for (_FailureDetail detail in failures) {
       buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
