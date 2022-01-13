@@ -393,7 +393,6 @@ void main() {
 This pull request is not suitable for automatic merging in its current state.
 
 - Some checks or statuses are failing. Ensure they are passing before re-applying.
-- The status or check suite [Linux](https://Linux) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
           },
         ),
@@ -962,6 +961,7 @@ This pull request is not suitable for automatic merging in its current state.
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
 - This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
+- Some checks or statuses are failing. Ensure they are passing before re-applying.
 ''',
               'labelId': base64LabelId,
             },

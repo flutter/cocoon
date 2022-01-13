@@ -507,7 +507,12 @@ class _AutoMergeQueryResult {
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
+      !hasApprovedReview ||
+      changeRequestAuthors.isNotEmpty ||
+      ciSuccessful == false ||
+      failures.isNotEmpty ||
+      emptyChecks ||
+      isConflicting;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
