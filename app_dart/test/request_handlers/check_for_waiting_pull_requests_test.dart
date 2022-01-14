@@ -136,11 +136,14 @@ void main() {
           githubGraphQLClient: githubGraphQLClient,
           githubClient: mockGitHubClient);
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
+      branch = null;
+      totSha = null;
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
+      githubComparison = null;
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD~'))
