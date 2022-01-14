@@ -146,6 +146,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       ),
     );
     log.fine('Queried GitHub\'s GraphQL API.');
+    log.fine(result.data);
 
     if (result.hasException) {
       log.severe(result.exception.toString());

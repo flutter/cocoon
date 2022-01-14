@@ -292,6 +292,15 @@ void main() {
       );
     });
 
+    test('Does not merge PR with null checksuite', () async {
+      flutterRepoPRs.add(PullRequestHelper(checkSuiteConclusion: null));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
     test('Does not merge PR with in progress tests', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
