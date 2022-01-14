@@ -68,7 +68,9 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'check_run':
           final Map<String, dynamic> event = jsonDecode(stringRequest) as Map<String, dynamic>;
           final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-          await scheduler.processCheckRun(checkRunEvent);
+          if (await scheduler.processCheckRun(checkRunEvent) == false) {
+            throw InternalServerError('Failed to process $checkRunEvent');
+          }
       }
 
       return Body.empty;

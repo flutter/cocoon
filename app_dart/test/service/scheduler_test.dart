@@ -35,6 +35,7 @@ import '../src/utilities/mocks.dart';
 const String singleCiYaml = r'''
 enabled_branches:
   - master
+  - main
   - flutter-\d+\.\d+-candidate\.\d+
 targets:
   - name: Linux A
@@ -275,7 +276,37 @@ void main() {
     });
 
     group('process check run', () {
-      test('rerequested triggers triggers a luci build', () async {
+      test('rerequested ci.yaml check retriggers presubmit', () async {
+        when(mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        )).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'name': Scheduler.kCiYamlCheckName,
+            'check_suite': <String, dynamic>{'id': 2}
+          });
+        });
+        final Map<String, dynamic> checkRunEventJson = jsonDecode(checkRunString) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          Scheduler.kCiYamlCheckName,
+          output: anyNamed('output'),
+        ));
+        // Verfies Linux A was created
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
+
+      test('rerequested triggers a single luci build', () async {
         when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
@@ -287,6 +318,7 @@ void main() {
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
     });
 
@@ -375,9 +407,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            'ci.yaml validation',
+            Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-                title: '.ci.yaml validation',
+                title: Scheduler.kCiYamlCheckName,
                 summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
             'Linux A',
             null,
@@ -395,9 +427,9 @@ targets:
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
               .captured,
           <dynamic>[
-            'ci.yaml validation',
+            Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-                title: '.ci.yaml validation',
+                title: Scheduler.kCiYamlCheckName,
                 summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
             'Linux A',
             null,
