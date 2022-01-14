@@ -54,6 +54,8 @@ class QueryGithubGraphql extends ApiRequestHandler<Body> {
       ),
     );
 
+    log.info('Received result: $result');
+
     if (result.hasException) {
       log.severe(result.exception.toString());
       throw const BadRequestException('GraphQL query failed');
