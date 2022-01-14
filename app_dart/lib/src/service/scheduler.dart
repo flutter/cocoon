@@ -349,8 +349,13 @@ class Scheduler {
       sha: pullRequest.head!.sha,
     );
     final CiYaml ciYaml = await getCiYaml(commit);
-    final Iterable<Target> presubmitTargets =
-        ciYaml.presubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
+    final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where((Target target) =>
+        target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon);
+    // Release branches should run every test.
+    if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
+      return presubmitTargets.toList();
+    }
+
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
     final List<String?> files = await githubService.listFiles(pullRequest);
