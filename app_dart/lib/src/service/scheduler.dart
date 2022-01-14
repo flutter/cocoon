@@ -62,6 +62,8 @@ class Scheduler {
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
 
+  static const String kCiYamlCheckName = 'ci.yaml validation';
+
   /// Ensure [commits] exist in Cocoon.
   ///
   /// If [Commit] does not exist in Datastore:
@@ -240,8 +242,7 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   ///
-  /// Schedules a `ci.yaml validation` check to validate [SchedulerConfig] is valid
-  /// and all builds were able to be triggered.
+  /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
   Future<void> triggerPresubmitTargets({
     required github.PullRequest pullRequest,
     String reason = 'Newer commit available',
@@ -256,9 +257,9 @@ class Scheduler {
       config,
       pullRequest.base!.repo!.slug(),
       pullRequest.head!.sha!,
-      'ci.yaml validation',
+      kCiYamlCheckName,
       output: const github.CheckRunOutput(
-        title: '.ci.yaml validation',
+        title: kCiYamlCheckName,
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
@@ -289,7 +290,7 @@ class Scheduler {
         conclusion: github.CheckRunConclusion.success,
       );
     } else {
-      log.warning('Marking PR #${pullRequest.number} ci.yaml validation as failed');
+      log.warning('Marking PR #${pullRequest.number} $kCiYamlCheckName as failed');
       log.warning(exception.toString());
       // Failure when validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
@@ -299,7 +300,7 @@ class Scheduler {
         status: github.CheckRunStatus.completed,
         conclusion: github.CheckRunConclusion.failure,
         output: github.CheckRunOutput(
-          title: 'ci.yaml validation',
+          title: kCiYamlCheckName,
           summary: '.ci.yaml has failures',
           text: exception.toString(),
         ),
@@ -365,18 +366,30 @@ class Scheduler {
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
   /// generated when someone clicks the re-run button from a failed build from
   /// the Github UI.
+  ///
+  /// If the rerequested check is for [kCiYamlCheckName], all presubmit jobs are retried.
+  /// Otherwise, the specific check will be retried.
+  ///
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
-        final String? builderName = checkRunEvent.checkRun!.name;
-        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-        log.fine('BuilderName: $builderName State: $success');
+        final String? name = checkRunEvent.checkRun!.name;
+        bool success = false;
+        if (name == kCiYamlCheckName) {
+          final github.PullRequest pullRequest = checkRunEvent.checkRun!.pullRequests!.single;
+          await triggerPresubmitTargets(pullRequest: pullRequest);
+          success = true;
+        } else {
+          success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+        }
+
+        log.fine('CheckName: $name State: $success');
         return success;
     }
 
-    return false;
+    return true;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
