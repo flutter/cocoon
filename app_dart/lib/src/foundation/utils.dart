@@ -45,7 +45,10 @@ Future<String> githubFileContent(
   required HttpClientProvider httpClientProvider,
   String ref = 'master',
   Duration timeout = const Duration(seconds: 5),
-  RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+  RetryOptions retryOptions = const RetryOptions(
+    maxAttempts: 3,
+    delayFactor: Duration(seconds: 3),
+  ),
 }) async {
   final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
@@ -61,7 +64,7 @@ Future<String> githubFileContent(
   try {
     await retryOptions.retry(
       () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
-      retryIf: (Exception e) => e is HttpException,
+      retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
     await retryOptions.retry(
