@@ -1120,10 +1120,12 @@ class PullRequestHelper {
               },
               'checkSuites': <String, dynamic>{
                 'nodes': checkSuiteConclusion != null
-                    ? <String, String>{
-                        'conclusion': checkSuiteConclusion.toString(),
-                      }
-                    : <String, String>{}
+                    ? <Map<String, String>>[
+                        <String, String>{
+                          'conclusion': checkSuiteConclusion.toString(),
+                        },
+                      ]
+                    : <Map<String, String>>[],
               },
             },
           },
