@@ -53,13 +53,38 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       throw BadRequestException(e.toString());
     }
 
-    final BatchResponse response = await buildBucketClient.batch(request);
-    response.responses?.map((Response subresponse) {
-      if (subresponse.error?.code != 0) {
-        log.fine('Non-zero grpc code: $subresponse');
-      }
-    });
-
+    List<Request> requests = request.requests!;
+    int attempts = 0;
+    while (requests.isNotEmpty && attempts < config.schedulerRetries) {
+      requests = await _sendRequest(BatchRequest(requests: requests));
+      attempts += 1;
+    }
+    if (requests.isNotEmpty) {
+      log.warning('Failed to send BatchRequest');
+      log.warning(requests);
+    }
     return Body.empty;
+  }
+
+  /// Internal wrapper around [BuildBucketClient.batch] to make it easily retryable.
+  ///
+  /// Returns [List<Request>] that exited with non-zero error codes or empty errors.
+  Future<List<Request>> _sendRequest(BatchRequest batchRequest) async {
+    log.fine('Sending BatchRequest');
+    log.fine(batchRequest);
+    final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
+
+    final List<Request> failedRequests = <Request>[];
+    for (Response response in batchResponse.responses!) {
+      if (response.error != null && response.error?.code != 0) {
+        log.info('BatchResponse error: ${response.error}, code=${response.error?.code}');
+        if (response.scheduleBuild?.builderId.builder != null) {
+          final Request failedRequest = batchRequest.requests!.singleWhere((Request request) =>
+              request.scheduleBuild?.builderId.builder == response.scheduleBuild?.builderId.builder);
+          failedRequests.add(failedRequest);
+        }
+      }
+    }
+    return failedRequests;
   }
 }
