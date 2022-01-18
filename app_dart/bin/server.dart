@@ -109,6 +109,12 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+      '/api/scheduler/requests': SchedulerRequest(
+        cache,
+        config,
+        authProvider,
+        buildBucketClient: buildBucketClient,
+      ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
         config,
         authProvider,
