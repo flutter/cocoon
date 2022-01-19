@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
@@ -147,7 +146,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       ),
     );
     log.fine('Queried GitHub\'s GraphQL API.');
-    log.fine(jsonEncode(result.data));
+    log.fine(result.data);
 
     if (result.hasException) {
       log.severe(result.exception.toString());
@@ -266,13 +265,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       statuses ??= <Map<String, dynamic>>[];
       String? flutterDashboardCheckSuiteConclusion;
-      final List<Map<String, dynamic>>? checkSuites = commit['checkSuites']['nodes'] as List<Map<String, dynamic>>?;
-      if (checkSuites != null) {
-        if (checkSuites.length == 1) {
-          flutterDashboardCheckSuiteConclusion = checkSuites.single['conclusion'] as String?;
-        } else {
-          log.severe('$checkSuites does not contain a single checksuite');
-        }
+      if (commit['checkSuites']['nodes'] != null) {
+        flutterDashboardCheckSuiteConclusion = commit['checkSuites']['nodes']['conclusion'] as String?;
       }
       final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
