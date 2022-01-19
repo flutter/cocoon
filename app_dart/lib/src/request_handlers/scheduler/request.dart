@@ -19,30 +19,28 @@ import '../../service/logging.dart';
 ///
 /// This endpoint allows Cocoon to defer BuildBucket requests off the main request loop. This is critical when new
 /// commits are pushed, and they can schedule 100+ builds at once.
-/// 
+///
 /// This endpoint takes in a POST request with the JSON of a [BatchRequest]. In practice, the
 /// [BatchRequest] should contain a single request.
 @immutable
 class SchedulerRequest extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
-  const SchedulerRequest(
-    this.cache,
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  const SchedulerRequest({
+    required CacheService cache,
+    required Config config,
+    required AuthenticationProvider authProvider,
     required this.buildBucketClient,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(
+          cache: cache,
+          config: config,
+          authenticationProvider: authProvider,
+          topicName: 'scheduler-requests',
+        );
 
   final BuildBucketClient buildBucketClient;
-  final CacheService cache;
-
-  static const String topicName = 'scheduler-requests';
 
   @override
   Future<Body> post() async {
-    // Store id in [Cache].
-    final String messageId = (await message)!.messageId!;
-    final Uint8List? messageEntry = await cache.getOrCreate(topicName, messageId);
-    
     final String rawJson = (await message)!.data!;
     final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
     final BatchRequest request = BatchRequest.fromJson(json);

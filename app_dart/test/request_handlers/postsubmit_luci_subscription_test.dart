@@ -31,6 +31,7 @@ void main() {
   setUp(() async {
     config = FakeConfig();
     handler = PostsubmitLuciSubscription(
+      CacheService(inMemory: true),
       config,
       FakeAuthenticationProvider(
         clientContext: clientContext,

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
@@ -85,11 +86,14 @@ void main() {
 }
 
 /// Test stub of [SubscriptionHandler] to validate unauthenticated requests.
+// ignore: must_be_immutable
 class UnauthTest extends SubscriptionHandler {
   UnauthTest()
       : super(
+          cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authenticationProvider: FakeAuthenticationProvider(authenticated: false),
+          topicName: 'test',
         );
 
   @override
@@ -97,11 +101,14 @@ class UnauthTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate authenticated requests.
+// ignore: must_be_immutable
 class AuthTest extends SubscriptionHandler {
   AuthTest()
       : super(
+          cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authenticationProvider: FakeAuthenticationProvider(),
+          topicName: 'test',
         );
 
   @override
@@ -109,11 +116,14 @@ class AuthTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
+// ignore: must_be_immutable
 class ReadMessageTest extends SubscriptionHandler {
   ReadMessageTest()
       : super(
+          cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authenticationProvider: FakeAuthenticationProvider(),
+          topicName: 'test',
         );
 
   @override

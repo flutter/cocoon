@@ -15,6 +15,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
+import '../service/cache_service.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
@@ -29,10 +30,16 @@ import '../service/logging.dart';
 class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PostsubmitLuciSubscription(
+    CacheService cache,
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(
+          cache: cache,
+          config: config,
+          authenticationProvider: authenticationProvider,
+          topicName: 'luci-postsubmit',
+        );
 
   final DatastoreServiceProvider datastoreProvider;
 
