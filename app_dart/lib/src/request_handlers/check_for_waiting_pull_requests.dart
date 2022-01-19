@@ -132,8 +132,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ) async {
     final String labelName = config.waitingForTreeToGoGreenLabelName;
 
-    log.fine('Querying GitHub\'s GraphQL API...');
-    // GitHub's GraphQL has a timeout of 10 seconds.
     final QueryResult result = await client.query(
       QueryOptions(
         document: labeledPullRequestsWithReviewsQuery,
@@ -145,8 +143,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         },
       ),
     );
-    log.fine('Queried GitHub\'s GraphQL API.');
-    log.fine(result.data);
 
     if (result.hasException) {
       log.severe(result.exception.toString());
@@ -264,17 +260,19 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         statuses = (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
       statuses ??= <Map<String, dynamic>>[];
-      String? flutterDashboardCheckSuiteConclusion;
-      if (commit['checkSuites']['nodes'] != null) {
-        flutterDashboardCheckSuiteConclusion = commit['checkSuites']['nodes']['conclusion'] as String?;
+      List<Map<String, dynamic>>? checkRuns;
+      if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
+        checkRuns =
+            (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
+      checkRuns ??= <Map<String, dynamic>>[];
       final Set<_FailureDetail> failures = <_FailureDetail>{};
       final bool ciSuccessful = await _checkStatuses(
         slug,
         sha,
         failures,
         statuses,
-        flutterDashboardCheckSuiteConclusion,
+        checkRuns,
         name,
         'pull/$number',
         labels,
@@ -290,7 +288,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           title: title,
           sha: sha,
           labelId: labelId!,
-          emptyChecks: flutterDashboardCheckSuiteConclusion == null,
+          emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
           labels: labels));
@@ -306,7 +304,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     String sha,
     Set<_FailureDetail> failures,
     List<Map<String, dynamic>> statuses,
-    String? flutterDashboardCheckSuiteConclusion,
+    List<Map<String, dynamic>> checkRuns,
     String name,
     String branch,
     List<String> labels,
@@ -351,9 +349,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         }
       }
     }
-    log.info(
-        'Validating name: $name, branch: $branch, flutterDashboardCheckSuiteConclusion: $flutterDashboardCheckSuiteConclusion');
-    if (flutterDashboardCheckSuiteConclusion != CheckRunConclusion.success.value) {
+    log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
+    for (Map<String, dynamic> checkRun in checkRuns) {
+      final String? name = checkRun['name'] as String?;
+      if (checkRun['conclusion'] == 'SUCCESS') {
+        continue;
+      } else if (checkRun['status'] == 'COMPLETED') {
+        failures.add(_FailureDetail(name!, checkRun['detailsUrl'] as String));
+      }
       allSuccess = false;
     }
 
@@ -508,12 +511,7 @@ class _AutoMergeQueryResult {
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview ||
-      changeRequestAuthors.isNotEmpty ||
-      ciSuccessful == false ||
-      failures.isNotEmpty ||
-      emptyChecks ||
-      isConflicting;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
@@ -532,9 +530,6 @@ class _AutoMergeQueryResult {
     for (String? author in changeRequestAuthors) {
       buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
-    }
-    if (ciSuccessful == false) {
-      buffer.writeln('- Some checks or statuses are failing. Ensure they are passing before re-applying.');
     }
     for (_FailureDetail detail in failures) {
       buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
