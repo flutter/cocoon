@@ -72,12 +72,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }) async {
     Issue? issue = builderDetail.existingIssue;
 
-    // Don't create a new issue or a new deflake PR if there is an open issue or a recent closed
-    // issue within kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
-    // down after the fix is merged.
-    if (issue != null &&
-        (issue.state != 'closed' ||
-            DateTime.now().difference(issue.closedAt!) <= const Duration(days: kGracePeriodForClosedFlake))) {
+    if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
       return;
     }
 
@@ -93,8 +88,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
     if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||
-        builderDetail.existingPullRequest != null ||
-        builderDetail.isMarkedFlaky) {
+        builderDetail.existingPullRequest != null) {
       return;
     }
     final String modifiedContent = _marksBuildFlakyInContent(
@@ -116,6 +110,24 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
           )
         ]);
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
+  }
+
+  bool _shouldNotFileIssueAndPR(_BuilderDetail builderDetail, Issue? issue) {
+    // Don't create a new issue or deflake PR if the builder has been marked as flaky.
+    if (builderDetail.isMarkedFlaky) {
+      return true;
+    }
+
+    // Don't create a new issue or deflake PR if there is an open issue or a recent closed
+    // issue within kGracePeriodForClosedFlake days. It takes time for the flaky ratio to go
+    // down after the fix is merged.
+    if (issue != null &&
+        (issue.state != 'closed' ||
+            DateTime.now().difference(issue.closedAt!) <= const Duration(days: kGracePeriodForClosedFlake))) {
+      return true;
+    }
+
+    return false;
   }
 
   bool _getIsMarkedFlaky(String builderName, YamlMap ci) {
