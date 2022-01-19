@@ -266,11 +266,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       statuses ??= <Map<String, dynamic>>[];
       String? flutterDashboardCheckSuiteConclusion;
-      final List<dynamic>? checkSuites = commit['checkSuites']['nodes'] as List<dynamic>?;
+      final List<Map<String, dynamic>>? checkSuites = commit['checkSuites']['nodes'] as List<Map<String, dynamic>>?;
       if (checkSuites != null) {
         if (checkSuites.length == 1) {
-          final Map<String, dynamic> checkSuite = checkSuites.first as Map<String, dynamic>;
-          flutterDashboardCheckSuiteConclusion = checkSuite['conclusion'] as String?;
+          flutterDashboardCheckSuiteConclusion = checkSuites.single['conclusion'] as String?;
         } else {
           log.severe('$checkSuites does not contain a single checksuite');
         }
