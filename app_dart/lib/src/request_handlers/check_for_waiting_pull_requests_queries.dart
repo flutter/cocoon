@@ -11,7 +11,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
     labels(first: 1, query: $sLabelName) {
       nodes {
         id
-        pullRequests(first: 100, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
+        pullRequests(first: 20, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
           nodes {
             author {
               login
@@ -55,7 +55,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                 }
               }
             }
-            reviews(first: 100, states: [APPROVED, CHANGES_REQUESTED]) {
+            reviews(first: 5, states: [APPROVED, CHANGES_REQUESTED]) {
               nodes {
                 author {
                   login
@@ -64,7 +64,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                 state
               }
             }
-            labels(first: 100) {
+            labels(first: 5) {
               nodes {
                 name
               }
