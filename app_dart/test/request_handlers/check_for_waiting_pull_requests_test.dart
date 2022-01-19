@@ -136,14 +136,11 @@ void main() {
           githubGraphQLClient: githubGraphQLClient,
           githubClient: mockGitHubClient);
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
-      branch = null;
-      totSha = null;
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
-      githubComparison = null;
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD~'))
@@ -295,15 +292,6 @@ void main() {
       );
     });
 
-    test('Does not merge PR with null checksuite', () async {
-      flutterRepoPRs.add(PullRequestHelper(checkSuiteConclusion: null));
-
-      await tester.get(handler);
-
-      _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
-
     test('Does not merge PR with in progress tests', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
@@ -319,12 +307,56 @@ void main() {
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
-    test('Does not merge PR with neutral check suite', () async {
+    test('Does not merge PR with in progress checks', () async {
       branch = 'pull/0';
       final PullRequestHelper prInProgress = PullRequestHelper(
-        checkSuiteConclusion: CheckRunConclusion.neutral,
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.windowsInProgress,
+        ],
       );
       flutterRepoPRs.add(prInProgress);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with queued checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prQueued = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.macQueued,
+        ],
+      );
+      flutterRepoPRs.add(prQueued);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with requested checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxRequested,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with failed status', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxRequested,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
@@ -333,6 +365,9 @@ void main() {
     test('Merges PR with failed tree status if override tree status label is provided', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
         ],
@@ -361,17 +396,37 @@ void main() {
       ];
       branch = 'pull/0';
 
-      final PullRequestHelper prRequested = PullRequestHelper(
-        checkSuiteConclusion: CheckRunConclusion.neutral,
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildSuccess,
-        ],
-        lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
-      );
+      final PullRequestHelper prRequested = PullRequestHelper(lastCommitCheckRuns: const <CheckRunHelper>[
+        CheckRunHelper.linuxCompletedRunning,
+      ], lastCommitStatuses: const <StatusHelper>[
+        StatusHelper.flutterBuildSuccess,
+      ], lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.');
       flutterRepoPRs.add(prRequested);
 
       await tester.get(handler);
 
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
+    test('Merges PR with check that is successful but still considered running', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxCompletedRunning,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
@@ -387,7 +442,10 @@ void main() {
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
-        checkSuiteConclusion: CheckRunConclusion.failure,
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedFailure,
+          CheckRunHelper.luciCompletedSuccess,
+        ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
@@ -404,7 +462,7 @@ void main() {
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
+- The status or check suite [Linux](https://Linux) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
           },
         ),
@@ -416,11 +474,12 @@ This pull request is not suitable for automatic merging in its current state.
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
-        checkSuiteConclusion: null,
+        lastCommitCheckRuns: const <CheckRunHelper>[],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
         ],
       );
+      prRequested.lastCommitCheckRuns = null;
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
@@ -433,7 +492,6 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
 - This commit has no checks. Please check that ci.yaml validation has started and there are multiple checks. If not, try uploading an empty commit.
 ''',
           },
@@ -446,7 +504,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
-        checkSuiteConclusion: null,
+        lastCommitCheckRuns: const <CheckRunHelper>[],
         lastCommitStatuses: const <StatusHelper>[],
       );
       flutterRepoPRs.add(prRequested);
@@ -461,7 +519,6 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
 - The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 - This commit has no checks. Please check that ci.yaml validation has started and there are multiple checks. If not, try uploading an empty commit.
 ''',
@@ -474,6 +531,9 @@ This pull request is not suitable for automatic merging in its current state.
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         repo: 'cocoon',
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
         lastCommitStatuses: const <StatusHelper>[],
       );
       prRequested.lastCommitStatuses = null;
@@ -491,6 +551,9 @@ This pull request is not suitable for automatic merging in its current state.
     test('Merge PR with successful status and checks', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
@@ -512,6 +575,9 @@ This pull request is not suitable for automatic merging in its current state.
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         authorAssociation: '',
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
@@ -544,6 +610,9 @@ This pull request is not suitable for automatic merging in its current state.
         reviews: <PullRequestReviewHelper>[
           const PullRequestReviewHelper(
               authorName: 'some_rando', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+        ],
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
@@ -638,7 +707,6 @@ This pull request is not suitable for automatic merging in its current state.
               'sBody': '''
 This pull request is not suitable for automatic merging in its current state.
 
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
 - The status or check suite [test1](https://cirrus-ci.com/task/1) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
             },
@@ -804,7 +872,6 @@ This pull request is not suitable for automatic merging in its current state.
             'id': prRed.id,
             'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
 - The status or check suite [other status](https://other status) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 - The status or check suite [test1](https://cirrus-ci.com/task/1) has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
@@ -973,7 +1040,6 @@ This pull request is not suitable for automatic merging in its current state.
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
 
 - This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
-- Some checks or statuses are failing. Ensure they are passing before re-applying.
 ''',
               'labelId': base64LabelId,
             },
@@ -1056,7 +1122,7 @@ class PullRequestHelper {
     ],
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
-    this.checkSuiteConclusion = CheckRunConclusion.success,
+    this.lastCommitCheckRuns = const <CheckRunHelper>[CheckRunHelper.luciCompletedSuccess],
     this.lastCommitMessage = '',
     this.dateTime,
     this.labels = const <dynamic>[],
@@ -1074,7 +1140,7 @@ class PullRequestHelper {
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   List<StatusHelper>? lastCommitStatuses;
-  CheckRunConclusion? checkSuiteConclusion;
+  List<CheckRunHelper>? lastCommitCheckRuns;
   final String? lastCommitMessage;
   final DateTime? dateTime;
   List<dynamic> labels;
@@ -1119,13 +1185,22 @@ class PullRequestHelper {
                     : <dynamic>[]
               },
               'checkSuites': <String, dynamic>{
-                'nodes': checkSuiteConclusion != null
-                    ? <Map<String, String>>[
-                        <String, String>{
-                          'conclusion': checkSuiteConclusion.toString(),
-                        },
+                'nodes': lastCommitCheckRuns != null
+                    ? <dynamic>[
+                        <String, dynamic>{
+                          'checkRuns': <String, dynamic>{
+                            'nodes': lastCommitCheckRuns!.map((CheckRunHelper status) {
+                              return <String, dynamic>{
+                                'name': status.name,
+                                'status': status.status,
+                                'conclusion': status.conclusion,
+                                'detailsUrl': 'https://${status.name}',
+                              };
+                            }).toList(),
+                          }
+                        }
                       ]
-                    : <Map<String, String>>[],
+                    : <dynamic>[]
               },
             },
           },
