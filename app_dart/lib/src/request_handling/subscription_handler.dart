@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -14,6 +15,8 @@ import '../service/logging.dart';
 import 'api_request_handler.dart';
 import 'authentication.dart';
 import 'body.dart';
+import 'exceptions.dart';
+import 'request_handler.dart';
 
 /// An [ApiRequestHandler] that handles PubSub subscription messages.
 ///
@@ -21,59 +24,110 @@ import 'body.dart';
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
 ///  * Request body is passed following the format of [PushMessageEnvelope].
-///
-/// Messages are idempotent, and guranteed to be run only once by Cocoon.
-// ignore: must_be_immutable
-abstract class SubscriptionHandler extends ApiRequestHandler<Body> {
+@immutable
+abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// Creates a new [SubscriptionHandler].
-  SubscriptionHandler({
-    required this.topicName,
+  const SubscriptionHandler({
     required this.cache,
     required Config config,
-    required AuthenticationProvider authenticationProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+    required this.authProvider,
+    required this.topicName,
+  }) : super(
+          config: config,
+        );
 
   final CacheService cache;
 
-  /// Unique identifier in the Google Cloud project.
-  ///
-  /// This is used for ensuring messages are idempotent.
-  final String topicName;
+  /// Service responsible for authenticating this [HttpRequest].
+  final AuthenticationProvider authProvider;
 
-  /// Pubsub message from [requestBody].
-  PushMessage get message => _message!;
-  PushMessage? _message;
+  final String topicName;
 
   @override
   Future<void> service(HttpRequest request) async {
-    final Uint8List requestBody = Uint8List.fromList(await request.expand<int>((List<int> chunk) => chunk).toList());
-    final String requestString = String.fromCharCodes(requestBody);
-    log.fine(requestString);
-    final PushMessageEnvelope envelope =
-        PushMessageEnvelope.fromJson(json.decode(requestString) as Map<String, dynamic>);
-    _message = envelope.message;
-    final String messageId = message.messageId!;
-    final Uint8List? messageEntry = await cache.getOrCreate(topicName, messageId);
-    if (messageEntry != null) {
-      log.info('Skipping $messageId as it has already been processed');
+    AuthenticatedContext authContext;
+    try {
+      authContext = await authProvider.authenticate(request);
+    } on Unauthenticated catch (error) {
+      final HttpResponse response = request.response;
+      response
+        ..statusCode = HttpStatus.unauthorized
+        ..write(error.message);
+      await response.flush();
+      await response.close();
       return;
     }
 
-    final Uint8List trueByte = Uint8List.fromList(<int>[true as int]);
+    List<int> body;
+    try {
+      body = await request.expand<int>((List<int> chunk) => chunk).toList();
+    } catch (error) {
+      final HttpResponse response = request.response;
+      response
+        ..statusCode = HttpStatus.internalServerError
+        ..write('$error');
+      await response.flush();
+      await response.close();
+      return;
+    }
+
+    PushMessageEnvelope? envelope;
+    if (body.isNotEmpty) {
+      try {
+        final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+        envelope = PushMessageEnvelope.fromJson(json);
+      } catch (error) {
+        final HttpResponse response = request.response;
+        response
+          ..statusCode = HttpStatus.internalServerError
+          ..write('$error');
+        await response.flush();
+        await response.close();
+        return;
+      }
+    }
+
+    if (envelope == null) {
+      throw const BadRequestException('Failed to get message');
+    }
+    log.finer(envelope.toJson());
+
+    final String messageId = envelope.message!.messageId!;
+
+    final Uint8List? messageLock = await cache.getOrCreate(topicName, messageId!);
+    if (messageLock != null) {
+      // No-op - There's already a write lock for this message
+      return;
+    }
+
+    // Create a write lock in the cache to ensure requests are only processed once
+    final Uint8List lockValue = Uint8List.fromList('l'.codeUnits);
     await cache.set(
       topicName,
       messageId,
-      trueByte,
-      ttl: const Duration(days: 10),
+      lockValue,
+      ttl: const Duration(days: 7),
     );
-    log.fine('Marked $messageId with true');
 
-    try {
-      await super.service(request);
-    } catch (e) {
-      await cache.purge(topicName, messageId);
-      log.warning('Purged cache entry for $messageId');
-      rethrow;
-    }
+    await runZonedGuarded<Future<void>>(
+      () async {
+        await super.service(request);
+      },
+      (Object obj, StackTrace stack) {
+        // If there is a failure, clear the lock to allow it to be retried
+        cache.purge(topicName, messageId);
+      },
+      zoneValues: <RequestKey<dynamic>, Object?>{
+        PubSubKey.message: envelope.message,
+        ApiKey.authContext: authContext,
+      },
+    );
   }
+}
+
+@visibleForTesting
+class PubSubKey<T> extends RequestKey<T> {
+  const PubSubKey._(String name) : super(name);
+
+  static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
 }

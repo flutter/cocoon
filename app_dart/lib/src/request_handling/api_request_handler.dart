@@ -35,8 +35,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     this.requestBodyValue,
   }) : super(config: config);
 
-  /// The object responsible for authenticating requests, guaranteed to be
-  /// non-null.
+  /// Service responsible for authenticating this [HttpRequest].
   final AuthenticationProvider authenticationProvider;
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
@@ -155,7 +154,6 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   }
 }
 
-@visibleForTesting
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(String name) : super(name);
 

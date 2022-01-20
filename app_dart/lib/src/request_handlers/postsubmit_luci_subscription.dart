@@ -32,12 +32,12 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   const PostsubmitLuciSubscription(
     CacheService cache,
     Config config,
-    AuthenticationProvider authenticationProvider, {
+    AuthenticationProvider authProvider, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(
           cache: cache,
           config: config,
-          authenticationProvider: authenticationProvider,
+          authProvider: authProvider,
           topicName: 'luci-postsubmit',
         );
 
@@ -45,11 +45,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    final ClientContext clientContext = authContext!.clientContext;
+    final ClientContext clientContext = authContext.clientContext;
     final DatastoreService datastore = datastoreProvider(config.db);
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
 
-    final String data = (await message)!.data!;
+    final String data = message.data!;
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     log.fine(buildPushMessage.userData);
