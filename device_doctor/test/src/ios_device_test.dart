@@ -195,6 +195,79 @@ void main() {
       expect(healthCheckResult.name, kDevicePairCheckKey);
       expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
     });
+
+    group('IosDeviceDiscovery - health checks', () {
+      Process lsProcess;
+      Process securityProcess;
+      List<List<int>> lsOutput;
+      List<List<int>> securityOutput;
+      test('Device provisioning profile check - success', () async {
+        String fileName = 'abcdefg';
+        lsOutput = <List<int>>[utf8.encode(fileName)];
+        lsProcess = FakeProcess(0, out: lsOutput);
+
+        String deviceID = 'deviceId';
+        String profileContent = '''<array>
+        <string>test1</string>
+        <string>$deviceID</string>
+        <string>test2</string>
+        </array>
+        ''';
+        securityOutput = <List<int>>[utf8.encode(profileContent)];
+        securityProcess = FakeProcess(0, out: securityOutput);
+
+        final String homeDir = Platform.environment['HOME'];
+        when(processManager.start(<dynamic>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(lsProcess));
+        when(processManager.start(<dynamic>[
+          'security',
+          'cms',
+          '-D',
+          '-i',
+          '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'
+        ], workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(securityProcess));
+
+        HealthCheckResult healthCheckResult =
+            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        expect(healthCheckResult.succeeded, true);
+        expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
+      });
+
+      test('Device provisioning profile check - deviceId does not exist', () async {
+        String fileName = 'abcdefg';
+        lsOutput = <List<int>>[utf8.encode(fileName)];
+        lsProcess = FakeProcess(0, out: lsOutput);
+
+        String deviceID = 'deviceId';
+        String profileContent = '''<array>
+        <string>test1</string>
+        <string>test2</string>
+        </array>
+        ''';
+        securityOutput = <List<int>>[utf8.encode(profileContent)];
+        securityProcess = FakeProcess(0, out: securityOutput);
+
+        final String homeDir = Platform.environment['HOME'];
+        when(processManager.start(<dynamic>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(lsProcess));
+        when(processManager.start(<dynamic>[
+          'security',
+          'cms',
+          '-D',
+          '-i',
+          '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'
+        ], workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(securityProcess));
+
+        HealthCheckResult healthCheckResult =
+            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        expect(healthCheckResult.succeeded, false);
+        expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
+      });
+    });
   });
 
   group('IosDevice recovery checks', () {
