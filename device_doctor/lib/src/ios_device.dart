@@ -55,8 +55,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(await keychainUnlockCheck(processManager: processManager));
       checks.add(await certCheck(processManager: processManager));
       checks.add(await devicePairCheck(processManager: processManager));
-      checks.add(await deviceProvisioningProfileCheck(device.deviceId, processManager: processManager));
       checks.add(await userAutoLoginCheck(processManager: processManager));
+      checks.add(await deviceProvisioningProfileCheck(device.deviceId, processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);

@@ -53,7 +53,7 @@ void main() {
       Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices(processManager: processManager);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg'].length, 5);
+      expect(results['ios-device-abcdefg'].length, 6);
       expect(results['ios-device-abcdefg'][0].name, kDeviceAccessCheckKey);
       expect(results['ios-device-abcdefg'][0].succeeded, true);
       expect(results['ios-device-abcdefg'][1].name, kKeychainUnlockCheckKey);
@@ -64,6 +64,8 @@ void main() {
       expect(results['ios-device-abcdefg'][3].succeeded, false);
       expect(results['ios-device-abcdefg'][4].name, kUserAutoLoginCheckKey);
       expect(results['ios-device-abcdefg'][4].succeeded, false);
+      expect(results['ios-device-abcdefg'][5].name, kDeviceProvisioningProfileCheckKey);
+      expect(results['ios-device-abcdefg'][5].succeeded, false);
     });
   });
 
