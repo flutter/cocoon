@@ -266,6 +266,7 @@ void main() {
             await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
+        expect(healthCheckResult.details, 'device does not exist in the provisioning profile');
       });
     });
   });

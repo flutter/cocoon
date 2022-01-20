@@ -78,7 +78,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> deviceProvisioningProfileCheck(String deviceID, {ProcessManager processManager}) async {
+  Future<HealthCheckResult> deviceProvisioningProfileCheck(String deviceId, {ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String homeDir = Platform.environment['HOME'];
@@ -87,7 +87,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       final String provisionFileContent = await eval(
           'security', <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
           processManager: processManager);
-      if (provisionFileContent.contains(deviceID)) {
+      if (provisionFileContent.contains(deviceId)) {
         healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(
