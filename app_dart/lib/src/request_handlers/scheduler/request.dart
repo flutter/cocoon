@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
@@ -33,7 +32,7 @@ class SchedulerRequest extends SubscriptionHandler {
   }) : super(
           cache: cache,
           config: config,
-          authenticationProvider: authProvider,
+          authProvider: authProvider,
           topicName: 'scheduler-requests',
         );
 
@@ -41,7 +40,7 @@ class SchedulerRequest extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    final String rawJson = (await message)!.data!;
+    final String rawJson = message.data!;
     final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
     final BatchRequest request = BatchRequest.fromJson(json);
     final BatchResponse response = await buildBucketClient.batch(request);

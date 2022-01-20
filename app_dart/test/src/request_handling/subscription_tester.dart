@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
@@ -18,12 +19,12 @@ class SubscriptionTester extends RequestHandlerTester {
   SubscriptionTester({
     FakeHttpRequest? request,
     FakeAuthenticatedContext? context,
-    this.message = '{}',
+    this.message = const PushMessage(),
   })  : context = context ?? FakeAuthenticatedContext(),
         super(request: request);
 
   FakeAuthenticatedContext context;
-  String message;
+  PushMessage message;
 
   @override
   @protected
@@ -33,7 +34,7 @@ class SubscriptionTester extends RequestHandlerTester {
         return callback();
       }, zoneValues: <RequestKey<dynamic>, Object>{
         ApiKey.authContext: context,
-        ApiKey.requestBody: Uint8List.fromList(message.codeUnits),
+        PubSubKey.message: message,
       });
     });
   }

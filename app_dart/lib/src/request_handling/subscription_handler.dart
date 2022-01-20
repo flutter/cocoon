@@ -41,7 +41,19 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// Service responsible for authenticating this [HttpRequest].
   final AuthenticationProvider authProvider;
 
+  /// Unique identifier of the PubSub in this cloud project.
   final String topicName;
+
+  /// The authentication context associated with the HTTP request.
+  ///
+  /// This is guaranteed to be non-null. If the request was unauthenticated,
+  /// the request will be denied.
+  @protected
+  AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext)!;
+
+  /// The [PushMessage] from this [HttpRequest].
+  @protected
+  PushMessage get message => getValue<PushMessage>(PubSubKey.message)!;
 
   @override
   Future<void> service(HttpRequest request) async {
@@ -94,9 +106,14 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
     final String messageId = envelope.message!.messageId!;
 
-    final Uint8List? messageLock = await cache.getOrCreate(topicName, messageId!);
+    final Uint8List? messageLock = await cache.getOrCreate(topicName, messageId);
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
+      final HttpResponse response = request.response
+        ..statusCode = HttpStatus.ok
+        ..write('$messageId was already processed');
+      await response.flush();
+      await response.close();
       return;
     }
 
@@ -110,9 +127,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     );
 
     await runZonedGuarded<Future<void>>(
-      () async {
-        await super.service(request);
-      },
+      () async => await super.service(request),
       (Object obj, StackTrace stack) {
         // If there is a failure, clear the lock to allow it to be retried
         cache.purge(topicName, messageId);

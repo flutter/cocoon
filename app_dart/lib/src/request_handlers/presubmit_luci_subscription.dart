@@ -36,14 +36,14 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   const PresubmitLuciSubscription(
     CacheService cache,
     Config config,
-    AuthenticationProvider authenticationProvider,
+    AuthenticationProvider authProvider,
     this.buildBucketClient,
     this.luciBuildService,
     this.githubChecksService,
   ) : super(
           cache: cache,
           config: config,
-          authenticationProvider: authenticationProvider,
+          authProvider: authProvider,
           topicName: 'github-updater',
         );
 
@@ -54,7 +54,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     RepositorySlug slug;
-    final String data = (await message)!.data!;
+    final String data = message.data!;
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     final Build build = buildPushMessage.build!;
