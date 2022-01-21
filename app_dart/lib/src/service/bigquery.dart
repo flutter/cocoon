@@ -77,7 +77,7 @@ group by builder_name;
 // Returns builds in the past 30 days to exclude obsolete historical data.
 const String getRecordsQuery = r'''
 select sha, is_flaky, failure_count from `flutter-dashboard.datasite.luci_staging_build_status`
-where builder_name=@BUILDER_NAME and TIMESTAMP_DIFF(time,current_timestamp,day)<30
+where builder_name=@BUILDER_NAME and date>=date_sub(current_date(), interval 30 day)
 order by time desc
 limit @LIMIT
 ''';

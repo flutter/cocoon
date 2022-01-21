@@ -153,6 +153,13 @@ final List<BuilderRecord> semanticsIntegrationTestRecordsFailed = <BuilderRecord
   BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
 ];
 
+const String expectedSemanticsIntegrationTestOwner = 'HansMuller';
+const List<String> expectedSemanticsIntegrationTestLabels = <String>[
+  'team: flakes',
+  'severe: flake',
+  'P1',
+  'framework',
+];
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
 
@@ -207,6 +214,19 @@ const String expectedSemanticsIntegrationTestPullRequestBodyNoIssue = '''
 The test has been passing for [8 consecutive runs](https://data.corp.google.com/sites/flutter_infra_metrics_datasite/flutter_check_test_flakiness_status_dashboard/?p=BUILDER_NAME:%22Mac_android%20android_semantics_integration_test%22).
 This test can be marked as unflaky.
 ''';
+
+final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
+  BuilderStatistic(
+    name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
+  )
+];
 
 String gitHubEncode(String source) {
   final List<int> utf8Characters = utf8.encode(source);

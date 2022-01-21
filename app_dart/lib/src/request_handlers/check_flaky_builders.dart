@@ -30,8 +30,8 @@ import 'flaky_handler_utils.dart';
 /// If all the conditions are true, this handler will file a pull request to
 /// make the builder unflaky.
 @immutable
-class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
-  const DeflakeFlakyBuilders(Config config, AuthenticationProvider authenticationProvider)
+class CheckFlakyBuilders extends ApiRequestHandler<Body> {
+  const CheckFlakyBuilders(Config config, AuthenticationProvider authenticationProvider)
       : super(config: config, authenticationProvider: authenticationProvider);
 
   static int kRecordNumber = 50;
@@ -52,18 +52,41 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
     final List<_BuilderInfo> eligibleBuilders = await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent);
-    String? testOwnerContent;
+    final List<BuilderStatistic> stagingBuilderStatisticList =
+        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
+    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     for (final _BuilderInfo info in eligibleBuilders) {
+      final BuilderType type = getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap);
+      final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
       if (_shouldDeflake(builderRecords)) {
-        testOwnerContent ??= await gitHub.getFileContent(slug, kTestOwnerPath);
-        await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnerContent: testOwnerContent);
+        await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnership: testOwnership);
+      } else if (_shouldFileIssue(builderRecords, info)) {
+        final BuilderDetail builderDetail = BuilderDetail(
+          statistic: stagingBuilderStatisticList
+              .where((BuilderStatistic builderStatistic) => builderStatistic.name == info.name)
+              .single,
+          existingIssue: null,
+          existingPullRequest: null,
+          isMarkedFlaky: true,
+          type: type,
+          ownership: testOwnership,
+        );
+        await fileFlakyIssue(builderDetail: builderDetail, gitHub: gitHub, slug: slug, bringup: true);
       }
     }
     return Body.forJson(const <String, dynamic>{
       'Status': 'success',
     });
+  }
+
+  /// A new issue should be filed for staging builders if
+  ///   1) there is any flake in recent runs
+  ///   2) there is no open flaky bug tracking the flake
+  bool _shouldFileIssue(List<BuilderRecord> builderRecords, _BuilderInfo info) {
+    final bool noExistingOpenIssue = info.existingIssue == null || info.existingIssue != null && info.existingIssue!.isClosed;
+    return builderRecords.any((BuilderRecord record) => record.isFlaky) && noExistingOpenIssue;
   }
 
   /// A builder should be deflaked if satisfying three conditions.
@@ -126,16 +149,12 @@ class DeflakeFlakyBuilders extends ApiRequestHandler<Body> {
     RepositorySlug slug, {
     required _BuilderInfo info,
     required String ciContent,
-    required String testOwnerContent,
+    required TestOwnership testOwnership,
   }) async {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final DeflakePullRequestBuilder prBuilder = DeflakePullRequestBuilder(
-        name: info.name,
-        recordNumber: kRecordNumber,
-        ownership: getTestOwnership(
-            info.name!, getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap), testOwnerContent),
-        issue: info.existingIssue);
+        name: info.name, recordNumber: kRecordNumber, ownership: testOwnership, issue: info.existingIssue);
     final PullRequest pullRequest = await gitHub.createPullRequest(
       slug,
       title: prBuilder.pullRequestTitle,
