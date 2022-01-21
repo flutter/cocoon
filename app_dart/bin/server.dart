@@ -59,7 +59,7 @@ Future<void> main() async {
       ///
       /// Response: Status 200 OK
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
-      '/api/deflake_flaky_builders': DeflakeFlakyBuilders(config, authProvider),
+      '/api/check_flaky_builders': CheckFlakyBuilders(config, authProvider),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,

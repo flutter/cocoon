@@ -8,6 +8,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:collection/src/equality.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -18,7 +19,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/utilities/mocks.dart';
 
-import 'deflake_flaky_builders_test_data.dart';
+import 'check_flaky_builders_test_data.dart';
 
 const String kThreshold = '0.02';
 const String kCurrentMasterSHA = 'b6156fc8d1c6e992fe4ea0b9128f9aef10443bdb';
@@ -28,7 +29,7 @@ const String kCurrentUserEmail = 'login@email.com';
 
 void main() {
   group('Deflake', () {
-    late DeflakeFlakyBuilders handler;
+    late CheckFlakyBuilders handler;
     late ApiRequestHandlerTester tester;
     FakeHttpRequest request;
     late FakeConfig config;
@@ -97,7 +98,7 @@ void main() {
       );
       tester = ApiRequestHandlerTester(request: request);
 
-      handler = DeflakeFlakyBuilders(
+      handler = CheckFlakyBuilders(
         config,
         auth,
       );
@@ -131,7 +132,7 @@ void main() {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -144,7 +145,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
@@ -230,7 +231,7 @@ void main() {
         return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -243,7 +244,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
       // Verify it does not get issue.
       verifyNever(mockIssuesService.get(captureAny, captureAny));
@@ -303,7 +304,7 @@ void main() {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
       });
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -326,7 +327,7 @@ void main() {
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(state: 'open', htmlUrl: existingIssueURL));
       });
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -344,7 +345,7 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Do not create pr if the records have flaky runs', () async {
+    test('Do not create pr but do create issue if the records have flaky runs and there is no open issue', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
               builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
@@ -353,10 +354,19 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(
+          state: 'closed',
+          htmlUrl: existingIssueURL,
+          closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
+        ));
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFlaky.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -369,7 +379,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
@@ -379,6 +389,15 @@ void main() {
 
       // Verify pr is not created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      // Verify issue is created correctly.
+      captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      expect(captured.length, 2);
+      expect(captured[0].toString(), Config.flutterSlug.toString());
+      expect(captured[1], isA<IssueRequest>());
+      final IssueRequest issueRequest = captured[1] as IssueRequest;
+      expect(issueRequest.assignee, expectedSemanticsIntegrationTestOwner);
+      expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestLabels), isTrue);
 
       expect(result['Status'], 'success');
     });
@@ -395,7 +414,7 @@ void main() {
         return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -408,7 +427,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
@@ -438,7 +457,7 @@ void main() {
         return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -462,7 +481,7 @@ void main() {
         return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
       });
 
-      DeflakeFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
@@ -475,7 +494,7 @@ void main() {
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, DeflakeFlakyBuilders.kRecordNumber);
+      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
       // Verify it gets the correct issue.
       captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;

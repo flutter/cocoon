@@ -29,8 +29,6 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   static const String kThresholdKey = 'threshold';
 
-  static const int kGracePeriodForClosedFlake = 15; // days
-
   @override
   Future<Body> get() async {
     final RepositorySlug slug = Config.flutterSlug;
@@ -49,7 +47,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       await _fileIssueAndPR(
         gitHub,
         slug,
-        builderDetail: _BuilderDetail(
+        builderDetail: BuilderDetail(
             statistic: statistic,
             existingIssue: nameToExistingIssue[statistic.name],
             existingPullRequest: nameToExistingPR[statistic.name],
@@ -68,23 +66,14 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   Future<void> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
-    required _BuilderDetail builderDetail,
+    required BuilderDetail builderDetail,
   }) async {
     Issue? issue = builderDetail.existingIssue;
 
     if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
       return;
     }
-
-    final IssueBuilder issueBuilder =
-        IssueBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, threshold: _threshold);
-    issue = await gitHub.createIssue(
-      slug,
-      title: issueBuilder.issueTitle,
-      body: issueBuilder.issueBody,
-      labels: issueBuilder.issueLabels,
-      assignee: issueBuilder.issueAssignee,
-    );
+    issue = await fileFlakyIssue(builderDetail: builderDetail, gitHub: gitHub, slug: slug, threshold: _threshold);
 
     if (builderDetail.type == BuilderType.shard ||
         builderDetail.type == BuilderType.unknown ||
@@ -112,7 +101,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
   }
 
-  bool _shouldNotFileIssueAndPR(_BuilderDetail builderDetail, Issue? issue) {
+  bool _shouldNotFileIssueAndPR(BuilderDetail builderDetail, Issue? issue) {
     // Don't create a new issue or deflake PR using prod builds statuses if the builder has been marked as flaky.
     // If the builder is `bringup: true`, but still hit flakes, a new bug will be filed in `/api/check_flaky_builders`
     // based on staging builds statuses.
@@ -160,21 +149,4 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   Future<RepositorySlug> getSlugFor(GitHub client, String repository) async {
     return RepositorySlug((await client.users.getCurrentUser()).login!, repository);
   }
-}
-
-class _BuilderDetail {
-  const _BuilderDetail({
-    required this.statistic,
-    required this.existingIssue,
-    required this.existingPullRequest,
-    required this.isMarkedFlaky,
-    required this.ownership,
-    required this.type,
-  });
-  final BuilderStatistic statistic;
-  final Issue? existingIssue;
-  final PullRequest? existingPullRequest;
-  final TestOwnership ownership;
-  final bool isMarkedFlaky;
-  final BuilderType type;
 }

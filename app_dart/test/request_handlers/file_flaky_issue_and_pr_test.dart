@@ -381,7 +381,7 @@ void main() {
             title: expectedSemanticsIntegrationTestResponseTitle,
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
-            closedAt: DateTime.now().subtract(const Duration(days: FileFlakyIssueAndPR.kGracePeriodForClosedFlake - 1)),
+            closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
           )
         ]);
       });
@@ -425,7 +425,7 @@ void main() {
             title: expectedSemanticsIntegrationTestResponseTitle,
             body: expectedSemanticsIntegrationTestResponseBody,
             state: 'closed',
-            closedAt: DateTime.now().subtract(const Duration(days: FileFlakyIssueAndPR.kGracePeriodForClosedFlake + 1)),
+            closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
           )
         ]);
       });

@@ -43,6 +43,8 @@ const String kModifyType = 'blob';
 
 const int kSuccessBuildNumberLimit = 3;
 const int kFlayRatioBuildNumberList = 10;
+const double kDefaultFlakyRatioThreshold = 0.2;
+const int kGracePeriodForClosedFlake = 15; // days
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildDashboardPrefix = 'https://flutter-dashboard.appspot.com/#/build';
@@ -57,11 +59,13 @@ class IssueBuilder {
     required this.statistic,
     required this.ownership,
     required this.threshold,
+    this.bringup = false,
   });
 
   final BuilderStatistic statistic;
   final TestOwnership ownership;
   final double threshold;
+  final bool bringup;
 
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
@@ -81,7 +85,7 @@ class IssueBuilder {
   String get issueBody {
     return '''
 ${_buildHiddenMetaTags(name: statistic.name)}
-The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past (up to) 100 commits, which is above our ${_formatRate(threshold)}% threshold.
+${_issueSummary(statistic, threshold, bringup)}
 
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
 Commit: $_commitPrefix${statistic.recentCommit}
@@ -258,6 +262,28 @@ Future<Map<String?, PullRequest>> getExistingPRs(GithubService gitHub, Repositor
     }
   }
   return nameToExistingPRs;
+}
+
+/// File a GitHub flaky issue based on builder details in recent prod/staging runs.
+Future<Issue> fileFlakyIssue({
+  required BuilderDetail builderDetail,
+  required GithubService gitHub,
+  required RepositorySlug slug,
+  double threshold = kDefaultFlakyRatioThreshold,
+  bool bringup = false,
+}) async {
+  final IssueBuilder issueBuilder = IssueBuilder(
+      statistic: builderDetail.statistic,
+      ownership: builderDetail.ownership,
+      threshold: kDefaultFlakyRatioThreshold,
+      bringup: false);
+  return await gitHub.createIssue(
+    slug,
+    title: issueBuilder.issueTitle,
+    body: issueBuilder.issueBody,
+    labels: issueBuilder.issueLabels,
+    assignee: issueBuilder.issueAssignee,
+  );
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
@@ -476,6 +502,18 @@ String _issueBuildLinks({String? builder, required List<String> builds, Bucket b
   return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n')}';
 }
 
+String _issueSummary(BuilderStatistic statistic, double threshold, bool bringup) {
+  final String summary;
+  if (bringup) {
+    summary =
+        'The post-submit test builder `${statistic.name}`, which has been marked `bringup: true`, had ${statistic.flakyNumber} flakes over past ${statistic.totalNumber} commits.';
+  } else {
+    summary =
+        'The post-submit test builder `${statistic.name}` had a flaky ratio ${_formatRate(statistic.flakyRate)}% for the past (up to) 100 commits, which is above our ${_formatRate(threshold)}% threshold.';
+  }
+  return summary;
+}
+
 String _issueBuildLink({String? builder, String? build, Bucket bucket = Bucket.prod}) {
   final String buildPrefix = bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
   return Uri.encodeFull('$buildPrefix$builder/$build');
@@ -543,4 +581,21 @@ class TestOwnership {
   );
   String? owner;
   Team? team;
+}
+
+class BuilderDetail {
+  const BuilderDetail({
+    required this.statistic,
+    required this.existingIssue,
+    required this.existingPullRequest,
+    required this.isMarkedFlaky,
+    required this.ownership,
+    required this.type,
+  });
+  final BuilderStatistic statistic;
+  final Issue? existingIssue;
+  final PullRequest? existingPullRequest;
+  final TestOwnership ownership;
+  final bool isMarkedFlaky;
+  final BuilderType type;
 }
