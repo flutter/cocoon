@@ -464,7 +464,7 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Do not create PR if the test is already flaky', () async {
+    test('Do not create an issue or PR if the test is already flaky', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
@@ -479,6 +479,8 @@ void main() {
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
           .single as Map<String, dynamic>;
+      // Verify no issue is created.
+      verifyNever(mockIssuesService.create(captureAny, captureAny));
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
