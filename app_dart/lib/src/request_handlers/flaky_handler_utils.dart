@@ -44,6 +44,7 @@ const String kModifyType = 'blob';
 const int kSuccessBuildNumberLimit = 3;
 const int kFlayRatioBuildNumberList = 10;
 const double kDefaultFlakyRatioThreshold = 0.2;
+const int kGracePeriodForClosedFlake = 15; // days
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
 const String _buildDashboardPrefix = 'https://flutter-dashboard.appspot.com/#/build';
