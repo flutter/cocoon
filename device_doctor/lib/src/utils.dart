@@ -19,6 +19,7 @@ const String kDeveloperModeCheckKey = 'developer_mode';
 const String kScreenOnCheckKey = 'screen_on';
 const String kKillAdbServerCheckKey = 'kill_adb_server';
 const String kKeychainUnlockCheckKey = 'keychain_unlock';
+const String kDeviceProvisioningProfileCheckKey = 'device_provisioning_profile';
 const String kUserAutoLoginCheckKey = 'swarming_user_auto_login';
 const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 const String kCertCheckKey = 'codesigning_cert';

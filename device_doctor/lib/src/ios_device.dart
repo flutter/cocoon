@@ -56,6 +56,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(await certCheck(processManager: processManager));
       checks.add(await devicePairCheck(processManager: processManager));
       checks.add(await userAutoLoginCheck(processManager: processManager));
+      checks.add(await deviceProvisioningProfileCheck(device.deviceId, processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -74,6 +75,28 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }
+  }
+
+  @visibleForTesting
+  Future<HealthCheckResult> deviceProvisioningProfileCheck(String deviceId, {ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String homeDir = Platform.environment['HOME'];
+      final String profile = await eval('ls', <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+          processManager: processManager);
+      final String provisionFileContent = await eval(
+          'security', <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
+          processManager: processManager);
+      if (provisionFileContent.contains(deviceId)) {
+        healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(
+            kDeviceProvisioningProfileCheckKey, 'device does not exist in the provisioning profile');
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kDeviceProvisioningProfileCheckKey, error.toString());
+    }
+    return healthCheckResult;
   }
 
   @visibleForTesting

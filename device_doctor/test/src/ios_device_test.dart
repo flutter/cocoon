@@ -53,7 +53,7 @@ void main() {
       Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices(processManager: processManager);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg'].length, 5);
+      expect(results['ios-device-abcdefg'].length, 6);
       expect(results['ios-device-abcdefg'][0].name, kDeviceAccessCheckKey);
       expect(results['ios-device-abcdefg'][0].succeeded, true);
       expect(results['ios-device-abcdefg'][1].name, kKeychainUnlockCheckKey);
@@ -64,6 +64,8 @@ void main() {
       expect(results['ios-device-abcdefg'][3].succeeded, false);
       expect(results['ios-device-abcdefg'][4].name, kUserAutoLoginCheckKey);
       expect(results['ios-device-abcdefg'][4].succeeded, false);
+      expect(results['ios-device-abcdefg'][5].name, kDeviceProvisioningProfileCheckKey);
+      expect(results['ios-device-abcdefg'][5].succeeded, false);
     });
   });
 
@@ -194,6 +196,80 @@ void main() {
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDevicePairCheckKey);
       expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
+    });
+
+    group('IosDeviceDiscovery - health checks', () {
+      Process lsProcess;
+      Process securityProcess;
+      List<List<int>> lsOutput;
+      List<List<int>> securityOutput;
+      test('Device provisioning profile check - success', () async {
+        String fileName = 'abcdefg';
+        lsOutput = <List<int>>[utf8.encode(fileName)];
+        lsProcess = FakeProcess(0, out: lsOutput);
+
+        String deviceID = 'deviceId';
+        String profileContent = '''<array>
+        <string>test1</string>
+        <string>$deviceID</string>
+        <string>test2</string>
+        </array>
+        ''';
+        securityOutput = <List<int>>[utf8.encode(profileContent)];
+        securityProcess = FakeProcess(0, out: securityOutput);
+
+        final String homeDir = Platform.environment['HOME'];
+        when(processManager.start(<dynamic>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(lsProcess));
+        when(processManager.start(<dynamic>[
+          'security',
+          'cms',
+          '-D',
+          '-i',
+          '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'
+        ], workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(securityProcess));
+
+        HealthCheckResult healthCheckResult =
+            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        expect(healthCheckResult.succeeded, true);
+        expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
+      });
+
+      test('Device provisioning profile check - deviceId does not exist', () async {
+        String fileName = 'abcdefg';
+        lsOutput = <List<int>>[utf8.encode(fileName)];
+        lsProcess = FakeProcess(0, out: lsOutput);
+
+        String deviceID = 'deviceId';
+        String profileContent = '''<array>
+        <string>test1</string>
+        <string>test2</string>
+        </array>
+        ''';
+        securityOutput = <List<int>>[utf8.encode(profileContent)];
+        securityProcess = FakeProcess(0, out: securityOutput);
+
+        final String homeDir = Platform.environment['HOME'];
+        when(processManager.start(<dynamic>['ls', '$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(lsProcess));
+        when(processManager.start(<dynamic>[
+          'security',
+          'cms',
+          '-D',
+          '-i',
+          '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$fileName'
+        ], workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(securityProcess));
+
+        HealthCheckResult healthCheckResult =
+            await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
+        expect(healthCheckResult.succeeded, false);
+        expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
+        expect(healthCheckResult.details, 'device does not exist in the provisioning profile');
+      });
     });
   });
 
