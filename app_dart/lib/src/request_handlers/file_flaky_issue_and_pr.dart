@@ -113,7 +113,9 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _shouldNotFileIssueAndPR(_BuilderDetail builderDetail, Issue? issue) {
-    // Don't create a new issue or deflake PR if the builder has been marked as flaky.
+    // Don't create a new issue or deflake PR using prod builds statuses if the builder has been marked as flaky.
+    // If the builder is `bringup: true`, but still hit flakes, a new bug will be filed in `/api/check_flaky_builders`
+    // based on staging builds statuses.
     if (builderDetail.isMarkedFlaky) {
       return true;
     }
