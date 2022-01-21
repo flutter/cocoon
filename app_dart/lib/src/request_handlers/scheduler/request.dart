@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../model/luci/buildbucket.dart';
+import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/logging.dart';
 
@@ -22,9 +23,9 @@ import '../../service/logging.dart';
 /// This endpoint takes in a POST request with the JSON of a [BatchRequest]. In practice, the
 /// [BatchRequest] should contain a single request.
 @immutable
-class SchedulerRequest extends SubscriptionHandler {
+class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
-  const SchedulerRequest({
+  const SchedulerRequestSubscription({
     required CacheService cache,
     required Config config,
     required AuthenticationProvider authProvider,
@@ -40,9 +41,16 @@ class SchedulerRequest extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    final String rawJson = message.data!;
-    final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
-    final BatchRequest request = BatchRequest.fromJson(json);
+    BatchRequest request;
+    try {
+      final String rawJson = message.data!;
+      final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
+      request = BatchRequest.fromJson(json);
+    } catch (e) {
+      log.severe(e);
+      throw BadRequestException(e.toString());
+    }
+
     final BatchResponse response = await buildBucketClient.batch(request);
     response.responses?.map((Response subresponse) {
       if (subresponse.error?.code != 0) {
