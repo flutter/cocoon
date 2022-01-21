@@ -29,8 +29,6 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   static const String kThresholdKey = 'threshold';
 
-  static const int kGracePeriodForClosedFlake = 15; // days
-
   @override
   Future<Body> get() async {
     final RepositorySlug slug = Config.flutterSlug;
@@ -103,7 +101,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
   }
 
-  bool _shouldNotFileIssueAndPR(_BuilderDetail builderDetail, Issue? issue) {
+  bool _shouldNotFileIssueAndPR(BuilderDetail builderDetail, Issue? issue) {
     // Don't create a new issue or deflake PR using prod builds statuses if the builder has been marked as flaky.
     // If the builder is `bringup: true`, but still hit flakes, a new bug will be filed in `/api/check_flaky_builders`
     // based on staging builds statuses.

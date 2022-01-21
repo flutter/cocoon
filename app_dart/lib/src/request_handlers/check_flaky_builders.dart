@@ -85,9 +85,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   ///   1) there is any flake in recent runs
   ///   2) there is no open flaky bug tracking the flake
   bool _shouldFileIssue(List<BuilderRecord> builderRecords, _BuilderInfo info) {
-    final bool noExistingOpenIssue =
-        info.existingIssue == null || info.existingIssue != null && info.existingIssue!.isClosed;
-    return builderRecords.any((BuilderRecord record) => record.isFlaky) && noExistingOpenIssue;
+    final bool noExistingOpenIssue = info.existingIssue == null ||
+        info.existingIssue != null &&
+            info.existingIssue!.isClosed &&
+            DateTime.now().difference(info.existingIssue!.closedAt!) > const Duration(days: kGracePeriodForClosedFlake);
+    return noExistingOpenIssue && builderRecords.any((BuilderRecord record) => record.isFlaky);
   }
 
   /// A builder should be deflaked if satisfying three conditions.

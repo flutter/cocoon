@@ -354,7 +354,11 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(
+          state: 'closed',
+          htmlUrl: existingIssueURL,
+          closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
+        ));
       });
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
