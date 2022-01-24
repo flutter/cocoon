@@ -56,5 +56,5 @@ cron:
   schedule: every monday 16:00
 
 - description: mark builders to be not flaky if they are no longer flaky
-  url: /api/deflake_flaky_builders
+  url: /api/check_flaky_builders
   schedule: every monday 16:00
