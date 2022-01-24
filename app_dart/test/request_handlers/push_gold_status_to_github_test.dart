@@ -373,9 +373,22 @@ void main() {
           );
           db.values[status.key] = status;
 
+          final PullRequest enginePr = newPullRequest(456, 'def', 'main');
+          enginePrsFromGitHub = <PullRequest>[enginePr];
+          final GithubGoldStatusUpdate engineStatus = newStatusUpdate(
+            engineSlug,
+            enginePr,
+            GithubGoldStatusUpdate.statusRunning,
+            'def',
+            config.flutterGoldChangesValue!,
+          );
+          db.values[engineStatus.key] = engineStatus;
+
           // Checks complete
           checkRuns = <dynamic>[
             <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
+          ];
+          engineCheckRuns = <dynamic>[
             <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
           ];
 
@@ -383,7 +396,11 @@ void main() {
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
                 'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobDigests(), HttpStatus.ok);
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            if (request.url.toString() ==
+                'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${enginePr.number}') {
+              return http.Response(tryjobDigests(enginePr), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
           });
@@ -407,6 +424,11 @@ void main() {
               IssueComment()..body = config.flutterGoldCommentID(pr),
             ),
           );
+          when(issuesService.listCommentsByIssue(engineSlug, enginePr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldCommentID(enginePr),
+            ),
+          );
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -422,11 +444,23 @@ void main() {
               kGoldenFileLabel,
             ],
           ));
+          verifyNever(issuesService.addLabelsToIssue(
+            engineSlug,
+            enginePr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
+          ));
+          verifyNever(issuesService.createComment(
+            engineSlug,
+            enginePr.number!,
+            argThat(contains(config.flutterGoldCommentID(enginePr))),
           ));
         });
 
@@ -791,7 +825,7 @@ void main() {
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
                 'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobDigests(), HttpStatus.ok);
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
           });
@@ -857,7 +891,7 @@ void main() {
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
                 'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobDigests(), HttpStatus.ok);
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
           });
@@ -921,7 +955,7 @@ void main() {
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
                 'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobDigests(), HttpStatus.ok);
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
           });
@@ -1261,6 +1295,77 @@ void main() {
           argThat(contains(config.flutterGoldCommentID(pr))),
         ));
       });
+
+      test('uses the correct Gold endpoint to get status', () async {
+        // New commit
+        final PullRequest pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+        final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+        db.values[status.key] = status;
+
+        final PullRequest enginePr = newPullRequest(456, 'def', 'main');
+        enginePrsFromGitHub = <PullRequest>[enginePr];
+        final GithubGoldStatusUpdate engineStatus = newStatusUpdate(engineSlug, enginePr, '', '', '');
+        db.values[engineStatus.key] = engineStatus;
+
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'},
+        ];
+        engineCheckRuns = <dynamic>[
+          <String, String>{'name': 'web engine', 'status': 'completed', 'conclusion': 'success'},
+        ];
+
+        // Requests sent to Gold.
+        final List<String> goldRequests = <String>[];
+        mockHttpClient = MockClient((http.Request request) async {
+          final String requestUrl = request.url.toString();
+          goldRequests.add(requestUrl);
+
+          final int prNumber = int.parse(requestUrl.split('/').last);
+          final PullRequest requestedPr;
+          if (prNumber == pr.number) {
+            requestedPr = pr;
+          } else if (prNumber == enginePr.number) {
+            requestedPr = enginePr;
+          } else {
+            throw HttpException('Unexpected http request for PR#$prNumber');
+          }
+          return http.Response(tryjobDigests(requestedPr), HttpStatus.ok);
+        });
+        handler = PushGoldStatusToGithub(
+          config,
+          auth,
+          datastoreProvider: (DatastoreDB db) {
+            return DatastoreService(
+              config.db,
+              5,
+              retryOptions: retryOptions,
+            );
+          },
+          goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
+        );
+
+        // Have not already commented for this commit.
+        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+        when(issuesService.listCommentsByIssue(engineSlug, enginePr.number!)).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+
+        await tester.get<Body>(handler);
+
+        expect(goldRequests, <String>[
+          'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}',
+          'https://flutter-engine-gold.skia.org/json/v1/changelist_summary/github/${enginePr.number}',
+        ]);
+      });
     });
   });
 }
@@ -1311,17 +1416,17 @@ String tryjobEmpty() {
   ''';
 }
 
-/// JSON response template for Skia Gold empty tryjob status request.
-String tryjobDigests() {
+/// JSON response template for Skia Gold untriaged tryjob status request.
+String tryjobDigests(PullRequest pr) {
   return '''
     {
-      "changelist_id": "123",
+      "changelist_id": "${pr.number!}",
       "patchsets": [
         {
           "new_images": 1,
           "new_untriaged_images": 1,
           "total_untriaged_images": 1,
-          "patchset_id": "abc",
+          "patchset_id": "${pr.head!.sha!}",
           "patchset_order": 1
         }
       ],

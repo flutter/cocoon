@@ -65,7 +65,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
-      log.fine('Last known Gold status for #${pr.number} was with sha: '
+      log.fine('Last known Gold status for $slug#${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted && lastUpdate.head == pr.head!.sha) {
@@ -157,7 +157,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // We do not want to query Gold on a draft PR.
           assert(!pr.draft!);
           // Get Gold status.
-          final String goldStatus = await _getGoldStatus(pr);
+          final String goldStatus = await _getGoldStatus(slug, pr);
           statusRequest = _createStatus(
               goldStatus,
               goldStatus == GithubGoldStatusUpdate.statusRunning
@@ -207,12 +207,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
   /// Used to check for any tryjob results from Flutter Gold associated with a
   /// pull request.
-  Future<String> _getGoldStatus(PullRequest pr) async {
+  Future<String> _getGoldStatus(RepositorySlug slug, PullRequest pr) async {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
     await Future<void>.delayed(ingestionDelay);
     final Uri requestForTryjobStatus =
-        Uri.parse('https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}');
+        Uri.parse('${_getGoldHost(slug)}/json/v1/changelist_summary/github/${pr.number}');
     try {
       log.fine('Querying Gold for image results...');
       final http.Response response = await goldClient.get(requestForTryjobStatus);
@@ -241,7 +241,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
         log.fine('Tryjob for #${pr.number} at sha ${pr.head!.sha} generated new '
-            'images.}');
+            'images.');
 
         return GithubGoldStatusUpdate.statusRunning;
       }
@@ -258,12 +258,16 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 
   String _getTriageUrl(RepositorySlug slug, int number) {
+    return '${_getGoldHost(slug)}/cl/github/$number';
+  }
+
+  String _getGoldHost(RepositorySlug slug) {
     if (slug == Config.flutterSlug) {
-      return 'https://flutter-gold.skia.org/cl/github/$number';
+      return 'https://flutter-gold.skia.org';
     }
 
     if (slug == Config.engineSlug) {
-      return 'https://flutter-engine-gold.skia.org/cl/github/$number';
+      return 'https://flutter-engine-gold.skia.org';
     }
 
     throw Exception('Unknown slug: $slug');
