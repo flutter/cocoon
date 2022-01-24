@@ -1416,7 +1416,7 @@ String tryjobEmpty() {
   ''';
 }
 
-/// JSON response template for Skia Gold empty tryjob status request.
+/// JSON response template for Skia Gold untriaged tryjob status request.
 String tryjobDigests(PullRequest pr) {
   return '''
     {
