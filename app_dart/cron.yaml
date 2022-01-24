@@ -55,6 +55,6 @@ cron:
   url: /api/update_existing_flaky_issues?threshold=0.02
   schedule: every monday 16:00
 
-- description: mark builders to be not flaky if they are no longer flaky
+- description: check flaky builders to either deflake the builder or file a new flaky bug
   url: /api/check_flaky_builders
   schedule: every monday 16:00
