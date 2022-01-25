@@ -179,16 +179,16 @@ class LuciBuildService {
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
     }
+    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
+    log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');
+    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
     properties ??= <String, dynamic>{};
     properties.addAll(<String, String>{
       'git_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
       'git_ref': 'refs/pull/${pullRequest.number}/head',
+      'exe_cipd_version': cipdVersion,
     });
-
-    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');
-    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
