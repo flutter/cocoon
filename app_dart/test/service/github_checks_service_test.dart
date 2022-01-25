@@ -33,7 +33,7 @@ void main() {
   setUp(() {
     mockGithubService = MockGithubService();
     mockLuciBuildService = MockLuciBuildService();
-    when(mockGithubService.listFiles(any)).thenAnswer((_) async => <String?>[]);
+    when(mockGithubService.listFiles(any)).thenAnswer((_) async => <String>[]);
     mockGithubChecksUtil = MockGithubChecksUtil();
     config = FakeConfig(githubService: mockGithubService);
     githubChecksService = GithubChecksService(

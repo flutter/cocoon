@@ -343,6 +343,10 @@ class Scheduler {
   }
 
   /// Get LUCI presubmit builders from .ci.yaml.
+  ///
+  /// Filters targets with runIf, matching them to the diff of [pullRequest].
+  ///
+  /// In the case there is an issue getting the diff from GitHub, all targets are returned.
   Future<List<Target>> getPresubmitTargets(github.PullRequest pullRequest) async {
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
@@ -359,7 +363,15 @@ class Scheduler {
 
     // Filter builders based on the PR diff
     final GithubService githubService = await config.createGithubService(commit.slug);
-    final List<String?> files = await githubService.listFiles(pullRequest);
+    List<String> files = <String>[];
+    try {
+      files = await githubService.listFiles(pullRequest);
+    } on github.GitHubError catch (error) {
+      log.warning(error);
+      log.warning('Unable to get diff for pullRequest=$pullRequest');
+      log.warning('Running all targets');
+      return presubmitTargets.toList();
+    }
     return await getTargetsToRun(presubmitTargets, files);
   }
 
