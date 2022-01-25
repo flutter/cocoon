@@ -48,12 +48,12 @@ void main() {
     test('checkDevices with device', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      process = FakeProcess(0);
+      process = FakeProcess(0, out: null);
       deviceDiscovery.outputs = <dynamic>['abcdefg'];
       Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices(processManager: processManager);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg'].length, 6);
+      expect(results['ios-device-abcdefg'].length, 7);
       expect(results['ios-device-abcdefg'][0].name, kDeviceAccessCheckKey);
       expect(results['ios-device-abcdefg'][0].succeeded, true);
       expect(results['ios-device-abcdefg'][1].name, kKeychainUnlockCheckKey);
@@ -66,6 +66,8 @@ void main() {
       expect(results['ios-device-abcdefg'][4].succeeded, false);
       expect(results['ios-device-abcdefg'][5].name, kDeviceProvisioningProfileCheckKey);
       expect(results['ios-device-abcdefg'][5].succeeded, false);
+      expect(results['ios-device-abcdefg'][6].name, kBatteryLevelCheckKey);
+      expect(results['ios-device-abcdefg'][6].succeeded, false);
     });
   });
 
@@ -198,12 +200,12 @@ void main() {
       expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
     });
 
-    group('IosDeviceDiscovery - health checks', () {
+    group('Device provisioning profile check', () {
       Process lsProcess;
       Process securityProcess;
       List<List<int>> lsOutput;
       List<List<int>> securityOutput;
-      test('Device provisioning profile check - success', () async {
+      test('success', () async {
         String fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
@@ -237,7 +239,7 @@ void main() {
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
       });
 
-      test('Device provisioning profile check - deviceId does not exist', () async {
+      test('deviceId does not exist', () async {
         String fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
@@ -269,6 +271,41 @@ void main() {
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
         expect(healthCheckResult.details, 'device does not exist in the provisioning profile');
+      });
+    });
+
+    group('Device battery check', () {
+      Process process;
+      List<List<int>> output;
+      test('battery level is okay', () async {
+        String batteryLevel = '100';
+        output = <List<int>>[utf8.encode(batteryLevel)];
+        process = FakeProcess(0, out: output);
+
+        when(processManager.start(
+                <dynamic>['ideviceinfo', '-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(process));
+
+        HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        expect(healthCheckResult.succeeded, true);
+        expect(healthCheckResult.name, kBatteryLevelCheckKey);
+      });
+
+      test('battery level is below minLevel', () async {
+        String batteryLevel = '10';
+        output = <List<int>>[utf8.encode(batteryLevel)];
+        process = FakeProcess(0, out: output);
+
+        when(processManager.start(
+                <dynamic>['ideviceinfo', '-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+                workingDirectory: anyNamed('workingDirectory')))
+            .thenAnswer((_) => Future.value(process));
+
+        HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        expect(healthCheckResult.succeeded, false);
+        expect(healthCheckResult.name, kBatteryLevelCheckKey);
+        expect(healthCheckResult.details, 'Battery level ($batteryLevel) is below 15');
       });
     });
   });
