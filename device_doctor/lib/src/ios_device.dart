@@ -16,6 +16,7 @@ import 'utils.dart';
 
 /// The minimum battery level to run a task with a scale of 100%.
 const int _kBatteryMinLevel = 15;
+
 /// Identifiers for devices that should never be rebooted.
 final Set<String> noRebootList = <String>{
   '822ef7958bba573829d85eef4df6cbdd86593730', // 32bit iPhone requires manual intervention on reboot.
@@ -118,8 +119,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> batteryLevelCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String batteryCheckResult =
-          await eval('ideviceinfo', <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'], processManager: processManager);
+      final String batteryCheckResult = await eval(
+          'ideviceinfo', <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+          processManager: processManager);
       final int level = int.parse(batteryCheckResult.isEmpty ? '0' : batteryCheckResult);
       if (level < _kBatteryMinLevel) {
         healthCheckResult =
