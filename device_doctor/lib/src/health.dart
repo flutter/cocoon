@@ -31,7 +31,7 @@ Future<HealthCheckResult> closeIosDialog({
   // Runs the single XCUITest in infra-dialog.
   await inDirectory(dialogDir, () async {
     List<String> command =
-        'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=$deviceId test'
+        'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination -quiet id=$deviceId test'
             .split(' ');
     // By default the above command relies on automatic code signing, while on devicelab machines
     // it should utilize manual code signing as that is more stable. Below overwrites the code
