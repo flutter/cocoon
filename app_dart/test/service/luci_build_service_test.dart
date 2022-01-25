@@ -209,6 +209,7 @@ void main() {
         'git_branch': 'master',
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
+        'exe_cipd_version': 'refs/heads/main'
       });
     });
 
