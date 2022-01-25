@@ -99,7 +99,10 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
 
   @override
-  Future<void> service(HttpRequest request) async {
+  Future<void> service(
+    HttpRequest request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) async {
     AuthenticatedContext context;
     try {
       context = await authenticationProvider.authenticate(request);

@@ -64,7 +64,10 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(NoAuthKey.requestData);
 
   @override
-  Future<void> service(HttpRequest request) async {
+  Future<void> service(
+    HttpRequest request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) async {
     List<int> body;
     try {
       body = await request.expand<int>((List<int> chunk) => chunk).toList();

@@ -35,7 +35,10 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should generally not override this method. Instead, they
   /// should override one of [get] or [post], depending on which methods
   /// they support.
-  Future<void> service(HttpRequest request) {
+  Future<void> service(
+    HttpRequest request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) {
     return runZoned<Future<void>>(() async {
       final HttpResponse response = request.response;
       try {
@@ -61,6 +64,9 @@ abstract class RequestHandler<T extends Body> {
           throw InternalServerError('$error\n$stackTrace');
         }
       } on HttpStatusException catch (error) {
+        if (onError != null) {
+          await onError(error);
+        }
         response
           ..statusCode = error.statusCode
           ..write(error.message);

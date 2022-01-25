@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -93,6 +95,20 @@ void main() {
       // 2. Empty message is returned as this was already processed
       expect(responseBody, '123 was already processed');
     });
+
+    test('ensure messages can be retried', () async {
+      final CacheService cache = CacheService(inMemory: true);
+      subscription = ErrorTest(cache);
+      HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
+      Uint8List? messageLock = await cache.getOrCreate('error', '123');
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(messageLock, isNull);
+
+      response = await issueRequest(body: jsonEncode(testEnvelope));
+      messageLock = await cache.getOrCreate('error', '123');
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(messageLock, isNull);
+    });
   });
 }
 
@@ -122,6 +138,20 @@ class AuthTest extends SubscriptionHandler {
 
   @override
   Future<Body> get() async => Body.empty;
+}
+
+/// Test stub of [SubscriptionHandler] to validate push messages can be read.
+class ErrorTest extends SubscriptionHandler {
+  ErrorTest([CacheService? cache])
+      : super(
+          cache: cache ?? CacheService(inMemory: true),
+          config: FakeConfig(),
+          authProvider: FakeAuthenticationProvider(),
+          topicName: 'error',
+        );
+
+  @override
+  Future<Body> get() async => throw const InternalServerError('Test error!');
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.

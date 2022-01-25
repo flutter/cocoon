@@ -56,7 +56,10 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   PushMessage get message => getValue<PushMessage>(PubSubKey.message)!;
 
   @override
-  Future<void> service(HttpRequest request) async {
+  Future<void> service(
+    HttpRequest request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) async {
     AuthenticatedContext authContext;
     try {
       authContext = await authProvider.authenticate(request);
@@ -126,12 +129,13 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       ttl: const Duration(days: 7),
     );
 
-    await runZonedGuarded<Future<void>>(
-      () async => await super.service(request),
-      (Object obj, StackTrace stack) {
-        // If there is a failure, clear the lock to allow it to be retried
-        cache.purge(topicName, messageId);
-      },
+    await runZoned<Future<void>>(
+      () async => await super.service(
+        request,
+        onError: (_) async {
+          await cache.purge(topicName, messageId);
+        },
+      ),
       zoneValues: <RequestKey<dynamic>, Object?>{
         PubSubKey.message: envelope.message,
         ApiKey.authContext: authContext,
