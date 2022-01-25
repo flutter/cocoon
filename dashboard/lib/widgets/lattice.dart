@@ -70,7 +70,7 @@ class LatticeScrollView extends StatelessWidget {
     final TextDirection textDirection = this.textDirection ?? Directionality.of(context);
     return Scrollbar(
       controller: horizontalController,
-      isAlwaysShown: true,
+      thumbVisibility: true,
       child: Scrollable(
         dragStartBehavior: dragStartBehavior,
         axisDirection: textDirectionToAxisDirection(textDirection),
@@ -79,7 +79,7 @@ class LatticeScrollView extends StatelessWidget {
         scrollBehavior: _MouseDragScrollBehavior.instance,
         viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) => _FakeViewport(
           child: Scrollbar(
-            isAlwaysShown: true,
+            thumbVisibility: true,
             controller: verticalController,
             child: Scrollable(
               dragStartBehavior: dragStartBehavior,
