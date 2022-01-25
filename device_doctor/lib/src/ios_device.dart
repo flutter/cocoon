@@ -130,7 +130,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
         healthCheckResult = HealthCheckResult.success(kBatteryLevelCheckKey);
       }
     } on BuildFailedError catch (error) {
-      healthCheckResult = HealthCheckResult.failure(kKeychainUnlockCheckKey, error.toString());
+      healthCheckResult = HealthCheckResult.failure(kBatteryLevelCheckKey, error.toString());
     }
     return healthCheckResult;
   }
