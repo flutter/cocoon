@@ -111,7 +111,7 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
-      '/api/scheduler/request-subscription': SchedulerRequestSubscription(
+      '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
         cache: cache,
         config: config,
         authProvider: authProvider,

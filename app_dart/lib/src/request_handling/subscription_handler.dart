@@ -126,7 +126,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       topicName,
       messageId,
       lockValue,
-      ttl: const Duration(days: 7),
+      ttl: const Duration(days: 1),
     );
 
     await runZoned<Future<void>>(
