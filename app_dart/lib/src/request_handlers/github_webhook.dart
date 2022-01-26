@@ -27,6 +27,11 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
   'flutter/plugins',
 };
 
+// Filenames which are not actually tests.
+const List<String> kNotActuallyATest = <String>[
+  'packages/flutter/lib/src/gestures/hit_test.dart',
+];
+
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
@@ -408,7 +413,9 @@ class GithubWebhook extends RequestHandler<Body> {
           // Native Linux tests.
           filename.endsWith('_test.cc') ||
           // Native Windows tests.
-          filename.endsWith('_test.cpp')) {
+          filename.endsWith('_test.cpp') &&
+          // Files that look like tests but aren't actually tests
+          !kNotActuallyATest.any((String pattern) => filename.endsWith(pattern))) {
         hasTests = true;
       }
     }
