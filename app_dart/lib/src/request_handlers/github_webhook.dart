@@ -19,6 +19,11 @@ import '../service/github_checks_service.dart';
 import '../service/logging.dart';
 import '../service/scheduler.dart';
 
+// Filenames which are not actually tests.
+const List<String> kNotActuallyATest = <String>[
+  'packages/flutter/lib/src/gestures/hit_test.dart',
+];
+
 /// List of repos that require check for labels and tests.
 const Set<String> kNeedsCheckLabelsAndTests = <String>{
   'flutter/engine',
@@ -201,31 +206,33 @@ class GithubWebhook extends RequestHandler<Body> {
 
     await for (PullRequestFile file in files) {
       // When null, do not assume 0 lines have been added.
+      final String filename = file.filename!;
       final int linesAdded = file.additionsCount ?? 1;
       final int linesDeleted = file.deletionsCount ?? 0;
       final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
       final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
       if (addedCode &&
-          !file.filename!.contains('AUTHORS') &&
-          !file.filename!.contains('pubspec.yaml') &&
-          !file.filename!.contains('.ci.yaml') &&
-          !file.filename!.contains('.github') &&
-          !file.filename!.endsWith('.md') &&
-          !file.filename!.startsWith('dev/devicelab/bin/tasks') &&
-          !file.filename!.startsWith('dev/devicelab/lib/tasks') &&
-          !file.filename!.startsWith('dev/bots/')) {
+          !filename.contains('AUTHORS') &&
+          !filename.contains('pubspec.yaml') &&
+          !filename.contains('.ci.yaml') &&
+          !filename.contains('.github') &&
+          !filename.endsWith('.md') &&
+          !filename.startsWith('dev/devicelab/bin/tasks') &&
+          !filename.startsWith('dev/devicelab/lib/tasks') &&
+          !filename.startsWith('dev/bots/')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if (file.filename!.endsWith('_test.dart') ||
-          file.filename!.endsWith('.expect') ||
-          file.filename!.contains('test_fixes') ||
-          file.filename!.startsWith('dev/bots/test.dart') ||
-          file.filename!.startsWith('dev/bots/analyze.dart')) {
+      if ((filename.endsWith('_test.dart') ||
+              filename.endsWith('.expect') ||
+              filename.contains('test_fixes') ||
+              filename.startsWith('dev/bots/test.dart') ||
+              filename.startsWith('dev/bots/analyze.dart')) &&
+          !kNotActuallyATest.any(filename.endsWith)) {
         hasTests = true;
       }
-      labels.addAll(getLabelsForFrameworkPath(file.filename!));
+      labels.addAll(getLabelsForFrameworkPath(filename));
     }
 
     if (pr.user!.login == 'fluttergithubbot') {
@@ -395,7 +402,6 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.endsWith('.md')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
-
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
