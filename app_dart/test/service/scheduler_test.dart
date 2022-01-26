@@ -418,6 +418,45 @@ targets:
         );
       });
 
+      test('triggers all presubmit build checks when diff cannot be found', () async {
+        final MockGithubService mockGithubService = MockGithubService();
+        when(mockGithubService.listFiles(pullRequest))
+            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+        scheduler = Scheduler(
+          cache: cache,
+          config: FakeConfig(
+            // tabledataResource: tabledataResource,
+            dbValue: db,
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+          ),
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+            gerritService: mockGerritService,
+          ),
+        );
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
+              .captured,
+          <dynamic>[
+            Scheduler.kCiYamlCheckName,
+            const CheckRunOutput(
+                title: Scheduler.kCiYamlCheckName,
+                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+            'Linux A',
+            null,
+            // runIf requires a diff in dev, so an error will cause it to be triggered
+            'Linux runIf',
+            null
+          ],
+        );
+      });
+
       test('triggers all presubmit targets on release branch pull request', () async {
         final PullRequest releasePullRequest = generatePullRequest(
           branch: 'flutter-1.24-candidate.1',

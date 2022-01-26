@@ -227,12 +227,12 @@ class GithubService {
   ///
   /// See more:
   ///   * https://developer.github.com/v3/pulls/#list-pull-requests-files
-  Future<List<String?>> listFiles(PullRequest pullRequest) async {
+  Future<List<String>> listFiles(PullRequest pullRequest) async {
     final List<PullRequestFile> files =
         await github.pullRequests.listFiles(pullRequest.base!.repo!.slug(), pullRequest.number!).toList();
     log.fine('List of files: $files');
     return files.map((PullRequestFile file) {
-      return file.filename;
+      return file.filename!;
     }).toList();
   }
 
