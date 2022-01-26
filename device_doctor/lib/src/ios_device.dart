@@ -14,6 +14,9 @@ import 'health.dart';
 import 'mac.dart';
 import 'utils.dart';
 
+/// The minimum battery level to run a task with a scale of 100%.
+const int _kBatteryMinLevel = 15;
+
 /// Identifiers for devices that should never be rebooted.
 final Set<String> noRebootList = <String>{
   '822ef7958bba573829d85eef4df6cbdd86593730', // 32bit iPhone requires manual intervention on reboot.
@@ -57,6 +60,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(await devicePairCheck(processManager: processManager));
       checks.add(await userAutoLoginCheck(processManager: processManager));
       checks.add(await deviceProvisioningProfileCheck(device.deviceId, processManager: processManager));
+      checks.add(await batteryLevelCheck(processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -107,6 +111,26 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       healthCheckResult = HealthCheckResult.success(kKeychainUnlockCheckKey);
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kKeychainUnlockCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  @visibleForTesting
+  Future<HealthCheckResult> batteryLevelCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String batteryCheckResult = await eval(
+          'ideviceinfo', <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+          processManager: processManager);
+      final int level = int.parse(batteryCheckResult.isEmpty ? '0' : batteryCheckResult);
+      if (level < _kBatteryMinLevel) {
+        healthCheckResult =
+            HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
+      } else {
+        healthCheckResult = HealthCheckResult.success(kBatteryLevelCheckKey);
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kBatteryLevelCheckKey, error.toString());
     }
     return healthCheckResult;
   }
