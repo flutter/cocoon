@@ -8,6 +8,8 @@
 pushd dashboard > /dev/null
 set -e
 rm -rf build
+flutter channel master
+flutter upgrade
 flutter doctor
 flutter pub get
 flutter config --enable-web
