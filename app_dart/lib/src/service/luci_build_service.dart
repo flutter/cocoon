@@ -178,6 +178,9 @@ class LuciBuildService {
       );
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
+      userData['commit_sha'] = pullRequest.head!.sha!;
+      userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
+      userData['builder_name'] = builder;
     }
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
     log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');

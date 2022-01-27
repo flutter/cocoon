@@ -201,6 +201,9 @@ void main() {
         'repo_name': 'flutter',
         'user_agent': 'flutter-cocoon',
         'check_run_id': 1,
+        'commit_sha': 'abc',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1'
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       expect(properties, <String, dynamic>{
