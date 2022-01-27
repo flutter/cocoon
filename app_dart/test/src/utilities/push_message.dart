@@ -6,26 +6,32 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/luci/push_message.dart';
+
 const String ref = 'deadbeef';
 
-String pushMessageJson(String status,
+PushMessage createBuildbucketPushMessage(String status,
     {String? result,
     String builderName = 'Linux Coverage',
     String urlParam = '',
     int retries = 0,
     String? failureReason,
     String userData = '{}'}) {
-  return '''{
-     "message": {
-       "attributes": {},
-       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam, retries: retries, failureReason: failureReason, userData: userData)}",
-       "messageId": "123"
-     },
-     "subscription": "projects/myproject/subscriptions/mysubscription"
-   }''';
+  return PushMessage(
+    data: buildPushMessageJson(
+      status,
+      result: result,
+      builderName: builderName,
+      urlParam: urlParam,
+      retries: retries,
+      failureReason: failureReason,
+      userData: userData,
+    ),
+    messageId: '123',
+  );
 }
 
-String pushMessageJsonNoBuildset(
+PushMessage pushMessageJsonNoBuildset(
   String status, {
   String? result,
   String builderName = 'Linux Coverage',
@@ -33,14 +39,17 @@ String pushMessageJsonNoBuildset(
   int retries = 0,
   String? failureReason,
 }) {
-  return '''{
-     "message": {
-       "attributes": {},
-       "data": "${buildPushMessageJsonNoBuildset(status, result: result, builderName: builderName, urlParam: urlParam, retries: retries, failureReason: failureReason)}",
-       "messageId": "123"
-     },
-     "subscription": "projects/myproject/subscriptions/mysubscription"
-   }''';
+  return PushMessage(
+    data: buildPushMessageJsonNoBuildset(
+      status,
+      result: result,
+      builderName: builderName,
+      urlParam: urlParam,
+      retries: retries,
+      failureReason: failureReason,
+    ),
+    messageId: '123',
+  );
 }
 
 String buildPushMessageJson(String status,

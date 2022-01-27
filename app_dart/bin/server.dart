@@ -77,6 +77,7 @@ Future<void> main() async {
       /// of a POST request.
       '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
       '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
+        cache,
         config,
         luciPubSubProvider,
         buildBucketClient,
@@ -84,6 +85,7 @@ Future<void> main() async {
         githubChecksService,
       ),
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
+        cache,
         config,
         luciPubSubProvider,
       ),
@@ -108,6 +110,12 @@ Future<void> main() async {
         config,
         authProvider,
         scheduler,
+      ),
+      '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
+        cache: cache,
+        config: config,
+        authProvider: authProvider,
+        buildBucketClient: buildBucketClient,
       ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
         config,

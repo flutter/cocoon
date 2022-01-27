@@ -31,6 +31,7 @@ void main() {
   setUp(() async {
     config = FakeConfig();
     handler = PostsubmitLuciSubscription(
+      CacheService(inMemory: true),
       config,
       FakeAuthenticationProvider(
         clientContext: clientContext,
@@ -45,7 +46,7 @@ void main() {
   });
 
   test('throws exception when task key is not in message', () async {
-    tester.message = pushMessageJson(
+    tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
       userData: '{}',
@@ -56,7 +57,7 @@ void main() {
 
   test('throws exception if task key does not exist in datastore', () {
     final String rawKey = keyHelper.encode(generateTask(1).key);
-    tester.message = pushMessageJson(
+    tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
       userData: '{\\"task_key\\":\\"$rawKey\\"}',
@@ -73,7 +74,7 @@ void main() {
     );
 
     final String rawKey = keyHelper.encode(task.key);
-    tester.message = pushMessageJson(
+    tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
       userData: '{\\"task_key\\":\\"$rawKey\\"}',

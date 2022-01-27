@@ -12,6 +12,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/buildbucket.dart';
+import '../service/cache_service.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
@@ -33,12 +34,18 @@ import '../service/luci_build_service.dart';
 class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PresubmitLuciSubscription(
+    CacheService cache,
     Config config,
-    AuthenticationProvider authenticationProvider,
+    AuthenticationProvider authProvider,
     this.buildBucketClient,
     this.luciBuildService,
     this.githubChecksService,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+  ) : super(
+          cache: cache,
+          config: config,
+          authProvider: authProvider,
+          topicName: 'github-updater',
+        );
 
   final BuildBucketClient buildBucketClient;
   final LuciBuildService luciBuildService;
@@ -47,7 +54,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     RepositorySlug slug;
-    final String data = (await message)!.data!;
+    final String data = message.data!;
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     final Build build = buildPushMessage.build!;

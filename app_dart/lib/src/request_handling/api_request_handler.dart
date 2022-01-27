@@ -35,8 +35,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     this.requestBodyValue,
   }) : super(config: config);
 
-  /// The object responsible for authenticating requests, guaranteed to be
-  /// non-null.
+  /// Service responsible for authenticating this [HttpRequest].
   final AuthenticationProvider authenticationProvider;
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
@@ -100,7 +99,10 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   Map<String, dynamic>? get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
 
   @override
-  Future<void> service(HttpRequest request) async {
+  Future<void> service(
+    HttpRequest request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) async {
     AuthenticatedContext context;
     try {
       context = await authenticationProvider.authenticate(request);
@@ -155,7 +157,6 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   }
 }
 
-@visibleForTesting
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(String name) : super(name);
 

@@ -5,11 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
-import 'package:cocoon_service/src/service/logging.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
@@ -21,20 +23,24 @@ void main() {
     late HttpServer server;
     late SubscriptionHandler subscription;
 
+    const PushMessageEnvelope testEnvelope = PushMessageEnvelope(
+      message: PushMessage(
+        data: 'test',
+        messageId: '123',
+      ),
+      subscription: 'https://flutter-dashboard.appspot.com/api/luci-status-handler',
+    );
+
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((HttpRequest request) {
-        final ZoneSpecification spec = ZoneSpecification(
-          print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            log.fine(line);
+        return runZoned<dynamic>(
+          () {
+            return ss.fork(() {
+              return subscription.service(request);
+            });
           },
         );
-        return runZoned<dynamic>(() {
-          return ss.fork(() {
-            ss.register(#appengine.logging, log);
-            return subscription.service(request);
-          });
-        }, zoneSpecification: spec);
       });
     });
 
@@ -63,23 +69,45 @@ void main() {
 
     test('passed authentication yields empty body', () async {
       subscription = AuthTest();
-      final HttpClientResponse response = await issueRequest();
+      final HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
       expect(response.statusCode, HttpStatus.ok);
     });
 
     test('pubsub message is parsed', () async {
       subscription = ReadMessageTest();
-      const PushMessageEnvelope envelope = PushMessageEnvelope(
-        message: PushMessage(
-          data: 'test',
-          messageId: '123',
-        ),
-        subscription: 'https://flutter-dashboard.appspot.com/api/luci-status-handler',
-      );
-      final HttpClientResponse response = await issueRequest(body: jsonEncode(envelope));
+      final HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
       expect(response.statusCode, HttpStatus.ok);
       final String responseBody = String.fromCharCodes((await response.toList()).first);
       expect(responseBody, 'test');
+    });
+
+    test('ensure message ids are idempotent', () async {
+      subscription = ReadMessageTest();
+      HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
+      String responseBody = String.fromCharCodes((await response.toList()).first);
+      expect(response.statusCode, HttpStatus.ok);
+      // 1. Expected message for this was processed
+      expect(responseBody, 'test');
+
+      response = await issueRequest(body: jsonEncode(testEnvelope));
+      responseBody = String.fromCharCodes((await response.toList()).first);
+      expect(response.statusCode, HttpStatus.ok);
+      // 2. Empty message is returned as this was already processed
+      expect(responseBody, '123 was already processed');
+    });
+
+    test('ensure messages can be retried', () async {
+      final CacheService cache = CacheService(inMemory: true);
+      subscription = ErrorTest(cache);
+      HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
+      Uint8List? messageLock = await cache.getOrCreate('error', '123');
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(messageLock, isNull);
+
+      response = await issueRequest(body: jsonEncode(testEnvelope));
+      messageLock = await cache.getOrCreate('error', '123');
+      expect(response.statusCode, HttpStatus.internalServerError);
+      expect(messageLock, isNull);
     });
   });
 }
@@ -88,8 +116,10 @@ void main() {
 class UnauthTest extends SubscriptionHandler {
   UnauthTest()
       : super(
+          cache: CacheService(inMemory: true),
           config: FakeConfig(),
-          authenticationProvider: FakeAuthenticationProvider(authenticated: false),
+          authProvider: FakeAuthenticationProvider(authenticated: false),
+          topicName: 'test',
         );
 
   @override
@@ -100,8 +130,10 @@ class UnauthTest extends SubscriptionHandler {
 class AuthTest extends SubscriptionHandler {
   AuthTest()
       : super(
+          cache: CacheService(inMemory: true),
           config: FakeConfig(),
-          authenticationProvider: FakeAuthenticationProvider(),
+          authProvider: FakeAuthenticationProvider(),
+          topicName: 'test',
         );
 
   @override
@@ -109,13 +141,29 @@ class AuthTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ReadMessageTest extends SubscriptionHandler {
-  ReadMessageTest()
+class ErrorTest extends SubscriptionHandler {
+  ErrorTest([CacheService? cache])
       : super(
+          cache: cache ?? CacheService(inMemory: true),
           config: FakeConfig(),
-          authenticationProvider: FakeAuthenticationProvider(),
+          authProvider: FakeAuthenticationProvider(),
+          topicName: 'error',
         );
 
   @override
-  Future<Body> get() async => Body.forString((await message)!.data!);
+  Future<Body> get() async => throw const InternalServerError('Test error!');
+}
+
+/// Test stub of [SubscriptionHandler] to validate push messages can be read.
+class ReadMessageTest extends SubscriptionHandler {
+  ReadMessageTest()
+      : super(
+          cache: CacheService(inMemory: true),
+          config: FakeConfig(),
+          authProvider: FakeAuthenticationProvider(),
+          topicName: 'test',
+        );
+
+  @override
+  Future<Body> get() async => Body.forString(message.data!);
 }

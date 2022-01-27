@@ -33,6 +33,7 @@ void main() {
 
     mockGithubChecksService = MockGithubChecksService();
     handler = PresubmitLuciSubscription(
+      CacheService(inMemory: true),
       config,
       FakeAuthenticationProvider(),
       buildbucket,
@@ -64,7 +65,7 @@ void main() {
 
   test('Requests with repo_owner and repo_name update checks', () async {
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    tester.message = pushMessageJson(
+    tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
       builderName: 'Linux Host Engine',
