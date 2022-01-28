@@ -35,10 +35,10 @@ void main() {
     handler = PresubmitLuciSubscription(
       CacheService(inMemory: true),
       config,
-      FakeAuthenticationProvider(),
       buildbucket,
       FakeLuciBuildService(config),
       mockGithubChecksService,
+      authProvider: FakeAuthenticationProvider(),
     );
     request = FakeHttpRequest();
 

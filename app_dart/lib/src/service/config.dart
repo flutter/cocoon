@@ -245,8 +245,8 @@ class Config {
   /// Internal Google service account used to surface FRoB results.
   String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
-  /// Service accounts used for LUCI PubSub messages.
-  static const Set<String> allowedLuciPubsubServiceAccounts = <String>{
+  /// Service accounts used for PubSub messages.
+  static const Set<String> allowedPubsubServiceAccounts = <String>{
     'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com',
     'flutter-dashboard@appspot.gserviceaccount.com'
   };

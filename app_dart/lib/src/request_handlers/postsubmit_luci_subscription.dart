@@ -31,8 +31,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PostsubmitLuciSubscription(
     CacheService cache,
-    Config config,
-    AuthenticationProvider authProvider, {
+    Config config, {
+    AuthenticationProvider? authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(
           cache: cache,
