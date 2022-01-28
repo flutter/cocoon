@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/authentication.dart' show AuthenticatedContext;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/request_handling/luci_pubsub_authentication.dart';
+import 'package:cocoon_service/src/request_handling/pubsub_authentication.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -17,25 +17,25 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {
-  group('LuciPubsubAuthenticationProvider', () {
+  group('PubsubAuthenticationProvider', () {
     late FakeConfig config;
     late FakeClientContext clientContext;
     late FakeHttpRequest request;
-    late LuciPubsubAuthenticationProvider auth;
+    late PubsubAuthenticationProvider auth;
     late MockClient httpClient;
 
     setUp(() {
       config = FakeConfig();
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
-      auth = LuciPubsubAuthenticationProvider(
+      auth = PubsubAuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
       );
     });
 
-    for (String allowedAccount in Config.allowedLuciPubsubServiceAccounts) {
+    for (String allowedAccount in Config.allowedPubsubServiceAccounts) {
       test('auth succeeds for $allowedAccount', () async {
         httpClient = MockClient((_) async => http.Response(
               _generateTokenResponse(allowedAccount),
@@ -44,7 +44,7 @@ void main() {
                 HttpHeaders.contentTypeHeader: 'application/json',
               },
             ));
-        auth = LuciPubsubAuthenticationProvider(
+        auth = PubsubAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
@@ -65,7 +65,7 @@ void main() {
               HttpHeaders.contentTypeHeader: 'application/json',
             },
           ));
-      auth = LuciPubsubAuthenticationProvider(
+      auth = PubsubAuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
@@ -84,7 +84,7 @@ void main() {
               HttpHeaders.contentTypeHeader: 'application/json',
             },
           ));
-      auth = LuciPubsubAuthenticationProvider(
+      auth = PubsubAuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
@@ -98,7 +98,7 @@ void main() {
     test('auth fails with expired token', () async {
       httpClient = MockClient((_) async => http.Response(
             _generateTokenResponse(
-              Config.allowedLuciPubsubServiceAccounts.first,
+              Config.allowedPubsubServiceAccounts.first,
               expiresIn: -1,
             ),
             HttpStatus.ok,
@@ -106,7 +106,7 @@ void main() {
               HttpHeaders.contentTypeHeader: 'application/json',
             },
           ));
-      auth = LuciPubsubAuthenticationProvider(
+      auth = PubsubAuthenticationProvider(
         config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,

@@ -36,11 +36,11 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   const PresubmitLuciSubscription(
     CacheService cache,
     Config config,
-    AuthenticationProvider authProvider,
     this.buildBucketClient,
     this.luciBuildService,
-    this.githubChecksService,
-  ) : super(
+    this.githubChecksService, {
+    AuthenticationProvider? authProvider,
+  }) : super(
           cache: cache,
           config: config,
           authProvider: authProvider,
