@@ -22,7 +22,6 @@ Future<void> main() async {
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
-    final AuthenticationProvider luciPubSubProvider = LuciPubsubAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
@@ -79,7 +78,6 @@ Future<void> main() async {
       '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
         cache,
         config,
-        luciPubSubProvider,
         buildBucketClient,
         luciBuildService,
         githubChecksService,
@@ -87,7 +85,6 @@ Future<void> main() async {
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
         cache,
         config,
-        luciPubSubProvider,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(
         config,
@@ -114,7 +111,6 @@ Future<void> main() async {
       '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
         cache: cache,
         config: config,
-        authProvider: authProvider,
         buildBucketClient: buildBucketClient,
       ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(

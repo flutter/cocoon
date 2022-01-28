@@ -33,7 +33,7 @@ void main() {
     handler = PostsubmitLuciSubscription(
       CacheService(inMemory: true),
       config,
-      FakeAuthenticationProvider(
+      authProvider: FakeAuthenticationProvider(
         clientContext: clientContext,
       ),
       datastoreProvider: (_) => DatastoreService(config.db, 5),

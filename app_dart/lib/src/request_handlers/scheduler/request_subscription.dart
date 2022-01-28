@@ -28,8 +28,8 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   const SchedulerRequestSubscription({
     required CacheService cache,
     required Config config,
-    required AuthenticationProvider authProvider,
     required this.buildBucketClient,
+    AuthenticationProvider? authProvider,
   }) : super(
           cache: cache,
           config: config,

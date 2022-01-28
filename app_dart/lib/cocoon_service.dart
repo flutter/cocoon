@@ -32,7 +32,7 @@ export 'src/request_handlers/vacuum_github_commits.dart';
 export 'src/request_handling/authentication.dart';
 export 'src/request_handling/body.dart';
 export 'src/request_handling/cache_request_handler.dart';
-export 'src/request_handling/luci_pubsub_authentication.dart';
+export 'src/request_handling/pubsub_authentication.dart';
 export 'src/request_handling/request_handler.dart';
 export 'src/request_handling/static_file_handler.dart';
 export 'src/request_handling/swarming_authentication.dart';

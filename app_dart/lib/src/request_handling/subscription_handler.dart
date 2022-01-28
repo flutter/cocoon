@@ -16,6 +16,7 @@ import 'api_request_handler.dart';
 import 'authentication.dart';
 import 'body.dart';
 import 'exceptions.dart';
+import 'pubsub_authentication.dart';
 import 'request_handler.dart';
 
 /// An [ApiRequestHandler] that handles PubSub subscription messages.
@@ -30,7 +31,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   const SubscriptionHandler({
     required this.cache,
     required Config config,
-    required this.authProvider,
+    this.authProvider,
     required this.topicName,
   }) : super(
           config: config,
@@ -39,7 +40,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   final CacheService cache;
 
   /// Service responsible for authenticating this [HttpRequest].
-  final AuthenticationProvider authProvider;
+  final AuthenticationProvider? authProvider;
 
   /// Unique identifier of the PubSub in this cloud project.
   final String topicName;
@@ -61,8 +62,9 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
+    final AuthenticationProvider _authProvider = authProvider ?? PubsubAuthenticationProvider(config);
     try {
-      authContext = await authProvider.authenticate(request);
+      authContext = await _authProvider.authenticate(request);
     } on Unauthenticated catch (error) {
       final HttpResponse response = request.response;
       response

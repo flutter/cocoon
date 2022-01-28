@@ -16,7 +16,7 @@ import '../foundation/typedefs.dart';
 import '../service/logging.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s for LUCI PubSub messages.
+/// Class capable of authenticating [HttpRequest]s for PubSub messages.
 ///
 /// This class implements an ACL on a [RequestHandler] to ensure only automated
 /// systems can access the endpoints.
@@ -27,8 +27,8 @@ import 'exceptions.dart';
 ///
 /// If there is no token, or it cannot be authenticated, [Unauthenticated] is thrown.
 @immutable
-class LuciPubsubAuthenticationProvider extends AuthenticationProvider {
-  const LuciPubsubAuthenticationProvider(
+class PubsubAuthenticationProvider extends AuthenticationProvider {
+  const PubsubAuthenticationProvider(
     Config config, {
     ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
@@ -77,7 +77,7 @@ class LuciPubsubAuthenticationProvider extends AuthenticationProvider {
       throw const Unauthenticated('Token is expired');
     }
 
-    if (Config.allowedLuciPubsubServiceAccounts.contains(info.email)) {
+    if (Config.allowedPubsubServiceAccounts.contains(info.email)) {
       return AuthenticatedContext(clientContext: clientContext);
     }
     throw Unauthenticated('${info.email} is not in allowedLuciPubsubServiceAccounts');
