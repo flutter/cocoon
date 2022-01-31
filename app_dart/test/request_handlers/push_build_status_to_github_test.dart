@@ -114,6 +114,17 @@ void main() {
         expect(tableDataList.totalRows, '1');
       });
 
+      test('lists from default branch', () async {
+        when(pullRequestsService.list(any, base: anyNamed('base')))
+            .thenAnswer((_) => const Stream<PullRequest>.empty());
+        buildStatusService.cumulativeStatus = BuildStatus.success();
+        await tester.get<Body>(handler);
+        verify(pullRequestsService.list(
+          Config.flutterSlug,
+          base: Config.defaultBranch(Config.flutterSlug),
+        ));
+      });
+
       test('if status has not changed since last update', () async {
         final PullRequest pr = generatePullRequest(id: 1, sha: '1');
         when(pullRequestsService.list(any, base: anyNamed('base'))).thenAnswer((_) => Stream<PullRequest>.value(pr));
