@@ -94,18 +94,16 @@ void main() {
         return Future<CurrentUser>.value(result);
       });
       // when assigns pull request reviewer.
-      when(
-        mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
-          captureAny,
-          statusCode: captureAnyNamed('statusCode'),
-          fail: captureAnyNamed('fail'),
-          headers: captureAnyNamed('headers'),
-          params: captureAnyNamed('params'),
-          convert: captureAnyNamed('convert'),
-          body: captureAnyNamed('body'),
-          preview: captureAnyNamed('preview'),
-        )
-      ).thenAnswer((Invocation invocation) {
+      when(mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+        captureAny,
+        statusCode: captureAnyNamed('statusCode'),
+        fail: captureAnyNamed('fail'),
+        headers: captureAnyNamed('headers'),
+        params: captureAnyNamed('params'),
+        convert: captureAnyNamed('convert'),
+        body: captureAnyNamed('body'),
+        preview: captureAnyNamed('preview'),
+      )).thenAnswer((Invocation invocation) {
         return Future<PullRequest>.value(PullRequest());
       });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);

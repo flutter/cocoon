@@ -88,18 +88,16 @@ void main() {
         return Future<CurrentUser>.value(result);
       });
       // when assigns pull request reviewer.
-      when(
-          mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
-            captureAny,
-            statusCode: captureAnyNamed('statusCode'),
-            fail: captureAnyNamed('fail'),
-            headers: captureAnyNamed('headers'),
-            params: captureAnyNamed('params'),
-            convert: captureAnyNamed('convert'),
-            body: captureAnyNamed('body'),
-            preview: captureAnyNamed('preview'),
-          )
-      ).thenAnswer((Invocation invocation) {
+      when(mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+        captureAny,
+        statusCode: captureAnyNamed('statusCode'),
+        fail: captureAnyNamed('fail'),
+        headers: captureAnyNamed('headers'),
+        params: captureAnyNamed('params'),
+        convert: captureAnyNamed('convert'),
+        body: captureAnyNamed('body'),
+        preview: captureAnyNamed('preview'),
+      )).thenAnswer((Invocation invocation) {
         return Future<PullRequest>.value(PullRequest());
       });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
@@ -454,7 +452,8 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
+        return Future<Issue>.value(Issue(
+            state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
@@ -531,7 +530,8 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
+        return Future<Issue>.value(Issue(
+            state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
