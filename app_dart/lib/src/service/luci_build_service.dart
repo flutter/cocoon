@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -9,6 +10,7 @@ import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
 import '../foundation/github_checks_util.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
@@ -16,6 +18,7 @@ import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
+import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
@@ -32,6 +35,7 @@ class LuciBuildService {
   LuciBuildService(
     this.config,
     this.buildBucketClient, {
+    required this.pubsub,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
@@ -41,6 +45,8 @@ class LuciBuildService {
   Config config;
   GithubChecksUtil githubChecksUtil;
   GerritService gerritService;
+
+  final PubSub pubsub;
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
 
@@ -525,6 +531,70 @@ class LuciBuildService {
   Future<Build> getTryBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
+  }
+
+  /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
+  Future<void> schedulePostsubmitBuilds({
+    required Commit commit,
+    required List<Pair<Target, Task>> toBeScheduled,
+  }) async {
+    if (toBeScheduled.isEmpty) {
+      log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
+      return;
+    }
+    final List<Request> buildRequests = <Request>[];
+    for (Pair<Target, Task> pair in toBeScheduled) {
+      final ScheduleBuildRequest scheduleBuildRequest =
+          _createPostsubmitScheduleBuild(commit: commit, target: pair.first, task: pair.second);
+      buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
+    }
+    final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
+    log.fine(batchRequest);
+    await pubsub.publish('scheduler-requests', batchRequest);
+    log.info('Published a request with ${buildRequests.length} builds');
+  }
+
+  /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
+  ScheduleBuildRequest _createPostsubmitScheduleBuild({
+    required Commit commit,
+    required Target target,
+    required Task task,
+  }) {
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': <String>[
+        'commit/git/${commit.sha}',
+        'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
+      ],
+    };
+    final Map<String, String> rawUserData = <String, String>{
+      'commit_key': task.parentKey!.id.toString(),
+      'task_key': task.key.id.toString(),
+    };
+    tags['user_agent'] = <String>['flutter-cocoon'];
+    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
+    tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
+    final Map<String, dynamic> properties = target.getProperties();
+    properties['git_branch'] = commit.branch;
+    properties['exe_cipd_version'] = 'refs/heads/${commit.branch}';
+    return ScheduleBuildRequest(
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: target.getBucket(),
+        builder: target.value.name,
+      ),
+      gitilesCommit: GitilesCommit(
+        project: 'mirrors/${commit.slug.name}',
+        host: 'flutter.googlesource.com',
+        ref: 'refs/heads/${commit.branch}',
+        hash: commit.sha,
+      ),
+      notify: NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
+        userData: base64Encode(json.encode(rawUserData).codeUnits),
+      ),
+      tags: tags,
+      properties: properties,
+    );
   }
 
   /// Reschedules a post-submit build using [commitSha], [builderName], [branch],

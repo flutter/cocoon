@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -211,6 +212,30 @@ void main() {
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
+      });
+
+      test('schedules cocoon based targets', () async {
+        final MockLuciBuildService luciBuildService = MockLuciBuildService();
+        when(luciBuildService.schedulePostsubmitBuilds(
+                commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
+            .thenAnswer((_) => Future<void>.value());
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: luciBuildService,
+        );
+
+        await scheduler.addCommits(createCommitList(<String>['1']));
+        final List<dynamic> captured = verify(luciBuildService.schedulePostsubmitBuilds(
+                commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
+            .captured;
+        final List<dynamic> toBeScheduled = captured.first as List<dynamic>;
+        expect(toBeScheduled.length, 1);
+        final Pair<Target, Task> targetToBeScheduled = toBeScheduled.first as Pair<Target, Task>;
+        expect(targetToBeScheduled.first.value.name, 'Linux runIf');
       });
     });
 

@@ -124,7 +124,10 @@ class Scheduler {
       return;
     }
 
-    final List<Task> tasks = await _getTasks(commit);
+    final CiYaml ciYaml = await getCiYaml(commit);
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
@@ -135,6 +138,14 @@ class Scheduler {
     } catch (error) {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
+
+    final List<Pair<Target, Task>> toBeScheduled = <Pair<Target, Task>>[];
+    for (Target target in initialTargets) {
+      if (target.value.scheduler == pb.SchedulerSystem.cocoon) {
+        toBeScheduled.add(Pair<Target, Task>(target, tasks.singleWhere((Task task) => task.name == target.value.name)));
+      }
+    }
+    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
     await _uploadToBigQuery(commit);
   }
@@ -167,13 +178,6 @@ class Scheduler {
       return false;
     }
     return true;
-  }
-
-  /// Create all [Task] specified in the [CiYaml] for [Commit].
-  Future<List<Task>> _getTasks(Commit commit) async {
-    final CiYaml ciYaml = await getCiYaml(commit);
-    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
-    return targetsToTask(commit, initialTargets).toList();
   }
 
   /// Load in memory the `.ci.yaml`.

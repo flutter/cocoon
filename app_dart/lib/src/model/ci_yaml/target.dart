@@ -136,6 +136,11 @@ class Target {
   String getPlatform() {
     return value.name.split(' ').first.toLowerCase();
   }
+
+  /// Get the associated LUCI bucket to run this [Target] in.
+  String getBucket() {
+    return value.bringup ? 'staging' : 'prod';
+  }
 }
 
 /// Representation of a Flutter dependency.
