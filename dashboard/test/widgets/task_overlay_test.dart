@@ -71,7 +71,7 @@ void main() {
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
-        'Queue time: 120 seconds';
+        'Queue time: 2 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -127,7 +127,7 @@ void main() {
 
     final String flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
         'Run time: 40 minutes\n'
-        'Queue time: 120 seconds\n'
+        'Queue time: 2 minutes\n'
         'Flaky: true';
 
     await tester.pumpWidget(
@@ -160,8 +160,8 @@ void main() {
   });
 
   testWidgets('TaskOverlay computes durations correctly for completed task', (WidgetTester tester) async {
-    /// Create a queue time of 10 seconds, run time of 8 minutes
-    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    /// Create a queue time of 2 minutes, run time of 8 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 11));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
     final DateTime finishTime = nowTime.subtract(const Duration(minutes: 1));
 
@@ -176,7 +176,7 @@ void main() {
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
-        'Queue time: 10 seconds';
+        'Queue time: 2 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -201,8 +201,8 @@ void main() {
   });
 
   testWidgets('TaskOverlay computes durations correctly for running task', (WidgetTester tester) async {
-    /// Create a queue time of 10 seconds, running time of 9 minutes
-    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    /// Create a queue time of 2 minutes, running time of 9 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 11));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
 
     final Task timeTask = Task()
@@ -216,7 +216,7 @@ void main() {
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Running for 9 minutes\n'
-        'Queue time: 10 seconds';
+        'Queue time: 2 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -241,8 +241,8 @@ void main() {
   });
 
   testWidgets('TaskOverlay computes durations correctly for queueing task', (WidgetTester tester) async {
-    /// Create a queue time of 10 seconds, running time of 9 minutes
-    final DateTime createTime = nowTime.subtract(const Duration(seconds: 10));
+    /// Create a queue time of 2 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 2));
 
     final Task timeTask = Task()
       ..attempts = 1
@@ -253,7 +253,7 @@ void main() {
       ..createTimestamp = _int64FromDateTime(createTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
-        'Queueing for 10 seconds';
+        'Queueing for 2 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
