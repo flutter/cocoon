@@ -136,10 +136,11 @@ const String expectedSemanticsIntegrationTestResponseBody = '''
 }
 -->
 
-The post-submit test builder `Mac_android android_semantics_integration_test` had a flaky ratio 50.00% for the past 15 days, which is above our 2.00% threshold.
+The post-submit test builder `Mac_android android_semantics_integration_test` had a flaky ratio 50.00% for the past (up to) 100 commits, which is above our 20.00% threshold.
 
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
+
 Flaky builds:
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102
@@ -223,10 +224,11 @@ const String expectedLimitedNumberOfBuildsResponseBody = '''
 }
 -->
 
-The post-submit test builder `Mac_android android_semantics_integration_test` had a flaky ratio 50.00% for the past 15 days, which is above our 2.00% threshold.
+The post-submit test builder `Mac_android android_semantics_integration_test` had a flaky ratio 25.00% for the past (up to) 100 commits, which is above our 20.00% threshold.
 
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 Commit: https://github.com/flutter/flutter/commit/abc
+
 Flaky builds:
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
 https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/102

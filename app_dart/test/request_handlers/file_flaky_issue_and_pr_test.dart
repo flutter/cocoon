@@ -93,6 +93,19 @@ void main() {
         result.login = kCurrentUserLogin;
         return Future<CurrentUser>.value(result);
       });
+      // when assigns pull request reviewer.
+      when(mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+        captureAny,
+        statusCode: captureAnyNamed('statusCode'),
+        fail: captureAnyNamed('fail'),
+        headers: captureAnyNamed('headers'),
+        params: captureAnyNamed('params'),
+        convert: captureAnyNamed('convert'),
+        body: captureAnyNamed('body'),
+        preview: captureAnyNamed('preview'),
+      )).thenAnswer((Invocation invocation) {
+        return Future<PullRequest>.value(PullRequest());
+      });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockGitHubClient.issues).thenReturn(mockIssuesService);
       when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
@@ -258,6 +271,22 @@ void main() {
       // When creates issue
       when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
         return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
+      });
+      // When creates git tree
+      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
+      });
+      // When creates git commit
+      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
+        return Future<GitCommit>.value(GitCommit(sha: expectedSemanticsIntegrationTestTreeSha));
+      });
+      // When creates git reference
+      when(mockGitService.createReference(captureAny, captureAny, captureAny)).thenAnswer((Invocation invocation) {
+        return Future<GitReference>.value(GitReference(ref: invocation.positionalArguments[1] as String?));
+      });
+      // When creates pr to mark test flaky
+      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<PullRequest>.value(PullRequest(number: expectedSemanticsIntegrationTestPRNumber));
       });
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
@@ -512,7 +541,7 @@ void main() {
 
       expect(result['Status'], 'success');
     });
-  }, skip: 'https://github.com/flutter/flutter/issues/90139');
+  });
 
   test('retrieveMetaTagsFromContent can work with different newlines', () async {
     const String differentNewline =
