@@ -47,10 +47,6 @@ class TaskGridFilter extends FilterPropertySource {
   final RegExpFilterProperty _messageProperty =
       RegExpFilterProperty(fieldName: 'messageFilter', label: 'Commit Message');
   final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
-  final BoolFilterProperty _androidProperty = BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
-  final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showIos', label: 'iOS');
-  final BoolFilterProperty _windowsProperty = BoolFilterProperty(fieldName: 'showWindows', label: 'Windows');
-  final BoolFilterProperty _cirrusProperty = BoolFilterProperty(fieldName: 'showCirrus', label: 'Cirrus');
   final BoolFilterProperty _luciProperty = BoolFilterProperty(fieldName: 'showLuci', label: 'Luci');
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
@@ -61,10 +57,6 @@ class TaskGridFilter extends FilterPropertySource {
         ..[_authorProperty.fieldName] = _authorProperty
         ..[_messageProperty.fieldName] = _messageProperty
         ..[_hashProperty.fieldName] = _hashProperty
-        ..[_androidProperty.fieldName] = _androidProperty
-        ..[_iosProperty.fieldName] = _iosProperty
-        ..[_windowsProperty.fieldName] = _windowsProperty
-        ..[_cirrusProperty.fieldName] = _cirrusProperty
         ..[_luciProperty.fieldName] = _luciProperty;
 
   /// The [taskFilter] property is a regular expression that must match the name of the
@@ -86,30 +78,6 @@ class TaskGridFilter extends FilterPropertySource {
   /// task's commit. This property will filter out rows on the build dashboard.
   RegExp get hashFilter => _hashProperty.regExp;
   set hashFilter(RegExp regExp) => _hashProperty.regExp = regExp;
-
-  /// The [showAndroid] property is a boolean that indicates whether to display tasks produced
-  /// by an Android stage in the devicelab.
-  /// This property will filter out columns on the build dashboard.
-  bool get showAndroid => _androidProperty.value;
-  set showAndroid(bool value) => _androidProperty.value = value;
-
-  /// The [showIos] property is a boolean that indicates whether to display tasks produced
-  /// by an iOS stage in the devicelab.
-  /// This property will filter out columns on the build dashboard.
-  bool get showIos => _iosProperty.value;
-  set showIos(bool value) => _iosProperty.value = value;
-
-  /// The [showWindows] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
-  /// This property will filter out columns on the build dashboard.
-  bool get showWindows => _windowsProperty.value;
-  set showWindows(bool value) => _windowsProperty.value = value;
-
-  /// The [showCirrus] property is a boolean that indicates whether to display tasks produced
-  /// by the Cirrus stage in the devicelab.
-  /// This property will filter out columns on the build dashboard.
-  bool get showCirrus => _cirrusProperty.value;
-  set showCirrus(bool value) => _cirrusProperty.value = value;
 
   /// The [showLuci] property is a boolean that indicates whether to display tasks produced
   /// by a Luci stage in the devicelab.
@@ -134,7 +102,6 @@ class TaskGridFilter extends FilterPropertySource {
 
   static Map<String, String> _stagePropertiesMap;
   Map<String, String> get _stageProperties => _stagePropertiesMap ??= <String, String>{
-        StageName.cirrus: _cirrusProperty.fieldName,
         StageName.luci: _luciProperty.fieldName,
       };
 
@@ -177,10 +144,6 @@ class TaskGridFilter extends FilterPropertySource {
         BoolFilterPropertyGroup(
           label: 'Stages',
           members: <BoolFilterProperty>[
-            _androidProperty,
-            _iosProperty,
-            _windowsProperty,
-            _cirrusProperty,
             _luciProperty,
           ],
         ),
