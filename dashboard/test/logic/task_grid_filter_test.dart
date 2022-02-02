@@ -127,7 +127,6 @@ void main() {
     expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
   }
 
-
   test('matches Luci stage', () {
     testStage(
       stageName: StageName.luci,
