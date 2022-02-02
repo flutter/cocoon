@@ -87,6 +87,21 @@ void main() {
         result.login = kCurrentUserLogin;
         return Future<CurrentUser>.value(result);
       });
+      // when assigns pull request reviewer.
+      when(
+          mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+            captureAny,
+            statusCode: captureAnyNamed('statusCode'),
+            fail: captureAnyNamed('fail'),
+            headers: captureAnyNamed('headers'),
+            params: captureAnyNamed('params'),
+            convert: captureAnyNamed('convert'),
+            body: captureAnyNamed('body'),
+            preview: captureAnyNamed('preview'),
+          )
+      ).thenAnswer((Invocation invocation) {
+        return Future<PullRequest>.value(PullRequest());
+      });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockGitHubClient.issues).thenReturn(mockIssuesService);
       when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
@@ -110,6 +125,11 @@ void main() {
               builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
@@ -214,6 +234,11 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
       // When creates git tree
       when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
         return Future<GitTree>.value(GitTree(expectedSemanticsIntegrationTestTreeSha, '', false, <GitTreeEntry>[]));
@@ -304,6 +329,11 @@ void main() {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
       });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length;
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
@@ -322,6 +352,11 @@ void main() {
               builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
@@ -359,6 +394,9 @@ void main() {
           htmlUrl: existingIssueURL,
           closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
         ));
+      });
+      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue());
       });
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
@@ -409,9 +447,14 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFailed);
       });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
@@ -448,6 +491,11 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
       // when gets existing marks flaky prs.
       when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
         return Stream<PullRequest>.value(PullRequest(body: expectedSemanticsIntegrationTestPullRequestBody));
@@ -476,9 +524,14 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL));
+        return Future<Issue>.value(Issue(state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
@@ -507,5 +560,5 @@ void main() {
 
       expect(result['Status'], 'success');
     });
-  }, skip: 'https://github.com/flutter/flutter/issues/90139');
+  });
 }
