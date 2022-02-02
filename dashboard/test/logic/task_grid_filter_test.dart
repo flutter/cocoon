@@ -17,16 +17,11 @@ void main() {
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
-    expect(filter.showAndroid, true);
-    expect(filter.showIos, true);
-    expect(filter.showWindows, true);
-    expect(filter.showCirrus, true);
     expect(filter.showLuci, true);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = 'foo')), true);
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.cirrus)), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
 
     expect(filter.matchesCommit(CommitStatus()), true);
@@ -60,10 +55,6 @@ void main() {
     expect(TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
         TaskGridFilter()..messageFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'showAndroid': 'false'}), TaskGridFilter()..showAndroid = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showIos': 'false'}), TaskGridFilter()..showIos = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showWindows': 'false'}), TaskGridFilter()..showWindows = false);
-    expect(TaskGridFilter.fromMap(<String, String>{'showCirrus': 'false'}), TaskGridFilter()..showCirrus = false);
     expect(TaskGridFilter.fromMap(<String, String>{'showLuci': 'false'}), TaskGridFilter()..showLuci = false);
   });
 
@@ -74,10 +65,6 @@ void main() {
       TaskGridFilter()..authorFilter = RegExp('foo'),
       TaskGridFilter()..messageFilter = RegExp('foo'),
       TaskGridFilter()..hashFilter = RegExp('foo'),
-      TaskGridFilter()..showAndroid = false,
-      TaskGridFilter()..showIos = false,
-      TaskGridFilter()..showWindows = false,
-      TaskGridFilter()..showCirrus = false,
       TaskGridFilter()..showLuci = false,
     ];
     for (final TaskGridFilter filter in nonDefaultFilters) {
@@ -140,14 +127,6 @@ void main() {
     expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
   }
 
-  test('matches Cirrus stage', () {
-    testStage(
-      stageName: StageName.cirrus,
-      fieldName: 'showCirrus',
-      trueFilter: TaskGridFilter()..showCirrus = true,
-      falseFilter: TaskGridFilter()..showCirrus = false,
-    );
-  });
 
   test('matches Luci stage', () {
     testStage(
