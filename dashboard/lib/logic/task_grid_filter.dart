@@ -79,6 +79,7 @@ class TaskGridFilter extends FilterPropertySource {
   RegExp get hashFilter => _hashProperty.regExp;
   set hashFilter(RegExp regExp) => _hashProperty.regExp = regExp;
 
+
   /// The [showLuci] property is a boolean that indicates whether to display tasks produced
   /// by a Luci stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
