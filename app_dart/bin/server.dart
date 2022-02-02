@@ -141,18 +141,11 @@ Future<void> main() async {
       /// This API updates task status in datastore which have been
       /// communicated via PubSub messages.
       ///
-      /// POST: /api/task-status-subscription
-      ///
-      /// Parameters:
-      ///   CommitBranch: (string in body). Branch of commit.
-      ///   CommitSha: (string in body). Sha of commit.
-      ///   BuilderName: (string in body). Name of the luci builder.
-      ///   NewStatus: (string in body) required. Status of the task.
-      ///   ResultData: (string in body) optional. Benchmark data.
-      ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
+      /// POST: /api/results/task-status-subscription
       ///
       /// Response: Status 200 OK
-      '/api/task-status-subscription': TaskStatusSubscription(cache, config, authProvider),
+      '/api/results/task-status-subscription': TaskStatusSubscription(cache, config, authProvider),
+
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,

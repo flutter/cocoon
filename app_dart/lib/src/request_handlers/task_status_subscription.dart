@@ -108,15 +108,7 @@ class TaskStatusSubscription extends SubscriptionHandler {
   }
 
   /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
-  ///
-  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
   Future<Key<String>> _constructCommitKey(DatastoreService datastore, String commitBranch, String commitSha) async {
-    final List<String> flutterBranches = await config.flutterBranches;
-    if (!flutterBranches.contains(commitBranch)) {
-      throw BadRequestException('Failed to find flutter/flutter branch: $commitBranch\n'
-          'If this is a valid branch, '
-          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
-    }
     final String id = 'flutter/flutter/$commitBranch/$commitSha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
