@@ -54,7 +54,7 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
 
     final ClientContext clientContext = clientContextProvider();
 
-    log.fine('Authenticating as luci pubsub message');
+    log.fine('Authenticating as pubsub message');
     return await authenticateIdToken(idToken, clientContext: clientContext);
   }
 
@@ -80,6 +80,6 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
     if (Config.allowedPubsubServiceAccounts.contains(info.email)) {
       return AuthenticatedContext(clientContext: clientContext);
     }
-    throw Unauthenticated('${info.email} is not in allowedLuciPubsubServiceAccounts');
+    throw Unauthenticated('${info.email} is not in allowedPubsubServiceAccounts');
   }
 }

@@ -25,7 +25,8 @@ class PubSub {
     ]);
     final PubsubApi pubsubApi = PubsubApi(httpClient);
     final String messageData = jsonEncode(json);
-    final String messageBase64 = base64Encode(messageData.codeUnits);
+    final List<int> messageBytes = utf8.encode(messageData);
+    final String messageBase64 = base64Encode(messageBytes);
     final PublishRequest request = PublishRequest(messages: <PubsubMessage>[
       PubsubMessage(data: messageBase64),
     ]);
