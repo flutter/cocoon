@@ -120,6 +120,29 @@ const String testOwnersContent = '''
 /dev/devicelab/bin/tasks/android_semantics_integration_test.dart @HansMuller @flutter/framework
 ''';
 
+const String expectedSemanticsIntegrationTestResponseBody = '''
+<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
+{
+  "name": "Mac_android android_semantics_integration_test"
+}
+-->
+
+The post-submit test builder `Mac_android android_semantics_integration_test`, which has been marked `bringup: true`, had 3 flakes over past 10 commits.
+
+One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/staging/Mac_android%20android_semantics_integration_test/103
+Commit: https://github.com/flutter/flutter/commit/abc
+
+Flaky builds:
+https://ci.chromium.org/ui/p/flutter/builders/staging/Mac_android%20android_semantics_integration_test/103
+https://ci.chromium.org/ui/p/flutter/builders/staging/Mac_android%20android_semantics_integration_test/102
+https://ci.chromium.org/ui/p/flutter/builders/staging/Mac_android%20android_semantics_integration_test/101
+
+Recent test runs:
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Mac_android%20android_semantics_integration_test
+
+Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
+''';
+
 final List<BuilderRecord> semanticsIntegrationTestRecordsAllPassed = <BuilderRecord>[
   BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),
   BuilderRecord(commit: 'abc', isFlaky: false, isFailed: false),

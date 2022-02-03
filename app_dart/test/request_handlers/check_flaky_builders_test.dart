@@ -434,6 +434,74 @@ void main() {
       final IssueRequest issueRequest = captured[1] as IssueRequest;
       expect(issueRequest.assignee, expectedSemanticsIntegrationTestOwner);
       expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestLabels), isTrue);
+      expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Do not create pr and do not create issue if the records have flaky runs and there is an open issue',
+        () async {
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
+              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFlaky);
+      });
+      // When get issue
+      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(
+          state: 'closed',
+          htmlUrl: existingIssueURL,
+          closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
+        ));
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
+
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify pr is not created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      // Verify issue is created correctly.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      expect(result['Status'], 'success');
+    });
+
+    test('Do not create pr and do not create issue if the records have flaky runs and there is a recently closed issue',
+        () async {
+      // When get issue
+      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(Issue(
+          state: 'open',
+          htmlUrl: existingIssueURL,
+        ));
+      });
+      // When queries flaky data from BigQuery.
+      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
+          .thenAnswer((Invocation invocation) {
+        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
+      });
+
+      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
+      final Map<String, dynamic> result = await utf8.decoder
+          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
+
+      // Verify pr is not created.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      // Verify issue is created correctly.
+      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
     });
