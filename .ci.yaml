@@ -34,7 +34,6 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-    scheduler: luci
     runIf:
       - device_doctor/**
 
@@ -43,7 +42,6 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-    scheduler: luci
     runIf:
       - device_doctor/**
 
@@ -52,7 +50,6 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-    scheduler: luci
     runIf:
       - device_doctor/**
 
