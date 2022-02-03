@@ -214,3 +214,11 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   }
   return noOwnerBuilders;
 }
+
+/// Utility to class to wrap related objects in.
+class Pair<S, T> {
+  const Pair(this.first, this.second);
+
+  final S first;
+  final T second;
+}

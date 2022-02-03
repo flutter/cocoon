@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:core';
 
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -22,6 +23,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -35,6 +37,7 @@ void main() {
   RepositorySlug? slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   final MockGerritService mockGerritService = MockGerritService();
+  late FakePubSub pubsub;
 
   final List<Target> targets = <Target>[
     generateTarget(1),
@@ -49,7 +52,13 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient, gerritService: mockGerritService);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        gerritService: mockGerritService,
+        pubsub: pubsub,
+      );
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Null build', () async {
@@ -119,7 +128,12 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Empty responses are handled correctly', () async {
@@ -164,8 +178,14 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient,
-          githubChecksUtil: mockGithubChecksUtil, gerritService: mockGerritService);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        gerritService: mockGerritService,
+        pubsub: pubsub,
+      );
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -319,11 +339,63 @@ void main() {
     });
   });
 
+  group('schedulePostsubmitBuilds', () {
+    setUp(() {
+      mockBuildBucketClient = MockBuildBucketClient();
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        FakeConfig(),
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
+    });
+
+    test('schedule postsubmit builds successfully', () async {
+      final Commit commit = generateCommit(0);
+      final Pair<Target, Task> toBeScheduled = Pair<Target, Task>(
+        generateTarget(1),
+        generateTask(1),
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Pair<Target, Task>>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+      });
+      final Map<String, dynamic> properties = scheduleBuild.properties!;
+      expect(properties, <String, dynamic>{
+        'dependencies': <dynamic>[],
+        'bringup': false,
+        'git_branch': 'master',
+        'exe_cipd_version': 'refs/heads/master'
+      });
+    });
+  });
+
   group('cancelBuilds', () {
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Cancel builds when build list is empty', () async {
@@ -368,7 +440,12 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
       slug = RepositorySlug('flutter', 'flutter');
     });
     test('Failed builds from an empty list', () async {
@@ -404,7 +481,12 @@ void main() {
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
         'COMPLETED',
         result: 'FAILURE',
@@ -428,7 +510,12 @@ void main() {
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
     });
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
@@ -449,7 +536,12 @@ void main() {
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
-      service = LuciBuildService(config, mockBuildBucketClient);
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        pubsub: pubsub,
+      );
       datastore = DatastoreService(config.db, 5);
       commit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/abc'), sha: 'abc', repository: 'flutter/flutter');

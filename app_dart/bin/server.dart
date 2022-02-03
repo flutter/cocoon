@@ -30,6 +30,7 @@ Future<void> main() async {
     final LuciBuildService luciBuildService = LuciBuildService(
       config,
       buildBucketClient,
+      pubsub: const PubSub(),
     );
 
     /// Github checks api service used to provide luci test execution status on the Github UI.
