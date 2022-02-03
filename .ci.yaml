@@ -28,7 +28,6 @@ targets:
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
-    scheduler: luci
 
   - name: Linux device_doctor
     postsubmit: false
