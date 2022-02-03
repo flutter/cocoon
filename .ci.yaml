@@ -57,4 +57,3 @@ targets:
     recipe: infra/ci_yaml
     properties:
       add_recipes_cq: "true"
-    scheduler: luci
