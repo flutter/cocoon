@@ -230,8 +230,8 @@ class TaskOverlayContents extends StatelessWidget {
     ///   1. Task is waiting to be scheduled (in queue)
     ///   2. Task has been scheduled (out of queue)
     final String queueText = (task.status != TaskBox.statusNew)
-        ? 'Queue time: ${queueDuration.inSeconds} seconds'
-        : 'Queueing for ${queueDuration.inSeconds} seconds';
+        ? 'Queue time: ${queueDuration.inMinutes} minutes'
+        : 'Queueing for ${queueDuration.inMinutes} minutes';
 
     /// There are 3 possible states for the runtime:
     ///   1. Task has not run yet (new)
