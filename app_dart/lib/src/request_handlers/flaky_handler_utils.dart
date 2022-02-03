@@ -43,7 +43,7 @@ const String kModifyType = 'blob';
 
 const int kSuccessBuildNumberLimit = 3;
 const int kFlayRatioBuildNumberList = 10;
-const double kDefaultFlakyRatioThreshold = 0.2;
+const double kDefaultFlakyRatioThreshold = 0.02;
 const int kGracePeriodForClosedFlake = 15; // days
 
 const String _commitPrefix = 'https://github.com/flutter/flutter/commit/';
@@ -67,6 +67,10 @@ class IssueBuilder {
   final double threshold;
   final bool bringup;
 
+  Bucket get buildBucket {
+    return bringup ? Bucket.staging : Bucket.prod;
+  }
+
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';
   }
@@ -87,11 +91,11 @@ class IssueBuilder {
 ${_buildHiddenMetaTags(name: statistic.name)}
 ${_issueSummary(statistic, threshold, bringup)}
 
-One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit)}
+One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit, bucket: buildBucket)}
 Commit: $_commitPrefix${statistic.recentCommit}
 
 Flaky builds:
-${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!)}
+${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, bucket: buildBucket)}
 
 Recent test runs:
 ${_issueBuilderLink(statistic.name)}
@@ -276,7 +280,7 @@ Future<Issue> fileFlakyIssue({
       statistic: builderDetail.statistic,
       ownership: builderDetail.ownership,
       threshold: kDefaultFlakyRatioThreshold,
-      bringup: false);
+      bringup: bringup);
   return await gitHub.createIssue(
     slug,
     title: issueBuilder.issueTitle,
