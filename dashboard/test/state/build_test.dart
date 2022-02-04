@@ -78,6 +78,34 @@ void main() {
       buildState.dispose();
     });
 
+    testWidgets('updateCurrentRepoBranch should make old updates stale', (WidgetTester tester) async {
+      final BuildState buildState = BuildState(
+        authService: MockGoogleSignInService(),
+        cocoonService: mockCocoonService,
+      );
+
+      verifyNever(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')));
+      expect(buildState.statuses, isEmpty);
+
+      void listener() {}
+      // This invokes startFetchUpdates
+      buildState.addListener(listener);
+
+      // startFetching immediately starts fetching results (and returns fake data)
+      verify(await mockCocoonService.fetchCommitStatuses(branch: _defaultBranch, repo: 'flutter')).called(1);
+      verifyNever(mockCocoonService.fetchCommitStatuses(branch: 'main', repo: 'cocoon'));
+      expect(buildState.statuses, isNotEmpty);
+      // Start another Timer.periodic async call
+      await tester.pump();
+      // Change the repo to Cocoon while a timer is set, and Cocoon is not expected to return data
+      buildState.updateCurrentRepoBranch('cocoon', 'main');
+      expect(buildState.statuses, isEmpty);
+      await untilCalled(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch, repo: 'flutter'));
+      expect(buildState.statuses, isEmpty);
+
+      buildState.dispose();
+    });
+
     test('multiple start updates should not change the timer', () {
       final BuildState buildState = BuildState(
         authService: MockGoogleSignInService(),

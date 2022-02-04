@@ -152,6 +152,7 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchStatusUpdates([Timer timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
+        final String queriedRepoBranch = '$currentRepo/$currentBranch';
         final CocoonResponse<List<CommitStatus>> response =
             await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
         if (!_active) {
@@ -159,12 +160,16 @@ class BuildState extends ChangeNotifier {
         }
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
+        } else if (queriedRepoBranch != '$currentRepo/$currentBranch') {
+          // No-op as the dashboard shouldn't update with old data
+          return;
         } else {
           _mergeRecentCommitStatusesWithStoredStatuses(response.data);
           notifyListeners();
         }
       }(),
       () async {
+        final String queriedRepoBranch = '$currentRepo/$currentBranch';
         final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
           branch: currentBranch,
           repo: currentRepo,
@@ -174,6 +179,9 @@ class BuildState extends ChangeNotifier {
         }
         if (response.error != null) {
           _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
+        } else if (queriedRepoBranch != '$currentRepo/$currentBranch') {
+          // No-op as the dashboard shouldn't update with old data
+          return;
         } else {
           _isTreeBuilding = response.data.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data.failingTasks;
