@@ -79,5 +79,5 @@ final Map<String, String> defaultBranches = <String, String>{
   'engine': 'main',
   'flutter': 'master',
   'packages': 'main',
-  'plugins': 'master',
+  'plugins': 'main',
 };
