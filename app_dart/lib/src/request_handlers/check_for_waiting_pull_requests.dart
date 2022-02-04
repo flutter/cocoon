@@ -238,13 +238,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         continue;
       }
       final String? author = pullRequest['author']['login'] as String?;
+      final String? authorAssociation = pullRequest['authorAssociation'] as String;
       final String id = pullRequest['id'] as String;
       final String repoFullName = pullRequest['baseRepository']['nameWithOwner'] as String;
       final RepositorySlug slug = RepositorySlug.full(repoFullName);
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
-      final bool hasApproval = config.rollerAccounts.contains(author) ||
+      final bool hasApproval = authorAssociation == 'dependabot[bot]' ||
+          config.rollerAccounts.contains(author) ||
           _checkApproval(
             author,
             pullRequest['authorAssociation'] as String,
