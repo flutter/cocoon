@@ -44,7 +44,7 @@ void main() {
 
   test('schedules request to buildbucket', () async {
     const BatchRequest request = BatchRequest();
-    tester.message = PushMessage(data: jsonEncode(request));
+    tester.message = PushMessage(data: base64Encode(utf8.encode(jsonEncode(request))));
     final Body body = await tester.post(handler);
     expect(body, Body.empty);
   });
