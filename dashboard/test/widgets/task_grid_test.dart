@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -336,6 +337,62 @@ void main() {
     );
 
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withSkips.png');
+  });
+
+  testWidgets('Cocoon and LUCI tasks share the same column', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    // Matrix Diagram:
+    //
+    // ✓
+    // ✓
+    //
+    // To construct the matrix from this diagram, each [CommitStatus] will have a [Task]
+    // that shares its name, but will have a different stage name.
+
+    final List<CommitStatus> statuses = <CommitStatus>[
+      CommitStatus()
+        ..commit = (Commit()..author = 'Author')
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = StageName.cocoon
+              ..name = '1'
+              ..builderName = '1'
+              ..status = TaskBox.statusSucceeded
+          ],
+        ),
+      CommitStatus()
+        ..commit = (Commit()..author = 'Author')
+        ..tasks.addAll(
+          <Task>[
+            Task()
+              ..stageName = StageName.luci
+              ..name = '1'
+              ..builderName = '1'
+              ..status = TaskBox.statusSucceeded
+          ],
+        ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(),
+            commitStatuses: statuses,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(LatticeScrollView), findsOneWidget);
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget;
+
+    // Rows (task icon, two commits, load more row)
+    expect(lattice.cells.length, 4);
+    // Columns (commit box, task)
+    expect(lattice.cells.first.length, 2);
+    expect(lattice.cells[1].length, 2);
   });
 
   testWidgets('TaskGrid creates a task icon row and they line up', (WidgetTester tester) async {

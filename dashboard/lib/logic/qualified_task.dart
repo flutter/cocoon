@@ -59,11 +59,23 @@ class QualifiedTask {
     if (other.runtimeType != runtimeType) {
       return false;
     }
+
+    if (isLuci) {
+      return other is QualifiedTask && other.task == task;
+    }
+
     return other is QualifiedTask && other.stage == stage && other.task == task;
   }
 
   @override
-  int get hashCode => stage.hashCode ^ task.hashCode;
+  int get hashCode {
+    // Ensure tasks from Cocoon or LUCI share the same columns.
+    if (isLuci) {
+      return StageName.cocoon.hashCode ^ task.hashCode;
+    }
+
+    return stage.hashCode ^ task.hashCode;
+  }
 }
 
 /// Get the URL for [Task] to view its log.
