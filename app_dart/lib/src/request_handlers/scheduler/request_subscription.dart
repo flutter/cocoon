@@ -43,7 +43,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     BatchRequest request;
     try {
-      final String rawJson = message.data!;
+      final String rawJson = String.fromCharCodes(base64Decode(message.data!));
       log.info('rawJson: $rawJson');
       final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
       request = BatchRequest.fromJson(json);
