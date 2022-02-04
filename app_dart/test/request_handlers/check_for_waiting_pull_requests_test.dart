@@ -295,6 +295,30 @@ void main() {
       );
     });
 
+    test('Merges unapproved PR from dependabot', () async {
+      flutterRepoPRs
+          .add(PullRequestHelper(authorAssociation: 'dependabot[bot]', reviews: const <PullRequestReviewHelper>[]));
+      engineRepoPRs
+          .add(PullRequestHelper(authorAssociation: 'dependabot[bot]', reviews: const <PullRequestReviewHelper>[]));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
+          ),
+        ],
+      );
+    });
+
     test('Does not merge PR with in progress tests', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
