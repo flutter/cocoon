@@ -88,6 +88,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       return;
     }
 
+    log.fine('Request body: ${utf8.decode(body)}');
     PushMessageEnvelope? envelope;
     if (body.isNotEmpty) {
       try {
@@ -131,11 +132,14 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       ttl: const Duration(days: 1),
     );
 
+    log.info('Processing message $messageId');
     await runZoned<Future<void>>(
       () async => await super.service(
         request,
         onError: (_) async {
+          log.warning('Failed to process $message');
           await cache.purge(topicName, messageId);
+          log.info('Purged write lock from cache');
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{

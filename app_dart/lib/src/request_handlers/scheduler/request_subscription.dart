@@ -44,9 +44,11 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     BatchRequest request;
     try {
       final String rawJson = message.data!;
+      log.info('rawJson: $rawJson');
       final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
       request = BatchRequest.fromJson(json);
     } catch (e) {
+      log.severe('Failed to construct BatchRequest from message');
       log.severe(e);
       throw BadRequestException(e.toString());
     }
