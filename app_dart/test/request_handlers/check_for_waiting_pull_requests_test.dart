@@ -296,10 +296,9 @@ void main() {
     });
 
     test('Merges unapproved PR from dependabot', () async {
-      flutterRepoPRs
-          .add(PullRequestHelper(authorAssociation: 'dependabot[bot]', reviews: const <PullRequestReviewHelper>[]));
-      engineRepoPRs
-          .add(PullRequestHelper(authorAssociation: 'dependabot[bot]', reviews: const <PullRequestReviewHelper>[]));
+      config.rollerAccountsValue = <String>{'dependabot'};
+      flutterRepoPRs.add(PullRequestHelper(author: 'dependabot', reviews: const <PullRequestReviewHelper>[]));
+      engineRepoPRs.add(PullRequestHelper(author: 'dependabot', reviews: const <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
