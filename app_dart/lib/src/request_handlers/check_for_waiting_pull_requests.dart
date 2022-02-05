@@ -245,8 +245,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
-      final bool hasApproval = authorAssociation == 'dependabot[bot]' ||
-          config.rollerAccounts.contains(author) ||
+      final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
             author,
             authorAssociation,
