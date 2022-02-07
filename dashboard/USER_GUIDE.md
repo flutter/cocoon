@@ -1,5 +1,7 @@
 # Flutter Dashboard User Guide
 
+The dashboard is generated based on a repo's [.ci.yaml](../CI_YAML.md).
+
 ## Build dashboard
 
 The build page is accessible at https://flutter-dashboard.appspot.com/#/build.
@@ -26,13 +28,6 @@ physical devices, some tests may be batched (run for several commits).
 Flutter infra prioritizes running tasks against the most recent commits. This
 leads to some tasks never being run on a commit as the test coverage was
 provided from a more recent commit.
-
-### Why are some tasks outlined instead of solid?
-
-Outlined tasks indicate a task that is running as bringup. This can be for
-a number of reasons:
-  1. Validating a new test before it can block the tree
-  2. A test has become extremely flaky
 
 ### Why do some tasks have an exclamation point?
 
