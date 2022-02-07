@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/google/grpc.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -16,7 +15,6 @@ import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/fake_authentication.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
-import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
 void main() {
@@ -49,34 +47,5 @@ void main() {
     tester.message = PushMessage(data: base64Encode(utf8.encode(jsonEncode(request))));
     final Body body = await tester.post(handler);
     expect(body, Body.empty);
-  });
-
-  test('retry requests to buildbucket', () async {
-    int attempt = 0;
-    when(buildBucketClient.batch(any)).thenAnswer((_) async {
-      final List<Response> responses = <Response>[];
-      responses.add(Response(
-        scheduleBuild: generateBuild(
-          0,
-          name: 'Linux A',
-        ),
-        error: attempt == 0 ? const GrpcStatus(code: 1, message: 'error :(') : null,
-      ));
-      attempt += 1;
-      return BatchResponse(responses: responses);
-    });
-    const BatchRequest request = BatchRequest(
-      requests: <Request>[
-        Request(
-          scheduleBuild: ScheduleBuildRequest(
-            builderId: BuilderId(builder: 'Linux A'),
-          ),
-        ),
-      ],
-    );
-    tester.message = PushMessage(data: jsonEncode(request));
-    final Body body = await tester.post(handler);
-    expect(body, Body.empty);
-    verify(buildBucketClient.batch(any)).called(2);
   });
 }

@@ -9,7 +9,6 @@ import 'dart:math';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
-import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
@@ -20,9 +19,10 @@ import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
+import 'buildbucket.dart';
+import 'config.dart';
 import 'gerrit_service.dart';
 import 'luci.dart';
 
@@ -35,7 +35,6 @@ class LuciBuildService {
   LuciBuildService(
     this.config,
     this.buildBucketClient, {
-    required this.pubsub,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
