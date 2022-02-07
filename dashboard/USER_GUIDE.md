@@ -4,7 +4,7 @@
 
 The build page is accessible at https://flutter-dashboard.appspot.com/#/build.
 
-Build statuses of commits on this page are sync'ed with the flutter/flutter repo.
+Build statuses of commits on this page are sync'ed with most repos in https://github.com/flutter
 
 ### Tree Closures
 
@@ -13,36 +13,23 @@ at least one test has failed against the top of tree and flutter/flutter is
 currently not accepting new commits. Check on Discord [#tree-status](https://discord.com/channels/608014603317936148/613398423093116959)
 for discussion about tree closures.
 
-Tree closures occur when the latests results for a test have returned as
-failing. Logs are found by clicking a task box then clicking "Download Logs."
+Tree closures occur when the latest results for a test have returned as
+failing. Logs are found by clicking a task box then clicking "view logs."
 
-### Why am I not able to download logs?
-
-Ensure that you are signed in to the app (top right).
-
-Reach out on Discord [#hackers-infra](https://discord.com/channels/608014603317936148/608021351567065092)
-to be added as an AllowListedAccount to Cocoon.
-
-When the DeviceLab migrates to LUCI, logs will be available without sign in.
 
 ### Why is a task stuck on "new task" status?
 
 The dashboard aggregates build results from multiple build environments,
-including Cirrus, LUCI, and DeviceLab. DeviceLab and Cirrus test every commit
-that goes into the `master` branch. However, LUCI may skip commits when they
-come in too fast.
+including Cirrus, LUCI, and DeviceLab. Due to limited capacity to run tests on
+physical devices, some tests may be batched (run for several commits).
 
 Flutter infra prioritizes running tasks against the most recent commits. This
 leads to some tasks never being run on a commit as the test coverage was
 provided from a more recent commit.
 
-DeviceLab tests are eventually run against every commit to ensure benchmark
-data is collected from every commit. This helps with triaging where performance
-regressions started.
-
 ### Why are some tasks outlined instead of solid?
 
-Outlined tasks indicate a task that is running experimentally. This can be for
+Outlined tasks indicate a task that is running as bringup. This can be for
 a number of reasons:
   1. Validating a new test before it can block the tree
   2. A test has become extremely flaky
@@ -56,11 +43,9 @@ with exclamation marks, it indicates that task is flaky.
 
 ### How do I view results for a release branch?
 
-Click the settings cog in the top right, and switch the branch via the dropdown.
+**TODO(chillers): Update this when release branches are supported by cocoon scheduler**
 
-If the branch is not in the list, it has not propagated to Cocoon's backend.
-
-See [backend branching support for flutter/flutter](../app_dart/README.md#branching-support-for-flutter-repo).
+Visit https://ci.chromium.org/p/flutter and click the link for the repo and release channel.
 
 ### There's a lot of boxes! Can I filter them?
 
