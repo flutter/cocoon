@@ -11,7 +11,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
 import '../model/task.pb.dart';
-import '../service/cocoon.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';

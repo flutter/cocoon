@@ -9,7 +9,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show compute, kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../logic/error_to_string.dart';
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
