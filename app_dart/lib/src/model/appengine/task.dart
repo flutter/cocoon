@@ -42,6 +42,7 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
+    this.isBenchmark,
     String? status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -70,6 +71,7 @@ class Task extends Model<int> {
       stageName: 'chromebot',
       status: Task.statusNew,
       timeoutInMinutes: 0,
+      isBenchmark: builder.benchmark,
     );
   }
 
@@ -90,6 +92,7 @@ class Task extends Model<int> {
       stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
       timeoutInMinutes: target.value.timeout,
+      isBenchmark: target.isBenchmark(),
     );
   }
 
@@ -262,6 +265,11 @@ class Task extends Model<int> {
     _status = value;
   }
 
+  /// Whether the task is a benchmark test
+  @BoolProperty(propertyName: 'Benchmark')
+  @JsonKey(name: 'Benchmark')
+  bool? isBenchmark;
+
   /// Update [Task] related fields based on LUCI's [BuildPushMessage].
   String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
     if (pushMessage.build?.status == Status.started) {
@@ -314,6 +322,7 @@ class Task extends Model<int> {
       ..write(', buildNumberList: $buildNumberList')
       ..write(', builderName: $builderName')
       ..write(', luciBucket: $luciBucket')
+      ..write(', isBenchmark: $isBenchmark')
       ..write(')');
     return buf.toString();
   }

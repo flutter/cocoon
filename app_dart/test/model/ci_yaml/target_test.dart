@@ -56,5 +56,15 @@ void main() {
         'xcode': '12abc',
       });
     });
+
+    test('benchmark properties', () {
+      final Target target = generateTarget(
+        1,
+        properties: <String, String>{
+          'benchmark': 'true',
+        },
+      );
+      expect(target.isBenchmark(), true);
+    });
   });
 }

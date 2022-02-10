@@ -229,6 +229,7 @@ class LuciBuilder {
     this.enabled,
     this.runIf,
     this.taskName,
+    this.benchmark,
   });
 
   /// Create a new [LuciBuilder] from a [Target].
@@ -239,6 +240,7 @@ class LuciBuilder {
       runIf: target.value.runIf,
       taskName: target.value.name,
       flaky: target.value.bringup,
+      benchmark: target.isBenchmark(),
     );
   }
 
@@ -266,6 +268,10 @@ class LuciBuilder {
   @JsonKey(name: 'task_name')
   final String? taskName;
 
+  /// Flag if this builder is a benchmark builder.
+  @JsonKey()
+  final bool? benchmark;
+
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
@@ -286,6 +292,7 @@ class LuciBuilder {
       enabled: $enabled
       runIf: $runIf
       taskName: $taskName
+      benchmark: $benchmark
     )''';
   }
 
