@@ -40,7 +40,7 @@ void main() {
   late FakePubSub pubsub;
 
   final List<Target> targets = <Target>[
-    generateTarget(1),
+    generateTarget(1, properties: <String, String>{'os': 'abc'}),
   ];
   final PullRequest pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
 
@@ -176,7 +176,7 @@ void main() {
   group('scheduleBuilds', () {
     setUp(() {
       githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService);
+      config = FakeConfig(githubService: githubService, dimensionListValue: <String>['os']);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
@@ -226,7 +226,9 @@ void main() {
         'builder_name': 'Linux 1'
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
+      final List<RequestedDimension> dimensions = scheduleBuild.dimensions!;
       expect(properties, <String, dynamic>{
+        'os': 'abc',
         'dependencies': <dynamic>[],
         'bringup': false,
         'git_branch': 'master',
@@ -234,6 +236,9 @@ void main() {
         'git_ref': 'refs/pull/123/head',
         'exe_cipd_version': 'refs/heads/main'
       });
+      expect(dimensions.length, 1);
+      expect(dimensions[0].key, 'os');
+      expect(dimensions[0].value, 'abc');
     });
 
     test('try to schedule builds already started', () async {
