@@ -198,6 +198,7 @@ class LuciBuildService {
       'git_ref': 'refs/pull/${pullRequest.number}/head',
       'exe_cipd_version': cipdVersion,
     });
+    final List<RequestedDimension> dimensions = getDimensions(properties);
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
@@ -208,6 +209,7 @@ class LuciBuildService {
           'github_checkrun': <String>[checkRunId.toString()],
         },
         properties: properties,
+        dimensions: dimensions,
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
           userData: base64Encode(json.encode(userData).codeUnits),
@@ -218,6 +220,17 @@ class LuciBuildService {
         },
       ),
     );
+  }
+
+  /// Get dimensions from target properties.
+  List<RequestedDimension> getDimensions(Map<String, dynamic>? properties) {
+    final List<RequestedDimension> dimensions = <RequestedDimension>[];
+    for (String dimension in config.dimensionList) {
+      if (properties!.containsKey(dimension)) {
+        dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
+      }
+    }
+    return dimensions;
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
