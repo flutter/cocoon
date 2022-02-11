@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -56,13 +59,21 @@ void main() {
       expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
 
-    test('test isBenchmark property', () {
-      final Task task1 = generateTask(1, isBenchmark: true);
-      final Task task2 = generateTask(2, isBenchmark: false);
-      final Task task3 = generateTask(3);
-      expect(task1.isBenchmark, true);
-      expect(task2.isBenchmark, false);
-      expect(task3.isBenchmark, false);
+    test('test properties property', () {
+      final Target target = generateTarget(
+        1,
+        platform: 'Mac_ios',
+        properties: <String, String>{
+          'benchmark': 'true',
+        },
+      );
+      final Task task = generateTask(1, properties: jsonEncode(target.getProperties()));
+
+      expect(jsonDecode(task.properties!), <String, Object>{
+        'benchmark': true,
+        'bringup': false,
+        'dependencies': <String>[],
+      });
     });
   });
 }

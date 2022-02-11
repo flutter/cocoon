@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -42,7 +44,7 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
-    this.isBenchmark = false,
+    this.properties,
     String? status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -91,7 +93,7 @@ class Task extends Model<int> {
       stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
       timeoutInMinutes: target.value.timeout,
-      isBenchmark: target.isBenchmark,
+      properties: jsonEncode(target.getProperties()),
     );
   }
 
@@ -265,9 +267,9 @@ class Task extends Model<int> {
   }
 
   /// Whether the task is a benchmark test
-  @BoolProperty(propertyName: 'Benchmark')
-  @JsonKey(name: 'Benchmark')
-  bool? isBenchmark;
+  @StringProperty(propertyName: 'Properties')
+  @JsonKey(name: 'Properties')
+  String? properties;
 
   /// Update [Task] related fields based on LUCI's [BuildPushMessage].
   String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
@@ -321,7 +323,7 @@ class Task extends Model<int> {
       ..write(', buildNumberList: $buildNumberList')
       ..write(', builderName: $builderName')
       ..write(', luciBucket: $luciBucket')
-      ..write(', isBenchmark: $isBenchmark')
+      ..write(', properties: $properties')
       ..write(')');
     return buf.toString();
   }
