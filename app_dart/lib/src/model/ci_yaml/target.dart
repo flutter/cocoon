@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:github/github.dart';
 
+import '../../service/config.dart';
+import '../luci/buildbucket.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
 /// Wrapper class around [pb.Target] to support aggregate properties.
@@ -32,6 +34,21 @@ class Target {
 
   /// Target prefixes that indicate it will run on an ios device.
   static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
+
+
+  /// Gets dimensions for this [pb.Target].
+  /// 
+  /// 
+  List<RequestedDimension> getDimensions() {
+    final Map<String, Object> properties = getProperties();
+    final List<RequestedDimension> dimensions = <RequestedDimension>[];
+    for (String dimension in Config.dimensionList) {
+      if (properties.containsKey(dimension)) {
+        dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
+      }
+    }
+    return dimensions;
+  }
 
   /// Gets the assembled properties for this [pb.Target].
   ///
