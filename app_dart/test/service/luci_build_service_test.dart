@@ -496,6 +496,7 @@ void main() {
         'COMPLETED',
         result: 'FAILURE',
         builderName: 'Linux Host Engine',
+        userData: '{}',
       )) as Map<String, dynamic>;
       buildPushMessage = push_message.BuildPushMessage.fromJson(json);
     });
