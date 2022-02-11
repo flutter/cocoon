@@ -50,7 +50,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     log.fine(buildPushMessage.userData);
-    log.fine('Updating buildId=${buildPushMessage.build?.id} for builder=${buildPushMessage.build?.result}');
+    log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
     // Example user data:
     // {
     //   "task_key": "key123",
