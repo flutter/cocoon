@@ -663,6 +663,7 @@ class LuciBuildService {
         builderName: luciTask.builderName,
         repo: repo,
         tags: tags,
+        properties: repo == 'engine' ? Config.engineDefaultProperties : const <String, dynamic>{},
         bucket: isFlaky ?? false ? 'staging' : 'prod',
       );
       return true;

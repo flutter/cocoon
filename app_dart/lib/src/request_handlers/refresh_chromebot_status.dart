@@ -125,6 +125,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
             luciTask: latestLuciTask,
             retries: update.attempts! - 1,
             datastore: datastore,
+            repo: slug.name,
             isFlaky: datastoreTask.task.isFlaky)) {
           update.status = Task.statusNew;
           update.attempts = (update.attempts ?? 0) + 1;
