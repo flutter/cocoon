@@ -37,8 +37,6 @@ class Target {
 
 
   /// Gets dimensions for this [pb.Target].
-  /// 
-  /// 
   List<RequestedDimension> getDimensions() {
     final Map<String, Object> properties = getProperties();
     final List<RequestedDimension> dimensions = <RequestedDimension>[];
