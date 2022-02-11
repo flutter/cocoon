@@ -504,7 +504,6 @@ targets:
       });
 
       test('ci.yaml validation passes with default config', () async {
-        config.dimensionListValue = <String>['os'];
         when(mockGithubChecksUtil.getCheckRun(any, any, any))
             .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);

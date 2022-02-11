@@ -176,7 +176,7 @@ void main() {
   group('scheduleBuilds', () {
     setUp(() {
       githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService, dimensionListValue: <String>['os']);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
