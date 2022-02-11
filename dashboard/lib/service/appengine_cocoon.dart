@@ -146,7 +146,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String idToken) async {
+  Future<bool> rerunTask(Task task, String idToken, String repo) async {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
@@ -160,6 +160,7 @@ class AppEngineCocoonService implements CocoonService {
         },
         body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
+          'Repo': repo,
         }));
 
     return response.statusCode == HttpStatus.ok;

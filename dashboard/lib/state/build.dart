@@ -344,7 +344,7 @@ class BuildState extends ChangeNotifier {
   Future<bool> refreshGitHubCommits() async => cocoonService.vacuumGitHubCommits(await authService.idToken);
 
   Future<bool> rerunTask(Task task) async {
-    return cocoonService.rerunTask(task, await authService.idToken);
+    return cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
   }
 
   /// Assert that [statuses] is ordered from newest commit to oldest.

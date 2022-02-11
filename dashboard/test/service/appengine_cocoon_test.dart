@@ -141,18 +141,18 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.rerunTask(task, 'fakeAccessToken'), true);
+      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), true);
     });
 
     test('should return false if request failed', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 500);
       }));
-      expect(await service.rerunTask(task, 'fakeAccessToken'), false);
+      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), false);
     });
 
     test('should return false if task key is null', () async {
-      expect(service.rerunTask(task, null), throwsA(const TypeMatcher<AssertionError>()));
+      expect(service.rerunTask(task, null, ''), throwsA(const TypeMatcher<AssertionError>()));
     });
   });
 
