@@ -90,4 +90,14 @@ void main() {
     expect(task.status, Task.statusSucceeded);
     expect(task.endTimestamp, 1565049193786090);
   });
+
+  test('does not fail on empty user data', () async {
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      userData: null,
+    );
+
+    expect(await tester.post(handler), Body.empty);
+  });
 }
