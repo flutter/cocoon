@@ -96,9 +96,6 @@ class Config {
     return String.fromCharCodes(cacheValue!);
   }
 
-  // Dimension list defined in .ci.yaml.
-  static List<String> get dimensionList => <String>['os', 'device_os', 'device_type', 'mac_model'];
-
   Future<Uint8List> _getValueFromDatastore(String id) async {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id

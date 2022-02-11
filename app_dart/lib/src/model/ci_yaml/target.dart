@@ -35,11 +35,16 @@ class Target {
   /// Target prefixes that indicate it will run on an ios device.
   static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
 
+  /// Dimension list defined in .ci.yaml.
+  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model'];
+
   /// Gets dimensions for this [pb.Target].
+  /// 
+  /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
   List<RequestedDimension> getDimensions() {
     final Map<String, Object> properties = getProperties();
     final List<RequestedDimension> dimensions = <RequestedDimension>[];
-    for (String dimension in Config.dimensionList) {
+    for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
         dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
       }
