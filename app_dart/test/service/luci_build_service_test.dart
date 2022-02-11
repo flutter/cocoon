@@ -538,6 +538,8 @@ void main() {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
+    String repo;
+    String branch;
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
@@ -548,18 +550,17 @@ void main() {
         pubsub: pubsub,
       );
       datastore = DatastoreService(config.db, 5);
-      commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/abc'), sha: 'abc', repository: 'flutter/flutter');
-      totCommit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/def'), sha: 'def', repository: 'flutter/flutter');
     });
 
-    test('Rerun a test failed flutter builder', () async {
+    test('Pass repo and properties correctly', () async {
+      repo = 'engine';
+      branch = 'main';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
+      final LuciTask luciTask = LuciTask(
           commitSha: 'def',
-          ref: 'refs/heads/master',
+          ref: 'refs/heads/$branch',
           status: Task.statusFailed,
           buildNumber: 1,
           builderName: 'Mac abc',
@@ -569,18 +570,52 @@ void main() {
         commit: totCommit,
         luciTask: luciTask,
         retries: 0,
-        repo: 'flutter',
+        repo: repo,
+        datastore: datastore,
+      );
+      final ScheduleBuildRequest scheduleBuildRequest =
+          verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured.single as ScheduleBuildRequest;
+      final Map<String, dynamic> properties = scheduleBuildRequest.properties!;
+      for (String key in Config.engineDefaultProperties.keys) {
+        expect(properties.containsKey(key), true);
+      }
+      expect(scheduleBuildRequest.gitilesCommit?.project, 'external/github.com/flutter/$repo');
+      expect(rerunFlag, true);
+    });
+
+    test('Rerun a test failed flutter builder', () async {
+      repo = 'flutter';
+      branch = 'master';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+      config.db.values[totCommit.key] = totCommit;
+      config.maxLuciTaskRetriesValue = 1;
+      final LuciTask luciTask = LuciTask(
+          commitSha: 'def',
+          ref: 'refs/heads/$branch',
+          status: Task.statusFailed,
+          buildNumber: 1,
+          builderName: 'Mac abc',
+          summaryMarkdown: 'summary');
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
+      final bool rerunFlag = await service.checkRerunBuilder(
+        commit: totCommit,
+        luciTask: luciTask,
+        retries: 0,
+        repo: repo,
         datastore: datastore,
       );
       expect(rerunFlag, true);
     });
 
     test('Rerun an infra failed flutter builder', () async {
+      repo = 'flutter';
+      branch = 'master';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
+      final LuciTask luciTask = LuciTask(
           commitSha: 'def',
-          ref: 'refs/heads/master',
+          ref: 'refs/heads/$branch',
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc',
@@ -590,18 +625,21 @@ void main() {
         commit: totCommit,
         luciTask: luciTask,
         retries: 0,
-        repo: 'flutter',
+        repo: repo,
         datastore: datastore,
       );
       expect(rerunFlag, true);
     });
 
     test('Do not rerun a successful flutter builder', () async {
+      repo = 'flutter';
+      branch = 'master';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
+      final LuciTask luciTask = LuciTask(
           commitSha: 'def',
-          ref: 'refs/heads/master',
+          ref: 'refs/heads/$branch',
           status: Task.statusSucceeded,
           buildNumber: 1,
           builderName: 'Mac abc');
@@ -609,18 +647,21 @@ void main() {
         commit: totCommit,
         luciTask: luciTask,
         retries: 0,
-        repo: 'flutter',
+        repo: repo,
         datastore: datastore,
       );
       expect(rerunFlag, false);
     });
 
     test('Do not rerun a flutter builder exceeding retry limit', () async {
+      repo = 'flutter';
+      branch = 'master';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
+      final LuciTask luciTask = LuciTask(
           commitSha: 'def',
-          ref: 'refs/heads/master',
+          ref: 'refs/heads/$branch',
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc');
@@ -628,19 +669,23 @@ void main() {
         commit: totCommit,
         luciTask: luciTask,
         retries: 1,
-        repo: 'flutter',
+        repo: repo,
         datastore: datastore,
       );
       expect(rerunFlag, false);
     });
 
     test('Do not rerun a flutter builder when not blocking the tree', () async {
+      repo = 'flutter';
+      branch = 'master';
+      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+      commit = generateCommit(1, sha: 'abc', repo: repo, branch: branch);
       config.db.values[totCommit.key] = totCommit;
       config.db.values[commit.key] = commit;
       config.maxLuciTaskRetriesValue = 1;
-      const LuciTask luciTask = LuciTask(
+      final LuciTask luciTask = LuciTask(
           commitSha: 'abc',
-          ref: 'refs/heads/master',
+          ref: 'refs/heads/$branch',
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc');
@@ -648,7 +693,7 @@ void main() {
         commit: commit,
         luciTask: luciTask,
         retries: 0,
-        repo: 'flutter',
+        repo: repo,
         datastore: datastore,
       );
       expect(rerunFlag, false);
