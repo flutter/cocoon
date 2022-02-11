@@ -55,7 +55,6 @@ class FakeConfig implements Config {
     this.flutterGoldStalePRValue,
     this.supportedBranchesValue,
     this.luciBuildersValue,
-    this.dimensionListValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -93,7 +92,6 @@ class FakeConfig implements Config {
   String? flutterGoldFollowUpAlertValue;
   String? flutterGoldDraftChangeValue;
   String? flutterGoldStalePRValue;
-  List<String>? dimensionListValue;
   List<String>? supportedBranchesValue;
   List<LuciBuilder>? luciBuildersValue;
   String? overrideTreeStatusLabelValue;
@@ -204,9 +202,6 @@ class FakeConfig implements Config {
 
   @override
   String get flutterBuild => flutterBuildValue!;
-
-  @override
-  List<String> get dimensionList => dimensionListValue!;
 
   @override
   String get flutterBuildDescription =>
