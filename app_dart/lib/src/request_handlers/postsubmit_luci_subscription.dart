@@ -58,6 +58,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     // {
     //   "task_key": "key123",
     // }
+    if (buildPushMessage.userData == null) {
+      log.fine('User data is empty');
+      return Body.empty;
+    }
     final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     final String? taskKey = userData['task_key'] as String?;
     if (taskKey == null) {
