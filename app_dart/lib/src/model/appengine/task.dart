@@ -44,7 +44,7 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
-    this.properties,
+    this.serializedProperties,
     String? status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -93,7 +93,7 @@ class Task extends Model<int> {
       stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
       timeoutInMinutes: target.value.timeout,
-      properties: jsonEncode(target.getProperties()),
+      serializedProperties: jsonEncode(target.getProperties()),
     );
   }
 
@@ -269,7 +269,7 @@ class Task extends Model<int> {
   /// Whether the task is a benchmark test
   @StringProperty(propertyName: 'Properties')
   @JsonKey(name: 'Properties')
-  String? properties;
+  String? serializedProperties;
 
   /// Update [Task] related fields based on LUCI's [BuildPushMessage].
   String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
@@ -323,7 +323,7 @@ class Task extends Model<int> {
       ..write(', buildNumberList: $buildNumberList')
       ..write(', builderName: $builderName')
       ..write(', luciBucket: $luciBucket')
-      ..write(', properties: $properties')
+      ..write(', serializedProperties: $serializedProperties')
       ..write(')');
     return buf.toString();
   }

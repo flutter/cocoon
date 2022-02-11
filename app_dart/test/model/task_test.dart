@@ -67,9 +67,9 @@ void main() {
           'benchmark': 'true',
         },
       );
-      final Task task = generateTask(1, properties: jsonEncode(target.getProperties()));
+      final Task task = generateTask(1, serializedProperties: jsonEncode(target.getProperties()));
 
-      expect(jsonDecode(task.properties!), <String, Object>{
+      expect(jsonDecode(task.serializedProperties!), <String, Object>{
         'benchmark': true,
         'bringup': false,
         'dependencies': <String>[],
