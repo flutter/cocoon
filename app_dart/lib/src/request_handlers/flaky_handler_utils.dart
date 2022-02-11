@@ -455,9 +455,9 @@ List<dynamic>? _getTags(String? builderName, YamlMap ci) {
 }
 
 String _getTestNameFromBuilderName(String builderName) {
-  // The builder names is in the format '<platform> <test name>' or '<platform> benchmark <test name>'.
+  // The builder names is in the format '<platform> <test name>'.
   final List<String> words = builderName.split(' ');
-  return words.length < 2 ? words[0] : words[words.length - 1];
+  return words.length < 2 ? words[0] : words[1];
 }
 
 bool _isOtherIssueMoreImportant(Issue original, Issue other) {
