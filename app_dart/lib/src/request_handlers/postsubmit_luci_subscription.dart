@@ -53,6 +53,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final BuildPushMessage buildPushMessage =
         BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
     log.fine(buildPushMessage.userData);
+    log.fine('Updating buildId=${buildPushMessage.build?.id} for builder=${buildPushMessage.build?.result}');
     // Example user data:
     // {
     //   "task_key": "key123",
@@ -62,11 +63,14 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (taskKey == null) {
       throw const BadRequestException('userData does not contain task_key');
     }
+    log.fine('Looking up key...');
     final Key<int> key = keyHelper.decode(taskKey) as Key<int>;
     final Task task = await datastore.lookupByValue<Task>(key);
+    log.fine('Found $task');
 
     task.updateFromBuildPushMessage(buildPushMessage);
     await datastore.insert(<Task>[task]);
+    log.fine('Updated datastore');
 
     return Body.empty;
   }
