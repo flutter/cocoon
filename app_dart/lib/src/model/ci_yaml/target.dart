@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:github/github.dart';
 
-import '../../service/config.dart';
 import '../luci/buildbucket.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
@@ -39,7 +38,7 @@ class Target {
   static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model'];
 
   /// Gets dimensions for this [pb.Target].
-  /// 
+  ///
   /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
   List<RequestedDimension> getDimensions() {
     final Map<String, Object> properties = getProperties();
