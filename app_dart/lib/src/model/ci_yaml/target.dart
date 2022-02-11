@@ -145,15 +145,7 @@ class Target {
   /// Check if this [Target] is benchmark.
   ///
   /// keyword benchmark is extracted from the properties.
-  bool isBenchmark() {
-    final Map<String, Object> properties = _getTargetProperties();
-    for (String key in properties.keys) {
-      if (key == 'benchmark' && properties[key]== true) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isBenchmark => getProperties()['benchmark'] == true ?? false;
 }
 
 /// Representation of a Flutter dependency.

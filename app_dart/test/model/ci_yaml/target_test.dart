@@ -64,7 +64,7 @@ void main() {
           'benchmark': 'true',
         },
       );
-      expect(target.isBenchmark(), true);
+      expect(target.isBenchmark, true);
     });
   });
 }

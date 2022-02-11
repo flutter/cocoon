@@ -35,6 +35,7 @@ Task generateTask(
   int attempts = 1,
   bool isFlaky = false,
   String stage = 'test-stage',
+  bool isBenchmark = false,
   Commit? parent,
 }) =>
     Task(
@@ -45,6 +46,7 @@ Task generateTask(
       attempts: attempts,
       isFlaky: isFlaky,
       stageName: stage,
+      isBenchmark: isBenchmark,
     );
 
 Target generateTarget(

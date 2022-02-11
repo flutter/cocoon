@@ -34,7 +34,6 @@ void main() {
         repo: 'flutter/flutter',
         taskName: 'taskName',
         flaky: false,
-        benchmark: true,
       );
       final Task task = Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder);
       validateModel(task);
@@ -44,7 +43,6 @@ void main() {
       expect(task.isFlaky, false);
       expect(task.requiredCapabilities, <String>['can-update-github']);
       expect(task.timeoutInMinutes, 0);
-      expect(task.isBenchmark, true);
     });
 
     test('flaky defaults to false', () {
@@ -58,9 +56,13 @@ void main() {
       expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
 
-    test('benchmark defaults to null', () {
-      final Task task = generateTask(1, attempts: 5);
-      expect(task.isBenchmark, null);
+    test('test isBenchmark property', () {
+      final Task task1 = generateTask(1, isBenchmark: true);
+      final Task task2 = generateTask(2, isBenchmark: false);
+      final Task task3 = generateTask(3);
+      expect(task1.isBenchmark, true);
+      expect(task2.isBenchmark, false);
+      expect(task3.isBenchmark, false);
     });
   });
 }
