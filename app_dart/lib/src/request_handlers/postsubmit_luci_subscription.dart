@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
+import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/push_message.dart';
@@ -63,13 +64,16 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
     final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
-    final String? taskKey = userData['task_key'] as String?;
-    if (taskKey == null) {
+    final String? rawTaskKey = userData['task_key'] as String?;
+    final String? rawCommitKey = userData['commit_key'] as String?;
+    if (rawTaskKey == null || rawCommitKey == null) {
       throw const BadRequestException('userData does not contain task_key');
     }
     log.fine('Looking up key...');
-    final Key<int> key = keyHelper.decode(taskKey) as Key<int>;
-    final Task task = await datastore.lookupByValue<Task>(key);
+    final int taskId = int.parse(rawTaskKey);
+    final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
+    final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
+    final Task task = await datastore.lookupByValue<Task>(taskKey);
     log.fine('Found $task');
 
     task.updateFromBuildPushMessage(buildPushMessage);

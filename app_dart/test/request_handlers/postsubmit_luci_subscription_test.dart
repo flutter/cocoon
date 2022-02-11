@@ -56,11 +56,11 @@ void main() {
   });
 
   test('throws exception if task key does not exist in datastore', () {
-    final String rawKey = keyHelper.encode(generateTask(1).key);
+    final Task task = generateTask(1);
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      userData: '{\\"task_key\\":\\"$rawKey\\"}',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
     expect(() => tester.post(handler), throwsA(isA<KeyNotFoundException>()));
@@ -73,11 +73,10 @@ void main() {
       parent: commit,
     );
 
-    final String rawKey = keyHelper.encode(task.key);
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      userData: '{\\"task_key\\":\\"$rawKey\\"}',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
     config.db.values[task.key] = task;
