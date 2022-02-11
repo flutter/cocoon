@@ -172,7 +172,6 @@ class LuciBuildService {
     required BuilderId builderId,
     required Map<String, dynamic> userData,
     Map<String, dynamic>? properties,
-    List<RequestedDimension>? dimensions,
     List<String>? branches,
   }) async {
     int? checkRunId;
@@ -199,6 +198,7 @@ class LuciBuildService {
       'git_ref': 'refs/pull/${pullRequest.number}/head',
       'exe_cipd_version': cipdVersion,
     });
+    final List<RequestedDimension> dimensions = getDimensions(properties);
     return Request(
       scheduleBuild: ScheduleBuildRequest(
         builderId: builderId,
@@ -220,6 +220,17 @@ class LuciBuildService {
         },
       ),
     );
+  }
+
+  /// Get dimensions from target properties.
+  List<RequestedDimension> getDimensions(Map<String, dynamic>? properties) {
+    final List<RequestedDimension> dimensions = <RequestedDimension>[];
+    for (String dimension in config.dimensionList) {
+      if (properties!.containsKey(dimension)) {
+        dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
+      }
+    }
+    return dimensions;
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
@@ -302,7 +313,6 @@ class LuciBuildService {
         builderId: builderId,
         userData: userData,
         properties: target.getProperties(),
-        dimensions: target.getDimensions(),
         branches: branches,
       ));
     }
