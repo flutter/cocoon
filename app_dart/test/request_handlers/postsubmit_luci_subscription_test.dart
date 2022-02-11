@@ -18,11 +18,6 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
-  final FakeClientContext clientContext = FakeClientContext();
-  final FakeKeyHelper keyHelper = FakeKeyHelper(
-    applicationContext: clientContext.applicationContext,
-  );
-
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
@@ -33,9 +28,7 @@ void main() {
     handler = PostsubmitLuciSubscription(
       CacheService(inMemory: true),
       config,
-      authProvider: FakeAuthenticationProvider(
-        clientContext: clientContext,
-      ),
+      authProvider: FakeAuthenticationProvider(),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
@@ -56,11 +49,11 @@ void main() {
   });
 
   test('throws exception if task key does not exist in datastore', () {
-    final String rawKey = keyHelper.encode(generateTask(1).key);
+    final Task task = generateTask(1);
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      userData: '{\\"task_key\\":\\"$rawKey\\"}',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
     expect(() => tester.post(handler), throwsA(isA<KeyNotFoundException>()));
@@ -73,11 +66,10 @@ void main() {
       parent: commit,
     );
 
-    final String rawKey = keyHelper.encode(task.key);
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      userData: '{\\"task_key\\":\\"$rawKey\\"}',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
     config.db.values[task.key] = task;
@@ -89,5 +81,15 @@ void main() {
 
     expect(task.status, Task.statusSucceeded);
     expect(task.endTimestamp, 1565049193786090);
+  });
+
+  test('does not fail on empty user data', () async {
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      userData: null,
+    );
+
+    expect(await tester.post(handler), Body.empty);
   });
 }

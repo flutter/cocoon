@@ -176,7 +176,7 @@ void main() {
   group('scheduleBuilds', () {
     setUp(() {
       githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService, dimensionListValue: <String>['os']);
+      config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
@@ -496,6 +496,7 @@ void main() {
         'COMPLETED',
         result: 'FAILURE',
         builderName: 'Linux Host Engine',
+        userData: '{}',
       )) as Map<String, dynamic>;
       buildPushMessage = push_message.BuildPushMessage.fromJson(json);
     });

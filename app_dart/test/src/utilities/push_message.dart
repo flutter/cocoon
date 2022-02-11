@@ -16,7 +16,7 @@ PushMessage createBuildbucketPushMessage(String status,
     String urlParam = '',
     int retries = 0,
     String? failureReason,
-    String userData = '{}'}) {
+    String? userData = ''}) {
   return PushMessage(
     data: buildPushMessageJson(
       status,
@@ -86,13 +86,15 @@ String buildPushMessageJsonNoBuildset(
       failureReason: failureReason,
     )));
 
-String buildPushMessageString(String status,
-    {String? result,
-    String builderName = 'Linux Coverage',
-    String urlParam = '',
-    int retries = 0,
-    String? failureReason,
-    String? userData = '{}'}) {
+String buildPushMessageString(
+  String status, {
+  String? result,
+  String builderName = 'Linux Coverage',
+  String urlParam = '',
+  int retries = 0,
+  String? failureReason,
+  String? userData,
+}) {
   return '''{
   "build": {
     "bucket": "luci.flutter.prod",
@@ -131,8 +133,8 @@ String buildPushMessageString(String status,
     "url": "https://ci.chromium.org/b/8905920700440101120$urlParam",
     "utcnow_ts": "1565049194653640"
   },
-  "hostname": "cr-buildbucket.appspot.com",
-  "user_data": "$userData"
+  ${userData != null ? '"user_data": "$userData",' : ''}
+  "hostname": "cr-buildbucket.appspot.com"
 }''';
 }
 
