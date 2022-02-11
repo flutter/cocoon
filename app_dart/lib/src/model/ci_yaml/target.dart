@@ -35,7 +35,6 @@ class Target {
   /// Target prefixes that indicate it will run on an ios device.
   static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
 
-
   /// Gets dimensions for this [pb.Target].
   List<RequestedDimension> getDimensions() {
     final Map<String, Object> properties = getProperties();
