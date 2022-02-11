@@ -18,11 +18,6 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
-  final FakeClientContext clientContext = FakeClientContext();
-  final FakeKeyHelper keyHelper = FakeKeyHelper(
-    applicationContext: clientContext.applicationContext,
-  );
-
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
@@ -33,9 +28,7 @@ void main() {
     handler = PostsubmitLuciSubscription(
       CacheService(inMemory: true),
       config,
-      authProvider: FakeAuthenticationProvider(
-        clientContext: clientContext,
-      ),
+      authProvider: FakeAuthenticationProvider(),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();

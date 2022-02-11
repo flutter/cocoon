@@ -4,12 +4,10 @@
 
 import 'dart:convert';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
-import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/authentication.dart';
@@ -46,9 +44,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
   @override
   Future<Body> post() async {
-    final ClientContext clientContext = authContext.clientContext;
     final DatastoreService datastore = datastoreProvider(config.db);
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
 
     final String data = message.data!;
     final BuildPushMessage buildPushMessage =
