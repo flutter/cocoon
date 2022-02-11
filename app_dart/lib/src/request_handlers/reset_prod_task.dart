@@ -45,6 +45,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String commitShaParam = 'Commit';
   static const String builderParam = 'Builder';
   static const String propertiesParam = 'Properties';
+  static const Map<String, dynamic> defaultProperties = <String, dynamic>{'force_upload': true};
 
   @override
   Future<Body> post() async {
@@ -55,7 +56,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String repo = requestData![repoParam] as String? ?? 'flutter';
     String commitSha = requestData![commitShaParam] as String? ?? '';
     final Map<String, dynamic> properties =
-        (requestData![propertiesParam] as Map<String, dynamic>?) ?? <String, dynamic>{};
+        (requestData![propertiesParam] as Map<String, dynamic>?) ?? defaultProperties;
     final TokenInfo token = await tokenInfo(request!);
 
     RepositorySlug slug;
