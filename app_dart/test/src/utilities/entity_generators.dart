@@ -18,14 +18,15 @@ Commit generateCommit(
   int i, {
   String? sha,
   String branch = 'master',
+  String repo = 'flutter',
 }) =>
     Commit(
       sha: sha ?? '$i',
-      repository: 'flutter/flutter',
+      repository: 'flutter/$repo',
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/flutter/$branch/' + (sha ?? '$i'),
+        'flutter/$repo/$branch/' + (sha ?? '$i'),
       ),
     );
 
