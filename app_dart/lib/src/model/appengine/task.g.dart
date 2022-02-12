@@ -27,6 +27,7 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'ReservedForAgentID': instance.reservedForAgentId,
       'StageName': instance.stageName,
       'Status': instance.status,
+      'Properties': instance.serializedProperties,
     };
 
 Map<String, dynamic> _$SerializableTaskToJson(SerializableTask instance) => <String, dynamic>{

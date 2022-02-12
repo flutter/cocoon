@@ -59,7 +59,7 @@ void main() {
       expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
 
-    test('test properties property', () {
+    test('test serializedProperties property', () {
       final Target target = generateTarget(
         1,
         platform: 'Mac_ios',
@@ -68,8 +68,7 @@ void main() {
         },
       );
       final Task task = generateTask(1, serializedProperties: jsonEncode(target.getProperties()));
-
-      expect(jsonDecode(task.serializedProperties!), <String, Object>{
+      expect(task.properties, <String, Object>{
         'benchmark': true,
         'bringup': false,
         'dependencies': <String>[],

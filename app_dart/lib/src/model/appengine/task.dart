@@ -271,6 +271,9 @@ class Task extends Model<int> {
   @JsonKey(name: 'Properties')
   String? serializedProperties;
 
+  Map<String, dynamic> get properties =>
+      serializedProperties != null ? jsonDecode(serializedProperties!) as Map<String, dynamic> : <String, dynamic>{};
+
   /// Update [Task] related fields based on LUCI's [BuildPushMessage].
   String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
     if (pushMessage.build?.status == Status.started) {

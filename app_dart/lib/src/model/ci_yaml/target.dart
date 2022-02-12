@@ -163,7 +163,7 @@ class Target {
   /// Check if this [Target] is benchmark.
   ///
   /// keyword benchmark is extracted from the properties.
-  bool get isBenchmark => getProperties()['benchmark'] == true ?? false;
+  bool get isBenchmark => getProperties()['benchmark'] as bool? ?? false;
 }
 
 /// Representation of a Flutter dependency.
