@@ -36,7 +36,7 @@ Task generateTask(
   int attempts = 1,
   bool isFlaky = false,
   String stage = 'test-stage',
-  String serializedProperties = '',
+  Map<String, dynamic>? properties,
   Commit? parent,
 }) =>
     Task(
@@ -47,7 +47,7 @@ Task generateTask(
       attempts: attempts,
       isFlaky: isFlaky,
       stageName: stage,
-      serializedProperties: serializedProperties,
+      properties: properties,
     );
 
 Target generateTarget(

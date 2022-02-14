@@ -44,7 +44,7 @@ class Task extends Model<int> {
     this.buildNumberList,
     this.builderName,
     this.luciBucket,
-    this.serializedProperties,
+    Map<String, dynamic>? properties,
     String? status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -52,6 +52,7 @@ class Task extends Model<int> {
     }
     parentKey = key?.parent;
     id = key?.id;
+    serializedProperties = jsonEncode(properties);
   }
 
   /// Construct [Task] from a [LuciBuilder].
@@ -93,7 +94,7 @@ class Task extends Model<int> {
       stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
       timeoutInMinutes: target.value.timeout,
-      serializedProperties: jsonEncode(target.getProperties()),
+      properties: target.getProperties(),
     );
   }
 
@@ -267,8 +268,8 @@ class Task extends Model<int> {
   }
 
   /// Whether the task is a benchmark test
-  @StringProperty(propertyName: 'Properties')
-  @JsonKey(name: 'Properties')
+  @StringProperty(propertyName: 'serializedProperties')
+  @JsonKey(name: 'serializedProperties')
   String? serializedProperties;
 
   Map<String, dynamic> get properties =>
