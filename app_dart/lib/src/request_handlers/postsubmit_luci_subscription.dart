@@ -72,7 +72,12 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final Task task = await datastore.lookupByValue<Task>(taskKey);
     log.fine('Found $task');
 
-    task.updateFromBuildPushMessage(buildPushMessage);
+    final Build? build = buildPushMessage.build;
+    if (build == null) {
+      log.warning('Build is null');
+      return Body.empty;
+    }
+    task.updateFromBuild(build);
     await datastore.insert(<Task>[task]);
     log.fine('Updated datastore');
 

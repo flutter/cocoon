@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
@@ -36,6 +37,7 @@ Task generateTask(
   bool isFlaky = false,
   String stage = 'test-stage',
   Commit? parent,
+  int? buildNumber,
 }) =>
     Task(
       name: 'task$i',
@@ -44,6 +46,8 @@ Task generateTask(
       key: (parent ?? generateCommit(i)).key.append(Task, id: i),
       attempts: attempts,
       isFlaky: isFlaky,
+      buildNumber: buildNumber,
+      buildNumberList: buildNumber != null ? '$buildNumber' : null,
       stageName: stage,
     );
 
@@ -90,6 +94,34 @@ Build generateBuild(
       tags: tags,
       number: buildNumber,
     );
+
+push_message.Build generatePushMessageBuild(
+  int i, {
+  String bucket = 'prod',
+  String name = 'Linux test_builder',
+  push_message.Status? status = push_message.Status.completed,
+  push_message.Result result = push_message.Result.success,
+  List<String>? tags,
+  int buildNumber = 1,
+  DateTime? completedTimestamp,
+  DateTime? createdTimestamp,
+  DateTime? startedTimestamp,
+}) {
+  tags ??= <String>[];
+  tags.add('build_address:luci.flutter.prod/$name/$buildNumber');
+
+  return push_message.Build(
+    bucket: bucket,
+    id: i.toString(),
+    project: 'flutter',
+    status: status,
+    result: result,
+    createdTimestamp: createdTimestamp,
+    completedTimestamp: completedTimestamp,
+    startedTimestamp: startedTimestamp,
+    tags: tags,
+  );
+}
 
 github.CheckRun generateCheckRun(
   int i, {

@@ -262,25 +262,75 @@ class Task extends Model<int> {
     _status = value;
   }
 
-  /// Update [Task] related fields based on LUCI's [BuildPushMessage].
-  String updateFromBuildPushMessage(BuildPushMessage pushMessage) {
-    if (pushMessage.build?.status == Status.started) {
+  /// Update [Task] fields based on a LUCI [Build].
+  void updateFromBuild(Build build) {
+    final List<String>? tags = build.tags;
+    // Example tag: build_address:luci.flutter.prod/Linux Cocoon/271
+    final String? buildAddress = tags?.firstWhere((String tag) => tag.contains('build_address'));
+    if (buildAddress == null) {
+      log.warning('Tags: $tags');
+      throw const BadRequestException('build_address does not contain build number');
+    }
+
+    final int currentBuildNumber = int.parse(buildAddress.split('/').last);
+    if (buildNumber == null || buildNumber! < currentBuildNumber) {
+      buildNumber = currentBuildNumber;
+      status = statusNew; // Reset status
+      createTimestamp = null;
+      endTimestamp = null;
+      startTimestamp = null;
+    } else if (currentBuildNumber < buildNumber!) {
+      log.fine('Skipping message as build number is before the current task');
+      return;
+    }
+
+    if (buildNumberList == null) {
+      buildNumberList = '$buildNumber';
+    } else {
+      final List<String> deserializedBuildNumberList = buildNumberList!.split(',');
+      deserializedBuildNumberList.add('$buildNumber');
+      buildNumberList = deserializedBuildNumberList.join(',');
+    }
+
+    createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch;
+    startTimestamp = build.startedTimestamp?.millisecondsSinceEpoch;
+    endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch;
+
+    _setStatusFromLuciStatus(build);
+  }
+
+  /// Get a [Task] status from a LUCI [Build] status/result.
+  String _setStatusFromLuciStatus(Build build) {
+    // Updates can come out of order. Ensure completed statsues are kept.
+    if (_isStatusCompleted()) {
+      return status;
+    }
+
+    if (build.status == Status.started) {
       return status = statusInProgress;
     }
-    endTimestamp = pushMessage.build!.completedTimestamp?.millisecondsSinceEpoch;
-    switch (pushMessage.build!.result) {
+    switch (build.result) {
       case Result.success:
         return status = statusSucceeded;
       case Result.canceled:
-        log.warning('${pushMessage.build} was cancelled');
+        log.warning('$build was cancelled');
         return status = statusNew;
       case Result.infraFailure:
         return status = statusInfraFailure;
       case Result.failure:
         return status = statusFailed;
       default:
-        throw BadRequestException('${pushMessage.build!.result} is unknown');
+        throw BadRequestException('${build.result} is unknown');
     }
+  }
+
+  bool _isStatusCompleted() {
+    const List<String> completedStatuses = <String>[
+      statusSucceeded,
+      statusFailed,
+      statusInfraFailure,
+    ];
+    return completedStatuses.contains(status);
   }
 
   /// Comparator that sorts tasks by fewest attempts first.
