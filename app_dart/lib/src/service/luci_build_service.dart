@@ -207,6 +207,7 @@ class LuciBuildService {
           'user_agent': const <String>['flutter-cocoon'],
           'github_link': <String>['https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'],
           'github_checkrun': <String>[checkRunId.toString()],
+          'cipd_version': <String>[cipdVersion],
         },
         properties: properties,
         dimensions: dimensions,
@@ -458,7 +459,9 @@ class LuciBuildService {
 
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
+    final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
+
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
@@ -477,11 +480,15 @@ class LuciBuildService {
       properties: <String, String>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
         'git_ref': 'refs/pull/$prNumber/head',
+        'exe_cipd_version': cipdVersion,
       },
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
         userData: base64Encode(json.encode(userData).codeUnits),
       ),
+      exe: <String, dynamic>{
+        'cipdVersion': cipdVersion,
+      },
     ));
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);

@@ -336,7 +336,7 @@ void main() {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
-            'check_suite': <String, dynamic>{'id': 2}
+            'check_suite': <String, dynamic>{'id': 2},
           });
         });
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
