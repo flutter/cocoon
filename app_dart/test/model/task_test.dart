@@ -57,7 +57,7 @@ void main() {
       expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
 
-    group('updateFromBuildPushMessage', () {
+    group('updateFromBuild', () {
       test('updates if buildNumber is null', () {
         final DateTime created = DateTime.utc(2022, 1, 11, 1, 1);
         final DateTime started = DateTime.utc(2022, 1, 11, 1, 2);

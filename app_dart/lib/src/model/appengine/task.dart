@@ -287,9 +287,7 @@ class Task extends Model<int> {
     if (buildNumberList == null) {
       buildNumberList = '$buildNumber';
     } else {
-      final List<String> deserializedBuildNumberList = buildNumberList!.split(',');
-      deserializedBuildNumberList.add('$buildNumber');
-      buildNumberList = deserializedBuildNumberList.join(',');
+      buildNumberList = '$buildNumberList,$buildNumber';
     }
 
     createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch;
@@ -301,7 +299,7 @@ class Task extends Model<int> {
 
   /// Get a [Task] status from a LUCI [Build] status/result.
   String _setStatusFromLuciStatus(Build build) {
-    // Updates can come out of order. Ensure completed statsues are kept.
+    // Updates can come out of order. Ensure completed statuses are kept.
     if (_isStatusCompleted()) {
       return status;
     }
