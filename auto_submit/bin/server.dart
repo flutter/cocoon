@@ -47,8 +47,7 @@ CommitRequest _incrementRequest(String projectId) => CommitRequest(
       writes: [
         Write(
           transform: DocumentTransform(
-            document:
-                'projects/$projectId/databases/(default)/documents/settings/count',
+            document: 'projects/$projectId/databases/(default)/documents/settings/count',
             fieldTransforms: [
               FieldTransform(
                 fieldPath: 'count',
