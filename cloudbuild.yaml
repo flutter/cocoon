@@ -29,4 +29,9 @@ steps:
           bash cloud_build/deploy.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
         fi
 
+  # Deploy auto_submit
+  - name: gcr.io/$PROJECT_ID/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/autosubmit_deploy.sh']
+
 timeout: 1200s
