@@ -26,7 +26,7 @@ tasks:
   - task: dashboard
     script: test_utilities/bin/flutter_test_runner.sh
 
-  - task: autosubmit
+  - task: auto_submit
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: repo_dashboard
