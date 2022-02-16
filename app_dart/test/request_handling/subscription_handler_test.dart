@@ -31,7 +31,7 @@ void main() {
       subscription: 'https://flutter-dashboard.appspot.com/api/luci-status-handler',
     );
 
-    setUpAll(() async {
+    setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((HttpRequest request) {
         return runZoned<dynamic>(
@@ -44,7 +44,7 @@ void main() {
       });
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await server.close();
     });
 
@@ -82,7 +82,8 @@ void main() {
     });
 
     test('ensure message ids are idempotent', () async {
-      subscription = ReadMessageTest();
+      final CacheService cache = CacheService(inMemory: true);
+      subscription = ReadMessageTest(cache);
       HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
       String responseBody = String.fromCharCodes((await response.toList()).first);
       expect(response.statusCode, HttpStatus.ok);
@@ -94,6 +95,7 @@ void main() {
       expect(response.statusCode, HttpStatus.ok);
       // 2. Empty message is returned as this was already processed
       expect(responseBody, '123 was already processed');
+      expect(await cache.getOrCreate(subscription.topicName, '123'), isNotNull);
     });
 
     test('ensure messages can be retried', () async {
@@ -119,7 +121,7 @@ class UnauthTest extends SubscriptionHandler {
           cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(authenticated: false),
-          topicName: 'test',
+          topicName: 'unauth',
         );
 
   @override
@@ -133,7 +135,7 @@ class AuthTest extends SubscriptionHandler {
           cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(),
-          topicName: 'test',
+          topicName: 'auth',
         );
 
   @override
@@ -156,12 +158,12 @@ class ErrorTest extends SubscriptionHandler {
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
 class ReadMessageTest extends SubscriptionHandler {
-  ReadMessageTest()
+  ReadMessageTest([CacheService? cache])
       : super(
-          cache: CacheService(inMemory: true),
+          cache: cache ?? CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(),
-          topicName: 'test',
+          topicName: 'read',
         );
 
   @override

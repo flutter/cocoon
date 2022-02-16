@@ -534,6 +534,7 @@ targets:
       });
 
       test('ci.yaml validation fails on not enabled branch', () async {
+        final PullRequest pullRequest = generatePullRequest(branch: 'not-valid');
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
             verify(mockGithubChecksUtil.updateCheckRun(any, any, any,

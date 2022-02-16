@@ -19,10 +19,10 @@ import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'buildbucket.dart';
+import 'config.dart';
 import 'gerrit_service.dart';
 import 'luci.dart';
 
@@ -35,9 +35,9 @@ class LuciBuildService {
   LuciBuildService(
     this.config,
     this.buildBucketClient, {
-    required this.pubsub,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
+    this.pubsub = const PubSub(),
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
         gerritService = gerritService ?? GerritService();
 
@@ -233,19 +233,11 @@ class LuciBuildService {
       throw BadRequestException('${pullRequest.base!.repo!.slug()} is not supported by this service.');
     }
     targets = await _targetsToSchedule(targets, pullRequest);
-    int retryCount = 1;
-    List<Target> remainingTargetsToSchedule = List<Target>.from(targets);
-    while (remainingTargetsToSchedule.isNotEmpty) {
-      remainingTargetsToSchedule = await _scheduleTryBuilds(
-        targets: remainingTargetsToSchedule,
-        pullRequest: pullRequest,
-        checkSuiteEvent: checkSuiteEvent,
-      );
-      retryCount += 1;
-      if (retryCount >= config.schedulerRetries) {
-        break;
-      }
-    }
+    await _scheduleTryBuilds(
+      targets: targets,
+      pullRequest: pullRequest,
+      checkSuiteEvent: checkSuiteEvent,
+    );
 
     return targets;
   }
@@ -276,13 +268,12 @@ class LuciBuildService {
   }
 
   /// Schedules [targets] against [pullRequest].
-  Future<List<Target>> _scheduleTryBuilds({
+  Future<void> _scheduleTryBuilds({
     required List<Target> targets,
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
-    final List<Future<Request>> requestFutures = <Future<Request>>[];
-    final List<Target> targetsToRetry = <Target>[];
+    final List<Request> requests = <Request>[];
     final List<String> branches =
         await gerritService.branches('flutter-review.googlesource.com', 'recipes', 'flutter-');
     for (Target target in targets) {
@@ -296,7 +287,7 @@ class LuciBuildService {
         'repo_name': pullRequest.base!.repo!.name,
         'user_agent': 'flutter-cocoon',
       };
-      requestFutures.add(_createBuildRequest(
+      requests.add(await _createBuildRequest(
         checkSuiteEvent: checkSuiteEvent,
         pullRequest: pullRequest,
         builder: target.value.name,
@@ -307,66 +298,11 @@ class LuciBuildService {
         branches: branches,
       ));
     }
-    final List<Request> requests = await Future.wait(requestFutures);
-    List<BatchResponse> batchResponseList;
-    final List<Future<BatchResponse>> futureBatchResponses = <Future<BatchResponse>>[];
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
     for (List<Request> requestPartition in requestPartitions) {
-      futureBatchResponses.add(buildBucketClient.batch(BatchRequest(requests: requestPartition)));
+      final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
+      await pubsub.publish('scheduler-requests', batchRequest);
     }
-    batchResponseList = await Future.wait(futureBatchResponses);
-    final Iterable<Response> responses =
-        batchResponseList.expand((BatchResponse element) => element.responses as Iterable<Response>);
-    String errorText;
-    for (Response response in responses) {
-      errorText = '';
-      if (response.error != null && response.error?.code != 0) {
-        errorText = 'BatchResponse error: ${response.error}';
-        log.warning(errorText);
-      }
-      if (response.scheduleBuild == null) {
-        log.warning('$response does not contain scheduleBuild');
-        if (response.getBuild?.builderId.builder != null) {
-          final Target failedTarget =
-              targets.singleWhere((Target target) => target.value.name == response.getBuild!.builderId.builder!);
-          targetsToRetry.add(failedTarget);
-        }
-        continue;
-      }
-      final Build? scheduleBuild = response.scheduleBuild;
-      if (scheduleBuild?.tags == null) {
-        // Nothing to update just continue.
-        continue;
-      }
-      // Tags are List<String> so we need to decode to a single int
-      final List<String?>? checkrunIdStrings = scheduleBuild?.tags!['github_checkrun']!;
-      final int? checkRunId = checkrunIdStrings?.map((String? id) => int.parse(id!)).single;
-      // Not all scheduled builds have check runs
-      if (checkRunId != null) {
-        final github.CheckRun checkRun =
-            await githubChecksUtil.getCheckRun(config, pullRequest.base!.repo!.slug(), checkRunId);
-        if (errorText.isNotEmpty) {
-          if (response.getBuild?.builderId.builder != null) {
-            final Target failedTarget =
-                targets.singleWhere((Target target) => target.value.name == response.getBuild!.builderId.builder!);
-            targetsToRetry.add(failedTarget);
-          }
-          await githubChecksUtil.updateCheckRun(
-            config,
-            pullRequest.base!.repo!.slug(),
-            checkRun,
-            status: github.CheckRunStatus.completed,
-            conclusion: github.CheckRunConclusion.failure,
-            output: github.CheckRunOutput(
-              title: 'Scheduling error',
-              summary: 'Error scheduling build',
-              text: errorText,
-            ),
-          );
-        }
-      }
-    }
-    return targetsToRetry;
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].

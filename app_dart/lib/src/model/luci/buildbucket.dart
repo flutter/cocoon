@@ -121,10 +121,8 @@ class Response extends JsonBody {
     this.scheduleBuild,
     this.cancelBuild,
     this.error,
-  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
+  }) : assert(
+            getBuild != null || searchBuilds != null || scheduleBuild != null || cancelBuild != null || error != null);
 
   /// Creates a [Response] from JSON.
   static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);

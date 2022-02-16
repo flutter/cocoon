@@ -208,8 +208,8 @@ void main() {
       );
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
       expect(scheduledTargetNames, <String>['Linux 1']);
-      final BatchRequest batchRequest = verify(mockBuildBucketClient.batch(captureAny)).captured.last as BatchRequest;
-      expect(batchRequest.requests?.single.scheduleBuild, isNotNull);
+      final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
+      expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
       final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
       expect(scheduleBuild.builderId.bucket, 'try');
       expect(scheduleBuild.builderId.builder, 'Linux 1');
