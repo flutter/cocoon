@@ -28,6 +28,7 @@ steps:
         else
           bash cloud_build/deploy.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
         fi
+
   # Deploy auto_submit
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
