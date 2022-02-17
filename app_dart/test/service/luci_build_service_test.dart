@@ -186,6 +186,7 @@ void main() {
         gerritService: mockGerritService,
         pubsub: pubsub,
       );
+      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -201,7 +202,6 @@ void main() {
         );
       });
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
