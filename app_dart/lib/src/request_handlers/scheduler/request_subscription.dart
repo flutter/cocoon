@@ -54,6 +54,10 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     }
 
     final BatchResponse response = await buildBucketClient.batch(request);
+    if (request.requests?.length != response.responses?.length) {
+      log.warning('Made ${request.requests?.length} and received ${response.responses?.length}');
+    }
+    log.fine('Responses: ${response.responses}');
     response.responses?.map((Response subresponse) {
       if (subresponse.error?.code != 0) {
         log.fine('Non-zero grpc code: $subresponse');
