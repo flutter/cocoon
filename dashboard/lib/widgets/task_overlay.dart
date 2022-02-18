@@ -192,6 +192,8 @@ class TaskOverlayContents extends StatelessWidget {
   @visibleForTesting
   static const String rerunSuccessMessage = 'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
+  static const String testRerunErrorMessage = 'placeholder of test rerun error.';
+  @visibleForTesting
   static const Duration rerunSnackBarDuration = Duration(seconds: 15);
 
   /// A lookup table to define the [Icon] for this task, based on

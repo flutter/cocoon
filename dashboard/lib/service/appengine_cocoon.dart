@@ -153,8 +153,7 @@ class AppEngineCocoonService implements CocoonService {
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     assert(qualifiedTask.isLuci);
 
-    //this endpoint returns CocoonResponse<bool> which reflects whether the api
-    //call returns success, or returns bad status code.
+    /// This endpoint only returns a status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
 
     final http.Response response = await _client.post(postResetTaskUrl,
@@ -165,7 +164,7 @@ class AppEngineCocoonService implements CocoonService {
           'Key': task.key.child.name,
           'Repo': repo,
         }));
-
+        
     final bool success = response.statusCode == HttpStatus.ok;
     return success
         ? const CocoonResponse<bool>.data(true)
