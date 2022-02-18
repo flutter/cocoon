@@ -142,7 +142,7 @@ class Build extends JsonBody {
 
   /// The completion time of the build.
   @JsonKey(name: 'completed_ts')
-  @MillisecondsSinceEpochConverter()
+  @MicrosecondsSinceEpochConverter()
   final DateTime? completedTimestamp;
 
   /// The user who created the build.
@@ -151,7 +151,7 @@ class Build extends JsonBody {
 
   /// The creation time of the build.
   @JsonKey(name: 'created_ts')
-  @MillisecondsSinceEpochConverter()
+  @MicrosecondsSinceEpochConverter()
   final DateTime? createdTimestamp;
 
   /// Whether the build was experimental or not.
@@ -191,7 +191,7 @@ class Build extends JsonBody {
 
   /// The time of the build start.
   @JsonKey(name: 'started_ts')
-  @MillisecondsSinceEpochConverter()
+  @MicrosecondsSinceEpochConverter()
   final DateTime? startedTimestamp;
 
   /// The [Status] of the build.
@@ -215,7 +215,7 @@ class Build extends JsonBody {
 
   /// The time of the last update to this information.
   @JsonKey(name: 'updated_ts')
-  @MillisecondsSinceEpochConverter()
+  @MicrosecondsSinceEpochConverter()
   final DateTime? updatedTimestamp;
 
   /// The URL of the build.
@@ -223,7 +223,7 @@ class Build extends JsonBody {
 
   /// The time used as UTC now for reference to other times in this message.
   @JsonKey(name: 'utcnow_ts')
-  @MillisecondsSinceEpochConverter()
+  @MicrosecondsSinceEpochConverter()
   final DateTime? utcNowTimestamp;
 
   @override
