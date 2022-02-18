@@ -3,22 +3,31 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:auto_submit/helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-Future main() async {
-  Future<Response> emptyHandler(Request request) async {
+class AutosubmitServer {
+  AutosubmitServer();
+
+  Future<Response> webhookHandler(Request request) async {
+    print('this is the webhookHandler 1!');
+    final String? reqHeader = jsonEncode(request.headers);
+    print('Header: $reqHeader');
+    final String event = request.headers['X-GitHub-Event']!;
+    print('Event: $event');
     return Response.ok(
       jsonEncode(<String, String>{}),
-      headers: {
-        'content-type': 'application/json',
-      },
+      headers: request.headers,
     );
   }
 
-  final router = Router()..get('/', emptyHandler);
-
-  await serveHandler(router);
+  Future runServer() async {
+    final router = Router()
+      ..get('/webhook', webhookHandler)
+      ..post('/webhook', webhookHandler);
+    await serveHandler(router);
+  }
 }
