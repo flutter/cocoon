@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
 import '../../model/luci/buildbucket.dart';
@@ -30,6 +31,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     required Config config,
     required this.buildBucketClient,
     AuthenticationProvider? authProvider,
+    this.retryOptions = Config.schedulerRetry,
   }) : super(
           cache: cache,
           config: config,
@@ -38,6 +40,8 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
         );
 
   final BuildBucketClient buildBucketClient;
+
+  final RetryOptions retryOptions;
 
   @override
   Future<Body> post() async {
@@ -53,12 +57,16 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       throw BadRequestException(e.toString());
     }
 
-    int attempts = 0;
-    while (attempts < Config.schedulerRetries && request.requests != null && request.requests!.isNotEmpty) {
-      final List<Request> requestsToRetry = await _sendBatchRequest(request);
-      request = BatchRequest(requests: requestsToRetry);
-      attempts += 1;
-    }
+    await retryOptions.retry(
+      () async {
+        final List<Request> requestsToRetry = await _sendBatchRequest(request);
+        request = BatchRequest(requests: requestsToRetry);
+        if (requestsToRetry.isNotEmpty) {
+          throw const InternalServerError('Failed to schedule builds');
+        }
+      },
+      retryIf: (Exception e) => e is InternalServerError,
+    );
 
     return Body.empty;
   }
@@ -68,14 +76,12 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Returns [List<Request>] of requests that need to be retried.
   Future<List<Request>> _sendBatchRequest(BatchRequest request) async {
     final BatchResponse response = await buildBucketClient.batch(request);
-    if (request.requests?.length != response.responses?.length) {
-      log.warning('Made ${request.requests?.length} and received ${response.responses?.length}');
-    }
+    log.fine('Made ${request.requests?.length} and received ${response.responses?.length}');
     log.fine('Responses: ${response.responses}');
 
-    // By default, retry everything.
+    // By default, retry everything. Then remove requests with a verified response.
     final List<Request> retry = request.requests ?? <Request>[];
-    response.responses?.map((Response subresponse) {
+    response.responses?.forEach((Response subresponse) {
       if (subresponse.scheduleBuild != null) {
         retry
             .removeWhere((Request request) => request.scheduleBuild?.builderId == subresponse.scheduleBuild!.builderId);
