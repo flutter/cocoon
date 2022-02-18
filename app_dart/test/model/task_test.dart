@@ -87,6 +87,21 @@ void main() {
         expect(task.endTimestamp, completed.millisecondsSinceEpoch);
       });
 
+      test('defaults timestamps to 0', () {
+        final Build build = generatePushMessageBuild(1);
+        final Task task = generateTask(1);
+
+        expect(task.endTimestamp, 0);
+        expect(task.createTimestamp, 0);
+        expect(task.startTimestamp, 0);
+
+        task.updateFromBuild(build);
+
+        expect(task.endTimestamp, 0);
+        expect(task.createTimestamp, 0);
+        expect(task.startTimestamp, 0);
+      });
+
       test('updates if buildNumber is prior to pushMessage', () {
         final Build build = generatePushMessageBuild(
           1,
