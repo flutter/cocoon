@@ -226,7 +226,6 @@ class TaskOverlayContents extends StatelessWidget {
         task.startTimestamp == 0 ? now.difference(createTime) : startTime.difference(createTime);
     final Duration runDuration = task.endTimestamp == 0 ? now.difference(startTime) : endTime.difference(startTime);
 
-    print('queue duration is $queueDuration and runDuration is $runDuration');
     /// There are 2 possible states for queue time:
     ///   1. Task is waiting to be scheduled (in queue)
     ///   2. Task has been scheduled (out of queue)
