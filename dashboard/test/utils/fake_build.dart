@@ -46,8 +46,8 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async => rerunTaskResult;
-  bool rerunTaskResult;
+  Future<CocoonResponse<bool>> rerunTask(Task task) async => rerunTaskResult;
+  final CocoonResponse<bool> rerunTaskResult;
 
   @override
   final List<CommitStatus> statuses;

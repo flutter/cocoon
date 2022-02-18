@@ -9,6 +9,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show compute, kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
+import '../logic/error_to_string.dart';
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
 import '../model/commit.pb.dart';
@@ -145,24 +146,37 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String? idToken, String repo) async {
-    assert(idToken != null);
+  Future<CocoonResponse<bool>> rerunTask(Task task, String? idToken, String repo) async {
+    if (idToken == null || idToken.isEmpty) {
+      return const CocoonResponse<bool>.error('Need to sign in to perform rerun operation');
+    }
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     assert(qualifiedTask.isLuci);
 
     /// This endpoint only returns a status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
-    final http.Response response = await _client.post(postResetTaskUrl,
-        headers: <String, String>{
-          'X-Flutter-IdToken': idToken!,
-        },
-        body: jsonEncode(<String, String?>{
-          'Key': task.key.child.name,
-          'Repo': repo,
-        }));
+    try {
+      final http.Response response = await _client.post(postResetTaskUrl,
+          headers: <String, String>{
+            'X-Flutter-IdToken': idToken,
+          },
+          body: jsonEncode(<String, String>{
+            'Key': task.key.child.name,
+          }));
+      final bool success = response.statusCode == HttpStatus.ok;
+      return success
+          ? const CocoonResponse<bool>.data(true)
+          : CocoonResponse<bool>.error('bad status code is ' +
+              response.statusCode.toString() +
+              ', response body is ' +
+              response.body.toString() +
+              '\n');
+    } catch (error, stacktrace) {
+      return CocoonResponse<bool>.error('exception was thrown : ' + errorToString(error, stacktrace));
+    }
 
-    return response.statusCode == HttpStatus.ok;
+    //return response.statusCode == HttpStatus.ok;
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

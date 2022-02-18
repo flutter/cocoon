@@ -133,8 +133,8 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String? accessToken, String repo) async {
-    return false;
+  Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
+    return const CocoonResponse<bool>.data(false);
   }
 
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits

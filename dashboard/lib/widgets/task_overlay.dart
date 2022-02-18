@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
 import '../model/task.pb.dart';
+import '../service/cocoon.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';
@@ -304,8 +305,12 @@ class TaskOverlayContents extends StatelessWidget {
   }
 
   Future<void> _rerunTask() async {
-    final bool success = await buildState.rerunTask(task);
-    final Text snackBarText = success ? const Text(rerunSuccessMessage) : const Text(rerunErrorMessage);
+    final CocoonResponse<bool> rerunResponse = await buildState.rerunTask(task);
+    final Text snackBarText = rerunResponse.data == null
+        ? Text(rerunResponse.error)
+        : rerunResponse.data
+            ? const Text(rerunSuccessMessage)
+            : const Text(rerunErrorMessage);
     showSnackBarCallback(
       SnackBar(
         content: snackBarText,

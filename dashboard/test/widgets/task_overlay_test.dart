@@ -8,6 +8,7 @@ import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
@@ -343,7 +344,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: true),
+              buildState: FakeBuildState(rerunTaskResult: const CocoonResponse<bool>.data(true)),
               task: expectedTask,
             ),
           ),
@@ -389,7 +390,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: false),
+              buildState: FakeBuildState(rerunTaskResult: const CocoonResponse<bool>.data(false)),
               task: expectedTask,
             ),
           ),

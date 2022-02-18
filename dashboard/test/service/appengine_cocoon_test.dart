@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
@@ -143,18 +145,41 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), true);
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      expect(response.error, isNull);
     });
 
-    test('should return false if request failed', () async {
+    test('should set error in response if bad status code is returned', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 500);
+        return Response('internal server error', 500);
       }));
-      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), false);
+
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      expect(response.error, allOf(<Matcher>[
+          isNotNull,
+          contains('bad status code'), 
+        ]));
     });
 
-    test('should return false if task key is null', () async {
-      expect(service.rerunTask(task, null, ''), throwsA(const TypeMatcher<AssertionError>()));
+    test('should set error in response if task key is null', () async {
+      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine' );
+      expect(response.error, allOf(<Matcher>[
+          isNotNull,
+          contains('Need to sign in'), 
+        ]));
+    });
+
+    test('should set error and stacktrace if Exception is thrown in http request', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        throw const HttpException('this is a fake http exception');
+      }));
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+
+      expect(response.error, allOf(<Matcher>[
+          isNotNull,
+          contains('HttpException'), 
+          contains('Stack Trace'), 
+        ]));
     });
   });
 
