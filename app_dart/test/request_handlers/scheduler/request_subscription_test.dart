@@ -48,4 +48,20 @@ void main() {
     final Body body = await tester.post(handler);
     expect(body, Body.empty);
   });
+
+  test('retries schedule build if no response comes back', () async {
+    const BatchRequest request = BatchRequest(requests: <Request>[
+      Request(
+        scheduleBuild: ScheduleBuildRequest(
+          builderId: BuilderId(
+            builder: 'Linux A',
+          ),
+        ),
+      ),
+    ]);
+    tester.message = PushMessage(data: base64Encode(utf8.encode(jsonEncode(request))));
+    final Body body = await tester.post(handler);
+    expect(body, Body.empty);
+    expect(verify(buildBucketClient.batch(any)).callCount, Config.schedulerRetries);
+  });
 }

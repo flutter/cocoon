@@ -127,8 +127,8 @@ class Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
 
-  /// Max retries when scheduling try builds.
-  int get schedulerRetries => 3;
+  /// Max retries when scheduling builds.
+  static int schedulerRetries = 3;
 
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {

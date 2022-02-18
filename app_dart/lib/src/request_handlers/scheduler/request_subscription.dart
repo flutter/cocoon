@@ -53,17 +53,40 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       throw BadRequestException(e.toString());
     }
 
+    int attempts = 0;
+    while (attempts < Config.schedulerRetries && request.requests != null && request.requests!.isNotEmpty) {
+      final List<Request> requestsToRetry = await _sendBatchRequest(request);
+      request = BatchRequest(requests: requestsToRetry);
+      attempts += 1;
+    }
+
+    return Body.empty;
+  }
+
+  /// Wrapper around [BuildbucketClient.batch] to ensure all requests are made.
+  ///
+  /// Returns [List<Request>] of requests that need to be retried.
+  Future<List<Request>> _sendBatchRequest(BatchRequest request) async {
     final BatchResponse response = await buildBucketClient.batch(request);
     if (request.requests?.length != response.responses?.length) {
       log.warning('Made ${request.requests?.length} and received ${response.responses?.length}');
     }
     log.fine('Responses: ${response.responses}');
+
+    // By default, retry everything.
+    final List<Request> retry = request.requests ?? <Request>[];
     response.responses?.map((Response subresponse) {
+      if (subresponse.scheduleBuild != null) {
+        retry
+            .removeWhere((Request request) => request.scheduleBuild?.builderId == subresponse.scheduleBuild!.builderId);
+      } else {
+        log.warning('Response does not have schedule build: $subresponse');
+      }
       if (subresponse.error?.code != 0) {
         log.fine('Non-zero grpc code: $subresponse');
       }
     });
 
-    return Body.empty;
+    return retry;
   }
 }
