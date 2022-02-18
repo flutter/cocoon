@@ -54,6 +54,7 @@ void main() {
   final DateTime finishTime = nowTime.subtract(const Duration(minutes: 10));
 
   Int64 _int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
+  Int64 _int64FromDateTimeMicro(DateTime time) => Int64(time.microsecondsSinceEpoch);
 
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
@@ -66,8 +67,8 @@ void main() {
       ..isFlaky = false // As opposed to the next test.
       ..status = TaskBox.statusFailed
       ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..startTimestamp = _int64FromDateTimeMicro(startTime)
+      ..endTimestamp =_int64FromDateTimeMicro(finishTime);
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -122,8 +123,8 @@ void main() {
       ..isFlaky = true // This is the point of this test.
       ..status = TaskBox.statusFailed
       ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..startTimestamp = _int64FromDateTimeMicro(startTime)
+      ..endTimestamp = _int64FromDateTimeMicro(finishTime);
 
     final String flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -171,8 +172,8 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
       ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..startTimestamp = _int64FromDateTimeMicro(startTime)
+      ..endTimestamp = _int64FromDateTimeMicro(finishTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
@@ -212,7 +213,7 @@ void main() {
       ..status = TaskBox.statusInProgress
       ..isFlaky = false
       ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime);
+      ..startTimestamp = _int64FromDateTimeMicro(startTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Running for 9 minutes\n'
