@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../ci_yaml.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
@@ -119,14 +120,17 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final Task update = datastoreTask.task;
         update.status = latestLuciTask.status;
 
+        final CiYaml ciYaml = await scheduler.getCiYaml(datastoreTask.commit);
+        final Target target =
+            ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == datastoreTask.task.name);
+
         /// Use `update.attempts - 1` as the `retries` to skip the initial run.
         if (await luciBuildService.checkRerunBuilder(
-            commit: datastoreTask.commit,
-            luciTask: latestLuciTask,
-            retries: update.attempts! - 1,
-            datastore: datastore,
-            repo: slug.name,
-            isFlaky: datastoreTask.task.isFlaky)) {
+          commit: datastoreTask.commit,
+          target: target,
+          task: update,
+          datastore: datastore,
+        )) {
           update.status = Task.statusNew;
           update.attempts = (update.attempts ?? 0) + 1;
         }

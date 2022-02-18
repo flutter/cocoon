@@ -72,10 +72,9 @@ void main() {
       setUp(() {
         when(mockLuciBuildService.checkRerunBuilder(
           commit: anyNamed('commit'),
-          luciTask: anyNamed('luciTask'),
-          retries: anyNamed('retries'),
+          target: anyNamed('target'),
+          task: anyNamed('task'),
           datastore: anyNamed('datastore'),
-          isFlaky: false,
         )).thenAnswer((_) => Future<bool>.value(false));
       });
 
@@ -410,10 +409,9 @@ void main() {
       setUp(() {
         when(mockLuciBuildService.checkRerunBuilder(
           commit: anyNamed('commit'),
-          luciTask: anyNamed('luciTask'),
-          retries: anyNamed('retries'),
+          target: anyNamed('target'),
+          task: anyNamed('task'),
           datastore: anyNamed('datastore'),
-          isFlaky: false,
         )).thenAnswer((_) => Future<bool>.value(true));
       });
 
