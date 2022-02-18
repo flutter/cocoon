@@ -24,7 +24,6 @@ import '../service/logging.dart';
 import 'buildbucket.dart';
 import 'config.dart';
 import 'gerrit_service.dart';
-import 'luci.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
 
