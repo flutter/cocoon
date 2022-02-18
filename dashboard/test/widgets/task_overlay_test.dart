@@ -8,7 +8,6 @@ import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
-import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
@@ -344,7 +343,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: const CocoonResponse<bool>.data(true)),
+              buildState: FakeBuildState(rerunTaskResult: true),
               task: expectedTask,
             ),
           ),
@@ -375,51 +374,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
-    final Task expectedTask = Task()
-      ..attempts = 3
-      ..stageName = StageName.luci
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..isFlaky = false
-      ..status = TaskBox.statusNew;
-
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: const CocoonResponse<bool>.data(false)),
-              task: expectedTask,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
-    expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
-
-    // Click the rerun task button
-    await tester.tap(find.text('RERUN'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 750)); // open animation
-
-    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsOneWidget);
-    expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
-
-    // Snackbar message should go away after its duration
-    await tester.pump(TaskOverlayContents.rerunSnackBarDuration);
-    await tester.pump(const Duration(milliseconds: 1500)); // close animation
-
-    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
-    expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
-  });
+//removed 'failed rerun shows error snackbar message' section,
+// which gets handled by errorBrook, and no longer handled by snackbar
 
   testWidgets('log button opens log url for public log', (WidgetTester tester) async {
     final FakeUrlLauncher urlLauncher = FakeUrlLauncher();

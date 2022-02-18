@@ -305,17 +305,14 @@ class TaskOverlayContents extends StatelessWidget {
   }
 
   Future<void> _rerunTask() async {
-    final CocoonResponse<bool> rerunResponse = await buildState.rerunTask(task);
-    final Text snackBarText = rerunResponse.data == null
-        ? Text(rerunResponse.error)
-        : rerunResponse.data
-            ? const Text(rerunSuccessMessage)
-            : const Text(rerunErrorMessage);
-    showSnackBarCallback(
-      SnackBar(
-        content: snackBarText,
-        duration: rerunSnackBarDuration,
-      ),
-    );
+    final bool rerunResponse = await buildState.rerunTask(task);
+    if (rerunResponse) {
+      showSnackBarCallback(
+        const SnackBar(
+          content: Text(rerunSuccessMessage),
+          duration: rerunSnackBarDuration,
+        ),
+      );
+    }
   }
 }

@@ -76,6 +76,9 @@ class BuildState extends ChangeNotifier {
   static const String errorMessageFetchingTreeStatus = 'An error occurred fetching tree status from Cocoon';
 
   @visibleForTesting
+  static const String errorMessageRerunTasks = 'An error occurred rerunning tasks from Cocoon';
+
+  @visibleForTesting
   static const String errorMessageFetchingFailingTasks =
       'An error occurred fetching the list of failing tasks from Cocoon';
 
@@ -343,9 +346,13 @@ class BuildState extends ChangeNotifier {
 
   Future<bool> refreshGitHubCommits() async => cocoonService.vacuumGitHubCommits(await authService.idToken);
 
-
-  Future<CocoonResponse<bool>> rerunTask(Task task) async {
-    return cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
+  Future<bool> rerunTask(Task task) async {
+    final CocoonResponse<bool> response = await cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
+    if (response.error != null) {
+      _errors.send('$errorMessageRerunTasks: ${response.error}');
+      return false;
+    }
+    return true;
   }
 
   /// Assert that [statuses] is ordered from newest commit to oldest.

@@ -155,27 +155,26 @@ class AppEngineCocoonService implements CocoonService {
     assert(qualifiedTask.isLuci);
 
     //this endpoint returns CocoonResponse<bool> which reflects whether the api
-    //call returns success, returns bad status code, or throws an exception
+    //call returns success, or returns bad status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
-    try {
-      final http.Response response = await _client.post(postResetTaskUrl,
-          headers: <String, String>{
-            'X-Flutter-IdToken': idToken,
-          },
-          body: jsonEncode(<String, String>{
-            'Key': task.key.child.name,
-          }));
-      final bool success = response.statusCode == HttpStatus.ok;
-      return success
-          ? const CocoonResponse<bool>.data(true)
-          : CocoonResponse<bool>.error('bad status code is ' +
-              response.statusCode.toString() +
-              ', response body is ' +
-              response.body.toString() +
-              '\n');
-    } catch (error, stacktrace) {
-      return CocoonResponse<bool>.error('exception was thrown : ' + errorToString(error, stacktrace));
-    }
+
+    final http.Response response = await _client.post(postResetTaskUrl,
+        headers: <String, String>{
+          'X-Flutter-IdToken': idToken,
+        },
+        body: jsonEncode(<String, String>{
+          'Key': task.key.child.name,
+          'Repo': repo,
+        }));
+
+    final bool success = response.statusCode == HttpStatus.ok;
+    return success
+        ? const CocoonResponse<bool>.data(true)
+        : CocoonResponse<bool>.error('bad status code is ' +
+            response.statusCode.toString() +
+            ', response body is ' +
+            response.body.toString() +
+            '\n');
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

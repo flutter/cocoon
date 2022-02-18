@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
@@ -167,21 +165,6 @@ void main() {
           isNotNull,
           contains('Need to sign in'), 
         ]));
-    });
-
-    test('should set error and stacktrace if Exception is thrown in http request', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        throw const HttpException('this is a fake http exception');
-      }));
-      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
-
-      expect(
-          response.error,
-          allOf(<Matcher>[
-            isNotNull,
-            contains('HttpException'),
-            contains('Stack Trace'),
-          ]));
     });
   });
 
