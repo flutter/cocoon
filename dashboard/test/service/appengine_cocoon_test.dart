@@ -175,11 +175,13 @@ void main() {
       }));
       final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
 
-      expect(response.error, allOf(<Matcher>[
-          isNotNull,
-          contains('HttpException'), 
-          contains('Stack Trace'), 
-        ]));
+      expect(
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('HttpException'),
+            contains('Stack Trace'),
+          ]));
     });
   });
 

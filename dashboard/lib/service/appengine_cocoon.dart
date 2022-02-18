@@ -154,7 +154,8 @@ class AppEngineCocoonService implements CocoonService {
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     assert(qualifiedTask.isLuci);
 
-    /// This endpoint only returns a status code.
+    //this endpoint returns CocoonResponse<bool> which reflects whether the api
+    //call returns success, returns bad status code, or throws an exception
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     try {
       final http.Response response = await _client.post(postResetTaskUrl,
@@ -175,8 +176,6 @@ class AppEngineCocoonService implements CocoonService {
     } catch (error, stacktrace) {
       return CocoonResponse<bool>.error('exception was thrown : ' + errorToString(error, stacktrace));
     }
-
-    //return response.statusCode == HttpStatus.ok;
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
