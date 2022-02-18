@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -72,7 +73,7 @@ void main() {
         sha: '7d03371610c07953a5def50d500045941de516b8',
       );
     });
-    test('Schedule new task', () async {
+    test('Schedule rerun', () async {
       final Task task = Task(
         key: commit.key.append(Task, id: 4590522719010816),
         commitKey: commit.key,
@@ -82,61 +83,30 @@ void main() {
       );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+      when(mockLuciBuildService.getProdBuilds(any, any, any)).thenAnswer((_) async {
         return <Build>[];
       });
       await tester.post(handler);
-      expect(
-        verify(mockLuciBuildService.reschedulePostsubmitBuild(
-          commitSha: captureAnyNamed('commitSha'),
-          builderName: captureAnyNamed('builderName'),
-          repo: anyNamed('repo'),
-          properties: anyNamed('properties'),
-          tags: anyNamed('tags'),
-          bucket: 'prod',
-        )).captured,
-        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows A'],
-      );
-      expect(task.attempts, equals(1));
-    });
-
-    test('Re-schedule passing all the parameters', () async {
-      tester.requestData = <String, dynamic>{
-        'Commit': 'commitSha',
-        'Builder': 'Windows',
-        'Repo': 'engine',
-        'Properties': <String, dynamic>{'myproperty': true},
-      };
-      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
-        return <Build>[];
-      });
-      when(mockLuciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
+      final List<dynamic> captured = verify(mockLuciBuildService.checkRerunBuilder(
+        commit: captureAnyNamed('commit'),
         datastore: anyNamed('datastore'),
         target: anyNamed('target'),
-        task: anyNamed('task'),
-        tags: anyNamed('tags'),
-      )).thenAnswer((_) async => true);
-      await tester.post(handler);
+        task: captureAnyNamed('task'),
+        tags: captureAnyNamed('tags'),
+      )).captured;
+      final Commit capturedCommit = captured.first as Commit;
+      final Task capturedTask = captured[1] as Task;
+      final Map<String, List<String>> capturedTags = captured.last as Map<String, List<String>>;
+      expect(capturedCommit.sha, '7d03371610c07953a5def50d500045941de516b8');
+      expect(capturedTask.name, 'Windows A');
       expect(
-        verify(mockLuciBuildService.checkRerunBuilder(
-          commit: anyNamed('commit'),
-          datastore: anyNamed('datastore'),
-          target: anyNamed('target'),
-          task: anyNamed('task'),
-          tags: anyNamed('tags'),
-        )).captured,
-        <dynamic>[
-          'commitSha',
-          'Windows',
-          'engine',
-          <String, dynamic>{'myproperty': true},
-          <String, List<String>>{
-            'triggered_by': <String>['abc@gmail.com'],
-            'trigger_type': <String>['manual']
-          },
-        ],
+        capturedTags,
+        <String, List<String>>{
+          'triggered_by': <String>['abc@gmail.com'],
+          'trigger_type': <String>['manual']
+        },
       );
+      expect(capturedTask.attempts, equals(1));
     });
 
     test('Re-schedule without all the parameters raises exception', () async {
@@ -190,35 +160,6 @@ void main() {
         return <Build>[succeededBuild];
       });
       expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
-    });
-
-    test('Reschedules if build is empty', () async {
-      Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          name: 'Linux A',
-          attempts: 0,
-          status: 'Failed',
-          builderName: 'Windows');
-      config.db.values[task.key] = task;
-      config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getProdBuilds(any, any, any)).thenAnswer((_) async {
-        return <Build>[];
-      });
-      await tester.post(handler);
-      expect(
-        verify(mockLuciBuildService.reschedulePostsubmitBuild(
-          commitSha: captureAnyNamed('commitSha'),
-          builderName: captureAnyNamed('builderName'),
-          repo: anyNamed('repo'),
-          properties: anyNamed('properties'),
-          tags: anyNamed('tags'),
-          bucket: 'prod',
-        )).captured,
-        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
-      );
-      task = config.db.values[task.key] as Task;
-      expect(task.attempts, equals(1));
     });
 
     test('Fails if commit does not exist', () async {

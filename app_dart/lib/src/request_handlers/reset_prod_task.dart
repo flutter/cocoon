@@ -4,10 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -15,13 +13,13 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/google/token_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import '../service/luci.dart';
 
 /// Triggers prod builds based on a task key. This handler is used to trigger
 /// LUCI builds that didn't run or failed.
@@ -64,7 +62,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       }
       commit = await datastore.db.lookupValue<Commit>(task.commitKey!);
     } else {
-      throw const BadRequestException('Please use https://flutter-dashboard.appspot.com directly for retries');
+      throw const BadRequestException('Please use https://flutter-dashboard.appspot.com/#/build directly for retries');
     }
 
     final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(commit.slug, commit.sha!, task.name);
@@ -96,7 +94,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
           tags: tags,
         ) ==
         false) {
-      throw InternalServerError('Failed to rerun ${task.name}');
+      throw InternalServerError('${task.name} cannot be rerun');
     }
     // Update task to indicate it has been reset.
     task
