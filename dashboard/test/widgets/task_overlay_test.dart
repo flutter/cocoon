@@ -68,7 +68,7 @@ void main() {
       ..status = TaskBox.statusFailed
       ..createTimestamp = _int64FromDateTime(createTime)
       ..startTimestamp = _int64FromDateTimeMicro(startTime)
-      ..endTimestamp =_int64FromDateTimeMicro(finishTime);
+      ..endTimestamp = _int64FromDateTimeMicro(finishTime);
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
