@@ -16,7 +16,7 @@ class AutosubmitServer {
     print('this is the webhookHandler 1!');
     final String? reqHeader = jsonEncode(request.headers);
     print('Header: $reqHeader');
-    final String event = request.headers['X-GitHub-Event']!;
+    final String? event = request.headers['X-GitHub-Event'];
     print('Event: $event');
     return Response.ok(
       jsonEncode(<String, String>{}),
