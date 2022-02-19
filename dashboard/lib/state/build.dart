@@ -19,41 +19,41 @@ import '../service/google_authentication.dart';
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
   BuildState({
-    @required this.cocoonService,
-    @required this.authService,
+    required this.cocoonService,
+    required this.authService,
   }) {
     authService.addListener(notifyListeners);
   }
 
   /// Cocoon backend service that retrieves the data needed for this state.
-  final CocoonService cocoonService;
+  final CocoonService? cocoonService;
 
   /// Authentication service for managing Google Sign In.
   final GoogleSignInService authService;
 
   /// Recent branches for flutter related to releases.
-  List<String> get branches => _branches;
-  List<String> _branches = <String>['master'];
+  List<String>? get branches => _branches;
+  List<String>? _branches = <String>['master'];
 
   /// The active flutter branches to show data from.
-  String get currentBranch => _currentBranch;
-  String _currentBranch = 'master';
+  String? get currentBranch => _currentBranch;
+  String? _currentBranch = 'master';
 
   /// The current repo from [repos] to show data from.
-  String get currentRepo => _currentRepo;
-  String _currentRepo = 'flutter';
+  String? get currentRepo => _currentRepo;
+  String? _currentRepo = 'flutter';
 
   /// Repos in the Flutter organization this dashboard supports.
-  List<String> get repos => _repos;
-  List<String> _repos = <String>['flutter'];
+  List<String>? get repos => _repos;
+  List<String>? _repos = <String>['flutter'];
 
   /// The current status of the commits loaded.
   List<CommitStatus> get statuses => _statuses;
   List<CommitStatus> _statuses = <CommitStatus>[];
 
   /// Whether or not flutter/flutter currently passes tests.
-  bool get isTreeBuilding => _isTreeBuilding;
-  bool _isTreeBuilding;
+  bool? get isTreeBuilding => _isTreeBuilding;
+  bool? _isTreeBuilding;
 
   List<String> get failingTasks => _failingTasks;
   List<String> _failingTasks = <String>[];
@@ -85,12 +85,12 @@ class BuildState extends ChangeNotifier {
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
-  final Duration refreshRate = const Duration(seconds: 30);
+  final Duration? refreshRate = const Duration(seconds: 30);
 
   /// Timer that calls [_fetchStatusUpdates] on a set interval.
   @visibleForTesting
   @protected
-  Timer refreshTimer;
+  Timer? refreshTimer;
 
   // There's no way to cancel futures in the standard library so instead we just track
   // if we've been disposed, and if so, we drop everything on the floor.
@@ -120,12 +120,12 @@ class BuildState extends ChangeNotifier {
     _fetchBranches();
     _fetchRepos();
     _fetchStatusUpdates();
-    refreshTimer = Timer.periodic(refreshRate, _fetchStatusUpdates);
+    refreshTimer = Timer.periodic(refreshRate!, _fetchStatusUpdates);
   }
 
   /// Request the latest [branches] from [CocoonService].
   Future<void> _fetchBranches() async {
-    final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
+    final CocoonResponse<List<String>> response = await cocoonService!.fetchFlutterBranches();
 
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
@@ -137,7 +137,7 @@ class BuildState extends ChangeNotifier {
 
   /// Request the latest [repos] from [CocoonService].
   Future<void> _fetchRepos() async {
-    final CocoonResponse<List<String>> response = await cocoonService.fetchRepos();
+    final CocoonResponse<List<String>> response = await cocoonService!.fetchRepos();
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
     } else {
@@ -149,12 +149,12 @@ class BuildState extends ChangeNotifier {
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   ///
   /// If fetched [statuses] is not on the current branch it will be discarded.
-  Future<void> _fetchStatusUpdates([Timer timer]) async {
+  Future<void> _fetchStatusUpdates([Timer? timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
         final CocoonResponse<List<CommitStatus>> response =
-            await cocoonService.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
+            await cocoonService!.fetchCommitStatuses(branch: currentBranch, repo: currentRepo);
         if (!_active) {
           return null;
         }
@@ -164,13 +164,13 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
+          _mergeRecentCommitStatusesWithStoredStatuses(response.data!);
           notifyListeners();
         }
       }(),
       () async {
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
-        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
+        final CocoonResponse<BuildStatusResponse> response = await cocoonService!.fetchTreeBuildStatus(
           branch: currentBranch,
           repo: currentRepo,
         );
@@ -183,8 +183,8 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _isTreeBuilding = response.data.buildStatus == EnumBuildStatus.success;
-          _failingTasks = response.data.failingTasks;
+          _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
+          _failingTasks = response.data!.failingTasks;
           notifyListeners();
         }
       }(),
@@ -192,7 +192,7 @@ class BuildState extends ChangeNotifier {
   }
 
   /// Update build state to be on [repo] and erase previous data.
-  void updateCurrentRepoBranch(String repo, String branch) {
+  void updateCurrentRepoBranch(String? repo, String? branch) {
     if (currentRepo == repo && currentBranch == branch) {
       // Do nothing if the repo hasn't changed.
       return;
@@ -289,19 +289,19 @@ class BuildState extends ChangeNotifier {
     return -1;
   }
 
-  Future<void> _moreStatuses;
+  Future<void>? _moreStatuses;
 
   /// When the user reaches the end of [statuses], we load more from Cocoon
   /// to create an infinite scroll effect.
   ///
   /// This method is idempotent (calling it when it's already running will
   /// just return the same Future without kicking off more work).
-  Future<void> fetchMoreCommitStatuses() {
+  Future<void>? fetchMoreCommitStatuses() {
     if (_moreStatuses != null) {
       return _moreStatuses;
     }
     _moreStatuses = _fetchMoreCommitStatusesInternal();
-    _moreStatuses.whenComplete(() {
+    _moreStatuses!.whenComplete(() {
       _moreStatuses = null;
     });
     return _moreStatuses;
@@ -310,7 +310,7 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchMoreCommitStatusesInternal() async {
     assert(_statuses.isNotEmpty);
 
-    final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
+    final CocoonResponse<List<CommitStatus>> response = await cocoonService!.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
       branch: currentBranch,
       repo: currentRepo,
@@ -322,7 +322,7 @@ class BuildState extends ChangeNotifier {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
     }
-    final List<CommitStatus> newStatuses = response.data;
+    final List<CommitStatus> newStatuses = response.data!;
 
     /// Handle the case where release branches only have a few commits.
     if (newStatuses.isEmpty) {
@@ -341,10 +341,10 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
-  Future<bool> refreshGitHubCommits() async => cocoonService.vacuumGitHubCommits(await authService.idToken);
+  Future<bool> refreshGitHubCommits() async => cocoonService!.vacuumGitHubCommits(await authService.idToken);
 
-  Future<bool> rerunTask(Task task) async {
-    return cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
+  Future<bool?> rerunTask(Task task) async {
+    return cocoonService!.rerunTask(task, await authService.idToken, _currentRepo);
   }
 
   /// Assert that [statuses] is ordered from newest commit to oldest.

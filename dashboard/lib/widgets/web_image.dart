@@ -13,8 +13,8 @@ import 'package:flutter/widgets.dart';
 /// HTTP errors in tests by default.
 class WebImage extends StatelessWidget {
   const WebImage({
-    Key key,
-    bool enabled,
+    Key? key,
+    bool? enabled,
     this.imageUrl,
     this.placeholder,
     this.width = 50,
@@ -22,8 +22,8 @@ class WebImage extends StatelessWidget {
   })  : _enabled = enabled,
         super(key: key);
 
-  final bool _enabled;
-  bool get enabled {
+  final bool? _enabled;
+  bool? get enabled {
     // This being a getter is sketchy but it's ok because in any execution of this code,
     // the value returned from this getter cannot change.
     // If it was possible for this value to change over time then this would not be a
@@ -42,10 +42,10 @@ class WebImage extends StatelessWidget {
   }
 
   /// The url to fetch the image from.
-  final String imageUrl;
+  final String? imageUrl;
 
   /// Widget to fall back to if environment does not support network images.
-  final Widget placeholder;
+  final Widget? placeholder;
 
   /// Height of the image.
   final double width;
@@ -55,13 +55,13 @@ class WebImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (enabled) {
+    if (enabled!) {
       return Image.network(
-        imageUrl,
+        imageUrl!,
         width: width,
         height: height,
       );
     }
-    return placeholder;
+    return placeholder!;
   }
 }

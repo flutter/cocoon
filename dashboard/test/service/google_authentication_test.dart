@@ -13,13 +13,13 @@ import '../utils/mocks.dart';
 
 void main() {
   group('GoogleSignInService not signed in', () {
-    GoogleSignInService authService;
-    GoogleSignIn mockSignIn;
+    late GoogleSignInService authService;
+    GoogleSignIn? mockSignIn;
 
     setUp(() {
       mockSignIn = MockGoogleSignInPlugin();
-      when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
-      when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(false));
+      when(mockSignIn!.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn!.isSignedIn()).thenAnswer((_) => Future<bool>.value(false));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
@@ -36,36 +36,36 @@ void main() {
     });
 
     test('sign in silently called', () async {
-      verify(mockSignIn.signInSilently()).called(1);
+      verify(mockSignIn!.signInSilently()).called(1);
     });
 
     test('id token will prompt sign in', () async {
       final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
         ..authentication = Future<GoogleSignInAuthentication>.value(FakeGoogleSignInAuthentication());
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
+      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
 
-      verifyNever(mockSignIn.isSignedIn());
-      verifyNever(mockSignIn.signIn());
+      verifyNever(mockSignIn!.isSignedIn());
+      verifyNever(mockSignIn!.signIn());
 
       expect(await authService.idToken, 'id123');
 
-      verify(mockSignIn.isSignedIn()).called(1);
-      verify(mockSignIn.signIn()).called(1);
+      verify(mockSignIn!.isSignedIn()).called(1);
+      verify(mockSignIn!.signIn()).called(1);
     });
   });
 
   group('GoogleSignInService sign in', () {
-    GoogleSignInService authService;
-    GoogleSignIn mockSignIn;
+    late GoogleSignInService authService;
+    GoogleSignIn? mockSignIn;
 
     final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
 
     setUp(() {
       mockSignIn = MockGoogleSignInPlugin();
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
-      when(mockSignIn.currentUser).thenReturn(testAccount);
-      when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
-      when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn!.currentUser).thenReturn(testAccount);
+      when(mockSignIn!.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
+      when(mockSignIn!.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
@@ -80,10 +80,10 @@ void main() {
     test('there is user information after successful sign in', () async {
       await authService.signIn();
 
-      expect(authService.user.displayName, 'Dr. Test');
-      expect(authService.user.email, 'test@flutter.dev');
-      expect(authService.user.id, 'test123');
-      expect(authService.user.photoUrl,
+      expect(authService.user!.displayName, 'Dr. Test');
+      expect(authService.user!.email, 'test@flutter.dev');
+      expect(authService.user!.id, 'test123');
+      expect(authService.user!.photoUrl,
           'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID');
     });
 
@@ -96,8 +96,8 @@ void main() {
     });
 
     test('is not authenticated after failure in sign in', () async {
-      when(mockSignIn.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
+      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
+      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
 
       await authService.signIn();
 

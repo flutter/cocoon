@@ -13,31 +13,31 @@ import '../model/task.pb.dart';
 /// for a Task.
 class LuciTaskAttemptSummary extends StatelessWidget {
   const LuciTaskAttemptSummary({
-    Key key,
+    Key? key,
     this.task,
   }) : super(key: key);
 
   /// The task to show information from.
-  final Task task;
+  final Task? task;
 
   @visibleForTesting
   static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders';
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
+    final List<String> buildNumberList = task!.buildNumberList.isEmpty ? <String>[] : task!.buildNumberList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-          onPressed: () => launch(_luciProdLogUrl(task.builderName, buildNumberList[i])),
+          onPressed: () => launch(_luciProdLogUrl(task!.builderName, buildNumberList[i])),
         );
       }),
     );
   }
 
   String _luciProdLogUrl(String builderName, String buildNumber) {
-    final String pool = task.isFlaky ? 'staging' : 'prod';
+    final String pool = task!.isFlaky ? 'staging' : 'prod';
     return '$luciProdLogBase/$pool/$builderName/$buildNumber';
   }
 }

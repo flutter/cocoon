@@ -22,7 +22,7 @@ class _PausedCommitStatus {
         _pausedStatus = status;
 
   final Completer<CocoonResponse<List<CommitStatus>>> _completer;
-  CocoonResponse<List<CommitStatus>> _pausedStatus;
+  CocoonResponse<List<CommitStatus>>? _pausedStatus;
 
   bool get isComplete => _pausedStatus == null;
 
@@ -54,16 +54,16 @@ class DevelopmentCocoonService implements CocoonService {
 
   final bool simulateLoadingDelays;
 
-  _PausedCommitStatus _pausedStatus;
+  _PausedCommitStatus? _pausedStatus;
   bool _paused = false;
   bool get paused => _paused;
   set paused(bool pause) {
     if (_paused == pause) {
       return;
     }
-    assert(_paused || _pausedStatus == null || _pausedStatus.isComplete);
-    if (_pausedStatus != null && !_pausedStatus.isComplete) {
-      _pausedStatus.complete();
+    assert(_paused || _pausedStatus == null || _pausedStatus!.isComplete);
+    if (_pausedStatus != null && !_pausedStatus!.isComplete) {
+      _pausedStatus!.complete();
       _pausedStatus = null;
     }
     _paused = pause;
@@ -71,32 +71,32 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
-    CommitStatus lastCommitStatus,
-    String branch,
-    String repo,
+    CommitStatus? lastCommitStatus,
+    String? branch,
+    String? repo,
   }) async {
     final CocoonResponse<List<CommitStatus>> data =
         CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus, repo));
-    if (_pausedStatus == null || _pausedStatus.isComplete) {
+    if (_pausedStatus == null || _pausedStatus!.isComplete) {
       _pausedStatus = _PausedCommitStatus(data);
     } else {
-      _pausedStatus.update(data);
+      _pausedStatus!.update(data);
     }
 
     if (!_paused) {
       if (simulateLoadingDelays) {
-        final _PausedCommitStatus delayedStatus = _pausedStatus;
+        final _PausedCommitStatus? delayedStatus = _pausedStatus;
         Future<void>.delayed(const Duration(seconds: 2), () {
-          if (!_paused && !delayedStatus.isComplete) {
+          if (!_paused && !delayedStatus!.isComplete) {
             delayedStatus.complete();
           }
         });
       } else {
-        _pausedStatus.complete();
+        _pausedStatus!.complete();
       }
     }
 
-    return _pausedStatus.future;
+    return _pausedStatus!.future;
   }
 
   @override
@@ -111,8 +111,8 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
-    String branch,
-    String repo,
+    String? branch,
+    String? repo,
   }) async {
     final bool failed = _random.nextBool();
     final BuildStatusResponse response = BuildStatusResponse()
@@ -135,13 +135,13 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String accessToken, String repo) async {
+  Future<bool> rerunTask(Task task, String accessToken, String? repo) async {
     return false;
   }
 
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
-  List<CommitStatus> _createFakeCommitStatuses(CommitStatus lastCommitStatus, String repo) {
+  List<CommitStatus> _createFakeCommitStatuses(CommitStatus? lastCommitStatus, String? repo) {
     final int baseTimestamp =
         lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
 
@@ -151,7 +151,7 @@ class DevelopmentCocoonService implements CocoonService {
       final math.Random random = math.Random(commitTimestamp);
       final Commit commit = _createFakeCommit(commitTimestamp, random, repo);
       final CommitStatus status = CommitStatus()
-        ..branch = defaultBranches[repo]
+        ..branch = defaultBranches[repo!]!
         ..commit = commit
         ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
@@ -163,7 +163,7 @@ class DevelopmentCocoonService implements CocoonService {
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
   final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo) {
+  Commit _createFakeCommit(int commitTimestamp, math.Random random, String? repo) {
     final int author = random.nextInt(_authors.length);
     final int message = commitTimestamp % 37 + author;
     final int messageInc = _messagePrimes[message % _messagePrimes.length];
@@ -190,7 +190,7 @@ class DevelopmentCocoonService implements CocoonService {
       throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
     }
     return List<Task>.generate(
-        _repoTaskCount[commit.repository], (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random));
+        _repoTaskCount[commit.repository]!, (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random));
   }
 
   static const List<String> _statuses = <String>[
@@ -271,8 +271,8 @@ class DevelopmentCocoonService implements CocoonService {
     }
     // Finally we get the actual status using statusIndex as an index into _statuses.
     final String status = _statuses[statusIndex];
-    final int minAttempts = _minAttempts[status];
-    final int maxAttempts = _maxAttempts[status];
+    final int minAttempts = _minAttempts[status]!;
+    final int maxAttempts = _maxAttempts[status]!;
     final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
     final Task task = Task()
       ..createTimestamp = Int64(commitTimestamp + index)

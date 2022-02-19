@@ -27,8 +27,8 @@ class TestGrid extends StatelessWidget {
     this.task,
   });
 
-  final BuildState buildState;
-  final Task task;
+  final BuildState? buildState;
+  final Task? task;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class TestGrid extends StatelessWidget {
             ..commit = (Commit()
               ..author = 'Fats Domino'
               ..sha = '24e8c0a2')
-            ..tasks.addAll(<Task>[task]),
+            ..tasks.addAll(<Task?>[task]),
         ],
       ),
     );

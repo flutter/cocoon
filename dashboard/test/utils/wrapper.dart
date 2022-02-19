@@ -12,9 +12,9 @@ import 'fake_index_state.dart';
 import 'mocks.dart';
 
 class FakeInserter extends StatelessWidget {
-  const FakeInserter({Key key, this.child}) : super(key: key);
+  const FakeInserter({Key? key, this.child}) : super(key: key);
 
-  final Widget child;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class FakeInserter extends StatelessWidget {
       buildState: FakeBuildState(authService: authService),
       child: Now.fixed(
         dateTime: DateTime.utc(2000),
-        child: child,
+        child: child!,
       ),
     );
   }

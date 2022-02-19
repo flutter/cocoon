@@ -21,7 +21,7 @@ import '../utils/appengine_cocoon_test_data.dart';
 
 void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {
-    AppEngineCocoonService service;
+    late AppEngineCocoonService service;
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -65,8 +65,8 @@ void main() {
           ..builderName = 'Linux'
           ..luciBucket = 'luci.flutter.try');
 
-      expect(statuses.data.length, 1);
-      expect(statuses.data.first, expectedStatus);
+      expect(statuses.data!.length, 1);
+      expect(statuses.data!.first, expectedStatus);
     });
 
     test('should have error if given non-200 response', () async {
@@ -85,7 +85,7 @@ void main() {
   });
 
   group('AppEngine CocoonService fetchTreeBuildStatus', () {
-    AppEngineCocoonService service;
+    late AppEngineCocoonService service;
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -100,7 +100,7 @@ void main() {
     test('data should be true when given Succeeded', () async {
       final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.success);
+      expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.success);
     });
 
     test('data should be false when given Failed', () async {
@@ -109,7 +109,7 @@ void main() {
       }));
       final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.failure);
+      expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.failure);
     });
 
     test('should have error if given non-200 response', () async {
@@ -128,8 +128,8 @@ void main() {
   });
 
   group('AppEngine CocoonService rerun task', () {
-    AppEngineCocoonService service;
-    Task task;
+    late AppEngineCocoonService service;
+    late Task task;
 
     setUp(() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -157,7 +157,7 @@ void main() {
   });
 
   group('AppEngine CocoonService refresh github commits', () {
-    AppEngineCocoonService service;
+    late AppEngineCocoonService service;
 
     setUp(() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -178,7 +178,7 @@ void main() {
   });
 
   group('AppEngine CocoonService fetchFlutterBranches', () {
-    AppEngineCocoonService service;
+    late AppEngineCocoonService service;
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -215,7 +215,7 @@ void main() {
   });
 
   group('AppEngine CocoonService fetchRepos', () {
-    AppEngineCocoonService service;
+    late AppEngineCocoonService service;
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
@@ -269,13 +269,13 @@ void main() {
     });
 
     test('query parameter with null value', () {
-      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}).toString(),
+      expect(service.apiEndpoint('/test', queryParameters: <String, String?>{'key': null}).toString(),
           '$baseApiUrl/test?key');
     });
 
     /// This test requires runs on different platforms.
     test('should query correct endpoint whether web or mobile', () {
-      final String uri = service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}).toString();
+      final String uri = service.apiEndpoint('/test', queryParameters: <String, String?>{'key': null}).toString();
       if (kIsWeb) {
         expect(uri, '/test?key');
       } else {

@@ -153,7 +153,7 @@ void main() {
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
-      void test({@required bool isHome}) {
+      void test({required bool isHome}) {
         final ListTile home = tester.widget(find.ancestor(of: find.text('Home'), matching: find.byType(ListTile)));
         final ListTile build = tester.widget(find.ancestor(of: find.text('Build'), matching: find.byType(ListTile)));
         expect(home.selected, isHome);

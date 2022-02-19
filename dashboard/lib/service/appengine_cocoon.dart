@@ -24,7 +24,7 @@ class AppEngineCocoonService implements CocoonService {
   /// Creates a new [AppEngineCocoonService].
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
-  AppEngineCocoonService({http.Client client}) : _client = client ?? http.Client();
+  AppEngineCocoonService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Branch on flutter/flutter to default requests for.
   final String _defaultBranch = 'master';
@@ -38,11 +38,11 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
-    CommitStatus lastCommitStatus,
-    String branch,
-    String repo,
+    CommitStatus? lastCommitStatus,
+    String? branch,
+    String? repo,
   }) async {
-    final Map<String, String> queryParameters = <String, String>{
+    final Map<String, String?> queryParameters = <String, String?>{
       if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
       'branch': branch ?? _defaultBranch,
       'repo': repo,
@@ -59,7 +59,7 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
       return CocoonResponse<List<CommitStatus>>.data(
-          await compute<List<Object>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
+          await compute<List<Object>?, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses'] as List<Object>?));
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -87,10 +87,10 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
-    String branch,
-    String repo,
+    String? branch,
+    String? repo,
   }) async {
-    final Map<String, String> queryParameters = <String, String>{
+    final Map<String, String?> queryParameters = <String, String?>{
       'branch': branch ?? _defaultBranch,
       'repo': repo,
     };
@@ -125,7 +125,7 @@ class AppEngineCocoonService implements CocoonService {
 
     try {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-      final List<String> branches = jsonResponse['Branches'].cast<String>();
+      final List<String>? branches = jsonResponse['Branches'].cast<String>();
       return CocoonResponse<List<String>>.data(branches);
     } catch (error) {
       return CocoonResponse<List<String>>.error(error.toString());
@@ -146,7 +146,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String idToken, String repo) async {
+  Future<bool> rerunTask(Task task, String idToken, String? repo) async {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
@@ -158,7 +158,7 @@ class AppEngineCocoonService implements CocoonService {
         headers: <String, String>{
           'X-Flutter-IdToken': idToken,
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, String?>{
           'Key': task.key.child.name,
           'Repo': repo,
         }));
@@ -181,7 +181,7 @@ class AppEngineCocoonService implements CocoonService {
   @visibleForTesting
   Uri apiEndpoint(
     String urlSuffix, {
-    Map<String, String> queryParameters,
+    Map<String, String?>? queryParameters,
   }) {
     if (kIsWeb) {
       return Uri.base.replace(path: urlSuffix, queryParameters: queryParameters);
@@ -189,48 +189,48 @@ class AppEngineCocoonService implements CocoonService {
     return Uri.https(_baseApiUrl, urlSuffix, queryParameters);
   }
 
-  List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
+  List<CommitStatus> _commitStatusesFromJson(List<Object>? jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     final List<CommitStatus> statuses = <CommitStatus>[];
 
-    for (final Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
-      final Map<String, Object> checklist = jsonCommitStatus['Checklist'];
+    for (final Map<String, Object> jsonCommitStatus in jsonCommitStatuses as Iterable<Map<String, Object>>) {
+      final Map<String, Object> checklist = jsonCommitStatus['Checklist'] as Map<String, Object>;
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
-        ..branch = _branchFromJson(checklist)
-        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])));
+        ..branch = _branchFromJson(checklist)!
+        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'] as List<Object>)));
     }
 
     return statuses;
   }
 
-  String _branchFromJson(Map<String, Object> jsonChecklist) {
+  String? _branchFromJson(Map<String, Object> jsonChecklist) {
     assert(jsonChecklist != null);
 
-    final Map<String, Object> checklist = jsonChecklist['Checklist'];
-    return checklist['Branch'];
+    final Map<String, Object> checklist = jsonChecklist['Checklist'] as Map<String, Object>;
+    return checklist['Branch'] as String?;
   }
 
   Commit _commitFromJson(Map<String, Object> jsonChecklist) {
     assert(jsonChecklist != null);
 
-    final Map<String, Object> checklist = jsonChecklist['Checklist'];
+    final Map<String, Object> checklist = jsonChecklist['Checklist'] as Map<String, Object>;
 
-    final Map<String, Object> commit = checklist['Commit'];
-    final Map<String, Object> author = commit['Author'];
+    final Map<String, Object> commit = checklist['Commit'] as Map<String, Object>;
+    final Map<String, Object> author = commit['Author'] as Map<String, Object>;
 
     final Commit result = Commit()
-      ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key']))
-      ..timestamp = Int64() + checklist['CreateTimestamp']
-      ..sha = commit['Sha']
-      ..author = author['Login']
-      ..authorAvatarUrl = author['avatar_url']
-      ..repository = checklist['FlutterRepositoryPath']
-      ..branch = checklist['Branch'];
+      ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key'] as String))
+      ..timestamp = Int64() + checklist['CreateTimestamp']!
+      ..sha = commit['Sha'] as String
+      ..author = author['Login'] as String
+      ..authorAvatarUrl = author['avatar_url'] as String
+      ..repository = checklist['FlutterRepositoryPath'] as String
+      ..branch = checklist['Branch'] as String;
     if (commit['Message'] != null) {
-      result.message = commit['Message'];
+      result.message = commit['Message'] as String;
     }
     return result;
   }
@@ -239,8 +239,8 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
     final List<Task> tasks = <Task>[];
 
-    for (final Map<String, Object> jsonStage in json) {
-      tasks.addAll(_tasksFromJson(jsonStage['Tasks']));
+    for (final Map<String, Object> jsonStage in json as Iterable<Map<String, Object>>) {
+      tasks.addAll(_tasksFromJson(jsonStage['Tasks'] as List<Object>));
     }
 
     return tasks;
@@ -250,7 +250,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
     final List<Task> tasks = <Task>[];
 
-    for (final Map<String, Object> jsonTask in json) {
+    for (final Map<String, Object> jsonTask in json as Iterable<Map<String, Object>>) {
       tasks.add(_taskFromJson(jsonTask));
     }
 
@@ -260,30 +260,30 @@ class AppEngineCocoonService implements CocoonService {
   Task _taskFromJson(Map<String, Object> json) {
     assert(json != null);
 
-    final Map<String, Object> taskData = json['Task'];
-    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
+    final Map<String, Object> taskData = json['Task'] as Map<String, Object>;
+    final List<Object>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<Object>?;
 
     final Task task = Task()
-      ..key = (RootKey()..child = (Key()..name = json['Key']))
-      ..createTimestamp = Int64(taskData['CreateTimestamp'])
-      ..startTimestamp = Int64(taskData['StartTimestamp'])
-      ..endTimestamp = Int64(taskData['EndTimestamp'])
-      ..name = taskData['Name']
-      ..attempts = taskData['Attempts']
-      ..isFlaky = taskData['Flaky']
-      ..timeoutInMinutes = taskData['TimeoutInMinutes']
-      ..reason = taskData['Reason']
+      ..key = (RootKey()..child = (Key()..name = json['Key'] as String))
+      ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
+      ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
+      ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
+      ..name = taskData['Name'] as String
+      ..attempts = taskData['Attempts'] as int
+      ..isFlaky = taskData['Flaky'] as bool
+      ..timeoutInMinutes = taskData['TimeoutInMinutes'] as int
+      ..reason = taskData['Reason'] as String
       ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = taskData['ReservedForAgentID']
-      ..stageName = taskData['StageName']
-      ..status = taskData['Status']
-      ..isTestFlaky = taskData['TestFlaky'] ?? false;
+      ..reservedForAgentId = taskData['ReservedForAgentID'] as String
+      ..stageName = taskData['StageName'] as String
+      ..status = taskData['Status'] as String
+      ..isTestFlaky = taskData['TestFlaky'] as bool? ?? false;
 
     if (taskData['StageName'] != StageName.cirrus) {
       task
-        ..buildNumberList = taskData['BuildNumberList'] ?? ''
-        ..builderName = taskData['BuilderName'] ?? ''
-        ..luciBucket = taskData['LuciBucket'] ?? '';
+        ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
+        ..builderName = taskData['BuilderName'] as String? ?? ''
+        ..luciBucket = taskData['LuciBucket'] as String? ?? '';
     }
     return task;
   }

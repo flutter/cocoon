@@ -21,45 +21,45 @@ import 'widgets/task_grid.dart';
 /// The results from tasks run on individual commits is shown in [TaskGrid].
 class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
-    Key key,
+    Key? key,
     this.queryParameters,
   }) : super(key: key);
 
   static const String routeName = '/build';
 
-  final Map<String, String> queryParameters;
+  final Map<String, String>? queryParameters;
 
   @override
   State createState() => BuildDashboardPageState();
 }
 
 class BuildDashboardPageState extends State<BuildDashboardPage> {
-  TaskGridFilter _filter;
-  TaskGridFilter _settingsBasis;
+  TaskGridFilter? _filter;
+  TaskGridFilter? _settingsBasis;
 
   /// Current Flutter repository to view.
-  String repo;
+  String? repo;
 
   /// Git branch in [repo] to view.
   ///
   /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
   /// master on one repo, to main for a different repo.
-  String branch;
+  String? branch;
 
   @override
   void initState() {
     super.initState();
     if (widget.queryParameters != null) {
-      repo = widget.queryParameters['repo'] ?? 'flutter';
-      branch = widget.queryParameters['branch'] ?? 'master';
+      repo = widget.queryParameters!['repo'] ?? 'flutter';
+      branch = widget.queryParameters!['branch'] ?? 'master';
     }
     repo ??= 'flutter';
     branch ??= 'master';
     if (branch == 'master' || branch == 'main') {
-      branch = defaultBranches[repo];
+      branch = defaultBranches[repo!];
     }
     _filter = TaskGridFilter.fromMap(widget.queryParameters);
-    _filter.addListener(() {
+    _filter!.addListener(() {
       setState(() {});
     });
   }
@@ -68,12 +68,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   ///
   /// This enables bookmarking state specific values, like [repo].
   void _updateNavigation(BuildContext context) {
-    final Map<String, String> queryParameters = <String, String>{};
+    final Map<String, String?> queryParameters = <String, String?>{};
     if (widget.queryParameters != null) {
-      queryParameters.addAll(widget.queryParameters);
+      queryParameters.addAll(widget.queryParameters!);
     }
     if (_filter != null) {
-      queryParameters.addAll(_filter.toMap(includeDefaults: false));
+      queryParameters.addAll(_filter!.toMap(includeDefaults: false) as Map<String, String?>);
     }
     queryParameters['repo'] = repo;
     queryParameters['branch'] = branch;
@@ -92,7 +92,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   void _showSettingsDialog() {
     setState(() {
-      _settingsBasis = TaskGridFilter.fromMap(_filter.toMap(includeDefaults: false));
+      _settingsBasis = TaskGridFilter.fromMap(_filter!.toMap(includeDefaults: false));
     });
   }
 
@@ -120,11 +120,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   underline: Container(
                     height: 2,
                   ),
-                  onChanged: (String selectedRepo) {
+                  onChanged: (String? selectedRepo) {
                     repo = selectedRepo;
                     _updateNavigation(context);
                   },
-                  items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
+                  items: _buildState.repos!.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: theme.primaryTextTheme.bodyText1),
@@ -141,11 +141,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   underline: Container(
                     height: 2,
                   ),
-                  onChanged: (String selectedBranch) {
+                  onChanged: (String? selectedBranch) {
                     branch = selectedBranch;
                     _updateNavigation(context);
                   },
-                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                  items: _buildState.branches!.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: theme.primaryTextTheme.bodyText1),
@@ -163,7 +163,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   children: <Widget>[
                     TextButton(
                       child: const Text('Defaults'),
-                      onPressed: _filter.isDefault ? null : () => _filter.reset(),
+                      onPressed: _filter!.isDefault ? null : () => _filter!.reset(),
                     ),
                     TextButton(
                       child: const Text('Apply'),
@@ -173,8 +173,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                       child: const Text('Cancel'),
                       onPressed: () {
                         if (_filter != _settingsBasis) {
-                          _filter.reset();
-                          _filter.applyMap(_settingsBasis.toMap(includeDefaults: false));
+                          _filter!.reset();
+                          _filter!.applyMap(_settingsBasis!.toMap(includeDefaults: false));
                         }
                         _removeSettingsDialog();
                       },
@@ -189,7 +189,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
-  PopupMenuItem<String> _getTaskKeyEntry({@required Widget box, @required String description}) {
+  PopupMenuItem<String> _getTaskKeyEntry({required Widget box, required String description}) {
     return PopupMenuItem<String>(
       value: description,
       child: Wrap(
@@ -254,7 +254,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     if (buildState == null || buildState.isTreeBuilding == null) {
       return 'Loading...';
     }
-    if (buildState.isTreeBuilding) {
+    if (buildState.isTreeBuilding!) {
       return 'Tree is Open';
     } else {
       if (buildState.failingTasks.isNotEmpty) {
@@ -270,7 +270,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].
-    final Map<bool, Color> colorTable = <bool, Color>{
+    final Map<bool?, Color?> colorTable = <bool?, Color?>{
       null: Colors.grey[850],
       false: isDark ? Colors.red[800] : Colors.red,
       true: isDark ? Colors.green[800] : Colors.green,
@@ -280,7 +280,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     _buildState.updateCurrentRepoBranch(repo, branch);
     return AnimatedBuilder(
       animation: _buildState,
-      builder: (BuildContext context, Widget child) => Scaffold(
+      builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: CocoonAppBar(
           title: Text(_getStatusTitle(_buildState)),
           backgroundColor: colorTable[_buildState.isTreeBuilding],

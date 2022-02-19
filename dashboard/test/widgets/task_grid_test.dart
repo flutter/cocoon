@@ -229,7 +229,7 @@ void main() {
     buildState.dispose();
   });
 
-  Future<void> testGrid(WidgetTester tester, TaskGridFilter filter, int rows, int cols) async {
+  Future<void> testGrid(WidgetTester tester, TaskGridFilter? filter, int rows, int cols) async {
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: MockGoogleSignInService(),
@@ -251,7 +251,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget;
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget as LatticeScrollView;
 
     expect(lattice.cells.length, rows);
     for (final List<LatticeCell> row in lattice.cells) {
@@ -386,7 +386,7 @@ void main() {
     );
 
     expect(find.byType(LatticeScrollView), findsOneWidget);
-    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget;
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget as LatticeScrollView;
 
     // Rows (task icon, two commits, load more row)
     expect(lattice.cells.length, 4);
@@ -784,10 +784,10 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
       ),
     ),
   );
-  final RenderRepaintBoundary renderObject = tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary;
-  final ByteData pixels = await tester.runAsync<ByteData>(() async {
-    return await (await renderObject.toImage()).toByteData();
-  });
+  final RenderRepaintBoundary? renderObject = tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
+  final ByteData pixels = await (tester.runAsync<ByteData?>(() async {
+    return await (await renderObject!.toImage()).toByteData();
+  }) as FutureOr<ByteData>);
   assert(pixels.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
   const double padding = 4.0;
   final int rgba = pixels

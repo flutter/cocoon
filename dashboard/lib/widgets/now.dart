@@ -8,11 +8,11 @@ import 'package:flutter/widgets.dart';
 
 /// An inherited widget that reports the current time and
 /// ticks once per second.
-class Now extends InheritedNotifier<ValueNotifier<DateTime>> {
+class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
   /// For production.
   Now({
-    Key key,
-    Widget child,
+    Key? key,
+    required Widget child,
   }) : super(
           key: key,
           notifier: _Clock(),
@@ -21,9 +21,9 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime>> {
 
   /// For tests.
   Now.fixed({
-    Key key,
-    @required DateTime dateTime,
-    Widget child,
+    Key? key,
+    required DateTime dateTime,
+    required Widget child,
   })  : assert(dateTime != null),
         super(
           key: key,
@@ -31,17 +31,17 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime>> {
           child: child,
         );
 
-  static DateTime of(BuildContext context) {
-    final Now now = context.dependOnInheritedWidgetOfExactType<Now>();
+  static DateTime? of(BuildContext context) {
+    final Now now = context.dependOnInheritedWidgetOfExactType<Now>()!;
     assert(now != null);
-    return now.notifier.value;
+    return now.notifier!.value;
   }
 }
 
-class _Clock extends ValueNotifier<DateTime> {
+class _Clock extends ValueNotifier<DateTime?> {
   _Clock() : super(null);
 
-  Timer _timer;
+  Timer? _timer;
 
   @override
   void addListener(VoidCallback listener) {
@@ -57,7 +57,7 @@ class _Clock extends ValueNotifier<DateTime> {
   void removeListener(VoidCallback listener) {
     super.removeListener(listener);
     if (!hasListeners && _timer != null) {
-      _timer.cancel();
+      _timer!.cancel();
       _timer = null;
       value = null;
     }

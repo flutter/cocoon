@@ -25,7 +25,7 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   Future<Map<String, String>> get authHeaders => null;
 
   @override
-  Future<GoogleSignInAuthentication> authentication;
+  late Future<GoogleSignInAuthentication> authentication;
 
   @override
   Future<void> clearAuthCache() => null;

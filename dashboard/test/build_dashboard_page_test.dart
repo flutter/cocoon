@@ -39,14 +39,14 @@ void main() {
     );
 
     throwOnMissingStub(buildState.cocoonService as Mock);
-    when(buildState.cocoonService.fetchFlutterBranches())
+    when(buildState.cocoonService!.fetchFlutterBranches())
         .thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(buildState.cocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(buildState.cocoonService.fetchCommitStatuses(
+    when(buildState.cocoonService!.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(buildState.cocoonService!.fetchCommitStatuses(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(buildState.cocoonService.fetchTreeBuildStatus(
+    when(buildState.cocoonService!.fetchTreeBuildStatus(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
@@ -296,7 +296,7 @@ void main() {
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
-    String lastError;
+    late String lastError;
     final FakeBuildState buildState = FakeBuildState()..errors.addListener((String message) => lastError = message);
 
     await tester.pumpWidget(

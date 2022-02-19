@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'utils/wrapper.dart';
 
-T getDescendant<T extends Widget>({@required Element of}) {
+T getDescendant<T extends Widget>({required Element of}) {
   return find
       .descendant(
         of: find.byElementPredicate((Element element) => element == of),

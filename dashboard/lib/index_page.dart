@@ -17,7 +17,7 @@ import 'widgets/header_text.dart';
 /// Expects an [IndexState] to be available via [Provider].
 class IndexPage extends StatelessWidget {
   const IndexPage({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   static const String routeName = '/';
@@ -30,7 +30,7 @@ class IndexPage extends StatelessWidget {
     final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
     return AnimatedBuilder(
       animation: indexState,
-      builder: (BuildContext context, Widget child) => Scaffold(
+      builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: const CocoonAppBar(
           title: Text('Cocoon'),
         ),
@@ -44,7 +44,7 @@ class IndexPage extends StatelessWidget {
                   Column(children: <Widget>[
                     IntrinsicWidth(
                       child: ElevatedButton.icon(
-                          icon: link.icon, label: Text(link.name.toUpperCase()), onPressed: link.action),
+                          icon: link.icon!, label: Text(link.name!.toUpperCase()), onPressed: link.action as void Function()?),
                       stepWidth: 80.0,
                     ),
                     separator,

@@ -109,9 +109,9 @@ void main() {
     }
   });
 
-  void testStage({String stageName, String fieldName, TaskGridFilter trueFilter, TaskGridFilter falseFilter}) {
-    final TaskGridFilter trueFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'true'});
-    final TaskGridFilter falseFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'false'});
+  void testStage({required String stageName, String? fieldName, required TaskGridFilter trueFilter, required TaskGridFilter falseFilter}) {
+    final TaskGridFilter trueFilterMap = TaskGridFilter.fromMap(<String?, String>{fieldName: 'true'});
+    final TaskGridFilter falseFilterMap = TaskGridFilter.fromMap(<String?, String>{fieldName: 'false'});
 
     expect(trueFilter, trueFilterMap);
     expect(trueFilter, isNot(equals(falseFilterMap)));

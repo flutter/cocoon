@@ -24,9 +24,9 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
   final Offset target;
 
   static Offset positionDependentBox({
-    @required Size size,
-    @required Size childSize,
-    @required Offset target,
+    required Size size,
+    required Size childSize,
+    required Offset target,
   }) {
     assert(size != null);
     assert(childSize != null);
@@ -48,7 +48,7 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     if (size.width - margin * 2.0 < childSize.width) {
       x = (size.width - childSize.width) / 2.0;
     } else {
-      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin) as double;
+      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin);
       final double edge = normalizedTargetX + childSize.width;
       // Position the box as close to the left edge of the full size
       // without going over the margin.
@@ -82,13 +82,13 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
 /// [closeCallback] that will remove the widget from the tree.
 class TaskOverlayEntry extends StatelessWidget {
   const TaskOverlayEntry({
-    Key key,
-    @required this.position,
-    @required this.task,
-    @required this.showSnackBarCallback,
-    @required this.closeCallback,
-    @required this.buildState,
-    @required this.commit,
+    Key? key,
+    required this.position,
+    required this.task,
+    required this.showSnackBarCallback,
+    required this.closeCallback,
+    required this.buildState,
+    required this.commit,
   })  : assert(position != null),
         assert(buildState != null),
         assert(task != null),
@@ -169,11 +169,11 @@ class TaskOverlayEntry extends StatelessWidget {
 /// this [Task] through the build system.
 class TaskOverlayContents extends StatelessWidget {
   const TaskOverlayContents({
-    Key key,
-    @required this.showSnackBarCallback,
-    @required this.buildState,
-    @required this.task,
-    @required this.closeCallback,
+    Key? key,
+    required this.showSnackBarCallback,
+    required this.buildState,
+    required this.task,
+    required this.closeCallback,
     this.commit,
   })  : assert(showSnackBarCallback != null),
         assert(buildState != null),
@@ -189,7 +189,7 @@ class TaskOverlayContents extends StatelessWidget {
   final Task task;
 
   /// [Commit] for cirrus tasks to show log.
-  final Commit commit;
+  final Commit? commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -217,14 +217,14 @@ class TaskOverlayContents extends StatelessWidget {
   Widget build(BuildContext context) {
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
 
-    final DateTime now = Now.of(context);
+    final DateTime? now = Now.of(context);
     final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
     final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
     final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
     final Duration queueDuration =
-        task.startTimestamp == 0 ? now.difference(createTime) : startTime.difference(createTime);
-    final Duration runDuration = task.endTimestamp == 0 ? now.difference(startTime) : endTime.difference(startTime);
+        task.startTimestamp == 0 ? now!.difference(createTime) : startTime.difference(createTime);
+    final Duration runDuration = task.endTimestamp == 0 ? now!.difference(startTime) : endTime.difference(startTime);
 
     /// There are 2 possible states for queue time:
     ///   1. Task is waiting to be scheduled (in queue)
@@ -316,7 +316,7 @@ class TaskOverlayContents extends StatelessWidget {
   }
 
   Future<void> _rerunTask() async {
-    final bool success = await buildState.rerunTask(task);
+    final bool success = await (buildState.rerunTask(task) as FutureOr<bool>);
     final Text snackBarText = success ? const Text(rerunSuccessMessage) : const Text(rerunErrorMessage);
     showSnackBarCallback(
       SnackBar(

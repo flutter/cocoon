@@ -20,8 +20,8 @@ import 'commit_author_avatar.dart';
 /// will close it.
 class CommitBox extends StatefulWidget {
   const CommitBox({
-    Key key,
-    @required this.commit,
+    Key? key,
+    required this.commit,
   })  : assert(commit != null),
         super(key: key);
 
@@ -33,7 +33,7 @@ class CommitBox extends StatefulWidget {
 }
 
 class _CommitBoxState extends State<CommitBox> {
-  OverlayEntry _commitOverlay;
+  late OverlayEntry _commitOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class _CommitBoxState extends State<CommitBox> {
       ),
     );
 
-    Overlay.of(context).insert(_commitOverlay);
+    Overlay.of(context)!.insert(_commitOverlay);
   }
 
   void _closeOverlay() => _commitOverlay.remove();
@@ -67,10 +67,10 @@ class _CommitBoxState extends State<CommitBox> {
 /// [closeCallback] that will remove the widget from the tree.
 class CommitOverlayContents extends StatelessWidget {
   const CommitOverlayContents({
-    Key key,
-    @required this.parentContext,
-    @required this.commit,
-    @required this.closeCallback,
+    Key? key,
+    required this.parentContext,
+    required this.commit,
+    required this.closeCallback,
   })  : assert(parentContext != null),
         assert(commit != null),
         assert(closeCallback != null),
@@ -126,7 +126,7 @@ class CommitOverlayContents extends StatelessWidget {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: AnimatedDefaultTextStyle(
-                              style: theme.textTheme.subtitle1,
+                              style: theme.textTheme.subtitle1!,
                               duration: kThemeChangeDuration,
                               child: Hyperlink(
                                 text: commit.sha.substring(0, 7),
@@ -139,8 +139,8 @@ class CommitOverlayContents extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(bottom: 4),
                               child: AnimatedDefaultTextStyle(
-                                style: theme.textTheme.bodyText2.copyWith(
-                                  color: theme.textTheme.caption.color,
+                                style: theme.textTheme.bodyText2!.copyWith(
+                                  color: theme.textTheme.caption!.color,
                                 ),
                                 duration: kThemeChangeDuration,
                                 child: SelectableText(commit.message.split('\n').first),
@@ -168,14 +168,14 @@ class CommitOverlayContents extends StatelessWidget {
 
 class Hyperlink extends StatefulWidget {
   const Hyperlink({
-    Key key,
-    @required this.text,
+    Key? key,
+    required this.text,
     this.onPressed,
   })  : assert(text != null),
         super(key: key);
 
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   _HyperlinkState createState() => _HyperlinkState();

@@ -56,16 +56,16 @@ class CocoonLink {
   });
 
   /// Text shown to users describing this link.
-  final String name;
+  final String? name;
 
   /// If the link is internal to this Flutter app, this can be passed to highlight on the [NavigationDrawer] the page the user is on.
-  final String route;
+  final String? route;
 
   /// An [Icon] to represent this link.
-  final Icon icon;
+  final Icon? icon;
 
   /// Callback for when the link is activated.
   ///
   /// Can be used to redirect to internal or external routes. Will have acess to the [BuildContext].
-  final Function action;
+  final Function? action;
 }
