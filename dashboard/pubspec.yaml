@@ -35,7 +35,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: ^5.1.0
-  path: ^1.8.0
+  path: ^1.8.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

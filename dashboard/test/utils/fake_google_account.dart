@@ -19,6 +19,9 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
       'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID';
 
   @override
+  String get serverAuthCode => 'migration placeholder';
+
+  @override
   Future<Map<String, String>> get authHeaders => null;
 
   @override
