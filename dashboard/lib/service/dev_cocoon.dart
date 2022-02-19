@@ -135,7 +135,7 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String accessToken, String? repo) async {
+  Future<bool> rerunTask(Task task, String? accessToken, String? repo) async {
     return false;
   }
 

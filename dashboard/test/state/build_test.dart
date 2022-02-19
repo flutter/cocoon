@@ -30,7 +30,7 @@ void main() {
       setupCommitStatus = _createCommitStatus('setup');
 
       when(mockCocoonService!.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
-          .thenAnswer(((_) async => CocoonResponse<List<CommitStatus?>>.data(<CommitStatus?>[setupCommitStatus]) as FutureOr<CocoonResponse<List<CommitStatus>>>) as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation));
+          .thenAnswer(((dynamic _) async => CocoonResponse<List<CommitStatus?>>.data(<CommitStatus?>[setupCommitStatus]) as FutureOr<CocoonResponse<List<CommitStatus>>>) as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation));
       when(mockCocoonService!.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
           (_) async =>
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
@@ -272,7 +272,7 @@ void main() {
       when(
         mockCocoonService!.fetchCommitStatuses(branch: 'master', repo: 'flutter'),
       ).thenAnswer(
-        ((_) => Future<CocoonResponse<List<CommitStatus?>>>.value(
+        ((dynamic _) => Future<CocoonResponse<List<CommitStatus?>>>.value(
           CocoonResponse<List<CommitStatus?>>.data(<CommitStatus?>[setupCommitStatus]),
         ).then((value) => value as CocoonResponse<List<CommitStatus>>)) as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation),
       );

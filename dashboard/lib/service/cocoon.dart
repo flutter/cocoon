@@ -52,7 +52,7 @@ abstract class CocoonService {
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.
-  Future<bool> rerunTask(Task task, String idToken, String? repo);
+  Future<bool> rerunTask(Task task, String? idToken, String? repo);
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);

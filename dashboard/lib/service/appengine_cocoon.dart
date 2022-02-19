@@ -146,7 +146,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String idToken, String? repo) async {
+  Future<bool> rerunTask(Task task, String? idToken, String? repo) async {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
@@ -156,7 +156,7 @@ class AppEngineCocoonService implements CocoonService {
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
-          'X-Flutter-IdToken': idToken,
+          'X-Flutter-IdToken': idToken!,
         },
         body: jsonEncode(<String, String?>{
           'Key': task.key.child.name,

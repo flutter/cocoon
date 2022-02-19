@@ -22,11 +22,11 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   String get serverAuthCode => 'migration placeholder';
 
   @override
-  Future<Map<String, String>> get authHeaders => null;
+  Future<Map<String, String>> get authHeaders => Future.value(<String, String>{});
 
   @override
   late Future<GoogleSignInAuthentication> authentication;
 
   @override
-  Future<void> clearAuthCache() => null;
+  Future<void> clearAuthCache() => Future.value(null);
 }

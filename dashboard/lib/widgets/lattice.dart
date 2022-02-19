@@ -304,7 +304,15 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    (_newChildrenByCoordinate.values.toList()..sort(_compareChildren)).forEach(visitor);
+    final List<Element?> tempList = (_newChildrenByCoordinate.values.toList()..sort(_compareChildren));
+    for(final Element? myElement in tempList){
+      if(myElement == null){
+        continue;}
+      visitor(myElement);
+    }
+    // [ FOR REVIEW ]
+    // null safety rewrite: visitChildren enforce not null and visitor can't take nullable value
+    // original : (_newChildrenByCoordinate.values.toList()..sort(_compareChildren)).forEach(visitor);
   }
 
   int _compareChildren(Element? a, Element? b) {
@@ -460,7 +468,9 @@ class _RenderLatticeBody extends RenderBox {
     _handleOffsetChange();
   }
 
-  int _cellWidthCount, _cellHeightCount;
+  late int _cellWidthCount, _cellHeightCount;
+  // [ FOR REVIEW ]
+  // null safety rewrite: assume they won't be null and we initialize before use
 
   List<List<_LatticeCell>> get cells => _cells;
   List<List<_LatticeCell>> _cells;
