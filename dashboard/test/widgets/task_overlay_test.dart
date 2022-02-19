@@ -422,7 +422,7 @@ void main() {
   testWidgets('log button opens log url for public log', (WidgetTester tester) async {
     const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
     final List<MethodCall> log = <MethodCall>[];
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       log.add(methodCall);
     });
     final Task publicTask = Task()..stageName = 'cirrus';

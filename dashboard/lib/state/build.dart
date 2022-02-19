@@ -343,7 +343,7 @@ class BuildState extends ChangeNotifier {
 
   Future<bool> refreshGitHubCommits() async => cocoonService!.vacuumGitHubCommits(await authService.idToken);
 
-  Future<bool?> rerunTask(Task task) async {
+  Future<bool> rerunTask(Task task) async {
     return cocoonService!.rerunTask(task, await authService.idToken, _currentRepo);
   }
 

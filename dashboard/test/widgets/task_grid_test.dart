@@ -785,12 +785,12 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
     ),
   );
   final RenderRepaintBoundary? renderObject = tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
-  final ByteData pixels = await (tester.runAsync<ByteData?>(() async {
+  final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return await (await renderObject!.toImage()).toByteData();
-  }) as FutureOr<ByteData>);
-  assert(pixels.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
+  });
+  assert(pixels!.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
   const double padding = 4.0;
-  final int rgba = pixels
+  final int rgba = pixels!
       .getUint32(((((TaskBox.cellSize * 3.0) * (TaskBox.cellSize + padding)) + TaskBox.cellSize + padding).ceil()) * 4);
   expect((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF, expectedColor.value);
 }
