@@ -9,25 +9,27 @@ import 'package:auto_submit/helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class AutosubmitServer {
-  AutosubmitServer();
+Future<Response> webhookHandler(Request request) async {
+  final String? reqHeader = jsonEncode(request.headers);
+  print('Header: $reqHeader');
+  return Response.ok(
+    jsonEncode(<String, String>{}),
+    headers: request.headers,
+  );
+}
 
-  Future<Response> webhookHandler(Request request) async {
-    print('this is the webhookHandler 1!');
-    final String? reqHeader = jsonEncode(request.headers);
-    print('Header: $reqHeader');
-    final String? event = request.headers['X-GitHub-Event'];
-    print('Event: $event');
+Future main() async {
+  Future<Response> emptyHandler(Request request) async {
     return Response.ok(
       jsonEncode(<String, String>{}),
-      headers: request.headers,
+      headers: {
+        'content-type': 'application/json',
+      },
     );
   }
 
-  Future runServer() async {
-    final router = Router()
-      ..get('/webhook', webhookHandler)
-      ..post('/webhook', webhookHandler);
-    await serveHandler(router);
-  }
+  final router = Router()
+    ..get('/', emptyHandler)
+    ..post('/webhook', webhookHandler);
+  await serveHandler(router);
 }

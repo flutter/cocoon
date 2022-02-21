@@ -11,8 +11,7 @@ void main() {
     'header1': 'header value1',
   });
   test('call webhookHandler to handle the request', () async {
-    var autosubmitServer = AutosubmitServer();
-    Response response = await autosubmitServer.webhookHandler(req);
+    Response response = await webhookHandler(req);
     expect(response.headers, {
       'header1': 'header value1',
       'content-length': '2',
