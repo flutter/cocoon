@@ -117,7 +117,6 @@ void main() {
       await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
       await tester.pump();
 
-
       expect(log[0].runtimeType, equals(MethodCall));
       expect(log[0].method, equals('launch'));
       expect(log[0].arguments, equals('${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456'));

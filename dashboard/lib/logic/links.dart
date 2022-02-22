@@ -25,37 +25,36 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
     ),
     CocoonLink(
-      name: 'Framework Benchmarks',
-      icon: const Icon(Icons.show_chart),
-      action: (){
-        launch('https://flutter-flutter-perf.skia.org/');
-        const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', 'https://flutter-flutter-perf.skia.org/');
-      } 
-    ),
+        name: 'Framework Benchmarks',
+        icon: const Icon(Icons.show_chart),
+        action: () {
+          launch('https://flutter-flutter-perf.skia.org/');
+          const MethodChannel('plugins.flutter.io/url_launcher')
+              .invokeMethod<void>('launch', 'https://flutter-flutter-perf.skia.org/');
+        }),
     CocoonLink(
-      name: 'Engine Benchmarks',
-      icon: const Icon(Icons.show_chart),
-      action: (){
-        launch('https://flutter-engine-perf.skia.org/');
-        const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', 'https://flutter-engine-perf.skia.org/');
-      } 
-    ),
+        name: 'Engine Benchmarks',
+        icon: const Icon(Icons.show_chart),
+        action: () {
+          launch('https://flutter-engine-perf.skia.org/');
+          const MethodChannel('plugins.flutter.io/url_launcher')
+              .invokeMethod<void>('launch', 'https://flutter-engine-perf.skia.org/');
+        }),
     CocoonLink(
-      name: 'Repository',
-      icon: const Icon(Icons.info_outline),
-      action: (){
-        launch('/repository.html');
-        const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', '/repository.html');
-      } 
-    ),
+        name: 'Repository',
+        icon: const Icon(Icons.info_outline),
+        action: () {
+          launch('/repository.html');
+          const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', '/repository.html');
+        }),
     CocoonLink(
-      name: 'Source Code',
-      icon: const Icon(Icons.code),
-      action: (){
-        launch('https://github.com/flutter/cocoon');
-        const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', 'https://github.com/flutter/cocoon');
-      }
-    ),
+        name: 'Source Code',
+        icon: const Icon(Icons.code),
+        action: () {
+          launch('https://github.com/flutter/cocoon');
+          const MethodChannel('plugins.flutter.io/url_launcher')
+              .invokeMethod<void>('launch', 'https://github.com/flutter/cocoon');
+        }),
   ];
 }
 

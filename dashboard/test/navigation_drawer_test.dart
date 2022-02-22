@@ -112,7 +112,6 @@ void main() {
       await tester.tap(find.text('Source Code'));
       await tester.pump();
 
-
       expect(log[0].runtimeType, equals(MethodCall));
       expect(log[0].method, equals('launch'));
       expect(log[0].arguments, equals('https://github.com/flutter/cocoon'));

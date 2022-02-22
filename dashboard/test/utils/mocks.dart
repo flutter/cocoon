@@ -19,5 +19,4 @@ import 'package:mockito/annotations.dart';
   ],
   customMocks: [MockSpec<GoogleSignInService>(as: #MockGoogleSignInService)],
 )
-
 void main() {}

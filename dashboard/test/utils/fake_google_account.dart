@@ -32,9 +32,8 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   bool operator ==(dynamic other) {
-    return false; 
+    return false;
     // FOR REVIEW: adding this to avoid nullable error
     // since Object can't be null
   }
-
 }

@@ -785,7 +785,8 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
       ),
     ),
   );
-  final RenderRepaintBoundary? renderObject = tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
+  final RenderRepaintBoundary? renderObject =
+      tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
     return await (await renderObject!.toImage()).toByteData();
   });

@@ -30,7 +30,7 @@ import 'utils/task_icons.dart';
 
 void main() {
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-      
+
   final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
   when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
   when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());

@@ -451,7 +451,6 @@ void main() {
     expect(log[0].runtimeType, equals(MethodCall));
     expect(log[0].method, equals('launch'));
     expect(log[0].arguments, equals('https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch='));
-
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {

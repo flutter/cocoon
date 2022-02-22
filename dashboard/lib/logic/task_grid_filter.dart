@@ -120,7 +120,8 @@ class TaskGridFilter extends FilterPropertySource {
   /// its data into a JSON file or URL query parameter list.
   Map<String?, String> toMap({bool includeDefaults = true}) => Map<String?, String>.fromEntries(_allProperties.entries
       .where((MapEntry<String?, ValueFilterProperty<dynamic>> element) => includeDefaults || !element.value.isDefault)
-      .map((MapEntry<String?, ValueFilterProperty<dynamic>> e) => MapEntry<String?, String>(e.key, e.value.stringValue)));
+      .map((MapEntry<String?, ValueFilterProperty<dynamic>> e) =>
+          MapEntry<String?, String>(e.key, e.value.stringValue)));
 
   /// A string useful for including in a URL as query parameters. The returned string will
   /// include only non-default filter values separated by the URL parameter separator (`&`).

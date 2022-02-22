@@ -109,7 +109,11 @@ void main() {
     }
   });
 
-  void testStage({required String stageName, String? fieldName, required TaskGridFilter trueFilter, required TaskGridFilter falseFilter}) {
+  void testStage(
+      {required String stageName,
+      String? fieldName,
+      required TaskGridFilter trueFilter,
+      required TaskGridFilter falseFilter}) {
     final TaskGridFilter trueFilterMap = TaskGridFilter.fromMap(<String?, String>{fieldName: 'true'});
     final TaskGridFilter falseFilterMap = TaskGridFilter.fromMap(<String?, String>{fieldName: 'false'});
 

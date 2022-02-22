@@ -44,7 +44,9 @@ class IndexPage extends StatelessWidget {
                   Column(children: <Widget>[
                     IntrinsicWidth(
                       child: ElevatedButton.icon(
-                          icon: link.icon!, label: Text(link.name!.toUpperCase()), onPressed: link.action as void Function()?),
+                          icon: link.icon!,
+                          label: Text(link.name!.toUpperCase()),
+                          onPressed: link.action as void Function()?),
                       stepWidth: 80.0,
                     ),
                     separator,

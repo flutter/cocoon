@@ -32,8 +32,10 @@ void main() {
       mockCocoonService = MockCocoonService();
       setupCommitStatus = _createCommitStatus('setup');
 
-      when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
-          .thenAnswer(((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]) as FutureOr<CocoonResponse<List<CommitStatus>>>) as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation));
+      when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
+          ((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus])
+                  as FutureOr<CocoonResponse<List<CommitStatus>>>)
+              as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
           (_) async =>
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
@@ -276,8 +278,9 @@ void main() {
         mockCocoonService.fetchCommitStatuses(branch: 'master', repo: 'flutter'),
       ).thenAnswer(
         ((dynamic _) => Future<CocoonResponse<List<CommitStatus>>>.value(
-          CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
-        ).then((value) => value as CocoonResponse<List<CommitStatus>>)) as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation),
+                  CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
+                ).then((value) => value as CocoonResponse<List<CommitStatus>>))
+            as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation),
       );
       // Mark tree green on master, red on dev
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer((_) =>
@@ -313,9 +316,9 @@ void main() {
 
   testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
     final MockGoogleSignIn mockSignInPlugin = MockGoogleSignIn();
-    when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null)); 
-    when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null)); 
-    when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null)); 
+    when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     // FOR REVIEW:
     // probably not the right way to stub null for signin and signout, but it passes the test
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));

@@ -305,9 +305,10 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
   @override
   void visitChildren(ElementVisitor visitor) {
     final List<Element?> tempList = (_newChildrenByCoordinate.values.toList()..sort(_compareChildren));
-    for(final Element? myElement in tempList){
-      if(myElement == null){
-        continue;}
+    for (final Element? myElement in tempList) {
+      if (myElement == null) {
+        continue;
+      }
       visitor(myElement);
     }
     // [ FOR REVIEW ]
