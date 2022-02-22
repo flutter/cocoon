@@ -44,7 +44,7 @@ class LatticeScrollView extends StatelessWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     required this.cells,
     required this.cellSize,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final ScrollPhysics? horizontalPhysics;
 
@@ -136,7 +136,7 @@ class _LatticeBody extends RenderObjectWidget {
     required this.verticalOffset,
     required this.cells,
     required this.cellSize,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final TextDirection textDirection;
   final ViewportOffset horizontalOffset;
