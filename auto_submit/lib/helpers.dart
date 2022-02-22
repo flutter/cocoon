@@ -7,6 +7,9 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
+import 'package:logging/logging.dart';
+
+final Logger logger = Logger('helper');
 
 /// Serves [handler] on [InternetAddress.anyIPv4] using the port returned by
 /// [listenPort].
@@ -21,7 +24,7 @@ Future<void> serveHandler(Handler handler) async {
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
-  print('Serving at http://${server.address.host}:${server.port}');
+  logger.info('Serving at http://${server.address.host}:${server.port}');
 
   await terminateRequestFuture();
 
@@ -48,7 +51,7 @@ Future<void> terminateRequestFuture() {
   StreamSubscription? sigIntSub, sigTermSub;
 
   Future<void> signalHandler(ProcessSignal signal) async {
-    print('Received signal $signal - closing');
+    logger.info('Received signal $signal - closing');
 
     final subCopy = sigIntSub;
     if (subCopy != null) {

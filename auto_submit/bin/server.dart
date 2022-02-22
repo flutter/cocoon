@@ -8,15 +8,7 @@ import 'dart:async';
 import 'package:auto_submit/helpers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-
-Future<Response> webhookHandler(Request request) async {
-  final String? reqHeader = jsonEncode(request.headers);
-  print('Header: $reqHeader');
-  return Response.ok(
-    jsonEncode(<String, String>{}),
-    headers: request.headers,
-  );
-}
+import 'package:auto_submit/requests/github_webhook.dart';
 
 Future main() async {
   Future<Response> emptyHandler(Request request) async {
@@ -28,8 +20,10 @@ Future main() async {
     );
   }
 
+  GithubWebhook githubWebhook = GithubWebhook();
+
   final router = Router()
     ..get('/', emptyHandler)
-    ..post('/webhook', webhookHandler);
+    ..post('/webhook', githubWebhook.webhookHandler);
   await serveHandler(router);
 }

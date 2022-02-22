@@ -4,17 +4,18 @@
 
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-import '../bin/server.dart';
+import 'package:auto_submit/requests/github_webhook.dart';
 
 void main() {
-  Request req = Request('POST', Uri.parse('http://localhost/'), headers: {
-    'header1': 'header value1',
-  });
+  Request req = Request('POST', Uri.parse('http://localhost/'),
+      headers: {
+        'header1': 'header value1',
+      },
+      body: "{\"label1\": \"label1cotent\"}");
+  GithubWebhook githubWebhook = GithubWebhook();
   test('call webhookHandler to handle the request', () async {
-    Response response = await webhookHandler(req);
-    expect(response.headers, {
-      'header1': 'header value1',
-      'content-length': '2',
-    });
+    Response response = await githubWebhook.webhookHandler(req);
+    final String resBody = await response.readAsString();
+    expect(resBody, "{\"label1\": \"label1cotent\"}");
   });
 }
