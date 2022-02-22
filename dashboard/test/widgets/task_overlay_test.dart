@@ -424,6 +424,7 @@ void main() {
     final List<MethodCall> log = <MethodCall>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       log.add(methodCall);
+      return null;
     });
 
     final Task publicTask = Task()..stageName = 'cirrus';

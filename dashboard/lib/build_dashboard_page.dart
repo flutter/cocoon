@@ -250,7 +250,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     return key;
   }
 
-  String _getStatusTitle(BuildState buildState) {
+  String _getStatusTitle(BuildState? buildState) {
     if (buildState == null || buildState.isTreeBuilding == null) {
       return 'Loading...';
     }

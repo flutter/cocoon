@@ -24,7 +24,7 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
     Key? key,
     required DateTime dateTime,
     required Widget child,
-  })  : assert(dateTime != null),
+  })  : 
         super(
           key: key,
           notifier: ValueNotifier<DateTime>(dateTime),
@@ -33,7 +33,6 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
 
   static DateTime? of(BuildContext context) {
     final Now now = context.dependOnInheritedWidgetOfExactType<Now>()!;
-    assert(now != null);
     return now.notifier!.value;
   }
 }

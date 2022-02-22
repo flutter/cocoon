@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:ui' show hashValues;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class FakeGoogleSignInAccount implements GoogleSignInAccount {
@@ -22,18 +23,29 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   String get serverAuthCode => 'migration placeholder';
 
   @override
-  Future<Map<String, String>> get authHeaders => Future.value(<String, String>{});
+  Future<Map<String, String>> get authHeaders => Future<Map<String, String>>.value(<String, String>{});
 
   @override
   late Future<GoogleSignInAuthentication> authentication;
 
   @override
-  Future<void> clearAuthCache() => Future.value(null);
+  Future<void> clearAuthCache() => Future<void>.value(null);
 
   @override
   bool operator ==(dynamic other) {
-    return false;
-    // FOR REVIEW: adding this to avoid nullable error
-    // since Object can't be null
+    if (identical(this, other)) {
+      return true;}
+    if (other is! GoogleSignInAccount) {
+      return false;}
+    final GoogleSignInAccount otherAccount = other;
+    return displayName == otherAccount.displayName &&
+        email == otherAccount.email &&
+        id == otherAccount.id &&
+        photoUrl == otherAccount.photoUrl &&
+        serverAuthCode == otherAccount.serverAuthCode;
   }
+
+  @override
+  int get hashCode => hashValues(displayName, email, id, photoUrl, serverAuthCode);
+
 }

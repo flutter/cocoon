@@ -30,9 +30,6 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     required Size childSize,
     required Offset target,
   }) {
-    assert(size != null);
-    assert(childSize != null);
-    assert(target != null);
     const double margin = 10.0;
     const double verticalOffset = TaskBox.cellSize * .9;
 
@@ -91,12 +88,7 @@ class TaskOverlayEntry extends StatelessWidget {
     required this.closeCallback,
     required this.buildState,
     required this.commit,
-  })  : assert(position != null),
-        assert(buildState != null),
-        assert(task != null),
-        assert(showSnackBarCallback != null),
-        assert(closeCallback != null),
-        super(key: key);
+  })  :  super(key: key);
 
   /// The global position where to show the task overlay.
   final Offset position;
@@ -177,10 +169,7 @@ class TaskOverlayContents extends StatelessWidget {
     required this.task,
     required this.closeCallback,
     this.commit,
-  })  : assert(showSnackBarCallback != null),
-        assert(buildState != null),
-        assert(task != null),
-        super(key: key);
+  })  :  super(key: key);
 
   final ShowSnackBarCallback showSnackBarCallback;
 
@@ -302,11 +291,11 @@ class TaskOverlayContents extends StatelessWidget {
                           try {
                             const MethodChannel('plugins.flutter.io/url_launcher')
                                 .invokeMethod<void>('launch', logUrl(task, commit: commit));
-                          } on MissingPluginException catch (e) {
+                          } on MissingPluginException {
                             //during real run, methodchannel.invokemethod will throw MissingPluginException
                           }
 
-                          return Future.value(null);
+                          return Future<void>.value(null);
                           // FOR REVIEW
                           // temporary fix to register channel 'plugins.flutter.io/url_launcher' to pass flutter test, referencing
                           // https://github.com/flutter/plugins/blob/bd7dfb78d8f94cc02bd02b58e253a96f5a929963/packages/camera/camera_platform_interface/lib/src/method_channel/method_channel_camera.dart
@@ -331,7 +320,7 @@ class TaskOverlayContents extends StatelessWidget {
   }
 
   Future<void> _rerunTask() async {
-    final bool success = await (buildState.rerunTask(task) as FutureOr<bool>);
+    final bool success = await buildState.rerunTask(task);
     final Text snackBarText = success ? const Text(rerunSuccessMessage) : const Text(rerunErrorMessage);
     showSnackBarCallback(
       SnackBar(

@@ -44,9 +44,7 @@ class LatticeScrollView extends StatelessWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     required this.cells,
     required this.cellSize,
-  })  : assert(dragStartBehavior != null),
-        assert(cellSize != null),
-        assert(cells != null),
+  })  : assert(cellSize != null),
         super(key: key);
 
   final ScrollPhysics? horizontalPhysics;
@@ -139,11 +137,7 @@ class _LatticeBody extends RenderObjectWidget {
     required this.verticalOffset,
     required this.cells,
     required this.cellSize,
-  })  : assert(textDirection != null),
-        assert(horizontalOffset != null),
-        assert(verticalOffset != null),
-        assert(cells != null),
-        assert(cellSize != null),
+  })  : assert(horizontalOffset != null),
         super(key: key);
 
   final TextDirection textDirection;
@@ -405,13 +399,8 @@ class _RenderLatticeBody extends RenderBox {
     required List<List<_LatticeCell>> cells,
     required Size cellSize,
     required _LatticeDelegate delegate,
-  })  : assert(textDirection != null),
-        assert(horizontalOffset != null),
-        assert(verticalOffset != null),
-        assert(cells != null),
-        assert(cellSize != null),
+  })  : assert(horizontalOffset != null),
         assert(!cellSize.isEmpty),
-        assert(delegate != null),
         _textDirection = textDirection,
         _horizontalOffset = horizontalOffset,
         _verticalOffset = verticalOffset,
@@ -425,7 +414,6 @@ class _RenderLatticeBody extends RenderBox {
   TextDirection get textDirection => _textDirection;
   TextDirection _textDirection;
   set textDirection(TextDirection value) {
-    assert(value != null);
     if (value == _textDirection) {
       return;
     }
@@ -436,8 +424,6 @@ class _RenderLatticeBody extends RenderBox {
   ViewportOffset get horizontalOffset => _horizontalOffset;
   ViewportOffset _horizontalOffset;
   set horizontalOffset(ViewportOffset value) {
-    assert(value != null);
-    assert(value.pixels != null);
     if (value == _horizontalOffset) {
       return;
     }
@@ -454,8 +440,6 @@ class _RenderLatticeBody extends RenderBox {
   ViewportOffset get verticalOffset => _verticalOffset;
   ViewportOffset _verticalOffset;
   set verticalOffset(ViewportOffset value) {
-    assert(value != null);
-    assert(value.pixels != null);
     if (value == _verticalOffset) {
       return;
     }
@@ -476,7 +460,6 @@ class _RenderLatticeBody extends RenderBox {
   List<List<_LatticeCell>> get cells => _cells;
   List<List<_LatticeCell>> _cells;
   set cells(List<List<_LatticeCell>> value) {
-    assert(value != null);
     if (value == _cells) {
       return;
     }
@@ -494,7 +477,6 @@ class _RenderLatticeBody extends RenderBox {
   Size get cellSize => _cellSize;
   Size _cellSize;
   set cellSize(Size value) {
-    assert(value != null);
     assert(!value.isEmpty);
     if (value == _cellSize) {
       return;
@@ -506,7 +488,6 @@ class _RenderLatticeBody extends RenderBox {
   _LatticeDelegate get delegate => _delegate;
   _LatticeDelegate _delegate;
   set delegate(_LatticeDelegate value) {
-    assert(value != null);
     if (value == _delegate) {
       return;
     }
@@ -667,8 +648,6 @@ class _RenderLatticeBody extends RenderBox {
       assert(_scrollOffset == null);
       return;
     }
-    assert(horizontalOffset.pixels != null);
-    assert(verticalOffset.pixels != null);
     final Offset scrollOffset = Offset(horizontalOffset.pixels, verticalOffset.pixels);
     final int firstX = scrollOffset.dx ~/ cellSize.width;
     final int lastX = ((scrollOffset.dx + size.width) / cellSize.width).ceil() - 1;
@@ -848,7 +827,6 @@ class _RenderLatticeBody extends RenderBox {
           position.dy < cellSize.height ? 0 : absolute.dy ~/ cellSize.height,
         );
     }
-    return null;
   }
 
   Offset? _coordinateToOffset(_Coordinate coordinate) {
@@ -869,7 +847,6 @@ class _RenderLatticeBody extends RenderBox {
             ) -
             adjustedScroll;
     }
-    return null;
   }
 
   @override

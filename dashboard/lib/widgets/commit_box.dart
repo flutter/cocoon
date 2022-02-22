@@ -23,8 +23,7 @@ class CommitBox extends StatefulWidget {
   const CommitBox({
     Key? key,
     required this.commit,
-  })  : assert(commit != null),
-        super(key: key);
+  })  :  super(key: key);
 
   /// The commit being shown
   final Commit commit;
@@ -72,10 +71,7 @@ class CommitOverlayContents extends StatelessWidget {
     required this.parentContext,
     required this.commit,
     required this.closeCallback,
-  })  : assert(parentContext != null),
-        assert(commit != null),
-        assert(closeCallback != null),
-        super(key: key);
+  })  :  super(key: key);
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
@@ -136,7 +132,11 @@ class CommitOverlayContents extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          if (commit.message != null)
+                          //if ((commit.message) != null)
+                          // FOR REVIEW
+                          // forced to be removed by system, but I think commit.message can be null?
+                          // if not removed, lint gives below error
+                          // The operand can't be null, so the condition is always true.
                             Padding(
                               padding: const EdgeInsets.only(bottom: 4),
                               child: AnimatedDefaultTextStyle(
@@ -174,8 +174,7 @@ class Hyperlink extends StatefulWidget {
     Key? key,
     required this.text,
     this.onPressed,
-  })  : assert(text != null),
-        super(key: key);
+  })  :  super(key: key);
 
   final String text;
   final VoidCallback? onPressed;

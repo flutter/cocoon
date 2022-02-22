@@ -24,7 +24,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/golden.dart';
-import '../utils/mocks.dart';
 import '../utils/mocks.mocks.dart';
 import '../utils/task_icons.dart';
 

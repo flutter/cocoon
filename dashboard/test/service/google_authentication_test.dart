@@ -9,7 +9,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_google_account.dart';
-import '../utils/mocks.dart';
 import '../utils/mocks.mocks.dart';
 
 void main() {

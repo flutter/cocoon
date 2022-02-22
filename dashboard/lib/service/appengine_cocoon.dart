@@ -137,7 +137,6 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<bool> vacuumGitHubCommits(String idToken) async {
-    assert(idToken != null);
     final Uri refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final http.Response response = await _client.get(
       refreshGitHubCommitsUrl,
@@ -210,14 +209,12 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   String? _branchFromJson(Map<String, dynamic> jsonChecklist) {
-    assert(jsonChecklist != null);
 
     final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
     return checklist['Branch'] as String?;
   }
 
   Commit _commitFromJson(Map<String, dynamic> jsonChecklist) {
-    assert(jsonChecklist != null);
 
     final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
 
@@ -239,7 +236,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<Task> _tasksFromStagesJson(List<dynamic> json) {
-    assert(json != null);
     final List<Task> tasks = <Task>[];
 
     for (final Map<String, dynamic> jsonStage in json) {
@@ -250,7 +246,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<Task> _tasksFromJson(List<dynamic> json) {
-    assert(json != null);
     final List<Task> tasks = <Task>[];
 
     for (final Map<String, dynamic> jsonTask in json) {
@@ -262,7 +257,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Task _taskFromJson(Map<String, dynamic> json) {
-    assert(json != null);
 
     final Map<String, dynamic> taskData = json['Task']; // as Map<String, Object>;
     final List<dynamic>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<dynamic>?;

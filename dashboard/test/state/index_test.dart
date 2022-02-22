@@ -9,7 +9,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import '../utils/mocks.dart';
 import '../utils/mocks.mocks.dart';
 
 void main() {

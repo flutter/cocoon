@@ -72,8 +72,8 @@ class GoogleSignInService extends ChangeNotifier {
       await signIn();
     }
 
-    final String idToken = (await user?.authentication?.then((GoogleSignInAuthentication key) => key.idToken!))!;
-    assert(idToken != null && idToken.isNotEmpty);
+    final String idToken = (await user?.authentication.then((GoogleSignInAuthentication key) => key.idToken!))!;
+    assert(idToken.isNotEmpty);
 
     return idToken;
   }

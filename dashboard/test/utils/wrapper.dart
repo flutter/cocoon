@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:mockito/mockito.dart';

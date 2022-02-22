@@ -15,7 +15,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import '../utils/mocks.dart';
 import '../utils/mocks.mocks.dart';
 import '../utils/output.dart';
 
@@ -33,9 +32,7 @@ void main() {
       setupCommitStatus = _createCommitStatus('setup');
 
       when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
-          ((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus])
-                  as FutureOr<CocoonResponse<List<CommitStatus>>>)
-              as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation));
+          (dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
           (_) async =>
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
@@ -277,10 +274,9 @@ void main() {
       when(
         mockCocoonService.fetchCommitStatuses(branch: 'master', repo: 'flutter'),
       ).thenAnswer(
-        ((dynamic _) => Future<CocoonResponse<List<CommitStatus>>>.value(
+        (dynamic _) => Future<CocoonResponse<List<CommitStatus>>>.value(
                   CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
-                ).then((value) => value as CocoonResponse<List<CommitStatus>>))
-            as Future<CocoonResponse<List<CommitStatus>>> Function(Invocation),
+                ).then((CocoonResponse<List<CommitStatus>> value) => value),
       );
       // Mark tree green on master, red on dev
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer((_) =>

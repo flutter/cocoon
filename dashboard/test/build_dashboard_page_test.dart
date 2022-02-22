@@ -17,13 +17,11 @@ import 'package:flutter_dashboard/widgets/sign_in_button.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import 'utils/fake_build.dart';
 import 'utils/fake_google_account.dart';
 import 'utils/golden.dart';
-import 'utils/mocks.dart';
 import 'utils/mocks.mocks.dart';
 import 'utils/output.dart';
 import 'utils/task_icons.dart';

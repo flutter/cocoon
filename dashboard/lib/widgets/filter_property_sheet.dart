@@ -154,9 +154,7 @@ class BoolFilterProperty extends ValueFilterProperty<bool?> {
 
   @override
   set stringValue(String newValue) {
-    if (newValue == null) {
-      value = null;
-    } else if (newValue == 'true' || newValue == 't') {
+    if (newValue == 'true' || newValue == 't') {
       value = true;
     } else if (newValue == 'false' || newValue == 'f') {
       value = false;
