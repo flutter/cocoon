@@ -46,7 +46,13 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async => rerunTaskResult;
+  Future<bool> rerunTask(Task task) async {
+    if( ! rerunTaskResult){
+      errors.send('placeholder of test rerun error.');
+      return false;
+    }
+    return true;
+  } 
   final bool rerunTaskResult;
 
   @override
