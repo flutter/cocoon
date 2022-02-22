@@ -16,7 +16,7 @@ steps:
     args: ['cloud_build/repo_dash_build.sh']
 
   # Deploy a new version to google cloud.
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
     args:  
       - '-c'
@@ -30,8 +30,17 @@ steps:
         fi
 
   # Deploy auto_submit
-  - name: gcr.io/$PROJECT_ID/flutter
+  - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
-    args: ['cloud_build/autosubmit_deploy.sh']
+    args:  
+      - '-c'
+      - |-
+        gcloud config set project $PROJECT_ID
+        latest_version=$(gcloud app versions list --hide-no-traffic --format 'value(version.id)')
+        if [ "$latest_version" = "version-$SHORT_SHA" ]; then
+          echo "No updates since last deployment."
+        else
+          bash cloud_build/autosubmit_deploy.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
+        fi
 
 timeout: 1200s
