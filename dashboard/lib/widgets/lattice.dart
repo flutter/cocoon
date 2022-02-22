@@ -44,8 +44,7 @@ class LatticeScrollView extends StatelessWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     required this.cells,
     required this.cellSize,
-  })  : assert(cellSize != null),
-        super(key: key);
+  })  : super(key: key);
 
   final ScrollPhysics? horizontalPhysics;
 
@@ -137,8 +136,7 @@ class _LatticeBody extends RenderObjectWidget {
     required this.verticalOffset,
     required this.cells,
     required this.cellSize,
-  })  : assert(horizontalOffset != null),
-        super(key: key);
+  })  : super(key: key);
 
   final TextDirection textDirection;
   final ViewportOffset horizontalOffset;
@@ -399,8 +397,7 @@ class _RenderLatticeBody extends RenderBox {
     required List<List<_LatticeCell>> cells,
     required Size cellSize,
     required _LatticeDelegate delegate,
-  })  : assert(horizontalOffset != null),
-        assert(!cellSize.isEmpty),
+  })  : assert(!cellSize.isEmpty),
         _textDirection = textDirection,
         _horizontalOffset = horizontalOffset,
         _verticalOffset = verticalOffset,
