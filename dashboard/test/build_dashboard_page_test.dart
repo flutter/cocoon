@@ -22,7 +22,7 @@ import 'package:mockito/mockito.dart';
 import 'utils/fake_build.dart';
 import 'utils/fake_google_account.dart';
 import 'utils/golden.dart';
-import 'utils/mocks.mocks.dart';
+import 'utils/mocks.dart';
 import 'utils/output.dart';
 import 'utils/task_icons.dart';
 

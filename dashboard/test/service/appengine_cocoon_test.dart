@@ -18,7 +18,6 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/appengine_cocoon_test_data.dart';
-//import '../utils/mocks.mocks.dart' as realMock;
 
 void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {

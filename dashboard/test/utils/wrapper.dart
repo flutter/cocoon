@@ -10,7 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'fake_build.dart';
 import 'fake_google_account.dart';
 import 'fake_index_state.dart';
-import 'mocks.mocks.dart';
+import 'mocks.dart';
 
 class FakeInserter extends StatelessWidget {
   const FakeInserter({Key? key, this.child, this.signedIn = true}) : super(key: key);

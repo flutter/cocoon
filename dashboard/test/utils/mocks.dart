@@ -9,6 +9,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
 import 'package:mockito/annotations.dart';
 
+export 'mocks.mocks.dart';
+
 @GenerateMocks(
   <Type>[
     Client,
