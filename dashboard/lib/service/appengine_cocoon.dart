@@ -209,13 +209,11 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   String? _branchFromJson(Map<String, dynamic> jsonChecklist) {
-
     final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
     return checklist['Branch'] as String?;
   }
 
   Commit _commitFromJson(Map<String, dynamic> jsonChecklist) {
-
     final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
 
     final Map<String, dynamic> commit = checklist['Commit'];
@@ -257,7 +255,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Task _taskFromJson(Map<String, dynamic> json) {
-
     final Map<String, dynamic> taskData = json['Task']; // as Map<String, Object>;
     final List<dynamic>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<dynamic>?;
 

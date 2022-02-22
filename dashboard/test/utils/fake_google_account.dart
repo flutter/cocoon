@@ -34,9 +34,11 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   @override
   bool operator ==(dynamic other) {
     if (identical(this, other)) {
-      return true;}
+      return true;
+    }
     if (other is! GoogleSignInAccount) {
-      return false;}
+      return false;
+    }
     final GoogleSignInAccount otherAccount = other;
     return displayName == otherAccount.displayName &&
         email == otherAccount.email &&
@@ -47,5 +49,4 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   int get hashCode => hashValues(displayName, email, id, photoUrl, serverAuthCode);
-
 }

@@ -31,8 +31,8 @@ void main() {
       mockCocoonService = MockCocoonService();
       setupCommitStatus = _createCommitStatus('setup');
 
-      when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
-          (dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
+      when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
+          .thenAnswer((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
           (_) async =>
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
@@ -275,8 +275,8 @@ void main() {
         mockCocoonService.fetchCommitStatuses(branch: 'master', repo: 'flutter'),
       ).thenAnswer(
         (dynamic _) => Future<CocoonResponse<List<CommitStatus>>>.value(
-                  CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
-                ).then((CocoonResponse<List<CommitStatus>> value) => value),
+          CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
+        ).then((CocoonResponse<List<CommitStatus>> value) => value),
       );
       // Mark tree green on master, red on dev
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer((_) =>

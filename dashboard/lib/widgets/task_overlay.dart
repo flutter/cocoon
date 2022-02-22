@@ -88,7 +88,7 @@ class TaskOverlayEntry extends StatelessWidget {
     required this.closeCallback,
     required this.buildState,
     required this.commit,
-  })  :  super(key: key);
+  }) : super(key: key);
 
   /// The global position where to show the task overlay.
   final Offset position;
@@ -169,7 +169,7 @@ class TaskOverlayContents extends StatelessWidget {
     required this.task,
     required this.closeCallback,
     this.commit,
-  })  :  super(key: key);
+  }) : super(key: key);
 
   final ShowSnackBarCallback showSnackBarCallback;
 

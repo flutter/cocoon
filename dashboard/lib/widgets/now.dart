@@ -24,8 +24,7 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
     Key? key,
     required DateTime dateTime,
     required Widget child,
-  })  : 
-        super(
+  }) : super(
           key: key,
           notifier: ValueNotifier<DateTime>(dateTime),
           child: child,

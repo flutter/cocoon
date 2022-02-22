@@ -23,7 +23,7 @@ class CommitBox extends StatefulWidget {
   const CommitBox({
     Key? key,
     required this.commit,
-  })  :  super(key: key);
+  }) : super(key: key);
 
   /// The commit being shown
   final Commit commit;
@@ -71,7 +71,7 @@ class CommitOverlayContents extends StatelessWidget {
     required this.parentContext,
     required this.commit,
     required this.closeCallback,
-  })  :  super(key: key);
+  }) : super(key: key);
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
@@ -137,16 +137,16 @@ class CommitOverlayContents extends StatelessWidget {
                           // forced to be removed by system, but I think commit.message can be null?
                           // if not removed, lint gives below error
                           // The operand can't be null, so the condition is always true.
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: AnimatedDefaultTextStyle(
-                                style: theme.textTheme.bodyText2!.copyWith(
-                                  color: theme.textTheme.caption!.color,
-                                ),
-                                duration: kThemeChangeDuration,
-                                child: SelectableText(commit.message.split('\n').first),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: AnimatedDefaultTextStyle(
+                              style: theme.textTheme.bodyText2!.copyWith(
+                                color: theme.textTheme.caption!.color,
                               ),
+                              duration: kThemeChangeDuration,
+                              child: SelectableText(commit.message.split('\n').first),
                             ),
+                          ),
                           SelectableText(commit.author),
                         ],
                       ),
@@ -174,7 +174,7 @@ class Hyperlink extends StatefulWidget {
     Key? key,
     required this.text,
     this.onPressed,
-  })  :  super(key: key);
+  }) : super(key: key);
 
   final String text;
   final VoidCallback? onPressed;
