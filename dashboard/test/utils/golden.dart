@@ -27,7 +27,7 @@ Future<void> expectGoldenMatches(
     (goldenFileComparator as LocalFileComparator).basedir.toString(),
     goldenFileKey,
   ));
-  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip);
+  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
 }
 
 class CocoonFileComparator extends LocalFileComparator {
