@@ -394,14 +394,13 @@ void main() {
           home: ValueProvider<BuildState>(
             value: buildState,
             child: Scaffold(
-              body: 
-                ErrorBrookWatcher(
-                  errors: buildState.errors,
-                  child: TestGrid(
-                    buildState: buildState,
-                    task: expectedTask,
-                  ),
+              body: ErrorBrookWatcher(
+                errors: buildState.errors,
+                child: TestGrid(
+                  buildState: buildState,
+                  task: expectedTask,
                 ),
+              ),
             ),
           ),
         ),

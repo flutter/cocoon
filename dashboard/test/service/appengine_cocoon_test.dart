@@ -153,18 +153,22 @@ void main() {
       }));
 
       final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
-      expect(response.error, allOf(<Matcher>[
-          isNotNull,
-          contains('bad status code'), 
-        ]));
+      expect(
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('bad status code'),
+          ]));
     });
 
     test('should set error in response if task key is null', () async {
-      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine' );
-      expect(response.error, allOf(<Matcher>[
-          isNotNull,
-          contains('Need to sign in'), 
-        ]));
+      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine');
+      expect(
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('Need to sign in'),
+          ]));
     });
   });
 

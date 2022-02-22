@@ -47,12 +47,13 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   Future<bool> rerunTask(Task task) async {
-    if( ! rerunTaskResult){
+    if (!rerunTaskResult) {
       errors.send('placeholder of test rerun error.');
       return false;
     }
     return true;
-  } 
+  }
+
   final bool rerunTaskResult;
 
   @override

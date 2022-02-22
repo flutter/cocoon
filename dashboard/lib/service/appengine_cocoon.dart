@@ -164,7 +164,7 @@ class AppEngineCocoonService implements CocoonService {
           'Key': task.key.child.name,
           'Repo': repo,
         }));
-        
+
     final bool success = response.statusCode == HttpStatus.ok;
     return success
         ? const CocoonResponse<bool>.data(true)
