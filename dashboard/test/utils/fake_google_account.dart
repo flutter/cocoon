@@ -29,4 +29,12 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   Future<void> clearAuthCache() => Future.value(null);
+
+  @override
+  bool operator ==(dynamic other) {
+    return false; 
+    // FOR REVIEW: adding this to avoid nullable error
+    // since Object can't be null
+  }
+
 }
