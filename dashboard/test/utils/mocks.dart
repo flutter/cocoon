@@ -19,9 +19,5 @@ export 'mocks.mocks.dart';
     GoogleSignIn,
     GoogleSignInService,
   ],
-  // FOR REVIEW
-  // customMocks: [MockSpec<GoogleSignInService>(as: #MockGoogleSignInService)],
-  // customMock gives a type warning that I could not circumvent
-  // end up putting everything in general mock
 )
 void main() {}

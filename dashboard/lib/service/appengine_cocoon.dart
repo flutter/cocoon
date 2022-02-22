@@ -61,7 +61,7 @@ class AppEngineCocoonService implements CocoonService {
       return CocoonResponse<List<CommitStatus>>.data(
           await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
       // FOR REVIEW
-      // type casting broke after null safety migration
+      // type casting break after null safety migration
       // so I changed all Object type to dynamic type
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
