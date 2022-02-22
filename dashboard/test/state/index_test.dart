@@ -10,11 +10,17 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/mocks.dart';
+import '../utils/mocks.mocks.dart';
 
 void main() {
   testWidgets('IndexState sign in functions call notify listener', (WidgetTester tester) async {
-    final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
+    final MockGoogleSignIn mockSignInPlugin = MockGoogleSignIn();
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    // For Review:
+    // Stubbing them all for null which passes tests if we only care about call count?
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
     final IndexState indexState = IndexState(authService: signInService);
 

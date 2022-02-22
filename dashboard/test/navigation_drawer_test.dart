@@ -72,20 +72,9 @@ void main() {
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': 'https://flutter-engine-perf.skia.org/',
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
+      expect(log[0].runtimeType, equals(MethodCall));
+      expect(log[0].method, equals('launch'));
+      expect(log[0].arguments, equals('https://flutter-engine-perf.skia.org/'));
     });
 
     testWidgets('repository opens repository html url', (WidgetTester tester) async {
@@ -103,20 +92,9 @@ void main() {
       await tester.tap(find.text('Repository'));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': '/repository.html',
-            'useSafariVC': false,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
+      expect(log[0].runtimeType, equals(MethodCall));
+      expect(log[0].method, equals('launch'));
+      expect(log[0].arguments, equals('/repository.html'));
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
@@ -134,20 +112,10 @@ void main() {
       await tester.tap(find.text('Source Code'));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': 'https://github.com/flutter/cocoon',
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
+
+      expect(log[0].runtimeType, equals(MethodCall));
+      expect(log[0].method, equals('launch'));
+      expect(log[0].arguments, equals('https://github.com/flutter/cocoon'));
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {

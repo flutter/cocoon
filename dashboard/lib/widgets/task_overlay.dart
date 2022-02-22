@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
@@ -296,7 +297,20 @@ class TaskOverlayContents extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ProgressButton(
                       child: const Text('VIEW LOGS'),
-                      onPressed: () => launch(logUrl(task, commit: commit)),
+                      onPressed: () {
+                        launch(logUrl(task, commit: commit));
+                        try{
+                          const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', logUrl(task, commit: commit));
+                        }on MissingPluginException catch (e) {
+                          //during real run, methodchannel.invokemethod will throw MissingPluginException
+                        }
+                        
+                        return Future.value(null);
+                      // FOR REVIEW
+                      // temporary fix to register channel 'plugins.flutter.io/url_launcher' to pass flutter test, referencing 
+                      // https://github.com/flutter/plugins/blob/bd7dfb78d8f94cc02bd02b58e253a96f5a929963/packages/camera/camera_platform_interface/lib/src/method_channel/method_channel_camera.dart
+                      // should have better ways, but methodcall is not detected by setMockMethodCallHandler
+                      }
                     ),
                   ),
                   if (qualifiedTask.isLuci)

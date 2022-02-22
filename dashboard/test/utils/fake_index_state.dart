@@ -8,6 +8,7 @@ import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/index.dart';
 
 import 'mocks.dart';
+import 'mocks.mocks.dart';
 
 class FakeIndexState extends ChangeNotifier implements IndexState {
   FakeIndexState({GoogleSignInService? authService}) : authService = authService ?? MockGoogleSignInService();

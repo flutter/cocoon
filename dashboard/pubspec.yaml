@@ -29,12 +29,13 @@ dependencies:
   http: ^0.13.4
   protobuf: ^2.0.1
   provider: ^6.0.2
-  url_launcher: ^6.0.20
+  url_launcher: ^6.0.6
 
 dev_dependencies:
+  build_runner: ^2.1.1
   flutter_test:
     sdk: flutter
-  mockito: ^5.1.0
+  mockito: ^5.0.14
   path: ^1.8.1
 
 # For information on the generic Dart part of this file, see the

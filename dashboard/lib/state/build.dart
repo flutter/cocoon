@@ -29,7 +29,7 @@ class BuildState extends ChangeNotifier {
   final CocoonService? cocoonService;
 
   /// Authentication service for managing Google Sign In.
-  final GoogleSignInService authService;
+  GoogleSignInService authService;
 
   /// Recent branches for flutter related to releases.
   List<String>? get branches => _branches;

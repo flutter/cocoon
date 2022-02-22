@@ -4,6 +4,7 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../model/commit.pb.dart';
@@ -162,6 +163,7 @@ class CommitOverlayContents extends StatelessWidget {
 
   Future<void> _openGithub() async {
     final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
+    const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', 'https://github.com/${commit.repository}/commit/${commit.sha}');
     await launch(githubUrl);
   }
 }

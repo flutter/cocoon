@@ -57,9 +57,12 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final Map<String, Object> jsonResponse = jsonDecode(response.body);
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       return CocoonResponse<List<CommitStatus>>.data(
-          await compute<List<Object>?, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses'] as List<Object>?));
+          await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
+      // FOR REVIEW
+      // type casting broke after null safety migration 
+      // so I changed all Object type to dynamic type
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -189,37 +192,39 @@ class AppEngineCocoonService implements CocoonService {
     return Uri.https(_baseApiUrl, urlSuffix, queryParameters);
   }
 
-  List<CommitStatus> _commitStatusesFromJson(List<Object>? jsonCommitStatuses) {
+  List<CommitStatus> _commitStatusesFromJson(List<dynamic>? jsonCommitStatuses) {
+
+
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     final List<CommitStatus> statuses = <CommitStatus>[];
 
-    for (final Map<String, Object> jsonCommitStatus in jsonCommitStatuses as Iterable<Map<String, Object>>) {
-      final Map<String, Object> checklist = jsonCommitStatus['Checklist'] as Map<String, Object>;
+    for (final Map<String, dynamic> jsonCommitStatus in jsonCommitStatuses!) {
+      final Map<String, dynamic> checklist = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
         ..branch = _branchFromJson(checklist)!
-        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'] as List<Object>)));
+        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])));
     }
 
     return statuses;
   }
 
-  String? _branchFromJson(Map<String, Object> jsonChecklist) {
+  String? _branchFromJson(Map<String, dynamic> jsonChecklist) {
     assert(jsonChecklist != null);
 
-    final Map<String, Object> checklist = jsonChecklist['Checklist'] as Map<String, Object>;
+    final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
     return checklist['Branch'] as String?;
   }
 
-  Commit _commitFromJson(Map<String, Object> jsonChecklist) {
+  Commit _commitFromJson(Map<String, dynamic> jsonChecklist) {
     assert(jsonChecklist != null);
 
-    final Map<String, Object> checklist = jsonChecklist['Checklist'] as Map<String, Object>;
+    final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
 
-    final Map<String, Object> commit = checklist['Commit'] as Map<String, Object>;
-    final Map<String, Object> author = commit['Author'] as Map<String, Object>;
+    final Map<String, dynamic> commit = checklist['Commit'];
+    final Map<String, dynamic> author = commit['Author'];// as Map<String, Object>;
 
     final Commit result = Commit()
       ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key'] as String))
@@ -235,33 +240,33 @@ class AppEngineCocoonService implements CocoonService {
     return result;
   }
 
-  List<Task> _tasksFromStagesJson(List<Object> json) {
+  List<Task> _tasksFromStagesJson(List<dynamic> json) {
     assert(json != null);
     final List<Task> tasks = <Task>[];
 
-    for (final Map<String, Object> jsonStage in json as Iterable<Map<String, Object>>) {
-      tasks.addAll(_tasksFromJson(jsonStage['Tasks'] as List<Object>));
+    for (final Map<String, dynamic> jsonStage in json) {
+      tasks.addAll(_tasksFromJson(jsonStage['Tasks'] )); // jsonStage['Tasks' ] as List<Object>
     }
 
     return tasks;
   }
 
-  List<Task> _tasksFromJson(List<Object> json) {
+  List<Task> _tasksFromJson(List<dynamic> json) {
     assert(json != null);
     final List<Task> tasks = <Task>[];
 
-    for (final Map<String, Object> jsonTask in json as Iterable<Map<String, Object>>) {
+    for (final Map<String, dynamic> jsonTask in json ) { //as Iterable<Map<String, Object>>
       tasks.add(_taskFromJson(jsonTask));
     }
 
     return tasks;
   }
 
-  Task _taskFromJson(Map<String, Object> json) {
+  Task _taskFromJson(Map<String, dynamic> json) {
     assert(json != null);
 
-    final Map<String, Object> taskData = json['Task'] as Map<String, Object>;
-    final List<Object>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<Object>?;
+    final Map<String, dynamic> taskData = json['Task']; // as Map<String, Object>;
+    final List<dynamic>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<dynamic>?;
 
     final Task task = Task()
       ..key = (RootKey()..child = (Key()..name = json['Key'] as String))

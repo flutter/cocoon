@@ -13,6 +13,7 @@ import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
 
 import 'mocks.dart';
+import 'mocks.mocks.dart';
 
 class FakeBuildState extends ChangeNotifier implements BuildState {
   FakeBuildState({
@@ -25,7 +26,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
         cocoonService = cocoonService ?? MockCocoonService();
 
   @override
-  final GoogleSignInService authService;
+  GoogleSignInService authService;
 
   @override
   final CocoonService cocoonService;

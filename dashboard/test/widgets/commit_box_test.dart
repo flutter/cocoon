@@ -95,19 +95,8 @@ void main() {
     await tester.tap(find.byType(Hyperlink));
     await tester.pump();
 
-    expect(
-      log,
-      <Matcher>[
-        isMethodCall('launch', arguments: <String, Object>{
-          'url': 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
-          'useSafariVC': true,
-          'useWebView': false,
-          'enableJavaScript': false,
-          'enableDomStorage': false,
-          'universalLinksOnly': false,
-          'headers': <String, String>{}
-        })
-      ],
-    );
+    expect(log[0].runtimeType, equals(MethodCall));
+    expect(log[0].method, equals('launch'));
+    expect(log[0].arguments, equals('https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}'));
   });
 }

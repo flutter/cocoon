@@ -10,6 +10,7 @@ import 'package:mockito/mockito.dart';
 
 import '../utils/fake_google_account.dart';
 import '../utils/mocks.dart';
+import '../utils/mocks.mocks.dart';
 
 void main() {
   group('GoogleSignInService not signed in', () {
@@ -17,9 +18,10 @@ void main() {
     GoogleSignIn? mockSignIn;
 
     setUp(() {
-      mockSignIn = MockGoogleSignInPlugin();
+      mockSignIn = MockGoogleSignIn();
       when(mockSignIn!.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
       when(mockSignIn!.isSignedIn()).thenAnswer((_) => Future<bool>.value(false));
+      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
@@ -61,8 +63,9 @@ void main() {
     final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
 
     setUp(() {
-      mockSignIn = MockGoogleSignInPlugin();
+      mockSignIn = MockGoogleSignIn();
       when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn!.currentUser).thenReturn(testAccount);
       when(mockSignIn!.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
       when(mockSignIn!.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
@@ -96,8 +99,8 @@ void main() {
     });
 
     test('is not authenticated after failure in sign in', () async {
-      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
-      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
+      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
 
       await authService.signIn();
 

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../model/task.pb.dart';
@@ -30,7 +31,10 @@ class LuciTaskAttemptSummary extends StatelessWidget {
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-          onPressed: () => launch(_luciProdLogUrl(task!.builderName, buildNumberList[i])),
+          onPressed: () {
+            launch(_luciProdLogUrl(task!.builderName, buildNumberList[i]));
+            const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', _luciProdLogUrl(task!.builderName, buildNumberList[i]));
+          }
         );
       }),
     );

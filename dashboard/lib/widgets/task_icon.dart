@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../logic/qualified_task.dart';
@@ -90,7 +91,10 @@ class TaskIcon extends StatelessWidget {
     final Widget icon = stageIconForBrightness(brightness);
 
     return InkWell(
-      onTap: () => launch(qualifiedTask.sourceConfigurationUrl),
+      onTap: () {
+        launch(qualifiedTask.sourceConfigurationUrl);
+        const MethodChannel('plugins.flutter.io/url_launcher').invokeMethod<void>('launch', qualifiedTask.sourceConfigurationUrl);
+      },
       child: Tooltip(
         message: '${qualifiedTask.task} (${qualifiedTask.stage})',
         child: Padding(

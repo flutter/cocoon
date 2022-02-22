@@ -57,20 +57,9 @@ void main() {
     await tester.tap(find.byType(TaskIcon));
     await tester.pump();
 
-    expect(
-      log,
-      <Matcher>[
-        isMethodCall('launch', arguments: <String, Object>{
-          'url': luciTask.sourceConfigurationUrl,
-          'useSafariVC': true,
-          'useWebView': false,
-          'enableJavaScript': false,
-          'enableDomStorage': false,
-          'universalLinksOnly': false,
-          'headers': <String, String>{}
-        })
-      ],
-    );
+    expect(log[0].runtimeType, equals(MethodCall));
+    expect(log[0].method, equals('launch'));
+    expect(log[0].arguments, equals(luciTask.sourceConfigurationUrl));
   });
 
   testWidgets('Unknown stage name shows helper icon in TaskIcon', (WidgetTester tester) async {

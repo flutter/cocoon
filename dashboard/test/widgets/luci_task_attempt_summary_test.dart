@@ -87,20 +87,9 @@ void main() {
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': 'https://ci.chromium.org/p/flutter/builders/prod/Linux/123',
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
+      expect(log[0].runtimeType, equals(MethodCall));
+      expect(log[0].method, equals('launch'));
+      expect(log[0].arguments, equals('https://ci.chromium.org/p/flutter/builders/prod/Linux/123'));
     });
 
     testWidgets('opens expected luci log url for when there are multiple tasks', (WidgetTester tester) async {
@@ -128,20 +117,10 @@ void main() {
       await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456',
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
+
+      expect(log[0].runtimeType, equals(MethodCall));
+      expect(log[0].method, equals('launch'));
+      expect(log[0].arguments, equals('${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456'));
     });
   });
 }

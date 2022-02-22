@@ -13,6 +13,7 @@ import 'package:mockito/mockito.dart';
 import '../utils/fake_google_account.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
+import '../utils/mocks.mocks.dart';
 
 final Widget testApp = MaterialApp(
   home: Scaffold(
