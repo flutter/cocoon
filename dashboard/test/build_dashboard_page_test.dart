@@ -38,23 +38,23 @@ void main() {
   });
 
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    final BuildState buildState = BuildState(
-      cocoonService: MockCocoonService(),
-      authService: fakeAuthService,
-    );
-
-    throwOnMissingStub(buildState.cocoonService as Mock);
-    when(buildState.cocoonService!.fetchFlutterBranches())
-        .thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(buildState.cocoonService!.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(buildState.cocoonService!.fetchCommitStatuses(
+    final MockCocoonService fakeCocoonService = MockCocoonService();
+    throwOnMissingStub(fakeCocoonService);
+    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(fakeCocoonService.fetchCommitStatuses(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(buildState.cocoonService!.fetchTreeBuildStatus(
+    when(fakeCocoonService.fetchTreeBuildStatus(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
+
+    final BuildState buildState = BuildState(
+      cocoonService: fakeCocoonService,
+      authService: fakeAuthService,
+    );
 
     await tester.pumpWidget(
       MaterialApp(

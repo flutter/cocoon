@@ -30,11 +30,12 @@ void main() {
     });
 
     test('should return CocoonResponse<List<CommitStatus>>', () {
-      expect(service.fetchCommitStatuses(), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
+      expect(
+          service.fetchCommitStatuses(repo: 'engine'), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
     });
 
     test('should return expected List<CommitStatus>', () async {
-      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses(repo: 'engine');
 
       final CommitStatus expectedStatus = CommitStatus()
         ..branch = 'master'
@@ -72,14 +73,14 @@ void main() {
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'engine');
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses(repo: 'engine');
       expect(response.error, isNotNull);
     });
   });
@@ -94,11 +95,12 @@ void main() {
     });
 
     test('should return CocoonResponse<bool>', () {
-      expect(service.fetchTreeBuildStatus(), const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
+      expect(service.fetchTreeBuildStatus(repo: 'engine'),
+          const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
     });
 
     test('data should be true when given Succeeded', () async {
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'engine');
 
       expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.success);
     });
@@ -107,7 +109,7 @@ void main() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'engine');
 
       expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.failure);
     });
@@ -115,14 +117,14 @@ void main() {
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'engine');
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus(repo: 'engine');
       expect(response.error, isNotNull);
     });
   });

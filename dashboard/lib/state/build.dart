@@ -40,8 +40,8 @@ class BuildState extends ChangeNotifier {
   String? _currentBranch = 'master';
 
   /// The current repo from [repos] to show data from.
-  String? get currentRepo => _currentRepo;
-  String? _currentRepo = 'flutter';
+  String get currentRepo => _currentRepo;
+  String _currentRepo = 'flutter';
 
   /// Repos in the Flutter organization this dashboard supports.
   List<String>? get repos => _repos;
@@ -192,7 +192,7 @@ class BuildState extends ChangeNotifier {
   }
 
   /// Update build state to be on [repo] and erase previous data.
-  void updateCurrentRepoBranch(String? repo, String? branch) {
+  void updateCurrentRepoBranch(String repo, String? branch) {
     if (currentRepo == repo && currentBranch == branch) {
       // Do nothing if the repo hasn't changed.
       return;

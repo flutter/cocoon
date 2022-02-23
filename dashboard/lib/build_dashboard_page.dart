@@ -277,7 +277,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final BuildState _buildState = Provider.of<BuildState>(context);
-    _buildState.updateCurrentRepoBranch(repo, branch);
+    _buildState.updateCurrentRepoBranch(repo!, branch);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(

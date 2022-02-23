@@ -40,7 +40,7 @@ class AppEngineCocoonService implements CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus? lastCommitStatus,
     String? branch,
-    String? repo,
+    required String repo,
   }) async {
     final Map<String, String?> queryParameters = <String, String?>{
       if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
@@ -91,7 +91,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String? branch,
-    String? repo,
+    required String repo,
   }) async {
     final Map<String, String?> queryParameters = <String, String?>{
       'branch': branch ?? _defaultBranch,
@@ -148,7 +148,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String? idToken, String? repo) async {
+  Future<bool> rerunTask(Task task, String? idToken, String repo) async {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);

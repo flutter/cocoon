@@ -4,7 +4,6 @@
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -21,7 +20,6 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 import '../utils/fake_build.dart';
 import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
-import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {

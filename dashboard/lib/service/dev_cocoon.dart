@@ -71,7 +71,7 @@ class DevelopmentCocoonService implements CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus? lastCommitStatus,
     String? branch,
-    String? repo,
+    required String repo,
   }) async {
     final CocoonResponse<List<CommitStatus>> data =
         CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus, repo));
@@ -110,7 +110,7 @@ class DevelopmentCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String? branch,
-    String? repo,
+    required String repo,
   }) async {
     final bool failed = _random.nextBool();
     final BuildStatusResponse response = BuildStatusResponse()
@@ -133,13 +133,13 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String? accessToken, String? repo) async {
+  Future<bool> rerunTask(Task task, String? accessToken, String repo) async {
     return false;
   }
 
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
-  List<CommitStatus> _createFakeCommitStatuses(CommitStatus? lastCommitStatus, String? repo) {
+  List<CommitStatus> _createFakeCommitStatuses(CommitStatus? lastCommitStatus, String repo) {
     final int baseTimestamp =
         lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
 
@@ -149,7 +149,7 @@ class DevelopmentCocoonService implements CocoonService {
       final math.Random random = math.Random(commitTimestamp);
       final Commit commit = _createFakeCommit(commitTimestamp, random, repo);
       final CommitStatus status = CommitStatus()
-        ..branch = defaultBranches[repo!]!
+        ..branch = defaultBranches[repo]!
         ..commit = commit
         ..tasks.addAll(_createFakeTasks(commitTimestamp, commit, random));
       result.add(status);
@@ -161,7 +161,7 @@ class DevelopmentCocoonService implements CocoonService {
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
   final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String? repo) {
+  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo) {
     final int author = random.nextInt(_authors.length);
     final int message = commitTimestamp % 37 + author;
     final int messageInc = _messagePrimes[message % _messagePrimes.length];

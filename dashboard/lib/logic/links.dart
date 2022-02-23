@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../build_dashboard_page.dart';
@@ -72,5 +71,5 @@ class CocoonLink {
   /// Callback for when the link is activated.
   ///
   /// Can be used to redirect to internal or external routes. Will have acess to the [BuildContext].
-  final Function? action;
+  final void Function()? action;
 }

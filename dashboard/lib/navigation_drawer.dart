@@ -30,7 +30,7 @@ class NavigationDrawer extends StatelessWidget {
             ListTile(
               leading: link.icon,
               title: Text(link.name!),
-              onTap: link.action as void Function()?,
+              onTap: link.action,
               selected: currentRoute == link.route,
             ),
           const AboutListTile(

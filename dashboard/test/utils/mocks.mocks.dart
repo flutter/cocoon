@@ -153,6 +153,8 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   set refreshTimer(_i8.Timer? _refreshTimer) =>
       super.noSuchMethod(Invocation.setter(#refreshTimer, _refreshTimer), returnValueForMissingStub: null);
   @override
+  String get currentRepo => (super.noSuchMethod(Invocation.getter(#currentRepo), returnValue: '') as String);
+  @override
   List<_i12.CommitStatus> get statuses =>
       (super.noSuchMethod(Invocation.getter(#statuses), returnValue: <_i12.CommitStatus>[]) as List<_i12.CommitStatus>);
   @override
