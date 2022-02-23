@@ -4,19 +4,17 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
-
-final Logger logger = Logger('GithubWebhook');
+import 'package:auto_submit/service/log.dart';
 
 class GithubWebhook {
-  githubWebhook() {}
+  const GithubWebhook();
 
-  Future<Response> webhookHandler(Request request) async {
+  Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     logger.info('Header: $reqHeader');
-
     final String rawBody = await request.readAsString();
+
     return Response.ok(
       rawBody,
     );

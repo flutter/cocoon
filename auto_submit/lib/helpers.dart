@@ -7,9 +7,7 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
-import 'package:logging/logging.dart';
-
-final Logger logger = Logger('helper');
+import 'package:auto_submit/service/log.dart';
 
 /// Serves [handler] on [InternetAddress.anyIPv4] using the port returned by
 /// [listenPort].
