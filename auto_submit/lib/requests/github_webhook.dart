@@ -10,6 +10,10 @@ import 'package:auto_submit/service/log.dart';
 class GithubWebhook {
   const GithubWebhook();
 
+  /// Handler for processing GitHub webhooks.
+  ///
+  /// On events where an 'autosubmit' label was added to a pull request,
+  /// check if the pull request is mergable and publish to pubsub.
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     logger.info('Header: $reqHeader');
