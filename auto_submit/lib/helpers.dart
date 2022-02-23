@@ -1,4 +1,4 @@
-// Copyright 2021 The Flutter Authors. All rights reserved.
+// Copyright 2022 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
+import 'package:auto_submit/service/log.dart';
 
 /// Serves [handler] on [InternetAddress.anyIPv4] using the port returned by
 /// [listenPort].
@@ -21,7 +22,7 @@ Future<void> serveHandler(Handler handler) async {
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
-  print('Serving at http://${server.address.host}:${server.port}');
+  logger.info('Serving at http://${server.address.host}:${server.port}');
 
   await terminateRequestFuture();
 
@@ -48,7 +49,7 @@ Future<void> terminateRequestFuture() {
   StreamSubscription? sigIntSub, sigTermSub;
 
   Future<void> signalHandler(ProcessSignal signal) async {
-    print('Received signal $signal - closing');
+    logger.info('Received signal $signal - closing');
 
     final subCopy = sigIntSub;
     if (subCopy != null) {
