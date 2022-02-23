@@ -296,27 +296,25 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    final List<Element?> tempList = (_newChildrenByCoordinate.values.toList()..sort(_compareChildren));
-    for (final Element? myElement in tempList) {
-      if (myElement == null) {
-        continue;
-      }
-      visitor(myElement);
-    }
-    // [ FOR REVIEW ]
-    // null safety rewrite: visitChildren enforce not null and visitor can't take nullable value
-    // original : (_newChildrenByCoordinate.values.toList()..sort(_compareChildren)).forEach(visitor);
+    (_newChildrenByCoordinate.values.whereType<Element>().toList()..sort(_compareChildren)).forEach(visitor);
+    // FOR REVIEW
+    // can't use regular where clause because lint could not deduce non - null type
+    // from regular where clause expression (failed alternative shown below)
+    //     _newChildrenByCoordinate.values.toList()..sort(_compareChildren)
+    //  ..where((Element? element) => element != null)
+    //  ..forEach(visitor);
   }
 
-  int _compareChildren(Element? a, Element? b) {
-    final _Coordinate aSlot = a!.slot as _Coordinate;
-    final _Coordinate bSlot = b!.slot as _Coordinate;
+  int _compareChildren(Element a, Element b) {
+    final _Coordinate aSlot = a.slot as _Coordinate;
+    final _Coordinate bSlot = b.slot as _Coordinate;
     return aSlot.compareTo(bSlot);
   }
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
-    final List<Element?> children = _newChildrenByCoordinate.values.toList()..sort(_compareChildren);
+    final List<Element> children = _newChildrenByCoordinate.values.whereType<Element>().toList()
+      ..sort(_compareChildren);
     return children.map((Element? child) {
       return child!.toDiagnosticsNode(name: child.slot != null ? '${child.slot}' : '(lost)');
     }).toList();
@@ -450,9 +448,9 @@ class _RenderLatticeBody extends RenderBox {
     _handleOffsetChange();
   }
 
-  late int _cellWidthCount, _cellHeightCount;
-  // [ FOR REVIEW ]
-  // null safety rewrite: assume they won't be null and we initialize before use
+  int _cellWidthCount = 0, _cellHeightCount = 0;
+  // FOR REVIEW:
+  // I am initializing them to 0 if that is reasonable
 
   List<List<_LatticeCell>> get cells => _cells;
   List<List<_LatticeCell>> _cells;
@@ -554,7 +552,7 @@ class _RenderLatticeBody extends RenderBox {
     }
   }
 
-  late TapGestureRecognizer _tap;
+  TapGestureRecognizer? _tap;
 
   @override
   void attach(PipelineOwner owner) {
@@ -574,7 +572,7 @@ class _RenderLatticeBody extends RenderBox {
     super.detach();
     _horizontalOffset.removeListener(_handleOffsetChange);
     _verticalOffset.removeListener(_handleOffsetChange);
-    _tap.dispose();
+    _tap?.dispose();
     for (final RenderBox child in _childrenByCoordinate.values) {
       child.detach();
     }
@@ -868,7 +866,7 @@ class _RenderLatticeBody extends RenderBox {
     assert(debugHandleEvent(event, entry));
     final _Coordinate? coordinate = _offsetToCoordinate(event.localPosition);
     if (event is PointerDownEvent && _hasTapHandler(coordinate!)) {
-      _tap.addPointer(event);
+      _tap?.addPointer(event);
     }
   }
 

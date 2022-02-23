@@ -32,6 +32,9 @@ void main() {
   final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
   when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
   when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
+  //FOR REVIEW:
+  // these lines are kept for codes which rely on real BuildState
+  // these lines are removed for codes which rely on fake buildstate, and have been added to constructor of fake build state
 
   setUp(() {
     binding.window.physicalSizeTestValue = const Size(1000, 2000);
@@ -75,7 +78,6 @@ void main() {
 
   testWidgets('shows settings button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -94,7 +96,6 @@ void main() {
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -122,7 +123,6 @@ void main() {
 
   testWidgets('shows branch and repo dropdown button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -148,7 +148,6 @@ void main() {
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -171,7 +170,6 @@ void main() {
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -194,7 +192,6 @@ void main() {
 
   testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -218,7 +215,6 @@ void main() {
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -241,7 +237,6 @@ void main() {
 
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -265,7 +260,6 @@ void main() {
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -288,7 +282,6 @@ void main() {
 
   testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
-    fakeBuildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -311,9 +304,8 @@ void main() {
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
-    late String lastError = 'who cares what error';
+    String? lastError;
     final FakeBuildState buildState = FakeBuildState()..errors.addListener((String message) => lastError = message);
-    buildState.authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -327,7 +319,7 @@ void main() {
       ),
     );
 
-    expect(find.text(lastError), findsNothing);
+    expect(lastError, isNull);
 
     // propagate the error message
     await checkOutput(
@@ -342,14 +334,14 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
-    expect(find.text(lastError), findsOneWidget);
+    expect(find.text(lastError!), findsOneWidget);
 
     // Snackbar message should go away after its duration
     await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(find.text(lastError), findsNothing);
+    expect(find.text(lastError!), findsNothing);
   });
 
   testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {

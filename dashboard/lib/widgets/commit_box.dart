@@ -32,7 +32,7 @@ class CommitBox extends StatefulWidget {
 }
 
 class _CommitBoxState extends State<CommitBox> {
-  late OverlayEntry _commitOverlay;
+  OverlayEntry? _commitOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +54,10 @@ class _CommitBoxState extends State<CommitBox> {
       ),
     );
 
-    Overlay.of(context)!.insert(_commitOverlay);
+    Overlay.of(context)!.insert(_commitOverlay!);
   }
 
-  void _closeOverlay() => _commitOverlay.remove();
+  void _closeOverlay() => _commitOverlay?.remove();
 }
 
 /// Displays the information from a Git commit.
@@ -131,11 +131,6 @@ class CommitOverlayContents extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          //if ((commit.message) != null)
-                          // FOR REVIEW
-                          // forced to be removed by system, but I think commit.message can be null?
-                          // if not removed, lint gives below error
-                          // The operand can't be null, so the condition is always true.
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: AnimatedDefaultTextStyle(

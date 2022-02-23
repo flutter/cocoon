@@ -11,7 +11,9 @@ import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:mockito/mockito.dart';
 
+import 'fake_google_account.dart';
 import 'mocks.dart';
 
 class FakeBuildState extends ChangeNotifier implements BuildState {
@@ -21,11 +23,15 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
     this.rerunTaskResult = false,
-  })  : authService = authService ?? MockGoogleSignInService(),
-        cocoonService = cocoonService ?? MockCocoonService();
+  }) : cocoonService = cocoonService ?? MockCocoonService() {
+    final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
+    when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
+    when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
+    this.authService = authService ?? fakeAuthService;
+  }
 
   @override
-  GoogleSignInService authService;
+  late GoogleSignInService authService;
 
   @override
   final CocoonService cocoonService;
