@@ -163,8 +163,6 @@ class CommitOverlayContents extends StatelessWidget {
 
   Future<void> _openGithub() async {
     final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
-    const MethodChannel('plugins.flutter.io/url_launcher')
-        .invokeMethod<void>('launch', 'https://github.com/${commit.repository}/commit/${commit.sha}');
     await launch(githubUrl);
   }
 }

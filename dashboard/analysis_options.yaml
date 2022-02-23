@@ -23,6 +23,7 @@ analyzer:
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
     - "**/*.pbenum.dart"
+    - "test/utils/mocks.mocks.dart"
 
 linter:
   rules:

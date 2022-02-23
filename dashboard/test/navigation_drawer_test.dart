@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/main.dart';
 import 'package:flutter_dashboard/navigation_drawer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
+import 'utils/fake_url_launcher.dart';
 import 'utils/wrapper.dart';
 
 void main() {
@@ -57,9 +58,8 @@ void main() {
     });
 
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -72,15 +72,13 @@ void main() {
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();
 
-      expect(log[0].runtimeType, equals(MethodCall));
-      expect(log[0].method, equals('launch'));
-      expect(log[0].arguments, equals('https://flutter-engine-perf.skia.org/'));
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
     });
 
     testWidgets('repository opens repository html url', (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -92,15 +90,13 @@ void main() {
       await tester.tap(find.text('Repository'));
       await tester.pump();
 
-      expect(log[0].runtimeType, equals(MethodCall));
-      expect(log[0].method, equals('launch'));
-      expect(log[0].arguments, equals('/repository.html'));
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, '/repository.html');
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -112,9 +108,8 @@ void main() {
       await tester.tap(find.text('Source Code'));
       await tester.pump();
 
-      expect(log[0].runtimeType, equals(MethodCall));
-      expect(log[0].method, equals('launch'));
-      expect(log[0].arguments, equals('https://github.com/flutter/cocoon'));
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, 'https://github.com/flutter/cocoon');
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {

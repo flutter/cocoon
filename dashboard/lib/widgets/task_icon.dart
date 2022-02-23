@@ -93,8 +93,6 @@ class TaskIcon extends StatelessWidget {
     return InkWell(
       onTap: () {
         launch(qualifiedTask.sourceConfigurationUrl);
-        const MethodChannel('plugins.flutter.io/url_launcher')
-            .invokeMethod<void>('launch', qualifiedTask.sourceConfigurationUrl);
       },
       child: Tooltip(
         message: '${qualifiedTask.task} (${qualifiedTask.stage})',

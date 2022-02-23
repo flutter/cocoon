@@ -8,6 +8,9 @@ import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+
+import '../utils/fake_url_launcher.dart';
 
 void main() {
   group('LuciTaskAttemptSummary', () {
@@ -63,11 +66,8 @@ void main() {
     });
 
     testWidgets('opens expected luci log url', (WidgetTester tester) async {
-      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      channel.setMockMethodCallHandler((MethodCall methodCall) async {
-        log.add(methodCall);
-      });
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -87,17 +87,13 @@ void main() {
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
 
-      expect(log[0].runtimeType, equals(MethodCall));
-      expect(log[0].method, equals('launch'));
-      expect(log[0].arguments, equals('https://ci.chromium.org/p/flutter/builders/prod/Linux/123'));
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, 'https://ci.chromium.org/p/flutter/builders/prod/Linux/123');
     });
 
     testWidgets('opens expected luci log url for when there are multiple tasks', (WidgetTester tester) async {
-      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      channel.setMockMethodCallHandler((MethodCall methodCall) async {
-        log.add(methodCall);
-      });
+      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -117,9 +113,8 @@ void main() {
       await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
       await tester.pump();
 
-      expect(log[0].runtimeType, equals(MethodCall));
-      expect(log[0].method, equals('launch'));
-      expect(log[0].arguments, equals('${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456'));
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(urlLauncher.launches.single, '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456');
     });
   });
 }

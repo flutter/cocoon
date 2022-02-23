@@ -33,8 +33,6 @@ class LuciTaskAttemptSummary extends StatelessWidget {
             child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
             onPressed: () {
               launch(_luciProdLogUrl(task!.builderName, buildNumberList[i]));
-              const MethodChannel('plugins.flutter.io/url_launcher')
-                  .invokeMethod<void>('launch', _luciProdLogUrl(task!.builderName, buildNumberList[i]));
             });
       }),
     );

@@ -30,15 +30,15 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: unnecessary_parenthesis
 
-class FakeResponseZero extends _i1.Fake implements _i2.Response {}
+class _FakeResponse_0 extends _i1.Fake implements _i2.Response {}
 
-class FakeStreamedResponse1 extends _i1.Fake implements _i3.StreamedResponse {}
+class _FakeStreamedResponse_1 extends _i1.Fake implements _i3.StreamedResponse {}
 
-class FakeCocoonResponseTwo<T> extends _i1.Fake implements _i4.CocoonResponse<T> {}
+class _FakeCocoonResponse_2<T> extends _i1.Fake implements _i4.CocoonResponse<T> {}
 
-class FakeGoogleSignInServiceThree extends _i1.Fake implements _i5.GoogleSignInService {}
+class _FakeGoogleSignInService_3 extends _i1.Fake implements _i5.GoogleSignInService {}
 
-class FakeBrookFour<T> extends _i1.Fake implements _i6.Brook<T> {}
+class _FakeBrook_4<T> extends _i1.Fake implements _i6.Brook<T> {}
 
 /// A class which mocks [Client].
 ///
@@ -50,50 +50,44 @@ class MockClient extends _i1.Mock implements _i7.Client {
 
   @override
   _i8.Future<_i2.Response> head(Uri? url, {Map<String, String>? headers}) =>
-      (super.noSuchMethod(Invocation.method(#head, <Object?>[url], <Symbol, Object?>{#headers: headers}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#head, [url], {#headers: headers}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<_i2.Response> get(Uri? url, {Map<String, String>? headers}) =>
-      (super.noSuchMethod(Invocation.method(#get, <Object?>[url], <Symbol, Object?>{#headers: headers}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#get, [url], {#headers: headers}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<_i2.Response> post(Uri? url, {Map<String, String>? headers, Object? body, _i9.Encoding? encoding}) =>
-      (super.noSuchMethod(
-          Invocation.method(
-              #post, <Object?>[url], <Symbol, Object?>{#headers: headers, #body: body, #encoding: encoding}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#post, [url], {#headers: headers, #body: body, #encoding: encoding}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<_i2.Response> put(Uri? url, {Map<String, String>? headers, Object? body, _i9.Encoding? encoding}) =>
-      (super.noSuchMethod(
-          Invocation.method(
-              #put, <Object?>[url], <Symbol, Object?>{#headers: headers, #body: body, #encoding: encoding}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#put, [url], {#headers: headers, #body: body, #encoding: encoding}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<_i2.Response> patch(Uri? url, {Map<String, String>? headers, Object? body, _i9.Encoding? encoding}) =>
-      (super.noSuchMethod(
-          Invocation.method(
-              #patch, <Object?>[url], <Symbol, Object?>{#headers: headers, #body: body, #encoding: encoding}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#patch, [url], {#headers: headers, #body: body, #encoding: encoding}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<_i2.Response> delete(Uri? url, {Map<String, String>? headers, Object? body, _i9.Encoding? encoding}) =>
-      (super.noSuchMethod(
-          Invocation.method(
-              #delete, <Object?>[url], <Symbol, Object?>{#headers: headers, #body: body, #encoding: encoding}),
-          returnValue: Future<_i2.Response>.value(FakeResponseZero())) as _i8.Future<_i2.Response>);
+      (super.noSuchMethod(Invocation.method(#delete, [url], {#headers: headers, #body: body, #encoding: encoding}),
+          returnValue: Future<_i2.Response>.value(_FakeResponse_0())) as _i8.Future<_i2.Response>);
   @override
   _i8.Future<String> read(Uri? url, {Map<String, String>? headers}) =>
-      (super.noSuchMethod(Invocation.method(#read, <Object?>[url], <Symbol, Object?>{#headers: headers}),
-          returnValue: Future<String>.value('')) as _i8.Future<String>);
+      (super.noSuchMethod(Invocation.method(#read, [url], {#headers: headers}), returnValue: Future<String>.value(''))
+          as _i8.Future<String>);
   @override
   _i8.Future<_i10.Uint8List> readBytes(Uri? url, {Map<String, String>? headers}) =>
-      (super.noSuchMethod(Invocation.method(#readBytes, <Object?>[url], <Symbol, Object?>{#headers: headers}),
+      (super.noSuchMethod(Invocation.method(#readBytes, [url], {#headers: headers}),
           returnValue: Future<_i10.Uint8List>.value(_i10.Uint8List(0))) as _i8.Future<_i10.Uint8List>);
   @override
   _i8.Future<_i3.StreamedResponse> send(_i11.BaseRequest? request) => (super.noSuchMethod(
-      Invocation.method(#send, <Object?>[request]),
-      returnValue: Future<_i3.StreamedResponse>.value(FakeStreamedResponse1())) as _i8.Future<_i3.StreamedResponse>);
+      Invocation.method(#send, [request]),
+      returnValue: Future<_i3.StreamedResponse>.value(_FakeStreamedResponse_1())) as _i8.Future<_i3.StreamedResponse>);
   @override
-  void close() => super.noSuchMethod(Invocation.method(#close, <Object?>[]), returnValueForMissingStub: null);
+  void close() => super.noSuchMethod(Invocation.method(#close, []), returnValueForMissingStub: null);
+  @override
+  String toString() => super.toString();
 }
 
 /// A class which mocks [CocoonService].
@@ -108,36 +102,36 @@ class MockCocoonService extends _i1.Mock implements _i4.CocoonService {
   _i8.Future<_i4.CocoonResponse<List<_i12.CommitStatus>>> fetchCommitStatuses(
           {_i12.CommitStatus? lastCommitStatus, String? branch, String? repo}) =>
       (super.noSuchMethod(
-              Invocation.method(#fetchCommitStatuses, <Object?>[],
-                  <Symbol, Object?>{#lastCommitStatus: lastCommitStatus, #branch: branch, #repo: repo}),
+              Invocation.method(
+                  #fetchCommitStatuses, [], {#lastCommitStatus: lastCommitStatus, #branch: branch, #repo: repo}),
               returnValue: Future<_i4.CocoonResponse<List<_i12.CommitStatus>>>.value(
-                  FakeCocoonResponseTwo<List<_i12.CommitStatus>>()))
+                  _FakeCocoonResponse_2<List<_i12.CommitStatus>>()))
           as _i8.Future<_i4.CocoonResponse<List<_i12.CommitStatus>>>);
   @override
   _i8.Future<_i4.CocoonResponse<_i13.BuildStatusResponse>> fetchTreeBuildStatus({String? branch, String? repo}) =>
-      (super.noSuchMethod(
-              Invocation.method(#fetchTreeBuildStatus, <Object?>[], <Symbol, Object?>{#branch: branch, #repo: repo}),
+      (super.noSuchMethod(Invocation.method(#fetchTreeBuildStatus, [], {#branch: branch, #repo: repo}),
               returnValue: Future<_i4.CocoonResponse<_i13.BuildStatusResponse>>.value(
-                  FakeCocoonResponseTwo<_i13.BuildStatusResponse>()))
+                  _FakeCocoonResponse_2<_i13.BuildStatusResponse>()))
           as _i8.Future<_i4.CocoonResponse<_i13.BuildStatusResponse>>);
   @override
   _i8.Future<_i4.CocoonResponse<List<String>>> fetchFlutterBranches() =>
-      (super.noSuchMethod(Invocation.method(#fetchFlutterBranches, <Object?>[]),
-              returnValue: Future<_i4.CocoonResponse<List<String>>>.value(FakeCocoonResponseTwo<List<String>>()))
+      (super.noSuchMethod(Invocation.method(#fetchFlutterBranches, []),
+              returnValue: Future<_i4.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>()))
           as _i8.Future<_i4.CocoonResponse<List<String>>>);
   @override
-  _i8.Future<_i4.CocoonResponse<List<String>>> fetchRepos() =>
-      (super.noSuchMethod(Invocation.method(#fetchRepos, <Object?>[]),
-              returnValue: Future<_i4.CocoonResponse<List<String>>>.value(FakeCocoonResponseTwo<List<String>>()))
-          as _i8.Future<_i4.CocoonResponse<List<String>>>);
+  _i8.Future<_i4.CocoonResponse<List<String>>> fetchRepos() => (super.noSuchMethod(Invocation.method(#fetchRepos, []),
+          returnValue: Future<_i4.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>()))
+      as _i8.Future<_i4.CocoonResponse<List<String>>>);
   @override
   _i8.Future<bool> rerunTask(_i14.Task? task, String? idToken, String? repo) =>
-      (super.noSuchMethod(Invocation.method(#rerunTask, <Object?>[task, idToken, repo]),
-          returnValue: Future<bool>.value(false)) as _i8.Future<bool>);
+      (super.noSuchMethod(Invocation.method(#rerunTask, [task, idToken, repo]), returnValue: Future<bool>.value(false))
+          as _i8.Future<bool>);
   @override
   _i8.Future<bool> vacuumGitHubCommits(String? idToken) =>
-      (super.noSuchMethod(Invocation.method(#vacuumGitHubCommits, <Object?>[idToken]),
-          returnValue: Future<bool>.value(false)) as _i8.Future<bool>);
+      (super.noSuchMethod(Invocation.method(#vacuumGitHubCommits, [idToken]), returnValue: Future<bool>.value(false))
+          as _i8.Future<bool>);
+  @override
+  String toString() => super.toString();
 }
 
 /// A class which mocks [BuildState].
@@ -150,7 +144,7 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
 
   @override
   _i5.GoogleSignInService get authService =>
-      (super.noSuchMethod(Invocation.getter(#authService), returnValue: FakeGoogleSignInServiceThree())
+      (super.noSuchMethod(Invocation.getter(#authService), returnValue: _FakeGoogleSignInService_3())
           as _i5.GoogleSignInService);
   @override
   set authService(_i5.GoogleSignInService? _authService) =>
@@ -168,36 +162,36 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   bool get moreStatusesExist => (super.noSuchMethod(Invocation.getter(#moreStatusesExist), returnValue: false) as bool);
   @override
   _i6.Brook<String> get errors =>
-      (super.noSuchMethod(Invocation.getter(#errors), returnValue: FakeBrookFour<String>()) as _i6.Brook<String>);
+      (super.noSuchMethod(Invocation.getter(#errors), returnValue: _FakeBrook_4<String>()) as _i6.Brook<String>);
   @override
   bool get hasListeners => (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false) as bool);
   @override
   void addListener(_i16.VoidCallback? listener) =>
-      super.noSuchMethod(Invocation.method(#addListener, <Object?>[listener]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#addListener, [listener]), returnValueForMissingStub: null);
   @override
   void removeListener(_i16.VoidCallback? listener) =>
-      super.noSuchMethod(Invocation.method(#removeListener, <Object?>[listener]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#removeListener, [listener]), returnValueForMissingStub: null);
   @override
   void updateCurrentRepoBranch(String? repo, String? branch) =>
-      super.noSuchMethod(Invocation.method(#updateCurrentRepoBranch, <Object?>[repo, branch]),
-          returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#updateCurrentRepoBranch, [repo, branch]), returnValueForMissingStub: null);
   @override
-  _i8.Future<void>? fetchMoreCommitStatuses() =>
-      (super.noSuchMethod(Invocation.method(#fetchMoreCommitStatuses, <Object?>[]),
-          returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>?);
+  _i8.Future<void>? fetchMoreCommitStatuses() => (super.noSuchMethod(Invocation.method(#fetchMoreCommitStatuses, []),
+      returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>?);
   @override
   _i8.Future<bool> refreshGitHubCommits() =>
-      (super.noSuchMethod(Invocation.method(#refreshGitHubCommits, <Object?>[]), returnValue: Future<bool>.value(false))
+      (super.noSuchMethod(Invocation.method(#refreshGitHubCommits, []), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
   _i8.Future<bool> rerunTask(_i14.Task? task) =>
-      (super.noSuchMethod(Invocation.method(#rerunTask, <Object?>[task]), returnValue: Future<bool>.value(false))
+      (super.noSuchMethod(Invocation.method(#rerunTask, [task]), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
-  void dispose() => super.noSuchMethod(Invocation.method(#dispose, <Object?>[]), returnValueForMissingStub: null);
+  void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);
   @override
   void notifyListeners() =>
-      super.noSuchMethod(Invocation.method(#notifyListeners, <Object?>[]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#notifyListeners, []), returnValueForMissingStub: null);
+  @override
+  String toString() => super.toString();
 }
 
 /// A class which mocks [GoogleSignIn].
@@ -221,26 +215,30 @@ class MockGoogleSignIn extends _i1.Mock implements _i17.GoogleSignIn {
   @override
   _i8.Future<_i17.GoogleSignInAccount?> signInSilently({bool? suppressErrors = true, bool? reAuthenticate = false}) =>
       (super.noSuchMethod(
-          Invocation.method(#signInSilently, <Object?>[],
-              <Symbol, Object?>{#suppressErrors: suppressErrors, #reAuthenticate: reAuthenticate}),
+          Invocation.method(#signInSilently, [], {#suppressErrors: suppressErrors, #reAuthenticate: reAuthenticate}),
           returnValue: Future<_i17.GoogleSignInAccount?>.value()) as _i8.Future<_i17.GoogleSignInAccount?>);
   @override
   _i8.Future<bool> isSignedIn() =>
-      (super.noSuchMethod(Invocation.method(#isSignedIn, <Object?>[]), returnValue: Future<bool>.value(false))
+      (super.noSuchMethod(Invocation.method(#isSignedIn, []), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> signIn() => (super.noSuchMethod(Invocation.method(#signIn, <Object?>[]),
-      returnValue: Future<_i17.GoogleSignInAccount?>.value()) as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i17.GoogleSignInAccount?> signIn() =>
+      (super.noSuchMethod(Invocation.method(#signIn, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
+          as _i8.Future<_i17.GoogleSignInAccount?>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> signOut() => (super.noSuchMethod(Invocation.method(#signOut, <Object?>[]),
-      returnValue: Future<_i17.GoogleSignInAccount?>.value()) as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i17.GoogleSignInAccount?> signOut() =>
+      (super.noSuchMethod(Invocation.method(#signOut, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
+          as _i8.Future<_i17.GoogleSignInAccount?>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> disconnect() => (super.noSuchMethod(Invocation.method(#disconnect, <Object?>[]),
-      returnValue: Future<_i17.GoogleSignInAccount?>.value()) as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i17.GoogleSignInAccount?> disconnect() =>
+      (super.noSuchMethod(Invocation.method(#disconnect, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
+          as _i8.Future<_i17.GoogleSignInAccount?>);
   @override
   _i8.Future<bool> requestScopes(List<String>? scopes) =>
-      (super.noSuchMethod(Invocation.method(#requestScopes, <Object?>[scopes]), returnValue: Future<bool>.value(false))
+      (super.noSuchMethod(Invocation.method(#requestScopes, [scopes]), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
+  @override
+  String toString() => super.toString();
 }
 
 /// A class which mocks [GoogleSignInService].
@@ -264,20 +262,22 @@ class MockGoogleSignInService extends _i1.Mock implements _i5.GoogleSignInServic
   @override
   bool get hasListeners => (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false) as bool);
   @override
-  _i8.Future<void> signIn() => (super.noSuchMethod(Invocation.method(#signIn, <Object?>[]),
+  _i8.Future<void> signIn() => (super.noSuchMethod(Invocation.method(#signIn, []),
       returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
-  _i8.Future<void> signOut() => (super.noSuchMethod(Invocation.method(#signOut, <Object?>[]),
+  _i8.Future<void> signOut() => (super.noSuchMethod(Invocation.method(#signOut, []),
       returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
   void addListener(_i16.VoidCallback? listener) =>
-      super.noSuchMethod(Invocation.method(#addListener, <Object?>[listener]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#addListener, [listener]), returnValueForMissingStub: null);
   @override
   void removeListener(_i16.VoidCallback? listener) =>
-      super.noSuchMethod(Invocation.method(#removeListener, <Object?>[listener]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#removeListener, [listener]), returnValueForMissingStub: null);
   @override
-  void dispose() => super.noSuchMethod(Invocation.method(#dispose, <Object?>[]), returnValueForMissingStub: null);
+  void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);
   @override
   void notifyListeners() =>
-      super.noSuchMethod(Invocation.method(#notifyListeners, <Object?>[]), returnValueForMissingStub: null);
+      super.noSuchMethod(Invocation.method(#notifyListeners, []), returnValueForMissingStub: null);
+  @override
+  String toString() => super.toString();
 }

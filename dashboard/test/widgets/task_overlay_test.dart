@@ -16,9 +16,12 @@ import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
+import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {
@@ -420,12 +423,8 @@ void main() {
   });
 
   testWidgets('log button opens log url for public log', (WidgetTester tester) async {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
-    final List<MethodCall> log = <MethodCall>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      log.add(methodCall);
-      return null;
-    });
+    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+    UrlLauncherPlatform.instance = urlLauncher;
 
     final Task publicTask = Task()..stageName = 'cirrus';
     await tester.pumpWidget(
@@ -449,9 +448,8 @@ void main() {
     await tester.tap(find.text('VIEW LOGS'));
     await tester.pump();
 
-    expect(log[0].runtimeType, equals(MethodCall));
-    expect(log[0].method, equals('launch'));
-    expect(log[0].arguments, equals('https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch='));
+    expect(urlLauncher.launches, isNotEmpty);
+    expect(urlLauncher.launches.single, 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=');
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {

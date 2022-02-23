@@ -4,10 +4,12 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+
+import '../utils/fake_url_launcher.dart';
 
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {
@@ -37,9 +39,8 @@ void main() {
   });
 
   testWidgets('Tapping TaskIcon opens source configuration url', (WidgetTester tester) async {
-    const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
-    final List<MethodCall> log = <MethodCall>[];
-    urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+    UrlLauncherPlatform.instance = urlLauncher;
 
     const QualifiedTask luciTask = QualifiedTask(stage: StageName.luci, task: 'test');
 
@@ -57,9 +58,8 @@ void main() {
     await tester.tap(find.byType(TaskIcon));
     await tester.pump();
 
-    expect(log[0].runtimeType, equals(MethodCall));
-    expect(log[0].method, equals('launch'));
-    expect(log[0].arguments, equals(luciTask.sourceConfigurationUrl));
+    expect(urlLauncher.launches, isNotEmpty);
+    expect(urlLauncher.launches.single, luciTask.sourceConfigurationUrl);
   });
 
   testWidgets('Unknown stage name shows helper icon in TaskIcon', (WidgetTester tester) async {
