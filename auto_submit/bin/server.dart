@@ -24,6 +24,6 @@ Future main() async {
 
   final router = Router()
     ..get('/', emptyHandler)
-    ..post('/webhook', githubWebhook.webhookHandler);
+    ..post('/webhook', githubWebhook.post);
   await serveHandler(router);
 }
