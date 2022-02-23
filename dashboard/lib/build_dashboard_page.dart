@@ -124,7 +124,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     repo = selectedRepo;
                     _updateNavigation(context);
                   },
-                  items: _buildState.repos!.map<DropdownMenuItem<String>>((String value) {
+                  items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: theme.primaryTextTheme.bodyText1),
@@ -145,7 +145,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     branch = selectedBranch;
                     _updateNavigation(context);
                   },
-                  items: _buildState.branches!.map<DropdownMenuItem<String>>((String value) {
+                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: theme.primaryTextTheme.bodyText1),
@@ -277,7 +277,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final BuildState _buildState = Provider.of<BuildState>(context);
-    _buildState.updateCurrentRepoBranch(repo!, branch);
+    _buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(

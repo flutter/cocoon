@@ -62,8 +62,8 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   List<String> get branches => <String>['master'];
 
   @override
-  String? get currentBranch => _currentBranch;
-  String? _currentBranch = 'master';
+  String get currentBranch => _currentBranch;
+  String _currentBranch = 'master';
 
   @override
   List<String> get failingTasks => <String>[];
@@ -76,7 +76,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   List<String> get repos => <String>['flutter', 'engine', 'cocoon'];
 
   @override
-  Future<void> updateCurrentRepoBranch(String repo, String? branch) async {
+  Future<void> updateCurrentRepoBranch(String repo, String branch) async {
     _currentBranch = branch;
     _currentRepo = repo;
   }

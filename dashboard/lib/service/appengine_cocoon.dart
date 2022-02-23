@@ -60,9 +60,6 @@ class AppEngineCocoonService implements CocoonService {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       return CocoonResponse<List<CommitStatus>>.data(
           await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
-      // FOR REVIEW
-      // type casting break after null safety migration
-      // so I changed all Object type to dynamic type
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -217,7 +214,7 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, dynamic> checklist = jsonChecklist['Checklist'];
 
     final Map<String, dynamic> commit = checklist['Commit'];
-    final Map<String, dynamic> author = commit['Author']; // as Map<String, Object>;
+    final Map<String, dynamic> author = commit['Author']; 
 
     final Commit result = Commit()
       ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key'] as String))
@@ -237,7 +234,7 @@ class AppEngineCocoonService implements CocoonService {
     final List<Task> tasks = <Task>[];
 
     for (final Map<String, dynamic> jsonStage in json) {
-      tasks.addAll(_tasksFromJson(jsonStage['Tasks'])); // jsonStage['Tasks' ] as List<Object>
+      tasks.addAll(_tasksFromJson(jsonStage['Tasks'])); 
     }
 
     return tasks;
@@ -255,7 +252,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Task _taskFromJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> taskData = json['Task']; // as Map<String, Object>;
+    final Map<String, dynamic> taskData = json['Task']; 
     final List<dynamic>? objectRequiredCapabilities = taskData['RequiredCapabilities'] as List<dynamic>?;
 
     final Task task = Task()
