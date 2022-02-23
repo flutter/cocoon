@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
 import '../../model/luci/buildbucket.dart';
@@ -30,6 +31,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     required Config config,
     required this.buildBucketClient,
     AuthenticationProvider? authProvider,
+    this.retryOptions = Config.schedulerRetry,
   }) : super(
           cache: cache,
           config: config,
@@ -38,6 +40,8 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
         );
 
   final BuildBucketClient buildBucketClient;
+
+  final RetryOptions retryOptions;
 
   @override
   Future<Body> post() async {
@@ -53,13 +57,42 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       throw BadRequestException(e.toString());
     }
 
+    await retryOptions.retry(
+      () async {
+        final List<Request> requestsToRetry = await _sendBatchRequest(request);
+        request = BatchRequest(requests: requestsToRetry);
+        if (requestsToRetry.isNotEmpty) {
+          throw const InternalServerError('Failed to schedule builds');
+        }
+      },
+      retryIf: (Exception e) => e is InternalServerError,
+    );
+
+    return Body.empty;
+  }
+
+  /// Wrapper around [BuildbucketClient.batch] to ensure all requests are made.
+  ///
+  /// Returns [List<Request>] of requests that need to be retried.
+  Future<List<Request>> _sendBatchRequest(BatchRequest request) async {
     final BatchResponse response = await buildBucketClient.batch(request);
-    response.responses?.map((Response subresponse) {
+    log.fine('Made ${request.requests?.length} and received ${response.responses?.length}');
+    log.fine('Responses: ${response.responses}');
+
+    // By default, retry everything. Then remove requests with a verified response.
+    final List<Request> retry = request.requests ?? <Request>[];
+    response.responses?.forEach((Response subresponse) {
+      if (subresponse.scheduleBuild != null) {
+        retry
+            .removeWhere((Request request) => request.scheduleBuild?.builderId == subresponse.scheduleBuild!.builderId);
+      } else {
+        log.warning('Response does not have schedule build: $subresponse');
+      }
       if (subresponse.error?.code != 0) {
         log.fine('Non-zero grpc code: $subresponse');
       }
     });
 
-    return Body.empty;
+    return retry;
   }
 }

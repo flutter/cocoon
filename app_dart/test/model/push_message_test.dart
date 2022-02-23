@@ -9,10 +9,14 @@ import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('BuildPushMessage tagsByName', () {
+  test('BuildPushMessage.fromJson', () {
     final BuildPushMessage data = BuildPushMessage.fromJson(
       json.decode(buildPushMessageJson) as Map<String, dynamic>,
     );
+
+    expect(data.build!.createdTimestamp!.year, 2019);
+    expect(data.build!.createdTimestamp!.month, 8);
+    expect(data.build!.createdTimestamp!.day, 5);
 
     expect(data.build!.tags!.length, 11);
     expect(data.build!.tagsByName('builder').single, 'Linux Coverage');

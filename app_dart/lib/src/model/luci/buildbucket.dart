@@ -600,6 +600,13 @@ class BuilderId extends JsonBody {
 
   @override
   String toString() => '$project/$bucket/$builder';
+
+  @override
+  bool operator ==(Object other) =>
+      other is BuilderId && other.bucket == bucket && other.builder == builder && other.project == project;
+
+  @override
+  int get hashCode => toString().hashCode;
 }
 
 /// Specifies a Cloud PubSub topic to send notification updates to from a

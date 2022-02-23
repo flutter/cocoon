@@ -76,9 +76,9 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       canary: json['canary'] as bool?,
       canaryPreference: $enumDecodeNullable(_$CanaryPreferenceEnumMap, json['canary_preference']),
       cancelationReason: $enumDecodeNullable(_$CancelationReasonEnumMap, json['cancelation_reason']),
-      completedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['completed_ts'] as String?),
+      completedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['completed_ts'] as String?),
       createdBy: json['created_by'] as String?,
-      createdTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['created_ts'] as String?),
+      createdTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['created_ts'] as String?),
       failureReason: $enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
       experimental: json['experimental'] as bool?,
       id: json['id'] as String?,
@@ -87,11 +87,11 @@ Build _$BuildFromJson(Map<String, dynamic> json) => Build(
       result: $enumDecodeNullable(_$ResultEnumMap, json['result']),
       resultDetails: const NestedJsonConverter().fromJson(json['result_details_json'] as String?),
       serviceAccount: json['service_account'] as String?,
-      startedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
+      startedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['started_ts'] as String?),
       status: $enumDecodeNullable(_$StatusEnumMap, json['status']),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      updatedTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
-      utcNowTimestamp: const MillisecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
+      updatedTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['updated_ts'] as String?),
+      utcNowTimestamp: const MicrosecondsSinceEpochConverter().fromJson(json['utcnow_ts'] as String?),
       url: json['url'] as String?,
     );
 
@@ -108,9 +108,9 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('canary', instance.canary);
   writeNotNull('canary_preference', _$CanaryPreferenceEnumMap[instance.canaryPreference]);
   writeNotNull('cancelation_reason', _$CancelationReasonEnumMap[instance.cancelationReason]);
-  writeNotNull('completed_ts', const MillisecondsSinceEpochConverter().toJson(instance.completedTimestamp));
+  writeNotNull('completed_ts', const MicrosecondsSinceEpochConverter().toJson(instance.completedTimestamp));
   writeNotNull('created_by', instance.createdBy);
-  writeNotNull('created_ts', const MillisecondsSinceEpochConverter().toJson(instance.createdTimestamp));
+  writeNotNull('created_ts', const MicrosecondsSinceEpochConverter().toJson(instance.createdTimestamp));
   writeNotNull('experimental', instance.experimental);
   writeNotNull('failure_reason', _$FailureReasonEnumMap[instance.failureReason]);
   writeNotNull('id', instance.id);
@@ -119,12 +119,12 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull('result', _$ResultEnumMap[instance.result]);
   writeNotNull('result_details_json', const NestedJsonConverter().toJson(instance.resultDetails));
   writeNotNull('service_account', instance.serviceAccount);
-  writeNotNull('started_ts', const MillisecondsSinceEpochConverter().toJson(instance.startedTimestamp));
+  writeNotNull('started_ts', const MicrosecondsSinceEpochConverter().toJson(instance.startedTimestamp));
   writeNotNull('status', _$StatusEnumMap[instance.status]);
   writeNotNull('tags', instance.tags);
-  writeNotNull('updated_ts', const MillisecondsSinceEpochConverter().toJson(instance.updatedTimestamp));
+  writeNotNull('updated_ts', const MicrosecondsSinceEpochConverter().toJson(instance.updatedTimestamp));
   writeNotNull('url', instance.url);
-  writeNotNull('utcnow_ts', const MillisecondsSinceEpochConverter().toJson(instance.utcNowTimestamp));
+  writeNotNull('utcnow_ts', const MicrosecondsSinceEpochConverter().toJson(instance.utcNowTimestamp));
   return val;
 }
 

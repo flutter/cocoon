@@ -14,6 +14,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
@@ -127,8 +128,8 @@ class Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
 
-  /// Max retries when scheduling try builds.
-  int get schedulerRetries => 3;
+  /// Max retries when scheduling builds.
+  static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {

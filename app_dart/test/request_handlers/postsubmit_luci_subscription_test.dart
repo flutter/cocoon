@@ -80,7 +80,7 @@ void main() {
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
-    expect(task.endTimestamp, 1565049193786090);
+    expect(task.endTimestamp, 1565049193786);
   });
 
   test('does not fail on empty user data', () async {

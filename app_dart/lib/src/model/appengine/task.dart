@@ -290,9 +290,9 @@ class Task extends Model<int> {
       buildNumberList = '$buildNumberList,$buildNumber';
     }
 
-    createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch;
-    startTimestamp = build.startedTimestamp?.millisecondsSinceEpoch;
-    endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch;
+    createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch ?? 0;
+    startTimestamp = build.startedTimestamp?.millisecondsSinceEpoch ?? 0;
+    endTimestamp = build.completedTimestamp?.millisecondsSinceEpoch ?? 0;
 
     _setStatusFromLuciStatus(build);
   }

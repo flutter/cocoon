@@ -86,6 +86,27 @@ class Base64Converter implements JsonConverter<String, String> {
   }
 }
 
+/// A converter for "timestamp" fields encoded as microseconds since epoch.
+class MicrosecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
+  const MicrosecondsSinceEpochConverter();
+
+  @override
+  DateTime? fromJson(String? json) {
+    if (json == null) {
+      return null;
+    }
+    return DateTime.fromMicrosecondsSinceEpoch(int.parse(json));
+  }
+
+  @override
+  String? toJson(DateTime? object) {
+    if (object == null) {
+      return null;
+    }
+    return object.microsecondsSinceEpoch.toString();
+  }
+}
+
 /// A converter for "timestamp" fields encoded as milliseconds since epoch.
 class MillisecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
   const MillisecondsSinceEpochConverter();
