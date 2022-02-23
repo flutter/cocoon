@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import 'package:auto_submit/service/log.dart';
@@ -17,7 +18,18 @@ class GithubWebhook {
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     logger.info('Header: $reqHeader');
+
+    //Listen to the pull request with 'autosubmit' label.
     final String rawBody = await request.readAsString();
+    final body = json.decode(rawBody) as Map<String, dynamic>;
+    List<Map<String, dynamic>> labels = List<Map<String, dynamic>>.from(body['pull_request']['labels']);
+
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i]['name'] == 'autosubmit') {
+        logger.info('got the pr with autosubmit label');
+        //Use rest API to get this single pr and check shouldMerge later.
+      }
+    }
 
     return Response.ok(
       rawBody,
