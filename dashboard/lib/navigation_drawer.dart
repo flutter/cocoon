@@ -8,12 +8,12 @@ import 'logic/links.dart';
 
 /// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({Key key}) : super(key: key);
+  const NavigationDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
-    final String currentRoute = ModalRoute.of(context).settings.name;
+    final String? currentRoute = ModalRoute.of(context)!.settings.name;
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -29,7 +29,7 @@ class NavigationDrawer extends StatelessWidget {
           for (CocoonLink link in cocoonLinks)
             ListTile(
               leading: link.icon,
-              title: Text(link.name),
+              title: Text(link.name!),
               onTap: link.action,
               selected: currentRoute == link.route,
             ),

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -24,13 +25,10 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
   final Offset target;
 
   static Offset positionDependentBox({
-    @required Size size,
-    @required Size childSize,
-    @required Offset target,
+    required Size size,
+    required Size childSize,
+    required Offset target,
   }) {
-    assert(size != null);
-    assert(childSize != null);
-    assert(target != null);
     const double margin = 10.0;
     const double verticalOffset = TaskBox.cellSize * .9;
 
@@ -48,7 +46,7 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
     if (size.width - margin * 2.0 < childSize.width) {
       x = (size.width - childSize.width) / 2.0;
     } else {
-      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin) as double;
+      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin);
       final double edge = normalizedTargetX + childSize.width;
       // Position the box as close to the left edge of the full size
       // without going over the margin.
@@ -82,19 +80,14 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
 /// [closeCallback] that will remove the widget from the tree.
 class TaskOverlayEntry extends StatelessWidget {
   const TaskOverlayEntry({
-    Key key,
-    @required this.position,
-    @required this.task,
-    @required this.showSnackBarCallback,
-    @required this.closeCallback,
-    @required this.buildState,
-    @required this.commit,
-  })  : assert(position != null),
-        assert(buildState != null),
-        assert(task != null),
-        assert(showSnackBarCallback != null),
-        assert(closeCallback != null),
-        super(key: key);
+    Key? key,
+    required this.position,
+    required this.task,
+    required this.showSnackBarCallback,
+    required this.closeCallback,
+    required this.buildState,
+    required this.commit,
+  }) : super(key: key);
 
   /// The global position where to show the task overlay.
   final Offset position;
@@ -169,16 +162,13 @@ class TaskOverlayEntry extends StatelessWidget {
 /// this [Task] through the build system.
 class TaskOverlayContents extends StatelessWidget {
   const TaskOverlayContents({
-    Key key,
-    @required this.showSnackBarCallback,
-    @required this.buildState,
-    @required this.task,
-    @required this.closeCallback,
+    Key? key,
+    required this.showSnackBarCallback,
+    required this.buildState,
+    required this.task,
+    required this.closeCallback,
     this.commit,
-  })  : assert(showSnackBarCallback != null),
-        assert(buildState != null),
-        assert(task != null),
-        super(key: key);
+  }) : super(key: key);
 
   final ShowSnackBarCallback showSnackBarCallback;
 
@@ -189,7 +179,7 @@ class TaskOverlayContents extends StatelessWidget {
   final Task task;
 
   /// [Commit] for cirrus tasks to show log.
-  final Commit commit;
+  final Commit? commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -217,14 +207,14 @@ class TaskOverlayContents extends StatelessWidget {
   Widget build(BuildContext context) {
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
 
-    final DateTime now = Now.of(context);
+    final DateTime? now = Now.of(context);
     final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
     final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
     final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
     final Duration queueDuration =
-        task.startTimestamp == 0 ? now.difference(createTime) : startTime.difference(createTime);
-    final Duration runDuration = task.endTimestamp == 0 ? now.difference(startTime) : endTime.difference(startTime);
+        task.startTimestamp == 0 ? now!.difference(createTime) : startTime.difference(createTime);
+    final Duration runDuration = task.endTimestamp == 0 ? now!.difference(startTime) : endTime.difference(startTime);
 
     /// There are 2 possible states for queue time:
     ///   1. Task is waiting to be scheduled (in queue)
@@ -294,9 +284,7 @@ class TaskOverlayContents extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ProgressButton(
-                      child: const Text('VIEW LOGS'),
-                      onPressed: () => launch(logUrl(task, commit: commit)),
-                    ),
+                        child: const Text('VIEW LOGS'), onPressed: () => launch(logUrl(task, commit: commit))),
                   ),
                   if (qualifiedTask.isLuci)
                     Padding(

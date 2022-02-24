@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'utils/wrapper.dart';
 
-T getDescendant<T extends Widget>({@required Element of}) {
+T getDescendant<T extends Widget>({required Element of}) {
   return find
       .descendant(
         of: find.byElementPredicate((Element element) => element == of),
@@ -28,7 +28,7 @@ void main() {
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage(), signedIn: false)));
 
     expect(find.byIcon(Icons.menu), findsOneWidget);
 
