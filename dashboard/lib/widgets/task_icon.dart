@@ -15,8 +15,8 @@ import '../logic/qualified_task.dart';
 /// it can't be mapped. On tap, shows the task.
 class TaskIcon extends StatelessWidget {
   const TaskIcon({
-    Key key,
-    @required this.qualifiedTask,
+    Key? key,
+    required this.qualifiedTask,
   }) : super(key: key);
 
   /// [Task] to get information from.
@@ -30,7 +30,7 @@ class TaskIcon extends StatelessWidget {
     // This only works in the CanvasKit implementation currently, not in DOM. If
     // this needs to run in the DOM implementation, it will need to include
     // different assets.
-    final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
+    final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
     if (qualifiedTask.task == null || !qualifiedTask.isLuci) {
       return Icon(
@@ -39,28 +39,28 @@ class TaskIcon extends StatelessWidget {
       );
     }
 
-    if (qualifiedTask.task.toLowerCase().contains('_fuchsia')) {
+    if (qualifiedTask.task!.toLowerCase().contains('_fuchsia')) {
       return Image.asset(
         'assets/fuchsia.png',
         color: blendFilter,
       );
-    } else if (qualifiedTask.task.toLowerCase().contains('_web')) {
+    } else if (qualifiedTask.task!.toLowerCase().contains('_web')) {
       return Image.asset(
         'assets/chromium.png',
         color: blendFilter,
       );
-    } else if (qualifiedTask.task.toLowerCase().contains('_android')) {
+    } else if (qualifiedTask.task!.toLowerCase().contains('_android')) {
       return Icon(
         Icons.android,
         color: blendFilter,
       );
-    } else if (qualifiedTask.task.toLowerCase().startsWith('linux')) {
+    } else if (qualifiedTask.task!.toLowerCase().startsWith('linux')) {
       return Image.asset(
         'assets/linux.png',
         color: blendFilter,
       );
-    } else if (qualifiedTask.task.toLowerCase().startsWith('mac')) {
-      if (qualifiedTask.task.toLowerCase().contains('_ios')) {
+    } else if (qualifiedTask.task!.toLowerCase().startsWith('mac')) {
+      if (qualifiedTask.task!.toLowerCase().contains('_ios')) {
         return Icon(
           Icons.phone_iphone,
           color: blendFilter,
@@ -71,7 +71,7 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         );
       }
-    } else if (qualifiedTask.task.toLowerCase().startsWith('win')) {
+    } else if (qualifiedTask.task!.toLowerCase().startsWith('win')) {
       return Image.asset(
         'assets/windows.png',
         color: blendFilter,
@@ -90,7 +90,9 @@ class TaskIcon extends StatelessWidget {
     final Widget icon = stageIconForBrightness(brightness);
 
     return InkWell(
-      onTap: () => launch(qualifiedTask.sourceConfigurationUrl),
+      onTap: () {
+        launch(qualifiedTask.sourceConfigurationUrl);
+      },
       child: Tooltip(
         message: '${qualifiedTask.task} (${qualifiedTask.stage})',
         child: Padding(

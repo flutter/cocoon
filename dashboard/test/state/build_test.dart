@@ -22,15 +22,15 @@ void main() {
   const String _defaultBranch = 'master';
 
   group('BuildState', () {
-    MockCocoonService mockCocoonService;
-    CommitStatus setupCommitStatus;
+    late MockCocoonService mockCocoonService;
+    late CommitStatus setupCommitStatus;
 
     setUp(() {
       mockCocoonService = MockCocoonService();
       setupCommitStatus = _createCommitStatus('setup');
 
       when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
-          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
+          .thenAnswer((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
           (_) async =>
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
@@ -72,7 +72,7 @@ void main() {
       verify(await mockCocoonService.fetchCommitStatuses(branch: _defaultBranch, repo: 'flutter')).called(1);
 
       verifyNever(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')));
-      await tester.pump(buildState.refreshRate * 2);
+      await tester.pump(buildState.refreshRate! * 2);
       verify(await mockCocoonService.fetchCommitStatuses(branch: _defaultBranch, repo: 'flutter')).called(2);
 
       buildState.dispose();
@@ -115,7 +115,7 @@ void main() {
       buildState.addListener(listener1);
 
       // Another listener shouldn't change the timer.
-      final Timer refreshTimer = buildState.refreshTimer;
+      final Timer? refreshTimer = buildState.refreshTimer;
       void listener2() {}
       buildState.addListener(listener2);
       expect(buildState.refreshTimer, equals(refreshTimer));
@@ -135,7 +135,7 @@ void main() {
     });
 
     testWidgets('statuses error should not delete previous statuses data', (WidgetTester tester) async {
-      String lastError;
+      String? lastError;
       final BuildState buildState = BuildState(
         authService: MockGoogleSignInService(),
         cocoonService: mockCocoonService,
@@ -173,7 +173,7 @@ void main() {
     });
 
     testWidgets('build status error should not delete previous build status data', (WidgetTester tester) async {
-      String lastError;
+      String? lastError;
       final BuildState buildState = BuildState(
         authService: MockGoogleSignInService(),
         cocoonService: mockCocoonService,
@@ -184,7 +184,7 @@ void main() {
 
       await tester.pump();
       verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch, repo: 'flutter')).called(1);
-      final bool originalData = buildState.isTreeBuilding;
+      final bool? originalData = buildState.isTreeBuilding;
       verifyNever(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo')));
       verifyNever(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch, repo: 'flutter'));
 
@@ -218,7 +218,7 @@ void main() {
 
       await untilCalled(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')));
 
-      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+      expect(buildState.statuses, <CommitStatus?>[setupCommitStatus]);
 
       final CommitStatus statusA = _createCommitStatus('A');
       when(
@@ -231,11 +231,11 @@ void main() {
 
       await buildState.fetchMoreCommitStatuses();
 
-      expect(buildState.statuses, <CommitStatus>[setupCommitStatus, statusA]);
+      expect(buildState.statuses, <CommitStatus?>[setupCommitStatus, statusA]);
 
       await tester.pump(buildState.refreshRate);
 
-      expect(buildState.statuses, <CommitStatus>[setupCommitStatus, statusA]);
+      expect(buildState.statuses, <CommitStatus?>[setupCommitStatus, statusA]);
       expect(buildState.moreStatusesExist, true);
 
       buildState.dispose();
@@ -251,7 +251,7 @@ void main() {
 
       await untilCalled(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')));
 
-      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+      expect(buildState.statuses, <CommitStatus?>[setupCommitStatus]);
 
       when(mockCocoonService.fetchCommitStatuses(
         lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'),
@@ -261,7 +261,7 @@ void main() {
 
       await buildState.fetchMoreCommitStatuses();
 
-      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+      expect(buildState.statuses, <CommitStatus?>[setupCommitStatus]);
       expect(buildState.moreStatusesExist, false);
 
       buildState.dispose();
@@ -274,7 +274,7 @@ void main() {
       ).thenAnswer(
         (_) => Future<CocoonResponse<List<CommitStatus>>>.value(
           CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
-        ),
+        ).then((CocoonResponse<List<CommitStatus>> value) => value),
       );
       // Mark tree green on master, red on dev
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer((_) =>
@@ -309,8 +309,11 @@ void main() {
   });
 
   testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
-    final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
-    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
+    final MockGoogleSignIn mockSignInPlugin = MockGoogleSignIn();
+    when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
     final MockCocoonService mockCocoonService = MockCocoonService();
     when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
     when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
