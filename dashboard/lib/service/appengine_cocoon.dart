@@ -147,7 +147,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<bool>> rerunTask(Task task, String? idToken, String repo) async {
     if (idToken == null || idToken.isEmpty) {
-      return const CocoonResponse<bool>.error('Need to sign in to perform rerun operation');
+      return const CocoonResponse<bool>.error('Sign in to trigger reruns');
     }
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
@@ -168,11 +168,7 @@ class AppEngineCocoonService implements CocoonService {
     final bool success = response.statusCode == HttpStatus.ok;
     return success
         ? const CocoonResponse<bool>.data(true)
-        : CocoonResponse<bool>.error('bad status code is ' +
-            response.statusCode.toString() +
-            ', response body is ' +
-            response.body.toString() +
-            '\n');
+        : CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

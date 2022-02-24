@@ -157,7 +157,7 @@ void main() {
           response.error,
           allOf(<Matcher>[
             isNotNull,
-            contains('bad status code'),
+            contains('HTTP Code: 500, internal server error'),
           ]));
     });
 
@@ -167,7 +167,7 @@ void main() {
           response.error,
           allOf(<Matcher>[
             isNotNull,
-            contains('Need to sign in'),
+            contains('Sign in to trigger reruns'),
           ]));
     });
   });
