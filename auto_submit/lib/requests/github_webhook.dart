@@ -22,11 +22,13 @@ class GithubWebhook {
     //Listen to the pull request with 'autosubmit' label.
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
-    List<Map<String, dynamic>> labels = List<Map<String, dynamic>>.from(body['pull_request']['labels']);
+    List<Map<String, dynamic>> labels =
+        List<Map<String, dynamic>>.from(body['pull_request']['labels']);
 
     for (int i = 0; i < labels.length; i++) {
       if (labels[i]['name'] == 'autosubmit') {
         logger.info('got the pr with autosubmit label');
+
         //Use rest API to get this single pr and check shouldMerge later.
       }
     }
