@@ -14,6 +14,13 @@ import 'utils/wrapper.dart';
 
 void main() {
   group('NavigationDrawer', () {
+    late FakeUrlLauncher urlLauncher;
+
+    setUp(() {
+      urlLauncher = FakeUrlLauncher();
+      UrlLauncherPlatform.instance = urlLauncher;
+    });
+
     testWidgets('lists all pages', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -58,8 +65,8 @@ void main() {
     });
 
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
-      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
+      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      // UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -77,8 +84,8 @@ void main() {
     });
 
     testWidgets('repository opens repository html url', (WidgetTester tester) async {
-      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
+      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      // UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -95,8 +102,8 @@ void main() {
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
-      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
+      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+      // UrlLauncherPlatform.instance = urlLauncher;
 
       await tester.pumpWidget(
         const MaterialApp(

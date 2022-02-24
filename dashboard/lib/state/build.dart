@@ -54,8 +54,6 @@ class BuildState extends ChangeNotifier {
   /// Whether or not flutter/flutter currently passes tests.
   bool? get isTreeBuilding => _isTreeBuilding;
   bool? _isTreeBuilding;
-  // FOR REVIEW:
-  // keep this as nullable since we make decisions based on whether it is null
 
   List<String> get failingTasks => _failingTasks;
   List<String> _failingTasks = <String>[];
@@ -144,9 +142,6 @@ class BuildState extends ChangeNotifier {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
     } else {
       _repos = response.data!;
-      //FOR REVIEW:
-      // For similar assignments like this, I am assuming response.data
-      // is not null so that we can assign it to non nullable fields.
       notifyListeners();
     }
   }

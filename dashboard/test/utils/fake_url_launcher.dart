@@ -36,17 +36,3 @@ class FakeUrlLauncher extends UrlLauncherPlatform {
     throw UnimplementedError('closeWebView() has not been implemented.');
   }
 }
-
-// void main() {
-//   FakeUrlLauncher urlLauncher;
-//   setUp(() {
-//     urlLauncher = FakeUrlLauncher();
-//     UrlLauncherPlatform.setInstance(urlLauncher);
-//   });
-
-//   wigetTest('example', () {
-//     // do some actions
-//     expect(urlLauncher.launches, isNotEmpty);
-//     expect(urlLauncher.launches.single, 'https://google.com');
-//   });
-// }

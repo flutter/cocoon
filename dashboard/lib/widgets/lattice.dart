@@ -297,12 +297,6 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
   @override
   void visitChildren(ElementVisitor visitor) {
     (_newChildrenByCoordinate.values.whereType<Element>().toList()..sort(_compareChildren)).forEach(visitor);
-    // FOR REVIEW
-    // can't use regular where clause because lint could not deduce non - null type
-    // from regular where clause expression (failed alternative shown below)
-    //     _newChildrenByCoordinate.values.toList()..sort(_compareChildren)
-    //  ..where((Element? element) => element != null)
-    //  ..forEach(visitor);
   }
 
   int _compareChildren(Element a, Element b) {

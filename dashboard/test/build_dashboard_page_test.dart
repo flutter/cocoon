@@ -28,16 +28,13 @@ import 'utils/task_icons.dart';
 
 void main() {
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-
-  final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
-  when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
-  when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
-  //FOR REVIEW:
-  // these lines are kept for codes which rely on real BuildState
-  // these lines are removed for codes which rely on fake buildstate, and have been added to constructor of fake build state
+  late MockGoogleSignInService fakeAuthService;
 
   setUp(() {
     binding.window.physicalSizeTestValue = const Size(1000, 2000);
+    fakeAuthService = MockGoogleSignInService();
+    when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
+    when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
   });
 
   testWidgets('shows sign in button', (WidgetTester tester) async {
@@ -77,7 +74,7 @@ void main() {
   });
 
   testWidgets('shows settings button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState();
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -95,7 +92,7 @@ void main() {
   });
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState();
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -122,7 +119,7 @@ void main() {
   });
 
   testWidgets('shows branch and repo dropdown button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState();
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -147,7 +144,7 @@ void main() {
   });
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState();
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -169,7 +166,9 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = null
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -191,7 +190,9 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = null
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -214,7 +215,9 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = false
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -236,7 +239,9 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = false
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -259,7 +264,9 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -281,7 +288,9 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -305,7 +314,9 @@ void main() {
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
     String? lastError;
-    final FakeBuildState buildState = FakeBuildState()..errors.addListener((String message) => lastError = message);
+    final FakeBuildState buildState = FakeBuildState()
+      ..errors.addListener((String message) => lastError = message)
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(

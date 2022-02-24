@@ -24,8 +24,6 @@ void main() {
   group('BuildState', () {
     late MockCocoonService mockCocoonService;
     late CommitStatus setupCommitStatus;
-    // FOR REVIEW:
-    // I am assuming they will never be null
 
     setUp(() {
       mockCocoonService = MockCocoonService();
@@ -315,9 +313,6 @@ void main() {
     when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    // FOR REVIEW:
-    // I was trying to use stream<GoogleSignInAccount?>.empty() here but I only found how to cast future to stream
-    // didn't seem viable to cast stream to Future<GoogleSignInAccount?> type?
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
     final MockCocoonService mockCocoonService = MockCocoonService();
     when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
