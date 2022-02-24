@@ -272,7 +272,7 @@ void main() {
       when(
         mockCocoonService.fetchCommitStatuses(branch: 'master', repo: 'flutter'),
       ).thenAnswer(
-        (dynamic _) => Future<CocoonResponse<List<CommitStatus>>>.value(
+        (_) => Future<CocoonResponse<List<CommitStatus>>>.value(
           CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]),
         ).then((CocoonResponse<List<CommitStatus>> value) => value),
       );

@@ -65,9 +65,6 @@ void main() {
     });
 
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
-      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      // UrlLauncherPlatform.instance = urlLauncher;
-
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
@@ -84,9 +81,6 @@ void main() {
     });
 
     testWidgets('repository opens repository html url', (WidgetTester tester) async {
-      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      // UrlLauncherPlatform.instance = urlLauncher;
-
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
@@ -102,9 +96,6 @@ void main() {
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
-      // final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      // UrlLauncherPlatform.instance = urlLauncher;
-
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
