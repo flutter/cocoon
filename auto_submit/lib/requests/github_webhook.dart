@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import 'package:auto_submit/service/log.dart';
+import 'package:github/github.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -19,24 +20,18 @@ class GithubWebhook {
     final Map<String, String> reqHeader = request.headers;
     logger.info('Header: $reqHeader');
 
-    //Listen to the pull request with 'autosubmit' label.
+    // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
-    List<Map<String, dynamic>> labels = <Map<String, dynamic>>[];
-    if (body.containsKey('pull_request') && body['pull_request'].containsKey('labels')) {
-      labels = List<Map<String, dynamic>>.from(body['pull_request']['labels']);
-    }
 
-    for (int i = 0; i < labels.length; i++) {
-      if (labels[i]['name'] == 'autosubmit') {
-        hasAutosubmit = true;
-      }
+    if (body.containsKey('pull_request') && body['pull_request'].containsKey('labels')) {
+      hasAutosubmit = body['pull_request']['labels'].any((label) => IssueLabel.fromJson(label).name == 'autosubmit');
     }
+    print(hasAutosubmit);
 
     if (hasAutosubmit) {
-      //Creat a github client and use rest API to get this single pr
-      //to check shouldMerge later.
+      // TODO(kristinbi): Check if PR can be submitted. https://github.com/flutter/flutter/issues/98707
     }
 
     return Response.ok(
@@ -44,3 +39,23 @@ class GithubWebhook {
     );
   }
 }
+
+// class Label {
+//   final int id;
+//   final String? nodeId;
+//   final String? url;
+//   final String name;
+//   final String? color;
+//   final String? defaultStatus;
+
+//   const Label(this.id, this.nodeId, this.url, this.name, this.color,
+//       this.defaultStatus);
+
+//   Label.fromJson(Map<String, dynamic> json)
+//       : id = json['id'],
+//         nodeId = json['nodeId'],
+//         url = json['url'],
+//         name = json['name'],
+//         color = json['color'],
+//         defaultStatus = json['defalt'];
+// }

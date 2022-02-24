@@ -4,9 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
+
+import './webhook_event_test.dart';
 
 void main() {
   group('Check Webhook', () {
@@ -14,51 +17,11 @@ void main() {
     late GithubWebhook githubWebhook;
 
     setUp(() {
-      req = Request('POST', Uri.parse('http://localhost/'), headers: {
-        'header1': 'header value1',
-      }, body: '''{
-      "action": "open",
-      "number": 1598,
-      "pull_request": {
-        "url": "https://api.github.com/repos/flutter/pulls/123",
-        "id": 294034,
-        "title": "Defer reassemble until reload is finished",
-        "user": {
-          "login": "octocat",
-          "id": 862741
-        },
-        "labels": [
-          {
-            "id": 487496476,
-            "node_id": "MDU6TGFiZWw0ODc0OTY0NzY=",
-            "url": "https://api.github.com/repos/flutter/labels/cla:%20yes",
-            "name": "cla: yes",
-            "color": "ffffff",
-            "default": false
+      req = Request('POST', Uri.parse('http://localhost/'),
+          headers: {
+            'header1': 'header value1',
           },
-          {
-            "id": 284437560,
-            "node_id": "MDU6TGFiZWwyODQ0Mzc1NjA=",
-            "url": "https://api.github.com/repos/flutter/labels/autosubmit",
-            "name": "autosubmit",
-            "color": "207de5",
-            "default": false
-          }
-        ]
-      },
-      "repository": {
-        "id": 1868532,
-        "name": "flutter",
-        "full_name": "flutter/cocoon",
-        "private": false,
-        "owner": {
-          "login": "flutter",
-          "id": 21031067
-        },
-        "html_url": "https://github.com/cocooon/octocat",
-        "watchers": 0
-      }
-    }''');
+          body: webhook_event_mock);
       githubWebhook = GithubWebhook();
     });
 
@@ -66,25 +29,10 @@ void main() {
       Response response = await githubWebhook.post(req);
       final String resBody = await response.readAsString();
       final body = json.decode(resBody) as Map<String, dynamic>;
-      List<Map<String, dynamic>> labels = List<Map<String, dynamic>>.from(body['pull_request']['labels']);
-      expect(labels, [
-        {
-          'id': 487496476,
-          'node_id': 'MDU6TGFiZWw0ODc0OTY0NzY=',
-          'url': 'https://api.github.com/repos/flutter/labels/cla:%20yes',
-          'name': 'cla: yes',
-          'color': 'ffffff',
-          'default': false
-        },
-        {
-          'id': 284437560,
-          'node_id': 'MDU6TGFiZWwyODQ0Mzc1NjA=',
-          'url': 'https://api.github.com/repos/flutter/labels/autosubmit',
-          'name': 'autosubmit',
-          'color': '207de5',
-          'default': false
-        }
-      ]);
+      List<IssueLabel> labels = <IssueLabel>[];
+      body['pull_request']['labels'].forEach((element) => labels.add(IssueLabel.fromJson(element)));
+      expect(labels[0].name, 'cla: yes');
+      expect(labels[1].name, 'autosubmit');
     });
   });
 }
