@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:ui' show hashValues;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class FakeGoogleSignInAccount implements GoogleSignInAccount {
@@ -33,20 +32,10 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   bool operator ==(dynamic other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is! GoogleSignInAccount) {
-      return false;
-    }
     final GoogleSignInAccount otherAccount = other;
-    return displayName == otherAccount.displayName &&
-        email == otherAccount.email &&
-        id == otherAccount.id &&
-        photoUrl == otherAccount.photoUrl &&
-        serverAuthCode == otherAccount.serverAuthCode;
+    return email == otherAccount.email;
   }
 
   @override
-  int get hashCode => hashValues(displayName, email, id, photoUrl, serverAuthCode);
+  int get hashCode => email.hashCode;
 }

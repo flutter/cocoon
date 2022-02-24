@@ -30,7 +30,6 @@ class FakeInserter extends StatelessWidget {
 
     when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
 
-    //final GoogleSignInService authService = MockGoogleSignInService();
     return StateProvider(
       signInService: fakeAuthService,
       indexState: FakeIndexState(authService: fakeAuthService),

@@ -316,7 +316,8 @@ void main() {
     when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     // FOR REVIEW:
-    // probably not the right way to stub null for signin and signout, but it passes the test
+    // I was trying to use stream<GoogleSignInAccount?>.empty() here but I only found how to cast future to stream
+    // didn't seem viable to cast stream to Future<GoogleSignInAccount?> type?
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
     final MockCocoonService mockCocoonService = MockCocoonService();
     when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
