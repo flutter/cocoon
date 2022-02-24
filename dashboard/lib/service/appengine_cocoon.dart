@@ -155,7 +155,6 @@ class AppEngineCocoonService implements CocoonService {
 
     /// This endpoint only returns a status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
-
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
           'X-Flutter-IdToken': idToken,

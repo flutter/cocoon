@@ -79,7 +79,6 @@ void main() {
   });
 
   testWidgets('tapping sha in CommitBox redirects to GitHub', (WidgetTester tester) async {
-    // The url_launcher calls get logged in this channel
     final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
     UrlLauncherPlatform.instance = urlLauncher;
 

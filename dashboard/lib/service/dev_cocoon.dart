@@ -133,7 +133,7 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> rerunTask(Task task, String accessToken, String repo) async {
+  Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
     return const CocoonResponse<bool>.error(
         'Unable to retry against fake data. Try building the app to use prod data.');
   }

@@ -417,7 +417,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 750)); // open animation
 
-    expect(find.text(TaskOverlayContents.testRerunErrorMessage), findsOneWidget);
+    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsOneWidget);
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Snackbar message should go away after its duration
@@ -425,16 +425,14 @@ void main() {
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(find.text(TaskOverlayContents.testRerunErrorMessage), findsNothing);
+    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
   testWidgets('log button opens log url for public log', (WidgetTester tester) async {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
-    final List<MethodCall> log = <MethodCall>[];
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      log.add(methodCall);
-    });
+    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+    UrlLauncherPlatform.instance = urlLauncher;
+
     final Task publicTask = Task()..stageName = 'cirrus';
     await tester.pumpWidget(
       Now.fixed(
@@ -457,20 +455,8 @@ void main() {
     await tester.tap(find.text('VIEW LOGS'));
     await tester.pump();
 
-    expect(
-      log,
-      <Matcher>[
-        isMethodCall('launch', arguments: <String, Object>{
-          'url': 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=',
-          'useSafariVC': true,
-          'useWebView': false,
-          'enableJavaScript': false,
-          'enableDomStorage': false,
-          'universalLinksOnly': false,
-          'headers': <String, String>{}
-        })
-      ],
-    );
+    expect(urlLauncher.launches, isNotEmpty);
+    expect(urlLauncher.launches.single, 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=');
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {
