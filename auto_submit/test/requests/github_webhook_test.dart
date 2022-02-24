@@ -21,7 +21,7 @@ void main() {
           headers: {
             'header1': 'header value1',
           },
-          body: webhook_event_mock);
+          body: webhookEventMock);
       githubWebhook = GithubWebhook();
     });
 
