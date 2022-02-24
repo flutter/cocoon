@@ -443,8 +443,6 @@ class _RenderLatticeBody extends RenderBox {
   }
 
   int _cellWidthCount = 0, _cellHeightCount = 0;
-  // FOR REVIEW:
-  // I am initializing them to 0 if that is reasonable
 
   List<List<_LatticeCell>> get cells => _cells;
   List<List<_LatticeCell>> _cells;

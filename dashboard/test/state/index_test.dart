@@ -18,8 +18,7 @@ void main() {
     when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    // For Review:
-    // Stubbing them all for null which passes tests if we only care about call count?
+
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
     final IndexState indexState = IndexState(authService: signInService);
 
