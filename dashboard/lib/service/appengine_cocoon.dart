@@ -165,12 +165,11 @@ class AppEngineCocoonService implements CocoonService {
           'Repo': repo,
         }));
 
-    final bool success = response.statusCode == HttpStatus.ok;
-    return success
-        ? response.body.isEmpty
-            ? const CocoonResponse<bool>.error('can not rerun task that has succeeded')
-            : const CocoonResponse<bool>.data(true)
-        : CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse<bool>.data(true);
+    }
+
+    return CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

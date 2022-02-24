@@ -135,7 +135,7 @@ void main() {
 
     setUp(() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('a great response', 200);
+        return Response('', 200);
       }));
       task = Task()
         ..key = RootKey()
@@ -154,20 +154,6 @@ void main() {
           allOf(<Matcher>[
             isNotNull,
             contains('Sign in to trigger reruns'),
-          ]));
-    });
-
-    test('should set error in response if task has already succeeded and cannot be rerun', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 200);
-      }));
-
-      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
-      expect(
-          response.error,
-          allOf(<Matcher>[
-            isNotNull,
-            contains('can not rerun task that has succeeded'),
           ]));
     });
 
