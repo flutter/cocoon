@@ -11,28 +11,28 @@ import '../state/index.dart';
 
 class StateProvider extends StatelessWidget {
   const StateProvider({
-    Key? key,
+    Key key,
     this.signInService,
     this.indexState,
     this.buildState,
     this.child,
   }) : super(key: key);
 
-  final GoogleSignInService? signInService;
+  final GoogleSignInService signInService;
 
-  final IndexState? indexState;
+  final IndexState indexState;
 
-  final BuildState? buildState;
+  final BuildState buildState;
 
-  final Widget? child;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: <ValueProvider<Object?>>[
-        ValueProvider<GoogleSignInService?>(value: signInService),
-        ValueProvider<IndexState?>(value: indexState),
-        ValueProvider<BuildState?>(value: buildState),
+      providers: <ValueProvider<Object>>[
+        ValueProvider<GoogleSignInService>(value: signInService),
+        ValueProvider<IndexState>(value: indexState),
+        ValueProvider<BuildState>(value: buildState),
       ],
       child: child,
     );
@@ -43,10 +43,10 @@ class StateProvider extends StatelessWidget {
 /// the value is a Listenable.
 class ValueProvider<T> extends InheritedProvider<T> {
   ValueProvider({
-    Key? key,
-    required T value,
-    UpdateShouldNotify<T>? updateShouldNotify,
-    Widget? child,
+    Key key,
+    @required T value,
+    UpdateShouldNotify<T> updateShouldNotify,
+    Widget child,
   }) : super.value(
           key: key,
           value: value,

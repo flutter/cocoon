@@ -8,11 +8,11 @@ import 'package:flutter/widgets.dart';
 
 /// An inherited widget that reports the current time and
 /// ticks once per second.
-class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
+class Now extends InheritedNotifier<ValueNotifier<DateTime>> {
   /// For production.
   Now({
-    Key? key,
-    required Widget child,
+    Key key,
+    Widget child,
   }) : super(
           key: key,
           notifier: _Clock(),
@@ -21,25 +21,27 @@ class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
 
   /// For tests.
   Now.fixed({
-    Key? key,
-    required DateTime dateTime,
-    required Widget child,
-  }) : super(
+    Key key,
+    @required DateTime dateTime,
+    Widget child,
+  })  : assert(dateTime != null),
+        super(
           key: key,
           notifier: ValueNotifier<DateTime>(dateTime),
           child: child,
         );
 
-  static DateTime? of(BuildContext context) {
-    final Now now = context.dependOnInheritedWidgetOfExactType<Now>()!;
-    return now.notifier!.value;
+  static DateTime of(BuildContext context) {
+    final Now now = context.dependOnInheritedWidgetOfExactType<Now>();
+    assert(now != null);
+    return now.notifier.value;
   }
 }
 
-class _Clock extends ValueNotifier<DateTime?> {
+class _Clock extends ValueNotifier<DateTime> {
   _Clock() : super(null);
 
-  Timer? _timer;
+  Timer _timer;
 
   @override
   void addListener(VoidCallback listener) {
@@ -55,7 +57,7 @@ class _Clock extends ValueNotifier<DateTime?> {
   void removeListener(VoidCallback listener) {
     super.removeListener(listener);
     if (!hasListeners && _timer != null) {
-      _timer!.cancel();
+      _timer.cancel();
       _timer = null;
       value = null;
     }
@@ -80,6 +82,6 @@ class _Clock extends ValueNotifier<DateTime?> {
     //
     // By scheduling a new tick each time, we also ensure that we skip past any seconds that
     // we were too busy to service without increasing the load on the device.
-    _timer = Timer(Duration(milliseconds: 1000 - (value!.millisecondsSinceEpoch % 1000)), _tick);
+    _timer = Timer(Duration(milliseconds: 1000 - (value.millisecondsSinceEpoch % 1000)), _tick);
   }
 }

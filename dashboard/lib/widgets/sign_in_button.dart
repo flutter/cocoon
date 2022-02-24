@@ -16,11 +16,11 @@ enum _SignInButtonAction { logout }
 /// Otherwise, a sign in button will show.
 class SignInButton extends StatelessWidget {
   const SignInButton({
-    Key? key,
+    Key key,
     this.colorBrightness,
   }) : super(key: key);
 
-  final Brightness? colorBrightness;
+  final Brightness colorBrightness;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class SignInButton extends StatelessWidget {
               // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
               imageUrl: authService.user?.photoUrl,
               placeholder: Padding(
-                child: Text(authService.user!.email),
+                child: Text(authService.user.email),
                 padding: const EdgeInsets.only(right: 10.0, top: 20.0),
               ),
             ),

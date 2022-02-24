@@ -3,13 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
-
-import '../utils/fake_url_launcher.dart';
 
 void main() {
   group('LuciTaskAttemptSummary', () {
@@ -65,8 +63,11 @@ void main() {
     });
 
     testWidgets('opens expected luci log url', (WidgetTester tester) async {
-      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
 
       await tester.pumpWidget(
         MaterialApp(
@@ -86,13 +87,28 @@ void main() {
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
 
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, 'https://ci.chromium.org/p/flutter/builders/prod/Linux/123');
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': 'https://ci.chromium.org/p/flutter/builders/prod/Linux/123',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
 
     testWidgets('opens expected luci log url for when there are multiple tasks', (WidgetTester tester) async {
-      final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
 
       await tester.pumpWidget(
         MaterialApp(
@@ -112,8 +128,20 @@ void main() {
       await tester.tap(find.text('OPEN LOG FOR BUILD #456'));
       await tester.pump();
 
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456');
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
   });
 }

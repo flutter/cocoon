@@ -16,38 +16,38 @@ import 'mocks.dart';
 
 class FakeBuildState extends ChangeNotifier implements BuildState {
   FakeBuildState({
-    GoogleSignInService? authService,
-    CocoonService? cocoonService,
+    GoogleSignInService authService,
+    CocoonService cocoonService,
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
-    this.rerunTaskResult = false,
+    this.rerunTaskResult,
   })  : authService = authService ?? MockGoogleSignInService(),
         cocoonService = cocoonService ?? MockCocoonService();
 
   @override
-  late GoogleSignInService authService;
+  final GoogleSignInService authService;
 
   @override
   final CocoonService cocoonService;
 
   @override
-  Timer? refreshTimer;
+  Timer refreshTimer;
 
   @override
   final ErrorSink errors = ErrorSink();
 
   @override
-  bool? isTreeBuilding;
+  bool isTreeBuilding;
 
   @override
-  Duration? get refreshRate => null;
+  Duration get refreshRate => null;
 
   @override
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
   Future<bool> rerunTask(Task task) async => rerunTaskResult;
-  bool rerunTaskResult;
+  final bool rerunTaskResult;
 
   @override
   final List<CommitStatus> statuses;
@@ -56,7 +56,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   final bool moreStatusesExist;
 
   @override
-  Future<void>? fetchMoreCommitStatuses() => null;
+  Future<void> fetchMoreCommitStatuses() => null;
 
   @override
   List<String> get branches => <String>['master'];

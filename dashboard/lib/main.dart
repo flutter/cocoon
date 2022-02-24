@@ -55,7 +55,7 @@ void main([List<String> args = const <String>[]]) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
         BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
       },
       onGenerateRoute: (RouteSettings settings) {
-        final Uri uriData = Uri.parse(settings.name!);
+        final Uri uriData = Uri.parse(settings.name);
         if (uriData.path == BuildDashboardPage.routeName) {
           return MaterialPageRoute<void>(
               settings: RouteSettings(name: uriData.toString()),

@@ -3,24 +3,16 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/main.dart';
 import 'package:flutter_dashboard/navigation_drawer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-import 'utils/fake_url_launcher.dart';
 import 'utils/wrapper.dart';
 
 void main() {
   group('NavigationDrawer', () {
-    late FakeUrlLauncher urlLauncher;
-
-    setUp(() {
-      urlLauncher = FakeUrlLauncher();
-      UrlLauncherPlatform.instance = urlLauncher;
-    });
-
     testWidgets('lists all pages', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -65,6 +57,10 @@ void main() {
     });
 
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
@@ -76,11 +72,27 @@ void main() {
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();
 
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': 'https://flutter-engine-perf.skia.org/',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
 
     testWidgets('repository opens repository html url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
@@ -91,11 +103,27 @@ void main() {
       await tester.tap(find.text('Repository'));
       await tester.pump();
 
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, '/repository.html');
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': '/repository.html',
+            'useSafariVC': false,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+
       await tester.pumpWidget(
         const MaterialApp(
           home: NavigationDrawer(),
@@ -106,14 +134,26 @@ void main() {
       await tester.tap(find.text('Source Code'));
       await tester.pump();
 
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, 'https://github.com/flutter/cocoon');
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': 'https://github.com/flutter/cocoon',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
-      void test({required bool isHome}) {
+      void test({@required bool isHome}) {
         final ListTile home = tester.widget(find.ancestor(of: find.text('Home'), matching: find.byType(ListTile)));
         final ListTile build = tester.widget(find.ancestor(of: find.text('Build'), matching: find.byType(ListTile)));
         expect(home.selected, isHome);

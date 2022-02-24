@@ -23,7 +23,7 @@ void main() {
 
     const List<String> longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
 
-    Widget buildAuthors({required List<String> names, ThemeData? theme}) {
+    Widget buildAuthors({@required List<String> names, ThemeData theme}) {
       final List<Widget> avatars = names
           .map((String name) => CommitAuthorAvatar(
                 commit: Commit()..author = name,

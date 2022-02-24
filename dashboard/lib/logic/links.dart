@@ -24,29 +24,25 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
     ),
     CocoonLink(
-        name: 'Framework Benchmarks',
-        icon: const Icon(Icons.show_chart),
-        action: () {
-          launch('https://flutter-flutter-perf.skia.org/');
-        }),
+      name: 'Framework Benchmarks',
+      icon: const Icon(Icons.show_chart),
+      action: () => launch('https://flutter-flutter-perf.skia.org/'),
+    ),
     CocoonLink(
-        name: 'Engine Benchmarks',
-        icon: const Icon(Icons.show_chart),
-        action: () {
-          launch('https://flutter-engine-perf.skia.org/');
-        }),
+      name: 'Engine Benchmarks',
+      icon: const Icon(Icons.show_chart),
+      action: () => launch('https://flutter-engine-perf.skia.org/'),
+    ),
     CocoonLink(
-        name: 'Repository',
-        icon: const Icon(Icons.info_outline),
-        action: () {
-          launch('/repository.html');
-        }),
+      name: 'Repository',
+      icon: const Icon(Icons.info_outline),
+      action: () => launch('/repository.html'),
+    ),
     CocoonLink(
-        name: 'Source Code',
-        icon: const Icon(Icons.code),
-        action: () {
-          launch('https://github.com/flutter/cocoon');
-        }),
+      name: 'Source Code',
+      icon: const Icon(Icons.code),
+      action: () => launch('https://github.com/flutter/cocoon'),
+    ),
   ];
 }
 
@@ -60,16 +56,16 @@ class CocoonLink {
   });
 
   /// Text shown to users describing this link.
-  final String? name;
+  final String name;
 
   /// If the link is internal to this Flutter app, this can be passed to highlight on the [NavigationDrawer] the page the user is on.
-  final String? route;
+  final String route;
 
   /// An [Icon] to represent this link.
-  final Icon? icon;
+  final Icon icon;
 
   /// Callback for when the link is activated.
   ///
   /// Can be used to redirect to internal or external routes. Will have acess to the [BuildContext].
-  final void Function()? action;
+  final Function action;
 }

@@ -14,14 +14,14 @@ typedef AsyncVoidCallback = Future<void> Function();
 /// to Sunday but...
 class ProgressButton extends StatefulWidget {
   const ProgressButton({
-    Key? key,
+    Key key,
     this.child,
     this.onPressed,
   }) : super(key: key);
 
-  final Widget? child;
+  final Widget child;
 
-  final AsyncVoidCallback? onPressed;
+  final AsyncVoidCallback onPressed;
 
   @override
   State<ProgressButton> createState() => _ProgressButtonState();
@@ -37,7 +37,7 @@ class _ProgressButtonState extends State<ProgressButton> {
     setState(() {
       _busy = true;
     });
-    widget.onPressed!().whenComplete(() {
+    widget.onPressed().whenComplete(() {
       if (mounted) {
         setState(() {
           _busy = false;

@@ -14,16 +14,16 @@ import 'web_image.dart';
 /// from the avatar's name.
 class CommitAuthorAvatar extends StatelessWidget {
   const CommitAuthorAvatar({
-    Key? key,
+    Key key,
     this.commit,
   }) : super(key: key);
 
-  final Commit? commit;
+  final Commit commit;
 
   @override
   Widget build(BuildContext context) {
-    assert(commit!.author.isNotEmpty);
-    final String authorName = commit!.author;
+    assert(commit.author.isNotEmpty);
+    final String authorName = commit.author;
     final String authorInitial = authorName.substring(0, 1).toUpperCase();
     final int authorHash = authorName.hashCode;
     final ThemeData theme = Theme.of(context);
@@ -46,7 +46,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     );
 
     return WebImage(
-      imageUrl: commit!.authorAvatarUrl,
+      imageUrl: commit.authorAvatarUrl,
       placeholder: avatar,
     );
   }

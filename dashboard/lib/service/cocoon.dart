@@ -32,15 +32,15 @@ abstract class CocoonService {
   /// If [lastCommitStatus] is given, it will return the next page of
   /// [List<CommitStatus>] after [lastCommitStatus], not including it.
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
-    CommitStatus? lastCommitStatus,
-    String? branch,
-    required String repo,
+    CommitStatus lastCommitStatus,
+    String branch,
+    String repo,
   });
 
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
-    String? branch,
-    required String repo,
+    String branch,
+    String repo,
   });
 
   /// Get the current list of version branches in flutter/flutter.
@@ -52,7 +52,7 @@ abstract class CocoonService {
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.
-  Future<bool> rerunTask(Task task, String? idToken, String repo);
+  Future<bool> rerunTask(Task task, String idToken, String repo);
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);
@@ -67,10 +67,10 @@ class CocoonResponse<T> {
   const CocoonResponse.error(this.error) : data = null;
 
   /// The data that gets used from [CocoonService].
-  final T? data;
+  final T data;
 
   /// Error information that can be used for debugging.
-  final String? error;
+  final String error;
 }
 
 /// This must be kept up to date with what's in app_dart/lib/src/service/config.dart.

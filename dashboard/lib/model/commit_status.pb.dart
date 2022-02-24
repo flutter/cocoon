@@ -9,24 +9,24 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'commit.pb.dart' as $0;
-import 'task.pb.dart' as $1;
+import 'commit.pb.dart' as $1;
+import 'task.pb.dart' as $2;
 
 class CommitStatus extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'CommitStatus',
       createEmptyInstance: create)
-    ..aOM<$0.Commit>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commit',
-        subBuilder: $0.Commit.create)
-    ..pc<$1.Task>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tasks', $pb.PbFieldType.PM,
-        subBuilder: $1.Task.create)
+    ..aOM<$1.Commit>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'commit',
+        subBuilder: $1.Commit.create)
+    ..pc<$2.Task>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tasks', $pb.PbFieldType.PM,
+        subBuilder: $2.Task.create)
     ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'branch')
     ..hasRequiredFields = false;
 
   CommitStatus._() : super();
   factory CommitStatus({
-    $0.Commit? commit,
-    $core.Iterable<$1.Task>? tasks,
+    $1.Commit? commit,
+    $core.Iterable<$2.Task>? tasks,
     $core.String? branch,
   }) {
     final _result = create();
@@ -64,9 +64,9 @@ class CommitStatus extends $pb.GeneratedMessage {
   static CommitStatus? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.Commit get commit => $_getN(0);
+  $1.Commit get commit => $_getN(0);
   @$pb.TagNumber(1)
-  set commit($0.Commit v) {
+  set commit($1.Commit v) {
     setField(1, v);
   }
 
@@ -75,10 +75,10 @@ class CommitStatus extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearCommit() => clearField(1);
   @$pb.TagNumber(1)
-  $0.Commit ensureCommit() => $_ensure(0);
+  $1.Commit ensureCommit() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $core.List<$1.Task> get tasks => $_getList(1);
+  $core.List<$2.Task> get tasks => $_getList(1);
 
   @$pb.TagNumber(3)
   $core.String get branch => $_getSZ(2);

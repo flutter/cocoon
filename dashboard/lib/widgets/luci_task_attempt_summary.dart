@@ -13,8 +13,8 @@ import '../model/task.pb.dart';
 /// for a Task.
 class LuciTaskAttemptSummary extends StatelessWidget {
   const LuciTaskAttemptSummary({
-    Key? key,
-    required this.task,
+    Key key,
+    this.task,
   }) : super(key: key);
 
   /// The task to show information from.
@@ -29,10 +29,9 @@ class LuciTaskAttemptSummary extends StatelessWidget {
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
-            child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-            onPressed: () {
-              launch(_luciProdLogUrl(task.builderName, buildNumberList[i]));
-            });
+          child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
+          onPressed: () => launch(_luciProdLogUrl(task.builderName, buildNumberList[i])),
+        );
       }),
     );
   }

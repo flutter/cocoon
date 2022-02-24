@@ -25,7 +25,7 @@ final Widget testApp = MaterialApp(
 );
 
 void main() {
-  late GoogleSignInService mockAuthService;
+  GoogleSignInService mockAuthService;
 
   setUp(() {
     mockAuthService = MockGoogleSignInService();
@@ -39,7 +39,7 @@ void main() {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<GoogleSignInService>(
         value: mockAuthService,
         child: testApp,
       ),
@@ -56,7 +56,7 @@ void main() {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<GoogleSignInService>(
         value: mockAuthService,
         child: testApp,
       ),
@@ -78,7 +78,7 @@ void main() {
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<GoogleSignInService>(
         value: mockAuthService,
         child: testApp,
       ),
@@ -100,7 +100,7 @@ void main() {
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<GoogleSignInService>(
         value: mockAuthService,
         child: testApp,
       ),

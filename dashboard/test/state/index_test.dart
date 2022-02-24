@@ -13,12 +13,8 @@ import '../utils/mocks.dart';
 
 void main() {
   testWidgets('IndexState sign in functions call notify listener', (WidgetTester tester) async {
-    final MockGoogleSignIn mockSignInPlugin = MockGoogleSignIn();
-    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
-    when(mockSignInPlugin.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    when(mockSignInPlugin.signOut()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-
+    final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
+    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
     final IndexState indexState = IndexState(authService: signInService);
 

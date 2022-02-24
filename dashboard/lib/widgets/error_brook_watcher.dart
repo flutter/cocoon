@@ -14,14 +14,14 @@ import '../logic/brooks.dart';
 /// are displayed as [SnackBar]s on the nearest [Scaffold].
 class ErrorBrookWatcher extends StatefulWidget {
   const ErrorBrookWatcher({
-    Key? key,
+    Key key,
     this.errors,
     this.child,
   }) : super(key: key);
 
-  final Brook<String>? errors;
+  final Brook<String> errors;
 
-  final Widget? child;
+  final Widget child;
 
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
@@ -34,21 +34,21 @@ class _ErrorBrookWatcherState extends State<ErrorBrookWatcher> {
   @override
   void initState() {
     super.initState();
-    widget.errors!.addListener(_showErrorSnackbar);
+    widget.errors.addListener(_showErrorSnackbar);
   }
 
   @override
   void didUpdateWidget(ErrorBrookWatcher oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.errors != oldWidget.errors) {
-      oldWidget.errors!.removeListener(_showErrorSnackbar);
-      widget.errors!.addListener(_showErrorSnackbar);
+      oldWidget.errors.removeListener(_showErrorSnackbar);
+      widget.errors.addListener(_showErrorSnackbar);
     }
   }
 
   @override
   void dispose() {
-    widget.errors!.removeListener(_showErrorSnackbar);
+    widget.errors.removeListener(_showErrorSnackbar);
     super.dispose();
   }
 
@@ -71,6 +71,6 @@ class _ErrorBrookWatcherState extends State<ErrorBrookWatcher> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return widget.child;
   }
 }

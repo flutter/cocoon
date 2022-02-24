@@ -20,7 +20,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import 'utils/fake_build.dart';
-import 'utils/fake_google_account.dart';
 import 'utils/golden.dart';
 import 'utils/mocks.dart';
 import 'utils/output.dart';
@@ -28,33 +27,29 @@ import 'utils/task_icons.dart';
 
 void main() {
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-  late MockGoogleSignInService fakeAuthService;
 
   setUp(() {
     binding.window.physicalSizeTestValue = const Size(1000, 2000);
-    fakeAuthService = MockGoogleSignInService();
-    when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
-    when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
   });
 
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    final MockCocoonService fakeCocoonService = MockCocoonService();
-    throwOnMissingStub(fakeCocoonService);
-    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(fakeCocoonService.fetchCommitStatuses(
+    final BuildState buildState = BuildState(
+      cocoonService: MockCocoonService(),
+      authService: MockGoogleSignInService(),
+    );
+
+    throwOnMissingStub(buildState.cocoonService as Mock);
+    when(buildState.cocoonService.fetchFlutterBranches())
+        .thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(buildState.cocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(buildState.cocoonService.fetchCommitStatuses(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(fakeCocoonService.fetchTreeBuildStatus(
+    when(buildState.cocoonService.fetchTreeBuildStatus(
       branch: anyNamed('branch'),
       repo: anyNamed('repo'),
     )).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
-
-    final BuildState buildState = BuildState(
-      cocoonService: fakeCocoonService,
-      authService: fakeAuthService,
-    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -74,7 +69,7 @@ void main() {
   });
 
   testWidgets('shows settings button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -92,7 +87,7 @@ void main() {
   });
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -119,7 +114,7 @@ void main() {
   });
 
   testWidgets('shows branch and repo dropdown button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -144,7 +139,7 @@ void main() {
   });
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -166,9 +161,7 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = null
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -190,9 +183,7 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = null
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -215,9 +206,7 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = false
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -239,9 +228,7 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = false
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -264,9 +251,7 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = true
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -288,9 +273,7 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
-    final BuildState fakeBuildState = FakeBuildState()
-      ..isTreeBuilding = true
-      ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -313,10 +296,8 @@ void main() {
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
-    String? lastError;
-    final FakeBuildState buildState = FakeBuildState()
-      ..errors.addListener((String message) => lastError = message)
-      ..authService = fakeAuthService;
+    String lastError;
+    final FakeBuildState buildState = FakeBuildState()..errors.addListener((String message) => lastError = message);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -330,7 +311,7 @@ void main() {
       ),
     );
 
-    expect(lastError, isNull);
+    expect(find.text(lastError), findsNothing);
 
     // propagate the error message
     await checkOutput(
@@ -345,21 +326,21 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
-    expect(find.text(lastError!), findsOneWidget);
+    expect(find.text(lastError), findsOneWidget);
 
     // Snackbar message should go away after its duration
     await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(find.text(lastError!), findsNothing);
+    expect(find.text(lastError), findsNothing);
   });
 
   testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
-      authService: fakeAuthService,
+      authService: MockGoogleSignInService(),
     );
     void listener1() {}
     buildState.addListener(listener1);
@@ -390,7 +371,7 @@ void main() {
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
-      authService: fakeAuthService,
+      authService: MockGoogleSignInService(),
     );
     void listener1() {}
     buildState.addListener(listener1);

@@ -3,12 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 
 void main() {
@@ -80,8 +79,11 @@ void main() {
 
   testWidgets('tapping sha in CommitBox redirects to GitHub', (WidgetTester tester) async {
     // The url_launcher calls get logged in this channel
-    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
-    UrlLauncherPlatform.instance = urlLauncher;
+    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+    final List<MethodCall> log = <MethodCall>[];
+    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+      log.add(methodCall);
+    });
 
     await tester.pumpWidget(basicApp);
 
@@ -93,7 +95,19 @@ void main() {
     await tester.tap(find.byType(Hyperlink));
     await tester.pump();
 
-    expect(urlLauncher.launches, isNotEmpty);
-    expect(urlLauncher.launches.single, 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}');
+    expect(
+      log,
+      <Matcher>[
+        isMethodCall('launch', arguments: <String, Object>{
+          'url': 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
+          'useSafariVC': true,
+          'useWebView': false,
+          'enableJavaScript': false,
+          'enableDomStorage': false,
+          'universalLinksOnly': false,
+          'headers': <String, String>{}
+        })
+      ],
+    );
   });
 }

@@ -11,7 +11,7 @@ import '../service/google_authentication.dart';
 class IndexState extends ChangeNotifier {
   /// Creates a new [IndexState].
   IndexState({
-    required this.authService,
+    this.authService,
   }) {
     authService.addListener(notifyListeners);
   }

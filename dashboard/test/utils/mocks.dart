@@ -6,18 +6,12 @@ import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart';
-import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
-export 'mocks.mocks.dart';
+class MockCocoonService extends Mock implements CocoonService {}
 
-@GenerateMocks(
-  <Type>[
-    Client,
-    CocoonService,
-    BuildState,
-    GoogleSignIn,
-    GoogleSignInService,
-  ],
-)
-void main() {}
+class MockBuildState extends Mock implements BuildState {}
+
+class MockGoogleSignInPlugin extends Mock implements GoogleSignIn {}
+
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}

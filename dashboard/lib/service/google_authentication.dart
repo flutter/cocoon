@@ -12,12 +12,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// to prevent this service from crashing.
 class GoogleSignInService extends ChangeNotifier {
   /// Creates a new [GoogleSignIn].
-  GoogleSignInService({GoogleSignIn? googleSignIn})
+  GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: _googleScopes,
             ) {
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? accountValue) {
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount accountValue) {
       user = accountValue;
       notifyListeners();
     });
@@ -61,7 +61,7 @@ class GoogleSignInService extends ChangeNotifier {
   /// The Google Account for the signed in user, null if no user is signed in.
   ///
   /// Read only object with only access to clear client auth tokens.
-  GoogleSignInAccount? user;
+  GoogleSignInAccount user;
 
   /// Authentication token to be sent to Cocoon Backend to verify API calls.
   ///
@@ -72,8 +72,8 @@ class GoogleSignInService extends ChangeNotifier {
       await signIn();
     }
 
-    final String idToken = (await user?.authentication.then((GoogleSignInAuthentication key) => key.idToken!))!;
-    assert(idToken.isNotEmpty);
+    final String idToken = await user?.authentication?.then((GoogleSignInAuthentication key) => key.idToken);
+    assert(idToken != null && idToken.isNotEmpty);
 
     return idToken;
   }

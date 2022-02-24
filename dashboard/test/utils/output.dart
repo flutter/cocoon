@@ -19,14 +19,14 @@ typedef AsyncVoidCallback = Future<void> Function();
 ///
 /// This method must be `await`ed.
 Future<void> checkOutput({
-  required AsyncVoidCallback block,
+  @required AsyncVoidCallback block,
   List<String> output = const <String>[],
 }) =>
     TestAsyncUtils.guard(() async {
       final DebugPrintCallback originalDebugPrint = debugPrint;
       final List<String> log = <String>[];
-      debugPrint = (String? message, {int? wrapWidth}) {
-        log.addAll(message!.split('\n'));
+      debugPrint = (String message, {int wrapWidth}) {
+        log.addAll(message.split('\n'));
       };
       try {
         await block();

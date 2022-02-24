@@ -19,8 +19,8 @@ import '../service/google_authentication.dart';
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
   BuildState({
-    required this.cocoonService,
-    required this.authService,
+    @required this.cocoonService,
+    @required this.authService,
   }) {
     authService.addListener(notifyListeners);
   }
@@ -29,7 +29,7 @@ class BuildState extends ChangeNotifier {
   final CocoonService cocoonService;
 
   /// Authentication service for managing Google Sign In.
-  GoogleSignInService authService;
+  final GoogleSignInService authService;
 
   /// Recent branches for flutter related to releases.
   List<String> get branches => _branches;
@@ -52,8 +52,8 @@ class BuildState extends ChangeNotifier {
   List<CommitStatus> _statuses = <CommitStatus>[];
 
   /// Whether or not flutter/flutter currently passes tests.
-  bool? get isTreeBuilding => _isTreeBuilding;
-  bool? _isTreeBuilding;
+  bool get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding;
 
   List<String> get failingTasks => _failingTasks;
   List<String> _failingTasks = <String>[];
@@ -85,12 +85,12 @@ class BuildState extends ChangeNotifier {
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
-  final Duration? refreshRate = const Duration(seconds: 30);
+  final Duration refreshRate = const Duration(seconds: 30);
 
   /// Timer that calls [_fetchStatusUpdates] on a set interval.
   @visibleForTesting
   @protected
-  Timer? refreshTimer;
+  Timer refreshTimer;
 
   // There's no way to cancel futures in the standard library so instead we just track
   // if we've been disposed, and if so, we drop everything on the floor.
@@ -120,7 +120,7 @@ class BuildState extends ChangeNotifier {
     _fetchBranches();
     _fetchRepos();
     _fetchStatusUpdates();
-    refreshTimer = Timer.periodic(refreshRate!, _fetchStatusUpdates);
+    refreshTimer = Timer.periodic(refreshRate, _fetchStatusUpdates);
   }
 
   /// Request the latest [branches] from [CocoonService].
@@ -130,7 +130,7 @@ class BuildState extends ChangeNotifier {
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
     } else {
-      _branches = response.data!;
+      _branches = response.data;
       notifyListeners();
     }
   }
@@ -141,7 +141,7 @@ class BuildState extends ChangeNotifier {
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');
     } else {
-      _repos = response.data!;
+      _repos = response.data;
       notifyListeners();
     }
   }
@@ -149,7 +149,7 @@ class BuildState extends ChangeNotifier {
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   ///
   /// If fetched [statuses] is not on the current branch it will be discarded.
-  Future<void> _fetchStatusUpdates([Timer? timer]) async {
+  Future<void> _fetchStatusUpdates([Timer timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
@@ -164,7 +164,7 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _mergeRecentCommitStatusesWithStoredStatuses(response.data!);
+          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
           notifyListeners();
         }
       }(),
@@ -183,8 +183,8 @@ class BuildState extends ChangeNotifier {
           // No-op as the dashboard shouldn't update with old data
           return;
         } else {
-          _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
-          _failingTasks = response.data!.failingTasks;
+          _isTreeBuilding = response.data.buildStatus == EnumBuildStatus.success;
+          _failingTasks = response.data.failingTasks;
           notifyListeners();
         }
       }(),
@@ -289,19 +289,19 @@ class BuildState extends ChangeNotifier {
     return -1;
   }
 
-  Future<void>? _moreStatuses;
+  Future<void> _moreStatuses;
 
   /// When the user reaches the end of [statuses], we load more from Cocoon
   /// to create an infinite scroll effect.
   ///
   /// This method is idempotent (calling it when it's already running will
   /// just return the same Future without kicking off more work).
-  Future<void>? fetchMoreCommitStatuses() {
+  Future<void> fetchMoreCommitStatuses() {
     if (_moreStatuses != null) {
       return _moreStatuses;
     }
     _moreStatuses = _fetchMoreCommitStatusesInternal();
-    _moreStatuses!.whenComplete(() {
+    _moreStatuses.whenComplete(() {
       _moreStatuses = null;
     });
     return _moreStatuses;
@@ -322,7 +322,7 @@ class BuildState extends ChangeNotifier {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
     }
-    final List<CommitStatus> newStatuses = response.data!;
+    final List<CommitStatus> newStatuses = response.data;
 
     /// Handle the case where release branches only have a few commits.
     if (newStatuses.isEmpty) {

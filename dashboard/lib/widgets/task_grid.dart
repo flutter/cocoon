@@ -23,13 +23,13 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key? key, this.filter, this.useAnimatedLoading = false}) : super(key: key);
+  const TaskGridContainer({Key key, this.filter, this.useAnimatedLoading = false}) : super(key: key);
 
   /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
   /// rows and columns of the task grid. This filter may be updated dynamically through
   /// this notifier from elsewhere if the user starts editing the filter parameters in
   /// the settings dialog.
-  final TaskGridFilter? filter;
+  final TaskGridFilter filter;
 
   final bool useAnimatedLoading;
 
@@ -45,7 +45,7 @@ class TaskGridContainer extends StatelessWidget {
     final BuildState buildState = Provider.of<BuildState>(context);
     return AnimatedBuilder(
       animation: buildState,
-      builder: (BuildContext context, Widget? child) {
+      builder: (BuildContext context, Widget child) {
         final List<CommitStatus> commitStatuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
@@ -72,11 +72,11 @@ class TaskGridContainer extends StatelessWidget {
 /// are the results from tasks.
 class TaskGrid extends StatefulWidget {
   const TaskGrid({
-    Key? key,
+    Key key,
     // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
-    required this.buildState,
-    required this.commitStatuses,
+    @required this.buildState,
+    @required this.commitStatuses,
     this.filter,
     this.useAnimatedLoading = false,
   }) : super(key: key);
@@ -92,7 +92,7 @@ class TaskGrid extends StatefulWidget {
   /// A [TaskGridFilter] object to control the visibility of various rows and columns of
   /// the task grid. This filter may be updated dynamically from elsewhere if the user
   /// starts editing the filter parameters in the settings dialog.
-  final TaskGridFilter? filter;
+  final TaskGridFilter filter;
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
@@ -103,8 +103,8 @@ class _TaskGridState extends State<TaskGrid> {
   // lattice matrix each time the task grid has to update, regardless of whether
   // we've received new data or not.
 
-  ScrollController? verticalController;
-  ScrollController? horizontalController;
+  ScrollController verticalController;
+  ScrollController horizontalController;
 
   @override
   void initState() {
@@ -195,11 +195,11 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter? filter]) {
+  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
     final List<CommitStatus> filteredStatuses =
-        commitStatuses.where((CommitStatus commitStatus) => filter!.matchesCommit(commitStatus)).toList();
+        commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
     final List<_Row> rows =
         filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
@@ -223,8 +223,8 @@ class _TaskGridState extends State<TaskGrid> {
           }
           // Make the score relative to how long ago it was run.
           final double score = _statusScores.containsKey(weightStatus)
-              ? _statusScores[weightStatus]! / commitCount
-              : _statusScores['Unknown']! / commitCount;
+              ? _statusScores[weightStatus] / commitCount
+              : _statusScores['Unknown'] / commitCount;
           scores.update(
             qualifiedTask,
             (double value) => value += score,
@@ -249,16 +249,16 @@ class _TaskGridState extends State<TaskGrid> {
     // 3: SORT
     final List<QualifiedTask> tasks = scores.keys.toList()
       ..sort((QualifiedTask a, QualifiedTask b) {
-        final int scoreComparison = scores[b]!.compareTo(scores[a]!);
+        final int scoreComparison = scores[b].compareTo(scores[a]);
         if (scoreComparison != 0) {
           return scoreComparison;
         }
         // If the scores are identical, break ties on the name of the task.
         // We do that because otherwise the sort order isn't stable.
         if (a.stage != b.stage) {
-          return a.stage!.compareTo(b.stage!);
+          return a.stage.compareTo(b.stage);
         }
-        return a.task!.compareTo(b.task!);
+        return a.task.compareTo(b.task);
       });
     // 4: GENERATE RESULTING LIST OF LISTS
     return <List<LatticeCell>>[
@@ -283,7 +283,7 @@ class _TaskGridState extends State<TaskGrid> {
   Painter _painterFor(Task task) {
     final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
     final Paint paint = Paint()
-      ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status]! : Colors.black;
+      ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status] : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -299,7 +299,7 @@ class _TaskGridState extends State<TaskGrid> {
     };
   }
 
-  WidgetBuilder? _builderFor(Task task) {
+  WidgetBuilder _builderFor(Task task) {
     if (task.attempts > 1 || task.isTestFlaky) {
       return (BuildContext context) => const Padding(
             padding: EdgeInsets.all(4.0),
@@ -344,15 +344,15 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  OverlayEntry? _taskOverlay;
+  OverlayEntry _taskOverlay;
 
   LatticeTapCallback _tapHandlerFor(Commit commit, Task task) {
-    return (Offset? localPosition) {
+    return (Offset localPosition) {
       _taskOverlay?.remove();
       _taskOverlay = OverlayEntry(
         builder: (BuildContext context) => TaskOverlayEntry(
           position: (this.context.findRenderObject() as RenderBox)
-              .localToGlobal(localPosition!, ancestor: Overlay.of(context)!.context.findRenderObject()),
+              .localToGlobal(localPosition, ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
           showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
           closeCallback: _closeOverlay,
@@ -360,12 +360,12 @@ class _TaskGridState extends State<TaskGrid> {
           commit: commit,
         ),
       );
-      Overlay.of(context)!.insert(_taskOverlay!);
+      Overlay.of(context).insert(_taskOverlay);
     };
   }
 
   void _closeOverlay() {
-    _taskOverlay!.remove();
+    _taskOverlay.remove();
     _taskOverlay = null;
   }
 }

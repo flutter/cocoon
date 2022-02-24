@@ -30,9 +30,9 @@ class QualifiedTask {
         task = task.builderName,
         pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod';
 
-  final String? pool;
-  final String? stage;
-  final String? task;
+  final String pool;
+  final String stage;
+  final String task;
 
   /// Get the URL for the configuration of this task.
   ///
@@ -82,7 +82,7 @@ class QualifiedTask {
 ///
 /// Cirrus logs are located via their [Commit.sha].
 /// Otherwise, we can redirect to the LUCI build page for [Task].
-String logUrl(Task task, {Commit? commit}) {
+String logUrl(Task task, {Commit commit}) {
   if (task.stageName == StageName.cirrus) {
     if (commit != null) {
       return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
