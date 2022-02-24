@@ -167,7 +167,9 @@ class AppEngineCocoonService implements CocoonService {
 
     final bool success = response.statusCode == HttpStatus.ok;
     return success
-        ? const CocoonResponse<bool>.data(true)
+        ? response.body.isEmpty
+            ? const CocoonResponse<bool>.error('can not rerun task that has succeeded')
+            : const CocoonResponse<bool>.data(true)
         : CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
   }
 
