@@ -124,6 +124,28 @@ void main() {
         expect(task.status, Task.statusInProgress);
       });
 
+      test('does not duplicate build numbers on multiple messages', () {
+        final Build build = generatePushMessageBuild(
+          1,
+          status: Status.started,
+        );
+        final Task task = generateTask(
+          1,
+          buildNumber: 1,
+          status: Task.statusSucceeded,
+        );
+
+        expect(task.buildNumber, 1);
+        expect(task.buildNumberList, '1');
+        expect(task.status, Task.statusSucceeded);
+
+        task.updateFromBuild(build);
+
+        expect(task.buildNumber, 1);
+        expect(task.buildNumberList, '1');
+        expect(task.status, Task.statusSucceeded);
+      });
+
       test('does not update status if older status', () {
         final Build build = generatePushMessageBuild(
           1,
