@@ -51,8 +51,7 @@ void main() {
   test('QualifiedTask.sourceConfigurationUrl for frob', () {
     final Task frobTask = Task()..stageName = 'frob';
 
-    expect(QualifiedTask.fromTask(frobTask).sourceConfigurationUrl,
-        'https://flutter-rob.corp.google.com');
+    expect(QualifiedTask.fromTask(frobTask).sourceConfigurationUrl, 'https://flutter-rob.corp.google.com');
   });
 
   test('QualifiedTask.isLuci', () {
