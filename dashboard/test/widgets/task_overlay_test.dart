@@ -9,8 +9,10 @@ import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
+import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
@@ -374,7 +376,7 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
+  testWidgets('failed rerun shows errorBrook snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = StageName.luci
@@ -383,26 +385,32 @@ void main() {
       ..isFlaky = false
       ..status = TaskBox.statusNew;
 
+    final FakeBuildState buildState = FakeBuildState(rerunTaskResult: false);
+
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: false),
-              task: expectedTask,
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: Scaffold(
+              body: ErrorBrookWatcher(
+                errors: buildState.errors,
+                child: TestGrid(
+                  buildState: buildState,
+                  task: expectedTask,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
 
-    // Open the overlay
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    // await tester.tap(find.byType(LatticeCell));
+    // await tester.tap(find.byType(TaskOverlayContents));
     await tester.pump();
-
-    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
-    expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Click the rerun task button
     await tester.tap(find.text('RERUN'));
@@ -413,7 +421,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Snackbar message should go away after its duration
-    await tester.pump(TaskOverlayContents.rerunSnackBarDuration);
+    await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
+    await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);

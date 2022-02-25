@@ -145,8 +145,10 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String? idToken, String repo) async {
-    assert(idToken != null);
+  Future<CocoonResponse<bool>> rerunTask(Task task, String? idToken, String repo) async {
+    if (idToken == null || idToken.isEmpty) {
+      return const CocoonResponse<bool>.error('Sign in to trigger reruns');
+    }
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
     assert(qualifiedTask.isLuci);
@@ -155,14 +157,18 @@ class AppEngineCocoonService implements CocoonService {
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
-          'X-Flutter-IdToken': idToken!,
+          'X-Flutter-IdToken': idToken,
         },
-        body: jsonEncode(<String, String?>{
+        body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
           'Repo': repo,
         }));
 
-    return response.statusCode == HttpStatus.ok;
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse<bool>.data(true);
+    }
+
+    return CocoonResponse<bool>.error('HTTP Code: ${response.statusCode}, ${response.body}');
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

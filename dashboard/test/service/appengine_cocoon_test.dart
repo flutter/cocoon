@@ -143,18 +143,32 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), true);
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      expect(response.error, isNull);
     });
 
-    test('should return false if request failed', () async {
+    test('should set error in response if task key is null', () async {
+      final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine');
+      expect(
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('Sign in to trigger reruns'),
+          ]));
+    });
+
+    test('should set error in response if bad status code is returned', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 500);
+        return Response('internal server error', 500);
       }));
-      expect(await service.rerunTask(task, 'fakeAccessToken', 'engine'), false);
-    });
 
-    test('should return false if task key is null', () async {
-      expect(service.rerunTask(task, null, ''), throwsA(const TypeMatcher<AssertionError>()));
+      final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
+      expect(
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('HTTP Code: 500, internal server error'),
+          ]));
     });
   });
 

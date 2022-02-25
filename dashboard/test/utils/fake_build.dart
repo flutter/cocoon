@@ -11,6 +11,7 @@ import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
 import 'mocks.dart';
 
@@ -46,8 +47,15 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async => rerunTaskResult;
-  bool rerunTaskResult;
+  Future<bool> rerunTask(Task task) async {
+    if (!rerunTaskResult) {
+      errors.send(TaskOverlayContents.rerunErrorMessage);
+      return false;
+    }
+    return true;
+  }
+
+  final bool rerunTaskResult;
 
   @override
   final List<CommitStatus> statuses;

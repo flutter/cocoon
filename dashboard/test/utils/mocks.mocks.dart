@@ -36,9 +36,11 @@ class _FakeStreamedResponse_1 extends _i1.Fake implements _i3.StreamedResponse {
 
 class _FakeCocoonResponse_2<T> extends _i1.Fake implements _i4.CocoonResponse<T> {}
 
-class _FakeGoogleSignInService_3 extends _i1.Fake implements _i5.GoogleSignInService {}
+class _FakeCocoonService_3 extends _i1.Fake implements _i4.CocoonService {}
 
-class _FakeBrook_4<T> extends _i1.Fake implements _i6.Brook<T> {}
+class _FakeGoogleSignInService_4 extends _i1.Fake implements _i5.GoogleSignInService {}
+
+class _FakeBrook_5<T> extends _i1.Fake implements _i6.Brook<T> {}
 
 /// A class which mocks [Client].
 ///
@@ -123,9 +125,10 @@ class MockCocoonService extends _i1.Mock implements _i4.CocoonService {
           returnValue: Future<_i4.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>()))
       as _i8.Future<_i4.CocoonResponse<List<String>>>);
   @override
-  _i8.Future<bool> rerunTask(_i14.Task? task, String? idToken, String? repo) =>
-      (super.noSuchMethod(Invocation.method(#rerunTask, [task, idToken, repo]), returnValue: Future<bool>.value(false))
-          as _i8.Future<bool>);
+  _i8.Future<_i4.CocoonResponse<bool>> rerunTask(_i14.Task? task, String? idToken, String? repo) =>
+      (super.noSuchMethod(Invocation.method(#rerunTask, [task, idToken, repo]),
+              returnValue: Future<_i4.CocoonResponse<bool>>.value(_FakeCocoonResponse_2<bool>()))
+          as _i8.Future<_i4.CocoonResponse<bool>>);
   @override
   _i8.Future<bool> vacuumGitHubCommits(String? idToken) =>
       (super.noSuchMethod(Invocation.method(#vacuumGitHubCommits, [idToken]), returnValue: Future<bool>.value(false))
@@ -143,8 +146,11 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   }
 
   @override
+  _i4.CocoonService get cocoonService =>
+      (super.noSuchMethod(Invocation.getter(#cocoonService), returnValue: _FakeCocoonService_3()) as _i4.CocoonService);
+  @override
   _i5.GoogleSignInService get authService =>
-      (super.noSuchMethod(Invocation.getter(#authService), returnValue: _FakeGoogleSignInService_3())
+      (super.noSuchMethod(Invocation.getter(#authService), returnValue: _FakeGoogleSignInService_4())
           as _i5.GoogleSignInService);
   @override
   set authService(_i5.GoogleSignInService? _authService) =>
@@ -153,7 +159,14 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   set refreshTimer(_i8.Timer? _refreshTimer) =>
       super.noSuchMethod(Invocation.setter(#refreshTimer, _refreshTimer), returnValueForMissingStub: null);
   @override
+  List<String> get branches =>
+      (super.noSuchMethod(Invocation.getter(#branches), returnValue: <String>[]) as List<String>);
+  @override
+  String get currentBranch => (super.noSuchMethod(Invocation.getter(#currentBranch), returnValue: '') as String);
+  @override
   String get currentRepo => (super.noSuchMethod(Invocation.getter(#currentRepo), returnValue: '') as String);
+  @override
+  List<String> get repos => (super.noSuchMethod(Invocation.getter(#repos), returnValue: <String>[]) as List<String>);
   @override
   List<_i12.CommitStatus> get statuses =>
       (super.noSuchMethod(Invocation.getter(#statuses), returnValue: <_i12.CommitStatus>[]) as List<_i12.CommitStatus>);
@@ -164,7 +177,7 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   bool get moreStatusesExist => (super.noSuchMethod(Invocation.getter(#moreStatusesExist), returnValue: false) as bool);
   @override
   _i6.Brook<String> get errors =>
-      (super.noSuchMethod(Invocation.getter(#errors), returnValue: _FakeBrook_4<String>()) as _i6.Brook<String>);
+      (super.noSuchMethod(Invocation.getter(#errors), returnValue: _FakeBrook_5<String>()) as _i6.Brook<String>);
   @override
   bool get hasListeners => (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false) as bool);
   @override
