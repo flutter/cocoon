@@ -25,10 +25,8 @@ class GithubWebhook {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey('pull_request')) {
-      return Response.notFound(
-        rawBody,
-      );
+    if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
+      return Response.ok(jsonEncode(<String, String>{}));
     }
 
     PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
