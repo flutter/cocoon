@@ -26,6 +26,9 @@ void main() {
         'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master');
 
     expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
+
+    final Task googleTestTask = Task()..stageName = 'google_internal';
+    expect(logUrl(googleTestTask), 'https://flutter-rob.corp.google.com');
   });
 
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
@@ -45,10 +48,17 @@ void main() {
         'https://cirrus-ci.com/github/flutter/flutter/master');
   });
 
+  test('QualifiedTask.sourceConfigurationUrl for google test', () {
+    final Task googleTestTask = Task()..stageName = 'google_internal';
+
+    expect(QualifiedTask.fromTask(googleTestTask).sourceConfigurationUrl, 'https://flutter-rob.corp.google.com');
+  });
+
   test('QualifiedTask.isLuci', () {
     expect(const QualifiedTask(stage: 'luci', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'chromebot', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'cocoon', task: 'abc').isLuci, true);
     expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isLuci, false);
+    expect(const QualifiedTask(stage: 'google_internal', task: 'abc').isLuci, false);
   });
 }
