@@ -25,10 +25,14 @@ class GithubWebhook {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (body.containsKey('pull_request') && body['pull_request'].containsKey('labels')) {
-      hasAutosubmit = body['pull_request']['labels'].any((label) => IssueLabel.fromJson(label).name == 'autosubmit');
+    if (!body.containsKey('pull_request')) {
+      return Response.notFound(
+        rawBody,
+      );
     }
-    print(hasAutosubmit);
+
+    PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
       // TODO(kristinbi): Check if PR can be submitted. https://github.com/flutter/flutter/issues/98707
@@ -39,23 +43,3 @@ class GithubWebhook {
     );
   }
 }
-
-// class Label {
-//   final int id;
-//   final String? nodeId;
-//   final String? url;
-//   final String name;
-//   final String? color;
-//   final String? defaultStatus;
-
-//   const Label(this.id, this.nodeId, this.url, this.name, this.color,
-//       this.defaultStatus);
-
-//   Label.fromJson(Map<String, dynamic> json)
-//       : id = json['id'],
-//         nodeId = json['nodeId'],
-//         url = json['url'],
-//         name = json['name'],
-//         color = json['color'],
-//         defaultStatus = json['defalt'];
-// }

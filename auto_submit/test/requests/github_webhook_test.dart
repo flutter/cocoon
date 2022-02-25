@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 
-import './webhook_event_test.dart';
+import './webhook_body.dart';
 
 void main() {
   group('Check Webhook', () {

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-String webhook_event_mock = '''{
+String webhookEventMock = '''{
       "action": "open",
       "number": 1598,
       "pull_request": {
