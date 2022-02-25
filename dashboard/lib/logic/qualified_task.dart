@@ -14,12 +14,14 @@ class StageName {
   static const String cocoon = 'cocoon';
   static const String legacyLuci = 'chromebot';
   static const String luci = 'luci';
+  static const String frob = 'frob';
 }
 
 /// Base URLs for various endpoints that can relate to a [Task].
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String _cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
 const String _luciUrl = 'https://ci.chromium.org/p/flutter';
+const String _frobUrl = 'https://flutter-rob.corp.google.com';
 
 @immutable
 class QualifiedTask {
@@ -39,14 +41,19 @@ class QualifiedTask {
   /// Luci tasks are stored on Luci.
   /// Cirrus tasks are stored on Cirrus.
   String get sourceConfigurationUrl {
-    assert(isLuci || isCirrus);
+    assert(isLuci || isCirrus || isFrob);
     if (isCirrus) {
       return '$_cirrusUrl/master';
     } else if (isLuci) {
       return '$_luciUrl/builders/$pool/$task';
+    } else if (isFrob) {
+      return _frobUrl;
     }
     throw Exception('Failed to get source configuration url for $stage.');
   }
+
+  /// Whether this task was run on frob.
+  bool get isFrob => stage == StageName.frob;
 
   /// Whether this task was run on Cirrus CI.
   bool get isCirrus => stage == StageName.cirrus;

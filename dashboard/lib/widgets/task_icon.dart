@@ -32,6 +32,13 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
+    if (qualifiedTask.isFrob) {
+      return Image.asset(
+        'assets/ACX.png',
+        color: blendFilter,
+      );
+    }
+
     if (qualifiedTask.task == null || !qualifiedTask.isLuci) {
       return Icon(
         Icons.help,

@@ -76,6 +76,21 @@ void main() {
     expect(find.byIcon(Icons.help), findsOneWidget);
   });
 
+  testWidgets('TaskIcon shows the right icon for frob', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'frob'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/ACX.png');
+  });
+
   testWidgets('TaskIcon shows the right icon for web', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
