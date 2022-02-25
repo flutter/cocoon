@@ -34,7 +34,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final String repo = request!.uri.queryParameters[kRepoParam]!;
     final String pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
-    final String? builders = requestData![kBuilderParam] as String? ?? '';
+    final String? builders = request!.uri.queryParameters[kBuilderParam] ?? '';
     // The [builders] parameter is expecting comma joined string, e.g. 'builder1, builder2'.
     final List<String> builderList = builders!.split(',').map((String builder) => builder.trim()).toList();
 
