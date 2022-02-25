@@ -32,9 +32,9 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final Color? blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.isFrob) {
+    if (qualifiedTask.isGoogleTest) {
       return Image.asset(
-        'assets/ACX.png',
+        'assets/googleLogo.png',
         color: blendFilter,
       );
     }
