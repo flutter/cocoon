@@ -662,29 +662,6 @@ This pull request is not suitable for automatic merging in its current state.
       ]);
     });
 
-    test('Ignores cirrus tasks statuses when no matched branch', () async {
-      statuses = <dynamic>[
-        <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
-        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
-      ];
-      branch = 'flutter-0.0-candidate.0';
-
-      flutterRepoPRs.add(PullRequestHelper());
-
-      await tester.get(handler);
-
-      _verifyQueries();
-
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(flutterRepoPRs[0].id),
-          ),
-        ],
-      );
-    });
-
     test('Merge PR with complated tests', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'SKIPPED', 'name': 'test1'},
