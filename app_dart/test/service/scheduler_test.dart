@@ -624,6 +624,32 @@ targets:
         final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
         expect(retryRequest.builderId.builder, 'Linux A');
       });
+
+      test('triggers only specificed targets', () async {
+        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
+        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, <String>['Linux 1']);
+        expect(presubmitTriggerTargets.length, 1);
+      });
+
+      test('triggers all presubmit targets when trigger list is null', () async {
+        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
+        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, null);
+        expect(presubmitTriggerTargets.length, 2);
+      });
+
+      test('triggers all presubmit targets when trigger list is empty', () async {
+        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
+        final List<Target> presubmitTriggerTargets = scheduler.getTriggerList(presubmitTargets, <String>[]);
+        expect(presubmitTriggerTargets.length, 2);
+      });
+
+      test('triggers only targets that are contained in the trigger list', () async {
+        final List<Target> presubmitTargets = <Target>[generateTarget(1), generateTarget(2)];
+        final List<Target> presubmitTriggerTargets =
+            scheduler.getTriggerList(presubmitTargets, <String>['Linux 1', 'Linux 3']);
+        expect(presubmitTriggerTargets.length, 1);
+        expect(presubmitTargets[0].value.name, 'Linux 1');
+      });
     });
   });
 }

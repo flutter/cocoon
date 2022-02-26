@@ -19,7 +19,7 @@ const double _kGoldenDiffTolerance = 0.005;
 Future<void> expectGoldenMatches(
   dynamic actual,
   String goldenFileKey, {
-  String reason,
+  String? reason,
   dynamic skip = false, // true or a String
 }) {
   final String goldenPath = path.join('goldens', goldenFileKey);

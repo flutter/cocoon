@@ -275,7 +275,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         statuses,
         checkRuns,
         name,
-        'pull/$number',
         labels,
       );
 
@@ -307,7 +306,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     List<Map<String, dynamic>> statuses,
     List<Map<String, dynamic>> checkRuns,
     String name,
-    String branch,
     List<String> labels,
   ) async {
     assert(failures.isEmpty);
@@ -337,7 +335,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
     }
 
-    log.info('Validating name: $name, branch: $branch, status: $statuses');
+    log.info('Validating name: $name, status: $statuses');
     for (Map<String, dynamic> status in statuses) {
       final String? name = status['context'] as String?;
       if (status['state'] != 'SUCCESS') {
@@ -350,7 +348,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         }
       }
     }
-    log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
+    log.info('Validating name: $name, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String? name = checkRun['name'] as String?;
       if (checkRun['conclusion'] == 'SUCCESS') {
@@ -366,11 +364,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(sha, cirrusClient, name);
-    if (!cirrusResults.any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
-      return allSuccess;
-    }
-    final List<Map<String, dynamic>>? cirrusStatuses =
-        cirrusResults.firstWhere((CirrusResult cirrusResult) => cirrusResult.branch == branch).tasks;
+
+    // The first build of cirrusGraphQL query always reflects the latest test statuses of the PR.
+    final List<Map<String, dynamic>>? cirrusStatuses = cirrusResults.first.tasks;
     if (cirrusStatuses == null) {
       return allSuccess;
     }
@@ -438,6 +434,8 @@ bool _checkApproval(
       changeRequestAuthors.add(authorLogin);
     }
   }
+  final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
+  log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
   return (approvers.length > 1) && changeRequestAuthors.isEmpty;
 }
 
