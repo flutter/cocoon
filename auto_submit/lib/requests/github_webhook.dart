@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:shelf/shelf.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:shelf/shelf.dart';
 
 /// Handler for processing GitHub webhooks.
 ///

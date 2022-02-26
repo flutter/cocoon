@@ -4,12 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-import 'package:auto_submit/requests/github_webhook.dart';
 
-import './webhook_body.dart';
+import './github_webhook_test_data.dart';
 
 void main() {
   group('Check Webhook', () {
