@@ -323,7 +323,7 @@ class Config {
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
+    final String? appInstallation = appInstallations[slug.fullName]['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',

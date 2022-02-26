@@ -50,6 +50,7 @@ linter:
     # the Dart Lint rules page to make maintenance easier
     # https://dart-lang.github.io/linter/lints/index.html
     # the rules listed below are the ones we would like to exclude from flutter_lint package
+    avoid_print: false # we have necessary print calls in the code
     always_put_required_named_parameters_first: false # we prefer having parameters in the same order as fields https://github.com/flutter/flutter/issues/10219
     avoid_annotating_with_dynamic: false # conflicts with always_specify_types
     avoid_as: false # required for implicit-casts: true

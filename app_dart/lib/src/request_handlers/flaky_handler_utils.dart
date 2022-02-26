@@ -503,7 +503,7 @@ Map<String, dynamic>? retrieveMetaTagsFromContent(String content) {
 String _formatRate(double rate) => (rate * 100).toStringAsFixed(2);
 
 String _issueBuildLinks({String? builder, required List<String> builds, Bucket bucket = Bucket.prod}) {
-  return '${builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n')}';
+  return builds.map((String build) => _issueBuildLink(builder: builder, build: build, bucket: bucket)).join('\n');
 }
 
 String _issueSummary(BuilderStatistic statistic, double threshold, bool bringup) {
