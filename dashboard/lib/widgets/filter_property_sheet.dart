@@ -191,7 +191,7 @@ class BoolFilterPropertyGroup extends FilterPropertyNode {
 /// and notify the creator when it is closed via the callback. Otherwise the creator is
 /// responsible for the lifecycle of this sheet.
 class FilterPropertySheet extends StatefulWidget {
-  const FilterPropertySheet(this.propertySource, {this.onClose});
+  const FilterPropertySheet(this.propertySource, {this.onClose, Key? key}) : super(key: key);
 
   /// The notifier object used to get the initial value of the filter properties and to
   /// send back new filter objects with modified values as the user edits the fields.
