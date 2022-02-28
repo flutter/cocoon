@@ -31,7 +31,7 @@ void main() {
             log.fine(line);
           },
         );
-        return runZoned<dynamic>(() {
+        runZoned<dynamic>(() {
           return ss.fork(() {
             ss.register(#appengine.logging, log);
             return handler.service(request);

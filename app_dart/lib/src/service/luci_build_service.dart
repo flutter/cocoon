@@ -160,8 +160,7 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
-    return Map<String?, Build?>.fromIterable(builds,
-        key: (dynamic b) => b.builderId.builder as String?, value: (dynamic b) => b as Build?);
+    return { for (var b in builds) b.builderId.builder : b };
   }
 
   /// Creates BuildBucket [Request] using [checkSuiteEvent], [pullRequest], [builder], [builderId], and [userData].

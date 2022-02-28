@@ -102,8 +102,8 @@ abstract class RequestHandler<T extends Body> {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  T? getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
-    final T? value = Zone.current[key] as T?;
+  U? getValue<U>(RequestKey<U> key, {bool allowNull = false}) {
+    final U? value = Zone.current[key] as U?;
     if (!allowNull && value == null) {
       throw StateError('Attempt to access ${key.name} while not in a request context');
     }

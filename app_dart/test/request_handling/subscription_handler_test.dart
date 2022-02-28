@@ -34,7 +34,7 @@ void main() {
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((HttpRequest request) {
-        return runZoned<dynamic>(
+        runZoned<dynamic>(
           () {
             return ss.fork(() {
               return subscription.service(request);
