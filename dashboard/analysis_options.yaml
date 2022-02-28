@@ -26,7 +26,3 @@ analyzer:
     - "test/utils/mocks.mocks.dart"
 
 include: package:flutter_lints/flutter.yaml
-
-linter:
-  rules:
-    # we use all rules from lint package for files under dashboard directory
