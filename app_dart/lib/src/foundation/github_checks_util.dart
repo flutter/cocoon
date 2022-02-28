@@ -25,7 +25,7 @@ class GithubChecksUtil {
           checkSuiteId: checkSuiteEvent.checkSuite!.id!,
         )
         .toList();
-    return {for (var check in allCheckRuns) check.name as String: check};
+    return {for (github.CheckRun check in allCheckRuns) check.name as String: check};
   }
 
   Future<github.CheckSuite> getCheckSuite(

@@ -90,7 +90,7 @@ void main() {
         config.db.values[task.key] = task;
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'def': <LuciTask>[
                 const LuciTask(
@@ -123,7 +123,7 @@ void main() {
         config.db.values[task.key] = task;
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'def': <LuciTask>[
                 const LuciTask(
@@ -162,7 +162,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -190,7 +190,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -220,7 +220,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -252,7 +252,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -284,7 +284,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -327,7 +327,7 @@ void main() {
         final List<LuciBuilder> builders =
             scheduler.ciYaml!.postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'abc': <LuciTask>[
                 const LuciTask(
@@ -368,7 +368,7 @@ void main() {
         config.db.values[branchCommit.key] = branchCommit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
               'def': <LuciTask>[
                 const LuciTask(
@@ -381,7 +381,7 @@ void main() {
             }
         };
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks = {
-          for (var builder in builders)
+          for (LuciBuilder builder in builders)
             BranchLuciBuilder(luciBuilder: builder, branch: 'test'): <String, List<LuciTask>>{
               'def': <LuciTask>[
                 const LuciTask(
@@ -430,7 +430,7 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
-          for (var builder in <LuciBuilder>[
+          for (LuciBuilder builder in <LuciBuilder>[
             LuciBuilder(name: 'Mac abc', repo: Config.flutterSlug.name, taskName: 'def', flaky: false)
           ])
             BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
