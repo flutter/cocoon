@@ -250,6 +250,15 @@ void main() {
               'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
             },
           ),
+          QueryOptions(
+            document: labeledPullRequestsWithReviewsQuery,
+            fetchPolicy: FetchPolicy.noCache,
+            variables: <String, dynamic>{
+              'sOwner': 'flutter',
+              'sName': 'impeller',
+              'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
+            },
+          ),
         ],
       );
     }
