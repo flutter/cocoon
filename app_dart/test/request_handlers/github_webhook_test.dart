@@ -111,6 +111,7 @@ void main() {
     config.githubClient = gitHubClient;
     config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
   });
+
   group('github webhook pull_request event', () {
     test('Rejects non-POST methods with methodNotAllowed', () async {
       expect(tester.get(webhook), throwsA(isA<MethodNotAllowed>()));
@@ -853,7 +854,7 @@ void main() {
       ));
     });
 
-    test('Framework no comment if only ci.yaml changed', () async {
+    test('Framework no comment if only ci.yaml and cirrus.yml changed', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
@@ -866,6 +867,7 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = '.ci.yaml',
+          PullRequestFile()..filename = '.cirrus.yml',
         ]),
       );
 
