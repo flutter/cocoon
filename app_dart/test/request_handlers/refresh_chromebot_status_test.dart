@@ -89,19 +89,19 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'def': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'def',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'def': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'def',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -122,19 +122,19 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'def': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'unknown',
-                            ref: 'unknown',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'def': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'unknown',
+                    ref: 'unknown',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -161,19 +161,19 @@ void main() {
         config.db.values[branchCommit.key] = branchCommit;
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -189,19 +189,19 @@ void main() {
             Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, name: 'Linux A', status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -219,19 +219,19 @@ void main() {
             Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, name: 'Linux A', status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -251,19 +251,19 @@ void main() {
             buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -283,25 +283,25 @@ void main() {
             buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 2,
-                            builderName: 'abc'),
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusFailed,
-                            buildNumber: 1,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusSucceeded,
+                    buildNumber: 2,
+                    builderName: 'abc'),
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusFailed,
+                    buildNumber: 1,
+                    builderName: 'abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -326,20 +326,20 @@ void main() {
         scheduler.ciYaml = exampleConfig;
         final List<LuciBuilder> builders =
             scheduler.ciYaml!.postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 2,
-                          builderName: 'Linux A',
-                        ),
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                  commitSha: 'abc',
+                  ref: 'refs/heads/master',
+                  status: Task.statusSucceeded,
+                  buildNumber: 2,
+                  builderName: 'Linux A',
+                ),
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
@@ -367,32 +367,32 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[branchCommit.key] = branchCommit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'def': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'def',
-                            ref: 'refs/heads/master',
-                            status: Task.statusFailed,
-                            buildNumber: 1,
-                            builderName: 'abc'),
-                      ],
-                    });
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'test'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'def': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'def',
-                            ref: 'refs/heads/test',
-                            status: Task.statusSucceeded,
-                            buildNumber: 2,
-                            builderName: 'abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'def': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'def',
+                    ref: 'refs/heads/master',
+                    status: Task.statusFailed,
+                    buildNumber: 1,
+                    builderName: 'abc'),
+              ],
+            }
+        };
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks = {
+          for (LuciBuilder builder in builders)
+            BranchLuciBuilder(luciBuilder: builder, branch: 'test'): <String, List<LuciTask>>{
+              'def': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'def',
+                    ref: 'refs/heads/test',
+                    status: Task.statusSucceeded,
+                    buildNumber: 2,
+                    builderName: 'abc')
+              ],
+            }
+        };
         luciTasks.addAll(testLuciTasks);
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
@@ -429,21 +429,21 @@ void main() {
             builderName: 'Mac abc');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(<LuciBuilder>[
-          LuciBuilder(name: 'Mac abc', repo: Config.flutterSlug.name, taskName: 'def', flaky: false)
-        ],
-                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder?, branch: 'master'),
-                value: (dynamic builder) => <String, List<LuciTask>>{
-                      'abc': <LuciTask>[
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusInfraFailure,
-                            buildNumber: 1,
-                            builderName: 'Mac abc')
-                      ],
-                    });
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = {
+          for (LuciBuilder builder in <LuciBuilder>[
+            LuciBuilder(name: 'Mac abc', repo: Config.flutterSlug.name, taskName: 'def', flaky: false)
+          ])
+            BranchLuciBuilder(luciBuilder: builder, branch: 'master'): <String, List<LuciTask>>{
+              'abc': <LuciTask>[
+                const LuciTask(
+                    commitSha: 'abc',
+                    ref: 'refs/heads/master',
+                    status: Task.statusInfraFailure,
+                    buildNumber: 1,
+                    builderName: 'Mac abc')
+              ],
+            }
+        };
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
