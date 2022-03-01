@@ -43,8 +43,9 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
   final List<CirrusResult> cirrusResults = <CirrusResult>[];
   String? branch;
+  String? id;
   if (result.data == null) {
-    cirrusResults.add(CirrusResult(branch, tasks));
+    cirrusResults.add(CirrusResult(id, branch, tasks));
     return cirrusResults;
   }
   try {
@@ -52,8 +53,10 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
     for (dynamic searchBuild in searchBuilds) {
       tasks.clear();
       tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
+      id = searchBuild['id'] as String?;
+      log.info('Cirrus searchBuild id for flutter/$name, commit: $sha: $id');
       branch = searchBuild['branch'] as String?;
-      cirrusResults.add(CirrusResult(branch, tasks));
+      cirrusResults.add(CirrusResult(id, branch, tasks));
     }
   } catch (_) {
     log.fine('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
@@ -62,8 +65,9 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
 }
 
 class CirrusResult {
-  const CirrusResult(this.branch, this.tasks);
+  const CirrusResult(this.id, this.branch, this.tasks);
 
+  final String? id;
   final String? branch;
   final List<Map<String, dynamic>> tasks;
 }
