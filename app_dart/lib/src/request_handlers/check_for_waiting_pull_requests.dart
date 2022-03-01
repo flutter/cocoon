@@ -367,6 +367,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     // The first build of cirrusGraphQL query always reflects the latest test statuses of the PR.
     final List<Map<String, dynamic>>? cirrusStatuses = cirrusResults.first.tasks;
+    log.info('First cirrus searchBuild id for flutter/$name, sha: $sha: ${cirrusResults.first.id}');
     if (cirrusStatuses == null) {
       return allSuccess;
     }
