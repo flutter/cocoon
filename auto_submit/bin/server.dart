@@ -13,7 +13,7 @@ Future<void> main() async {
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
 
-    final Router router = Router()..post('/webhook', GithubWebhook().run);
+    final Router router = Router()..post('/webhook', GithubWebhook().post);
     await serveHandler(router);
   });
 }
