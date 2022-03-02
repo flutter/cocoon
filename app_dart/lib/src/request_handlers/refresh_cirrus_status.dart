@@ -17,7 +17,7 @@ const List<String> kCirrusFailedStates = <String>[
 ];
 const List<String> kCirrusInProgressStates = <String>['CREATED', 'TRIGGERED', 'SCHEDULED', 'EXECUTING', 'PAUSED'];
 
-Future<List<CirrusResult>> queryCirrusGraphQL(
+Future<CirrusResult> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
   String name,
@@ -41,27 +41,33 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   }
 
   final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
-  final List<CirrusResult> cirrusResults = <CirrusResult>[];
-  String? branch;
-  String? id;
+  late CirrusResult cirrusResult;
+
   if (result.data == null) {
-    cirrusResults.add(CirrusResult(id, branch, tasks));
-    return cirrusResults;
+    cirrusResult = CirrusResult(null, null, tasks);
+    return cirrusResult;
   }
   try {
-    final List<dynamic> searchBuilds = result.data!['searchBuilds'] as List<dynamic>;
-    for (dynamic searchBuild in searchBuilds) {
-      tasks.clear();
-      tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
-      id = searchBuild['id'] as String?;
-      log.info('Cirrus searchBuild id for flutter/$name, commit: $sha: $id');
-      branch = searchBuild['branch'] as String?;
-      cirrusResults.add(CirrusResult(id, branch, tasks));
-    }
+    cirrusResult = getFirstBuildResult(result.data, tasks);
   } catch (_) {
     log.fine('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
-  return cirrusResults;
+  return cirrusResult;
+}
+
+CirrusResult getFirstBuildResult(
+  Map<String, dynamic>? data,
+  List<Map<String, dynamic>> tasks, {
+  String? name,
+  String? sha,
+}) {
+  final List<dynamic> searchBuilds = data!['searchBuilds'] as List<dynamic>;
+  final dynamic searchBuild = searchBuilds.first;
+  tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
+  String? id = searchBuild['id'] as String?;
+  log.info('Cirrus searchBuild id for flutter/$name, commit: $sha: $id');
+  String? branch = searchBuild['branch'] as String?;
+  return CirrusResult(id, branch, tasks);
 }
 
 class CirrusResult {
