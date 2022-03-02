@@ -5,11 +5,13 @@
 import 'dart:async';
 
 import 'package:auto_submit/helpers.dart';
-import 'package:shelf_router/shelf_router.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
+import 'package:auto_submit/service/config.dart';
+import 'package:shelf_router/shelf_router.dart';
 
 Future main() async {
-  GithubWebhook githubWebhook = GithubWebhook();
+  Config config = Config();
+  GithubWebhook githubWebhook = GithubWebhook(config);
 
   final router = Router()..post('/webhook', githubWebhook.post);
   await serveHandler(router);
