@@ -4,15 +4,20 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:auto_submit/helpers.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-Future main() async {
-  Config config = Config();
-  GithubWebhook githubWebhook = GithubWebhook(config);
+Future<void> main() async {
+  await withAppEngineServices(() async {
+    useLoggingPackageAdaptor();
 
-  final router = Router()..post('/webhook', githubWebhook.post);
-  await serveHandler(router);
+    Config config = Config();
+    GithubWebhook githubWebhook = GithubWebhook(config);
+
+    final Router router = Router()..post('/webhook', githubWebhook.run);
+    await serveHandler(router);
+  });
 }

@@ -12,21 +12,22 @@ import 'package:shelf/shelf.dart';
 
 import '../service/config.dart';
 import '../service/github_service.dart';
+import '../server/request_handler.dart';
+import '../service/log.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
-class GithubWebhook {
-  const GithubWebhook(
+class GithubWebhook extends RequestHandler {
+  GithubWebhook(
     this.config,
   );
-
   final Config config;
 
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
-    logger.info('Header: $reqHeader');
+    log.info('Header: $reqHeader');
 
     // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
@@ -62,7 +63,7 @@ class GithubWebhook {
       // Use github Rest API to get this single pull request.
       final PullRequest pr =
           await gitHub.getPullRequest(slug, prNumber: number);
-      logger.info('Get the pull request $pr');
+      log.info('Get the pull request $pr');
 
       _AutoMergeQueryResult queryResult =
           await _parseQueryData(pr, gitHub, body);
@@ -74,9 +75,7 @@ class GithubWebhook {
       }
     }
 
-    return Response.ok(
-      rawBody,
-    );
+    return Response.ok(rawBody);
   }
 
   /// Check if the pull request should be merged.
@@ -103,13 +102,13 @@ class GithubWebhook {
       String headSha, RepositorySlug slug, GithubService github) async {
     final RepositoryCommit secondTotCommit =
         await github.getRepoCommit(slug, 'HEAD~');
-    logger.info('Current commit is: $headSha');
-    logger.info('Second TOT commit is: ${secondTotCommit.sha}');
+    log.info('Current commit is: $headSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
     final GitHubComparison githubComparison =
         await github.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
     final bool filesIsEmpty = githubComparison.files!.isEmpty;
     if (filesIsEmpty) {
-      logger.info('This is a TOT revert. Merge ignoring tests statuses.');
+      log.info('This is a TOT revert. Merge ignoring tests statuses.');
     }
     return filesIsEmpty;
   }
@@ -223,7 +222,7 @@ class GithubWebhook {
     }
 
     String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
-    logger.info('Validating name: $name, status: $statuses');
+    log.info('Validating name: $name, status: $statuses');
     for (RepositoryStatus status in statuses) {
       final String? name = status.context;
       if (status.state != 'success') {
@@ -238,7 +237,7 @@ class GithubWebhook {
       }
     }
 
-    logger.info('Validating name: $name, checks: $checkRuns');
+    log.info('Validating name: $name, checks: $checkRuns');
     for (CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
       if (checkSuite!.conclusion == CheckRunConclusion.success) {
@@ -319,18 +318,18 @@ bool _checkApproval(
     }
     // Reviews come back in order of creation.
     final String? state = review.state;
-    final String? authorloggerin = review.user.login;
+    final String? authorlogin = review.user.login;
 
     if (state == 'APPROVED') {
-      approvers.add(authorloggerin);
-      changeRequestAuthors.remove(authorloggerin);
+      approvers.add(authorlogin);
+      changeRequestAuthors.remove(authorlogin);
     } else if (state == 'CHANGES_REQUESTED') {
-      changeRequestAuthors.add(authorloggerin);
+      changeRequestAuthors.add(authorlogin);
     }
   }
 
   final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
-  logger.info(
+  log.info(
       'PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
   return (approvers.length > 1) && changeRequestAuthors.isEmpty;
 }
