@@ -363,12 +363,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(sha, cirrusClient, name);
-
-    // The first build of cirrusGraphQL query always reflects the latest test statuses of the PR.
-    final List<Map<String, dynamic>>? cirrusStatuses = cirrusResults.first.tasks;
-    log.info('First cirrus searchBuild id for flutter/$name, sha: $sha: ${cirrusResults.first.id}');
-    if (cirrusStatuses == null) {
+    // Returns the first build statues, which reflect the recent PR/commit statuses.
+    final CirrusResult cirrusResult = await queryCirrusGraphQL(sha, cirrusClient, name);
+    final List<Map<String, dynamic>> cirrusStatuses = cirrusResult.tasks;
+    if (cirrusStatuses.isEmpty) {
       return allSuccess;
     }
     for (Map<String, dynamic> runStatus in cirrusStatuses) {
