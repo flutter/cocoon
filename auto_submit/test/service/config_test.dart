@@ -12,6 +12,7 @@ void main() {
     setUp(() {
       config = Config();
     });
+
     test('Two repos with tree status', () {
       expect(Config.reposWithTreeStatus.first.fullName, 'flutter/engine');
       expect(Config.reposWithTreeStatus.last.fullName, 'flutter/flutter');

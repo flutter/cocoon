@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/cirrus_graphql_client.dart';
-import 'package:github/github.dart';
 import 'package:graphql/client.dart';
+import 'package:github/github.dart';
 
 import 'github_service.dart';
 
@@ -50,6 +50,5 @@ class Config {
     );
   }
 
-  String get overrideTreeStatusLabel =>
-      'warning: land on red to fix tree breakage';
+  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 }

@@ -31,8 +31,7 @@ class FakeConfig implements Config {
   GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
-  Future<CirrusGraphQLClient> createCirrusGraphQLClient() async =>
-      cirrusGraphQLClient!;
+  Future<CirrusGraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
