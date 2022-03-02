@@ -28,7 +28,8 @@ void main() {
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'cocoon');
     testPr = PullRequest.fromJson(
-      jsonDecode('{"id": $id, "number": $number, "mergeable": $mergeable, "labels": [{"name": "$labelName"}]}')
+      jsonDecode(
+              '{"id": $id, "number": $number, "mergeable": $mergeable, "labels": [{"name": "$labelName"}]}')
           as Map<String, dynamic>,
     );
 
@@ -39,7 +40,8 @@ void main() {
   });
 
   test('listCommits decodes all relevant fields of each commit', () async {
-    final PullRequest pr = await githubService.getPullRequest(slug, prNumber: number);
+    final PullRequest pr =
+        await githubService.getPullRequest(slug, prNumber: number)!;
     expect(pr.id, id);
     expect(pr.number, number);
     expect(pr.mergeable, mergeable);

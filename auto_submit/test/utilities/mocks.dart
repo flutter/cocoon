@@ -9,5 +9,11 @@ import 'package:mockito/annotations.dart';
 
 export 'mocks.mocks.dart';
 
-@GenerateMocks(<Type>[GithubService, GitHub, PullRequestsService, RepositoriesService, CirrusGraphQLClient])
+@GenerateMocks(<Type>[
+  GithubService,
+  GitHub,
+  PullRequestsService,
+  RepositoriesService,
+  CirrusGraphQLClient,
+])
 void main() {}

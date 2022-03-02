@@ -17,7 +17,7 @@ Future<void> main() async {
     Config config = Config();
     GithubWebhook githubWebhook = GithubWebhook(config);
 
-    final Router router = Router()..post('/webhook', githubWebhook.post);
+    final Router router = Router()..post('/webhook', githubWebhook.run);
     await serveHandler(router);
   });
 }
