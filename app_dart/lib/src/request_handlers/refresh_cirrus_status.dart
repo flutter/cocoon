@@ -17,6 +17,9 @@ const List<String> kCirrusFailedStates = <String>[
 ];
 const List<String> kCirrusInProgressStates = <String>['CREATED', 'TRIGGERED', 'SCHEDULED', 'EXECUTING', 'PAUSED'];
 
+/// Return the latest Cirrus build for a given [sha] by querying the cirrus graphQL.
+///
+/// API explorer: https://cirrus-ci.com/explorer
 Future<CirrusResult> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
@@ -55,6 +58,9 @@ Future<CirrusResult> queryCirrusGraphQL(
   return cirrusResult;
 }
 
+/// There may be multiple build results for a single commit.
+///
+/// This returns the first build which represents the latest test statuses.
 CirrusResult getFirstBuildResult(
   Map<String, dynamic>? data,
   List<Map<String, dynamic>> tasks, {
@@ -62,7 +68,7 @@ CirrusResult getFirstBuildResult(
   String? sha,
 }) {
   final List<dynamic> searchBuilds = data!['searchBuilds'] as List<dynamic>;
-  final dynamic searchBuild = searchBuilds.first;
+  final Map<String, dynamic> searchBuild = searchBuilds.first as Map<String, dynamic>;
   tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
   String? id = searchBuild['id'] as String?;
   log.info('Cirrus searchBuild id for flutter/$name, commit: $sha: $id');
