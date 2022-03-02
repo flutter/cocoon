@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:auto_submit/requests/cirrus_graphql_client.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/requests/cirrus_graphql_client.dart';
 import 'package:github/github.dart';
 
 // ignore: must_be_immutable
@@ -31,8 +31,7 @@ class FakeConfig implements Config {
   GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
-  Future<CirrusGraphQLClient> createCirrusGraphQLClient() async =>
-      cirrusGraphQLClient!;
+  Future<CirrusGraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;

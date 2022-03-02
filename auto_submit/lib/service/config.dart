@@ -50,6 +50,5 @@ class Config {
     );
   }
 
-  String get overrideTreeStatusLabel =>
-      'warning: land on red to fix tree breakage';
+  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 }
