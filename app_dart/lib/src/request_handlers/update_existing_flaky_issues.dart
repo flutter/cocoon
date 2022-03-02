@@ -38,7 +38,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final pb.SchedulerConfig schedulerConfig = schedulerConfigFromYaml(ci);
+    final pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYamlWithBuilderCheck(ci, slug: slug);
 
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');

@@ -179,4 +179,93 @@ targets:
           ));
     });
   });
+
+  group('scheduler config tested and compared with tip of tree builders', () {
+    late SchedulerConfig? totConfig;
+
+    setUp(() {
+      YamlMap? totYaml = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+      ''') as YamlMap?;
+      totConfig = SchedulerConfig();
+      totConfig!.mergeFromProto3Json(totYaml);
+    });
+
+    test('succeed when no new builders compared with tip of tree builders', () {
+      final YamlMap? currentYaml = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+      ''') as YamlMap?;
+      SchedulerConfig? currentConfig = SchedulerConfig();
+      currentConfig.mergeFromProto3Json(currentYaml);
+      expect(() => validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
+    });
+
+    test('succeed when new builder is marked with bringup:true ', () {
+      final YamlMap? currentYaml = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+  - name: C
+    bringup: true
+      ''') as YamlMap?;
+      SchedulerConfig? currentConfig = SchedulerConfig();
+      currentConfig.mergeFromProto3Json(currentYaml);
+      expect(() => validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
+    });
+
+    test('fails when new builder is missing bringup:true ', () {
+      final YamlMap? currentYaml = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+  - name: C
+      ''') as YamlMap?;
+      SchedulerConfig? currentConfig = SchedulerConfig();
+      currentConfig.mergeFromProto3Json(currentYaml);
+      expect(
+          () => validateSchedulerConfig(currentConfig, totConfig: totConfig),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: C is a new builder added. it needs to be marked bringup: true'),
+            ),
+          ));
+    });
+
+    test('fails when new builder has bringup set to false ', () {
+      final YamlMap? currentYaml = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+  - name: C
+    bringup: false
+      ''') as YamlMap?;
+      SchedulerConfig? currentConfig = SchedulerConfig();
+      currentConfig.mergeFromProto3Json(currentYaml);
+      expect(
+          () => validateSchedulerConfig(currentConfig, totConfig: totConfig),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: C is a new builder added. it needs to be marked bringup: true'),
+            ),
+          ));
+    });
+  });
 }

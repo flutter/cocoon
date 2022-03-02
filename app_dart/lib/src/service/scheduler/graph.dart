@@ -2,20 +2,50 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:github/github.dart';
+import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../foundation/providers.dart';
+import '../../foundation/utils.dart';
 import '../../model/proto/internal/scheduler.pb.dart';
+import '../config.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
 SchedulerConfig schedulerConfigFromYaml(YamlMap? yamlConfig) {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
-  _validateSchedulerConfig(config);
+  validateSchedulerConfig(config);
 
   return config;
 }
 
-void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
+Future<SchedulerConfig> schedulerConfigFromYamlWithBuilderCheck(YamlMap? yamlConfig, {RepositorySlug? slug}) async {
+  final SchedulerConfig config = SchedulerConfig();
+  config.mergeFromProto3Json(yamlConfig);
+
+  // check for new builders and compare to tip of tree, if current branch is not a release branch
+  if (slug != null && slug.name == Config.defaultBranch(slug)) {
+    final String tipOfTreeConfigContent = await githubFileContent(
+      slug,
+      '.ci.yaml',
+      httpClientProvider: Providers.freshHttpClient,
+      retryOptions: const RetryOptions(maxAttempts: 3),
+    );
+    final YamlMap tipOfTreeConfigYaml = loadYaml(tipOfTreeConfigContent) as YamlMap;
+    final SchedulerConfig totConfig = SchedulerConfig();
+    totConfig.mergeFromProto3Json(tipOfTreeConfigYaml);
+    validateSchedulerConfig(config, totConfig: totConfig);
+  } else {
+    validateSchedulerConfig(config);
+  }
+
+  return config;
+}
+
+@visibleForTesting
+void validateSchedulerConfig(SchedulerConfig schedulerConfig, {SchedulerConfig? totConfig}) {
   if (schedulerConfig.targets.isEmpty) {
     throw const FormatException('Scheduler config must have at least 1 target');
   }
@@ -26,12 +56,23 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
 
   final Map<String, List<Target>> targetGraph = <String, List<Target>>{};
   final List<String> exceptions = <String>[];
+  final Set<String> totBuilds = <String>{};
+  if (totConfig != null) {
+    for (Target target in totConfig.targets) {
+      totBuilds.add(target.name);
+    }
+  }
   // Construct [targetGraph]. With a one scan approach, cycles in the graph
   // cannot exist as it only works forward.
   for (final Target target in schedulerConfig.targets) {
     if (targetGraph.containsKey(target.name)) {
       exceptions.add('ERROR: ${target.name} already exists in graph');
     } else {
+      // a new build without "bringup: true"
+      if (totBuilds.isNotEmpty && !totBuilds.contains(target.name) && target.bringup != true) {
+        exceptions.add('ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true');
+        continue;
+      }
       targetGraph[target.name] = <Target>[];
       // Add edges
       if (target.dependencies.isNotEmpty) {
