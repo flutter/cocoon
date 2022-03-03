@@ -20,10 +20,9 @@ import '../server/request_handler.dart';
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
-  GithubWebhook(
-    this.config,
-  );
-  final Config config;
+  const GithubWebhook(
+    Config config,
+  ) : super(config: config);
 
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
@@ -42,7 +41,7 @@ class GithubWebhook extends RequestHandler {
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
-      final String githubToken = Platform.environment['AUTOSUBMIT_TOKEN']!;
+      final String githubToken = Platform.environment['GITHUB_TOKEN']!;
       final GithubService gitHub = config.createGithubServiceWithToken(githubToken);
 
       final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
