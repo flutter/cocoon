@@ -33,22 +33,19 @@ class GithubWebhook extends RequestHandler {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey('pull_request') ||
-        !body['pull_request'].containsKey('labels')) {
+    if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
-    hasAutosubmit =
-        pullRequest.labels!.any((label) => label.name == 'autosubmit');
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
-      // final GitHub gitHub = await config.createGithubClient();
+      final GitHub gitHub = await config.createGithubClient();
 
-      // final RepositorySlug slug =
-      //     RepositorySlug.full(body['repository']['full_name']);
-      // final int number = body['number'];
-      // log.info('gitHub: $gitHub, slog: $slug, number: $number.');
+      final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
+      final int number = body['number'];
+      log.info('gitHub: $gitHub, slog: $slug, number: $number.');
 
       // TODO(Kristin): use slug and prnumber to call github Rest API to get this single pull request.
     }

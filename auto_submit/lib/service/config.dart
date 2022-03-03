@@ -55,15 +55,14 @@ class Config {
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final Uri githubAccessTokensUri = Uri.https('api.github.com',
-        'app/installations/${_getFromEnv(kGithubAppId)}/access_tokens');
+    final Uri githubAccessTokensUri =
+        Uri.https('api.github.com', 'app/installations/${_getFromEnv(kGithubAppId)}/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
       githubAccessTokensUri,
       headers: headers,
     );
-    final Map<String, dynamic> jsonBody =
-        jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     if (jsonBody.containsKey('token') == false) {
       log.warning(response.body);
       throw Exception('generateGithubToken failed to get token from Github');
@@ -80,8 +79,7 @@ class Config {
       ..issuer = _getFromEnv(kGithubAppId)
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
-    final JWTRsaSha256Signer signer =
-        JWTRsaSha256Signer(privateKey: privateKey);
+    final JWTRsaSha256Signer signer = JWTRsaSha256Signer(privateKey: privateKey);
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
