@@ -28,12 +28,12 @@ Future<List<String>> remoteCheck(String repo, String ref) async {
     ref: ref,
   );
 
-  final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);
+  final List<String> noOwnerBuilders = await validateOwnership(ciYamlContent, testOwnersContent);
   return noOwnerBuilders;
 }
 
 /// Local check is based on paths to the local `.ci.yaml` and `TESTOWNERS` files.
-List<String> localCheck(String ciYamlPath, String testOwnersPath) {
+Future<List<String>> localCheck(String ciYamlPath, String testOwnersPath) async {
   const FileSystem fs = LocalFileSystem();
   final File ciYamlFile = fs.file(ciYamlPath);
   final File testOwnersFile = fs.file(testOwnersPath);
@@ -42,7 +42,7 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
     io.exit(1);
   }
   final List<String> noOwnerBuilders =
-      validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync());
+      await validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync());
   return noOwnerBuilders;
 }
 
@@ -62,7 +62,7 @@ Future<void> main(List<String> args) async {
   if (args.length == 2) {
     noOwnerBuilders = await remoteCheck(args[0], args[1]);
   } else {
-    noOwnerBuilders = localCheck(args[1], args[2]);
+    noOwnerBuilders = await localCheck(args[1], args[2]);
   }
   if (noOwnerBuilders.isNotEmpty) {
     print('# Test ownership check failed.');

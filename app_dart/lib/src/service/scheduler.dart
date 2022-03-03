@@ -21,7 +21,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
-import '../model/proto/internal/scheduler.pb.dart' as pb hide Target;
+import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../service/logging.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -231,7 +231,7 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYamlWithBuilderCheck(configYaml, slug: commit.slug);
+    pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(configYaml, commit.slug);
     return schedulerConfig.writeToBuffer();
   }
 

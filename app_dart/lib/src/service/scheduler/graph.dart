@@ -13,15 +13,7 @@ import '../../model/proto/internal/scheduler.pb.dart';
 import '../config.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
-SchedulerConfig schedulerConfigFromYaml(YamlMap? yamlConfig) {
-  final SchedulerConfig config = SchedulerConfig();
-  config.mergeFromProto3Json(yamlConfig);
-  validateSchedulerConfig(config);
-
-  return config;
-}
-
-Future<SchedulerConfig> schedulerConfigFromYamlWithBuilderCheck(YamlMap? yamlConfig, {RepositorySlug? slug}) async {
+Future<SchedulerConfig> schedulerConfigFromYaml(YamlMap? yamlConfig, RepositorySlug? slug) async {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
 
@@ -57,10 +49,10 @@ void validateSchedulerConfig(SchedulerConfig schedulerConfig, {SchedulerConfig? 
 
   final Map<String, List<Target>> targetGraph = <String, List<Target>>{};
   final List<String> exceptions = <String>[];
-  final Set<String> totBuilds = <String>{};
+  final Set<String> totTargets = <String>{};
   if (totConfig != null) {
     for (Target target in totConfig.targets) {
-      totBuilds.add(target.name);
+      totTargets.add(target.name);
     }
   }
   // Construct [targetGraph]. With a one scan approach, cycles in the graph
@@ -70,7 +62,8 @@ void validateSchedulerConfig(SchedulerConfig schedulerConfig, {SchedulerConfig? 
       exceptions.add('ERROR: ${target.name} already exists in graph');
     } else {
       // a new build without "bringup: true"
-      if (totBuilds.isNotEmpty && !totBuilds.contains(target.name) && target.bringup != true) {
+      // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
+      if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
         exceptions.add('ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true');
         continue;
       }

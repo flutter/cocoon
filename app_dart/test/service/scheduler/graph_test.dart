@@ -9,7 +9,7 @@ import 'package:yaml/yaml.dart';
 
 void main() {
   group('scheduler config', () {
-    test('constructs graph with one target', () {
+    test('constructs graph with one target', () async {
       final YamlMap? singleTargetConfig = loadYaml('''
 enabled_branches:
   - master
@@ -19,7 +19,7 @@ targets:
     properties:
       test: abc
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(singleTargetConfig);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(singleTargetConfig, null);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -41,10 +41,10 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
+      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, null), throwsA(isA<FormatException>()));
     });
 
-    test('constructs graph with dependency chain', () {
+    test('constructs graph with dependency chain', () async {
       final YamlMap? dependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
@@ -57,7 +57,7 @@ targets:
     dependencies:
       - B
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(dependentTargetConfig);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(dependentTargetConfig, null);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -69,7 +69,7 @@ targets:
       expect(c.dependencies, <String>['B']);
     });
 
-    test('constructs graph with parent with two dependents', () {
+    test('constructs graph with parent with two dependents', () async {
       final YamlMap? twoDependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
@@ -82,7 +82,7 @@ targets:
     dependencies:
       - A
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(twoDependentTargetConfig);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(twoDependentTargetConfig, null);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];
@@ -107,7 +107,7 @@ targets:
       - A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithCycle),
+          () => schedulerConfigFromYaml(configWithCycle, null),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -126,7 +126,7 @@ targets:
   - name: A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithDuplicateTargets),
+          () => schedulerConfigFromYaml(configWithDuplicateTargets, null),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -149,7 +149,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMultipleDependencies),
+          () => schedulerConfigFromYaml(configWithMultipleDependencies, null),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -169,7 +169,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMissingTarget),
+          () => schedulerConfigFromYaml(configWithMissingTarget, null),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -189,7 +189,6 @@ enabled_branches:
   - master
 targets:
   - name: A
-  - name: B
       ''') as YamlMap?;
       totConfig = SchedulerConfig();
       totConfig!.mergeFromProto3Json(totYaml);
@@ -201,7 +200,6 @@ enabled_branches:
   - master
 targets:
   - name: A
-  - name: B
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
@@ -215,7 +213,6 @@ enabled_branches:
 targets:
   - name: A
   - name: B
-  - name: C
     bringup: true
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
@@ -230,7 +227,6 @@ enabled_branches:
 targets:
   - name: A
   - name: B
-  - name: C
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
@@ -240,7 +236,7 @@ targets:
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
               'message',
-              contains('ERROR: C is a new builder added. it needs to be marked bringup: true'),
+              contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
             ),
           ));
     });
@@ -252,7 +248,6 @@ enabled_branches:
 targets:
   - name: A
   - name: B
-  - name: C
     bringup: false
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
@@ -263,7 +258,7 @@ targets:
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
               'message',
-              contains('ERROR: C is a new builder added. it needs to be marked bringup: true'),
+              contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
             ),
           ));
     });
