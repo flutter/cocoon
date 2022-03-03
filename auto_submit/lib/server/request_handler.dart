@@ -7,10 +7,11 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
+import 'body.dart';
 import 'exceptions.dart';
 
 @immutable
-abstract class RequestHandler {
+abstract class RequestHandler<T extends Body> {
   /// Services an HTTP request.
   ///
   /// The default implementation will respond with HTTP 405 method not allowed.

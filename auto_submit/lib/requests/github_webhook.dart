@@ -4,18 +4,27 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 
+import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
-import '../server/request_handler.dart';
+import '../service/config.dart';
+import '../service/github_service.dart';
 import '../service/log.dart';
+import '../server/request_handler.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
+  GithubWebhook(
+    this.config,
+  );
+  final Config config;
+
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');
@@ -33,9 +42,14 @@ class GithubWebhook extends RequestHandler {
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
-      // TODO(kristinbi): Check if PR can be submitted. https://github.com/flutter/flutter/issues/98707
-    }
+      final String githubToken = Platform.environment['AUTOSUBMIT_TOKEN']!;
+      final GithubService gitHub = config.createGithubServiceWithToken(githubToken);
 
+      final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
+      final int number = body['number'];
+
+      // TODO(Kristin): use slug and prnumber to call github Rest API to get this single pull request.
+    }
     return Response.ok(rawBody);
   }
 }
