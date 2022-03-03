@@ -11,6 +11,7 @@ updates:
       - "hixie"
       - "godofredoc"
       - "keyonghan"
+      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
