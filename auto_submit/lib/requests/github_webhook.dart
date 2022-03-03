@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
@@ -16,6 +17,10 @@ import '../service/log.dart';
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
+  GithubWebhook({
+    required Config config,
+  }) : super(config: config);
+
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');

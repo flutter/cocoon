@@ -11,13 +11,16 @@ import 'package:auto_submit/service/config.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+/// Number of entries allowed in [Cache].
+const int kCacheSize = 1024;
+
 Future<void> main() async {
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
 
-    final cache = Cache.inMemoryCacheProvider(1024);
+    final cache = Cache.inMemoryCacheProvider(kCacheSize);
     final Config config = Config(
-      cache: cache,
+      cacheProvider: cache,
     );
 
     final Router router = Router()
