@@ -30,6 +30,7 @@ Future<SchedulerConfig> schedulerConfigFromYamlWithBuilderCheck(YamlMap? yamlCon
     final String tipOfTreeConfigContent = await githubFileContent(
       slug,
       '.ci.yaml',
+      ref: Config.defaultBranch(slug),
       httpClientProvider: Providers.freshHttpClient,
       retryOptions: const RetryOptions(maxAttempts: 3),
     );
