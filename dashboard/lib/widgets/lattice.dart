@@ -74,23 +74,29 @@ class LatticeScrollView extends StatelessWidget {
         controller: horizontalController,
         physics: horizontalPhysics,
         scrollBehavior: _MouseDragScrollBehavior.instance,
-        viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) => _FakeViewport(
-          child: Scrollbar(
-            thumbVisibility: true,
-            controller: verticalController,
-            child: Scrollable(
-              dragStartBehavior: dragStartBehavior,
-              axisDirection: AxisDirection.down,
+        viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) =>
+            NotificationListener<OverscrollNotification>(
+          onNotification: (notification) =>
+              notification.metrics.axisDirection != AxisDirection.right &&
+              notification.metrics.axisDirection != AxisDirection.left,
+          child: _FakeViewport(
+            child: Scrollbar(
+              thumbVisibility: true,
               controller: verticalController,
-              physics: verticalPhysics,
-              scrollBehavior: _MouseDragScrollBehavior.instance,
-              viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
-                child: _LatticeBody(
-                  textDirection: textDirection,
-                  horizontalOffset: horizontalOffset,
-                  verticalOffset: verticalOffset,
-                  cells: cells,
-                  cellSize: cellSize,
+              child: Scrollable(
+                dragStartBehavior: dragStartBehavior,
+                axisDirection: AxisDirection.down,
+                controller: verticalController,
+                physics: verticalPhysics,
+                scrollBehavior: _MouseDragScrollBehavior.instance,
+                viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
+                  child: _LatticeBody(
+                    textDirection: textDirection,
+                    horizontalOffset: horizontalOffset,
+                    verticalOffset: verticalOffset,
+                    cells: cells,
+                    cellSize: cellSize,
+                  ),
                 ),
               ),
             ),
