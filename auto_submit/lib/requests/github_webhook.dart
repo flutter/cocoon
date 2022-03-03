@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
@@ -20,9 +20,9 @@ import '../server/request_handler.dart';
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
-  const GithubWebhook(
-    Config config,
-  ) : super(config: config);
+  GithubWebhook({
+    required Config config,
+  }) : super(config: config);
 
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
@@ -33,19 +33,22 @@ class GithubWebhook extends RequestHandler {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
+    if (!body.containsKey('pull_request') ||
+        !body['pull_request'].containsKey('labels')) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
+    hasAutosubmit =
+        pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
-      final String githubToken = Platform.environment['GITHUB_TOKEN']!;
-      final GithubService gitHub = config.createGithubServiceWithToken(githubToken);
-      final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
-      final int number = body['number'];
-      log.info('gitHub: $gitHub, slog: $slug, number: $number.');
+      // final GitHub gitHub = await config.createGithubClient();
+
+      // final RepositorySlug slug =
+      //     RepositorySlug.full(body['repository']['full_name']);
+      // final int number = body['number'];
+      // log.info('gitHub: $gitHub, slog: $slug, number: $number.');
 
       // TODO(Kristin): use slug and prnumber to call github Rest API to get this single pull request.
     }
