@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:auto_submit/requests/github_webhook.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
@@ -12,7 +13,7 @@ import 'package:test/test.dart';
 import './github_webhook_test_data.dart';
 
 void main() {
-  group('Check Webhook', () {
+  group('Check Webhook handler', () {
     late Request req;
     late GithubWebhook githubWebhook;
 
@@ -22,7 +23,7 @@ void main() {
             'header1': 'header value1',
           },
           body: webhookEventMock);
-      githubWebhook = GithubWebhook();
+      githubWebhook = GithubWebhook(Config());
     });
 
     test('call handler to handle the post request', () async {
