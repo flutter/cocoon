@@ -14,8 +14,8 @@ Future<void> main() async {
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
 
-    Config config = Config();
-    GithubWebhook githubWebhook = GithubWebhook(config);
+    final Config config = Config();
+    final GithubWebhook githubWebhook = GithubWebhook(config);
 
     final Router router = Router()..post('/webhook', githubWebhook.post);
     await serveHandler(router);

@@ -37,7 +37,7 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
@@ -46,6 +46,7 @@ class GithubWebhook extends RequestHandler {
 
       final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
       final int number = body['number'];
+      log.info('gitHub: $gitHub, slog: $slug, number: $number.');
 
       // TODO(Kristin): use slug and prnumber to call github Rest API to get this single pull request.
     }

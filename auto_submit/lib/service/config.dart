@@ -6,14 +6,16 @@ import 'package:github/github.dart';
 
 import 'github_service.dart';
 
-/// Represents the whole config for the autosubmit engine.
+/// Defines the whole config for the autosubmit engine.
 class Config {
   const Config();
 
+  /// Create the github client with [token].
   GitHub createGitHubClientWithToken(String token) {
     return GitHub(auth: Authentication.withToken(token));
   }
 
+  /// Create the github service with [token].
   GithubService createGithubServiceWithToken(String token) {
     final GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);

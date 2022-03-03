@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart';
 import '../service/config.dart';
 import 'exceptions.dart';
 
+/// A class that services requests and returns responses.
 @immutable
 abstract class RequestHandler {
   const RequestHandler({
