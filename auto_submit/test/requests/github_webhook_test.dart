@@ -9,6 +9,7 @@ import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
+import '../src/service/fake_config.dart';
 import './github_webhook_test_data.dart';
 
 void main() {
@@ -22,7 +23,9 @@ void main() {
             'header1': 'header value1',
           },
           body: webhookEventMock);
-      githubWebhook = GithubWebhook();
+      githubWebhook = GithubWebhook(
+        config: FakeConfig(),
+      );
     });
 
     test('call handler to handle the post request', () async {
