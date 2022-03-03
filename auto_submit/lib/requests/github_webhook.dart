@@ -43,7 +43,6 @@ class GithubWebhook extends RequestHandler {
     if (hasAutosubmit) {
       final String githubToken = Platform.environment['GITHUB_TOKEN']!;
       final GithubService gitHub = config.createGithubServiceWithToken(githubToken);
-
       final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
       final int number = body['number'];
       log.info('gitHub: $gitHub, slog: $slug, number: $number.');
