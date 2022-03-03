@@ -51,7 +51,7 @@ Future<CirrusResult> queryCirrusGraphQL(
     return cirrusResult;
   }
   try {
-    cirrusResult = getFirstBuildResult(result.data, tasks);
+    cirrusResult = getFirstBuildResult(result.data, tasks, name: name, sha: sha);
   } catch (_) {
     log.fine('Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
