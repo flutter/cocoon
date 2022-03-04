@@ -26,8 +26,7 @@ void main() {
           body: webhookEventMock);
       githubService = FakeGithubService();
 
-      Future<FakeGithubService> getFuture(
-          FakeGithubService githubService) async {
+      Future<FakeGithubService> getFuture(FakeGithubService githubService) async {
         return githubService;
       }
 

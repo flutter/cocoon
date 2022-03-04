@@ -18,12 +18,9 @@ class FakeGithubService implements GithubService {
   final GitHub github;
 
   @override
-  Future<List<PullRequestReview>> getReviews(RepositorySlug slug,
-      {required int prNumber}) async {
+  Future<List<PullRequestReview>> getReviews(RepositorySlug slug, {required int prNumber}) async {
     List<dynamic> reviews = json.decode(reviewsMock) as List;
-    List<PullRequestReview> prReviews = reviews
-        .map((dynamic review) => PullRequestReview.fromJson(review))
-        .toList();
+    List<PullRequestReview> prReviews = reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
     return prReviews;
   }
 }
