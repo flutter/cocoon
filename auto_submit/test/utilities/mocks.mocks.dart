@@ -350,32 +350,3 @@ class MockPullRequestsService extends _i1.Mock implements _i3.PullRequestsServic
               returnValue: Future<_i3.PullRequestReview>.value(_FakePullRequestReview_19()))
           as _i4.Future<_i3.PullRequestReview>);
 }
-
-/// A class which mocks [Future].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockFuture<T> extends _i1.Mock implements _i4.Future<T> {
-  MockFuture() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.Future<R> then<R>(_i4.FutureOr<R>? Function(T)? onValue, {Function? onError}) =>
-      (super.noSuchMethod(Invocation.method(#then, [onValue], {#onError: onError}), returnValue: Future<R>.value(null))
-          as _i4.Future<R>);
-  @override
-  _i4.Future<T> catchError(Function? onError, {bool Function(Object)? test}) =>
-      (super.noSuchMethod(Invocation.method(#catchError, [onError], {#test: test}), returnValue: Future<T>.value(null))
-          as _i4.Future<T>);
-  @override
-  _i4.Future<T> whenComplete(_i4.FutureOr<void>? Function()? action) =>
-      (super.noSuchMethod(Invocation.method(#whenComplete, [action]), returnValue: Future<T>.value(null))
-          as _i4.Future<T>);
-  @override
-  _i4.Stream<T> asStream() =>
-      (super.noSuchMethod(Invocation.method(#asStream, []), returnValue: Stream<T>.empty()) as _i4.Stream<T>);
-  @override
-  _i4.Future<T> timeout(Duration? timeLimit, {_i4.FutureOr<T>? Function()? onTimeout}) =>
-      (super.noSuchMethod(Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
-          returnValue: Future<T>.value(null)) as _i4.Future<T>);
-}

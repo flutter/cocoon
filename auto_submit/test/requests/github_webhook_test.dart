@@ -16,7 +16,6 @@ void main() {
     late GithubWebhook githubWebhook;
     late FakeConfig config;
     late FakeGithubService githubService;
-    late Future<FakeGithubService> futureGithubService;
 
     setUp(() {
       req = Request('POST', Uri.parse('http://localhost/'),
@@ -25,8 +24,7 @@ void main() {
           },
           body: webhookEventMock);
       githubService = FakeGithubService();
-      futureGithubService = Future.value(githubService);
-      config = FakeConfig(githubService: futureGithubService);
+      config = FakeConfig(githubService: githubService);
       githubWebhook = GithubWebhook(config: config);
     });
 

@@ -16,12 +16,12 @@ class FakeConfig extends Config {
     this.githubService,
   }) : super(cacheProvider: Cache.inMemoryCacheProvider(4));
 
-  Future<GitHub>? githubClient;
-  Future<GithubService>? githubService;
+  GitHub? githubClient;
+  GithubService? githubService;
 
   @override
-  Future<GitHub> createGithubClient() => githubClient!;
+  Future<GitHub> createGithubClient() async => githubClient!;
 
   @override
-  Future<GithubService> createGithubService() => githubService!;
+  Future<GithubService> createGithubService() async => githubService!;
 }
