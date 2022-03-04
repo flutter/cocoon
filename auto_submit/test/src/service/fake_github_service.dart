@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
@@ -19,8 +20,49 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<List<PullRequestReview>> getReviews(RepositorySlug slug, {required int prNumber}) async {
-    List<dynamic> reviews = json.decode(reviewsMock) as List;
-    List<PullRequestReview> prReviews = reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
+    final List<dynamic> reviews = json.decode(reviewsMock) as List;
+    final List<PullRequestReview> prReviews =
+        reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
     return prReviews;
+  }
+
+  @override
+  Future<List<CheckRun>> getCheckRuns(
+    RepositorySlug slug, {
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    final rawBody = json.decode(checkRunsMock) as Map<String, dynamic>;
+    final List<dynamic> checkRunsBody = rawBody["check_runs"];
+    final List<CheckRun> checkRuns = checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList();
+    return checkRuns;
+  }
+
+  @override
+  Future<List<CheckSuite>> getCheckSuites(
+    RepositorySlug slug, {
+    required String ref,
+    int? appId,
+    String? checkName,
+  }) async {
+    final rawBody = json.decode(checkSuitesMock) as Map<String, dynamic>;
+    final List<dynamic> checkSuitesBody = rawBody["check_suites"];
+    final List<CheckSuite> checkSuites =
+        checkSuitesBody.map((dynamic checkSuite) => CheckSuite.fromJson(checkSuite)).toList();
+    return checkSuites;
+  }
+
+  @override
+  Future<List<RepositoryStatus>> getStatuses(
+    RepositorySlug slug,
+    String ref,
+  ) async {
+    final rawBody = json.decode(repositoryStatusesMock) as Map<String, dynamic>;
+    final List<dynamic> statusesBody = rawBody["statuses"];
+    final List<RepositoryStatus> statuses =
+        statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList();
+    return statuses;
   }
 }

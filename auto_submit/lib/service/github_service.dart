@@ -17,4 +17,33 @@ class GithubService {
   }) async {
     return await github.pullRequests.listReviews(slug, prNumber).toList();
   }
+
+  /// Retrieves check runs with the ref.
+  Future<List<CheckRun>> getCheckRuns(
+    RepositorySlug slug, {
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
+  }
+
+  /// Retrieves the check suites with the ref.
+  Future<List<CheckSuite>> getCheckSuites(
+    RepositorySlug slug, {
+    required String ref,
+    int? appId,
+    String? checkName,
+  }) async {
+    return await github.checks.checkSuites.listCheckSuitesForRef(slug, ref: ref).toList();
+  }
+
+  /// Retrieves the statuses of a repository at the specified reference.
+  Future<List<RepositoryStatus>> getStatuses(
+    RepositorySlug slug,
+    String ref,
+  ) async {
+    return await github.repositories.listStatuses(slug, ref).toList();
+  }
 }
