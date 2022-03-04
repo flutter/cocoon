@@ -13,8 +13,10 @@ import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
+import 'github_service.dart';
 import 'log.dart';
 
+/// Configuration for the autosubmit engine.
 class Config {
   const Config({
     required this.cacheProvider,
@@ -29,6 +31,11 @@ class Config {
   final HttpProvider httpProvider;
 
   Cache get cache => Cache(cacheProvider).withPrefix('config').withCodec(utf8);
+
+  Future<GithubService> createGithubService() async {
+    final GitHub github = await createGithubClient();
+    return GithubService(github);
+  }
 
   Future<GitHub> createGithubClient() async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
