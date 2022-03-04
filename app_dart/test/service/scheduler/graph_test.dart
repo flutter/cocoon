@@ -19,7 +19,8 @@ targets:
     properties:
       test: abc
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(singleTargetConfig, ensureBringupTargets: false);
+      final SchedulerConfig schedulerConfig =
+          await schedulerConfigFromYaml(singleTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -41,7 +42,8 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, ensureBringupTargets: false), throwsA(isA<FormatException>()));
+      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, ensureBringupTargets: false),
+          throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () async {
@@ -57,7 +59,8 @@ targets:
     dependencies:
       - B
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(dependentTargetConfig, ensureBringupTargets: false);
+      final SchedulerConfig schedulerConfig =
+          await schedulerConfigFromYaml(dependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -82,7 +85,8 @@ targets:
     dependencies:
       - A
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(twoDependentTargetConfig, ensureBringupTargets: false);
+      final SchedulerConfig schedulerConfig =
+          await schedulerConfigFromYaml(twoDependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];

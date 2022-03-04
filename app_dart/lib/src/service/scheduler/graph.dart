@@ -13,7 +13,8 @@ import '../../model/proto/internal/scheduler.pb.dart';
 import '../config.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
-Future<SchedulerConfig> schedulerConfigFromYaml(YamlMap? yamlConfig, {RepositorySlug? slug, bool ensureBringupTargets = true}) async {
+Future<SchedulerConfig> schedulerConfigFromYaml(YamlMap? yamlConfig,
+    {RepositorySlug? slug, bool ensureBringupTargets = true}) async {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
 
