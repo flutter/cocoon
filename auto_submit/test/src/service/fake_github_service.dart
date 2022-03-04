@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';

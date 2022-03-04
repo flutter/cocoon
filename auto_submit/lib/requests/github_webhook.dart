@@ -62,7 +62,7 @@ class GithubWebhook extends RequestHandler {
       }
       checkRuns ??= <CheckRun>[];
       checkSuitesList ??= <CheckSuite>[];
-      CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
+      final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
       log.info('Get the checkSuite $checkSuite.');
 
       final String? author = pullRequest.user!.login;
