@@ -25,12 +25,7 @@ void main() {
           },
           body: webhookEventMock);
       githubService = FakeGithubService();
-
-      Future<FakeGithubService> getFuture(FakeGithubService githubService) async {
-        return githubService;
-      }
-
-      futureGithubService = getFuture(githubService);
+      futureGithubService = Future.value(githubService);
       config = FakeConfig(githubService: futureGithubService);
       githubWebhook = GithubWebhook(config: config);
     });
