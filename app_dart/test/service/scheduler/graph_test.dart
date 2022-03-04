@@ -19,7 +19,7 @@ targets:
     properties:
       test: abc
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(singleTargetConfig, null);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(singleTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -41,7 +41,7 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, null), throwsA(isA<FormatException>()));
+      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, ensureBringupTargets: false), throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () async {
@@ -57,7 +57,7 @@ targets:
     dependencies:
       - B
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(dependentTargetConfig, null);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(dependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -82,7 +82,7 @@ targets:
     dependencies:
       - A
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(twoDependentTargetConfig, null);
+      final SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(twoDependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];
@@ -107,7 +107,7 @@ targets:
       - A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithCycle, null),
+          () => schedulerConfigFromYaml(configWithCycle, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -126,7 +126,7 @@ targets:
   - name: A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithDuplicateTargets, null),
+          () => schedulerConfigFromYaml(configWithDuplicateTargets, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -149,7 +149,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMultipleDependencies, null),
+          () => schedulerConfigFromYaml(configWithMultipleDependencies, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -169,7 +169,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMissingTarget, null),
+          () => schedulerConfigFromYaml(configWithMissingTarget, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),

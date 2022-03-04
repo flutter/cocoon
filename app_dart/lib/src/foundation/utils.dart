@@ -203,7 +203,7 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 Future<List<String>> validateOwnership(String ciYamlContent, String testOwnersContent) async {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(ciYaml, null);
+  final pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(ciYaml, ensureBringupTargets: false);
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
     final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;

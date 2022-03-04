@@ -231,7 +231,7 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(configYaml, commit.slug);
+    pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, slug: commit.slug);
     return schedulerConfig.writeToBuffer();
   }
 
