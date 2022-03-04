@@ -350,10 +350,10 @@ class Scheduler {
         continue;
       }
 
-      await luciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(
-        pullRequest,
-        checkSuiteEvent,
-        checkRun,
+      await luciBuildService.scheduleTryBuilds(
+        targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
+        pullRequest: pullRequest,
+        checkSuiteEvent: checkSuiteEvent,
       );
     }
   }

@@ -28,6 +28,7 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -40,6 +41,8 @@ enabled_branches:
   - flutter-\d+\.\d+-candidate\.\d+
 targets:
   - name: Linux A
+    properties:
+      custom: abc
     scheduler: luci
   - name: Linux B
     enabled_branches:
@@ -572,6 +575,7 @@ targets:
 
       test('retries only triggers failed builds only', () async {
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        final FakePubSub pubsub = FakePubSub();
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -582,6 +586,8 @@ targets:
             config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
+            gerritService: mockGerritService,
+            pubsub: pubsub,
           ),
         );
         when(mockBuildbucket.batch(any)).thenAnswer((_) async => BatchResponse(
@@ -619,10 +625,16 @@ targets:
           pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
         );
-        final List<dynamic> retriedBuildRequests = verify(mockBuildbucket.scheduleBuild(captureAny)).captured;
-        expect(retriedBuildRequests.length, 1);
-        final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
-        expect(retryRequest.builderId.builder, 'Linux A');
+
+        expect(pubsub.messages.length, 1);
+        final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
+        expect(batchRequest.requests!.length, 1);
+        // Schedule build should have been sent
+        expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
+        final ScheduleBuildRequest scheduleBuildRequest = batchRequest.requests!.single.scheduleBuild!;
+        // Verify expected parameters to schedule build
+        expect(scheduleBuildRequest.builderId.builder, 'Linux A');
+        expect(scheduleBuildRequest.properties!['custom'], 'abc');
       });
 
       test('triggers only specificed targets', () async {
