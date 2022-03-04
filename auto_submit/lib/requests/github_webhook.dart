@@ -9,8 +9,9 @@ import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
-import '../server/request_handler.dart';
+import '../service/github_service.dart';
 import '../service/log.dart';
+import '../server/request_handler.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -34,10 +35,18 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
+      final GithubService githubService = await config.createGithubService();
+      final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
+      final int number = body['number'];
+
+      // Use github Rest API to get this single pull request.
+      final PullRequest pr = await githubService.getPullRequest(slug, prNumber: number);
+      log.info('Get the pull request $pr');
+
       // TODO(kristinbi): Check if PR can be submitted. https://github.com/flutter/flutter/issues/98707
     }
 
