@@ -16,7 +16,7 @@ import 'package:neat_cache/neat_cache.dart';
 import 'github_service.dart';
 import 'log.dart';
 
-/// Defines the whole config for the autosubmit engine.
+/// Configuration for the autosubmit engine.
 class Config {
   const Config({
     required this.cacheProvider,

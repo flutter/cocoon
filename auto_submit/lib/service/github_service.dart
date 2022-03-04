@@ -4,19 +4,17 @@
 
 import 'package:github/github.dart';
 
-/// The [GithubService] handles communication with the GitHub API.
+/// [GithubService] handles communication with the GitHub API.
 class GithubService {
   GithubService(this.github);
 
   final GitHub github;
 
-  /// Gets a pull request with the pr number
-  Future<PullRequest> getPullRequest(
+  /// Retrieves the reviews for a pull request.
+  Future<List<PullRequestReview>> getReviews(
     RepositorySlug slug, {
     required int prNumber,
-  }) {
-    ArgumentError.checkNotNull(slug);
-    ArgumentError.checkNotNull(prNumber);
-    return github.pullRequests.get(slug, prNumber);
+  }) async {
+    return await github.pullRequests.listReviews(slug, prNumber).toList();
   }
 }

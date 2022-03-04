@@ -13,36 +13,34 @@ import '../utilities/mocks.dart';
 
 void main() {
   late GithubService githubService;
-  late MockPullRequestsService mockPullRequestsService;
   late RepositorySlug slug;
-  late PullRequest testPr;
+  late PullRequestReview testReview;
+  late List<PullRequestReview> testReviews;
   final MockGitHub mockGitHub = MockGitHub();
+  final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
+  final String user = '''{"login": "octocat", "id": 1}''';
 
   const int number = 1347;
   const int id = 1;
-  const bool mergeable = true;
-  const String labelName = 'autosubmit';
+  const String state = "APPROVED";
 
   setUp(() {
-    mockPullRequestsService = MockPullRequestsService();
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'cocoon');
-    testPr = PullRequest.fromJson(
-      jsonDecode('{"id": $id, "number": $number, "mergeable": $mergeable, "labels": [{"name": "$labelName"}]}')
-          as Map<String, dynamic>,
+    testReview = PullRequestReview.fromJson(
+      jsonDecode('{"id": $id, "user": $user, "state": "$state"}') as Map<String, dynamic>,
     );
+    testReviews = <PullRequestReview>[testReview];
 
     when(mockGitHub.pullRequests).thenReturn(mockPullRequestsService);
-    when(mockPullRequestsService.get(slug, number)).thenAnswer((_) async {
-      return testPr;
-    });
+    when(mockPullRequestsService.listReviews(slug, number))
+        .thenAnswer((_) => Stream<PullRequestReview>.fromIterable(testReviews));
   });
 
-  test('listCommits decodes all relevant fields of each commit', () async {
-    final PullRequest pr = await githubService.getPullRequest(slug, prNumber: number);
-    expect(pr.id, id);
-    expect(pr.number, number);
-    expect(pr.mergeable, mergeable);
-    expect(testPr.labels![0].name, 'autosubmit');
+  test('listReviews retrieves all reviews of the pull request', () async {
+    final List<PullRequestReview> reviews = await githubService.getReviews(slug, prNumber: number);
+    PullRequestReview review = reviews[0];
+    expect(review.id, id);
+    expect(review.state, state);
   });
 }
