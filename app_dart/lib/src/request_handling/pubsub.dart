@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
+import '../service/logging.dart';
 
 /// Service class for interacting with PubSub.
 class PubSub {
@@ -31,6 +32,7 @@ class PubSub {
       PubsubMessage(data: messageBase64),
     ]);
     final String _topic = 'projects/flutter-dashboard/topics/$topic';
-    await pubsubApi.projects.topics.publish(request, _topic);
+    final PublishResponse response = await pubsubApi.projects.topics.publish(request, _topic);
+    log.info('pubsub response messageId=${response.messageIds}');
   }
 }
