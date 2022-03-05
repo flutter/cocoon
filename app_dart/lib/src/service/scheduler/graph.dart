@@ -14,12 +14,12 @@ import '../config.dart';
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
 Future<SchedulerConfig> schedulerConfigFromYaml(YamlMap? yamlConfig,
-    {RepositorySlug? slug, bool ensureBringupTargets = true}) async {
+    {RepositorySlug? slug, String? branch, bool ensureBringupTargets = true}) async {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
 
   // check for new builders and compare to tip of tree, if current branch is not a release branch
-  if (ensureBringupTargets && slug != null && slug.name == Config.defaultBranch(slug)) {
+  if (ensureBringupTargets && slug != null && branch == Config.defaultBranch(slug)) {
     final String tipOfTreeConfigContent = await githubFileContent(
       slug,
       '.ci.yaml',

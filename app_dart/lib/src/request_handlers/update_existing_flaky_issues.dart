@@ -10,13 +10,13 @@ import 'package:yaml/yaml.dart';
 
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
+import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
-import '../service/scheduler/graph.dart';
 import 'flaky_handler_utils.dart';
 
 /// This handler updates existing open flaky issues with the latest build
@@ -38,8 +38,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final pb.SchedulerConfig schedulerConfig =
-        await schedulerConfigFromYaml(ci, slug: slug, ensureBringupTargets: true);
+    // current pull is already from default branch, and therefore no need to check for new builders
+    final pb.SchedulerConfig schedulerConfig = await CiYaml.schedulerConfigFromYaml(ci);
 
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');

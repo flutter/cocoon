@@ -30,7 +30,6 @@ import 'github_checks_service.dart';
 import 'github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
-import 'scheduler/graph.dart';
 
 export 'scheduler/graph.dart';
 
@@ -231,8 +230,22 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig =
-        await schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, slug: commit.slug);
+    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig();
+    //check if it is a release branch
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      final String totConfigContent = await githubFileContent(
+        commit.slug,
+        '.ci.yaml',
+        httpClientProvider: httpClientProvider,
+        ref: Config.defaultBranch(commit.slug),
+        retryOptions: retryOptions,
+      );
+      final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
+      schedulerConfig =
+          await CiYaml.schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, totConfigYaml: totConfigYaml);
+    } else {
+      schedulerConfig = await CiYaml.schedulerConfigFromYaml(configYaml);
+    }
     return schedulerConfig.writeToBuffer();
   }
 

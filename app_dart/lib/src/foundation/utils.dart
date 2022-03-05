@@ -15,12 +15,12 @@ import 'package:yaml/yaml.dart';
 
 import '../../protos.dart' as pb;
 import '../foundation/typedefs.dart';
+import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 import '../service/luci.dart';
-import '../service/scheduler/graph.dart';
 
 const String kCiYamlPath = '.ci.yaml';
 const String kTestOwnerPath = 'TESTOWNERS';
@@ -203,7 +203,7 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 Future<List<String>> validateOwnership(String ciYamlContent, String testOwnersContent) async {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(ciYaml, ensureBringupTargets: false);
+  final pb.SchedulerConfig schedulerConfig = await CiYaml.schedulerConfigFromYaml(ciYaml);
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
     final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;

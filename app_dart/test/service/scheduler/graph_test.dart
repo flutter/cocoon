@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
-import 'package:cocoon_service/src/service/scheduler/graph.dart';
+
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -20,7 +21,7 @@ targets:
       test: abc
       ''') as YamlMap?;
       final SchedulerConfig schedulerConfig =
-          await schedulerConfigFromYaml(singleTargetConfig, ensureBringupTargets: false);
+          await CiYaml.schedulerConfigFromYaml(singleTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -42,7 +43,7 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler, ensureBringupTargets: false),
+      expect(() => CiYaml.schedulerConfigFromYaml(targetWithNonexistentScheduler, ensureBringupTargets: false),
           throwsA(isA<FormatException>()));
     });
 
@@ -60,7 +61,7 @@ targets:
       - B
       ''') as YamlMap?;
       final SchedulerConfig schedulerConfig =
-          await schedulerConfigFromYaml(dependentTargetConfig, ensureBringupTargets: false);
+          await CiYaml.schedulerConfigFromYaml(dependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -86,7 +87,7 @@ targets:
       - A
       ''') as YamlMap?;
       final SchedulerConfig schedulerConfig =
-          await schedulerConfigFromYaml(twoDependentTargetConfig, ensureBringupTargets: false);
+          await CiYaml.schedulerConfigFromYaml(twoDependentTargetConfig, ensureBringupTargets: false);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];
@@ -111,7 +112,7 @@ targets:
       - A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithCycle, ensureBringupTargets: false),
+          () => CiYaml.schedulerConfigFromYaml(configWithCycle, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -130,7 +131,7 @@ targets:
   - name: A
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithDuplicateTargets, ensureBringupTargets: false),
+          () => CiYaml.schedulerConfigFromYaml(configWithDuplicateTargets, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -153,7 +154,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMultipleDependencies, ensureBringupTargets: false),
+          () => CiYaml.schedulerConfigFromYaml(configWithMultipleDependencies, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -173,7 +174,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => schedulerConfigFromYaml(configWithMissingTarget, ensureBringupTargets: false),
+          () => CiYaml.schedulerConfigFromYaml(configWithMissingTarget, ensureBringupTargets: false),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -207,7 +208,7 @@ targets:
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
-      expect(() => validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
+      expect(() => CiYaml.validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
     });
 
     test('succeed when new builder is marked with bringup:true ', () {
@@ -221,7 +222,7 @@ targets:
       ''') as YamlMap?;
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
-      expect(() => validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
+      expect(() => CiYaml.validateSchedulerConfig(currentConfig, totConfig: totConfig), returnsNormally);
     });
 
     test('fails when new builder is missing bringup:true ', () {
@@ -235,7 +236,7 @@ targets:
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
       expect(
-          () => validateSchedulerConfig(currentConfig, totConfig: totConfig),
+          () => CiYaml.validateSchedulerConfig(currentConfig, totConfig: totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -257,7 +258,7 @@ targets:
       SchedulerConfig? currentConfig = SchedulerConfig();
       currentConfig.mergeFromProto3Json(currentYaml);
       expect(
-          () => validateSchedulerConfig(currentConfig, totConfig: totConfig),
+          () => CiYaml.validateSchedulerConfig(currentConfig, totConfig: totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),

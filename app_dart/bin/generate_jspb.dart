@@ -66,6 +66,6 @@ Future<void> main(List<String> args) async {
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
-  final pb.SchedulerConfig schedulerConfig = await schedulerConfigFromYaml(configYaml, ensureBringupTargets: false);
+  final pb.SchedulerConfig schedulerConfig = await CiYaml.schedulerConfigFromYaml(configYaml);
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }

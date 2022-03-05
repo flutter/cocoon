@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:yaml/yaml.dart';
 
 void main(List<String> args) {
@@ -16,5 +16,5 @@ void main(List<String> args) {
   }
 
   final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  print(schedulerConfigFromYaml(configYaml, ensureBringupTargets: false));
+  print(CiYaml.schedulerConfigFromYaml(configYaml));
 }

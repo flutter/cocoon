@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:yaml/yaml.dart';
+import 'package:meta/meta.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
 import 'target.dart';
@@ -25,6 +27,25 @@ class CiYaml {
 
   /// The git branch currently being scheduled against.
   final String branch;
+
+  static Future<pb.SchedulerConfig> schedulerConfigFromYaml(YamlMap? currentConfigYaml,
+      {YamlMap? totConfigYaml, bool ensureBringupTargets = false}) async {
+    final pb.SchedulerConfig config = pb.SchedulerConfig();
+    config.mergeFromProto3Json(currentConfigYaml);
+
+    // check for new builders and compare to tip of tree,
+    // when ensureBringupTargets is the passed in as true,
+    // we assume the check of whether current branch is a release branch, has been performed at upper level
+    if (ensureBringupTargets && totConfigYaml != null) {
+      final pb.SchedulerConfig totConfig = pb.SchedulerConfig();
+      totConfig.mergeFromProto3Json(totConfigYaml);
+      validateSchedulerConfig(config, totConfig: totConfig);
+    } else {
+      validateSchedulerConfig(config);
+    }
+
+    return config;
+  }
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
@@ -96,5 +117,63 @@ class CiYaml {
     final RegExp regexp = RegExp(rawRegexp);
 
     return regexp.hasMatch(branch);
+  }
+
+  @visibleForTesting
+  static void validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
+    if (schedulerConfig.targets.isEmpty) {
+      throw const FormatException('Scheduler config must have at least 1 target');
+    }
+
+    if (schedulerConfig.enabledBranches.isEmpty) {
+      throw const FormatException('Scheduler config must have at least 1 enabled branch');
+    }
+
+    final Map<String, List<pb.Target>> targetGraph = <String, List<pb.Target>>{};
+    final List<String> exceptions = <String>[];
+    final Set<String> totTargets = <String>{};
+    if (totConfig != null) {
+      for (pb.Target target in totConfig.targets) {
+        totTargets.add(target.name);
+      }
+    }
+    // Construct [targetGraph]. With a one scan approach, cycles in the graph
+    // cannot exist as it only works forward.
+    for (final pb.Target target in schedulerConfig.targets) {
+      if (targetGraph.containsKey(target.name)) {
+        exceptions.add('ERROR: ${target.name} already exists in graph');
+      } else {
+        // a new build without "bringup: true"
+        // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
+        if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
+          exceptions.add('ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true');
+          continue;
+        }
+        targetGraph[target.name] = <pb.Target>[];
+        // Add edges
+        if (target.dependencies.isNotEmpty) {
+          if (target.dependencies.length != 1) {
+            exceptions
+                .add('ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
+          } else {
+            if (target.dependencies.first == target.name) {
+              exceptions.add('ERROR: ${target.name} cannot depend on itself');
+            } else if (targetGraph.containsKey(target.dependencies.first)) {
+              targetGraph[target.dependencies.first]!.add(target);
+            } else {
+              exceptions.add('ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
+            }
+          }
+        }
+      }
+    }
+    _checkExceptions(exceptions);
+  }
+
+  static void _checkExceptions(List<String> exceptions) {
+    if (exceptions.isNotEmpty) {
+      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      throw FormatException(fullException);
+    }
   }
 }
