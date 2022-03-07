@@ -18,49 +18,44 @@ class FakeGithubService implements GithubService {
   final GitHub github;
 
   @override
-  Future<List<PullRequestReview>> getReviews(RepositorySlug slug, {required int prNumber}) async {
-    final List<dynamic> reviews = json.decode(reviewsMock) as List;
-    final List<PullRequestReview> prReviews =
+  Future<Iterable<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
+    final Iterable<dynamic> reviews = json.decode(reviewsMock) as Iterable;
+    final Iterable<PullRequestReview> prReviews =
         reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
     return prReviews;
   }
 
   @override
-  Future<List<CheckRun>> getCheckRuns(
-    RepositorySlug slug, {
-    required String ref,
-    String? checkName,
-    CheckRunStatus? status,
-    CheckRunFilter? filter,
-  }) async {
+  Future<Iterable<CheckRun>> getCheckRuns(
+    RepositorySlug slug,
+    String ref,
+  ) async {
     final rawBody = json.decode(checkRunsMock) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody["check_runs"];
-    final List<CheckRun> checkRuns = checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList();
+    final Iterable<dynamic> checkRunsBody = rawBody["check_runs"];
+    final Iterable<CheckRun> checkRuns = checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList();
     return checkRuns;
   }
 
   @override
-  Future<List<CheckSuite>> getCheckSuites(
-    RepositorySlug slug, {
-    required String ref,
-    int? appId,
-    String? checkName,
-  }) async {
+  Future<Iterable<CheckSuite>> getCheckSuites(
+    RepositorySlug slug,
+    String ref,
+  ) async {
     final rawBody = json.decode(checkSuitesMock) as Map<String, dynamic>;
-    final List<dynamic> checkSuitesBody = rawBody["check_suites"];
-    final List<CheckSuite> checkSuites =
+    final Iterable<dynamic> checkSuitesBody = rawBody["check_suites"];
+    final Iterable<CheckSuite> checkSuites =
         checkSuitesBody.map((dynamic checkSuite) => CheckSuite.fromJson(checkSuite)).toList();
     return checkSuites;
   }
 
   @override
-  Future<List<RepositoryStatus>> getStatuses(
+  Future<Iterable<RepositoryStatus>> getStatuses(
     RepositorySlug slug,
     String ref,
   ) async {
     final rawBody = json.decode(repositoryStatusesMock) as Map<String, dynamic>;
-    final List<dynamic> statusesBody = rawBody["statuses"];
-    final List<RepositoryStatus> statuses =
+    final Iterable<dynamic> statusesBody = rawBody["statuses"];
+    final Iterable<RepositoryStatus> statuses =
         statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList();
     return statuses;
   }

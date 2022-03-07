@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
+import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
@@ -23,7 +23,6 @@ class CronjobHandler extends RequestHandler {
   }) : super(config: config);
 
   Future<Response> get(Request request) async {
-    // TODO(Kristin): Here assume we already gotten PR, change the way to get this PR from pubsub later.
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
@@ -46,39 +45,36 @@ class CronjobHandler extends RequestHandler {
   /// 1) All tests have finished running and satified basic merge requests
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
-    // TODO(Kristin): Add the detailed logic later. https://github.com/flutter/flutter/issues/98707
+    // TODO(Kristin): Implement shouldMergePullRequest. https://github.com/flutter/flutter/issues/98707
 
     return true;
   }
 
   Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
-    // TODO(Kristin): Validate the way to parse data later when get the real payload.
-
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
     final bool unknownMergeableState = pr.mergeableState == 'UNKNOWN';
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    List<CheckRun>? checkRuns;
-    List<CheckSuite>? checkSuitesList;
+    List<CheckRun> checkRuns = <CheckRun>[];
+    List<CheckSuite> checkSuitesList = <CheckSuite>[];
     if (pr.head != null && pr.head!.sha != null) {
-      checkRuns = await gitHub.getCheckRuns(slug, ref: pr.head!.sha!);
-      checkSuitesList = await gitHub.getCheckSuites(slug, ref: pr.head!.sha!);
+      checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
+      checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
-    checkRuns ??= <CheckRun>[];
-    checkSuitesList ??= <CheckSuite>[];
+
     final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
     log.info('Get the checkSuite $checkSuite.');
 
-    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, prNumber: pr.number!);
+    final Iterable<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
     final Set<String?> changeRequestAuthors = <String?>{};
     log.info('Get the reviews $reviews');
 
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
+    final Iterable<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     log.info('Get the statuses $statuses.');
 
     // TODO(Kristin): Get the author, authorAssociation, labels later.

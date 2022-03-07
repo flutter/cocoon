@@ -30,7 +30,7 @@ Future<void> main() async {
           GithubWebhook(
             config: config,
           ).post)
-      ..get('/cronJob', CronjobHandler(config: config).get);
+      ..get('/cron-job', CronjobHandler(config: config).get);
     await serveHandler(router);
   });
 }

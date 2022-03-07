@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
+import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 
@@ -38,6 +38,7 @@ class GithubWebhook extends RequestHandler {
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
+      log.info(body);
       // TODO(kristinbi): Publish the pr with 'autosbumit' label to pubsub.
 
     }
