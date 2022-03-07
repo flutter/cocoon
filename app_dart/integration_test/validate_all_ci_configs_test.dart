@@ -36,7 +36,7 @@ Future<void> main() async {
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       try {
-        CiYaml.schedulerConfigFromYaml(configYaml);
+        CiYaml.fromYaml(configYaml);
       } on FormatException catch (e) {
         fail(e.message);
       }
@@ -50,7 +50,7 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig schedulerConfig = CiYaml.schedulerConfigFromYaml(configYaml).config;
+      final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(configYaml).config;
       final List<String> githubBranches = getBranchesForRepository(config.slug);
 
       final Map<String, bool> validEnabledBranches = <String, bool>{};

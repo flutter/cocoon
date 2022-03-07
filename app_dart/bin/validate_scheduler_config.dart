@@ -16,5 +16,5 @@ void main(List<String> args) {
   }
 
   final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  print(CiYaml.schedulerConfigFromYaml(configYaml));
+  print(CiYaml.fromYaml(configYaml));
 }

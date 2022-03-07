@@ -29,8 +29,7 @@ class CiYaml {
 
   /// Load [currentConfigYaml] (and optionally [totConfigYaml] ) to [pb.SchedulerConfig] and validate the dependency graph.
   /// where totYaml means tip of tree Yaml.
-  CiYaml.schedulerConfigFromYaml(YamlMap? currentConfigYaml,
-      {YamlMap? totConfigYaml, bool ensureBringupTargets = false})
+  CiYaml.fromYaml(YamlMap? currentConfigYaml, {YamlMap? totConfigYaml})
       : branch = '',
         slug = RepositorySlug('flutter', 'fake'),
         config = pb.SchedulerConfig() {
@@ -39,7 +38,7 @@ class CiYaml {
     // check for new builders and compare to tip of tree,
     // when ensureBringupTargets is the passed in as true,
     // we assume the check of whether current branch is a release branch, has been performed at upper level
-    if (ensureBringupTargets && totConfigYaml != null) {
+    if (totConfigYaml != null) {
       final pb.SchedulerConfig totConfig = pb.SchedulerConfig();
       totConfig.mergeFromProto3Json(totConfigYaml);
       _validateSchedulerConfig(config, totConfig: totConfig);
@@ -120,6 +119,7 @@ class CiYaml {
     return regexp.hasMatch(branch);
   }
 
+  // https://docs.google.com/document/d/1vF2QNKIQgDrhupO4VYcislU--vKp2qQenJ3jZxdZ0ws/edit?usp=sharing&resourcekey=0-t6Xya2ETEX7NU8vjpDYF4w
   void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');

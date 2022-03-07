@@ -239,10 +239,9 @@ class Scheduler {
         retryOptions: retryOptions,
       );
       final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
-      schedulerConfig =
-          CiYaml.schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, totConfigYaml: totConfigYaml).config;
+      schedulerConfig = CiYaml.fromYaml(configYaml, totConfigYaml: totConfigYaml).config;
     } else {
-      schedulerConfig = CiYaml.schedulerConfigFromYaml(configYaml).config;
+      schedulerConfig = CiYaml.fromYaml(configYaml).config;
     }
     return schedulerConfig.writeToBuffer();
   }
