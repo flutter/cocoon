@@ -13,25 +13,25 @@ import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 
-/// Handler for processing GitHub webhooks.
+/// Handler for processing pull requests with 'autosubmit' label.
 ///
-/// On events where an 'autosubmit' label was added to a pull request,
-/// check if the pull request is mergable and publish to pubsub.
+/// For pull requests where an 'autosubmit' label was added in pubsub,
+/// check if the pull request is mergable.
 class CronjobHandler extends RequestHandler {
   CronjobHandler({
     required Config config,
   }) : super(config: config);
 
   Future<Response> get(Request request) async {
-    // TODO(Kristin): Change the way to get this PR later according to the real situation.
+    // TODO(Kristin): Here assume we already gotten PR, change the way to get this PR from pubsub later.
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
 
     final GithubService gitHub = await config.createGithubService();
-    _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, body);
+    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult)) {
-      // TODO(Kristin): keep pulling pubsub queue.
+      // TODO(Kristin): Keep pulling pubsub queue.
 
     } else {
       return Response.ok(jsonEncode(<String, String>{}));
@@ -46,20 +46,20 @@ class CronjobHandler extends RequestHandler {
   /// 1) All tests have finished running and satified basic merge requests
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
-    // TODO(Kristin): add the detailed logic later. https://github.com/flutter/flutter/issues/98707
+    // TODO(Kristin): Add the detailed logic later. https://github.com/flutter/flutter/issues/98707
 
     return true;
   }
 
-  Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub, Map<String, dynamic> body) async {
-    // TODO(Kristin): validate the way to parse data later when get the real payload.
+  Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
+    // TODO(Kristin): Validate the way to parse data later when get the real payload.
 
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
     final bool unknownMergeableState = pr.mergeableState == 'UNKNOWN';
 
-    final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
+    final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun>? checkRuns;
     List<CheckSuite>? checkSuitesList;
     if (pr.head != null && pr.head!.sha != null) {
@@ -71,7 +71,8 @@ class CronjobHandler extends RequestHandler {
     final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
     log.info('Get the checkSuite $checkSuite.');
 
-    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, prNumber: body['number']);
+    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, prNumber: pr.number!);
+
     final Set<String?> changeRequestAuthors = <String?>{};
     log.info('Get the reviews $reviews');
 
@@ -80,7 +81,7 @@ class CronjobHandler extends RequestHandler {
     final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     log.info('Get the statuses $statuses.');
 
-    // TODO(Kristin): Get the autho, authotAssociation, labels later.
+    // TODO(Kristin): Get the author, authorAssociation, labels later.
 
     // TODO(Kristin): Add the _checkApproval() and _checkStatuses() function later for hasApproval and ciSuccessful.
     final bool hasApproval = false;
@@ -90,7 +91,7 @@ class CronjobHandler extends RequestHandler {
         failures: failures,
         hasApprovedReview: hasApproval,
         changeRequestAuthors: changeRequestAuthors,
-        number: body['number'],
+        number: pr.number!,
         sha: sha,
         emptyChecks: checkRuns.isEmpty,
         isConflicting: isConflicting,
