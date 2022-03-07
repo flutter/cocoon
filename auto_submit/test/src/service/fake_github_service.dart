@@ -18,44 +18,44 @@ class FakeGithubService implements GithubService {
   final GitHub github;
 
   @override
-  Future<Iterable<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
-    final Iterable<dynamic> reviews = json.decode(reviewsMock) as Iterable;
-    final Iterable<PullRequestReview> prReviews =
+  Future<List<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
+    final List<dynamic> reviews = json.decode(reviewsMock) as List;
+    final List<PullRequestReview> prReviews =
         reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
     return prReviews;
   }
 
   @override
-  Future<Iterable<CheckRun>> getCheckRuns(
+  Future<List<CheckRun>> getCheckRuns(
     RepositorySlug slug,
     String ref,
   ) async {
     final rawBody = json.decode(checkRunsMock) as Map<String, dynamic>;
-    final Iterable<dynamic> checkRunsBody = rawBody["check_runs"];
-    final Iterable<CheckRun> checkRuns = checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList();
+    final List<dynamic> checkRunsBody = rawBody["check_runs"];
+    final List<CheckRun> checkRuns = checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList();
     return checkRuns;
   }
 
   @override
-  Future<Iterable<CheckSuite>> getCheckSuites(
+  Future<List<CheckSuite>> getCheckSuites(
     RepositorySlug slug,
     String ref,
   ) async {
     final rawBody = json.decode(checkSuitesMock) as Map<String, dynamic>;
-    final Iterable<dynamic> checkSuitesBody = rawBody["check_suites"];
-    final Iterable<CheckSuite> checkSuites =
+    final List<dynamic> checkSuitesBody = rawBody["check_suites"];
+    final List<CheckSuite> checkSuites =
         checkSuitesBody.map((dynamic checkSuite) => CheckSuite.fromJson(checkSuite)).toList();
     return checkSuites;
   }
 
   @override
-  Future<Iterable<RepositoryStatus>> getStatuses(
+  Future<List<RepositoryStatus>> getStatuses(
     RepositorySlug slug,
     String ref,
   ) async {
     final rawBody = json.decode(repositoryStatusesMock) as Map<String, dynamic>;
-    final Iterable<dynamic> statusesBody = rawBody["statuses"];
-    final Iterable<RepositoryStatus> statuses =
+    final List<dynamic> statusesBody = rawBody["statuses"];
+    final List<RepositoryStatus> statuses =
         statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList();
     return statuses;
   }

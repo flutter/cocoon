@@ -11,7 +11,7 @@ class GithubService {
   final GitHub github;
 
   /// Retrieves the reviews for a pull request.
-  Future<Iterable<PullRequestReview>> getReviews(
+  Future<List<PullRequestReview>> getReviews(
     RepositorySlug slug,
     int prNumber,
   ) async {
@@ -19,7 +19,7 @@ class GithubService {
   }
 
   /// Retrieves check runs with the ref.
-  Future<Iterable<CheckRun>> getCheckRuns(
+  Future<List<CheckRun>> getCheckRuns(
     RepositorySlug slug,
     String ref,
   ) async {
@@ -27,7 +27,7 @@ class GithubService {
   }
 
   /// Retrieves the check suites with the ref.
-  Future<Iterable<CheckSuite>> getCheckSuites(
+  Future<List<CheckSuite>> getCheckSuites(
     RepositorySlug slug,
     String ref,
   ) async {
@@ -35,7 +35,7 @@ class GithubService {
   }
 
   /// Retrieves the statuses of a repository at the specified reference.
-  Future<Iterable<RepositoryStatus>> getStatuses(
+  Future<List<RepositoryStatus>> getStatuses(
     RepositorySlug slug,
     String ref,
   ) async {

@@ -17,12 +17,13 @@ import '../server/request_handler.dart';
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
-class CronjobHandler extends RequestHandler {
-  CronjobHandler({
+class CheckPullRequest extends RequestHandler {
+  CheckPullRequest({
     required Config config,
   }) : super(config: config);
 
   Future<Response> get(Request request) async {
+    //TODO(Kristin): Change the way to get this PR later according to the real situation. https://github.com/flutter/flutter/issues/99720
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
@@ -30,7 +31,7 @@ class CronjobHandler extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult)) {
-      // TODO(Kristin): Keep pulling pubsub queue.
+      // TODO(Kristin): Keep pulling pubsub queue. https://github.com/flutter/flutter/issues/98704
 
     } else {
       return Response.ok(jsonEncode(<String, String>{}));
@@ -40,10 +41,6 @@ class CronjobHandler extends RequestHandler {
   }
 
   /// Check if the pull request should be merged.
-  ///
-  /// A pull request should be merged on either cases:
-  /// 1) All tests have finished running and satified basic merge requests
-  /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
     // TODO(Kristin): Implement shouldMergePullRequest. https://github.com/flutter/flutter/issues/98707
 
@@ -77,9 +74,7 @@ class CronjobHandler extends RequestHandler {
     final Iterable<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     log.info('Get the statuses $statuses.');
 
-    // TODO(Kristin): Get the author, authorAssociation, labels later.
-
-    // TODO(Kristin): Add the _checkApproval() and _checkStatuses() function later for hasApproval and ciSuccessful.
+    // TODO(Kristin): Get the author, authorAssociation, labels later.https://github.com/flutter/flutter/issues/99718.
     final bool hasApproval = false;
     final bool ciSuccessful = false;
     return _AutoMergeQueryResult(
@@ -95,6 +90,7 @@ class CronjobHandler extends RequestHandler {
   }
 }
 
+// TODO(Kristin): Simplify the _AutoMergeQueryResult class. https://github.com/flutter/flutter/issues/99717.
 class _AutoMergeQueryResult {
   const _AutoMergeQueryResult({
     required this.hasApprovedReview,

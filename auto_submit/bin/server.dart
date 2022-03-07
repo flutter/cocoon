@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:auto_submit/helpers.dart';
-import 'package:auto_submit/requests/cronjob_handler.dart';
+import 'package:auto_submit/requests/check_pr_handler.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -30,7 +30,7 @@ Future<void> main() async {
           GithubWebhook(
             config: config,
           ).post)
-      ..get('/cron-job', CronjobHandler(config: config).get);
+      ..get('/cron-job', CheckPullRequest(config: config).get);
     await serveHandler(router);
   });
 }

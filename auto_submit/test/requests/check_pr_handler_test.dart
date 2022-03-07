@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/requests/cronjob_handler.dart';
+import 'package:auto_submit/requests/check_pr_handler.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -11,25 +11,25 @@ import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 
 void main() {
-  group('Check Webhook', () {
+  group('Check CheckPullRequest', () {
     late Request req;
-    late CronjobHandler cronjobHandler;
+    late CheckPullRequest checkPullRequest;
     late FakeConfig config;
     late FakeGithubService githubService;
 
     setUp(() {
-      req = Request('POST', Uri.parse('http://localhost/'),
+      req = Request('GET', Uri.parse('http://localhost/'),
           headers: {
             'header1': 'header value1',
           },
           body: webhookEventMock);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
-      cronjobHandler = CronjobHandler(config: config);
+      checkPullRequest = CheckPullRequest(config: config);
     });
 
-    test('call handler to handle the post request', () async {
-      final Response response = await cronjobHandler.get(req);
+    test('call checkPullRequest handler to handle the get request', () async {
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
       expect(resBody, webhookEventMock);
     });

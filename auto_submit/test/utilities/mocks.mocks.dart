@@ -267,23 +267,23 @@ class MockGithubService extends _i1.Mock implements _i5.GithubService {
   _i3.GitHub get github =>
       (super.noSuchMethod(Invocation.getter(#github), returnValue: _FakeGitHub_15()) as _i3.GitHub);
   @override
-  _i4.Future<Iterable<_i3.PullRequestReview>> getReviews(_i3.RepositorySlug? slug, int? prNumber) =>
+  _i4.Future<List<_i3.PullRequestReview>> getReviews(_i3.RepositorySlug? slug, int? prNumber) =>
       (super.noSuchMethod(Invocation.method(#getReviews, [slug, prNumber]),
-              returnValue: Future<Iterable<_i3.PullRequestReview>>.value(<_i3.PullRequestReview>[]))
-          as _i4.Future<Iterable<_i3.PullRequestReview>>);
+              returnValue: Future<List<_i3.PullRequestReview>>.value(<_i3.PullRequestReview>[]))
+          as _i4.Future<List<_i3.PullRequestReview>>);
   @override
-  _i4.Future<Iterable<_i3.CheckRun>> getCheckRuns(_i3.RepositorySlug? slug, String? ref) =>
+  _i4.Future<List<_i3.CheckRun>> getCheckRuns(_i3.RepositorySlug? slug, String? ref) =>
       (super.noSuchMethod(Invocation.method(#getCheckRuns, [slug, ref]),
-          returnValue: Future<Iterable<_i3.CheckRun>>.value(<_i3.CheckRun>[])) as _i4.Future<Iterable<_i3.CheckRun>>);
+          returnValue: Future<List<_i3.CheckRun>>.value(<_i3.CheckRun>[])) as _i4.Future<List<_i3.CheckRun>>);
   @override
-  _i4.Future<Iterable<_i3.CheckSuite>> getCheckSuites(_i3.RepositorySlug? slug, String? ref) => (super.noSuchMethod(
-      Invocation.method(#getCheckSuites, [slug, ref]),
-      returnValue: Future<Iterable<_i3.CheckSuite>>.value(<_i3.CheckSuite>[])) as _i4.Future<Iterable<_i3.CheckSuite>>);
+  _i4.Future<List<_i3.CheckSuite>> getCheckSuites(_i3.RepositorySlug? slug, String? ref) =>
+      (super.noSuchMethod(Invocation.method(#getCheckSuites, [slug, ref]),
+          returnValue: Future<List<_i3.CheckSuite>>.value(<_i3.CheckSuite>[])) as _i4.Future<List<_i3.CheckSuite>>);
   @override
-  _i4.Future<Iterable<_i3.RepositoryStatus>> getStatuses(_i3.RepositorySlug? slug, String? ref) =>
+  _i4.Future<List<_i3.RepositoryStatus>> getStatuses(_i3.RepositorySlug? slug, String? ref) =>
       (super.noSuchMethod(Invocation.method(#getStatuses, [slug, ref]),
-              returnValue: Future<Iterable<_i3.RepositoryStatus>>.value(<_i3.RepositoryStatus>[]))
-          as _i4.Future<Iterable<_i3.RepositoryStatus>>);
+              returnValue: Future<List<_i3.RepositoryStatus>>.value(<_i3.RepositoryStatus>[]))
+          as _i4.Future<List<_i3.RepositoryStatus>>);
 }
 
 /// A class which mocks [PullRequestsService].
