@@ -119,7 +119,19 @@ class CiYaml {
     return regexp.hasMatch(branch);
   }
 
-  // https://docs.google.com/document/d/1vF2QNKIQgDrhupO4VYcislU--vKp2qQenJ3jZxdZ0ws/edit?usp=sharing&resourcekey=0-t6Xya2ETEX7NU8vjpDYF4w
+  /// validate [schedulerConfig], extracted from ci.yaml files provided by user
+  ///
+  /// A [schedulerConfig] is considered good if:
+  ///   1. It has at least one [pb.Target] in [schedulerConfig.targets]
+  ///   2. It has at least one [branch] in [schedulerConfig.enabledBranches]
+  ///   3. If [totConfig] is passed in, compare current list of [pb.Target] with the list of
+  ///   [pb.Target] from tip of the tree config [totConfig]. If a [pb.Target] is indentified
+  ///   as a new target compared to target list from tip of the tree. The new target should
+  ///   have its field [pb.Target.bringup] set to true.
+  ///   4. no cycle should exist in the dependency graph, as tracked by map [targetGraph]
+  ///   5. [pb.Target] should not depend on self
+  ///   6. [pb.Target] cannot have more than 1 dependency
+  ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
   void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');

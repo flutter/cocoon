@@ -200,7 +200,7 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 }
 
 /// Validate test ownership defined in [testOwnersContent] for tests configured in `ciYamlContent`.
-Future<List<String>> validateOwnership(String ciYamlContent, String testOwnersContent) async {
+List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(ciYaml).config;

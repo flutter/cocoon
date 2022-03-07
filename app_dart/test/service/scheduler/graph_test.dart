@@ -10,7 +10,7 @@ import 'package:yaml/yaml.dart';
 
 void main() {
   group('scheduler config', () {
-    test('constructs graph with one target', () async {
+    test('constructs graph with one target', () {
       final YamlMap? singleTargetConfig = loadYaml('''
 enabled_branches:
   - master
@@ -45,7 +45,7 @@ targets:
       expect(() => CiYaml.fromYaml(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
     });
 
-    test('constructs graph with dependency chain', () async {
+    test('constructs graph with dependency chain', () {
       final YamlMap? dependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
@@ -70,7 +70,7 @@ targets:
       expect(c.dependencies, <String>['B']);
     });
 
-    test('constructs graph with parent with two dependents', () async {
+    test('constructs graph with parent with two dependents', () {
       final YamlMap? twoDependentTargetConfig = loadYaml('''
 enabled_branches:
   - master
