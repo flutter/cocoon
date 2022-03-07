@@ -50,7 +50,7 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig schedulerConfig = await CiYaml.schedulerConfigFromYaml(configYaml);
+      final pb.SchedulerConfig schedulerConfig = CiYaml.schedulerConfigFromYaml(configYaml).config;
       final List<String> githubBranches = getBranchesForRepository(config.slug);
 
       final Map<String, bool> validEnabledBranches = <String, bool>{};

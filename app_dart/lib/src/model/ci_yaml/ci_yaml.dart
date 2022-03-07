@@ -4,7 +4,6 @@
 
 import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
-import 'package:meta/meta.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
 import 'target.dart';
@@ -20,7 +19,7 @@ class CiYaml {
   });
 
   /// The underlying protobuf that contains the raw data from .ci.yaml.
-  final pb.SchedulerConfig config;
+  pb.SchedulerConfig config;
 
   /// The [RepositorySlug] that [config] is from.
   final RepositorySlug slug;
@@ -28,9 +27,13 @@ class CiYaml {
   /// The git branch currently being scheduled against.
   final String branch;
 
-  static Future<pb.SchedulerConfig> schedulerConfigFromYaml(YamlMap? currentConfigYaml,
-      {YamlMap? totConfigYaml, bool ensureBringupTargets = false}) async {
-    final pb.SchedulerConfig config = pb.SchedulerConfig();
+  /// Load [currentConfigYaml] (and optionally [totConfigYaml] ) to [pb.SchedulerConfig] and validate the dependency graph.
+  /// where totYaml means tip of tree Yaml.
+  CiYaml.schedulerConfigFromYaml(YamlMap? currentConfigYaml,
+      {YamlMap? totConfigYaml, bool ensureBringupTargets = false})
+      : branch = '',
+        slug = RepositorySlug('flutter', 'fake'),
+        config = pb.SchedulerConfig() {
     config.mergeFromProto3Json(currentConfigYaml);
 
     // check for new builders and compare to tip of tree,
@@ -39,12 +42,10 @@ class CiYaml {
     if (ensureBringupTargets && totConfigYaml != null) {
       final pb.SchedulerConfig totConfig = pb.SchedulerConfig();
       totConfig.mergeFromProto3Json(totConfigYaml);
-      validateSchedulerConfig(config, totConfig: totConfig);
+      _validateSchedulerConfig(config, totConfig: totConfig);
     } else {
-      validateSchedulerConfig(config);
+      _validateSchedulerConfig(config);
     }
-
-    return config;
   }
 
   /// Gets all [Target] that run on presubmit for this config.
@@ -119,8 +120,7 @@ class CiYaml {
     return regexp.hasMatch(branch);
   }
 
-  @visibleForTesting
-  static void validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
+  void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
     }
@@ -170,7 +170,7 @@ class CiYaml {
     _checkExceptions(exceptions);
   }
 
-  static void _checkExceptions(List<String> exceptions) {
+  void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
       final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
       throw FormatException(fullException);

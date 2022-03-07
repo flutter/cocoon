@@ -39,7 +39,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
     // current pull is already from default branch, and therefore no need to check for new builders
-    final pb.SchedulerConfig schedulerConfig = await CiYaml.schedulerConfigFromYaml(ci);
+    final pb.SchedulerConfig schedulerConfig = CiYaml.schedulerConfigFromYaml(ci).config;
 
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');

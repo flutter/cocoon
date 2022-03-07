@@ -31,8 +31,6 @@ import 'github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
 
-export 'scheduler/graph.dart';
-
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
 /// Scheduler responsibilties include:
@@ -242,9 +240,9 @@ class Scheduler {
       );
       final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
       schedulerConfig =
-          await CiYaml.schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, totConfigYaml: totConfigYaml);
+          CiYaml.schedulerConfigFromYaml(configYaml, ensureBringupTargets: true, totConfigYaml: totConfigYaml).config;
     } else {
-      schedulerConfig = await CiYaml.schedulerConfigFromYaml(configYaml);
+      schedulerConfig = CiYaml.schedulerConfigFromYaml(configYaml).config;
     }
     return schedulerConfig.writeToBuffer();
   }
