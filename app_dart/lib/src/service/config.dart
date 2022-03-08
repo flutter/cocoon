@@ -247,10 +247,10 @@ class Config {
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
-  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+  static const String luciProdAccount = 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   /// Internal Google service account used to surface FRoB results.
-  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+  static const String frobAccount = 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{

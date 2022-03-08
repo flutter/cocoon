@@ -248,16 +248,10 @@ class FakeConfig implements Config {
   Future<String> get githubPublicKey => throw UnimplementedError();
 
   @override
-  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
-
-  @override
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue!;
 
   @override
   Future<GithubService> createDefaultGitHubService() async => githubService!;
-
-  @override
-  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
   @override
   Future<String> get overrideTreeStatusLabel async => overrideTreeStatusLabelValue!;
