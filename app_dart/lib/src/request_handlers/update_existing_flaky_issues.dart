@@ -104,44 +104,23 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     for (pb.Target target in schedulerConfig.targets) {
       builderFlakyMap[target.name] = target.bringup;
     }
-    // For prod builder stats, updates an existing flaky bug when the builder is not marked as flaky.
+    // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.
     //
-    // If a builder is marked as flaky, it is expected to run in `staging` pool.
-    // It is possible that a flaky bug exists for a builder, but the builder is not marked as flaky,
-    // such as a shard builder. For this case, it is still running in `prod` pool.
+    // Update an existing flaky bug with both prod and staging stats if the builder is with `bringup: true`. When a builder
+    // is newly identified as flaky, there is a gap between the builder is marked as `bringup: true` and the flaky bug is filed.
+    // For this case, there will be builds still running in `prod` pool, and we need to append `prod` stats as well.
     for (final BuilderStatistic statistic in prodBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) &&
-          builderFlakyMap.containsKey(statistic.name) &&
-          builderFlakyMap[statistic.name] == false &&
-          _buildsAreEnough(statistic)) {
+      if (nameToExistingIssue.containsKey(statistic.name) && builderFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
-            bucket: _getBucket(builderFlakyMap, statistic.name),
-            statistic: statistic,
-            existingIssue: nameToExistingIssue[statistic.name]!);
+            bucket: Bucket.prod, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
     }
     // For all staging builder stats, updates any existing flaky bug.
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) &&
-          builderFlakyMap[statistic.name] == true &&
-          _buildsAreEnough(statistic)) {
+      if (nameToExistingIssue.containsKey(statistic.name) && builderFlakyMap[statistic.name] == true) {
         await _addCommentToExistingIssue(gitHub, slug,
-            bucket: _getBucket(builderFlakyMap, statistic.name),
-            statistic: statistic,
-            existingIssue: nameToExistingIssue[statistic.name]!);
+            bucket: Bucket.staging, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
     }
-  }
-
-  /// Check if there are enough builds to calculate the flaky ratio.
-  ///
-  /// Default threshold is [kFlayRatioBuildNumberList].
-  bool _buildsAreEnough(BuilderStatistic statistic) {
-    return statistic.flakyBuilds!.length + statistic.succeededBuilds!.length >= kFlayRatioBuildNumberList;
-  }
-
-  /// Return bucket info for the builder runs.
-  Bucket _getBucket(Map<String, bool> builderFlakyMap, String builderName) {
-    return builderFlakyMap[builderName] == true ? Bucket.staging : Bucket.prod;
   }
 }
