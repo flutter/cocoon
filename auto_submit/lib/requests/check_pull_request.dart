@@ -29,8 +29,7 @@ class CheckPullRequest extends RequestHandler {
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
 
     final GithubService gitHub = await config.createGithubService();
-    final _AutoMergeQueryResult queryResult =
-        await _parseQueryData(pullRequest, gitHub);
+    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult)) {
       // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
 
@@ -48,8 +47,7 @@ class CheckPullRequest extends RequestHandler {
     return true;
   }
 
-  Future<_AutoMergeQueryResult> _parseQueryData(
-      PullRequest pr, GithubService gitHub) async {
+  Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
@@ -63,20 +61,17 @@ class CheckPullRequest extends RequestHandler {
       checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
 
-    final CheckSuite? checkSuite =
-        checkSuitesList.isEmpty ? null : checkSuitesList[0];
+    final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
     log.info('Get the checkSuite $checkSuite.');
 
-    final Iterable<PullRequestReview> reviews =
-        await gitHub.getReviews(slug, pr.number!);
+    final Iterable<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
     final Set<String?> changeRequestAuthors = <String?>{};
     log.info('Get the reviews $reviews');
 
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final Iterable<RepositoryStatus> statuses =
-        await gitHub.getStatuses(slug, sha);
+    final Iterable<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     log.info('Get the statuses $statuses.');
 
     // TODO(Kristin): Get the author, authorAssociation, labels later.https://github.com/flutter/flutter/issues/99718.
@@ -148,11 +143,7 @@ class _AutoMergeQueryResult {
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview ||
-      changeRequestAuthors.isNotEmpty ||
-      failures.isNotEmpty ||
-      emptyChecks ||
-      isConflicting;
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
 
   @override
   String toString() {
