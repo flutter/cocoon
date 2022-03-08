@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/protos.dart' as pb;
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
@@ -52,18 +53,31 @@ String getLocalConfigContent(String path) {
 }
 
 Future<void> main(List<String> args) async {
-  if (args.length != 2) {
+  if (args.length != 1 && args.length != 2) {
+    print('generate_jspb.dart \$local_ci_yaml');
     print('generate_jspb.dart \$repo \$sha');
     exit(1);
   }
   String configContent;
-  configContent = await getRemoteConfigContent(args[0], args[1]);
+  if (args.length == 2) {
+    configContent = await getRemoteConfigContent(args[0], args[1]);
+  } else {
+    configContent = getLocalConfigContent(args[0]);
+  }
 
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  final CiYaml totConfig =
-      CiYaml(config: pb.SchedulerConfig(), slug: RepositorySlug('flutter', args[0]), branch: args[1]);
-  // There's an assumption that we're only generating builder configs from commits that
-  // have already landed with validation. Otherwise, this will fail.
-  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
+  final CiYaml totConfig;
+  final pb.SchedulerConfig schedulerConfig;
+  if (args.length == 2) {
+    totConfig = CiYaml(config: pb.SchedulerConfig(), slug: RepositorySlug('flutter', args[0]), branch: args[1]);
+    // There's an assumption that we're only generating builder configs from commits that
+    // have already landed with validation. Otherwise, this will fail.
+    schedulerConfig = CiYaml.fromYaml(configYaml, totConfig, ensureBringupTarget: true).config;
+  } else {
+    totConfig = CiYaml(
+        config: pb.SchedulerConfig(), slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
+    schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
+  }
+
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }
