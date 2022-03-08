@@ -29,5 +29,5 @@ class FakeConfig extends Config {
   Future<GitHub> createGithubClient() async => githubClient!;
 
   @override
-  Future<GithubService> createGithubService() async => githubService!;
+  Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
 }
