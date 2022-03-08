@@ -38,8 +38,8 @@ void main() {
   });
 
   test('listReviews retrieves all reviews of the pull request', () async {
-    final List<PullRequestReview> reviews = await githubService.getReviews(slug, prNumber: number);
-    PullRequestReview review = reviews[0];
+    final Iterable<PullRequestReview> reviews = await githubService.getReviews(slug, number);
+    PullRequestReview review = reviews.first;
     expect(review.id, id);
     expect(review.state, state);
   });
