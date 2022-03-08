@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
@@ -37,7 +38,13 @@ void main() {
       clientContext = FakeClientContext();
       clientContext.isDevelopmentEnvironment = false;
       keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
-      config = FakeConfig(dbValue: datastoreDB, keyHelperValue: keyHelper);
+      config = FakeConfig(
+        dbValue: datastoreDB,
+        keyHelperValue: keyHelper,
+        flutterBranchesValue: <String>[
+          Config.defaultBranch(Config.flutterSlug),
+        ],
+      );
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
@@ -51,7 +58,12 @@ void main() {
         ),
       );
       commit = generateCommit(1);
-      task = generateTask(1, name: 'Linux A', parent: commit, status: Task.statusFailed,);
+      task = generateTask(
+        1,
+        name: 'Linux A',
+        parent: commit,
+        status: Task.statusFailed,
+      );
       tester.requestData = <String, dynamic>{
         'Key': config.keyHelper.encode(task.key),
       };
@@ -62,6 +74,7 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
+        ignoreChecks: true,
       )).thenAnswer((_) async => true);
     });
     test('Schedule new task', () async {
@@ -77,10 +90,12 @@ void main() {
     });
 
     test('Re-schedule passing all the parameters', () async {
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
       tester.requestData = <String, dynamic>{
-        'Commit': 'commitSha',
-        'Builder': 'Windows',
-        'Repo': 'engine',
+        'Commit': commit.sha,
+        'Builder': task.name,
+        'Repo': commit.slug.name,
       };
       expect(await tester.post(handler), Body.empty);
     });
@@ -103,15 +118,16 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
+        ignoreChecks: true,
       )).thenAnswer((_) async => false);
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
+      expect(() => tester.post(handler), throwsA(isA<InternalServerError>()));
     });
 
     test('Fails if commit does not exist', () async {
       config.db.values[task.key] = task;
-      expect(() => tester.post(handler), throwsA(isA<KeyNotFoundException>()));
+      expect(() => tester.post(handler), throwsA(isA<StateError>()));
     });
   });
 }

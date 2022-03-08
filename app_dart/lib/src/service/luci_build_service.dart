@@ -561,14 +561,16 @@ class LuciBuildService {
   ///   1. It has been tried below the max retry limit
   ///   2. It is for the tip of tree
   ///   3. The last known status is not green
+  ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   Future<bool> checkRerunBuilder({
     required Commit commit,
     required Target target,
     required Task task,
     required DatastoreService datastore,
     Map<String, List<String>>? tags,
+    bool ignoreChecks = false,
   }) async {
-    if (await _shouldRerunBuilder(task, commit, datastore) == false) {
+    if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
     }
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');

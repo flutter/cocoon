@@ -25,7 +25,7 @@ import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
 
 /// Reruns a postsubmit LUCI build.
-/// 
+///
 /// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
 class ResetProdTask extends ApiRequestHandler<Body> {
@@ -52,7 +52,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData![taskKeyParam] as String? ?? '';
+    final String? encodedKey = requestData![taskKeyParam] as String?;
     String? gitBranch = requestData![branchParam] as String?;
     final String owner = requestData![ownerParam] as String? ?? 'flutter';
     final String? repo = requestData![repoParam] as String?;
@@ -62,7 +62,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
 
     RepositorySlug? slug;
 
-    if (encodedKey.isNotEmpty) {
+    if (encodedKey != null && encodedKey.isNotEmpty) {
       // Check params required for dashboard.
       checkRequiredParameters(<String>[taskKeyParam]);
     } else {
@@ -72,7 +72,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       gitBranch ??= Config.defaultBranch(slug);
     }
 
-    final Task task = await _getTaskFromNamedParams(datastore: datastore, encodedKey: encodedKey, gitBranch: gitBranch, name: taskName, sha: sha, slug: slug,);
+    final Task task = await _getTaskFromNamedParams(
+      datastore: datastore,
+      encodedKey: encodedKey,
+      gitBranch: gitBranch,
+      name: taskName,
+      sha: sha,
+      slug: slug,
+    );
     final Commit commit = await _getCommitFromTask(datastore, task);
 
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
@@ -88,6 +95,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       target: target,
       datastore: datastore,
       tags: tags,
+      ignoreChecks: true,
     );
     if (isRerunning == false) {
       throw InternalServerError('Failed to rerun ${task.name}');
@@ -109,16 +117,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     String? sha,
     RepositorySlug? slug,
   }) async {
-    if (encodedKey != null) {
+    if (encodedKey != null && encodedKey.isNotEmpty) {
       final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
       return datastore.lookupByValue<Task>(key);
     }
 
     final Key<String> commitKey = await _constructCommitKey(
       datastore: datastore,
-      gitBranch: gitBranch,
-      sha: sha,
-      slug: slug,
+      gitBranch: gitBranch!,
+      sha: sha!,
+      slug: slug!,
     );
 
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
@@ -145,20 +153,19 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
   Future<Key<String>> _constructCommitKey({
     required DatastoreService datastore,
-    String? gitBranch,
-    String? sha,
-    RepositorySlug? slug,
+    required String gitBranch,
+    required String sha,
+    required RepositorySlug slug,
   }) async {
-    assert(gitBranch != null && sha != null && slug != null);
-    gitBranch = gitBranch!.trim();
-    sha = sha!.trim();
+    gitBranch = gitBranch.trim();
+    sha = sha.trim();
     final List<String> flutterBranches = await config.flutterBranches;
     if (!flutterBranches.contains(gitBranch)) {
       throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
           'If this is a valid branch, '
           'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
     }
-    final String id = '${slug!.fullName}/$gitBranch/$sha';
+    final String id = '${slug.fullName}/$gitBranch/$sha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.

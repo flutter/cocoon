@@ -1451,10 +1451,17 @@ class MockLuciBuildService extends _i1.Mock implements _i28.LuciBuildService {
           _i31.Target? target,
           _i35.Task? task,
           _i36.DatastoreService? datastore,
-          Map<String, List<String>>? tags}) =>
+          Map<String, List<String>>? tags,
+          bool? ignoreChecks = false}) =>
       (super.noSuchMethod(
-          Invocation.method(#checkRerunBuilder, [],
-              {#commit: commit, #target: target, #task: task, #datastore: datastore, #tags: tags}),
+          Invocation.method(#checkRerunBuilder, [], {
+            #commit: commit,
+            #target: target,
+            #task: task,
+            #datastore: datastore,
+            #tags: tags,
+            #ignoreChecks: ignoreChecks
+          }),
           returnValue: Future<bool>.value(false)) as _i14.Future<bool>);
 }
 
