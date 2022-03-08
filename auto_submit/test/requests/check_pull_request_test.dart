@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 
 import './github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
-import '../src/service/fake_github_service.dart';
 
 void main() {
   group('Check CheckPullRequest', () {
