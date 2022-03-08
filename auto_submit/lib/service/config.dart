@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
+import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -85,4 +86,37 @@ class Config {
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
+
+  Future<GraphQLClient> createCirrusGraphQLClient() async {
+    final HttpLink httpLink = HttpLink(
+      'https://api.cirrus-ci.com/graphql',
+    );
+
+    return GraphQLClient(
+      cache: GraphQLCache(),
+      link: httpLink,
+    );
+  }
+
+  /// GitHub repositories that use CI status to determine if pull requests can be submitted.
+  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
+    engineSlug,
+    flutterSlug,
+  };
+
+  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+
+  /// The names of autoroller accounts for the repositories.
+  ///
+  /// These accounts should not need reviews before merging. See
+  /// https://github.com/flutter/flutter/wiki/Autorollers
+  Set<String> get rollerAccounts => const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        'dependabot',
+      };
+
+  /// The label which shows the overrideTreeStatus.
+  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 }

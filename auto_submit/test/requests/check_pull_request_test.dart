@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/check_pull_request.dart';
+import 'package:graphql/client.dart' hide Request, Response;
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -14,6 +15,8 @@ void main() {
     late Request req;
     late CheckPullRequest checkPullRequest;
     late FakeConfig config;
+    List<dynamic> statuses = <dynamic>[];
+    String? branch;
 
     setUp(() {
       req = Request('GET', Uri.parse('http://localhost/'),
@@ -23,6 +26,13 @@ void main() {
           body: webhookEventMock);
       config = FakeConfig();
       checkPullRequest = CheckPullRequest(config: config);
+      config.cirrusGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      branch = null;
+      statuses.clear();
+      config.cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        return createCirrusQueryResult(statuses, branch);
+      };
     });
 
     test('call checkPullRequest handler to handle the get request', () async {
@@ -31,4 +41,28 @@ void main() {
       expect(resBody, webhookEventMock);
     });
   });
+}
+
+QueryResult createCirrusQueryResult(List<dynamic> statuses, String? branch) {
+  if (statuses.isEmpty) {
+    return QueryResult(source: QueryResultSource.network);
+  }
+  return QueryResult(
+    data: <String, dynamic>{
+      'searchBuilds': <dynamic>[
+        <String, dynamic>{
+          'id': '1',
+          'branch': branch,
+          'latestGroupTasks': statuses.map<Map<String, dynamic>>((dynamic status) {
+            return <String, dynamic>{
+              'id': status['id'],
+              'name': status['name'],
+              'status': status['status'],
+            };
+          }).toList(),
+        }
+      ],
+    },
+    source: QueryResultSource.network,
+  );
 }
