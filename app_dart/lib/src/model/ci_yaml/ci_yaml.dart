@@ -27,8 +27,9 @@ class CiYaml {
   /// The git branch currently being scheduled against.
   final String branch;
 
-  /// Load [currentConfigYaml] (and optionally [totConfigYaml] ) to [pb.SchedulerConfig] and validate the dependency graph.
-  /// where totYaml means tip of tree Yaml.
+  /// Creates [CiYaml] from a [YamlMap].
+  ///
+  /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
   CiYaml.fromYaml(YamlMap? currentConfigYaml, CiYaml? totConfig, {bool ensureBringupTarget = false})
       : slug = totConfig!.slug,
         branch = totConfig.branch,
@@ -36,9 +37,9 @@ class CiYaml {
     config.mergeFromProto3Json(currentConfigYaml);
 
     if (ensureBringupTarget) {
-      _validateSchedulerConfig(config, totSchedulerConfig: totConfig.config);
+      _validate(config, totSchedulerConfig: totConfig.config);
     } else {
-      _validateSchedulerConfig(config);
+      _validate(config);
     }
   }
 
@@ -114,20 +115,21 @@ class CiYaml {
     return regexp.hasMatch(branch);
   }
 
-  /// validate [schedulerConfig], extracted from ci.yaml files provided by user
+  /// validates [pb.SchedulerConfig] extracted from [CiYaml] files.
   ///
-  /// A [schedulerConfig] is considered good if:
-  ///   1. It has at least one [pb.Target] in [schedulerConfig.targets]
-  ///   2. It has at least one [branch] in [schedulerConfig.enabledBranches]
-  ///   3. If [totConfig] is passed in, compare current list of [pb.Target] with the list of
-  ///   [pb.Target] from tip of the tree config [totConfig]. If a [pb.Target] is indentified
-  ///   as a new target compared to target list from tip of the tree. The new target should
-  ///   have its field [pb.Target.bringup] set to true.
+  /// A [pb.SchedulerConfig] file is considered good if:
+  ///   1. It has at least one [pb.Target] in [pb.SchedulerConfig.targets]
+  ///   2. It has at least one [branch] in [pb.SchedulerConfig.enabledBranches]
+  ///   3. If a second [pb.SchedulerConfig] is passed in,
+  ///   we compare the current list of [pb.Target] inside the current [pb.SchedulerConfig], i.e., [schedulerConfig],
+  ///   with the list of [pb.Target] from tip of the tree [pb.SchedulerConfig], i.e., [totSchedulerConfig].
+  ///   If a [pb.Target] is indentified as a new target compared to target list from tip of the tree, The new target
+  ///   should have its field [pb.Target.bringup] set to true.
   ///   4. no cycle should exist in the dependency graph, as tracked by map [targetGraph]
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
-  void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totSchedulerConfig}) {
+  void _validate(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
     }
