@@ -10,6 +10,8 @@ import 'package:auto_submit/service/secrets.dart';
 import 'package:github/github.dart';
 import 'package:neat_cache/neat_cache.dart';
 
+import 'fake_github_service.dart';
+
 // Represents a fake config to be used in unit test.
 class FakeConfig extends Config {
   FakeConfig({
@@ -21,7 +23,7 @@ class FakeConfig extends Config {
         );
 
   GitHub? githubClient;
-  GithubService? githubService;
+  GithubService? githubService = FakeGithubService();
 
   @override
   Future<GitHub> createGithubClient() async => githubClient!;

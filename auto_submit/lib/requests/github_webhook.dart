@@ -5,11 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
-import '../service/github_service.dart';
+import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 
@@ -39,16 +38,8 @@ class GithubWebhook extends RequestHandler {
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
 
     if (hasAutosubmit) {
-      final GithubService gitHub = await config.createGithubService();
-      final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
-      final int number = body['number'];
-
-      // Use github Rest API to get this pull request's reviews.
-      // Reviews will be used to help decide whether this PR should be merged or not later.
-      final List<PullRequestReview> reviews = await gitHub.getReviews(slug, prNumber: number);
-      log.info('Get the reviews $reviews');
-
-      // TODO(kristinbi): Check if pullRequest can be submitted. https://github.com/flutter/flutter/issues/98707
+      log.info(body);
+      // TODO(kristinbi): Publish the pr with 'autosbumit' label to pubsub.
 
     }
 

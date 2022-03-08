@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:cocoon_service/src/request_handling/authentication.dart' show AuthenticatedContext;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/swarming_authentication.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -49,7 +50,7 @@ void main() {
       });
 
       test('auth succeeds with flutter luci service account', () async {
-        httpClient = MockClient((_) async => http.Response('{"email": "${config.luciProdAccount}"}', HttpStatus.ok));
+        httpClient = MockClient((_) async => http.Response('{"email": "${Config.luciProdAccount}"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
@@ -63,7 +64,7 @@ void main() {
       });
 
       test('auth succeeds with frob service account', () async {
-        httpClient = MockClient((_) async => http.Response('{"email": "${config.frobAccount}"}', HttpStatus.ok));
+        httpClient = MockClient((_) async => http.Response('{"email": "${Config.frobAccount}"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
           config,
           clientContextProvider: () => clientContext,
