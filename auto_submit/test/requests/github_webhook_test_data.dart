@@ -441,7 +441,7 @@ String webhookEventMock = '''{
           "commits": 3,
           "additions": 100,
           "deletions": 3,
-          "changed_files": 5  
+          "changed_files": 5
       },
       "repository": {
         "id": 1868532,

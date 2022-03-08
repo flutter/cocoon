@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:corsac_jwt/corsac_jwt.dart';
@@ -13,6 +12,7 @@ import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../foundation/providers.dart';
+import '../service/secrets.dart';
 import 'github_service.dart';
 import 'log.dart';
 
@@ -21,14 +21,16 @@ class Config {
   const Config({
     required this.cacheProvider,
     this.httpProvider = Providers.freshHttpClient,
+    required this.secretManager,
   });
 
   // List of environment variable keys related to the Github app authentication.
-  static const String kGithubKey = 'GITHUB_KEY';
-  static const String kGithubAppId = 'GITHUB_APP_ID';
+  static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
+  static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
+  final SecretManager secretManager;
 
   Cache get cache => Cache(cacheProvider).withPrefix('config').withCodec(utf8);
 
@@ -55,8 +57,8 @@ class Config {
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final Uri githubAccessTokensUri =
-        Uri.https('api.github.com', 'app/installations/${_getFromEnv(kGithubAppId)}/access_tokens');
+    final String appId = await secretManager.get(kGithubAppId);
+    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
       githubAccessTokensUri,
@@ -72,25 +74,15 @@ class Config {
   }
 
   Future<String> _generateGithubJwt() async {
-    final String privateKey = _getFromEnv(kGithubKey);
+    final String privateKey = await secretManager.get(kGithubKey);
     final JWTBuilder builder = JWTBuilder();
     final DateTime now = DateTime.now();
     builder
-      ..issuer = _getFromEnv(kGithubAppId)
+      ..issuer = await secretManager.get(kGithubAppId)
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
     final JWTRsaSha256Signer signer = JWTRsaSha256Signer(privateKey: privateKey);
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
-  }
-
-  String _getFromEnv(String key) {
-    String? value = Platform.environment[key];
-    if (value == null) {
-      throw Exception(
-          'Failed to find $key in environment variable. The server will need to set it and be re-deployed.');
-    }
-
-    return value;
   }
 }

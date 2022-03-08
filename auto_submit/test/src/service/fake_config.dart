@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/service/secrets.dart';
 import 'package:github/github.dart';
 import 'package:neat_cache/neat_cache.dart';
 
@@ -15,7 +16,11 @@ import 'fake_github_service.dart';
 class FakeConfig extends Config {
   FakeConfig({
     this.githubClient,
-  }) : super(cacheProvider: Cache.inMemoryCacheProvider(4));
+    this.githubService,
+  }) : super(
+          cacheProvider: Cache.inMemoryCacheProvider(4),
+          secretManager: LocalSecretManager(),
+        );
 
   GitHub? githubClient;
   GithubService? githubService = FakeGithubService();
@@ -24,5 +29,5 @@ class FakeConfig extends Config {
   Future<GitHub> createGithubClient() async => githubClient!;
 
   @override
-  Future<GithubService> createGithubService() async => githubService!;
+  Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
 }
