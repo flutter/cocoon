@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/requests/check_pr_handler.dart';
+import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +15,6 @@ void main() {
     late Request req;
     late CheckPullRequest checkPullRequest;
     late FakeConfig config;
-    late FakeGithubService githubService;
 
     setUp(() {
       req = Request('GET', Uri.parse('http://localhost/'),
@@ -23,8 +22,7 @@ void main() {
             'header1': 'header value1',
           },
           body: webhookEventMock);
-      githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService);
+      config = FakeConfig();
       checkPullRequest = CheckPullRequest(config: config);
     });
 
