@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
