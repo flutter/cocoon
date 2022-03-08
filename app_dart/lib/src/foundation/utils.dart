@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -203,7 +204,9 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(ciYaml).config;
+  final CiYaml totConfig =
+      CiYaml(config: pb.SchedulerConfig(), slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
+  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(ciYaml, totConfig).config;
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
     final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;

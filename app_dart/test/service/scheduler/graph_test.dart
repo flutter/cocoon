@@ -4,12 +4,20 @@
 
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
+import 'package:cocoon_service/src/service/config.dart';
 
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
   group('scheduler config', () {
+    late CiYaml? totConfig;
+
+    setUp(() {
+      totConfig =
+          CiYaml(config: SchedulerConfig(), slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
+    });
+
     test('constructs graph with one target', () {
       final YamlMap? singleTargetConfig = loadYaml('''
 enabled_branches:
@@ -20,7 +28,7 @@ targets:
     properties:
       test: abc
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(singleTargetConfig).config;
+      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(singleTargetConfig, totConfig).config;
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -42,7 +50,7 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() => CiYaml.fromYaml(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
+      expect(() => CiYaml.fromYaml(targetWithNonexistentScheduler, totConfig), throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () {
@@ -58,7 +66,7 @@ targets:
     dependencies:
       - B
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(dependentTargetConfig).config;
+      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(dependentTargetConfig, totConfig).config;
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -83,7 +91,7 @@ targets:
     dependencies:
       - A
       ''') as YamlMap?;
-      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(twoDependentTargetConfig).config;
+      final SchedulerConfig schedulerConfig = CiYaml.fromYaml(twoDependentTargetConfig, totConfig).config;
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];
@@ -108,7 +116,7 @@ targets:
       - A
       ''') as YamlMap?;
       expect(
-          () => CiYaml.fromYaml(configWithCycle),
+          () => CiYaml.fromYaml(configWithCycle, totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -127,7 +135,7 @@ targets:
   - name: A
       ''') as YamlMap?;
       expect(
-          () => CiYaml.fromYaml(configWithDuplicateTargets),
+          () => CiYaml.fromYaml(configWithDuplicateTargets, totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -150,7 +158,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => CiYaml.fromYaml(configWithMultipleDependencies),
+          () => CiYaml.fromYaml(configWithMultipleDependencies, totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -170,7 +178,7 @@ targets:
       - B
       ''') as YamlMap?;
       expect(
-          () => CiYaml.fromYaml(configWithMissingTarget),
+          () => CiYaml.fromYaml(configWithMissingTarget, totConfig),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -181,16 +189,20 @@ targets:
     });
   });
 
-  group('scheduler config tested and compared with tip of tree builders', () {
-    late YamlMap? totYaml;
+  group('validate scheduler config and compared with tip of tree targets', () {
+    late CiYaml? totConfig;
 
     setUp(() {
-      totYaml = loadYaml('''
+      YamlMap? totYaml = loadYaml('''
 enabled_branches:
   - master
 targets:
   - name: A
       ''') as YamlMap?;
+      SchedulerConfig totSchedulerConfig = SchedulerConfig();
+      totSchedulerConfig.mergeFromProto3Json(totYaml);
+      totConfig = CiYaml(
+          config: totSchedulerConfig, slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
     });
 
     test('succeed when no new builders compared with tip of tree builders', () {
@@ -200,7 +212,7 @@ enabled_branches:
 targets:
   - name: A
       ''') as YamlMap?;
-      expect(() => CiYaml.fromYaml(currentYaml, totConfigYaml: totYaml), returnsNormally);
+      expect(() => CiYaml.fromYaml(currentYaml, totConfig, ensureBringupTarget: true), returnsNormally);
     });
 
     test('succeed when new builder is marked with bringup:true ', () {
@@ -212,7 +224,7 @@ targets:
   - name: B
     bringup: true
       ''') as YamlMap?;
-      expect(() => CiYaml.fromYaml(currentYaml, totConfigYaml: totYaml), returnsNormally);
+      expect(() => CiYaml.fromYaml(currentYaml, totConfig, ensureBringupTarget: true), returnsNormally);
     });
 
     test('fails when new builder is missing bringup:true ', () {
@@ -224,7 +236,7 @@ targets:
   - name: B
       ''') as YamlMap?;
       expect(
-          () => CiYaml.fromYaml(currentYaml, totConfigYaml: totYaml),
+          () => CiYaml.fromYaml(currentYaml, totConfig, ensureBringupTarget: true),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -245,7 +257,7 @@ targets:
       ''') as YamlMap?;
 
       expect(
-          () => CiYaml.fromYaml(currentYaml, totConfigYaml: totYaml),
+          () => CiYaml.fromYaml(currentYaml, totConfig, ensureBringupTarget: true),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),

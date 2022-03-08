@@ -229,6 +229,7 @@ class Scheduler {
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig();
+    pb.SchedulerConfig totSchedulerConfig = pb.SchedulerConfig();
     //check if it is a release branch
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       final String totConfigContent = await githubFileContent(
@@ -239,9 +240,14 @@ class Scheduler {
         retryOptions: retryOptions,
       );
       final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
-      schedulerConfig = CiYaml.fromYaml(configYaml, totConfigYaml: totConfigYaml).config;
+      totSchedulerConfig.mergeFromProto3Json(totConfigYaml);
+      CiYaml totConfig =
+          CiYaml(config: totSchedulerConfig, slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+      schedulerConfig = CiYaml.fromYaml(configYaml, totConfig, ensureBringupTarget: true).config;
     } else {
-      schedulerConfig = CiYaml.fromYaml(configYaml).config;
+      CiYaml totConfig =
+          CiYaml(config: totSchedulerConfig, slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+      schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
     }
     return schedulerConfig.writeToBuffer();
   }
@@ -376,12 +382,14 @@ class Scheduler {
   ///
   /// In the case there is an issue getting the diff from GitHub, all targets are returned.
   Future<List<Target>> getPresubmitTargets(github.PullRequest pullRequest) async {
+    //
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
     final CiYaml ciYaml = await getCiYaml(commit);
+    // downloadCIYaml + getCiYAML -> here, pull down tot, run validation
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where((Target target) =>
         target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon);
     // Release branches should run every test.

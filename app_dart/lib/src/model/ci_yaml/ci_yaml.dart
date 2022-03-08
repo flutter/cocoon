@@ -29,19 +29,14 @@ class CiYaml {
 
   /// Load [currentConfigYaml] (and optionally [totConfigYaml] ) to [pb.SchedulerConfig] and validate the dependency graph.
   /// where totYaml means tip of tree Yaml.
-  CiYaml.fromYaml(YamlMap? currentConfigYaml, {YamlMap? totConfigYaml})
-      : branch = '',
-        slug = RepositorySlug('flutter', 'fake'),
+  CiYaml.fromYaml(YamlMap? currentConfigYaml, CiYaml? totConfig, {bool ensureBringupTarget = false})
+      : slug = totConfig!.slug,
+        branch = totConfig.branch,
         config = pb.SchedulerConfig() {
     config.mergeFromProto3Json(currentConfigYaml);
 
-    // check for new builders and compare to tip of tree,
-    // when ensureBringupTargets is the passed in as true,
-    // we assume the check of whether current branch is a release branch, has been performed at upper level
-    if (totConfigYaml != null) {
-      final pb.SchedulerConfig totConfig = pb.SchedulerConfig();
-      totConfig.mergeFromProto3Json(totConfigYaml);
-      _validateSchedulerConfig(config, totConfig: totConfig);
+    if (ensureBringupTarget) {
+      _validateSchedulerConfig(config, totSchedulerConfig: totConfig.config);
     } else {
       _validateSchedulerConfig(config);
     }
@@ -132,7 +127,7 @@ class CiYaml {
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
-  void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totConfig}) {
+  void _validateSchedulerConfig(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
     }
@@ -144,8 +139,8 @@ class CiYaml {
     final Map<String, List<pb.Target>> targetGraph = <String, List<pb.Target>>{};
     final List<String> exceptions = <String>[];
     final Set<String> totTargets = <String>{};
-    if (totConfig != null) {
-      for (pb.Target target in totConfig.targets) {
+    if (totSchedulerConfig != null) {
+      for (pb.Target target in totSchedulerConfig.targets) {
         totTargets.add(target.name);
       }
     }

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -52,20 +53,18 @@ String getLocalConfigContent(String path) {
 }
 
 Future<void> main(List<String> args) async {
-  if (args.length != 1 && args.length != 2) {
-    print('generate_jspb.dart \$local_ci_yaml');
+  if (args.length != 2) {
     print('generate_jspb.dart \$repo \$sha');
     exit(1);
   }
   String configContent;
-  if (args.length == 2) {
-    configContent = await getRemoteConfigContent(args[0], args[1]);
-  } else {
-    configContent = getLocalConfigContent(args[0]);
-  }
+  configContent = await getRemoteConfigContent(args[0], args[1]);
+
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
+  final CiYaml totConfig =
+      CiYaml(config: pb.SchedulerConfig(), slug: RepositorySlug('flutter', args[0]), branch: args[1]);
   // There's an assumption that we're only generating builder configs from commits that
   // have already landed with validation. Otherwise, this will fail.
-  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(configYaml).config;
+  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }
