@@ -5,11 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:gcloud/db.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
