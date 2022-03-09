@@ -44,6 +44,10 @@ class CheckPullRequest extends RequestHandler {
   }
 
   /// Check if the pull request should be merged.
+  ///
+  /// A pull request should be merged on either cases:
+  /// 1) All tests have finished running and satified basic merge requests
+  /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
     if (queryResult.shouldMerge) {
