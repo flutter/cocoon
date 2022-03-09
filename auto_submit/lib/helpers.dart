@@ -1,4 +1,4 @@
-// Copyright 2021 The Flutter Authors. All rights reserved.
+// Copyright 2022 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,20 +8,22 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
+import '../service/log.dart';
+
 /// Serves [handler] on [InternetAddress.anyIPv4] using the port returned by
 /// [listenPort].
 ///
 /// The returned [Future] will complete using [terminateRequestFuture] after
 /// closing the server.
 Future<void> serveHandler(Handler handler) async {
-  final port = listenPort();
+  final int port = listenPort();
 
-  final server = await serve(
+  final HttpServer server = await serve(
     handler,
     InternetAddress.anyIPv4, // Allows external connections
     port,
   );
-  print('Serving at http://${server.address.host}:${server.port}');
+  log.info('Serving at http://${server.address.host}:${server.port}');
 
   await terminateRequestFuture();
 
@@ -41,14 +43,14 @@ int listenPort() => int.parse(Platform.environment['PORT'] ?? '8080');
 ///
 /// [ProcessSignal.sigterm] is listened to on all platforms except Windows.
 Future<void> terminateRequestFuture() {
-  final completer = Completer<bool>.sync();
+  final Completer<bool> completer = Completer<bool>.sync();
 
   // sigIntSub is copied below to avoid a race condition - ignoring this lint
   // ignore: cancel_subscriptions
   StreamSubscription? sigIntSub, sigTermSub;
 
   Future<void> signalHandler(ProcessSignal signal) async {
-    print('Received signal $signal - closing');
+    log.info('Received signal $signal - closing');
 
     final subCopy = sigIntSub;
     if (subCopy != null) {

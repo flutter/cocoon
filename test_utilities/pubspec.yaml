@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 name: global_test_runner
-author: Flutter Authors <flutter-dev@googlegroups.com>
 description: Flutter continuous integration agent (Cocoon agent)
 homepage: https://github.com/flutter/cocoon
 

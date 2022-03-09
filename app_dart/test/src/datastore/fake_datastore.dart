@@ -52,10 +52,9 @@ class FakeDatastoreDB implements DatastoreDB {
   /// The [callback] argument will replace any existing callback that has been
   /// specified for type `T`, as only one callback may exist per type.
   void addOnQuery<T extends Model<dynamic>>(QueryCallback<T> callback) {
-    final QueryCallback<Model<dynamic>> untypedCallback = (Iterable<Model<dynamic>> results) {
+    onQuery[T] = (Iterable<Model<dynamic>> results) {
       return callback(results.cast<T>()).cast<Model<dynamic>>();
     };
-    onQuery[T] = untypedCallback;
   }
 
   @override
@@ -99,7 +98,7 @@ class FakeDatastoreDB implements DatastoreDB {
   }
 
   @override
-  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T orElse()?}) async {
+  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
     final List<T?> values = await lookup(<Key<dynamic>>[key]);
     T? value = values.single;
     if (value == null) {
@@ -268,7 +267,7 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T orElse()?}) async {
+  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
     final List<T?> values = await lookup(<Key<dynamic>>[key]);
     T? value = values.single;
     if (value == null) {

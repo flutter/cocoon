@@ -11,42 +11,50 @@ import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
 import 'mocks.dart';
 
 class FakeBuildState extends ChangeNotifier implements BuildState {
   FakeBuildState({
-    GoogleSignInService authService,
-    CocoonService cocoonService,
+    GoogleSignInService? authService,
+    CocoonService? cocoonService,
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
-    this.rerunTaskResult,
+    this.rerunTaskResult = false,
   })  : authService = authService ?? MockGoogleSignInService(),
         cocoonService = cocoonService ?? MockCocoonService();
 
   @override
-  final GoogleSignInService authService;
+  late GoogleSignInService authService;
 
   @override
   final CocoonService cocoonService;
 
   @override
-  Timer refreshTimer;
+  Timer? refreshTimer;
 
   @override
   final ErrorSink errors = ErrorSink();
 
   @override
-  bool isTreeBuilding;
+  bool? isTreeBuilding;
 
   @override
-  Duration get refreshRate => null;
+  Duration? get refreshRate => null;
 
   @override
   Future<bool> refreshGitHubCommits() async => false;
 
   @override
-  Future<bool> rerunTask(Task task) async => rerunTaskResult;
+  Future<bool> rerunTask(Task task) async {
+    if (!rerunTaskResult) {
+      errors.send(TaskOverlayContents.rerunErrorMessage);
+      return false;
+    }
+    return true;
+  }
+
   final bool rerunTaskResult;
 
   @override
@@ -56,7 +64,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   final bool moreStatusesExist;
 
   @override
-  Future<void> fetchMoreCommitStatuses() => null;
+  Future<void>? fetchMoreCommitStatuses() => null;
 
   @override
   List<String> get branches => <String>['master'];

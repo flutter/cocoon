@@ -247,9 +247,11 @@ class Scheduler {
   /// Cancels all existing targets then schedules the targets.
   ///
   /// Schedules a [kCiYamlCheckName] to validate [CiYaml] is valid and all builds were able to be triggered.
+  /// If [builderTriggerList] is specified, then trigger only those targets.
   Future<void> triggerPresubmitTargets({
     required github.PullRequest pullRequest,
     String reason = 'Newer commit available',
+    List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
     log.fine('about to cancel presubmit targets');
@@ -271,8 +273,9 @@ class Scheduler {
     dynamic exception;
     try {
       final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
+      final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
       await luciBuildService.scheduleTryBuilds(
-        targets: presubmitTargets,
+        targets: presubmitTriggerTargets,
         pullRequest: pullRequest,
       );
     } on FormatException catch (error, backtrace) {
@@ -314,6 +317,15 @@ class Scheduler {
         'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}');
   }
 
+  /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
+  /// Otherwise, return [presubmitTarget].
+  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+    if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
+      return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
+    }
+    return presubmitTarget;
+  }
+
   /// Given a pull request event, retry all failed LUCI checks.
   ///
   /// 1. Aggregate .ci.yaml and try_builders.json presubmit builds.
@@ -338,10 +350,10 @@ class Scheduler {
         continue;
       }
 
-      await luciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(
-        pullRequest,
-        checkSuiteEvent,
-        checkRun,
+      await luciBuildService.scheduleTryBuilds(
+        targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
+        pullRequest: pullRequest,
+        checkSuiteEvent: checkSuiteEvent,
       );
     }
   }

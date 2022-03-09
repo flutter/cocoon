@@ -159,8 +159,7 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
-    return Map<String?, Build?>.fromIterable(builds,
-        key: (dynamic b) => b.builderId.builder as String?, value: (dynamic b) => b as Build?);
+    return {for (Build b in builds) b.builderId.builder: b};
   }
 
   /// Creates BuildBucket [Request] using [checkSuiteEvent], [pullRequest], [builder], [builderId], and [userData].
@@ -427,47 +426,6 @@ class LuciBuildService {
     ));
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
-    return true;
-  }
-
-  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkSuiteEvent],
-  ///
-  /// Returns true if it is able to schedule a build. Otherwise, false.
-  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(
-      github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository!.slug();
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      config,
-      pullRequest.base!.repo!.slug(),
-      pullRequest.head!.sha!,
-      checkRun.name!,
-    );
-    final Map<String, dynamic> userData = <String, dynamic>{};
-    userData['check_suite_id'] = checkSuiteEvent.checkSuite!.id;
-    userData['check_run_id'] = githubCheckRun.id;
-    userData['repo_owner'] = slug.owner;
-    userData['repo_name'] = slug.name;
-    userData['user_agent'] = 'flutter-cocoon';
-    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: checkRun.name,
-      ),
-      tags: <String, List<String>>{
-        'buildset': <String>['pr/git/${pullRequest.number}', 'sha/git/${pullRequest.head!.sha}'],
-        'user_agent': const <String>['flutter-cocoon'],
-        'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
-      },
-      properties: <String, String>{
-        'git_url': 'https://github.com/${slug.fullName}',
-        'git_ref': 'refs/pull/${pullRequest.number}/head',
-      },
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: json.encode(userData),
-      ),
-    ));
     return true;
   }
 

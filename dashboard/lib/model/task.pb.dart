@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: lib/model/task.proto
 //
-// @dart = 2.7
+// @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -49,25 +49,25 @@ class Task extends $pb.GeneratedMessage {
 
   Task._() : super();
   factory Task({
-    $0.RootKey key,
-    $0.RootKey commitKey,
-    $fixnum.Int64 createTimestamp,
-    $fixnum.Int64 startTimestamp,
-    $fixnum.Int64 endTimestamp,
-    $core.String name,
-    $core.int attempts,
-    $core.bool isFlaky,
-    $core.int timeoutInMinutes,
-    $core.String reason,
-    $core.Iterable<$core.String> requiredCapabilities,
-    $core.String reservedForAgentId,
-    $core.String stageName,
-    $core.String status,
-    $core.int buildNumber,
-    $core.String buildNumberList,
-    $core.String builderName,
-    $core.String luciBucket,
-    $core.bool isTestFlaky,
+    $0.RootKey? key,
+    $0.RootKey? commitKey,
+    $fixnum.Int64? createTimestamp,
+    $fixnum.Int64? startTimestamp,
+    $fixnum.Int64? endTimestamp,
+    $core.String? name,
+    $core.int? attempts,
+    $core.bool? isFlaky,
+    $core.int? timeoutInMinutes,
+    $core.String? reason,
+    $core.Iterable<$core.String>? requiredCapabilities,
+    $core.String? reservedForAgentId,
+    $core.String? stageName,
+    $core.String? status,
+    $core.int? buildNumber,
+    $core.String? buildNumberList,
+    $core.String? builderName,
+    $core.String? luciBucket,
+    $core.bool? isTestFlaky,
   }) {
     final _result = create();
     if (key != null) {
@@ -149,7 +149,7 @@ class Task extends $pb.GeneratedMessage {
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')
   static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
-  static Task _defaultInstance;
+  static Task? _defaultInstance;
 
   @$pb.TagNumber(1)
   $0.RootKey get key => $_getN(0);

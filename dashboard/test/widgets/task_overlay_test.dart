@@ -4,30 +4,30 @@
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
+import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {
-  const TestGrid({
-    this.buildState,
-    this.task,
-  });
+  const TestGrid({this.buildState, required this.task, Key? key}) : super(key: key);
 
-  final BuildState buildState;
+  final BuildState? buildState;
   final Task task;
 
   @override
@@ -373,7 +373,7 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
+  testWidgets('failed rerun shows errorBrook snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = StageName.luci
@@ -382,26 +382,32 @@ void main() {
       ..isFlaky = false
       ..status = TaskBox.statusNew;
 
+    final FakeBuildState buildState = FakeBuildState(rerunTaskResult: false);
+
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: false),
-              task: expectedTask,
+          home: ValueProvider<BuildState>(
+            value: buildState,
+            child: Scaffold(
+              body: ErrorBrookWatcher(
+                errors: buildState.errors,
+                child: TestGrid(
+                  buildState: buildState,
+                  task: expectedTask,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
 
-    // Open the overlay
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    // await tester.tap(find.byType(LatticeCell));
+    // await tester.tap(find.byType(TaskOverlayContents));
     await tester.pump();
-
-    expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
-    expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Click the rerun task button
     await tester.tap(find.text('RERUN'));
@@ -412,7 +418,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
     // Snackbar message should go away after its duration
-    await tester.pump(TaskOverlayContents.rerunSnackBarDuration);
+    await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
+    await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
@@ -420,11 +427,9 @@ void main() {
   });
 
   testWidgets('log button opens log url for public log', (WidgetTester tester) async {
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
-    final List<MethodCall> log = <MethodCall>[];
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      log.add(methodCall);
-    });
+    final FakeUrlLauncher urlLauncher = FakeUrlLauncher();
+    UrlLauncherPlatform.instance = urlLauncher;
+
     final Task publicTask = Task()..stageName = 'cirrus';
     await tester.pumpWidget(
       Now.fixed(
@@ -447,20 +452,8 @@ void main() {
     await tester.tap(find.text('VIEW LOGS'));
     await tester.pump();
 
-    expect(
-      log,
-      <Matcher>[
-        isMethodCall('launch', arguments: <String, Object>{
-          'url': 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=',
-          'useSafariVC': true,
-          'useWebView': false,
-          'enableJavaScript': false,
-          'enableDomStorage': false,
-          'universalLinksOnly': false,
-          'headers': <String, String>{}
-        })
-      ],
-    );
+    expect(urlLauncher.launches, isNotEmpty);
+    expect(urlLauncher.launches.single, 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=');
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {

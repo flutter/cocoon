@@ -287,7 +287,9 @@ class Task extends Model<int> {
     if (buildNumberList == null) {
       buildNumberList = '$buildNumber';
     } else {
-      buildNumberList = '$buildNumberList,$buildNumber';
+      final Set<String> buildNumberSet = buildNumberList!.split(',').toSet();
+      buildNumberSet.add(buildNumber.toString());
+      buildNumberList = buildNumberSet.join(',');
     }
 
     createTimestamp = build.createdTimestamp?.millisecondsSinceEpoch ?? 0;

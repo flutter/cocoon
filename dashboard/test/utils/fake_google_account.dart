@@ -19,11 +19,23 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
       'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID';
 
   @override
-  Future<Map<String, String>> get authHeaders => null;
+  String get serverAuthCode => 'migration placeholder';
 
   @override
-  Future<GoogleSignInAuthentication> authentication;
+  Future<Map<String, String>> get authHeaders => Future<Map<String, String>>.value(<String, String>{});
 
   @override
-  Future<void> clearAuthCache() => null;
+  late Future<GoogleSignInAuthentication> authentication;
+
+  @override
+  Future<void> clearAuthCache() => Future<void>.value(null);
+
+  @override
+  bool operator ==(dynamic other) {
+    final GoogleSignInAccount otherAccount = other;
+    return email == otherAccount.email;
+  }
+
+  @override
+  int get hashCode => email.hashCode;
 }

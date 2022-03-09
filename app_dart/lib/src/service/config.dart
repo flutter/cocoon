@@ -46,6 +46,7 @@ class Config {
     flutterSlug,
     packagesSlug,
     pluginsSlug,
+    impellerSlug,
   };
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
@@ -62,6 +63,7 @@ class Config {
       engineSlug: 'main',
       pluginsSlug: 'main',
       packagesSlug: 'main',
+      impellerSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
@@ -245,10 +247,10 @@ class Config {
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
-  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+  static const String luciProdAccount = 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   /// Internal Google service account used to surface FRoB results.
-  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+  static const String frobAccount = 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{
@@ -281,6 +283,7 @@ class Config {
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
   static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
   static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
+  static RepositorySlug get impellerSlug => RepositorySlug('flutter', 'impeller');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
@@ -323,7 +326,7 @@ class Config {
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String? appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String?;
+    final String? appInstallation = appInstallations[slug.fullName]['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',

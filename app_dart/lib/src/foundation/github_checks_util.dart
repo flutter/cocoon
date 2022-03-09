@@ -25,11 +25,7 @@ class GithubChecksUtil {
           checkSuiteId: checkSuiteEvent.checkSuite!.id!,
         )
         .toList();
-    return Map<String, github.CheckRun>.fromIterable(
-      allCheckRuns,
-      key: (dynamic check) => check.name as String,
-      value: (dynamic check) => check as github.CheckRun,
-    );
+    return {for (github.CheckRun check in allCheckRuns) check.name as String: check};
   }
 
   Future<github.CheckSuite> getCheckSuite(

@@ -52,7 +52,7 @@ class BuildBucketClient {
   Future<T> _postRequest<S extends JsonBody, T>(
     String path,
     S request,
-    T responseFromJson(Map<String, dynamic>? rawResponse),
+    T Function(Map<String, dynamic>? rawResponse) responseFromJson,
   ) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();

@@ -26,6 +26,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
   static const String kOwnerParam = 'owner';
   static const String kRepoParam = 'repo';
   static const String kPullRequestNumberParam = 'pr';
+  static const String kBuilderParam = 'builders';
 
   @override
   Future<Body> get() async {
@@ -33,6 +34,9 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final String repo = request!.uri.queryParameters[kRepoParam]!;
     final String pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
+    final String? builders = request!.uri.queryParameters[kBuilderParam] ?? '';
+    // The [builders] parameter is expecting comma joined string, e.g. 'builder1, builder2'.
+    final List<String> builderList = builders!.split(',').map((String builder) => builder.trim()).toList();
 
     final int? prNumber = int.tryParse(pr);
     if (prNumber == null) {
@@ -41,7 +45,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug(owner, repo);
     final GitHub github = await config.createGitHubClient(slug: slug);
     final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
-    await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+    await scheduler.triggerPresubmitTargets(pullRequest: pullRequest, builderTriggerList: builderList);
     return Body.empty;
   }
 }
