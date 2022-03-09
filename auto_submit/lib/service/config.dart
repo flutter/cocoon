@@ -85,4 +85,26 @@ class Config {
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
+
+  /// GitHub repositories that use CI status to determine if pull requests can be submitted.
+  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
+    engineSlug,
+    flutterSlug,
+  };
+
+  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+
+  /// The names of autoroller accounts for the repositories.
+  ///
+  /// These accounts should not need reviews before merging. See
+  /// https://github.com/flutter/flutter/wiki/Autorollers
+  Set<String> get rollerAccounts => const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        'dependabot',
+      };
+
+  /// The label which shows the overrideTreeStatus.
+  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 }

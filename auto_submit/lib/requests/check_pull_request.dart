@@ -56,27 +56,44 @@ class CheckPullRequest extends RequestHandler {
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
     List<CheckSuite> checkSuitesList = <CheckSuite>[];
+
+    //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
       checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
-
     final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
-    log.info('Get the checkSuite $checkSuite.');
 
-    final Iterable<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
+    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
     final Set<String?> changeRequestAuthors = <String?>{};
-    log.info('Get the reviews $reviews');
-
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final Iterable<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
-    log.info('Get the statuses $statuses.');
+    final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
+    final String? author = pr.user!.login;
+    final String? authorAssociation = pr.authorAssociation;
 
-    // TODO(Kristin): Get the author, authorAssociation, labels later.https://github.com/flutter/flutter/issues/99718.
-    final bool hasApproval = false;
-    final bool ciSuccessful = false;
+    // List of labels associated with the pull request.
+    final List<String> labelNames =
+        (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
+
+    final bool hasApproval = config.rollerAccounts.contains(author) ||
+        _checkApproval(
+          author,
+          authorAssociation,
+          reviews,
+          changeRequestAuthors,
+        );
+    final bool ciSuccessful = await _checkStatuses(
+      slug,
+      sha,
+      failures,
+      statuses,
+      checkRuns,
+      checkSuite,
+      slug.name,
+      labelNames,
+    );
     return _AutoMergeQueryResult(
         ciSuccessful: ciSuccessful,
         failures: failures,
@@ -88,6 +105,124 @@ class CheckPullRequest extends RequestHandler {
         isConflicting: isConflicting,
         unknownMergeableState: unknownMergeableState);
   }
+
+  /// Returns whether all statuses are successful.
+  ///
+  /// Also fills [failures] with the names of any status/check that has failed.
+  Future<bool> _checkStatuses(
+    RepositorySlug slug,
+    String sha,
+    Set<_FailureDetail> failures,
+    List<RepositoryStatus> statuses,
+    List<CheckRun> checkRuns,
+    CheckSuite? checkSuite,
+    String name,
+    List<String> labels,
+  ) async {
+    assert(failures.isEmpty);
+    bool allSuccess = true;
+
+    // The status checks that are not related to changes in this PR.
+    const Set<String> notInAuthorsControl = <String>{
+      'luci-flutter', // flutter repo
+      'luci-engine', // engine repo
+      'submit-queue', // plugins repo
+    };
+
+    // Ensure repos with tree statuses have it set
+    if (Config.reposWithTreeStatus.contains(slug)) {
+      bool treeStatusExists = false;
+      final String treeStatusName = 'luci-${slug.name}';
+
+      // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+      for (RepositoryStatus status in statuses) {
+        if (status.context == treeStatusName) {
+          treeStatusExists = true;
+        }
+      }
+
+      if (!treeStatusExists) {
+        failures.add(_FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+      }
+    }
+
+    final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
+    log.info('Validating name: $name, status: $statuses');
+    for (RepositoryStatus status in statuses) {
+      final String? name = status.context;
+      if (status.state != 'success') {
+        if (notInAuthorsControl.contains(name) && labels.contains(overrideTreeStatusLabel)) {
+          continue;
+        }
+        allSuccess = false;
+        if (status.state == 'failure' && !notInAuthorsControl.contains(name)) {
+          failures.add(_FailureDetail(name!, status.targetUrl as String));
+        }
+      }
+    }
+
+    log.info('Validating name: $name, checks: $checkRuns');
+    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
+    //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
+    //TODO(Kristin): Implement the logic to validate check run statuses. https://github.com/flutter/flutter/issues/99873.
+
+    return allSuccess;
+  }
+}
+
+/// Parses the restApi response reviews.
+///
+/// If author is a MEMBER or OWNER then it only requires a single review from
+/// another MEMBER or OWNER. If the author is not a MEMBER or OWNER then it
+/// requires two reviews from MEMBERs or OWNERS.
+///
+/// If there are any CHANGES_REQUESTED reviews, checks if the same author has
+/// subsequently APPROVED.  From testing, dismissing a review means it won't
+/// show up in this list since it will have a status of DISMISSED and we only
+/// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
+/// not automatically dismiss the previous one.
+///
+/// If the author has not subsequently approved or dismissed the review, the
+/// name will be added to the changeRequestAuthors set.
+///
+/// Returns false if no approved reviews or any oustanding change request
+/// reviews.
+///
+/// Returns true if at least one approved review and no outstanding change
+/// request reviews.
+bool _checkApproval(
+  String? author,
+  String? authorAssociation,
+  List<PullRequestReview> reviews,
+  Set<String?> changeRequestAuthors,
+) {
+  assert(changeRequestAuthors.isEmpty);
+  const Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
+  final Set<String?> approvers = <String?>{};
+  if (allowedReviewers.contains(authorAssociation)) {
+    approvers.add(author);
+  }
+
+  for (PullRequestReview review in reviews) {
+    // Ignore reviews from non-members/owners.
+    if (!allowedReviewers.contains(review.authorAssociation)) {
+      continue;
+    }
+    // Reviews come back in order of creation.
+    final String? state = review.state;
+    final String? authorlogin = review.user.login;
+
+    if (state == 'APPROVED') {
+      approvers.add(authorlogin);
+      changeRequestAuthors.remove(authorlogin);
+    } else if (state == 'CHANGES_REQUESTED') {
+      changeRequestAuthors.add(authorlogin);
+    }
+  }
+
+  final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
+  log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
+  return (approvers.length > 1) && changeRequestAuthors.isEmpty;
 }
 
 // TODO(Kristin): Simplify the _AutoMergeQueryResult class. https://github.com/flutter/flutter/issues/99717.

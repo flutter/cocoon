@@ -17,6 +17,8 @@ class FakeConfig extends Config {
   FakeConfig({
     this.githubClient,
     this.githubService,
+    this.rollerAccountsValue,
+    this.overrideTreeStatusLabelValue,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),
@@ -24,10 +26,24 @@ class FakeConfig extends Config {
 
   GitHub? githubClient;
   GithubService? githubService = FakeGithubService();
+  Set<String>? rollerAccountsValue;
+  String? overrideTreeStatusLabelValue;
 
   @override
   Future<GitHub> createGithubClient() async => githubClient!;
 
   @override
   Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
+
+  @override
+  Set<String> get rollerAccounts =>
+      rollerAccountsValue ??
+      const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        'dependabot',
+      };
+
+  @override
+  String get overrideTreeStatusLabel => overrideTreeStatusLabelValue ?? 'warning: land on red to fix tree breakage';
 }

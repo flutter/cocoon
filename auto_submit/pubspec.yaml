@@ -18,6 +18,7 @@ dependencies:
   shelf: ^1.2.0
   shelf_router: ^1.1.2
   github: ^8.3.0
+  graphql: ^5.0.0
   corsac_jwt: ^1.0.0-nullsafety.1
   neat_cache: ^2.0.1
   http: ^0.13.4
