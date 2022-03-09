@@ -84,14 +84,11 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
-    List<CheckSuite> checkSuitesList = <CheckSuite>[];
 
     //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
-      checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
-    final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
 
     final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
@@ -119,7 +116,6 @@ class CheckPullRequest extends RequestHandler {
       failures,
       statuses,
       checkRuns,
-      checkSuite,
       slug.name,
       labelNames,
     );
@@ -144,7 +140,6 @@ class CheckPullRequest extends RequestHandler {
     Set<_FailureDetail> failures,
     List<RepositoryStatus> statuses,
     List<CheckRun> checkRuns,
-    CheckSuite? checkSuite,
     String name,
     List<String> labels,
   ) async {
