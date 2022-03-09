@@ -97,6 +97,13 @@ class Target {
         mergedProperties['\$flutter/osx_sdk'] = xcodeVersion;
       }
     }
+    // runtime_versions is a special property
+    if (mergedProperties.containsKey('runtime_versions')) {
+      // add to existing property, or create new one
+      final Object osxSdk = mergedProperties['\$flutter/osx_sdk'] ?? <String, Object>{};
+      (osxSdk as Map)['runtime_versions'] = mergedProperties['runtime_versions']!;
+      mergedProperties['\$flutter/osx_sdk'] = osxSdk;
+    }
 
     mergedProperties['bringup'] = value.bringup;
 
