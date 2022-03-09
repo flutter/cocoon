@@ -162,8 +162,10 @@ class CheckPullRequest extends RequestHandler {
     }
 
     log.info('Validating name: $name, checks: $checkRuns');
+    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
     for (CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
+      //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
       if (checkSuite!.conclusion == CheckRunConclusion.success) {
         continue;
       } else if (checkRun.status == CheckRunStatus.completed) {
@@ -172,27 +174,6 @@ class CheckPullRequest extends RequestHandler {
       allSuccess = false;
     }
 
-    // Validate cirrus
-    const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
-    const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
-
-    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
-    final List<Map<String, dynamic>> cirrusStatuses = [];
-
-    if (cirrusStatuses.isEmpty) {
-      return allSuccess;
-    }
-    for (Map<String, dynamic> runStatus in cirrusStatuses) {
-      final String? status = runStatus['status'] as String?;
-      final String? name = runStatus['name'] as String?;
-      final String? id = runStatus['id'] as String?;
-      if (!_succeededStates.contains(status)) {
-        allSuccess = false;
-      }
-      if (_failedStates.contains(status)) {
-        failures.add(_FailureDetail(name!, 'https://cirrus-ci.com/task/$id'));
-      }
-    }
     return allSuccess;
   }
 }
