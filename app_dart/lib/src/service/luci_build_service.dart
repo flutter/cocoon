@@ -51,7 +51,6 @@ class LuciBuildService {
 
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
-  static const int kReleasePriority = 25;
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
@@ -509,7 +508,7 @@ class LuciBuildService {
     required Task task,
     Map<String, Object>? properties,
     Map<String, List<String>>? tags,
-    int? priority,
+    int priority = kDefaultPriority,
   }) {
     tags ??= <String, List<String>>{};
     tags.addAll(<String, List<String>>{
@@ -518,14 +517,6 @@ class LuciBuildService {
         'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
       ],
     });
-
-    if (priority == null) {
-      if (Config.defaultBranch(commit.slug) != commit.branch) {
-        priority = kReleasePriority;
-      } else {
-        priority = kDefaultPriority;
-      }
-    }
 
     final Map<String, String> rawUserData = <String, String>{
       'commit_key': task.parentKey!.id.toString(),
