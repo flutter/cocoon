@@ -41,4 +41,14 @@ class GithubService {
   ) async {
     return await github.repositories.listStatuses(slug, ref).toList();
   }
+
+  /// Fetches the specified commit.
+  Future<RepositoryCommit> getRepoCommit(RepositorySlug slug, String sha) async {
+    return await github.repositories.getCommit(slug, sha);
+  }
+
+  /// Compares two commits
+  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
+    return await github.repositories.compareCommits(slug, refBase, refHead);
+  }
 }

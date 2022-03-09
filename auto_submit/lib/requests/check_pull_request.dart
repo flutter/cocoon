@@ -27,13 +27,16 @@ class CheckPullRequest extends RequestHandler {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
 
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
-    if (await shouldMergePullRequest(queryResult)) {
+    if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
 
-    } else {
+    } else if (queryResult.shouldRemoveLabel) {
+      log.info('Removing label for commit: ${queryResult.sha}');
+      await _removeLabel();
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
@@ -41,9 +44,35 @@ class CheckPullRequest extends RequestHandler {
   }
 
   /// Check if the pull request should be merged.
-  Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
-    // TODO(Kristin): Implement shouldMergePullRequest, https://github.com/flutter/flutter/issues/98707
+  Future<bool> shouldMergePullRequest(
+      _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
+    if (queryResult.shouldMerge) {
+      return true;
+    }
+    // If the PR is a revert of the tot commit, merge without waiting for checks passing.
+    return await isTOTRevert(queryResult.sha, slug, github);
+  }
 
+  /// Check if the `commitSha` is a clean revert of TOT commit.
+  ///
+  /// By comparing the current commit with second TOT commit, an empty `files` in
+  /// `GitHubComparison` validates a clean revert of TOT commit.
+  ///
+  /// Note: [compareCommits] expects base commit first, and then head commit.
+  Future<bool> isTOTRevert(String headSha, RepositorySlug slug, GithubService github) async {
+    final RepositoryCommit secondTotCommit = await github.getRepoCommit(slug, 'HEAD~');
+    log.info('Current commit is: $headSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
+    final GitHubComparison githubComparison = await github.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
+    final bool filesIsEmpty = githubComparison.files!.isEmpty;
+    if (filesIsEmpty) {
+      log.info('This is a TOT revert. Merge ignoring tests statuses.');
+    }
+    return filesIsEmpty;
+  }
+
+  Future<bool> _removeLabel() async {
+    // TODO(Kristin): Implement the logic to remove the label. https://github.com/flutter/flutter/issues/99877
     return true;
   }
 
