@@ -26,13 +26,6 @@ final List<SupportedConfig> configs = <SupportedConfig>[
 ];
 
 Future<void> main() async {
-  late CiYaml? totConfig;
-
-  setUp(() {
-    totConfig = CiYaml(
-        config: pb.SchedulerConfig(), slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
-  });
-
   for (final SupportedConfig config in configs) {
     test('validate config file of $config', () async {
       final String configContent = await githubFileContent(
@@ -42,8 +35,9 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
+      CiYaml currentConfig = generateCiYamlFromYamlMap(configYaml);
       try {
-        CiYaml.fromYaml(configYaml, totConfig);
+        CiYaml.fromYaml(currentConfig);
       } on FormatException catch (e) {
         fail(e.message);
       }
@@ -57,7 +51,8 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
+      CiYaml currentConfig = generateCiYamlFromYamlMap(configYaml);
+      final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(currentConfig).config;
       final List<String> githubBranches = getBranchesForRepository(config.slug);
 
       final Map<String, bool> validEnabledBranches = <String, bool>{};

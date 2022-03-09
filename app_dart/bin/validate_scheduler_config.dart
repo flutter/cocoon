@@ -4,13 +4,16 @@
 
 import 'dart:io';
 
+import 'package:cocoon_service/src/foundation/utils.dart' hide githubFileContent;
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
-import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
 
-import 'generate_jspb.dart';
+import '../test/src/datastore/fake_config.dart';
+import '../test/src/service/fake_scheduler.dart';
 
 void main(List<String> args) async {
   if (args.length != 3) {
@@ -26,18 +29,22 @@ void main(List<String> args) async {
   }
 
   final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
+  CiYaml currentConfig = generateCiYamlFromYamlMap(configYaml);
 
-  pb.SchedulerConfig totSchedulerConfig = pb.SchedulerConfig();
-  if (args[1] == Config.defaultBranch(RepositorySlug('flutter', 'repo'))) {
-    String totConfigContent;
-    totConfigContent = await githubFileContent(RepositorySlug('flutter', args[0]), '.ci.yaml', ref: args[1]);
-    final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
-    totSchedulerConfig.mergeFromProto3Json(totConfigYaml);
+  if (args[2] == Config.defaultBranch(RepositorySlug('flutter', args[1]))) {
+    final FakeScheduler scheduler = FakeScheduler(
+      config: FakeConfig(),
+      ciYaml: exampleConfig,
+    );
 
-    CiYaml totConfig = CiYaml(config: totSchedulerConfig, slug: RepositorySlug('flutter', args[0]), branch: args[1]);
-    print(CiYaml.fromYaml(configYaml, totConfig, ensureBringupTarget: true));
+    Commit totCommit = generateTotCommit(0, repo: args[1]);
+    CiYaml totConfig = await scheduler.getRealCiYaml(totCommit);
+    // FOR REVIEW:
+    // totCommit now goes through the process of getCiYaml, which adds overhead
+    // because tot config does not need to be validated
+
+    print(CiYaml.fromYaml(currentConfig, totConfig: totConfig));
   } else {
-    CiYaml totConfig = CiYaml(config: totSchedulerConfig, slug: RepositorySlug('flutter', args[0]), branch: args[1]);
-    print(CiYaml.fromYaml(configYaml, totConfig));
+    print(CiYaml.fromYaml(currentConfig));
   }
 }

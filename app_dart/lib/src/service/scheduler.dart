@@ -121,7 +121,15 @@ class Scheduler {
       return;
     }
 
-    final CiYaml ciYaml = await getCiYaml(commit);
+    late CiYaml ciYaml;
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      Commit totCommit = generateTotCommit(0, repo: commit.repository!, branch: Config.defaultBranch(commit.slug));
+      final CiYaml totYaml = await getCiYaml(totCommit);
+      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+    } else {
+      ciYaml = await getCiYaml(commit);
+    }
+
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
@@ -180,9 +188,17 @@ class Scheduler {
   /// Load in memory the `.ci.yaml`.
   Future<CiYaml> getCiYaml(
     Commit commit, {
+    CiYaml? totCiYaml,
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
-    final String ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
+    String ciPath;
+
+    /// Use default branch instead of sha when pulling against tip of tree.
+    if (commit.sha == null) {
+      ciPath = '${commit.repository}/${Config.defaultBranch(commit.slug)}/$kCiYamlPath';
+    } else {
+      ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
+    }
     final Uint8List ciYamlBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
@@ -195,11 +211,21 @@ class Scheduler {
     ))!;
     final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
     log.fine('Retrieved .ci.yaml for $ciPath');
-    return CiYaml(
+    // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
+    if (totCiYaml != null) {
+      return CiYaml.fromYaml(
+          CiYaml(
+            config: schedulerConfig,
+            slug: commit.slug,
+            branch: commit.branch!,
+          ),
+          totConfig: totCiYaml);
+    }
+    return CiYaml.fromYaml(CiYaml(
       config: schedulerConfig,
       slug: commit.slug,
       branch: commit.branch!,
-    );
+    ));
   }
 
   /// Get all [LuciBuilder] run for [ciYaml].
@@ -224,31 +250,16 @@ class Scheduler {
       commit.slug,
       '.ci.yaml',
       httpClientProvider: httpClientProvider,
-      ref: commit.sha!,
+      ref: commit.sha == null ? Config.defaultBranch(commit.slug) : commit.sha!,
+      // FOR REVIEW:
+      // adding the option to retreive based on branch name
+      // if commit.sha is null, retrieve from default branch (of tip of tree)
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig();
-    pb.SchedulerConfig totSchedulerConfig = pb.SchedulerConfig();
-    //check if it is a release branch
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      final String totConfigContent = await githubFileContent(
-        commit.slug,
-        '.ci.yaml',
-        httpClientProvider: httpClientProvider,
-        ref: Config.defaultBranch(commit.slug),
-        retryOptions: retryOptions,
-      );
-      final YamlMap totConfigYaml = loadYaml(totConfigContent) as YamlMap;
-      totSchedulerConfig.mergeFromProto3Json(totConfigYaml);
-      CiYaml totConfig =
-          CiYaml(config: totSchedulerConfig, slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-      schedulerConfig = CiYaml.fromYaml(configYaml, totConfig, ensureBringupTarget: true).config;
-    } else {
-      CiYaml totConfig =
-          CiYaml(config: totSchedulerConfig, slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-      schedulerConfig = CiYaml.fromYaml(configYaml, totConfig).config;
-    }
+
+    schedulerConfig.mergeFromProto3Json(configYaml);
     return schedulerConfig.writeToBuffer();
   }
 
@@ -382,14 +393,20 @@ class Scheduler {
   ///
   /// In the case there is an issue getting the diff from GitHub, all targets are returned.
   Future<List<Target>> getPresubmitTargets(github.PullRequest pullRequest) async {
-    //
     final Commit commit = Commit(
       branch: pullRequest.base!.ref,
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    final CiYaml ciYaml = await getCiYaml(commit);
-    // downloadCIYaml + getCiYAML -> here, pull down tot, run validation
+    late CiYaml ciYaml;
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      Commit totCommit = generateTotCommit(0, repo: commit.repository!, branch: Config.defaultBranch(commit.slug));
+      final CiYaml totYaml = await getCiYaml(totCommit);
+      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+    } else {
+      ciYaml = await getCiYaml(commit);
+    }
+
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where((Target target) =>
         target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon);
     // Release branches should run every test.

@@ -30,13 +30,11 @@ class CiYaml {
   /// Creates [CiYaml] from a [YamlMap].
   ///
   /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
-  CiYaml.fromYaml(YamlMap? currentConfigYaml, CiYaml? totConfig, {bool ensureBringupTarget = false})
-      : slug = totConfig!.slug,
-        branch = totConfig.branch,
-        config = pb.SchedulerConfig() {
-    config.mergeFromProto3Json(currentConfigYaml);
-
-    if (ensureBringupTarget) {
+  CiYaml.fromYaml(CiYaml currentConfig, {CiYaml? totConfig})
+      : slug = currentConfig.slug,
+        branch = currentConfig.branch,
+        config = currentConfig.config {
+    if (totConfig != null) {
       _validate(config, totSchedulerConfig: totConfig.config);
     } else {
       _validate(config);
@@ -115,7 +113,7 @@ class CiYaml {
     return regexp.hasMatch(branch);
   }
 
-  /// validates [pb.SchedulerConfig] extracted from [CiYaml] files.
+  /// Validates [pb.SchedulerConfig] extracted from [CiYaml] files.
   ///
   /// A [pb.SchedulerConfig] file is considered good if:
   ///   1. It has at least one [pb.Target] in [pb.SchedulerConfig.targets]
