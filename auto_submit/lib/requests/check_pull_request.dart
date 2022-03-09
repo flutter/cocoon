@@ -6,14 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:github/github.dart';
-import 'package:graphql/client.dart' hide Request, Response;
 import 'package:shelf/shelf.dart';
 
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
-import 'refresh_cirrus_status.dart';
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
@@ -58,6 +56,8 @@ class CheckPullRequest extends RequestHandler {
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
     List<CheckSuite> checkSuitesList = <CheckSuite>[];
+
+    //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
       checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
@@ -175,10 +175,9 @@ class CheckPullRequest extends RequestHandler {
     // Validate cirrus
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
-    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    // Returns the first build statues, which reflect the recent PR/commit statuses.
-    final CirrusResult cirrusResult = await queryCirrusGraphQL(sha, cirrusClient, name);
-    final List<Map<String, dynamic>> cirrusStatuses = cirrusResult.tasks;
+
+    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
+    final List<Map<String, dynamic>> cirrusStatuses = [];
 
     if (cirrusStatuses.isEmpty) {
       return allSuccess;
@@ -238,13 +237,13 @@ bool _checkApproval(
     }
     // Reviews come back in order of creation.
     final String? state = review.state;
-    final String? authorloggerin = review.user.login;
+    final String? authorlogin = review.user.login;
 
     if (state == 'APPROVED') {
-      approvers.add(authorloggerin);
-      changeRequestAuthors.remove(authorloggerin);
+      approvers.add(authorlogin);
+      changeRequestAuthors.remove(authorlogin);
     } else if (state == 'CHANGES_REQUESTED') {
-      changeRequestAuthors.add(authorloggerin);
+      changeRequestAuthors.add(authorlogin);
     }
   }
 

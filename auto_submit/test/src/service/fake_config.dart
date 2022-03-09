@@ -11,7 +11,6 @@ import 'package:github/github.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import 'fake_github_service.dart';
-import 'fake_graphql_client.dart';
 
 // Represents a fake config to be used in unit test.
 class FakeConfig extends Config {
@@ -27,7 +26,6 @@ class FakeConfig extends Config {
 
   GitHub? githubClient;
   GithubService? githubService = FakeGithubService();
-  FakeGraphQLClient cirrusGraphQLClient = FakeGraphQLClient();
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
 
@@ -36,9 +34,6 @@ class FakeConfig extends Config {
 
   @override
   Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
-
-  @override
-  Future<FakeGraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient;
 
   @override
   Set<String> get rollerAccounts =>
