@@ -72,10 +72,10 @@ void main() {
       setUp(() {
         when(mockLuciBuildService.checkRerunBuilder(
           commit: anyNamed('commit'),
-          luciTask: anyNamed('luciTask'),
-          retries: anyNamed('retries'),
+          target: anyNamed('target'),
+          task: anyNamed('task'),
           datastore: anyNamed('datastore'),
-          isFlaky: false,
+          ignoreChecks: false,
         )).thenAnswer((_) => Future<bool>.value(false));
       });
 
@@ -410,10 +410,9 @@ void main() {
       setUp(() {
         when(mockLuciBuildService.checkRerunBuilder(
           commit: anyNamed('commit'),
-          luciTask: anyNamed('luciTask'),
-          retries: anyNamed('retries'),
+          target: anyNamed('target'),
+          task: anyNamed('task'),
           datastore: anyNamed('datastore'),
-          isFlaky: false,
         )).thenAnswer((_) => Future<bool>.value(true));
       });
 
@@ -451,8 +450,14 @@ void main() {
 
         expect(task.status, Task.statusInProgress);
         await tester.get(handler);
-        expect(task.status, Task.statusNew);
-        expect(task.attempts, 1);
+        verify(mockLuciBuildService.checkRerunBuilder(
+                commit: anyNamed('commit'),
+                target: anyNamed('target'),
+                task: anyNamed('task'),
+                datastore: anyNamed('datastore'),
+                tags: anyNamed('tags'),
+                ignoreChecks: false))
+            .called(1);
       });
     });
   });

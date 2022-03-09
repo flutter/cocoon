@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../ci_yaml.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -119,22 +119,22 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final Task update = datastoreTask.task;
         update.status = latestLuciTask.status;
 
-        /// Use `update.attempts - 1` as the `retries` to skip the initial run.
-        if (await luciBuildService.checkRerunBuilder(
-            commit: datastoreTask.commit,
-            luciTask: latestLuciTask,
-            retries: update.attempts! - 1,
-            datastore: datastore,
-            repo: slug.name,
-            isFlaky: datastoreTask.task.isFlaky)) {
-          update.status = Task.statusNew;
-          update.attempts = (update.attempts ?? 0) + 1;
-        }
+        final CiYaml ciYaml = await scheduler.getCiYaml(datastoreTask.commit);
+        final Target target =
+            ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == datastoreTask.task.name);
 
-        update.buildNumberList = buildNumberList;
-        update.builderName = builder.name;
+        await luciBuildService.checkRerunBuilder(
+          commit: datastoreTask.commit,
+          target: target,
+          task: update,
+          datastore: datastore,
+        );
+
         update.luciBucket = builder.flaky ?? false ? 'luci.flutter.staging' : 'luci.flutter.prod';
+        update.buildNumberList = buildNumberList;
+
         await datastore.insert(<Task>[update]);
+
         // Save luci task record to BigQuery only when task finishes.
         if (update.status == Task.statusFailed || update.status == Task.statusSucceeded) {
           await _insertBigquery(update);

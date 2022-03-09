@@ -73,7 +73,7 @@ class Config {
   static const String configCacheName = 'config';
 
   /// Engine default properties when rerunning a prod build.
-  static const Map<String, dynamic> engineDefaultProperties = <String, dynamic>{'force_upload': true};
+  static const Map<String, Object> engineDefaultProperties = <String, Object>{'force_upload': true};
 
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);

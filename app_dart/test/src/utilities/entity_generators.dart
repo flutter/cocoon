@@ -33,6 +33,7 @@ Commit generateCommit(
 
 Task generateTask(
   int i, {
+  String? name,
   String status = Task.statusNew,
   int attempts = 1,
   bool isFlaky = false,
@@ -41,7 +42,7 @@ Task generateTask(
   int? buildNumber,
 }) =>
     Task(
-      name: 'task$i',
+      name: name ?? 'task$i',
       status: status,
       commitKey: parent?.key ?? generateCommit(i).key,
       key: (parent ?? generateCommit(i)).key.append(Task, id: i),
