@@ -236,7 +236,7 @@ CiYaml generateCiYamlFromYamlMap(YamlMap? yamlConfig) {
 
 // FOR REVIEW:
 // almost duplicating generateCommit except we supply an empty sha
-// cannot import entity generator under test directory, to use in files under lib/src directory
+// cannot import entity generator under test directory, for use in files under lib/src directory
 
 Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
 
@@ -248,7 +248,7 @@ Commit generateTotCommit(
 }) =>
     Commit(
       // FOR REVIEW:
-      // add the option of sha to be null, so that getCiYaml can be trigger a search for default branch
+      // an empty sha in [Commit] instructs [getCiYaml] to pull against default branch instead of sha
       sha: null,
       repository: 'flutter/$repo',
       branch: branch,

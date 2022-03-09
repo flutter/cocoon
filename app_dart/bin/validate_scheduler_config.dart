@@ -39,8 +39,8 @@ void main(List<String> args) async {
     Commit totCommit = generateTotCommit(0, repo: args[1]);
     CiYaml totConfig = await scheduler.getRealCiYaml(totCommit);
     // FOR REVIEW:
-    // totCommit now goes through the process of getCiYaml, which adds overhead
-    // because tot config does not need to be validated
+    // totCommit now goes through the underlying validation process of [getCiYaml] function,
+    // which adds overhead because tot config does not need to be validated
 
     print(CiYaml.fromYaml(currentConfig, totConfig: totConfig));
   } else {

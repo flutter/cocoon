@@ -79,7 +79,7 @@ Future<void> main(List<String> args) async {
     // requiring branch information from user as well to check whether current branch is a release branch.
     if (args[2] == Config.defaultBranch(RepositorySlug('flutter', args[0]))) {
       // FOR REVIEW:
-      // supply 0 in generateCommit, to singal that we use a deafult branch instead of sha
+      // supply 0 in generateCommit, to singal that we generate a commit with an empty sha
       Commit totCommit =
           generateTotCommit(0, repo: args[1], branch: Config.defaultBranch(RepositorySlug('flutter', args[0])));
       // There's an assumption that we're only generating builder configs from commits that
@@ -93,7 +93,7 @@ Future<void> main(List<String> args) async {
     }
   } else {
     // FOR REVIEW:
-    // when validating local file and sha is not available, we do it the old school way by generating a CiYaml directly
+    // when validating local file and sha is not available, we do it the old school way by generating a CiYaml directly from YamlMap type
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     CiYaml currentYaml = generateCiYamlFromYamlMap(configYaml);
     schedulerConfig = CiYaml.fromYaml(currentYaml).config;
