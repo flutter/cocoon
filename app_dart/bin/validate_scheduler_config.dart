@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/foundation/utils.dart' hide githubFileContent
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
 
