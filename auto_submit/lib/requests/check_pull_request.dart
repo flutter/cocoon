@@ -163,16 +163,8 @@ class CheckPullRequest extends RequestHandler {
 
     log.info('Validating name: $name, checks: $checkRuns');
     //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
-    for (CheckRun checkRun in checkRuns) {
-      final String? name = checkRun.name;
-      //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
-      if (checkSuite!.conclusion == CheckRunConclusion.success) {
-        continue;
-      } else if (checkRun.status == CheckRunStatus.completed) {
-        failures.add(_FailureDetail(name!, checkRun.detailsUrl as String));
-      }
-      allSuccess = false;
-    }
+    //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
+    //TODO(Kristin): Implement the logic to validate check run statuses. https://github.com/flutter/flutter/issues/99873.
 
     return allSuccess;
   }
