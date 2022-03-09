@@ -123,21 +123,18 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final Target target =
             ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == datastoreTask.task.name);
 
-        /// Use `update.attempts - 1` as the `retries` to skip the initial run.
-        if (await luciBuildService.checkRerunBuilder(
+        await luciBuildService.checkRerunBuilder(
           commit: datastoreTask.commit,
           target: target,
           task: update,
           datastore: datastore,
-        )) {
-          update.status = Task.statusNew;
-          update.attempts = (update.attempts ?? 0) + 1;
-        }
+        );
 
-        update.buildNumberList = buildNumberList;
-        update.builderName = builder.name;
         update.luciBucket = builder.flaky ?? false ? 'luci.flutter.staging' : 'luci.flutter.prod';
+        update.buildNumberList = buildNumberList;
+
         await datastore.insert(<Task>[update]);
+
         // Save luci task record to BigQuery only when task finishes.
         if (update.status == Task.statusFailed || update.status == Task.statusSucceeded) {
           await _insertBigquery(update);

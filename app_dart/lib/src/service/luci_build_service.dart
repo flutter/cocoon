@@ -49,6 +49,10 @@ class LuciBuildService {
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
 
+  static const int kDefaultPriority = 30;
+  static const int kRerunPriority = 29;
+  static const int kReleasePriority = 25;
+
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
     final List<List<Request>> shards = <List<Request>>[];
@@ -517,9 +521,9 @@ class LuciBuildService {
 
     if (priority == null) {
       if (Config.defaultBranch(commit.slug) != commit.branch) {
-        priority = 25;
+        priority = kReleasePriority;
       } else {
-        priority = 30;
+        priority = kDefaultPriority;
       }
     }
 
@@ -584,7 +588,7 @@ class LuciBuildService {
             commit: commit,
             target: target,
             task: task,
-            priority: 29,
+            priority: kRerunPriority,
             properties: commit.slug == Config.engineSlug ? Config.engineDefaultProperties : null,
             tags: tags,
           ),

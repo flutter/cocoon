@@ -145,7 +145,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
     }
 
-    return tasks.first;
+    return tasks.single;
   }
 
   /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].

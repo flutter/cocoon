@@ -75,6 +75,7 @@ void main() {
           target: anyNamed('target'),
           task: anyNamed('task'),
           datastore: anyNamed('datastore'),
+          ignoreChecks: false,
         )).thenAnswer((_) => Future<bool>.value(false));
       });
 
@@ -449,8 +450,14 @@ void main() {
 
         expect(task.status, Task.statusInProgress);
         await tester.get(handler);
-        expect(task.status, Task.statusNew);
-        expect(task.attempts, 1);
+        verify(mockLuciBuildService.checkRerunBuilder(
+                commit: anyNamed('commit'),
+                target: anyNamed('target'),
+                task: anyNamed('task'),
+                datastore: anyNamed('datastore'),
+                tags: anyNamed('tags'),
+                ignoreChecks: false))
+            .called(1);
       });
     });
   });
