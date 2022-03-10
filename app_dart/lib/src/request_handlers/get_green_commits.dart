@@ -27,14 +27,7 @@ import '../service/datastore.dart';
 ///
 /// GET: /api/public/get-green-commits?repo=$repo
 ///
-/// Response: Status: 200 OK
-/// {
-///   "greenCommits":[
-///     "d5b0b3c8d1c5fd89302089077ccabbcfaae045e4",
-///     "ea28a9c34dc701de891eaf74503ca4717019f829"
-///   ]
-/// }
-///
+
 @immutable
 class GetGreenCommits extends RequestHandler<Body> {
   const GetGreenCommits(
@@ -70,9 +63,7 @@ class GetGreenCommits extends RequestHandler<Body> {
         .map<String?>((CommitStatus status) => status.commit.sha)
         .toList();
 
-    return Body.forJson(<String, List<String?>>{
-      'greenCommits': greenCommits,
-    });
+    return Body.forJson(greenCommits);
   }
 
   bool everyNonFlakyTaskSucceed(CommitStatus status) {

@@ -41,9 +41,11 @@ void main() {
     late Stage stageMultipleSucceed;
     late Stage stageFailedFlaky;
 
-    Future<T?> decodeHandlerBody<T>() async {
+    Future<List<T?>?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return await utf8.decoder.bind(body.serialize() as Stream<List<int>>).transform(json.decoder).single as T?;
+      return (await utf8.decoder.bind(body.serialize() as Stream<List<int>>).transform(json.decoder).single
+              as List<dynamic>)
+          .cast<T>();
     }
 
     setUp(() {
@@ -78,8 +80,8 @@ void main() {
     });
 
     test('no green commits', () async {
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
-      expect(result['greenCommits'], isEmpty);
+      final List<String?> result = (await decodeHandlerBody())!;
+      expect(result, isEmpty);
     });
 
     test(
@@ -95,10 +97,10 @@ void main() {
         buildStatusProvider: (_) => buildStatusService,
       );
 
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
+      final List<String?> result = (await decodeHandlerBody())!;
 
-      expect(result['greenCommits'].length, 1);
-      expect(result['greenCommits'], <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
+      expect(result.length, 1);
+      expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
     });
 
     test('Also select green commits that include failed tasks but have bringup: true label', () async {
@@ -112,10 +114,10 @@ void main() {
         buildStatusProvider: (_) => buildStatusService,
       );
 
-      final Map<String, dynamic> result = (await decodeHandlerBody())!;
+      final List<String?> result = (await decodeHandlerBody())!;
 
-      expect(result['greenCommits'].length, 2);
-      expect(result['greenCommits'], <String>[
+      expect(result.length, 2);
+      expect(result, <String>[
         'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
         'ea28a9c34dc701de891eaf74503ca4717019f829',
       ]);
