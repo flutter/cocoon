@@ -59,8 +59,9 @@ class CheckPullRequest extends RequestHandler {
 
   /// Check if the `commitSha` is a clean revert of TOT commit.
   ///
-  /// By comparing the current commit with second TOT commit, an empty `files` in
-  /// `GitHubComparison` validates a clean revert of TOT commit.
+  /// A clean revert of TOT commit only reverts all changes made by TOT, thus should be
+  /// equivalent to the second TOT commit. When comparing the current commit with second
+  /// TOT commit, empty `files` in `GitHubComparison` validates a clean revert of TOT commit.
   ///
   /// Note: [compareCommits] expects base commit first, and then head commit.
   Future<bool> isTOTRevert(String headSha, RepositorySlug slug, GithubService github) async {
