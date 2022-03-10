@@ -84,8 +84,10 @@ Future<void> main() async {
         githubChecksService,
       ),
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
-        cache,
-        config,
+        cache: cache,
+        config: config,
+        luciBuildService: luciBuildService,
+        scheduler: scheduler,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(
         config,
