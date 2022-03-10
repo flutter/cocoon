@@ -17,6 +17,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
+import '../src/utilities/entity_generators.dart';
 
 void main() {
   group('GetStatus', () {
@@ -30,17 +31,15 @@ void main() {
     late Commit commit1;
     late Commit commit2;
 
-    late Task task1;
-    late Task task2;
-    late Task task3;
-    late Task task4;
-    late Task task5;
+    late Task task1Succeed;
+    late Task task2Failed;
+    late Task task3FailedFlaky;
+    late Task task4SucceedFlaky;
 
-    late Stage stage1;
-    late Stage stage2;
-    late Stage stage3;
-    late Stage stage4;
-    late Stage stage5;
+    late Stage stageOneSucceed;
+    late Stage stageFailed;
+    late Stage stageMultipleSucceed;
+    late Stage stageFailedFlaky;
 
     Future<T?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -58,57 +57,24 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
-      commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          repository: 'flutter/flutter',
-          sha: 'ea28a9c34dc701de891eaf74503ca4717019f829',
-          timestamp: 3,
-          message: 'test message 1',
-          branch: 'master');
-      commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          repository: 'flutter/flutter',
-          sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-          timestamp: 1,
-          message: 'test message 2',
-          branch: 'master');
 
-      task1 = Task(
-        key: commit1.key.append(Task, id: 123),
-        commitKey: commit1.key,
-        name: 'Linux A',
-        status: Task.statusSucceeded,
-      );
-      task2 = Task(
-        key: commit1.key.append(Task, id: 456),
-        commitKey: commit1.key,
-        name: 'Windows A',
-        status: Task.statusFailed,
-      );
-      task3 = Task(
-        key: commit2.key.append(Task, id: 123),
-        commitKey: commit2.key,
-        name: 'Linux B',
-        status: Task.statusSucceeded,
-      );
-      task4 = Task(
-        key: commit2.key.append(Task, id: 456),
-        commitKey: commit2.key,
-        name: 'Windows B',
-        status: Task.statusSucceeded,
-      );
-      task5 = Task(
-        key: commit2.key.append(Task, id: 789),
-        commitKey: commit2.key,
-        name: 'Linux C',
-        status: Task.statusSucceeded,
-      );
+      commit1 = generateCommit(1, timestamp: 3, sha: 'ea28a9c34dc701de891eaf74503ca4717019f829');
+      commit2 = generateCommit(2, timestamp: 1, sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4');
 
-      stage1 = Stage('cocoon', commit1, [task1, task2], Task.statusSucceeded);
-      stage2 = Stage('luci', commit1, [task1], Task.statusFailed);
-      stage3 = Stage('cocoon', commit2, [task3, task4, task5], Task.statusSucceeded);
-      stage4 = Stage('luci', commit2, [task4, task5], Task.statusSucceeded);
-      stage5 = Stage('google-test', commit2, [task3, task4], Task.statusSucceeded);
+      task1Succeed = generateTask(1, status: Task.statusSucceeded);
+      task2Failed = generateTask(2, status: Task.statusFailed); // should fail if included
+      task3FailedFlaky = generateTask(3,
+          status: Task.statusFailed, isFlaky: true); // should succeed if included because `bringup: true`
+      task4SucceedFlaky = generateTask(4, status: Task.statusSucceeded, isFlaky: true);
+
+      stageOneSucceed =
+          Stage('cocoon', commit1, [task1Succeed], Task.statusInProgress); // should scceed, since task 1 succeed
+      stageFailed = Stage('luci', commit1, [task1Succeed, task2Failed],
+          Task.statusInProgress); // should fail, since task 1 succeed and task2 fail
+      stageMultipleSucceed = Stage('cocoon', commit2, [task1Succeed, task4SucceedFlaky],
+          Task.statusInProgress); // should succeed, since both task 1 and task 4 succeed
+      stageFailedFlaky = Stage('luci', commit2, [task1Succeed, task3FailedFlaky],
+          Task.statusInProgress); // should succeed, even though it includes task 3
     });
 
     test('no green commits', () async {
@@ -116,10 +82,12 @@ void main() {
       expect(result['greenCommits'], isEmpty);
     });
 
-    test('select and return commits with all stages succeed', () async {
+    test(
+        'select and return commits with all tasks succeed, and exclude commits with failed tasks and without `bringup: true` label',
+        () async {
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stage1, stage2]),
-        CommitStatus(commit2, <Stage>[stage3, stage4, stage5])
+        CommitStatus(commit1, <Stage>[stageOneSucceed, stageFailed]),
+        CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
       ]);
       handler = GetGreenCommits(
         config,
@@ -133,10 +101,10 @@ void main() {
       expect(result['greenCommits'], <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
     });
 
-    test('select and return more than one green commit in the order of commit timestamp', () async {
+    test('Also select green commits that include failed tasks but have bringup: true label', () async {
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stage1]),
-        CommitStatus(commit2, <Stage>[stage3, stage4, stage5])
+        CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
+        CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])
       ]);
       handler = GetGreenCommits(
         config,

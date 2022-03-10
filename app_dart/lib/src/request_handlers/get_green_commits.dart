@@ -15,6 +15,26 @@ import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 
+/// Returns a list of the commit shas that had green runs.
+///
+/// A green commit is used to help the release tooling find commits Flutter infrastructure has validated. The rules are:
+/// 1. A commit had all its tests run (at least those that are not in bringup)
+/// 2. All those blocking tasks were green
+/// Green commit shas are returned in the order of commit timestamp.
+///
+/// Parameters:
+///   repo: default: 'flutter'. Name of the repository.
+///
+/// GET: /api/public/get-green-commits?repo=$repo
+///
+/// Response: Status: 200 OK
+/// {
+///   "greenCommits":[
+///     "d5b0b3c8d1c5fd89302089077ccabbcfaae045e4",
+///     "ea28a9c34dc701de891eaf74503ca4717019f829"
+///   ]
+/// }
+///
 @immutable
 class GetGreenCommits extends RequestHandler<Body> {
   const GetGreenCommits(
@@ -46,12 +66,18 @@ class GetGreenCommits extends RequestHandler<Body> {
           branch: branch,
           slug: slug,
         )
-        .where((CommitStatus status) => status.stages.every((Stage s) => s.taskStatus == Task.statusSucceeded))
+        .where((CommitStatus status) => everyNonFlakyTaskSucceed(status))
         .map<String?>((CommitStatus status) => status.commit.sha)
         .toList();
 
     return Body.forJson(<String, List<String?>>{
       'greenCommits': greenCommits,
     });
+  }
+
+  bool everyNonFlakyTaskSucceed(CommitStatus status) {
+    return status.stages.every((Stage stage) => stage.tasks
+        .where((Task task) => !task.isFlaky!)
+        .every((Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded));
   }
 }
