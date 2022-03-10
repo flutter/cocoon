@@ -20,7 +20,7 @@ import '../src/service/fake_build_status_provider.dart';
 import '../src/utilities/entity_generators.dart';
 
 void main() {
-  group('GetStatus', () {
+  group('GetGreenCommits', () {
     late FakeConfig config;
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
@@ -28,18 +28,23 @@ void main() {
     late RequestHandlerTester tester;
     late GetGreenCommits handler;
 
-    late Commit commit1;
-    late Commit commit2;
+    final Commit commit1 = generateCommit(1, timestamp: 3, sha: 'ea28a9c34dc701de891eaf74503ca4717019f829');
+    final Commit commit2 = generateCommit(2, timestamp: 1, sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4');
 
-    late Task task1Succeed;
-    late Task task2Failed;
-    late Task task3FailedFlaky;
-    late Task task4SucceedFlaky;
+    final Task task1Succeed = generateTask(1, status: Task.statusSucceeded);
+    final Task task2Failed = generateTask(2, status: Task.statusFailed); // should fail if included
+    final Task task3FailedFlaky =
+        generateTask(3, status: Task.statusFailed, isFlaky: true); // should succeed if included because `bringup: true`
+    final Task task4SucceedFlaky = generateTask(4, status: Task.statusSucceeded, isFlaky: true);
 
-    late Stage stageOneSucceed;
-    late Stage stageFailed;
-    late Stage stageMultipleSucceed;
-    late Stage stageFailedFlaky;
+    final Stage stageOneSucceed =
+        Stage('cocoon', commit1, [task1Succeed], Task.statusInProgress); // should scceed, since task 1 succeed
+    final Stage stageFailed = Stage('luci', commit1, [task1Succeed, task2Failed],
+        Task.statusInProgress); // should fail, since task 1 succeed and task2 fail
+    final Stage stageMultipleSucceed = Stage('cocoon', commit2, [task1Succeed, task4SucceedFlaky],
+        Task.statusInProgress); // should succeed, since both task 1 and task 4 succeed
+    final Stage stageFailedFlaky = Stage('luci', commit2, [task1Succeed, task3FailedFlaky],
+        Task.statusInProgress); // should succeed, even though it includes task 3
 
     Future<List<T?>?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -59,24 +64,6 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
-
-      commit1 = generateCommit(1, timestamp: 3, sha: 'ea28a9c34dc701de891eaf74503ca4717019f829');
-      commit2 = generateCommit(2, timestamp: 1, sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4');
-
-      task1Succeed = generateTask(1, status: Task.statusSucceeded);
-      task2Failed = generateTask(2, status: Task.statusFailed); // should fail if included
-      task3FailedFlaky = generateTask(3,
-          status: Task.statusFailed, isFlaky: true); // should succeed if included because `bringup: true`
-      task4SucceedFlaky = generateTask(4, status: Task.statusSucceeded, isFlaky: true);
-
-      stageOneSucceed =
-          Stage('cocoon', commit1, [task1Succeed], Task.statusInProgress); // should scceed, since task 1 succeed
-      stageFailed = Stage('luci', commit1, [task1Succeed, task2Failed],
-          Task.statusInProgress); // should fail, since task 1 succeed and task2 fail
-      stageMultipleSucceed = Stage('cocoon', commit2, [task1Succeed, task4SucceedFlaky],
-          Task.statusInProgress); // should succeed, since both task 1 and task 4 succeed
-      stageFailedFlaky = Stage('luci', commit2, [task1Succeed, task3FailedFlaky],
-          Task.statusInProgress); // should succeed, even though it includes task 3
     });
 
     test('no green commits', () async {

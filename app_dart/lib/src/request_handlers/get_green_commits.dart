@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:github/github.dart';
@@ -15,12 +16,15 @@ import '../service/build_status_provider.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 
-/// Returns a list of the commit shas that had green runs.
+/// Returns [List<String>] of the commit shas that had all passing tests.
 ///
-/// A green commit is used to help the release tooling find commits Flutter infrastructure has validated. The rules are:
-/// 1. A commit had all its tests run (at least those that are not in bringup)
-/// 2. All those blocking tasks were green
-/// Green commit shas are returned in the order of commit timestamp.
+/// A [CommitStatus] that have all passing tests is used to help the release tooling find commits Flutter infrastructure has validated.
+/// In order to qualify as a [CommitStatus] that have all passing tests, the rules are:
+/// 1. The [Commit] inside [CommitStatus] had all its tests run (at least those that are not in bringup)
+/// 2. all the blocking [Task] in [CommitStatus] should pass
+/// A [List<String>] of commit shas of the qualified [CommitStatus]s are returned, in the order of [Commit] timestamp, i.e.,
+/// A [Commit] with an earlier timestamp will apprear earlier in the result [List<String>], as compared to another [Commit]
+/// with a later timestamp.
 ///
 /// Parameters:
 ///   repo: default: 'flutter'. Name of the repository.
