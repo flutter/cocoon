@@ -125,9 +125,6 @@ class Scheduler {
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       Commit totCommit = generateTotCommit(0, repo: commit.repository!, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      // FOR REVIEW:
-      // totCommit now goes through the underlying validation process of [getCiYaml] function,
-      // which adds overhead because tot config does not need to be validated
       ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
     } else {
       ciYaml = await getCiYaml(commit);
@@ -254,9 +251,6 @@ class Scheduler {
       '.ci.yaml',
       httpClientProvider: httpClientProvider,
       ref: commit.sha == null ? Config.defaultBranch(commit.slug) : commit.sha!,
-      // FOR REVIEW:
-      // adding the option to retreive based on branch name
-      // if commit.sha is null, retrieve from default branch (of tip of tree)
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;

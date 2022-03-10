@@ -234,10 +234,6 @@ CiYaml generateCiYamlFromYamlMap(YamlMap? yamlConfig) {
       config: currentSchedulerConfig, slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
 }
 
-// FOR REVIEW:
-// almost duplicating generateCommit except we supply an empty sha
-// cannot import entity generator under test directory, for use in files under lib/src directory
-
 Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
 
 Commit generateTotCommit(
@@ -247,8 +243,6 @@ Commit generateTotCommit(
   String repo = 'flutter',
 }) =>
     Commit(
-      // FOR REVIEW:
-      // an empty sha in [Commit] instructs [getCiYaml] to pull against default branch instead of sha
       sha: null,
       repository: 'flutter/$repo',
       branch: branch,
