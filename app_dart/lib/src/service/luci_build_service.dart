@@ -545,6 +545,11 @@ class LuciBuildService {
       ],
     );
     await pubsub.publish('scheduler-requests', request);
+
+    task.attempts = (task.attempts ?? 0) + 1;
+    task.status = Task.statusNew;
+    await datastore.insert(<Task>[task]);
+
     return true;
   }
 
