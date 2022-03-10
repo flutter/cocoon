@@ -538,6 +538,8 @@ void main() {
         buildNumber: 1,
       );
       final Target target = generateTarget(1);
+      expect(task.attempts, 1);
+      expect(task.status, Task.statusFailed);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         task: task,
@@ -553,6 +555,8 @@ void main() {
       }
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
       expect(rerunFlag, isTrue);
+      expect(task.attempts, 2);
+      expect(task.status, Task.statusNew);
     });
 
     test('Rerun a test failed builder', () async {
