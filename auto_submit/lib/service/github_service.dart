@@ -35,11 +35,14 @@ class GithubService {
   }
 
   /// Fetches the specified commit.
-  Future<RepositoryCommit> getRepoCommit(RepositorySlug slug, String sha) async {
+  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return await github.repositories.getCommit(slug, sha);
   }
 
-  /// Compares two commits
+  /// Compares two commits to fetch diff.
+  ///
+  /// The response will include details on the files that were changed between the two commits.
+  /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
     return await github.repositories.compareCommits(slug, refBase, refHead);
   }

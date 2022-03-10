@@ -49,7 +49,7 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<RepositoryCommit> getRepoCommit(RepositorySlug slug, String sha) async {
+  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock));
     return commit;
   }

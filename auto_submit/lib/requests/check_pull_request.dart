@@ -64,7 +64,7 @@ class CheckPullRequest extends RequestHandler {
   ///
   /// Note: [compareCommits] expects base commit first, and then head commit.
   Future<bool> isTOTRevert(String headSha, RepositorySlug slug, GithubService github) async {
-    final RepositoryCommit secondTotCommit = await github.getRepoCommit(slug, 'HEAD~');
+    final RepositoryCommit secondTotCommit = await github.getCommit(slug, 'HEAD~');
     log.info('Current commit is: $headSha');
     log.info('Second TOT commit is: ${secondTotCommit.sha}');
     final GitHubComparison githubComparison = await github.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
