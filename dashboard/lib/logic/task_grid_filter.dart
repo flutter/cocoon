@@ -17,7 +17,7 @@ import '../widgets/filter_property_sheet.dart';
 class TaskGridFilter extends FilterPropertySource {
   TaskGridFilter();
 
-  factory TaskGridFilter.fromMap(Map<String?, String>? valueMap) => TaskGridFilter()..applyMap(valueMap);
+  factory TaskGridFilter.fromMap(Map<String, String>? valueMap) => TaskGridFilter()..applyMap(valueMap);
 
   /// True iff all of the properties of the filter are set to their default values.
   bool get isDefault =>
@@ -32,9 +32,9 @@ class TaskGridFilter extends FilterPropertySource {
 
   /// Modifies this filter based on the values in the map. If the map is null, no changes are
   /// made. All keys in the [valueMap] must match one of the field names of the filter properties.
-  void applyMap(Map<String?, String>? valueMap) {
+  void applyMap(Map<String, String>? valueMap) {
     if (valueMap != null) {
-      for (final MapEntry<String?, String> mapEntry in valueMap.entries) {
+      for (final MapEntry<String, String> mapEntry in valueMap.entries) {
         if (_allProperties.containsKey(mapEntry.key)) {
           _allProperties[mapEntry.key]!.stringValue = mapEntry.value;
         }
@@ -50,14 +50,14 @@ class TaskGridFilter extends FilterPropertySource {
   final BoolFilterProperty _luciProperty = BoolFilterProperty(fieldName: 'showLuci', label: 'Luci');
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
-  LinkedHashMap<String?, ValueFilterProperty<dynamic>>? _allPropertiesMap;
-  LinkedHashMap<String?, ValueFilterProperty<dynamic>> get _allProperties =>
-      (_allPropertiesMap ??= (<String?, ValueFilterProperty<dynamic>>{}
+  LinkedHashMap<String, ValueFilterProperty<dynamic>>? _allPropertiesMap;
+  LinkedHashMap<String, ValueFilterProperty<dynamic>> get _allProperties =>
+      (_allPropertiesMap ??= (<String, ValueFilterProperty<dynamic>>{}
         ..[_taskProperty.fieldName] = _taskProperty
         ..[_authorProperty.fieldName] = _authorProperty
         ..[_messageProperty.fieldName] = _messageProperty
         ..[_hashProperty.fieldName] = _hashProperty
-        ..[_luciProperty.fieldName] = _luciProperty) as LinkedHashMap<String?, ValueFilterProperty<dynamic>>?)!;
+        ..[_luciProperty.fieldName] = _luciProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
 
   /// The [taskFilter] property is a regular expression that must match the name of the
   /// task in the grid. This property will filter out columns on the build dashboard.
@@ -118,10 +118,9 @@ class TaskGridFilter extends FilterPropertySource {
   /// Convert the filter into a String map (with or without default values populated) that
   /// can be used to reconstruct the filter using the [fromMap] constructor and/or inject
   /// its data into a JSON file or URL query parameter list.
-  Map<String?, String> toMap({bool includeDefaults = true}) => Map<String?, String>.fromEntries(_allProperties.entries
-      .where((MapEntry<String?, ValueFilterProperty<dynamic>> element) => includeDefaults || !element.value.isDefault)
-      .map((MapEntry<String?, ValueFilterProperty<dynamic>> e) =>
-          MapEntry<String?, String>(e.key, e.value.stringValue)));
+  Map<String, String> toMap({bool includeDefaults = true}) => Map<String, String>.fromEntries(_allProperties.entries
+      .where((MapEntry<String, ValueFilterProperty<dynamic>> element) => includeDefaults || !element.value.isDefault)
+      .map((MapEntry<String, ValueFilterProperty<dynamic>> e) => MapEntry<String, String>(e.key, e.value.stringValue)));
 
   /// A string useful for including in a URL as query parameters. The returned string will
   /// include only non-default filter values separated by the URL parameter separator (`&`).

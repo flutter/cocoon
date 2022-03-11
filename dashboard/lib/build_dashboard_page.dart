@@ -68,15 +68,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   ///
   /// This enables bookmarking state specific values, like [repo].
   void _updateNavigation(BuildContext context) {
-    final Map<String, String?> queryParameters = <String, String?>{};
+    final Map<String, String> queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
     }
     if (_filter != null) {
-      queryParameters.addAll(_filter!.toMap(includeDefaults: false) as Map<String, String?>);
+      queryParameters.addAll(_filter!.toMap(includeDefaults: false));
     }
-    queryParameters['repo'] = repo;
-    queryParameters['branch'] = branch;
+    queryParameters['repo'] = repo!;
+    queryParameters['branch'] = branch!;
     final Uri uri = Uri(
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
