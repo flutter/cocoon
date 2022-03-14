@@ -71,11 +71,29 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test(
-        'select and return commits with all tasks succeed, and exclude commits with failed tasks and without `bringup: true` label',
-        () async {
+    test('should return commits with all tasks succeed', () async {
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stageOneSucceed, stageFailed]),
+        CommitStatus(commit1, <Stage>[stageOneSucceed]),
+        CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
+      ]);
+      handler = GetGreenCommits(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        buildStatusProvider: (_) => buildStatusService,
+      );
+
+      final List<String?> result = (await decodeHandlerBody())!;
+
+      expect(result.length, 2);
+      expect(result, <String>[
+        'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
+        'ea28a9c34dc701de891eaf74503ca4717019f829',
+      ]);
+    });
+
+    test('should fail commits that have failed task without [bringup: true] label', () async {
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commit1, <Stage>[stageFailed]),
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
       ]);
       handler = GetGreenCommits(
@@ -90,7 +108,24 @@ void main() {
       expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
     });
 
-    test('Also select green commits that include failed tasks but have bringup: true label', () async {
+    test('should return commits with failed tasks but with `bringup: true` label', () async {
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commit1, <Stage>[stageFailed]),
+        CommitStatus(commit2, <Stage>[stageFailedFlaky])
+      ]);
+      handler = GetGreenCommits(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        buildStatusProvider: (_) => buildStatusService,
+      );
+
+      final List<String?> result = (await decodeHandlerBody())!;
+
+      expect(result.length, 1);
+      expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
+    });
+
+    test('Also return commits with both flaky and succeeded tasks', () async {
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
         CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])

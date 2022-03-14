@@ -30,7 +30,6 @@ import '../service/datastore.dart';
 ///   repo: default: 'flutter'. Name of the repository.
 ///
 /// GET: /api/public/get-green-commits?repo=$repo
-///
 
 @immutable
 class GetGreenCommits extends RequestHandler<Body> {
@@ -54,12 +53,11 @@ class GetGreenCommits extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final int commitNumber = config.commitNumber;
-    final int lastCommitTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     final List<String?> greenCommits = await buildStatusService
         .retrieveCommitStatus(
           limit: commitNumber,
-          timestamp: lastCommitTimestamp,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
           branch: branch,
           slug: slug,
         )
