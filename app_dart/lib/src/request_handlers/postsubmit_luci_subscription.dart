@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -18,6 +20,7 @@ import '../service/cache_service.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
+import '../service/scheduler.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
 ///
@@ -28,11 +31,13 @@ import '../service/logging.dart';
 @immutable
 class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
-  const PostsubmitLuciSubscription(
-    CacheService cache,
-    Config config, {
+  const PostsubmitLuciSubscription({
+    required CacheService cache,
+    required Config config,
     AuthenticationProvider? authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    required this.luciBuildService,
+    required this.scheduler,
   }) : super(
           cache: cache,
           config: config,
@@ -41,6 +46,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         );
 
   final DatastoreServiceProvider datastoreProvider;
+  final LuciBuildService luciBuildService;
+  final Scheduler scheduler;
 
   @override
   Future<Body> post() async {
@@ -80,6 +87,20 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     task.updateFromBuild(build);
     await datastore.insert(<Task>[task]);
     log.fine('Updated datastore');
+
+    if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure) {
+      log.fine('Trying to auto-retry...');
+      final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
+      final CiYaml ciYaml = await scheduler.getCiYaml(commit);
+      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+      final bool retried = await luciBuildService.checkRerunBuilder(
+        commit: commit,
+        target: target,
+        task: task,
+        datastore: datastore,
+      );
+      log.info('Retried: $retried');
+    }
 
     return Body.empty;
   }

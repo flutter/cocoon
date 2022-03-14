@@ -4,26 +4,29 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../../cocoon_service.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
+import '../model/ci_yaml/target.dart';
 import '../model/google/token_info.dart';
-import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
+import '../request_handling/authentication.dart';
+import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
-import '../service/luci.dart';
+import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
 
-/// Triggers prod builds based on a task key. This handler is used to trigger
-/// LUCI builds that didn't run or failed.
+/// Reruns a postsubmit LUCI build.
+///
+/// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
 class ResetProdTask extends ApiRequestHandler<Body> {
   const ResetProdTask(
@@ -39,104 +42,139 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   final LuciBuildService luciBuildService;
   final Scheduler scheduler;
 
+  static const String branchParam = 'Branch';
   static const String taskKeyParam = 'Key';
   static const String ownerParam = 'Owner';
   static const String repoParam = 'Repo';
   static const String commitShaParam = 'Commit';
   static const String builderParam = 'Builder';
-  static const String propertiesParam = 'Properties';
 
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData![taskKeyParam] as String? ?? '';
-    final KeyHelper keyHelper = config.keyHelper;
+    final String? encodedKey = requestData![taskKeyParam] as String?;
+    String? gitBranch = requestData![branchParam] as String?;
     final String owner = requestData![ownerParam] as String? ?? 'flutter';
-    final String repo = requestData![repoParam] as String? ?? 'flutter';
-    String commitSha = requestData![commitShaParam] as String? ?? '';
-    final Map<String, dynamic> defaultProperties =
-        repo == 'engine' ? Config.engineDefaultProperties : const <String, dynamic>{};
-    final Map<String, dynamic> properties =
-        (requestData![propertiesParam] as Map<String, dynamic>?) ?? defaultProperties;
+    final String? repo = requestData![repoParam] as String?;
+    final String? sha = requestData![commitShaParam] as String?;
     final TokenInfo token = await tokenInfo(request!);
+    final String? taskName = requestData![builderParam] as String?;
 
-    RepositorySlug slug;
-    String? builder = requestData![builderParam] as String? ?? '';
-    Task? task;
-    Commit commit;
+    RepositorySlug? slug;
 
-    if (encodedKey.isNotEmpty) {
+    if (encodedKey != null && encodedKey.isNotEmpty) {
       // Check params required for dashboard.
       checkRequiredParameters(<String>[taskKeyParam]);
     } else {
       // Checks params required when this API is called with curl.
       checkRequiredParameters(<String>[commitShaParam, builderParam, repoParam]);
+      slug = RepositorySlug(owner, repo!);
+      gitBranch ??= Config.defaultBranch(slug);
     }
 
-    if (encodedKey.isNotEmpty) {
-      // Request coming from the dashboard.
-      final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
-      log.info('Rescheduling task with Key: ${key.id}');
-      task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
-      if (task!.status == 'Succeeded') {
-        return Body.empty;
-      }
-      commit = await datastore.db.lookupValue<Commit>(task.commitKey!);
-      slug = commit.slug;
-      commitSha = commit.sha!;
-      builder = task.builderName;
-      if (builder == null) {
-        final CiYaml ciYaml = await scheduler.getCiYaml(commit);
-        final List<LuciBuilder> builders = await scheduler.getPostSubmitBuilders(ciYaml);
-        builder = builders
-            .where((LuciBuilder builder) => builder.taskName == task!.name)
-            .map((LuciBuilder builder) => builder.name)
-            .single;
-      }
-    } else {
-      if (repo == 'flutter') {
-        throw const BadRequestException(
-            'Flutter repo does not support retries with curl, please use flutter-dashboard instead');
-      }
-      // Request not coming from dashboard means we need to create slug from parameters.
-      slug = RepositorySlug(owner, repo);
-      commit = Commit(repository: slug.fullName, sha: commitSha);
-    }
-
-    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha!, builder, repo);
-    final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
-    final Build? build = currentBuilds.firstWhereOrNull(
-      (Build element) {
-        log.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
-        return noReschedule.contains(element.status);
-      },
+    final Task task = await _getTaskFromNamedParams(
+      datastore: datastore,
+      encodedKey: encodedKey,
+      gitBranch: gitBranch,
+      name: taskName,
+      sha: sha,
+      slug: slug,
     );
-    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
+    final Commit commit = await _getCommitFromTask(datastore, task);
 
-    if (build != null) {
-      throw const ConflictException();
-    }
-    final Map<String, List<String?>> tags = <String, List<String?>>{
-      'triggered_by': <String?>[token.email],
+    final CiYaml ciYaml = await scheduler.getCiYaml(commit);
+    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'triggered_by': <String>[token.email!],
       'trigger_type': <String>['manual'],
     };
-    final Build buildResult = await luciBuildService.reschedulePostsubmitBuild(
-      commitSha: commit.sha!,
-      builderName: builder,
-      repo: repo,
-      properties: properties,
+    final bool isRerunning = await luciBuildService.checkRerunBuilder(
+      commit: commit,
+      task: task,
+      target: target,
+      datastore: datastore,
       tags: tags,
-      bucket: task?.isFlaky ?? false ? 'staging' : 'prod',
+      ignoreChecks: true,
     );
-    if (task != null) {
-      // Only try to update task when it really exists.
-      task
-        ..status = Task.statusNew
-        ..startTimestamp = 0
-        ..attempts = (task.attempts ?? 0) + 1;
-      await datastore.insert(<Task>[task]);
+    if (isRerunning == false) {
+      throw InternalServerError('Failed to rerun ${task.name}');
     }
-    final String buildUrl = 'https://ci.chromium.org/ui/b/${buildResult.id}';
-    return Body.forString('Build url: $buildUrl');
+
+    return Body.empty;
+  }
+
+  /// Retrieve [Task] from [DatastoreService] from either an encoded key or commit + task name info.
+  ///
+  /// If [encodedKey] is passed, [KeyHelper] will decode it directly and return the associated entity.
+  ///
+  /// Otherwise, [name], [gitBranch], [sha], and [slug] must be passed to find the [Task].
+  Future<Task> _getTaskFromNamedParams({
+    required DatastoreService datastore,
+    String? encodedKey,
+    String? gitBranch,
+    String? name,
+    String? sha,
+    RepositorySlug? slug,
+  }) async {
+    if (encodedKey != null && encodedKey.isNotEmpty) {
+      final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
+      return datastore.lookupByValue<Task>(key);
+    }
+
+    final Key<String> commitKey = await _constructCommitKey(
+      datastore: datastore,
+      gitBranch: gitBranch!,
+      sha: sha!,
+      slug: slug!,
+    );
+
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
+    final List<Task> initialTasks = await query.run().toList();
+    log.fine('Found ${initialTasks.length} tasks for commit');
+    final List<Task> tasks = <Task>[];
+    log.fine('Searching for task with name=$name');
+    for (Task task in initialTasks) {
+      if (task.name == name) {
+        tasks.add(task);
+      }
+    }
+
+    if (tasks.length != 1) {
+      log.severe('Found ${tasks.length} entries for builder $name');
+      throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
+    }
+
+    return tasks.single;
+  }
+
+  /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
+  ///
+  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
+  Future<Key<String>> _constructCommitKey({
+    required DatastoreService datastore,
+    required String gitBranch,
+    required String sha,
+    required RepositorySlug slug,
+  }) async {
+    gitBranch = gitBranch.trim();
+    sha = sha.trim();
+    final List<String> flutterBranches = await config.flutterBranches;
+    if (!flutterBranches.contains(gitBranch)) {
+      throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
+          'If this is a valid branch, '
+          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
+    }
+    final String id = '${slug.fullName}/$gitBranch/$sha';
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
+    log.fine('Constructed commit key=$id');
+    // Return the official key from Datastore for task lookups.
+    final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
+    return commit.key;
+  }
+
+  /// Returns the [Commit] associated with [Task].
+  Future<Commit> _getCommitFromTask(DatastoreService datastore, Task task) async {
+    return (await datastore.lookupByKey<Commit>(<Key<dynamic>>[task.parentKey!])).single!;
   }
 }

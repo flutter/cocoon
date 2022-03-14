@@ -27,13 +27,16 @@ class CheckPullRequest extends RequestHandler {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
 
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
-    if (await shouldMergePullRequest(queryResult)) {
+    if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
 
-    } else {
+    } else if (queryResult.shouldRemoveLabel) {
+      log.info('Removing label for commit: ${queryResult.sha}');
+      await _removeLabel();
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
@@ -41,9 +44,40 @@ class CheckPullRequest extends RequestHandler {
   }
 
   /// Check if the pull request should be merged.
-  Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
-    // TODO(Kristin): Implement shouldMergePullRequest, https://github.com/flutter/flutter/issues/98707
+  ///
+  /// A pull request should be merged on either cases:
+  /// 1) All tests have finished running and satified basic merge requests
+  /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
+  Future<bool> shouldMergePullRequest(
+      _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
+    if (queryResult.shouldMerge) {
+      return true;
+    }
+    // If the PR is a revert of the tot commit, merge without waiting for checks passing.
+    return await isTOTRevert(queryResult.sha, slug, github);
+  }
 
+  /// Check if the `commitSha` is a clean revert of TOT commit.
+  ///
+  /// A clean revert of TOT commit only reverts all changes made by TOT, thus should be
+  /// equivalent to the second TOT commit. When comparing the current commit with second
+  /// TOT commit, empty `files` in `GitHubComparison` validates a clean revert of TOT commit.
+  ///
+  /// Note: [compareCommits] expects base commit first, and then head commit.
+  Future<bool> isTOTRevert(String headSha, RepositorySlug slug, GithubService github) async {
+    final RepositoryCommit secondTotCommit = await github.getCommit(slug, 'HEAD~');
+    log.info('Current commit is: $headSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
+    final GitHubComparison githubComparison = await github.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
+    final bool filesIsEmpty = githubComparison.files!.isEmpty;
+    if (filesIsEmpty) {
+      log.info('This is a TOT revert. Merge ignoring tests statuses.');
+    }
+    return filesIsEmpty;
+  }
+
+  Future<bool> _removeLabel() async {
+    // TODO(Kristin): Implement the logic to remove the label. https://github.com/flutter/flutter/issues/99877
     return true;
   }
 
@@ -55,28 +89,41 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
-    List<CheckSuite> checkSuitesList = <CheckSuite>[];
+
+    //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
-      checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
 
-    final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
-    log.info('Get the checkSuite $checkSuite.');
-
-    final Iterable<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
+    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
     final Set<String?> changeRequestAuthors = <String?>{};
-    log.info('Get the reviews $reviews');
-
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final Iterable<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
-    log.info('Get the statuses $statuses.');
+    final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
+    final String? author = pr.user!.login;
+    final String? authorAssociation = pr.authorAssociation;
 
-    // TODO(Kristin): Get the author, authorAssociation, labels later.https://github.com/flutter/flutter/issues/99718.
-    final bool hasApproval = false;
-    final bool ciSuccessful = false;
+    // List of labels associated with the pull request.
+    final List<String> labelNames =
+        (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
+
+    final bool hasApproval = config.rollerAccounts.contains(author) ||
+        _checkApproval(
+          author,
+          authorAssociation,
+          reviews,
+          changeRequestAuthors,
+        );
+    final bool ciSuccessful = await _checkStatuses(
+      slug,
+      sha,
+      failures,
+      statuses,
+      checkRuns,
+      slug.name,
+      labelNames,
+    );
     return _AutoMergeQueryResult(
         ciSuccessful: ciSuccessful,
         failures: failures,
@@ -88,6 +135,123 @@ class CheckPullRequest extends RequestHandler {
         isConflicting: isConflicting,
         unknownMergeableState: unknownMergeableState);
   }
+
+  /// Returns whether all statuses are successful.
+  ///
+  /// Also fills [failures] with the names of any status/check that has failed.
+  Future<bool> _checkStatuses(
+    RepositorySlug slug,
+    String sha,
+    Set<_FailureDetail> failures,
+    List<RepositoryStatus> statuses,
+    List<CheckRun> checkRuns,
+    String name,
+    List<String> labels,
+  ) async {
+    assert(failures.isEmpty);
+    bool allSuccess = true;
+
+    // The status checks that are not related to changes in this PR.
+    const Set<String> notInAuthorsControl = <String>{
+      'luci-flutter', // flutter repo
+      'luci-engine', // engine repo
+      'submit-queue', // plugins repo
+    };
+
+    // Ensure repos with tree statuses have it set
+    if (Config.reposWithTreeStatus.contains(slug)) {
+      bool treeStatusExists = false;
+      final String treeStatusName = 'luci-${slug.name}';
+
+      // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+      for (RepositoryStatus status in statuses) {
+        if (status.context == treeStatusName) {
+          treeStatusExists = true;
+        }
+      }
+
+      if (!treeStatusExists) {
+        failures.add(_FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+      }
+    }
+
+    final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
+    log.info('Validating name: $name, status: $statuses');
+    for (RepositoryStatus status in statuses) {
+      final String? name = status.context;
+      if (status.state != 'success') {
+        if (notInAuthorsControl.contains(name) && labels.contains(overrideTreeStatusLabel)) {
+          continue;
+        }
+        allSuccess = false;
+        if (status.state == 'failure' && !notInAuthorsControl.contains(name)) {
+          failures.add(_FailureDetail(name!, status.targetUrl as String));
+        }
+      }
+    }
+
+    log.info('Validating name: $name, checks: $checkRuns');
+    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
+    //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
+    //TODO(Kristin): Implement the logic to validate check run statuses. https://github.com/flutter/flutter/issues/99873.
+
+    return allSuccess;
+  }
+}
+
+/// Parses the restApi response reviews.
+///
+/// If author is a MEMBER or OWNER then it only requires a single review from
+/// another MEMBER or OWNER. If the author is not a MEMBER or OWNER then it
+/// requires two reviews from MEMBERs or OWNERS.
+///
+/// If there are any CHANGES_REQUESTED reviews, checks if the same author has
+/// subsequently APPROVED.  From testing, dismissing a review means it won't
+/// show up in this list since it will have a status of DISMISSED and we only
+/// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
+/// not automatically dismiss the previous one.
+///
+/// If the author has not subsequently approved or dismissed the review, the
+/// name will be added to the changeRequestAuthors set.
+///
+/// Returns false if no approved reviews or any oustanding change request
+/// reviews.
+///
+/// Returns true if at least one approved review and no outstanding change
+/// request reviews.
+bool _checkApproval(
+  String? author,
+  String? authorAssociation,
+  List<PullRequestReview> reviews,
+  Set<String?> changeRequestAuthors,
+) {
+  assert(changeRequestAuthors.isEmpty);
+  const Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
+  final Set<String?> approvers = <String?>{};
+  if (allowedReviewers.contains(authorAssociation)) {
+    approvers.add(author);
+  }
+
+  for (PullRequestReview review in reviews) {
+    // Ignore reviews from non-members/owners.
+    if (!allowedReviewers.contains(review.authorAssociation)) {
+      continue;
+    }
+    // Reviews come back in order of creation.
+    final String? state = review.state;
+    final String? authorlogin = review.user.login;
+
+    if (state == 'APPROVED') {
+      approvers.add(authorlogin);
+      changeRequestAuthors.remove(authorlogin);
+    } else if (state == 'CHANGES_REQUESTED') {
+      changeRequestAuthors.add(authorlogin);
+    }
+  }
+
+  final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
+  log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
+  return (approvers.length > 1) && changeRequestAuthors.isEmpty;
 }
 
 // TODO(Kristin): Simplify the _AutoMergeQueryResult class. https://github.com/flutter/flutter/issues/99717.
