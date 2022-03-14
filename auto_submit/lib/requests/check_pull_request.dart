@@ -27,13 +27,16 @@ class CheckPullRequest extends RequestHandler {
     final String rawBody = await request.readAsString();
     final body = json.decode(rawBody) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
 
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
-    if (await shouldMergePullRequest(queryResult)) {
+    if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
 
-    } else {
+    } else if (queryResult.shouldRemoveLabel) {
+      log.info('Removing label for commit: ${queryResult.sha}');
+      await _removeLabel();
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
@@ -41,9 +44,40 @@ class CheckPullRequest extends RequestHandler {
   }
 
   /// Check if the pull request should be merged.
-  Future<bool> shouldMergePullRequest(_AutoMergeQueryResult queryResult) async {
-    // TODO(Kristin): Implement shouldMergePullRequest, https://github.com/flutter/flutter/issues/98707
+  ///
+  /// A pull request should be merged on either cases:
+  /// 1) All tests have finished running and satified basic merge requests
+  /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
+  Future<bool> shouldMergePullRequest(
+      _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
+    if (queryResult.shouldMerge) {
+      return true;
+    }
+    // If the PR is a revert of the tot commit, merge without waiting for checks passing.
+    return await isTOTRevert(queryResult.sha, slug, github);
+  }
 
+  /// Check if the `commitSha` is a clean revert of TOT commit.
+  ///
+  /// A clean revert of TOT commit only reverts all changes made by TOT, thus should be
+  /// equivalent to the second TOT commit. When comparing the current commit with second
+  /// TOT commit, empty `files` in `GitHubComparison` validates a clean revert of TOT commit.
+  ///
+  /// Note: [compareCommits] expects base commit first, and then head commit.
+  Future<bool> isTOTRevert(String headSha, RepositorySlug slug, GithubService github) async {
+    final RepositoryCommit secondTotCommit = await github.getCommit(slug, 'HEAD~');
+    log.info('Current commit is: $headSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
+    final GitHubComparison githubComparison = await github.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
+    final bool filesIsEmpty = githubComparison.files!.isEmpty;
+    if (filesIsEmpty) {
+      log.info('This is a TOT revert. Merge ignoring tests statuses.');
+    }
+    return filesIsEmpty;
+  }
+
+  Future<bool> _removeLabel() async {
+    // TODO(Kristin): Implement the logic to remove the label. https://github.com/flutter/flutter/issues/99877
     return true;
   }
 
@@ -55,14 +89,11 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
-    List<CheckSuite> checkSuitesList = <CheckSuite>[];
 
     //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
-      checkSuitesList.addAll(await gitHub.getCheckSuites(slug, pr.head!.sha!));
     }
-    final CheckSuite? checkSuite = checkSuitesList.isEmpty ? null : checkSuitesList[0];
 
     final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
@@ -90,7 +121,6 @@ class CheckPullRequest extends RequestHandler {
       failures,
       statuses,
       checkRuns,
-      checkSuite,
       slug.name,
       labelNames,
     );
@@ -115,7 +145,6 @@ class CheckPullRequest extends RequestHandler {
     Set<_FailureDetail> failures,
     List<RepositoryStatus> statuses,
     List<CheckRun> checkRuns,
-    CheckSuite? checkSuite,
     String name,
     List<String> labels,
   ) async {

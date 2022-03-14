@@ -37,18 +37,6 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<CheckSuite>> getCheckSuites(
-    RepositorySlug slug,
-    String ref,
-  ) async {
-    final rawBody = json.decode(checkSuitesMock) as Map<String, dynamic>;
-    final List<dynamic> checkSuitesBody = rawBody["check_suites"];
-    final List<CheckSuite> checkSuites =
-        checkSuitesBody.map((dynamic checkSuite) => CheckSuite.fromJson(checkSuite)).toList();
-    return checkSuites;
-  }
-
-  @override
   Future<List<RepositoryStatus>> getStatuses(
     RepositorySlug slug,
     String ref,
@@ -58,5 +46,17 @@ class FakeGithubService implements GithubService {
     final List<RepositoryStatus> statuses =
         statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList();
     return statuses;
+  }
+
+  @override
+  Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
+    RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock));
+    return commit;
+  }
+
+  @override
+  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
+    GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCOmmitsMock));
+    return githubComparison;
   }
 }
