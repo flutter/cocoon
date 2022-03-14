@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+// import 'dart:html';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
@@ -73,5 +74,11 @@ class FakeGithubService implements GithubService {
   }) async {
     final PullRequestMerge pullRequestMerge = PullRequestMerge.fromJson(jsonDecode(successMergeMock));
     return pullRequestMerge;
+  }
+
+  @override
+  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
+    final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock));
+    return issueComment;
   }
 }

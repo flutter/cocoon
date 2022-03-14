@@ -56,4 +56,10 @@ class GithubService {
   Future<PullRequestMerge> merge(RepositorySlug slug, int number) async {
     return await github.pullRequests.merge(slug, number);
   }
+
+  /// Create a comment for a pull request.
+  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
+    CreatePullRequestComment comment = CreatePullRequestComment(commentBody, sha, null, null);
+    return await github.pullRequests.createComment(slug, number, comment);
+  }
 }

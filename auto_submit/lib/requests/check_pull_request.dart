@@ -32,13 +32,19 @@ class CheckPullRequest extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      log.info('Merge the pull request: ${queryResult.number}');
-      await gitHub.merge(slug, queryResult.number);
+      // Check the label again before merge the pull request.
+      final bool hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autoLabel);
+      if (hasAutosubmit) {
+        log.info('Merge the pull request: ${queryResult.number}');
+        // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+      }
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
-      await _removeLabel(queryResult, gitHub, slug, 'autosubmit');
+      await _removeLabel(queryResult, gitHub, slug, config.autoLabel);
       return Response.ok(jsonEncode(<String, String>{}));
     } else {
+      log.info('The pull request ${queryResult.number} has unfinished tests,'
+          'push to pubsub and check later.');
       // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
       // https://github.com/flutter/flutter/issues/100076
     }
@@ -84,32 +90,9 @@ class CheckPullRequest extends RequestHandler {
   /// Returns true if we successfully remove the label.
   Future<bool> _removeLabel(
       _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
-    log.info('This pull request is not suitable for automatic merging in its '
-        'current state.');
-
-    if (!queryResult.hasApprovedReview && queryResult.changeRequestAuthors.isEmpty) {
-      log.info('- Please get at least one approved review if you are already '
-          'a member or two member reviews if you are not a member before re-applying this '
-          'label. __Reviewers__: If you left a comment approving, please use '
-          'the "approve" review action instead.');
-    }
-    for (String? author in queryResult.changeRequestAuthors) {
-      log.info('- This pull request has changes requested by @$author. Please '
-          'resolve those before re-applying the label.');
-    }
-    for (_FailureDetail detail in queryResult.failures) {
-      log.info('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
-          'issues identified (or deflake) before re-applying this label.');
-    }
-    if (queryResult.emptyChecks) {
-      log.info('- This commit has no checks. Please check that ci.yaml validation has started'
-          ' and there are multiple checks. If not, try uploading an empty commit.');
-    }
-    if (queryResult.isConflicting) {
-      log.info('- This commit is not mergeable and has conflicts. Please'
-          ' rebase your PR and fix all the conflicts.');
-    }
-    final bool result = await gitHub.removeLabel(slug, queryResult.number, 'autosubmit');
+    final String commentBody = queryResult.removalMessage;
+    await gitHub.createComment(slug, queryResult.number, commentBody, queryResult.sha);
+    final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autoLabel);
     if (!result) {
       log.info('Failed to remove the autosubmit label.');
       return false;
@@ -117,7 +100,7 @@ class CheckPullRequest extends RequestHandler {
     return true;
   }
 
-  /// Parses the rest query to a list of [_AutoMergeQueryResult]s.
+  /// Parses the Rest API query to a [_AutoMergeQueryResult].
   ///
   /// This method will not return null, but may return an empty list.
   Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
@@ -350,6 +333,40 @@ class _AutoMergeQueryResult {
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
       !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
+
+  /// The comment message we want to send when removing the label.
+  String get removalMessage {
+    if (!shouldRemoveLabel) {
+      return '';
+    }
+    final StringBuffer buffer = StringBuffer();
+    buffer.writeln('This pull request is not suitable for automatic merging in its '
+        'current state.');
+    buffer.writeln();
+    if (!hasApprovedReview && changeRequestAuthors.isEmpty) {
+      buffer.writeln('- Please get at least one approved review if you are already '
+          'a member or two member reviews if you are not a member before re-applying this '
+          'label. __Reviewers__: If you left a comment approving, please use '
+          'the "approve" review action instead.');
+    }
+    for (String? author in changeRequestAuthors) {
+      buffer.writeln('- This pull request has changes requested by @$author. Please '
+          'resolve those before re-applying the label.');
+    }
+    for (_FailureDetail detail in failures) {
+      buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+          'issues identified (or deflake) before re-applying this label.');
+    }
+    if (emptyChecks) {
+      buffer.writeln('- This commit has no checks. Please check that ci.yaml validation has started'
+          ' and there are multiple checks. If not, try uploading an empty commit.');
+    }
+    if (isConflicting) {
+      buffer.writeln('- This commit is not mergeable and has conflicts. Please'
+          ' rebase your PR and fix all the conflicts.');
+    }
+    return buffer.toString();
+  }
 
   @override
   String toString() {
