@@ -30,8 +30,19 @@ void main() {
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
   late MockGoogleSignInService fakeAuthService;
 
+  final Type dropdownButtonType = DropdownButton<String>(
+    onChanged: (_) {},
+    items: const <DropdownMenuItem<String>>[],
+  ).runtimeType;
+
   setUp(() {
-    binding.window.physicalSizeTestValue = const Size(1000, 2000);
+    binding.window.devicePixelRatioTestValue = 1.0;
+    binding.window.physicalSizeTestValue = const Size(1080, 2280);
+    // FOR REVIEW:
+    // device pixel ratio of 1.0 works well on web app and emulator
+    // If not set, flutter test uses a Pixel 4 device pixel ratio of roughly 2.75, which doesn't quite work
+    // I am using the default settings of Pixel 4 in this test, as referenced in the link below
+    // https://android.googlesource.com/platform/external/qemu/+/b5b78438ae9ff3b90aafdab0f4f25585affc22fb/android/avd/hardware-properties.ini
     fakeAuthService = MockGoogleSignInService();
     when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
     when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
@@ -118,7 +129,7 @@ void main() {
     expect(find.text('Ran more than once'), findsOneWidget);
   });
 
-  testWidgets('shows branch and repo dropdown button', (WidgetTester tester) async {
+  testWidgets('shows branch and repo dropdown button when screen is decently large', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -133,14 +144,13 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.settings));
-    await tester.pump();
-
-    final Type dropdownButtonType = DropdownButton<String>(
-      onChanged: (_) {},
-      items: const <DropdownMenuItem<String>>[],
-    ).runtimeType;
     expect(find.byType(dropdownButtonType), findsNWidgets(2));
+
+    expect(find.text('repo: '), findsOneWidget);
+    expect((tester.widget(find.byKey(const Key('repo dropdown'))) as DropdownButton).value, equals('flutter'));
+
+    expect(find.text('branch: '), findsOneWidget);
+    expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value, equals('master'));
   });
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
@@ -416,5 +426,30 @@ void main() {
 
     await tester.pumpWidget(Container());
     buildState.dispose();
+  });
+
+  testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {
+    binding.window.physicalSizeTestValue = const Size(500, 500);
+    binding.window.devicePixelRatioTestValue = 1.0;
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(dropdownButtonType), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    expect(find.byType(dropdownButtonType), findsNWidgets(2));
   });
 }
