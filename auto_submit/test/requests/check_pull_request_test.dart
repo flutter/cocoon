@@ -25,7 +25,7 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config);
     });
 
-    test('call checkPullRequest handler to handle the get request', () async {
+    test('Merge PR with successful status and checks', () async {
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
       expect(resBody, webhookEventMock);

@@ -32,12 +32,15 @@ class CheckPullRequest extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
-
+      log.info('Merge the pull request: ${queryResult.number}');
+      await gitHub.merge(slug, queryResult.number);
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
-      await _removeLabel();
+      await _removeLabel(queryResult, gitHub, slug, 'autosubmit');
       return Response.ok(jsonEncode(<String, String>{}));
+    } else {
+      // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
+      // https://github.com/flutter/flutter/issues/100076
     }
 
     return Response.ok(rawBody);
@@ -76,11 +79,47 @@ class CheckPullRequest extends RequestHandler {
     return filesIsEmpty;
   }
 
-  Future<bool> _removeLabel() async {
-    // TODO(Kristin): Implement the logic to remove the label. https://github.com/flutter/flutter/issues/99877
+  /// Removes the 'autosubmit' label if this PR should not be merged.
+  ///
+  /// Returns true if we successfully remove the label.
+  Future<bool> _removeLabel(
+      _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
+    log.info('This pull request is not suitable for automatic merging in its '
+        'current state.');
+
+    if (!queryResult.hasApprovedReview && queryResult.changeRequestAuthors.isEmpty) {
+      log.info('- Please get at least one approved review if you are already '
+          'a member or two member reviews if you are not a member before re-applying this '
+          'label. __Reviewers__: If you left a comment approving, please use '
+          'the "approve" review action instead.');
+    }
+    for (String? author in queryResult.changeRequestAuthors) {
+      log.info('- This pull request has changes requested by @$author. Please '
+          'resolve those before re-applying the label.');
+    }
+    for (_FailureDetail detail in queryResult.failures) {
+      log.info('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+          'issues identified (or deflake) before re-applying this label.');
+    }
+    if (queryResult.emptyChecks) {
+      log.info('- This commit has no checks. Please check that ci.yaml validation has started'
+          ' and there are multiple checks. If not, try uploading an empty commit.');
+    }
+    if (queryResult.isConflicting) {
+      log.info('- This commit is not mergeable and has conflicts. Please'
+          ' rebase your PR and fix all the conflicts.');
+    }
+    final bool result = await gitHub.removeLabel(slug, queryResult.number, 'autosubmit');
+    if (!result) {
+      log.info('Failed to remove the autosubmit label.');
+      return false;
+    }
     return true;
   }
 
+  /// Parses the rest query to a list of [_AutoMergeQueryResult]s.
+  ///
+  /// This method will not return null, but may return an empty list.
   Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
@@ -89,8 +128,6 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
-
-    //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
     }
@@ -191,10 +228,15 @@ class CheckPullRequest extends RequestHandler {
     }
 
     log.info('Validating name: $name, checks: $checkRuns');
-    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
-    //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
-    //TODO(Kristin): Implement the logic to validate check run statuses. https://github.com/flutter/flutter/issues/99873.
-
+    for (CheckRun checkRun in checkRuns) {
+      final String? name = checkRun.name;
+      if (checkRun.conclusion == CheckRunConclusion.success) {
+        continue;
+      } else if (checkRun.status == CheckRunStatus.completed) {
+        failures.add(_FailureDetail(name!, checkRun.detailsUrl as String));
+      }
+      allSuccess = false;
+    }
     return allSuccess;
   }
 }

@@ -50,13 +50,28 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
-    RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock));
+    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock));
     return commit;
   }
 
   @override
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCOmmitsMock));
+    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCOmmitsMock));
     return githubComparison;
+  }
+
+  @override
+  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+    return true;
+  }
+
+  @override
+  Future<PullRequestMerge> merge(
+    RepositorySlug slug,
+    int number, {
+    String? message,
+  }) async {
+    final PullRequestMerge pullRequestMerge = PullRequestMerge.fromJson(jsonDecode(successMergeMock));
+    return pullRequestMerge;
   }
 }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-String webhookEventMock = '''{
+final String webhookEventMock = '''{
       "action": "open",
       "number": 1598,
       "pull_request": {
@@ -458,7 +458,7 @@ String webhookEventMock = '''{
     }''';
 
 // reviewsMock is from the official Github API: https://docs.github.com/en/rest/reference/pulls#list-reviews-for-a-pull-request
-String reviewsMock = '''[
+final String reviewsMock = '''[
   {
     "id": 80,
     "node_id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3ODA=",
@@ -501,7 +501,7 @@ String reviewsMock = '''[
 ]''';
 
 // checkRunsMock is from the official Github API: https://docs.github.com/en/rest/reference/checks#list-check-runs-for-a-git-reference
-String checkRunsMock = '''{
+final String checkRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -513,7 +513,7 @@ String checkRunsMock = '''{
       "html_url": "https://github.com/github/hello-world/runs/4",
       "details_url": "https://example.com",
       "status": "completed",
-      "conclusion": "neutral",
+      "conclusion": "success",
       "started_at": "2018-05-04T01:14:52Z",
       "completed_at": "2018-05-04T01:14:52Z",
       "output": {
@@ -598,7 +598,7 @@ String checkRunsMock = '''{
 }''';
 
 // repositoryStatusesMock is from the official Github API: https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
-String repositoryStatusesMock = '''{
+final String repositoryStatusesMock = '''{
   "state": "success",
   "statuses": [
     {
@@ -702,7 +702,7 @@ String repositoryStatusesMock = '''{
 }''';
 
 // commitMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#get-a-commit
-String commitMock = '''{
+final String commitMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
   "sha": "HEAD~",
   "node_id": "MDY6Q29tbWl0NmRjYjA5YjViNTc4NzVmMzM0ZjYxYWViZWQ2OTVlMmU0MTkzZGI1ZQ==",
@@ -799,7 +799,7 @@ String commitMock = '''{
 }''';
 
 // compareTowCOmmitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-String compareTowCOmmitsMock = '''{
+final String compareTowCOmmitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "html_url": "https://github.com/octocat/Hello-World/compare/master...topic",
   "permalink_url": "https://github.com/octocat/Hello-World/compare/octocat:bbcd538c8e72b8c175046e27cc8f907076331401...octocat:0328041d1152db8ae77652d1618a02e57f745f17",
@@ -1059,4 +1059,11 @@ String compareTowCOmmitsMock = '''{
       "patch": "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"
     }
   ]
+}''';
+
+// successMergeMock is from the offcial github API: https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request.
+final String successMergeMock = '''
+{
+  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "merged": true
 }''';
