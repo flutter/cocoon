@@ -80,4 +80,33 @@ void main() {
       );
     });
   });
+
+  group('getMacBinaryPath', () {
+    MockProcessManager processManager;
+    List<List<int>> output;
+
+    setUp(() {
+      processManager = MockProcessManager();
+    });
+
+    test('when binary does not exist', () async {
+      Process process = FakeProcess(1, out: null);
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+      expect(result, '$kM1DefaultBinaryPath/ideviceinstaller');
+    });
+
+    test('when binary exists', () async {
+      String path = '/abc/def/ideviceinstaller';
+      output = <List<int>>[utf8.encode(path)];
+      Process process = FakeProcess(0, out: output);
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+      expect(result, path);
+    });
+  });
 }
