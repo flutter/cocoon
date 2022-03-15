@@ -33,7 +33,7 @@ class CheckPullRequest extends RequestHandler {
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       // Check the label again before merge the pull request.
-      final bool hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autoLabel);
+      final bool hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
       if (hasAutosubmit) {
         log.info('Merge the pull request: ${queryResult.number}');
         // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
@@ -41,7 +41,7 @@ class CheckPullRequest extends RequestHandler {
       }
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
-      await _removeLabel(queryResult, gitHub, slug, config.autoLabel);
+      await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
       return Response.ok('Remove the autosubmit label.');
     } else {
       log.info('The pull request ${queryResult.number} has unfinished tests,'
@@ -92,7 +92,7 @@ class CheckPullRequest extends RequestHandler {
       _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
     final String commentBody = queryResult.removalMessage;
     await gitHub.createComment(slug, queryResult.number, commentBody, queryResult.sha);
-    final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autoLabel);
+    final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autosubmitLabel);
     if (!result) {
       log.info('Failed to remove the autosubmit label.');
       return false;

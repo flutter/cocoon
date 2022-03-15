@@ -32,7 +32,7 @@ class Config {
   final HttpProvider httpProvider;
   final SecretManager secretManager;
 
-  Cache get cache => Cache(cacheProvider).withPrefix('config').withCodec(utf8);
+  Cache get cache => Cache(cacheProvider).withPrefix('config');
 
   Future<GithubService> createGithubService() async {
     final GitHub github = await createGithubClient();
@@ -109,5 +109,5 @@ class Config {
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 
   /// The autosubmit label.
-  String get autoLabel => 'autosubmit';
+  String get autosubmitLabel => 'autosubmit';
 }

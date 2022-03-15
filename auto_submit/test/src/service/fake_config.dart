@@ -19,7 +19,7 @@ class FakeConfig extends Config {
     this.githubService,
     this.rollerAccountsValue,
     this.overrideTreeStatusLabelValue,
-    this.autoLabelValue,
+    this.autosubmitLabelValue,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),
@@ -29,7 +29,7 @@ class FakeConfig extends Config {
   GithubService? githubService = FakeGithubService();
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
-  String? autoLabelValue;
+  String? autosubmitLabelValue;
 
   @override
   Future<GitHub> createGithubClient() async => githubClient!;
@@ -50,5 +50,5 @@ class FakeConfig extends Config {
   String get overrideTreeStatusLabel => overrideTreeStatusLabelValue ?? 'warning: land on red to fix tree breakage';
 
   @override
-  String get autoLabel => autoLabelValue ?? 'autosubmit';
+  String get autosubmitLabel => autosubmitLabelValue ?? 'autosubmit';
 }

@@ -63,9 +63,18 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<List<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
-    final List<dynamic> reviews = json.decode(reviewsMock!) as List;
-    final List<PullRequestReview> prReviews =
-        reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
+    final List<Map<String, dynamic>> reviewsBody =
+        (jsonDecode(reviewsMock!) as List).map((e) => e as Map<String, dynamic>).toList();
+    final List<PullRequestReview> prReviews = <PullRequestReview>[];
+    for (Map reviewMap in reviewsBody) {
+      PullRequestReview review = PullRequestReview(
+          id: reviewMap['id'] as int,
+          body: reviewMap['body'] as String?,
+          state: reviewMap['state'] as String?,
+          user: User(id: reviewMap['user']['id'], login: reviewMap['user']['login']))
+        ..authorAssociation = reviewMap['author_association'] as String?;
+      prReviews.add(review);
+    }
     return prReviews;
   }
 
@@ -88,24 +97,50 @@ class FakeGithubService implements GithubService {
     RepositorySlug slug,
     String ref,
   ) async {
-    final rawBody = json.decode(repositoryStatusesMock!) as Map<String, dynamic>;
-    final List<dynamic> statusesBody = rawBody["statuses"]!;
+    final Map<String, dynamic> statusesBody = jsonDecode(repositoryStatusesMock!) as Map<String, dynamic>;
+    final List<Map<String, dynamic>> statusesList = List<Map<String, dynamic>>.from(statusesBody['statuses']!);
     List<RepositoryStatus> statuses = <RepositoryStatus>[];
-    if (statusesBody[0].isNotEmpty) {
-      statuses.addAll(statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList());
+    if (statusesList[0].isNotEmpty) {
+      for (Map statusMap in statusesList) {
+        RepositoryStatus status = RepositoryStatus(
+          state: statusMap['state'] as String?,
+          targetUrl: statusMap['target_url'] as String?,
+          context: statusMap['context'] as String?,
+        );
+        statuses.add(status);
+      }
     }
     return statuses;
   }
 
   @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
-    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!));
+    final Map<String, dynamic> commitBody = jsonDecode(commitMock!) as Map<String, dynamic>;
+    final RepositoryCommit commit = RepositoryCommit(
+        sha: commitBody['sha'] as String?,
+        commit: commitBody['commit'] == null
+            ? null
+            : GitCommit(
+                url: commitBody['commit']['url'] as String?,
+                message: commitBody['commit']['message'] as String?,
+              ));
     return commit;
   }
 
   @override
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCommitsMock!));
+    final Map<String, dynamic> comparisonBody = jsonDecode(compareTowCommitsMock!) as Map<String, dynamic>;
+
+    final GitHubComparison githubComparison = GitHubComparison(
+      comparisonBody['url'] as String?,
+      comparisonBody['status'] as String?,
+      comparisonBody['ahead_by'] as int?,
+      comparisonBody['behind_by'] as int?,
+      comparisonBody['total_commits'] as int?,
+      (comparisonBody['files'] as List<dynamic>?)
+          ?.map((e) => CommitFile(name: e['filename'] as String?, changes: e['changes'] as int?))
+          .toList(),
+    );
     return githubComparison;
   }
 
@@ -115,18 +150,14 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<PullRequestMerge> merge(
-    RepositorySlug slug,
-    int number, {
-    String? message,
-  }) async {
-    final PullRequestMerge pullRequestMerge = PullRequestMerge.fromJson(jsonDecode(successMergeMock!));
-    return pullRequestMerge;
-  }
-
-  @override
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
-    final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
+    final Map<String, dynamic> commentBody = jsonDecode(createCommentMock!) as Map<String, dynamic>;
+    final IssueComment issueComment = IssueComment(
+        id: commentBody['id'] as int?,
+        body: commentBody['body'] as String?,
+        user: commentBody['user'] == null
+            ? null
+            : User(id: commentBody['user']['id'], login: commentBody['user']['login']));
     return issueComment;
   }
 }
