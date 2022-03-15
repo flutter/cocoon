@@ -37,19 +37,19 @@ class CheckPullRequest extends RequestHandler {
       if (hasAutosubmit) {
         log.info('Merge the pull request: ${queryResult.number}');
         // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+        return Response.ok(rawBody);
       }
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autoLabel);
-      return Response.ok(jsonEncode(<String, String>{}));
+      return Response.ok('Remove the autosubmit label.');
     } else {
       log.info('The pull request ${queryResult.number} has unfinished tests,'
           'push to pubsub and check later.');
       // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
       // https://github.com/flutter/flutter/issues/100076
     }
-
-    return Response.ok(rawBody);
+    return Response.ok(jsonEncode(<String, String>{}));
   }
 
   /// Check if the pull request should be merged.
@@ -114,13 +114,16 @@ class CheckPullRequest extends RequestHandler {
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
     }
+    List<RepositoryStatus> statuses = <RepositoryStatus>[];
+    if (pr.head != null && pr.head!.sha != null) {
+      statuses.addAll(await gitHub.getStatuses(slug, pr.head!.sha!));
+    }
 
     final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     final String? author = pr.user!.login;
     final String? authorAssociation = pr.authorAssociation;
 
