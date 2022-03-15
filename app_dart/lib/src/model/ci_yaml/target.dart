@@ -45,7 +45,8 @@ class Target {
     final List<RequestedDimension> dimensions = <RequestedDimension>[];
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
-        dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
+        String value = properties[dimension].toString();
+        dimensions.add(RequestedDimension(key: dimension, value: value));
       }
     }
     return dimensions;

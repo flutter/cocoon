@@ -183,6 +183,11 @@ void main() {
         expect(dimensions[0].key, 'os');
         expect(dimensions[0].value, 'abc');
       });
+
+      test('properties are evaluated as string', () {
+        final Target target = generateTarget(1, properties: <String, String>{"cores": "32"});
+        expect(target.getDimensions().length, 1);
+      });
     });
   });
 }
