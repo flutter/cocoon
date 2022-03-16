@@ -32,15 +32,20 @@ class CheckPullRequest extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      // TODO(Kristin): Keep pulling pubsub queue, https://github.com/flutter/flutter/issues/98704
-
+      log.info('Merge the pull request: ${queryResult.number}');
+      // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+      return Response.ok('Merge the pull request.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
-      await _removeLabel();
-      return Response.ok(jsonEncode(<String, String>{}));
+      await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
+      return Response.ok('Remove the autosubmit label.');
+    } else {
+      log.info('The pull request ${queryResult.number} has unfinished tests,'
+          'push to pubsub and check later.');
+      // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
+      // https://github.com/flutter/flutter/issues/100076
     }
-
-    return Response.ok(rawBody);
+    return Response.ok('Does not merge the pull request.');
   }
 
   /// Check if the pull request should be merged.
@@ -50,7 +55,9 @@ class CheckPullRequest extends RequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
-    if (queryResult.shouldMerge) {
+    // Check the label again before merge the pull request.
+    final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
+    if (queryResult.shouldMerge && hasAutosubmitLabel) {
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
@@ -76,11 +83,24 @@ class CheckPullRequest extends RequestHandler {
     return filesIsEmpty;
   }
 
-  Future<bool> _removeLabel() async {
-    // TODO(Kristin): Implement the logic to remove the label. https://github.com/flutter/flutter/issues/99877
+  /// Removes the 'autosubmit' label if this PR should not be merged.
+  ///
+  /// Returns true if we successfully remove the label.
+  Future<bool> _removeLabel(
+      _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
+    final String commentBody = queryResult.removalMessage;
+    await gitHub.createComment(slug, queryResult.number, commentBody, queryResult.sha);
+    final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autosubmitLabel);
+    if (!result) {
+      log.info('Failed to remove the autosubmit label.');
+      return false;
+    }
     return true;
   }
 
+  /// Parses the Rest API query to a [_AutoMergeQueryResult].
+  ///
+  /// This method will not return null, but may return an empty list.
   Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
@@ -89,10 +109,12 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pr.base!.repo!.slug();
     List<CheckRun> checkRuns = <CheckRun>[];
-
-    //TODO(Kristin): Inject pages to obtain all the check runs. https://github.com/flutter/flutter/issues/99804.
     if (pr.head != null && pr.head!.sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
+    }
+    List<RepositoryStatus> statuses = <RepositoryStatus>[];
+    if (pr.head != null && pr.head!.sha != null) {
+      statuses.addAll(await gitHub.getStatuses(slug, pr.head!.sha!));
     }
 
     final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
@@ -100,7 +122,6 @@ class CheckPullRequest extends RequestHandler {
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
-    final List<RepositoryStatus> statuses = await gitHub.getStatuses(slug, sha);
     final String? author = pr.user!.login;
     final String? authorAssociation = pr.authorAssociation;
 
@@ -125,15 +146,17 @@ class CheckPullRequest extends RequestHandler {
       labelNames,
     );
     return _AutoMergeQueryResult(
-        ciSuccessful: ciSuccessful,
-        failures: failures,
-        hasApprovedReview: hasApproval,
-        changeRequestAuthors: changeRequestAuthors,
-        number: pr.number!,
-        sha: sha,
-        emptyChecks: checkRuns.isEmpty,
-        isConflicting: isConflicting,
-        unknownMergeableState: unknownMergeableState);
+      ciSuccessful: ciSuccessful,
+      failures: failures,
+      hasApprovedReview: hasApproval,
+      changeRequestAuthors: changeRequestAuthors,
+      number: pr.number!,
+      sha: sha,
+      emptyChecks: checkRuns.isEmpty,
+      isConflicting: isConflicting,
+      unknownMergeableState: unknownMergeableState,
+      labels: labelNames,
+    );
   }
 
   /// Returns whether all statuses are successful.
@@ -191,10 +214,15 @@ class CheckPullRequest extends RequestHandler {
     }
 
     log.info('Validating name: $name, checks: $checkRuns');
-    //TODO(Kristin): Distinguish check runs from cirrus or flutter-dashboard. https://github.com/flutter/flutter/issues/99805.
-    //TODO(Kristin): Upstream checkRun to include conclusion. https://github.com/flutter/flutter/issues/99850.
-    //TODO(Kristin): Implement the logic to validate check run statuses. https://github.com/flutter/flutter/issues/99873.
-
+    for (CheckRun checkRun in checkRuns) {
+      final String? name = checkRun.name;
+      if (checkRun.conclusion == CheckRunConclusion.success) {
+        continue;
+      } else if (checkRun.status == CheckRunStatus.completed) {
+        failures.add(_FailureDetail(name!, checkRun.detailsUrl as String));
+      }
+      allSuccess = false;
+    }
     return allSuccess;
   }
 }
@@ -266,6 +294,7 @@ class _AutoMergeQueryResult {
     required this.emptyChecks,
     required this.isConflicting,
     required this.unknownMergeableState,
+    required this.labels,
   });
 
   /// Whether the pull request has at least one approved review.
@@ -295,6 +324,9 @@ class _AutoMergeQueryResult {
   /// Whether has an unknown mergeable state or not.
   final bool unknownMergeableState;
 
+  /// List of labels associated with the PR.
+  final List<String> labels;
+
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
       ciSuccessful &&
@@ -308,6 +340,40 @@ class _AutoMergeQueryResult {
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
       !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyChecks || isConflicting;
+
+  /// The comment message we want to send when removing the label.
+  String get removalMessage {
+    if (!shouldRemoveLabel) {
+      return '';
+    }
+    final StringBuffer buffer = StringBuffer();
+    buffer.writeln('This pull request is not suitable for automatic merging in its '
+        'current state.');
+    buffer.writeln();
+    if (!hasApprovedReview && changeRequestAuthors.isEmpty) {
+      buffer.writeln('- Please get at least one approved review if you are already '
+          'a member or two member reviews if you are not a member before re-applying this '
+          'label. __Reviewers__: If you left a comment approving, please use '
+          'the "approve" review action instead.');
+    }
+    for (String? author in changeRequestAuthors) {
+      buffer.writeln('- This pull request has changes requested by @$author. Please '
+          'resolve those before re-applying the label.');
+    }
+    for (_FailureDetail detail in failures) {
+      buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+          'issues identified (or deflake) before re-applying this label.');
+    }
+    if (emptyChecks) {
+      buffer.writeln('- This commit has no checks. Please check that ci.yaml validation has started'
+          ' and there are multiple checks. If not, try uploading an empty commit.');
+    }
+    if (isConflicting) {
+      buffer.writeln('- This commit is not mergeable and has conflicts. Please'
+          ' rebase your PR and fix all the conflicts.');
+    }
+    return buffer.toString();
+  }
 
   @override
   String toString() {
