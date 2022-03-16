@@ -33,7 +33,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webHookEvent);
+      expect(resBody, 'Merge the pull request.');
     });
 
     test('Merges unapproved PR from autoroller', () async {
@@ -51,7 +51,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webHookEvent);
+      expect(resBody, 'Merge the pull request.');
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
@@ -59,7 +59,7 @@ void main() {
       req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
-      githubService.repositoryStatusesData = failedRepositoryStatusesMock;
+      githubService.repositoryStatusesData = failedAuthorsStatusesMock;
       githubService.commitData = commitMock;
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
@@ -69,7 +69,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webHookEvent);
+      expect(resBody, 'Merge the pull request.');
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
@@ -87,7 +87,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webHookEvent);
+      expect(resBody, 'Merge the pull request.');
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
@@ -105,7 +105,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webHookEvent);
+      expect(resBody, 'Merge the pull request.');
     });
 
     test('Removes the label for the PR with failed tests', () async {
@@ -139,14 +139,14 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, '{}');
+      expect(resBody, 'Does not merge the pull request.');
     });
 
-    test('Does not merge PR with failed status', () async {
+    test('Remove the label for the PR with failed status', () async {
       req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
-      githubService.repositoryStatusesData = failedRepositoryStatusesMock;
+      githubService.repositoryStatusesData = failedNonAuthorsStatusesMock;
       githubService.commitData = commitMock;
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
@@ -156,7 +156,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, '{}');
+      expect(resBody, 'Remove the autosubmit label.');
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
@@ -192,7 +192,7 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, '{}');
+      expect(resBody, 'Does not merge the pull request.');
     });
 
     test('Does not fail with null checks', () async {

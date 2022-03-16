@@ -165,16 +165,34 @@ final String repositoryStatusesMock = '''{
   ]
 }''';
 
-String failedRepositoryStatusesMock = '''{
+String failedAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {
       "state": "failure",
-      "context": "luci-flutter"
+      "context": "luci-flutter",
+      "target_url": "https://ci.example.com/1000/output"
     },
     {
       "state": "failure",
-      "context": "luci-engine"
+      "context": "luci-engine",
+      "target_url": "https://ci.example.com/2000/output"
+    }
+  ]
+}''';
+
+String failedNonAuthorsStatusesMock = '''{
+  "state": "failure",
+  "statuses": [
+    {
+      "state": "failure",
+      "context": "luci-flutter",
+      "target_url": "https://ci.example.com/1000/output"
+    },
+    {
+      "state": "failure",
+      "context": "flutter-cocoon",
+      "target_url": "https://ci.example.com/2000/output"
     }
   ]
 }''';

@@ -32,13 +32,9 @@ class CheckPullRequest extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      // Check the label again before merge the pull request.
-      final bool hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
-      if (hasAutosubmit) {
-        log.info('Merge the pull request: ${queryResult.number}');
-        // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-        return Response.ok(rawBody);
-      }
+      log.info('Merge the pull request: ${queryResult.number}');
+      // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+      return Response.ok('Merge the pull request.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
@@ -49,7 +45,7 @@ class CheckPullRequest extends RequestHandler {
       // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
       // https://github.com/flutter/flutter/issues/100076
     }
-    return Response.ok(jsonEncode(<String, String>{}));
+    return Response.ok('Does not merge the pull request.');
   }
 
   /// Check if the pull request should be merged.
@@ -59,7 +55,9 @@ class CheckPullRequest extends RequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
-    if (queryResult.shouldMerge) {
+    // Check the label again before merge the pull request.
+    final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
+    if (queryResult.shouldMerge && hasAutosubmitLabel) {
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
@@ -148,15 +146,17 @@ class CheckPullRequest extends RequestHandler {
       labelNames,
     );
     return _AutoMergeQueryResult(
-        ciSuccessful: ciSuccessful,
-        failures: failures,
-        hasApprovedReview: hasApproval,
-        changeRequestAuthors: changeRequestAuthors,
-        number: pr.number!,
-        sha: sha,
-        emptyChecks: checkRuns.isEmpty,
-        isConflicting: isConflicting,
-        unknownMergeableState: unknownMergeableState);
+      ciSuccessful: ciSuccessful,
+      failures: failures,
+      hasApprovedReview: hasApproval,
+      changeRequestAuthors: changeRequestAuthors,
+      number: pr.number!,
+      sha: sha,
+      emptyChecks: checkRuns.isEmpty,
+      isConflicting: isConflicting,
+      unknownMergeableState: unknownMergeableState,
+      labels: labelNames,
+    );
   }
 
   /// Returns whether all statuses are successful.
@@ -294,6 +294,7 @@ class _AutoMergeQueryResult {
     required this.emptyChecks,
     required this.isConflicting,
     required this.unknownMergeableState,
+    required this.labels,
   });
 
   /// Whether the pull request has at least one approved review.
@@ -322,6 +323,9 @@ class _AutoMergeQueryResult {
 
   /// Whether has an unknown mergeable state or not.
   final bool unknownMergeableState;
+
+  /// List of labels associated with the PR.
+  final List<String> labels;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
