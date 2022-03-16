@@ -109,9 +109,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         child: Material(
           color: Colors.transparent,
           child: FocusTraversalGroup(
-            child: FractionallySizedBox(
-              widthFactor: 0.5,
-              heightFactor: 0.7,
+            child: SizedBox(
+              width: 500,
+              height: 350,
               child: ListView(
                 children: <Widget>[
                   if (_smallScreen) ..._slugSelection(context, _buildState),
