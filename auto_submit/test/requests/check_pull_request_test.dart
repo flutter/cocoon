@@ -14,54 +14,13 @@ import '../src/service/fake_github_service.dart';
 void main() {
   group('Check CheckPullRequest', () {
     late Request req;
-    late Request reqWithAutoRoller;
-    late Request reqWithOverrideTreeLabel;
-    late Request reqWithoutAuhorAsso;
-    late Request reqWaithoutLabel;
-    late Request reqWaithoutRepo;
     late CheckPullRequest checkPullRequest;
     late FakeConfig config;
     final FakeGithubService githubService = FakeGithubService();
 
-    setUp(() {
-      req = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookEventMock);
-
-      reqWithAutoRoller = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookAutoRollerMock);
-
-      reqWithOverrideTreeLabel = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookOverrideTreeStatusLabelMock);
-
-      reqWithoutAuhorAsso = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookNoneAuthorMock);
-
-      reqWaithoutLabel = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookNoLabelMock);
-
-      reqWaithoutRepo = Request('GET', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookNoStatusRepoMock);
-    });
-
     test('Merges PR with successful status and checks', () async {
+      String webHookEvent = generateWebhookEvent();
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -74,10 +33,12 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webhookEventMock);
+      expect(resBody, webHookEvent);
     });
 
     test('Merges unapproved PR from autoroller', () async {
+      String webHookEvent = generateWebhookEvent(login: "engine-flutter-autoroll");
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = unApprovedReviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -88,12 +49,14 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config);
 
-      final Response response = await checkPullRequest.get(reqWithAutoRoller);
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webhookAutoRollerMock);
+      expect(resBody, webHookEvent);
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
+      String webHookEvent = generateWebhookEvent(labelName: "warning: land on red to fix tree breakage");
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = failedRepositoryStatusesMock;
@@ -104,12 +67,14 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config);
 
-      final Response response = await checkPullRequest.get(reqWithOverrideTreeLabel);
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webhookOverrideTreeStatusLabelMock);
+      expect(resBody, webHookEvent);
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
+      String webHookEvent = generateWebhookEvent();
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = inProgressCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -122,10 +87,12 @@ void main() {
 
       final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webhookEventMock);
+      expect(resBody, webHookEvent);
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
+      String webHookEvent = generateWebhookEvent(repoName: 'cocoon');
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = emptyStatusesMock;
@@ -136,12 +103,13 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config);
 
-      final Response response = await checkPullRequest.get(reqWaithoutRepo);
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
-      expect(resBody, webhookNoStatusRepoMock);
+      expect(resBody, webHookEvent);
     });
 
     test('Removes the label for the PR with failed tests', () async {
+      req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = failedCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -158,6 +126,7 @@ void main() {
     });
 
     test('Does not merge PR with in progress checks', () async {
+      req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = inProgressCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -174,6 +143,7 @@ void main() {
     });
 
     test('Does not merge PR with failed status', () async {
+      req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = failedRepositoryStatusesMock;
@@ -190,6 +160,8 @@ void main() {
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
+      String webHookEvent = generateWebhookEvent(authorAssociation: '');
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -200,12 +172,14 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config);
 
-      final Response response = await checkPullRequest.get(reqWithoutAuhorAsso);
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
       expect(resBody, 'Remove the autosubmit label.');
     });
 
     test('Does not merge PR if no autosubmit label any more', () async {
+      String webHookEvent = generateWebhookEvent(autosubmitLabel: 'no_autosubmit');
+      req = Request('GET', Uri.parse('http://localhost/'), body: webHookEvent);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -216,12 +190,13 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config);
 
-      final Response response = await checkPullRequest.get(reqWaithoutLabel);
+      final Response response = await checkPullRequest.get(req);
       final String resBody = await response.readAsString();
       expect(resBody, '{}');
     });
 
     test('Does not fail with null checks', () async {
+      req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -238,6 +213,7 @@ void main() {
     });
 
     test('Empty validations do not merge', () async {
+      req = Request('GET', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.repositoryStatusesData = emptyStatusesMock;

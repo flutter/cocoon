@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-final String webhookEventMock = '''{
+String generateWebhookEvent(
+    {String? labelName, String? autosubmitLabel, String? repoName, String? login, String? authorAssociation}) {
+  return '''{
       "action": "open",
       "number": 1598,
       "pull_request": {
@@ -11,18 +13,18 @@ final String webhookEventMock = '''{
           "state": "open",
           "title": "Amazing new feature",
           "user": {
-            "login": "octocat",
+            "login": "${login ?? "octocat"}",
             "id": 1
           },
           "body": "Please pull these awesome changes in!",
           "labels": [
             {
               "id": 487496476,
-              "name": "cla: yes"
+              "name": "${labelName ?? "cla: yes"}"
             },
             {
               "id": 284437560,
-              "name": "autosubmit"
+              "name": "${autosubmitLabel ?? "autosubmit"}"
             }
           ],
           "created_at": "2011-01-26T19:01:12Z",
@@ -32,7 +34,13 @@ final String webhookEventMock = '''{
             "repo": {
               "id": 1296269,
               "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
+              "full_name": "octocat/Hello-World",
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              }
             }
           },
           "base": {
@@ -40,250 +48,22 @@ final String webhookEventMock = '''{
             "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
             "repo": {
               "id": 1296269,
-              "name": "flutter",
-              "full_name": "flutter/flutter"
-            }
+              "name": "${repoName ?? "flutter"}",
+              "full_name": "${login ?? "flutter"}/${repoName ?? "flutter"}",
+              "owner": {
+                "login": "${login ?? "flutter"}",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              }
+            } 
           },
-          "author_association": "OWNER",
+          "author_association": "${authorAssociation ?? "OWNER"}",
           "mergeable": true,
           "mergeable_state": "clean"
       }
     }''';
-
-final String webhookNoStatusRepoMock = '''{
-      "action": "open",
-      "number": 1599,
-      "pull_request": {
-          "id": 1,
-          "number": 1347,
-          "state": "open",
-          "title": "Amazing new feature",
-          "user": {
-            "login": "octodog",
-            "id": 2
-          },
-          "body": "Please pull these awesome changes in!",
-          "labels": [
-            {
-              "id": 487496476,
-              "name": "cla: yes"
-            },
-            {
-              "id": 284437560,
-              "name": "autosubmit"
-            }
-          ],
-          "created_at": "2011-01-26T19:01:12Z",
-          "head": {
-            "label": "octocat:new-topic",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "base": {
-            "label": "octocat:master",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
-              "name": "octcat",
-              "full_name": "octcat/Hello-wolrd"
-            }
-          },
-          "author_association": "OWNER",
-          "mergeable": true,
-          "mergeable_state": "clean"
-      }
-    }''';
-
-final String webhookAutoRollerMock = '''{
-      "action": "open",
-      "number": 1600,
-      "pull_request": {
-          "id": 1,
-          "number": 1347,
-          "state": "open",
-          "title": "Amazing new feature",
-          "user": {
-            "login": "engine-flutter-autoroll",
-            "id": 1
-          },
-          "labels": [
-            {
-              "id": 487496476,
-              "name": "cla: yes"
-            },
-            {
-              "id": 284437560,
-              "name": "autosubmit"
-            }
-          ],
-          "head": {
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "base": {
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "author_association": "OWNER",
-          "mergeable": true,
-          "mergeable_state": "clean" 
-      }
-    }''';
-
-String webhookOverrideTreeStatusLabelMock = '''{
-      "action": "open",
-      "number": 1598,
-      "pull_request": {
-          "id": 1,
-          "number": 1347,
-          "state": "open",
-          "title": "Amazing new feature",
-          "user": {
-            "login": "octocat",
-            "id": 1
-          },
-          "body": "Please pull these awesome changes in!",
-          "labels": [
-            {
-              "id": 487496476,
-              "name": "warning: land on red to fix tree breakage"
-            },
-            {
-              "id": 284437560,
-              "name": "autosubmit"
-            }
-          ],
-          "created_at": "2011-01-26T19:01:12Z",
-          "head": {
-            "label": "octocat:new-topic",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "base": {
-            "label": "octocat:master",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "flutter",
-              "full_name": "flutter/flutter"
-            }
-          },
-          "author_association": "OWNER",
-          "mergeable": true,
-          "mergeable_state": "clean"
-      }
-    }''';
-
-final String webhookNoneAuthorMock = '''{
-      "action": "open",
-      "number": 1598,
-      "pull_request": {
-          "id": 1,
-          "number": 1347,
-          "state": "open",
-          "title": "Amazing new feature",
-          "user": {
-            "login": "octocat",
-            "id": 1
-          },
-          "body": "Please pull these awesome changes in!",
-          "labels": [
-            {
-              "id": 487496476,
-              "name": "cla: yes"
-            },
-            {
-              "id": 284437560,
-              "name": "autosubmit"
-            }
-          ],
-          "created_at": "2011-01-26T19:01:12Z",
-          "head": {
-            "label": "octocat:new-topic",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "base": {
-            "label": "octocat:master",
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "flutter",
-              "full_name": "flutter/flutter"
-            }
-          },
-          "author_association": "NONE",
-          "mergeable": true,
-          "mergeable_state": "clean"
-      }
-    }''';
-
-final String webhookNoLabelMock = '''{
-      "action": "open",
-      "number": 1598,
-      "pull_request": {
-          "id": 1,
-          "number": 1347,
-          "state": "open",
-          "title": "Amazing new feature",
-          "user": {
-            "login": "octocat",
-            "id": 1
-          },
-          "body": "Please pull these awesome changes in!",
-          "labels": [
-            {
-              "id": 487496476,
-              "name": "cla: yes"
-            },
-            {
-              "id": 284437560,
-              "name": "not autosubmit"
-            }
-          ],
-          "created_at": "2011-01-26T19:01:12Z",
-          "head": {
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "Hello-World",
-              "full_name": "octocat/Hello-World"
-            }
-          },
-          "base": {
-            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "repo": {
-              "id": 1296269,
-              "name": "flutter",
-              "full_name": "flutter/flutter"
-            }
-          },
-          "author_association": "OWNER",
-          "mergeable": true,
-          "mergeable_state": "clean"
-      }
-    }''';
+}
 
 final String reviewsMock = '''[
   {

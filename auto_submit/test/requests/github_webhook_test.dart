@@ -19,11 +19,7 @@ void main() {
     late FakeConfig config = FakeConfig();
 
     setUp(() {
-      req = Request('POST', Uri.parse('http://localhost/'),
-          headers: {
-            'header1': 'header value1',
-          },
-          body: webhookEventMock);
+      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubWebhook = GithubWebhook(config: config);
     });
 
