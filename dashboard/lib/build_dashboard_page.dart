@@ -109,43 +109,47 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         child: Material(
           color: Colors.transparent,
           child: FocusTraversalGroup(
-            child: ListView(
-              children: <Widget>[
-                if (_smallScreen) ..._slugSelection(context, _buildState),
-                TextButton(
-                  child: const Text('Vacuum GitHub Commits'),
-                  onPressed: _buildState.refreshGitHubCommits,
-                ),
-                Row(
-                  children: [
-                    Expanded(child: Center(child: FilterPropertySheet(_filter))),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    TextButton(
-                      child: const Text('Defaults'),
-                      onPressed: _filter!.isDefault ? null : () => _filter!.reset(),
-                    ),
-                    TextButton(
-                      child: const Text('Apply'),
-                      onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
-                    ),
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () {
-                        if (_filter != _settingsBasis) {
-                          _filter!.reset();
-                          _filter!.applyMap(_settingsBasis!.toMap(includeDefaults: false));
-                        }
-                        _removeSettingsDialog();
-                      },
-                    ),
-                  ],
-                ),
-              ],
+            child: FractionallySizedBox(
+              widthFactor: 0.5,
+              heightFactor: 0.7,
+              child: ListView(
+                children: <Widget>[
+                  if (_smallScreen) ..._slugSelection(context, _buildState),
+                  TextButton(
+                    child: const Text('Vacuum GitHub Commits'),
+                    onPressed: _buildState.refreshGitHubCommits,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child: Center(child: FilterPropertySheet(_filter))),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      TextButton(
+                        child: const Text('Defaults'),
+                        onPressed: _filter!.isDefault ? null : () => _filter!.reset(),
+                      ),
+                      TextButton(
+                        child: const Text('Apply'),
+                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
+                      ),
+                      TextButton(
+                        child: const Text('Cancel'),
+                        onPressed: () {
+                          if (_filter != _settingsBasis) {
+                            _filter!.reset();
+                            _filter!.applyMap(_settingsBasis!.toMap(includeDefaults: false));
+                          }
+                          _removeSettingsDialog();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
