@@ -3,9 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Deploy a new flutter dashboard version to google cloud.
+# Deploy auto_submit
 
-pushd app_dart > /dev/null
+pushd auto_submit > /dev/null
 set -e
 # app_dart
 gcloud app deploy --project "$1" --version "version-$2" -q "$3" --no-stop-previous-version
