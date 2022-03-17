@@ -4,8 +4,10 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
+import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:retry/retry.dart';
@@ -38,14 +40,14 @@ import 'luci_build_service.dart';
 ///   2. Ensuring commits are validated (via scheduling tasks against commits)
 ///   3. Retry mechanisms for tasks
 class Scheduler {
-  Scheduler({
-    required this.cache,
-    required this.config,
-    required this.githubChecksService,
-    required this.luciBuildService,
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    this.httpClientProvider = Providers.freshHttpClient,
-  });
+  Scheduler(
+      {required this.cache,
+      required this.config,
+      required this.githubChecksService,
+      required this.luciBuildService,
+      this.datastoreProvider = DatastoreService.defaultProvider,
+      this.httpClientProvider = Providers.freshHttpClient,
+      this.buildStatusProvider = BuildStatusService.defaultProvider});
 
   final CacheService cache;
   final Config config;
@@ -55,6 +57,7 @@ class Scheduler {
 
   late DatastoreService datastore;
   LuciBuildService luciBuildService;
+  final BuildStatusServiceProvider buildStatusProvider;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -123,7 +126,7 @@ class Scheduler {
 
     late CiYaml ciYaml;
     if (commit.branch == Config.defaultBranch(commit.slug)) {
-      Commit totCommit = generateTotCommit(0, repo: commit.repository!, branch: Config.defaultBranch(commit.slug));
+      final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
       ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
     } else {
@@ -213,19 +216,13 @@ class Scheduler {
     log.fine('Retrieved .ci.yaml for $ciPath');
     // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
     if (totCiYaml != null) {
-      return CiYaml.fromYaml(
-          CiYaml(
-            config: schedulerConfig,
-            slug: commit.slug,
-            branch: commit.branch!,
-          ),
-          totConfig: totCiYaml);
+      return CiYaml(config: schedulerConfig, slug: commit.slug, branch: commit.branch!, totConfig: totCiYaml);
     }
-    return CiYaml.fromYaml(CiYaml(
+    return CiYaml(
       config: schedulerConfig,
       slug: commit.slug,
       branch: commit.branch!,
-    ));
+    );
   }
 
   /// Get all [LuciBuilder] run for [ciYaml].
@@ -397,7 +394,7 @@ class Scheduler {
     );
     late CiYaml ciYaml;
     if (commit.branch == Config.defaultBranch(commit.slug)) {
-      Commit totCommit = generateTotCommit(0, repo: commit.repository!, branch: Config.defaultBranch(commit.slug));
+      final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
       ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
     } else {
@@ -489,5 +486,20 @@ class Scheduler {
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
+  }
+
+  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
+    datastore = datastoreProvider(config.db);
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    final Commit totCommit = (await buildStatusService
+        .retrieveCommitStatus(
+          limit: 1,
+          branch: branch,
+          slug: slug,
+        )
+        .map<Commit>((CommitStatus status) => status.commit)
+        .toList())[0];
+
+    return totCommit;
   }
 }

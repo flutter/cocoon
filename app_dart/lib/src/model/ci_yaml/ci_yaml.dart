@@ -12,12 +12,6 @@ import 'target.dart';
 ///
 /// See //CI_YAML.md for high level documentation.
 class CiYaml {
-  CiYaml({
-    required this.config,
-    required this.slug,
-    required this.branch,
-  });
-
   /// The underlying protobuf that contains the raw data from .ci.yaml.
   pb.SchedulerConfig config;
 
@@ -30,15 +24,8 @@ class CiYaml {
   /// Creates [CiYaml] from a [YamlMap].
   ///
   /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
-  CiYaml.fromYaml(CiYaml currentConfig, {CiYaml? totConfig})
-      : slug = currentConfig.slug,
-        branch = currentConfig.branch,
-        config = currentConfig.config {
-    if (totConfig != null) {
-      _validate(config, totSchedulerConfig: totConfig.config);
-    } else {
-      _validate(config);
-    }
+  CiYaml({required this.slug, required this.branch, required this.config, CiYaml? totConfig}) {
+    _validate(config, totSchedulerConfig: totConfig?.config);
   }
 
   /// Gets all [Target] that run on presubmit for this config.

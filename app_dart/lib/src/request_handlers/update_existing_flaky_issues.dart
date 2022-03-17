@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
-import '../model/ci_yaml/ci_yaml.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -38,8 +38,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    CiYaml currentConfig = generateCiYamlFromYamlMap(ci);
-    final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(currentConfig).config;
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
+    unCheckedSchedulerConfig.mergeFromProto3Json(ci);
+    final pb.SchedulerConfig schedulerConfig =
+        CiYaml(slug: slug, branch: Config.defaultBranch(slug), config: unCheckedSchedulerConfig).config;
 
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');

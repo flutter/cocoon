@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
+import '../utilities/entity_generators.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -41,14 +42,26 @@ class FakeScheduler extends Scheduler {
   @override
   Future<CiYaml> getCiYaml(Commit commit, {CiYaml? totCiYaml, RetryOptions? retryOptions}) async =>
       ciYaml ?? _defaultConfig;
+
+  @override
+  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
+    return generateCommit(1);
+  }
 }
 
+// FOR REVIEW:
+// Since CiYaml constructor automatically triggers check, we ahve to provide at least one target
 final CiYaml emptyConfig = CiYaml(
   branch: 'master',
   slug: RepositorySlug('flutter', 'flutter'),
   config: pb.SchedulerConfig(
     enabledBranches: <String>['master'],
-    targets: <pb.Target>[],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux A',
+        scheduler: pb.SchedulerSystem.luci,
+      ),
+    ],
   ),
 );
 

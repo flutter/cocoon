@@ -6,10 +6,12 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -28,6 +30,7 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -58,6 +61,7 @@ void main() {
   late CacheService cache;
   late FakeConfig config;
   late FakeDatastoreDB db;
+  late FakeBuildStatusService buildStatusService;
   late MockClient httpClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
@@ -84,6 +88,8 @@ void main() {
 
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
+      buildStatusService =
+          FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
       config = FakeConfig(
         tabledataResource: tabledataResource,
         dbValue: db,
@@ -107,6 +113,7 @@ void main() {
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+        buildStatusProvider: (_) => buildStatusService,
         githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
         luciBuildService: FakeLuciBuildService(
@@ -219,9 +226,12 @@ void main() {
         when(luciBuildService.schedulePostsubmitBuilds(
                 commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
             .thenAnswer((_) => Future<void>.value());
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
           cache: cache,
           config: config,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
@@ -447,6 +457,8 @@ targets:
         final MockGithubService mockGithubService = MockGithubService();
         when(mockGithubService.listFiles(pullRequest))
             .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
@@ -455,6 +467,7 @@ targets:
             githubService: mockGithubService,
             githubClient: MockGitHub(),
           ),
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
@@ -572,11 +585,14 @@ targets:
 
       test('retries only triggers failed builds only', () async {
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
           cache: cache,
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          buildStatusProvider: (_) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config,

@@ -8,8 +8,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -206,8 +204,11 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final CiYaml currentConfig = generateCiYamlFromYamlMap(ciYaml);
-  final pb.SchedulerConfig schedulerConfig = CiYaml.fromYaml(currentConfig).config;
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
+  unCheckedSchedulerConfig.mergeFromProto3Json(ciYaml);
+  final pb.SchedulerConfig schedulerConfig = CiYaml(
+          slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug), config: unCheckedSchedulerConfig)
+      .config;
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
     final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;
@@ -226,28 +227,3 @@ class Pair<S, T> {
   final S first;
   final T second;
 }
-
-CiYaml generateCiYamlFromYamlMap(YamlMap? yamlConfig) {
-  pb.SchedulerConfig currentSchedulerConfig = pb.SchedulerConfig();
-  currentSchedulerConfig.mergeFromProto3Json(yamlConfig);
-  return CiYaml(
-      config: currentSchedulerConfig, slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug));
-}
-
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
-
-Commit generateTotCommit(
-  int i, {
-  String? sha,
-  String branch = 'master',
-  String repo = 'flutter',
-}) =>
-    Commit(
-      sha: null,
-      repository: 'flutter/$repo',
-      branch: branch,
-      key: generateKey<String>(
-        Commit,
-        'flutter/$repo/$branch/' + (sha ?? '$i'),
-      ),
-    );

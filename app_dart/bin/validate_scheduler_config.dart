@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/src/foundation/utils.dart' hide githubFileContent;
+import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:yaml/yaml.dart';
 
 void main(List<String> args) async {
@@ -16,11 +17,14 @@ void main(List<String> args) async {
   final String configPath = args.first;
   final File configFile = File(configPath);
   if (!configFile.existsSync()) {
-    print('please provide a valid file path as configPath');
+    print('validate_scheduler_config.dart configPath');
     exit(1);
   }
 
   final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  CiYaml currentConfig = generateCiYamlFromYamlMap(configYaml);
-  print(CiYaml.fromYaml(currentConfig));
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
+  unCheckedSchedulerConfig.mergeFromProto3Json(configYaml);
+  print(CiYaml(
+          slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug), config: unCheckedSchedulerConfig)
+      .config);
 }
