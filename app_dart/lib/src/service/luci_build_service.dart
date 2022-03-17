@@ -24,7 +24,6 @@ import '../service/logging.dart';
 import 'buildbucket.dart';
 import 'config.dart';
 import 'gerrit_service.dart';
-import 'luci.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
 
@@ -49,6 +48,9 @@ class LuciBuildService {
   final PubSub pubsub;
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
+
+  static const int kDefaultPriority = 30;
+  static const int kRerunPriority = 29;
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
@@ -75,14 +77,11 @@ class LuciBuildService {
   /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName] and [repo].
   Future<Iterable<Build>> getProdBuilds(
-    github.RepositorySlug? slug,
+    github.RepositorySlug slug,
     String commitSha,
     String? builderName,
-    String repo,
   ) async {
-    final Map<String, List<String>> tags = <String, List<String>>{
-      'buildset': <String>['commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha'],
-    };
+    final Map<String, List<String>> tags = <String, List<String>>{};
     return getBuilds(slug, commitSha, builderName, 'prod', tags);
   }
 
@@ -430,47 +429,6 @@ class LuciBuildService {
     return true;
   }
 
-  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkSuiteEvent],
-  ///
-  /// Returns true if it is able to schedule a build. Otherwise, false.
-  Future<bool> rescheduleTryBuildUsingCheckSuiteEvent(
-      github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, github.CheckRun checkRun) async {
-    final github.RepositorySlug slug = checkSuiteEvent.repository!.slug();
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      config,
-      pullRequest.base!.repo!.slug(),
-      pullRequest.head!.sha!,
-      checkRun.name!,
-    );
-    final Map<String, dynamic> userData = <String, dynamic>{};
-    userData['check_suite_id'] = checkSuiteEvent.checkSuite!.id;
-    userData['check_run_id'] = githubCheckRun.id;
-    userData['repo_owner'] = slug.owner;
-    userData['repo_name'] = slug.name;
-    userData['user_agent'] = 'flutter-cocoon';
-    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: checkRun.name,
-      ),
-      tags: <String, List<String>>{
-        'buildset': <String>['pr/git/${pullRequest.number}', 'sha/git/${pullRequest.head!.sha}'],
-        'user_agent': const <String>['flutter-cocoon'],
-        'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
-      },
-      properties: <String, String>{
-        'git_url': 'https://github.com/${slug.fullName}',
-        'git_ref': 'refs/pull/${pullRequest.number}/head',
-      },
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: json.encode(userData),
-      ),
-    ));
-    return true;
-  }
-
   /// Gets [Build] using its [id] and passing the additional
   /// fields to be populated in the response.
   Future<Build> getTryBuildById(String? id, {String? fields}) async {
@@ -500,17 +458,24 @@ class LuciBuildService {
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
+  ///
+  /// By default, build [priority] is increased for release branches.
   ScheduleBuildRequest _createPostsubmitScheduleBuild({
     required Commit commit,
     required Target target,
     required Task task,
+    Map<String, Object>? properties,
+    Map<String, List<String>>? tags,
+    int priority = kDefaultPriority,
   }) {
-    final Map<String, List<String>> tags = <String, List<String>>{
+    tags ??= <String, List<String>>{};
+    tags.addAll(<String, List<String>>{
       'buildset': <String>[
         'commit/git/${commit.sha}',
         'commit/gitiles/flutter.googlesource.com/mirrors/${commit.slug.name}/+/${commit.sha}',
       ],
-    };
+    });
+
     final Map<String, String> rawUserData = <String, String>{
       'commit_key': task.parentKey!.id.toString(),
       'task_key': task.key.id.toString(),
@@ -518,9 +483,10 @@ class LuciBuildService {
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
-    final Map<String, dynamic> properties = target.getProperties();
-    properties['git_branch'] = commit.branch;
-    properties['exe_cipd_version'] = 'refs/heads/${commit.branch}';
+    final Map<String, Object> processedProperties = target.getProperties();
+    processedProperties.addAll(properties ?? <String, Object>{});
+    processedProperties['git_branch'] = commit.branch!;
+    processedProperties['exe_cipd_version'] = 'refs/heads/${commit.branch}';
     return ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
@@ -538,89 +504,68 @@ class LuciBuildService {
         userData: base64Encode(json.encode(rawUserData).codeUnits),
       ),
       tags: tags,
-      properties: properties,
+      properties: processedProperties,
     );
   }
 
-  /// Reschedules a post-submit build using [commitSha], [builderName], [branch],
-  /// [repo], [properties], [tags] and [bucket]. Default value for [branch] is "master", default value for
-  /// [repo] is "flutter", default for [properties] is an empty map and default for [tags] is null. [bucket]
-  /// is either `prod` or `staging`.
-  Future<Build> reschedulePostsubmitBuild({
-    required String commitSha,
-    required String? builderName,
-    String branch = 'master',
-    String repo = 'flutter',
-    Map<String, dynamic> properties = const <String, dynamic>{},
-    Map<String, List<String?>>? tags,
-    String? bucket,
-  }) async {
-    final Map<String, dynamic> localProperties = Map<String, dynamic>.from(properties);
-    tags ??= <String, List<String>>{};
-    tags['buildset'] = <String>[
-      'commit/git/$commitSha',
-      'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
-    ];
-    tags['user_agent'] = <String>['luci-scheduler'];
-    // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
-    tags['scheduler_job_id'] = <String>['flutter/$builderName'];
-    localProperties['git_ref'] = commitSha;
-    return buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: bucket,
-        builder: builderName,
-      ),
-      gitilesCommit: GitilesCommit(
-        project: 'external/github.com/flutter/$repo',
-        host: 'chromium.googlesource.com',
-        ref: 'refs/heads/$branch',
-        hash: commitSha,
-      ),
-      tags: tags,
-      properties: localProperties,
-      // Run manual retries with higher priority to ensure tasks that can
-      // potentially open the tree are not wating for ~30 mins in the queue.
-      priority: 29,
-    ));
-  }
-
   /// Check to auto-rerun TOT test failures.
+  ///
+  /// A builder will be retried if:
+  ///   1. It has been tried below the max retry limit
+  ///   2. It is for the tip of tree
+  ///   3. The last known status is not green
+  ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   Future<bool> checkRerunBuilder({
     required Commit commit,
-    required LuciTask luciTask,
-    required int retries,
-    String repo = 'flutter',
-    DatastoreService? datastore,
-    bool? isFlaky,
+    required Target target,
+    required Task task,
+    required DatastoreService datastore,
+    Map<String, List<String>>? tags,
+    bool ignoreChecks = false,
   }) async {
-    if (await _shouldRerunBuilder(luciTask, retries, commit, datastore)) {
-      log.info('Rerun builder: ${luciTask.builderName} for commit ${commit.sha}');
-      final Map<String, List<String>> tags = <String, List<String>>{
-        'triggered_by': <String>['cocoon'],
-        'trigger_type': <String>['retry'],
-      };
-      await reschedulePostsubmitBuild(
-        commitSha: commit.sha!,
-        builderName: luciTask.builderName,
-        repo: repo,
-        tags: tags,
-        properties: repo == 'engine' ? Config.engineDefaultProperties : const <String, dynamic>{},
-        bucket: isFlaky ?? false ? 'staging' : 'prod',
-      );
-      return true;
+    if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
+      return false;
     }
-    return false;
+    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
+    tags ??= <String, List<String>>{};
+    tags['trigger_type'] = <String>['retry'];
+
+    final BatchRequest request = BatchRequest(
+      requests: <Request>[
+        Request(
+          scheduleBuild: _createPostsubmitScheduleBuild(
+            commit: commit,
+            target: target,
+            task: task,
+            priority: kRerunPriority,
+            properties: commit.slug == Config.engineSlug ? Config.engineDefaultProperties : null,
+            tags: tags,
+          ),
+        ),
+      ],
+    );
+    await pubsub.publish('scheduler-requests', request);
+
+    task.attempts = (task.attempts ?? 0) + 1;
+    task.status = Task.statusNew;
+    await datastore.insert(<Task>[task]);
+
+    return true;
   }
 
   /// Check if a builder should be rerun.
   ///
-  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build
-  /// is on TOT.
-  Future<bool> _shouldRerunBuilder(LuciTask luciTask, int retries, Commit commit, DatastoreService? datastore) async {
-    if (!taskFailStatusSet.contains(luciTask.status) || retries >= config.maxLuciTaskRetries) {
+  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
+  Future<bool> _shouldRerunBuilder(Task task, Commit commit, DatastoreService? datastore) async {
+    if (!taskFailStatusSet.contains(task.status)) {
       return false;
     }
+    final int retries = task.attempts ?? 1;
+    if (retries > config.maxLuciTaskRetries) {
+      log.warning('Max retries reached');
+      return false;
+    }
+
     final Commit latestCommit = await datastore!
         .queryRecentCommits(
           limit: 1,

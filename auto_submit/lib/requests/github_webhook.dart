@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
-import '../server/request_handler.dart';
+import '../service/config.dart';
 import '../service/log.dart';
+import '../server/request_handler.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -34,11 +34,14 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == 'autosubmit');
+    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
+    print('pullRequest: ${pullRequest.id}');
 
     if (hasAutosubmit) {
-      // TODO(kristinbi): Check if PR can be submitted. https://github.com/flutter/flutter/issues/98707
+      log.info(body);
+      // TODO(kristinbi): Publish the pr with 'autosbumit' label to pubsub.
+
     }
 
     return Response.ok(rawBody);

@@ -31,11 +31,11 @@ abstract class FilterPropertyNode {
 ///
 /// @see [RegExpFilterProperty], [BoolFilterProperty]
 abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterPropertyNode {
-  ValueFilterProperty({this.fieldName, this.label});
+  ValueFilterProperty({required this.fieldName, this.label});
 
   /// The name of the field represented by this property, used to import and export
   /// the property values via maps.
-  final String? fieldName;
+  final String fieldName;
 
   @override
   final String? label;
@@ -76,7 +76,7 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
 
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
-  RegExpFilterProperty({String? fieldName, String? label, String? value})
+  RegExpFilterProperty({required String fieldName, String? label, String? value})
       : _value = value,
         super(fieldName: fieldName, label: label);
 
@@ -134,7 +134,7 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
 
 /// A class used to represent a boolean property in the filter object.
 class BoolFilterProperty extends ValueFilterProperty<bool?> {
-  BoolFilterProperty({String? fieldName, String? label, bool value = true})
+  BoolFilterProperty({required String fieldName, String? label, bool value = true})
       : _value = value,
         super(fieldName: fieldName, label: label);
 

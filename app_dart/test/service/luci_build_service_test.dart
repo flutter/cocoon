@@ -15,7 +15,6 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/logging.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:logging/logging.dart';
@@ -34,7 +33,7 @@ void main() {
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
-  RepositorySlug? slug;
+  late RepositorySlug slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   final MockGerritService mockGerritService = MockGerritService();
   late FakePubSub pubsub;
@@ -96,7 +95,6 @@ void main() {
         slug,
         'commit123',
         'abcd',
-        'flutter',
       );
       expect(builds, isEmpty);
     });
@@ -512,35 +510,11 @@ void main() {
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });
-  group('reschedulePostsubmitBuild', () {
-    setUp(() {
-      config = FakeConfig();
-      mockBuildBucketClient = MockBuildBucketClient();
-      pubsub = FakePubSub();
-      service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
-        pubsub: pubsub,
-      );
-    });
-    test('Reschedule an existing build', () async {
-      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      await service.reschedulePostsubmitBuild(
-        commitSha: 'abc',
-        builderName: 'mybuild',
-        branch: 'master',
-        repo: 'flutter',
-      );
-      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
-    });
-  });
 
   group('checkRerunBuilder', () {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
-    String repo;
-    String branch;
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
@@ -554,150 +528,138 @@ void main() {
     });
 
     test('Pass repo and properties correctly', () async {
-      repo = 'engine';
-      branch = 'main';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+      totCommit = generateCommit(1, repo: 'engine', branch: 'main');
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'def',
-          ref: 'refs/heads/$branch',
-          status: Task.statusFailed,
-          buildNumber: 1,
-          builderName: 'Mac abc',
-          summaryMarkdown: 'summary');
-      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
+      final Task task = generateTask(
+        1,
+        status: Task.statusFailed,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
+      expect(task.attempts, 1);
+      expect(task.status, Task.statusFailed);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
+      expect(pubsub.messages.length, 1);
       final ScheduleBuildRequest scheduleBuildRequest =
-          verify(mockBuildBucketClient.scheduleBuild(captureAny)).captured.single as ScheduleBuildRequest;
+          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
       final Map<String, dynamic> properties = scheduleBuildRequest.properties!;
       for (String key in Config.engineDefaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
-      expect(scheduleBuildRequest.gitilesCommit?.project, 'external/github.com/flutter/$repo');
-      expect(rerunFlag, true);
+      expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
+      expect(rerunFlag, isTrue);
+      expect(task.attempts, 2);
+      expect(task.status, Task.statusNew);
     });
 
-    test('Rerun a test failed flutter builder', () async {
-      repo = 'flutter';
-      branch = 'master';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+    test('Rerun a test failed builder', () async {
+      totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'def',
-          ref: 'refs/heads/$branch',
-          status: Task.statusFailed,
-          buildNumber: 1,
-          builderName: 'Mac abc',
-          summaryMarkdown: 'summary');
-      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
+      final Task task = generateTask(
+        1,
+        status: Task.statusFailed,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
-      expect(rerunFlag, true);
+      expect(rerunFlag, isTrue);
     });
 
-    test('Rerun an infra failed flutter builder', () async {
-      repo = 'flutter';
-      branch = 'master';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+    test('Rerun an infra failed builder', () async {
+      totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'def',
-          ref: 'refs/heads/$branch',
-          status: Task.statusInfraFailure,
-          buildNumber: 1,
-          builderName: 'Mac abc',
-          summaryMarkdown: 'summary');
-      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1, name: 'Mac abc'));
+      final Task task = generateTask(
+        1,
+        status: Task.statusInfraFailure,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
-      expect(rerunFlag, true);
+      expect(rerunFlag, isTrue);
     });
 
-    test('Do not rerun a successful flutter builder', () async {
-      repo = 'flutter';
-      branch = 'master';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+    test('Do not rerun a successful builder', () async {
+      totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'def',
-          ref: 'refs/heads/$branch',
-          status: Task.statusSucceeded,
-          buildNumber: 1,
-          builderName: 'Mac abc');
+      final Task task = generateTask(
+        1,
+        status: Task.statusSucceeded,
+        parent: totCommit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
-      expect(rerunFlag, false);
+      expect(rerunFlag, isFalse);
     });
 
-    test('Do not rerun a flutter builder exceeding retry limit', () async {
-      repo = 'flutter';
-      branch = 'master';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
+    test('Do not rerun a builder exceeding retry limit', () async {
+      totCommit = generateCommit(1);
       config.db.values[totCommit.key] = totCommit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'def',
-          ref: 'refs/heads/$branch',
-          status: Task.statusInfraFailure,
-          buildNumber: 1,
-          builderName: 'Mac abc');
+      final Task task = generateTask(
+        1,
+        status: Task.statusInfraFailure,
+        parent: totCommit,
+        buildNumber: 1,
+        attempts: 2,
+      );
+      final Target target = generateTarget(1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
-        luciTask: luciTask,
-        retries: 1,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
-      expect(rerunFlag, false);
+      expect(rerunFlag, isFalse);
     });
 
-    test('Do not rerun a flutter builder when not blocking the tree', () async {
-      repo = 'flutter';
-      branch = 'master';
-      totCommit = generateCommit(1, sha: 'def', repo: repo, branch: branch);
-      commit = generateCommit(1, sha: 'abc', repo: repo, branch: branch);
+    test('Do not rerun a builder when not tip of tree', () async {
+      totCommit = generateCommit(2, sha: 'def');
+      commit = generateCommit(1, sha: 'abc');
       config.db.values[totCommit.key] = totCommit;
       config.db.values[commit.key] = commit;
       config.maxLuciTaskRetriesValue = 1;
-      final LuciTask luciTask = LuciTask(
-          commitSha: 'abc',
-          ref: 'refs/heads/$branch',
-          status: Task.statusInfraFailure,
-          buildNumber: 1,
-          builderName: 'Mac abc');
+      final Task task = generateTask(
+        1,
+        status: Task.statusInfraFailure,
+        parent: commit,
+        buildNumber: 1,
+      );
+      final Target target = generateTarget(1);
       final bool rerunFlag = await service.checkRerunBuilder(
         commit: commit,
-        luciTask: luciTask,
-        retries: 0,
-        repo: repo,
+        task: task,
+        target: target,
         datastore: datastore,
       );
-      expect(rerunFlag, false);
+      expect(rerunFlag, isFalse);
     });
   });
 }

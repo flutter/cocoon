@@ -14,6 +14,8 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_luci_build_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/push_message.dart';
 
@@ -24,12 +26,17 @@ void main() {
   late SubscriptionTester tester;
 
   setUp(() async {
-    config = FakeConfig();
+    config = FakeConfig(maxLuciTaskRetriesValue: 3);
     handler = PostsubmitLuciSubscription(
-      CacheService(inMemory: true),
-      config,
+      cache: CacheService(inMemory: true),
+      config: config,
       authProvider: FakeAuthenticationProvider(),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
+      luciBuildService: FakeLuciBuildService(config),
+      scheduler: FakeScheduler(
+        ciYaml: exampleConfig,
+        config: config,
+      ),
     );
     request = FakeHttpRequest();
 
@@ -91,5 +98,27 @@ void main() {
     );
 
     expect(await tester.post(handler), Body.empty);
+  });
+
+  test('on failed builds auto-rerun the build', () async {
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      parent: commit,
+      status: Task.statusInProgress,
+    );
+    config.db.values[task.key] = task;
+    config.db.values[commit.key] = commit;
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      builderName: 'Linux A',
+      result: 'FAILURE',
+      userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
+    );
+
+    expect(task.status, Task.statusInProgress);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusNew);
   });
 }

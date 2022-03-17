@@ -6,8 +6,10 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:auto_submit/helpers.dart';
+import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/service/config.dart';
+import 'package:auto_submit/service/secrets.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -21,6 +23,7 @@ Future<void> main() async {
     final cache = Cache.inMemoryCacheProvider(kCacheSize);
     final Config config = Config(
       cacheProvider: cache,
+      secretManager: CloudSecretManager(),
     );
 
     final Router router = Router()
@@ -28,7 +31,8 @@ Future<void> main() async {
           '/webhook',
           GithubWebhook(
             config: config,
-          ).post);
+          ).post)
+      ..get('/check-pull-request', CheckPullRequest(config: config).get);
     await serveHandler(router);
   });
 }

@@ -36,6 +36,8 @@ class BuildDashboardPage extends StatefulWidget {
 class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter? _filter;
   TaskGridFilter? _settingsBasis;
+  bool _smallScreen = false;
+  double screenWidthThreshold = 600;
 
   /// Current Flutter repository to view.
   String? repo;
@@ -68,15 +70,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   ///
   /// This enables bookmarking state specific values, like [repo].
   void _updateNavigation(BuildContext context) {
-    final Map<String, String?> queryParameters = <String, String?>{};
+    final Map<String, String> queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
     }
     if (_filter != null) {
-      queryParameters.addAll(_filter!.toMap(includeDefaults: false) as Map<String, String?>);
+      queryParameters.addAll(_filter!.toMap(includeDefaults: false));
     }
-    queryParameters['repo'] = repo;
-    queryParameters['branch'] = branch;
+    queryParameters['repo'] = repo!;
+    queryParameters['branch'] = branch!;
     final Uri uri = Uri(
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
@@ -107,56 +109,18 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         child: Material(
           color: Colors.transparent,
           child: FocusTraversalGroup(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: ListView(
               children: <Widget>[
-                DropdownButton<String>(
-                  value: _buildState.currentRepo,
-                  icon: const Icon(
-                    Icons.arrow_downward,
-                  ),
-                  iconSize: 24,
-                  elevation: 16,
-                  underline: Container(
-                    height: 2,
-                  ),
-                  onChanged: (String? selectedRepo) {
-                    repo = selectedRepo;
-                    _updateNavigation(context);
-                  },
-                  items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: theme.primaryTextTheme.bodyText1),
-                    );
-                  }).toList(),
-                ),
-                DropdownButton<String>(
-                  value: _buildState.currentBranch,
-                  icon: const Icon(
-                    Icons.arrow_downward,
-                  ),
-                  iconSize: 24,
-                  elevation: 16,
-                  underline: Container(
-                    height: 2,
-                  ),
-                  onChanged: (String? selectedBranch) {
-                    branch = selectedBranch;
-                    _updateNavigation(context);
-                  },
-                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: theme.primaryTextTheme.bodyText1),
-                    );
-                  }).toList(),
-                ),
+                if (_smallScreen) ..._slugSelection(context, _buildState),
                 TextButton(
                   child: const Text('Vacuum GitHub Commits'),
                   onPressed: _buildState.refreshGitHubCommits,
                 ),
-                FilterPropertySheet(_filter),
+                Row(
+                  children: [
+                    Expanded(child: Center(child: FilterPropertySheet(_filter))),
+                  ],
+                ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -187,6 +151,83 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
       ),
     );
+  }
+
+  List<Widget> _slugSelection(BuildContext context, BuildState _buildState) {
+    final ThemeData theme = Theme.of(context);
+    return <Widget>[
+      const Padding(
+          padding: EdgeInsets.only(top: 22, left: 5, right: 5),
+          child: Text(
+            'repo: ',
+            textAlign: TextAlign.center,
+          )),
+      DropdownButton<String>(
+        key: const Key('repo dropdown'),
+        isExpanded: _smallScreen,
+        value: _buildState.currentRepo,
+        icon: const Padding(
+          padding: EdgeInsets.only(top: 8),
+          child: Icon(
+            Icons.arrow_downward,
+          ),
+        ),
+        iconSize: 24,
+        elevation: 16,
+        underline: Container(
+          height: 2,
+        ),
+        onChanged: (String? selectedRepo) {
+          repo = selectedRepo;
+          _updateNavigation(context);
+        },
+        items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 11),
+              child: Center(child: Text(value, style: theme.primaryTextTheme.bodyText1, textAlign: TextAlign.center)),
+            ),
+          );
+        }).toList(),
+      ),
+      const Padding(
+          padding: EdgeInsets.only(top: 22, left: 5, right: 5),
+          child: Text(
+            'branch: ',
+            textAlign: TextAlign.center,
+          )),
+      DropdownButton<String>(
+        key: const Key('branch dropdown'),
+        isExpanded: _smallScreen,
+        value: _buildState.currentBranch,
+        icon: const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Icon(
+            Icons.arrow_downward,
+          ),
+        ),
+        iconSize: 24,
+        elevation: 16,
+        underline: Container(
+          height: 2,
+        ),
+        onChanged: (String? selectedBranch) {
+          branch = selectedBranch;
+          _updateNavigation(context);
+        },
+        items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 9.0),
+              child: Center(child: Text(value, style: theme.primaryTextTheme.bodyText1)),
+            ),
+          );
+        }).toList(),
+      ),
+      const Padding(padding: EdgeInsets.symmetric(horizontal: 4)),
+    ];
   }
 
   PopupMenuItem<String> _getTaskKeyEntry({required Widget box, required String description}) {
@@ -268,6 +309,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    MediaQueryData queryData = MediaQuery.of(context);
+    double devicePixelRatio = queryData.devicePixelRatio;
+    _smallScreen = queryData.size.width * devicePixelRatio < screenWidthThreshold;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].
     final Map<bool?, Color?> colorTable = <bool?, Color?>{
@@ -285,6 +329,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           title: Text(_getStatusTitle(_buildState)),
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
+            if (!_smallScreen) ..._slugSelection(context, _buildState),
             PopupMenuButton<String>(
               tooltip: 'Task Status Key',
               child: const Icon(Icons.info_outline),

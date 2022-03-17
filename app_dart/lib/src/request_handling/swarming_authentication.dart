@@ -105,15 +105,16 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
       }
 
       // Update is from Flutter LUCI builds
-      if (token.email == config.luciProdAccount) {
+      if (token.email == Config.luciProdAccount) {
         return AuthenticatedContext(clientContext: clientContext);
       }
 
-      if (token.email == config.frobAccount) {
+      if (token.email == Config.frobAccount) {
         log.fine('Authenticating as FRoB request');
         return AuthenticatedContext(clientContext: clientContext);
       }
 
+      log.fine(verifyTokenResponse.body);
       log.warning('${token.email} is not allowed');
       throw Unauthenticated('${token.email} is not allowed');
     } finally {

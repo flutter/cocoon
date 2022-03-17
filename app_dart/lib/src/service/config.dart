@@ -73,7 +73,7 @@ class Config {
   static const String configCacheName = 'config';
 
   /// Engine default properties when rerunning a prod build.
-  static const Map<String, dynamic> engineDefaultProperties = <String, dynamic>{'force_upload': true};
+  static const Map<String, Object> engineDefaultProperties = <String, Object>{'force_upload': true};
 
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
@@ -247,10 +247,10 @@ class Config {
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
-  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+  static const String luciProdAccount = 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   /// Internal Google service account used to surface FRoB results.
-  String get frobAccount => 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
+  static const String frobAccount = 'flutter-roll-on-borg@flutter-roll-on-borg.google.com.iam.gserviceaccount.com';
 
   /// Service accounts used for PubSub messages.
   static const Set<String> allowedPubsubServiceAccounts = <String>{
