@@ -28,7 +28,7 @@ const String kScreenSaverCheckKey = 'screensaver';
 const String kScreenRotationCheckKey = 'screen_rotation';
 const String kBatteryLevelCheckKey = 'battery_level';
 const String kBatteryTemperatureCheckKey = 'battery_temperature';
-const String kM1DefaultBinaryPath = '/opt/homebrew/bin';
+const String kM1BrewBinPath = '/opt/homebrew/bin';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
@@ -133,12 +133,16 @@ void writeToFile(String results, File file) {
 
 /// Return Mac binary path.
 ///
-/// For M1 bots, binaries like `ideviceinstaller` are installed under `kM1DefaultBinaryPath`,
+/// For M1 bots, binaries like `ideviceinstaller` are installed under `kM1BrewBinPath`,
 /// where they are not visible in `$PATH` by default.
 Future<String> getMacBinaryPath(String name, {ProcessManager processManager}) async {
   String path = await eval('which', <String>[name], canFail: true, processManager: processManager);
   if (path == null || path.isEmpty) {
-    path = '$kM1DefaultBinaryPath/$name';
+    path = await eval('which', <String>['$kM1BrewBinPath/$name'], canFail: true, processManager: processManager);
+  }
+  // Throws exception when the binary doesn't exist in either location.
+  if (path == null || path.isEmpty) {
+    fail('$name not found.');
   }
   return path;
 }

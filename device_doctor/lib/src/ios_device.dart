@@ -223,9 +223,9 @@ class IosDevice implements Device {
   Future<bool> uninstall_applications({ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
     String result;
-    final String ideviceinstaller = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+    final String fullPathIdeviceInstaller = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
     try {
-      result = await eval(ideviceinstaller, <String>['-l'], processManager: processManager);
+      result = await eval(fullPathIdeviceInstaller, <String>['-l'], processManager: processManager);
     } on BuildFailedError catch (error) {
       logger.severe('list applications fails: $error');
       stderr.write('list applications fails: $error');
@@ -240,7 +240,7 @@ class IosDevice implements Device {
     final List<String> bundleIdentifiers = results.sublist(1).map((e) => e.split(',')[0].trim()).toList();
     try {
       for (String bundleIdentifier in bundleIdentifiers) {
-        await eval(ideviceinstaller, <String>['-U', bundleIdentifier], processManager: processManager);
+        await eval(fullPathIdeviceInstaller, <String>['-U', bundleIdentifier], processManager: processManager);
       }
     } on BuildFailedError catch (error) {
       logger.severe('uninstall applications fails: $error');
