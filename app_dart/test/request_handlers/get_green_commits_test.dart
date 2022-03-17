@@ -125,7 +125,7 @@ void main() {
       expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
     });
 
-    test('Also return commits with both flaky and succeeded tasks', () async {
+    test('should return commits with both flaky and succeeded tasks', () async {
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
         CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])

@@ -57,7 +57,6 @@ class GetGreenCommits extends RequestHandler<Body> {
     final List<String?> greenCommits = await buildStatusService
         .retrieveCommitStatus(
           limit: commitNumber,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
           branch: branch,
           slug: slug,
         )
