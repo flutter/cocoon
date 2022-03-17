@@ -314,11 +314,15 @@ void main() {
     IosDevice device;
     MockProcessManager processManager;
     Process process;
+    Process whichProcess;
     String output;
+    String ideviceinstallerPath;
 
     setUp(() {
       processManager = MockProcessManager();
       device = IosDevice(deviceId: 'abc');
+      ideviceinstallerPath = '/abc/def/ideviceinstaller';
+      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(ideviceinstallerPath)]);
     });
     test('device restart - success', () async {
       when(processManager
@@ -345,7 +349,9 @@ void main() {
     });
 
     test('list applications - failure', () async {
-      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
+      when(processManager.start(<dynamic>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       process = FakeProcess(1);
 
@@ -354,7 +360,9 @@ void main() {
     });
 
     test('uninstall applications - no device is available', () async {
-      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
+      when(processManager.start(<dynamic>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       output = '''No device found.
@@ -366,7 +374,9 @@ void main() {
     });
 
     test('uninstall applications - no application exist', () async {
-      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
+      when(processManager.start(<dynamic>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
@@ -379,13 +389,15 @@ void main() {
 
     test('uninstall applications - applications exist with exception', () async {
       Process process_uninstall;
-      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
+      when(processManager.start(<dynamic>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       when(processManager
-              .start(<dynamic>['ideviceinstaller', '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<dynamic>[ideviceinstallerPath, '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process_uninstall));
       when(processManager
-              .start(<dynamic>['ideviceinstaller', '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<dynamic>[ideviceinstallerPath, '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process_uninstall));
 
       output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
@@ -401,13 +413,15 @@ void main() {
 
     test('uninstall applications - applications exist', () async {
       Process process_uninstall;
-      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
+      when(processManager.start(<dynamic>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       when(processManager
-              .start(<dynamic>['ideviceinstaller', '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<dynamic>[ideviceinstallerPath, '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process_uninstall));
       when(processManager
-              .start(<dynamic>['ideviceinstaller', '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<dynamic>[ideviceinstallerPath, '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process_uninstall));
 
       output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
