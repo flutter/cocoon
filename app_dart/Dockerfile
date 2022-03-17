@@ -6,7 +6,23 @@
 
 # The VM service listens on port 8181
 
-FROM dart:stable@sha256:7c9216dd7d7941bdcca30a1e800b821894975a86e12c67c28a1e3b1989241d54
+FROM google/dart-runtime:dev
+
+################################################################################
+# For local development & testing, you need to create a service account
+# and download a key JSON file to your local workstation by going to
+# the Cloud Console at:
+#
+#   IAM & admin > Service accounts > Actions > Create key
+#
+# https://pub.dev/packages/appengine#creation-service-account
+#
+# Once that's done, and you have a `key.json` file located at
+# `/path/to/key.json`, then un-comment the following lines:
+################################################################################
+#ADD key.json /path/to/key.json
+#ENV GCLOUD_KEY /path/to/key.json
+#ENV GCLOUD_PROJECT tvolkert-test
 
 
 ################################################################################
