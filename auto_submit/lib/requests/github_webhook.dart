@@ -43,9 +43,17 @@ class GithubWebhook extends RequestHandler {
     print('pullRequest: ${pullRequest.id}');
 
     if (hasAutosubmit) {
-      log.info('Found pull request with auto submit label');
-      // TODO(kristinbi): Publish the pr with 'autosbumit' label to pubsub.
-      await pubsub.publish('auto-submit-queue', pullRequest);
+      log.info('Found pull request with auto submit label.');
+      PullRequest storedPullRequest = PullRequest(
+          mergeable: pullRequest.mergeable,
+          mergeableState: pullRequest.mergeableState,
+          number: pullRequest.number,
+          user: pullRequest.user,
+          labels: pullRequest.labels,
+          head: pullRequest.head,
+          base: pullRequest.base,
+          authorAssociation: pullRequest.authorAssociation);
+      await pubsub.publish('auto-submit-queue', storedPullRequest);
     }
 
     return Response.ok(rawBody);

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:googleapis/dataproc/v1.dart';
 import 'package:googleapis/pubsub/v1.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
@@ -20,6 +21,7 @@ class PubSub {
 
   final HttpClientProvider httpClientProvider;
 
+  /// Adds one or more messages to the topic.
   Future<void> publish(String topic, dynamic json) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
       PubsubApi.pubsubScope,
@@ -34,5 +36,31 @@ class PubSub {
     final String _topic = 'projects/flutter-dashboard/topics/$topic';
     final PublishResponse response = await pubsubApi.projects.topics.publish(request, _topic);
     log.info('pubsub response messageId=${response.messageIds}');
+  }
+
+  /// Pulls messages from the server.
+  Future<PullResponse> pull(int maxMessages, String subscription) async {
+    final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
+      PubsubApi.pubsubScope,
+    ]);
+    final PubsubApi pubsubApi = PubsubApi(httpClient);
+    PullRequest pullRequest = PullRequest(maxMessages: maxMessages);
+    final PullResponse pullResponse = await pubsubApi.projects.subscriptions
+        .pull(pullRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
+    return pullResponse;
+  }
+
+  /// Acknowledges the messages associated with the `ack_ids` in the `AcknowledgeRequest`.
+  ///
+  /// The Pub/Sub system can remove the relevant messages from the subscription.
+  Future<void> acknowledge(String ackId, String subscription) async {
+    final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
+      PubsubApi.pubsubScope,
+    ]);
+    final PubsubApi pubsubApi = PubsubApi(httpClient);
+    final List<String> ackIds = [ackId];
+    final AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest(ackIds: ackIds);
+    await pubsubApi.projects.subscriptions
+        .acknowledge(acknowledgeRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
   }
 }
