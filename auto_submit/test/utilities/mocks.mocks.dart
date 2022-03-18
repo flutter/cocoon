@@ -4,7 +4,6 @@
 
 import 'dart:async' as _i4;
 
-import 'package:auto_submit/service/github_service.dart' as _i5;
 import 'package:github/src/common.dart' as _i3;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -253,37 +252,6 @@ class MockGitHub extends _i1.Mock implements _i3.GitHub {
       super.noSuchMethod(Invocation.method(#handleStatusCode, [response]), returnValueForMissingStub: null);
   @override
   void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);
-}
-
-/// A class which mocks [GithubService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockGithubService extends _i1.Mock implements _i5.GithubService {
-  MockGithubService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i3.GitHub get github =>
-      (super.noSuchMethod(Invocation.getter(#github), returnValue: _FakeGitHub_15()) as _i3.GitHub);
-  @override
-  _i4.Future<List<_i3.PullRequestReview>> getReviews(_i3.RepositorySlug? slug, int? prNumber) =>
-      (super.noSuchMethod(Invocation.method(#getReviews, [slug, prNumber]),
-              returnValue: Future<List<_i3.PullRequestReview>>.value(<_i3.PullRequestReview>[]))
-          as _i4.Future<List<_i3.PullRequestReview>>);
-  @override
-  _i4.Future<List<_i3.CheckRun>> getCheckRuns(_i3.RepositorySlug? slug, String? ref) =>
-      (super.noSuchMethod(Invocation.method(#getCheckRuns, [slug, ref]),
-          returnValue: Future<List<_i3.CheckRun>>.value(<_i3.CheckRun>[])) as _i4.Future<List<_i3.CheckRun>>);
-  @override
-  _i4.Future<List<_i3.CheckSuite>> getCheckSuites(_i3.RepositorySlug? slug, String? ref) =>
-      (super.noSuchMethod(Invocation.method(#getCheckSuites, [slug, ref]),
-          returnValue: Future<List<_i3.CheckSuite>>.value(<_i3.CheckSuite>[])) as _i4.Future<List<_i3.CheckSuite>>);
-  @override
-  _i4.Future<List<_i3.RepositoryStatus>> getStatuses(_i3.RepositorySlug? slug, String? ref) =>
-      (super.noSuchMethod(Invocation.method(#getStatuses, [slug, ref]),
-              returnValue: Future<List<_i3.RepositoryStatus>>.value(<_i3.RepositoryStatus>[]))
-          as _i4.Future<List<_i3.RepositoryStatus>>);
 }
 
 /// A class which mocks [PullRequestsService].

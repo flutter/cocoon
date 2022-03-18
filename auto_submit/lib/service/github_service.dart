@@ -46,4 +46,15 @@ class GithubService {
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
     return await github.repositories.compareCommits(slug, refBase, refHead);
   }
+
+  /// Removes a lable for a pull request.
+  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+    return await github.issues.removeLabelForIssue(slug, issueNumber, label);
+  }
+
+  /// Create a comment for a pull request.
+  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
+    CreatePullRequestComment comment = CreatePullRequestComment(commentBody, sha, null, null);
+    return await github.pullRequests.createComment(slug, number, comment);
+  }
 }
