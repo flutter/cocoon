@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -63,9 +64,14 @@ Future<void> main(List<String> args) async {
   } else {
     configContent = getLocalConfigContent(args[0]);
   }
+
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  // There's an assumption that we're only generating builder configs from commits that
-  // have already landed with validation. Otherwise, this will fail.
-  final pb.SchedulerConfig schedulerConfig = schedulerConfigFromYaml(configYaml);
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+  final pb.SchedulerConfig schedulerConfig = CiYaml(
+    slug: Config.flutterSlug,
+    branch: Config.defaultBranch(Config.flutterSlug),
+    config: unCheckedSchedulerConfig,
+  ).config;
+
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }

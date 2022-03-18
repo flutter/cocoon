@@ -900,6 +900,9 @@ class MockHttpClient extends _i1.Mock implements _i12.HttpClient {
   set authenticate(_i14.Future<bool> Function(Uri, String, String?)? f) =>
       super.noSuchMethod(Invocation.setter(#authenticate, f), returnValueForMissingStub: null);
   @override
+  set connectionFactory(_i14.Future<_i12.ConnectionTask<_i12.Socket>> Function(Uri, String?, int?)? f) =>
+      super.noSuchMethod(Invocation.setter(#connectionFactory, f), returnValueForMissingStub: null);
+  @override
   set findProxy(String Function(Uri)? f) =>
       super.noSuchMethod(Invocation.setter(#findProxy, f), returnValueForMissingStub: null);
   @override
@@ -908,6 +911,9 @@ class MockHttpClient extends _i1.Mock implements _i12.HttpClient {
   @override
   set badCertificateCallback(bool Function(_i12.X509Certificate, String, int)? callback) =>
       super.noSuchMethod(Invocation.setter(#badCertificateCallback, callback), returnValueForMissingStub: null);
+  @override
+  set keyLog(dynamic Function(String)? callback) =>
+      super.noSuchMethod(Invocation.setter(#keyLog, callback), returnValueForMissingStub: null);
   @override
   _i14.Future<_i12.HttpClientRequest> open(String? method, String? host, int? port, String? path) =>
       (super.noSuchMethod(Invocation.method(#open, [method, host, port, path]),

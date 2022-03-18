@@ -4,8 +4,10 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
+import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:retry/retry.dart';
@@ -30,9 +32,6 @@ import 'github_checks_service.dart';
 import 'github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
-import 'scheduler/graph.dart';
-
-export 'scheduler/graph.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -48,8 +47,10 @@ class Scheduler {
     required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.httpClientProvider = Providers.freshHttpClient,
+    this.buildStatusProvider = BuildStatusService.defaultProvider,
   });
 
+  final BuildStatusServiceProvider buildStatusProvider;
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
@@ -183,9 +184,11 @@ class Scheduler {
   /// Load in memory the `.ci.yaml`.
   Future<CiYaml> getCiYaml(
     Commit commit, {
+    CiYaml? totCiYaml,
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
-    final String ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
+    String ciPath;
+    ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
     final Uint8List ciYamlBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
@@ -198,10 +201,12 @@ class Scheduler {
     ))!;
     final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
     log.fine('Retrieved .ci.yaml for $ciPath');
+    // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
     return CiYaml(
       config: schedulerConfig,
       slug: commit.slug,
       branch: commit.branch!,
+      totConfig: totCiYaml,
     );
   }
 
@@ -231,7 +236,8 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    return schedulerConfigFromYaml(configYaml).writeToBuffer();
+    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+    return schedulerConfig.writeToBuffer();
   }
 
   /// Cancel all incomplete targets against a pull request.
@@ -369,7 +375,15 @@ class Scheduler {
       repository: pullRequest.base!.repo!.fullName,
       sha: pullRequest.head!.sha,
     );
-    final CiYaml ciYaml = await getCiYaml(commit);
+    late CiYaml ciYaml;
+    if (commit.branch == Config.defaultBranch(commit.slug)) {
+      final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
+      final CiYaml totYaml = await getCiYaml(totCommit);
+      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+    } else {
+      ciYaml = await getCiYaml(commit);
+    }
+
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where((Target target) =>
         target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon);
     // Release branches should run every test.
@@ -455,5 +469,26 @@ class Scheduler {
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
+  }
+
+  /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
+  ///
+  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
+  /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
+  /// to ensure new targets without `bringup: true` label are not added into the build.
+  Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
+    datastore = datastoreProvider(config.db);
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
+    final Commit totCommit = (await buildStatusService
+            .retrieveCommitStatus(
+              limit: 1,
+              branch: branch,
+              slug: slug,
+            )
+            .map<Commit>((CommitStatus status) => status.commit)
+            .toList())
+        .single;
+
+    return totCommit;
   }
 }
