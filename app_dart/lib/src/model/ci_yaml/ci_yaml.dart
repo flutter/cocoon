@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
-import 'package:yaml/yaml.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
 import 'target.dart';
@@ -12,6 +11,18 @@ import 'target.dart';
 ///
 /// See //CI_YAML.md for high level documentation.
 class CiYaml {
+  /// Creates [CiYaml] from a [RepositorySlug], [branch], [pb.SchedulerConfig] and an optional [CiYaml] of tip of tree CiYaml.
+  ///
+  /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
+  CiYaml({
+    required this.slug,
+    required this.branch,
+    required this.config,
+    CiYaml? totConfig,
+  }) {
+    _validate(config, totSchedulerConfig: totConfig?.config);
+  }
+
   /// The underlying protobuf that contains the raw data from .ci.yaml.
   pb.SchedulerConfig config;
 
@@ -20,13 +31,6 @@ class CiYaml {
 
   /// The git branch currently being scheduled against.
   final String branch;
-
-  /// Creates [CiYaml] from a [YamlMap].
-  ///
-  /// If [totConfig] is passed, the validation will verify no new targets have been added that may temporarily break the LUCI infrastructure (such as new prod or presubmit targets).
-  CiYaml({required this.slug, required this.branch, required this.config, CiYaml? totConfig}) {
-    _validate(config, totSchedulerConfig: totConfig?.config);
-  }
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {

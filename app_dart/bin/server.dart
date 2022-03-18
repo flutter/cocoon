@@ -218,6 +218,8 @@ Future<void> main() async {
         delegate: GetStatus(config),
       ),
 
+      '/api/public/get-green-commits': GetGreenCommits(config),
+
       /// Get supported branches for the framework repo.
       ///
       /// Get list of supported branches to run infrastructure

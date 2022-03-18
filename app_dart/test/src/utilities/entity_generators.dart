@@ -20,9 +20,11 @@ Commit generateCommit(
   String? sha,
   String branch = 'master',
   String repo = 'flutter',
+  int? timestamp,
 }) =>
     Commit(
       sha: sha ?? '$i',
+      timestamp: timestamp ?? i,
       repository: 'flutter/$repo',
       branch: branch,
       key: generateKey<String>(

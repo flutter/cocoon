@@ -38,10 +38,12 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
-    unCheckedSchedulerConfig.mergeFromProto3Json(ci);
-    final pb.SchedulerConfig schedulerConfig =
-        CiYaml(slug: slug, branch: Config.defaultBranch(slug), config: unCheckedSchedulerConfig).config;
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final pb.SchedulerConfig schedulerConfig = CiYaml(
+      slug: slug,
+      branch: Config.defaultBranch(slug),
+      config: unCheckedSchedulerConfig,
+    ).config;
 
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');

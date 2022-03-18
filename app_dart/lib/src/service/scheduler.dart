@@ -40,15 +40,17 @@ import 'luci_build_service.dart';
 ///   2. Ensuring commits are validated (via scheduling tasks against commits)
 ///   3. Retry mechanisms for tasks
 class Scheduler {
-  Scheduler(
-      {required this.cache,
-      required this.config,
-      required this.githubChecksService,
-      required this.luciBuildService,
-      this.datastoreProvider = DatastoreService.defaultProvider,
-      this.httpClientProvider = Providers.freshHttpClient,
-      this.buildStatusProvider = BuildStatusService.defaultProvider});
+  Scheduler({
+    required this.cache,
+    required this.config,
+    required this.githubChecksService,
+    required this.luciBuildService,
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    this.httpClientProvider = Providers.freshHttpClient,
+    this.buildStatusProvider = BuildStatusService.defaultProvider,
+  });
 
+  final BuildStatusServiceProvider buildStatusProvider;
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
@@ -57,7 +59,6 @@ class Scheduler {
 
   late DatastoreService datastore;
   LuciBuildService luciBuildService;
-  final BuildStatusServiceProvider buildStatusProvider;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -124,15 +125,7 @@ class Scheduler {
       return;
     }
 
-    late CiYaml ciYaml;
-    if (commit.branch == Config.defaultBranch(commit.slug)) {
-      final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
-      final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
-    } else {
-      ciYaml = await getCiYaml(commit);
-    }
-
+    final CiYaml ciYaml = await getCiYaml(commit);
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
@@ -195,13 +188,7 @@ class Scheduler {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     String ciPath;
-
-    /// Use default branch instead of sha when pulling against tip of tree.
-    if (commit.sha == null) {
-      ciPath = '${commit.repository}/${Config.defaultBranch(commit.slug)}/$kCiYamlPath';
-    } else {
-      ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
-    }
+    ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
     final Uint8List ciYamlBytes = (await cache.getOrCreate(
       subcacheName,
       ciPath,
@@ -215,13 +202,11 @@ class Scheduler {
     final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig.fromBuffer(ciYamlBytes);
     log.fine('Retrieved .ci.yaml for $ciPath');
     // If totCiYaml is not null, we assume upper level function has verified that current branch is not a release branch.
-    if (totCiYaml != null) {
-      return CiYaml(config: schedulerConfig, slug: commit.slug, branch: commit.branch!, totConfig: totCiYaml);
-    }
     return CiYaml(
       config: schedulerConfig,
       slug: commit.slug,
       branch: commit.branch!,
+      totConfig: totCiYaml,
     );
   }
 
@@ -247,13 +232,11 @@ class Scheduler {
       commit.slug,
       '.ci.yaml',
       httpClientProvider: httpClientProvider,
-      ref: commit.sha == null ? Config.defaultBranch(commit.slug) : commit.sha!,
+      ref: commit.sha!,
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig();
-
-    schedulerConfig.mergeFromProto3Json(configYaml);
+    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
     return schedulerConfig.writeToBuffer();
   }
 
@@ -488,17 +471,23 @@ class Scheduler {
     }
   }
 
+  /// Returns the tip of tree [Commit] using specified [branch] and [RepositorySlug].
+  ///
+  /// A tip of tree [Commit] is used to help generate the tip of tree [CiYaml].
+  /// The generated tip of tree [CiYaml] will be compared against Presubmit Targets in current [CiYaml],
+  /// to ensure new targets without `bringup: true` label are not added into the build.
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final Commit totCommit = (await buildStatusService
-        .retrieveCommitStatus(
-          limit: 1,
-          branch: branch,
-          slug: slug,
-        )
-        .map<Commit>((CommitStatus status) => status.commit)
-        .toList())[0];
+            .retrieveCommitStatus(
+              limit: 1,
+              branch: branch,
+              slug: slug,
+            )
+            .map<Commit>((CommitStatus status) => status.commit)
+            .toList())
+        .single;
 
     return totCommit;
   }

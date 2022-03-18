@@ -204,11 +204,12 @@ Future<void> insertBigquery(String tableName, Map<String, dynamic> data, Tableda
 List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
-  unCheckedSchedulerConfig.mergeFromProto3Json(ciYaml);
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
   final pb.SchedulerConfig schedulerConfig = CiYaml(
-          slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug), config: unCheckedSchedulerConfig)
-      .config;
+    slug: Config.flutterSlug,
+    branch: Config.defaultBranch(Config.flutterSlug),
+    config: unCheckedSchedulerConfig,
+  ).config;
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
     final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;

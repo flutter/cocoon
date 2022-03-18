@@ -35,10 +35,13 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig currentSchedulerConfig = pb.SchedulerConfig();
-      currentSchedulerConfig.mergeFromProto3Json(configYaml);
+      final pb.SchedulerConfig currentSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
       try {
-        CiYaml(slug: config.slug, branch: Config.defaultBranch(config.slug), config: currentSchedulerConfig);
+        CiYaml(
+          slug: config.slug,
+          branch: Config.defaultBranch(config.slug),
+          config: currentSchedulerConfig,
+        );
       } on FormatException catch (e) {
         fail(e.message);
       }
@@ -52,8 +55,7 @@ Future<void> main() async {
         ref: config.branch,
       );
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig();
-      schedulerConfig.mergeFromProto3Json(configYaml);
+      final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
 
       final List<String> githubBranches = getBranchesForRepository(config.slug);
 

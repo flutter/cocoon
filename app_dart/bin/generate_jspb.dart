@@ -66,11 +66,12 @@ Future<void> main(List<String> args) async {
   }
 
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig();
-  unCheckedSchedulerConfig.mergeFromProto3Json(configYaml);
+  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
   final pb.SchedulerConfig schedulerConfig = CiYaml(
-          slug: Config.flutterSlug, branch: Config.defaultBranch(Config.flutterSlug), config: unCheckedSchedulerConfig)
-      .config;
+    slug: Config.flutterSlug,
+    branch: Config.defaultBranch(Config.flutterSlug),
+    config: unCheckedSchedulerConfig,
+  ).config;
 
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }
