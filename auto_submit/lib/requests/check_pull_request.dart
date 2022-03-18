@@ -6,15 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:github/github.dart';
+import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
-
 import '../request_handling/pubsub.dart';
-import 'package:googleapis/pubsub/v1.dart' as pub;
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
