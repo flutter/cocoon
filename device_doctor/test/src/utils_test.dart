@@ -80,4 +80,54 @@ void main() {
       );
     });
   });
+
+  group('getMacBinaryPath', () {
+    MockProcessManager processManager;
+    List<List<int>> output;
+
+    setUp(() {
+      processManager = MockProcessManager();
+    });
+
+    test('returns path when binary does not exist by default but exists in M1 homebrew bin', () async {
+      String path = '$kM1BrewBinPath/ideviceinstaller';
+      output = <List<int>>[utf8.encode(path)];
+      Process processM1 = FakeProcess(0, out: output);
+      Process processDefault = FakeProcess(1, out: null);
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processDefault));
+      when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processM1));
+
+      final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+      expect(result, '$kM1BrewBinPath/ideviceinstaller');
+    });
+
+    test('returns path when binary exists by default', () async {
+      String path = '/abc/def/ideviceinstaller';
+      output = <List<int>>[utf8.encode(path)];
+      Process process = FakeProcess(0, out: output);
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
+      expect(result, path);
+    });
+
+    test('throws exception when binary does not exist in any location', () async {
+      Process processM1 = FakeProcess(1, out: null);
+      Process processDefault = FakeProcess(1, out: null);
+      when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processDefault));
+      when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processM1));
+
+      expect(
+        getMacBinaryPath('ideviceinstaller', processManager: processManager),
+        throwsA(TypeMatcher<BuildFailedError>()),
+      );
+    });
+  });
 }

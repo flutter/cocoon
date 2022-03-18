@@ -35,7 +35,7 @@ class Target {
   static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
 
   /// Dimension list defined in .ci.yaml.
-  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model'];
+  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model', 'cores'];
 
   /// Gets dimensions for this [pb.Target].
   ///
@@ -45,7 +45,8 @@ class Target {
     final List<RequestedDimension> dimensions = <RequestedDimension>[];
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
-        dimensions.add(RequestedDimension(key: dimension, value: properties[dimension] as String));
+        String value = properties[dimension].toString();
+        dimensions.add(RequestedDimension(key: dimension, value: value));
       }
     }
     return dimensions;
