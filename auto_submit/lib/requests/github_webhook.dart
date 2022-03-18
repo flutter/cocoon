@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 
+import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
@@ -19,7 +20,10 @@ import '../server/request_handler.dart';
 class GithubWebhook extends RequestHandler {
   GithubWebhook({
     required Config config,
+    this.pubsub = const PubSub(),
   }) : super(config: config);
+
+  final PubSub pubsub;
 
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
@@ -39,9 +43,9 @@ class GithubWebhook extends RequestHandler {
     print('pullRequest: ${pullRequest.id}');
 
     if (hasAutosubmit) {
-      log.info(body);
+      log.info('Found pull request with auto submit label');
       // TODO(kristinbi): Publish the pr with 'autosbumit' label to pubsub.
-
+      await pubsub.publish('auto-submit-queue', pullRequest);
     }
 
     return Response.ok(rawBody);
