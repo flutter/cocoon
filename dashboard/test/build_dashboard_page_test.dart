@@ -38,7 +38,6 @@ void main() {
   setUp(() {
     binding.window.devicePixelRatioTestValue = 1.0;
     binding.window.physicalSizeTestValue = const Size(1080, 2280);
-    // FOR REVIEW:
     // device pixel ratio of 1.0 works well on web app and emulator
     // If not set, flutter test uses a Pixel 4 device pixel ratio of roughly 2.75, which doesn't quite work
     // I am using the default settings of Pixel 4 in this test, as referenced in the link below
