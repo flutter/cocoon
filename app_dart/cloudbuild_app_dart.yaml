@@ -8,12 +8,12 @@ steps:
   # Build dashboard.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['../cloud_build/dashboard_build.sh']
+    args: ['cloud_build/dashboard_build.sh']
 
   # Build repo_dashboard.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['../cloud_build/repo_dash_build.sh']
+    args: ['cloud_build/repo_dash_build.sh']
 
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
