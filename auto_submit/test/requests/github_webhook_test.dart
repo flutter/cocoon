@@ -32,10 +32,6 @@ void main() {
       List<IssueLabel> labels = PullRequest.fromJson(body['pull_request']).labels!;
       expect(labels[0].name, 'cla: yes');
       expect(labels[1].name, 'autosubmit');
-
-      final PullRequest pr = pubsub.messages.single as PullRequest;
-      expect(pr.id, 1);
-      expect(pr.number, 1347);
     });
   });
 }
