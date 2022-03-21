@@ -70,10 +70,15 @@ String generateWebhookEvent(
 }
 
 PullRequest generatePullRequest(
-    {String? labelName, String? autosubmitLabel, String? repoName, String? login, String? authorAssociation}) {
+    {String? labelName,
+    String? autosubmitLabel,
+    String? repoName,
+    String? login,
+    String? authorAssociation,
+    int? prNumber}) {
   return PullRequest.fromJson(json.decode('''{
       "id": 1,
-      "number": 1347,
+      "number": ${prNumber ?? 1347},
       "state": "open",
       "title": "Amazing new feature",
       "user": {

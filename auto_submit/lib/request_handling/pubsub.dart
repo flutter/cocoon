@@ -51,7 +51,7 @@ class PubSub {
 
   /// Acknowledges the messages associated with the `ack_ids` in the `AcknowledgeRequest`.
   ///
-  /// The pubsub/Sub system can remove the relevant messages from the subscription.
+  /// The PubSub system can remove the relevant messages from the subscription.
   Future<void> acknowledge(String subscription, String ackId) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
       pubsub.PubsubApi.pubsubScope,
