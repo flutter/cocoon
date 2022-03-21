@@ -9,11 +9,11 @@ import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
+import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
-import '../request_handling/pubsub.dart';
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
@@ -27,19 +27,29 @@ class CheckPullRequest extends RequestHandler {
 
   final PubSub pubsub;
 
-  Future<Response> get() async {
-    final pub.PullResponse pullResponse = await pubsub.pull(1, 'auto-submit-queue-sub');
+  Future<List<Response>> get() async {
+    List<Response> responses = <Response>[];
+    final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', 100);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
       log.info('There are no more messages available in the backlog');
-      return Response.ok('No more pull requests in the pubsub.');
+      responses.add(Response.ok('No more pull requests in the pubsub.'));
+      return responses;
     }
-    final pub.ReceivedMessage receivedMessage = receivedMessages.first;
+    final List<Future<Response>> futures = <Future<Response>>[];
+    for (pub.ReceivedMessage message in receivedMessages) {
+      futures.add(_processMessage(message));
+    }
+    responses.addAll(await Future.wait(futures));
+    return responses;
+  }
+
+  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage) async {
     final String data = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
-    await pubsub.acknowledge(receivedMessage.ackId!, 'auto-submit-queue-sub');
+    await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();

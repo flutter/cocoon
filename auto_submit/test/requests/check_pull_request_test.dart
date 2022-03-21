@@ -19,10 +19,11 @@ void main() {
     late FakeConfig config;
     final FakeGithubService githubService = FakeGithubService();
     final FakePubSub pubsub = FakePubSub();
+    const String testTopic = 'test-topic';
 
     test('Merges PR with successful status and checks', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -33,14 +34,19 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Merge the pull request.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges unapproved PR from autoroller', () async {
-      PullRequest pullRequest = generatePullRequest(login: "engine-flutter-autoroll");
-      pubsub.publish('test-topic', pullRequest);
+      PullRequest pr1 = generatePullRequest(login: "engine-flutter-autoroll");
+      PullRequest pr2 = generatePullRequest(login: "engine-flutter-autoroll");
+      pubsub.publish(testTopic, pr1);
+      pubsub.publish(testTopic, pr2);
       githubService.reviewsData = unApprovedReviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -51,14 +57,19 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Merge the pull request.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
-      PullRequest pullRequest = generatePullRequest(labelName: "warning: land on red to fix tree breakage");
-      pubsub.publish('test-topic', pullRequest);
+      PullRequest pr1 = generatePullRequest(labelName: "warning: land on red to fix tree breakage");
+      PullRequest pr2 = generatePullRequest(labelName: "warning: land on red to fix tree breakage");
+      pubsub.publish(testTopic, pr1);
+      pubsub.publish(testTopic, pr2);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = failedAuthorsStatusesMock;
@@ -69,14 +80,16 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Merge the pull request.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = inProgressCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -87,14 +100,19 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Merge the pull request.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
-      PullRequest pullRequest = generatePullRequest(repoName: 'cocoon');
-      pubsub.publish('test-topic', pullRequest);
+      PullRequest pr1 = generatePullRequest(repoName: 'cocoon');
+      PullRequest pr2 = generatePullRequest(repoName: 'cocoon');
+      pubsub.publish(testTopic, pr1);
+      pubsub.publish(testTopic, pr2);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = emptyStatusesMock;
@@ -105,14 +123,17 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Merge the pull request.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = failedCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -123,32 +144,17 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Remove the autosubmit label.');
-    });
-
-    test('Does not merge PR with in progress checks', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
-      githubService.reviewsData = reviewsMock;
-      githubService.checkRunsData = inProgressCheckRunsMock;
-      githubService.repositoryStatusesData = repositoryStatusesMock;
-      githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService);
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Does not merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Remove the autosubmit label.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Remove the label for the PR with failed status', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = failedNonAuthorsStatusesMock;
@@ -159,14 +165,19 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Remove the autosubmit label.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Remove the autosubmit label.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
-      PullRequest pullRequest = generatePullRequest(authorAssociation: '');
-      pubsub.publish('test-topic', pullRequest);
+      PullRequest pr1 = generatePullRequest(authorAssociation: '');
+      PullRequest pr2 = generatePullRequest(authorAssociation: '');
+      pubsub.publish(testTopic, pr1);
+      pubsub.publish(testTopic, pr2);
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = checkRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -177,32 +188,16 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Remove the autosubmit label.');
-    });
-
-    test('Does not merge PR if no autosubmit label any more', () async {
-      PullRequest pullRequest = generatePullRequest(autosubmitLabel: 'no_autosubmit');
-      pubsub.publish('test-topic', pullRequest);
-      githubService.reviewsData = reviewsMock;
-      githubService.checkRunsData = checkRunsMock;
-      githubService.repositoryStatusesData = repositoryStatusesMock;
-      githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService);
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Does not merge the pull request.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Remove the autosubmit label.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Does not fail with null checks', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.repositoryStatusesData = repositoryStatusesMock;
@@ -213,14 +208,63 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Remove the autosubmit label.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Remove the autosubmit label.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Does not merge PR with in progress checks', () async {
+      pubsub.publish(testTopic, generatePullRequest());
+      pubsub.publish(testTopic, generatePullRequest());
+      githubService.reviewsData = reviewsMock;
+      githubService.checkRunsData = inProgressCheckRunsMock;
+      githubService.repositoryStatusesData = repositoryStatusesMock;
+      githubService.commitData = commitMock;
+      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.successMergeData = successMergeMock;
+      githubService.createCommentData = createCommentMock;
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Does not merge the pull request.');
+      }
+      expect(pubsub.messagesQueue.length, 2);
+      pubsub.messagesQueue.clear();
+    });
+
+    test('Does not merge PR if no autosubmit label any more', () async {
+      PullRequest pr1 = generatePullRequest(autosubmitLabel: 'no_autosubmit');
+      PullRequest pr2 = generatePullRequest(autosubmitLabel: 'no_autosubmit');
+      pubsub.publish(testTopic, pr1);
+      pubsub.publish(testTopic, pr2);
+      githubService.reviewsData = reviewsMock;
+      githubService.checkRunsData = checkRunsMock;
+      githubService.repositoryStatusesData = repositoryStatusesMock;
+      githubService.commitData = commitMock;
+      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.successMergeData = successMergeMock;
+      githubService.createCommentData = createCommentMock;
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Does not merge the pull request.');
+      }
+      expect(pubsub.messagesQueue.length, 2);
+      pubsub.messagesQueue.clear();
     });
 
     test('Empty validations do not merge', () async {
-      PullRequest pullRequest = generatePullRequest();
-      pubsub.publish('test-topic', pullRequest);
+      pubsub.publish(testTopic, generatePullRequest());
+      pubsub.publish(testTopic, generatePullRequest());
       githubService.reviewsData = reviewsMock;
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.repositoryStatusesData = emptyStatusesMock;
@@ -231,9 +275,12 @@ void main() {
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      final Response response = await checkPullRequest.get();
-      final String resBody = await response.readAsString();
-      expect(resBody, 'Remove the autosubmit label.');
+      final List<Response> responses = await checkPullRequest.get();
+      for (Response response in responses) {
+        final String resBody = await response.readAsString();
+        expect(resBody, 'Remove the autosubmit label.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
     });
   });
 }

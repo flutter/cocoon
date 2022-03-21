@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:googleapis/pubsub/v1.dart';
+import 'package:googleapis/pubsub/v1.dart' as pubsub;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 
@@ -20,45 +20,45 @@ class PubSub {
 
   final HttpClientProvider httpClientProvider;
 
-  /// Adds one or more messages to the topic.
+  /// Adds one message to the topic.
   Future<void> publish(String topic, dynamic json) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
-      PubsubApi.pubsubScope,
+      pubsub.PubsubApi.pubsubScope,
     ]);
-    final PubsubApi pubsubApi = PubsubApi(httpClient);
+    final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final String messageData = jsonEncode(json);
     final List<int> messageBytes = utf8.encode(messageData);
     final String messageBase64 = base64Encode(messageBytes);
-    final PublishRequest request = PublishRequest(messages: <PubsubMessage>[
-      PubsubMessage(data: messageBase64),
+    final pubsub.PublishRequest request = pubsub.PublishRequest(messages: <pubsub.PubsubMessage>[
+      pubsub.PubsubMessage(data: messageBase64),
     ]);
     final String _topic = 'projects/flutter-dashboard/topics/$topic';
-    final PublishResponse response = await pubsubApi.projects.topics.publish(request, _topic);
+    final pubsub.PublishResponse response = await pubsubApi.projects.topics.publish(request, _topic);
     log.info('pubsub response messageId=${response.messageIds}');
   }
 
   /// Pulls messages from the server.
-  Future<PullResponse> pull(int maxMessages, String subscription) async {
+  Future<pubsub.PullResponse> pull(String subscription, int maxMessages) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
-      PubsubApi.pubsubScope,
+      pubsub.PubsubApi.pubsubScope,
     ]);
-    final PubsubApi pubsubApi = PubsubApi(httpClient);
-    PullRequest pullRequest = PullRequest(maxMessages: maxMessages);
-    final PullResponse pullResponse = await pubsubApi.projects.subscriptions
+    final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
+    pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
+    final pubsub.PullResponse pullResponse = await pubsubApi.projects.subscriptions
         .pull(pullRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
     return pullResponse;
   }
 
   /// Acknowledges the messages associated with the `ack_ids` in the `AcknowledgeRequest`.
   ///
-  /// The Pub/Sub system can remove the relevant messages from the subscription.
-  Future<void> acknowledge(String ackId, String subscription) async {
+  /// The pubsub/Sub system can remove the relevant messages from the subscription.
+  Future<void> acknowledge(String subscription, String ackId) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
-      PubsubApi.pubsubScope,
+      pubsub.PubsubApi.pubsubScope,
     ]);
-    final PubsubApi pubsubApi = PubsubApi(httpClient);
+    final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final List<String> ackIds = [ackId];
-    final AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest(ackIds: ackIds);
+    final pubsub.AcknowledgeRequest acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
     await pubsubApi.projects.subscriptions
         .acknowledge(acknowledgeRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
   }
