@@ -212,16 +212,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
-
-    //final Map<String, dynamic>? label = repository['labels']['nodes'].single as Map<String, dynamic>?;
-    //if (label == null || label.isEmpty) {
-    //  throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
-    //}
-    //final String? labelId = label['id'] as String?;
-    //log.info('LabelId of returned PRs: $labelId');
     String? labelId;
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    //final List<Map<String, dynamic>> pullRequests = (repository['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     final Iterable<Map<String, dynamic>> pullRequests =
         (repository['pullRequests']['nodes'] as List<dynamic>).map((dynamic e) => e as Map<String, dynamic>);
     for (Map<String, dynamic> pullRequest in pullRequests) {
