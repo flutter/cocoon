@@ -23,6 +23,14 @@ import '../src/utilities/mocks.dart';
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
 const String title = 'some_title';
+const Map<String, dynamic> waitForGreenLabel = <String, dynamic>{
+  'name': 'waiting for tree to go green',
+  'id': base64LabelId
+};
+const Map<String, dynamic> overrideTreeStatusLabel = <String, dynamic>{
+  'name': 'warning: land on red to fix tree breakage',
+  'id': 'otherid'
+};
 const List<dynamic> waitForTreeGreenlabels = <dynamic>[
   {'name': 'waiting for tree to go green', 'id': base64LabelId}
 ];
@@ -309,8 +317,10 @@ void main() {
 
     test('Merges unapproved PR from dependabot', () async {
       config.rollerAccountsValue = <String>{'dependabot'};
-      flutterRepoPRs.add(PullRequestHelper(author: 'dependabot', reviews: const <PullRequestReviewHelper>[]));
-      engineRepoPRs.add(PullRequestHelper(author: 'dependabot', reviews: const <PullRequestReviewHelper>[]));
+      flutterRepoPRs.add(PullRequestHelper(
+          author: 'dependabot', reviews: const <PullRequestReviewHelper>[], labels: waitForTreeGreenlabels));
+      engineRepoPRs.add(PullRequestHelper(
+          author: 'dependabot', reviews: const <PullRequestReviewHelper>[], labels: waitForTreeGreenlabels));
 
       await tester.get(handler);
 
@@ -409,9 +419,7 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
         ],
-        labels: <dynamic>[
-          <String, dynamic>{'name': 'warning: land on red to fix tree breakage'}
-        ],
+        labels: <dynamic>[waitForGreenLabel, overrideTreeStatusLabel],
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -434,11 +442,16 @@ void main() {
       ];
       branch = 'pull/0';
 
-      final PullRequestHelper prRequested = PullRequestHelper(lastCommitCheckRuns: const <CheckRunHelper>[
-        CheckRunHelper.linuxCompletedRunning,
-      ], lastCommitStatuses: const <StatusHelper>[
-        StatusHelper.flutterBuildSuccess,
-      ], lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.');
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxCompletedRunning,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+        lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
+        labels: waitForTreeGreenlabels,
+      );
       flutterRepoPRs.add(prRequested);
 
       await tester.get(handler);
@@ -462,6 +475,7 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -575,6 +589,7 @@ This pull request is not suitable for automatic merging in its current state.
           CheckRunHelper.luciCompletedSuccess,
         ],
         lastCommitStatuses: const <StatusHelper>[],
+        labels: waitForTreeGreenlabels,
       );
       prRequested.lastCommitStatuses = null;
       flutterRepoPRs.add(prRequested);
@@ -597,6 +612,7 @@ This pull request is not suitable for automatic merging in its current state.
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -685,7 +701,7 @@ This pull request is not suitable for automatic merging in its current state.
       ];
       branch = 'pull/0';
 
-      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
 
       await tester.get(handler);
 
@@ -784,10 +800,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merges first 2 PRs in list, all successful', () async {
-      flutterRepoPRs.add(PullRequestHelper());
-      flutterRepoPRs.add(PullRequestHelper());
-      flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
-      engineRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels)); // will be ignored.
+      engineRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
 
       await tester.get(handler);
 
@@ -814,15 +830,15 @@ This pull request is not suitable for automatic merging in its current state.
     test('Merges 1st and 3rd PR, 2nd failed', () async {
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
-      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       flutterRepoPRs.add(PullRequestHelper(
         author: 'engine-roller-hacker',
         reviews: const <PullRequestReviewHelper>[],
         labels: waitForTreeGreenlabels,
       ));
 
-      flutterRepoPRs.add(PullRequestHelper());
-      engineRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
+      engineRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
 
       await tester.get(handler);
 
@@ -866,7 +882,7 @@ This pull request is not suitable for automatic merging in its current state.
         dateTime: DateTime.now().add(const Duration(minutes: -70)),
         labels: waitForTreeGreenlabels,
       )); // ok
-      engineRepoPRs.add(PullRequestHelper()); // default is two hours for this ctor.
+      engineRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels)); // default is two hours for this ctor.
 
       await tester.get(handler);
 
@@ -927,6 +943,7 @@ This pull request is not suitable for automatic merging in its current state.
           changePleaseChange,
           changePleaseApprove,
         ],
+        labels: waitForTreeGreenlabels,
       );
 
       flutterRepoPRs.add(prChangedReview);

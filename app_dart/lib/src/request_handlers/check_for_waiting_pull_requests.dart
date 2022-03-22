@@ -195,13 +195,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   }
 
   /// Gets a labelId for a given pullRequest and label.
-  String getLabelId(Map<String, dynamic> pullRequest, String label) {
+  String? getLabelId(Map<String, dynamic> pullRequest, String label) {
     for (Map<String, dynamic> labelMap in pullRequest['labels']['nodes']) {
       if (labelMap['name'] == label) {
         return labelMap['id'] as String;
       }
     }
-    return '';
+    return null;
   }
 
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
@@ -291,7 +291,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           number: number,
           title: title,
           sha: sha,
-          labelId: labelId,
+          labelId: labelId!,
           emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
