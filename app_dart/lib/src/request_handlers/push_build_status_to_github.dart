@@ -53,10 +53,12 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<void> _updatePRs(RepositorySlug slug, String status, DatastoreService datastore) async {
     final GitHub github = await config.createGitHubClient(slug: slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    await for (PullRequest pr in github.pullRequests.list(
-      slug,
-      base: Config.defaultBranch(slug),
-    )) {
+    await for (PullRequest pr in github.pullRequests.list(slug)) {
+      // Tree status is only put on PRs merging into ToT.
+      if (pr.base!.ref != Config.defaultBranch(slug)) {
+        log.fine('This PR is not staged to land on ${Config.defaultBranch(slug)}, skipping.');
+        continue;
+      }
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
       if (update.status != status) {
         log.fine('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
