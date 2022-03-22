@@ -114,15 +114,14 @@ void main() {
         expect(tableDataList.totalRows, '1');
       });
 
-      test('lists from default branch', () async {
-        when(pullRequestsService.list(any, base: anyNamed('base')))
-            .thenAnswer((_) => const Stream<PullRequest>.empty());
+      test('only if pull request is for the default branch', () async {
+        when(pullRequestsService.list(any)).thenAnswer((_) => Stream<PullRequest>.value(generatePullRequest(
+              id: 1,
+              branch: 'flutter-2.15-candidate.3',
+            )));
         buildStatusService.cumulativeStatus = BuildStatus.success();
         await tester.get<Body>(handler);
-        verify(pullRequestsService.list(
-          Config.flutterSlug,
-          base: Config.defaultBranch(Config.flutterSlug),
-        ));
+        verifyNever(repositoriesService.createStatus(any, any, any));
       });
 
       test('if status has not changed since last update', () async {
