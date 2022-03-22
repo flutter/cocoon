@@ -23,6 +23,9 @@ import '../src/utilities/mocks.dart';
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
 const String title = 'some_title';
+const List<dynamic> waitForTreeGreenlabels = <dynamic>[
+  {'name': 'waiting for tree to go green', 'id': base64LabelId}
+];
 
 Map<String, dynamic> getMergePullRequestVariables(String number) {
   return <String, dynamic>{
@@ -264,7 +267,7 @@ void main() {
     }
 
     test('Errors can be logged', () async {
-      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       final List<GraphQLError> errors = <GraphQLError>[
         const GraphQLError(message: 'message'),
       ];
@@ -484,6 +487,7 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -508,12 +512,12 @@ This pull request is not suitable for automatic merging in its current state.
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
-      final PullRequestHelper prRequested = PullRequestHelper(
-        lastCommitCheckRuns: const <CheckRunHelper>[],
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildFailure,
-        ],
-      );
+      final PullRequestHelper prRequested =
+          PullRequestHelper(lastCommitCheckRuns: const <CheckRunHelper>[], lastCommitStatuses: const <StatusHelper>[
+        StatusHelper.flutterBuildFailure,
+      ], labels: <dynamic>[
+        {'name': 'waiting for tree to go green', 'id': base64LabelId}
+      ]);
       prRequested.lastCommitCheckRuns = null;
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -541,6 +545,7 @@ This pull request is not suitable for automatic merging in its current state.
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[],
         lastCommitStatuses: const <StatusHelper>[],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -616,6 +621,7 @@ This pull request is not suitable for automatic merging in its current state.
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -652,6 +658,7 @@ This pull request is not suitable for automatic merging in its current state.
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
@@ -703,7 +710,9 @@ This pull request is not suitable for automatic merging in its current state.
       ];
       branch = 'pull/0';
 
-      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(
+        labels: waitForTreeGreenlabels,
+      ));
 
       await tester.get(handler);
 
@@ -731,8 +740,16 @@ This pull request is not suitable for automatic merging in its current state.
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
-      flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
-      engineRepoPRs.add(PullRequestHelper(author: 'skia-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
+      flutterRepoPRs.add(PullRequestHelper(
+        author: 'engine-roller-hacker',
+        reviews: const <PullRequestReviewHelper>[],
+        labels: waitForTreeGreenlabels,
+      ));
+      engineRepoPRs.add(PullRequestHelper(
+        author: 'skia-roller-hacker',
+        reviews: const <PullRequestReviewHelper>[],
+        labels: waitForTreeGreenlabels,
+      ));
 
       await tester.get(handler);
 
@@ -798,7 +815,11 @@ This pull request is not suitable for automatic merging in its current state.
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       flutterRepoPRs.add(PullRequestHelper());
-      flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
+      flutterRepoPRs.add(PullRequestHelper(
+        author: 'engine-roller-hacker',
+        reviews: const <PullRequestReviewHelper>[],
+        labels: waitForTreeGreenlabels,
+      ));
 
       flutterRepoPRs.add(PullRequestHelper());
       engineRepoPRs.add(PullRequestHelper());
@@ -837,8 +858,14 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Ignores PRs that are too new', () async {
-      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -50)))); // too new
-      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -70)))); // ok
+      flutterRepoPRs.add(PullRequestHelper(
+        dateTime: DateTime.now().add(const Duration(minutes: -50)),
+        labels: waitForTreeGreenlabels,
+      )); // too new
+      flutterRepoPRs.add(PullRequestHelper(
+        dateTime: DateTime.now().add(const Duration(minutes: -70)),
+        labels: waitForTreeGreenlabels,
+      )); // ok
       engineRepoPRs.add(PullRequestHelper()); // default is two hours for this ctor.
 
       await tester.get(handler);
@@ -872,6 +899,7 @@ This pull request is not suitable for automatic merging in its current state.
           StatusHelper.flutterBuildSuccess,
           StatusHelper.otherStatusFailure,
         ],
+        labels: waitForTreeGreenlabels,
       );
       flutterRepoPRs.add(prRed);
 
@@ -923,17 +951,20 @@ This pull request is not suitable for automatic merging in its current state.
         reviews: const <PullRequestReviewHelper>[
           nonMemberApprove,
         ],
+        labels: waitForTreeGreenlabels,
       );
       final PullRequestHelper prNonMemberChangeRequest = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           nonMemberChangeRequest,
         ],
+        labels: waitForTreeGreenlabels,
       );
       final PullRequestHelper prNonMemberChangeRequestWithMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           ownerApprove,
           nonMemberChangeRequest,
         ],
+        labels: waitForTreeGreenlabels,
       );
 
       // Ignored approval from non-member
@@ -986,19 +1017,23 @@ This pull request is not suitable for automatic merging in its current state.
         reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
         ],
+        labels: waitForTreeGreenlabels,
       );
       final PullRequestHelper prOneGoodOneBadReview = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           memberApprove,
           changePleaseChange,
         ],
+        labels: waitForTreeGreenlabels,
       );
       final PullRequestHelper prNoReviews = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[],
+        labels: waitForTreeGreenlabels,
       );
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[StatusHelper.flutterBuildFailure],
         reviews: const <PullRequestReviewHelper>[changePleaseChange],
+        labels: waitForTreeGreenlabels,
       );
 
       flutterRepoPRs.add(prOneBadReview);
@@ -1215,7 +1250,7 @@ class PullRequestHelper {
                     : <dynamic>[]
               },
             },
-          },
+          }
         ],
       },
       'labels': <String, dynamic>{
@@ -1229,19 +1264,12 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
   return QueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
-        'labels': <String, dynamic>{
-          'nodes': <dynamic>[
-            <String, dynamic>{
-              'id': base64LabelId,
-              'pullRequests': <String, dynamic>{
-                'nodes': pullRequests
-                    .map<Map<String, dynamic>>(
-                      (PullRequestHelper pullRequest) => pullRequest.toEntry(),
-                    )
-                    .toList(),
-              },
-            },
-          ],
+        'pullRequests': <String, dynamic>{
+          'nodes': pullRequests
+              .map<Map<String, dynamic>>(
+                (PullRequestHelper pullRequest) => pullRequest.toEntry(),
+              )
+              .toList(),
         },
       },
     },
