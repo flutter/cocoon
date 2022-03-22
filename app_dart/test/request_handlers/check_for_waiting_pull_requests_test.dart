@@ -294,8 +294,18 @@ void main() {
 
     test('Merges unapproved PR from autoroller', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
-      flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller', reviews: const <PullRequestReviewHelper>[]));
-      engineRepoPRs.add(PullRequestHelper(author: 'skia-roller', reviews: const <PullRequestReviewHelper>[]));
+      flutterRepoPRs.add(PullRequestHelper(
+        author: 'engine-roller',
+        reviews: const <PullRequestReviewHelper>[],
+        labels: waitForTreeGreenlabels,
+      ));
+      engineRepoPRs.add(
+        PullRequestHelper(
+          author: 'skia-roller',
+          reviews: const <PullRequestReviewHelper>[],
+          labels: waitForTreeGreenlabels,
+        ),
+      );
 
       await tester.get(handler);
 
