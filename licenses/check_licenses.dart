@@ -116,7 +116,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
         matches += 1;
         yield entity;
       }
-      if (path.basename(entity.path) == 'Dockerfile') {
+      if (path.basename(entity.path) == 'Dockerfile' && extension == 'Dockerfile') {
         matches += 1;
         yield entity;
       }
