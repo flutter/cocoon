@@ -17,14 +17,12 @@ class CreateEvent extends HookEvent {
   CreateEvent({
     this.ref,
     this.refType,
-    this.masterBranch,
     this.repository,
   });
 
   factory CreateEvent.fromJson(Map<String, dynamic> input) => _$CreateEventFromJson(input);
   String? ref;
   String? refType;
-  String? masterBranch;
   Repository? repository;
 
   Map<String, dynamic> toJson() => _$CreateEventToJson(this);

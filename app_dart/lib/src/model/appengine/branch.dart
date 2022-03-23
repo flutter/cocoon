@@ -2,45 +2,65 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/key_converter.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'branch.g.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
-  Branch({Key<String>? key, this.branch, this.defaultBranch, this.repository}) {
+  Branch({Key<String>? key, required int lastActivity}) {
     parentKey = key?.parent;
     id = key?.id;
   }
 
-  /// The branch name of the current branch
-  @StringProperty(propertyName: 'branch', required: true)
-  String? branch;
-
-  /// A serializable form of [RepositorySlug].
-  ///
-  /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
-  String? repository;
-
-  /// The default branch of the repository which hosts current branch.
-  /// If current branch is not the default branch, current branch is likely a release branch.
-  @StringProperty(propertyName: 'defaultBranch', required: true)
-  String? defaultBranch;
+  /// The timestamp (in milliseconds since the Epoch) of the last time
+  /// when current branch had activity.
+  @IntProperty(propertyName: 'lastActivity', required: true)
+  int? lastActivity;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository!);
+  RepositorySlug get slug => RepositorySlug.full(repository);
+
+  String get repository => key.id!.substring(0, key.id!.lastIndexOf('/'));
+
+  String get branch => key.id!.substring(key.id!.lastIndexOf('/') + 1);
 
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('id: $id')
-      ..write(', parentKey: ${parentKey?.id}')
       ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', branch: $branch')
-      ..write(', defaultBranch: $defaultBranch')
       ..write(', repository: $repository')
       ..write(')');
     return buf.toString();
   }
+}
+
+/// The serialized representation of a [Branch].
+// TODO(tvolkert): Directly serialize [Branch] once frontends migrate to new serialization format.
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
+class SerializableBranch {
+  const SerializableBranch(this.branch);
+
+  final Branch branch;
+
+  @JsonKey(name: 'Key')
+  @StringKeyConverter()
+  Key<String>? get key => branch.key;
+
+  @JsonKey(name: 'Branch')
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      'branch': branch.branch,
+      'repository': branch.repository,
+    };
+  }
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$SerializableBranchToJson(this);
 }
