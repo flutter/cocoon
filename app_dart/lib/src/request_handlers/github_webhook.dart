@@ -5,8 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/appengine/branch.dart';
+import 'package:cocoon_service/src/model/github/create_event.dart';
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart';
+import 'package:gcloud/db.dart';
+import 'package:github/github.dart' hide Branch;
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
@@ -15,6 +18,7 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
+import '../service/datastore.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
 import '../service/scheduler.dart';
@@ -41,6 +45,7 @@ class GithubWebhook extends RequestHandler<Body> {
     Config config, {
     required this.scheduler,
     this.githubChecksService,
+    this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
@@ -49,8 +54,11 @@ class GithubWebhook extends RequestHandler<Body> {
   /// Github checks service. Used to provide build status to github.
   final GithubChecksService? githubChecksService;
 
+  final DatastoreServiceProvider datastoreProvider;
+
   @override
   Future<Body> post() async {
+    final DatastoreService datastore = datastoreProvider(config.db);
     final String? gitHubEvent = request!.headers.value('X-GitHub-Event');
 
     if (gitHubEvent == null || request!.headers.value('X-Hub-Signature') == null) {
@@ -76,6 +84,10 @@ class GithubWebhook extends RequestHandler<Body> {
           if (await scheduler.processCheckRun(checkRunEvent) == false) {
             throw InternalServerError('Failed to process $checkRunEvent');
           }
+          break;
+        case 'create':
+          await _handleCreateRequest(stringRequest, datastore);
+          break;
       }
 
       return Body.empty;
@@ -83,6 +95,30 @@ class GithubWebhook extends RequestHandler<Body> {
       throw const BadRequestException('Could not process input data.');
     } on InternalServerError {
       rethrow;
+    }
+  }
+
+  Future<void> _handleCreateRequest(String rawRequest, DatastoreService datastore) async {
+    final CreateEvent? createEvent = await _getCreateRequestEvent(rawRequest);
+    if (createEvent == null) {
+      throw const BadRequestException('Expected create request event.');
+    }
+
+    final String? refType = createEvent.refType;
+    if (refType == 'tag') {
+      return;
+    } // FOR REVIEW: should we create and store a new tag as well, or just for new branches?
+    final String? branch = createEvent.ref;
+    final String? defaultBranch = createEvent.masterBranch;
+    final String? repository = createEvent.repository!.fullName;
+
+    final String id = '$repository/$branch';
+    final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
+    final Branch currentBranch = Branch(key: key, branch: branch, defaultBranch: defaultBranch, repository: repository);
+    try {
+      await datastore.lookupByValue<Branch>(currentBranch.key);
+    } on KeyNotFoundException {
+      await datastore.insert(<Branch>[currentBranch]);
     }
   }
 
@@ -518,6 +554,14 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<PullRequestEvent?> _getPullRequestEvent(String request) async {
     try {
       return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  Future<CreateEvent?> _getCreateRequestEvent(String request) async {
+    try {
+      return CreateEvent.fromJson(json.decode(request) as Map<String, dynamic>);
     } on FormatException {
       return null;
     }
