@@ -54,6 +54,8 @@ Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums
   await _verifyNoMissingLicenseForExtension(
       workingDirectory, 'gn', overrideMinimumMatches ?? 0, _generateLicense('# '));
   await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'Dockerfile', overrideMinimumMatches ?? 1, _generateLicense('# '));
+  await _verifyNoMissingLicenseForExtension(
       workingDirectory, 'sh', overrideMinimumMatches ?? 1, '#!/bin/bash\n' + _generateLicense('# '));
   await _verifyNoMissingLicenseForExtension(
       workingDirectory, 'bat', overrideMinimumMatches ?? 1, _generateLicense(':: '));
@@ -111,6 +113,10 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
       if (path.basename(entity.path).endsWith('pbjson.dart')) continue;
       if (path.basename(entity.path).endsWith('pbserver.dart')) continue;
       if (path.extension(entity.path) == '.$extension') {
+        matches += 1;
+        yield entity;
+      }
+      if (path.basename(entity.path) == 'Dockerfile' && extension == 'Dockerfile') {
         matches += 1;
         yield entity;
       }
