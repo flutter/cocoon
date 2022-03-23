@@ -837,11 +837,11 @@ String generateCheckRunEvent({
   return body;
 }
 
-String generateCreateBranchEvent(String branchName, String defaultBranch, String repository) => '''
+String generateCreateBranchEvent(String branchName, String repository) => '''
 {
   "ref": "$branchName",
   "ref_type": "branch",
-  "master_branch": "$defaultBranch",
+  "master_branch": "master",
   "description": null,
   "pusher_type": "user",
   "repository": {

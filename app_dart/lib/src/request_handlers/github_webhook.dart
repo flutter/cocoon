@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/github/create_event.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' hide Branch;
+import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
@@ -107,14 +107,14 @@ class GithubWebhook extends RequestHandler<Body> {
     final String? refType = createEvent.refType;
     if (refType == 'tag') {
       return;
-    } // FOR REVIEW: should we create and store a new tag as well, or just for new branches?
+    }
     final String? branch = createEvent.ref;
-    final String? defaultBranch = createEvent.masterBranch;
     final String? repository = createEvent.repository!.fullName;
+    final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
 
     final String id = '$repository/$branch';
     final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
-    final Branch currentBranch = Branch(key: key, branch: branch, defaultBranch: defaultBranch, repository: repository);
+    final Branch currentBranch = Branch(key: key, lastActivity: lastActivity);
     try {
       await datastore.lookupByValue<Branch>(currentBranch.key);
     } on KeyNotFoundException {
