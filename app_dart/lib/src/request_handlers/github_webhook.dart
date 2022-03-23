@@ -219,6 +219,7 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.contains('.cirrus.yml') &&
           !filename.contains('.github') &&
           !filename.endsWith('.md') &&
+          !filename.contains('CODEOWNERS') &&
           !filename.startsWith('dev/devicelab/bin/tasks') &&
           !filename.startsWith('dev/devicelab/lib/tasks') &&
           !filename.startsWith('dev/bots/')) {
