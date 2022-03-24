@@ -435,4 +435,27 @@ void main() {
       expect(result, isTrue);
     });
   });
+
+  group('deviceListOutput', () {
+    IosDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process processIdeviceID;
+    Process processWhichIdeviceID;
+
+    setUp(() {
+      processManager = MockProcessManager();
+      deviceDiscovery = DeviceDiscovery('ios', MemoryFileSystem().file('output'));
+    });
+
+    test('success', () async {
+      when(processManager.start(<String>['which', 'idevice_id'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processWhichIdeviceID));
+      when(processManager.start(<String>['/test/idevice_id', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(processIdeviceID));
+      processIdeviceID = FakeProcess(0, out: <List<int>>[utf8.encode('abc')]);
+      processWhichIdeviceID = FakeProcess(0, out: <List<int>>[utf8.encode('/test/idevice_id')]);
+      String deviceId = await deviceDiscovery.deviceListOutput(processManager: processManager);
+      expect(deviceId, 'abc');
+    });
+  });
 }
