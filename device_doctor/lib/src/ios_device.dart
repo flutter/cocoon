@@ -56,7 +56,6 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     processManager ??= LocalProcessManager();
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (Device device in await discoverDevices()) {
-      print(device.deviceId);
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await keychainUnlockCheck(processManager: processManager));
