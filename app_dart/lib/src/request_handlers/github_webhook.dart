@@ -109,7 +109,7 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
     final String? branch = createEvent.ref;
-    final String? repository = createEvent.repository!.fullName;
+    final String? repository = createEvent.repository!.slug().fullName;
     final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
 
     final String id = '$repository/$branch';
