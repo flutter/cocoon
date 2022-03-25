@@ -101,6 +101,22 @@ class DatastoreService {
     return query.run();
   }
 
+  /// Queries for recent [Task] by name.
+  ///
+  /// The [limit] argument specifies the maximum number of tasks to retrieve.
+  ///
+  /// The returned tasks will be ordered by most recent to oldest.
+  Stream<Task> queryRecentTasksByName({
+    int limit = 100,
+    required String name,
+  }) {
+    final Query<Task> query = db.query<Task>()
+      ..limit(limit)
+      ..filter('name =', name)
+      ..order('-createTimestamp');
+    return query.run();
+  }
+
   /// Queries for recent tasks that meet the specified criteria.
   ///
   /// Since each task belongs to a commit, this query implicitly includes a

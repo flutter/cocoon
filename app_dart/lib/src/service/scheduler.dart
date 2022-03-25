@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
@@ -129,6 +130,19 @@ class Scheduler {
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
     final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
 
+    final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
+    for (Target target in initialTargets) {
+      final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
+      final SchedulerPolicy policy = target.schedulerPolicy;
+      final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
+      if (priority != null) {
+        // Mark task as in progress to ensure it isn't scheduled over
+        task.status = Task.statusInProgress;
+        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
+      }
+    }
+    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
+
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
@@ -139,14 +153,6 @@ class Scheduler {
     } catch (error) {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
-
-    final List<Pair<Target, Task>> toBeScheduled = <Pair<Target, Task>>[];
-    for (Target target in initialTargets) {
-      if (target.value.scheduler == pb.SchedulerSystem.cocoon) {
-        toBeScheduled.add(Pair<Target, Task>(target, tasks.singleWhere((Task task) => task.name == target.value.name)));
-      }
-    }
-    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
     await _uploadToBigQuery(commit);
   }

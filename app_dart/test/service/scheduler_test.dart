@@ -46,7 +46,6 @@ targets:
   - name: Linux A
     properties:
       custom: abc
-    scheduler: luci
   - name: Linux B
     enabled_branches:
       - stable
@@ -246,9 +245,15 @@ void main() {
                 commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
             .captured;
         final List<dynamic> toBeScheduled = captured.first as List<dynamic>;
-        expect(toBeScheduled.length, 1);
-        final Pair<Target, Task> targetToBeScheduled = toBeScheduled.first as Pair<Target, Task>;
-        expect(targetToBeScheduled.first.value.name, 'Linux runIf');
+        expect(toBeScheduled.length, 2);
+        final Iterable<Tuple<Target, Task, int>> tuples =
+            toBeScheduled.map((dynamic tuple) => tuple as Tuple<Target, Task, int>);
+        final Iterable<String> scheduledTargetNames =
+            tuples.map((Tuple<Target, Task, int> tuple) => tuple.second.name!);
+        expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
+        // Tasks triggered by cocoon are marked as in progress
+        final Iterable<Task> tasks = db.values.values.whereType<Task>();
+        expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status, Task.statusInProgress);
       });
     });
 

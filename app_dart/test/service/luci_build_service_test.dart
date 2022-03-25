@@ -355,13 +355,14 @@ void main() {
 
     test('schedule postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
-      final Pair<Target, Task> toBeScheduled = Pair<Target, Task>(
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
         generateTarget(1),
         generateTask(1),
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Pair<Target, Task>>[
+        toBeScheduled: <Tuple<Target, Task, int>>[
           toBeScheduled,
         ],
       );
