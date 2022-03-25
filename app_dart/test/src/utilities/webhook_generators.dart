@@ -847,11 +847,11 @@ String generateCreateBranchEvent(String branchName, String repository) => '''
   "repository": {
     "id": 186853002,
     "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
-    "name": "Hello-World",
+    "name": "${repository.split('/')[1]}",
     "full_name": "$repository",
     "private": false,
     "owner": {
-      "login": "Codertocat",
+      "login": "${repository.split('/')[0]}",
       "id": 21031067,
       "node_id": "MDQ6VXNlcjIxMDMxMDY3",
       "avatar_url": "https://avatars1.githubusercontent.com/u/21031067?v=4",
