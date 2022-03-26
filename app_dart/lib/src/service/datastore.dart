@@ -7,11 +7,12 @@ import 'dart:math';
 
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' show RepositorySlug, PullRequest;
 import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
+import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
@@ -98,6 +99,24 @@ class DatastoreService {
       ..filter('branch =', branch)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
+    return query.run();
+  }
+
+  //FOR REVIEW:
+  //creating a new query here instead of nesting conditionals on existing queries, to avoid https://github.com/dart-lang/linter/issues/86
+  /// Queries for recent active commits happening after timestamp.
+  ///
+  /// The commits will NOT be filtered based on slug (branch or repository).
+  Stream<Commit> queryActiveCommits({
+    int? timestamp,
+  }) {
+    timestamp ??= DateTime.now().millisecondsSinceEpoch;
+    final Query<Commit> query = db.query<Commit>()..filter('timestamp >', timestamp);
+    return query.run();
+  }
+
+  Stream<Branch> queryBranches() {
+    final Query<Branch> query = db.query<Branch>();
     return query.run();
   }
 
@@ -233,6 +252,16 @@ class DatastoreService {
         });
       }, retryOptions: retryOptions);
     }
+  }
+
+  /// Deletes entities with the associated [Key] from datastore.
+  Future<void> delete(List<Key<dynamic>> deletedKeys) async {
+    await runTransactionWithRetries(() async {
+      await db.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(deletes: deletedKeys);
+        await transaction.commit();
+      });
+    }, retryOptions: retryOptions);
   }
 
   /// Looks up registers by [keys].

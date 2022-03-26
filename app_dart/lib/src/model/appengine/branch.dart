@@ -11,7 +11,7 @@ part 'branch.g.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
-  Branch({Key<String>? key, required int lastActivity}) {
+  Branch({Key<String>? key, required this.lastActivity}) {
     parentKey = key?.parent;
     id = key?.id;
   }
@@ -19,7 +19,7 @@ class Branch extends Model<String> {
   /// The timestamp (in milliseconds since the Epoch) of the last time
   /// when current branch had activity.
   @IntProperty(propertyName: 'lastActivity', required: true)
-  int? lastActivity;
+  int lastActivity;
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repository);
@@ -36,6 +36,7 @@ class Branch extends Model<String> {
       ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', branch: $branch')
       ..write(', repository: $repository')
+      ..write(', lastActivity: $lastActivity')
       ..write(')');
     return buf.toString();
   }

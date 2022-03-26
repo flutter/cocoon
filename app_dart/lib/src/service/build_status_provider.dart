@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -135,6 +136,25 @@ class BuildStatusService {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
+  }
+
+  /// Returns a map from [Branch.key] to [Branch.lastActivity], i.e., all the active branches Ids and their associated timestamps.
+  Future<Map<String, int>> retrieveActiveBranchIds({
+    int? timestamp,
+  }) async {
+    Map<String, int> branchIdToActivity = {};
+    await for (Commit commit in datastoreService.queryActiveCommits(
+      timestamp: timestamp,
+    )) {
+      String branchId = '${commit.repository!}/${commit.branch}';
+      int lastAcitivity = commit.timestamp!;
+      if (branchIdToActivity.containsKey(branchId)) {
+        branchIdToActivity[branchId] = max(branchIdToActivity[branchId]!, lastAcitivity);
+      } else {
+        branchIdToActivity[branchId] = lastAcitivity;
+      }
+    }
+    return branchIdToActivity;
   }
 
   bool _isFailed(Task task) {

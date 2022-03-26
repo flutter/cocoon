@@ -58,3 +58,7 @@ cron:
 - description: check flaky builders to either deflake the builder or file a new flaky bug
   url: /api/check_flaky_builders
   schedule: every wednesday 16:00
+
+- description: update branches to reflect most recent commit activity
+  url: '/api/public/get-branches?update=true' 
+  schedule: every wednesday 16:00
