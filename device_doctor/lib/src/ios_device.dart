@@ -44,8 +44,11 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 
-  Future<String> deviceListOutput() async {
-    return eval('idevice_id', <String>['-l']);
+  Future<String> deviceListOutput({
+    ProcessManager processManager = const LocalProcessManager(),
+  }) async {
+    final String fullPathIdeviceId = await getMacBinaryPath('idevice_id', processManager: processManager);
+    return eval(fullPathIdeviceId, <String>['-l'], processManager: processManager);
   }
 
   @override

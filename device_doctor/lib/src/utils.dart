@@ -135,7 +135,10 @@ void writeToFile(String results, File file) {
 ///
 /// For M1 bots, binaries like `ideviceinstaller` are installed under `kM1BrewBinPath`,
 /// where they are not visible in `$PATH` by default.
-Future<String> getMacBinaryPath(String name, {ProcessManager processManager}) async {
+Future<String> getMacBinaryPath(
+  String name, {
+  ProcessManager processManager = const LocalProcessManager(),
+}) async {
   String path = await eval('which', <String>[name], canFail: true, processManager: processManager);
   if (path == null || path.isEmpty) {
     path = await eval('which', <String>['$kM1BrewBinPath/$name'], canFail: true, processManager: processManager);
