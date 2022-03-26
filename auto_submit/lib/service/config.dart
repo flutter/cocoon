@@ -41,14 +41,31 @@ class Config {
 
   Future<GitHub> createGithubClient() async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final String token = await cache['githubToken'].get(
+    final Uint8List? cacheValue = await cache['githubToken'].get(
       _generateGithubToken,
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
     );
-
+    final String token = String.fromCharCodes(cacheValue!);
     return GitHub(auth: Authentication.withToken(token));
+  }
+
+  Future<String> _getInstallationId() async {
+    final String jwt = await _generateGithubJwt();
+    final Map<String, String> headers = <String, String>{
+      'Authorization': 'Bearer $jwt',
+      'Accept': 'application/vnd.github.machine-man-preview+json'
+    };
+    final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
+    final http.Client client = httpProvider();
+    final http.Response response = await client.get(
+      githubInstallationUri,
+      headers: headers,
+    );
+    final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    final String installatinId = list[0]['id'].toString();
+    return installatinId;
   }
 
   Future<Uint8List> _generateGithubToken() async {
@@ -57,8 +74,8 @@ class Config {
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final String appId = await secretManager.get(kGithubAppId);
-    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appId/access_tokens');
+    final String installationId = await _getInstallationId();
+    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
       githubAccessTokensUri,
@@ -74,7 +91,13 @@ class Config {
   }
 
   Future<String> _generateGithubJwt() async {
-    final String privateKey = await secretManager.get(kGithubKey);
+    final String rawKey = await secretManager.get(kGithubKey);
+    StringBuffer sb = StringBuffer();
+    sb.writeln(rawKey.substring(0, 32));
+    sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
+    sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
+    final String privateKey = sb.toString();
+
     final JWTBuilder builder = JWTBuilder();
     final DateTime now = DateTime.now();
     builder
