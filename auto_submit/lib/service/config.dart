@@ -59,6 +59,7 @@ class Config {
     };
     final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
     final http.Client client = httpProvider();
+    // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
     final http.Response response = await client.get(
       githubInstallationUri,
       headers: headers,
