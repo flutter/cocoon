@@ -11,15 +11,19 @@ part 'branch.g.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
-  Branch({Key<String>? key, required int lastActivity}) {
+  Branch({Key<String>? key, this.lastActivity}) {
     parentKey = key?.parent;
     id = key?.id;
   }
 
   /// The timestamp (in milliseconds since the Epoch) of the last time
   /// when current branch had activity.
-  @IntProperty(propertyName: 'lastActivity', required: true)
+  @IntProperty(propertyName: 'lastActivity', required: false)
   int? lastActivity;
+
+  /// The channel of current branch
+  @StringProperty(propertyName: 'channel', required: false)
+  String? channel;
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repository);
@@ -35,7 +39,9 @@ class Branch extends Model<String> {
       ..write('id: $id')
       ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', branch: $branch')
+      ..write(', channel: $channel')
       ..write(', repository: $repository')
+      ..write(', lastActivity: $lastActivity')
       ..write(')');
     return buf.toString();
   }

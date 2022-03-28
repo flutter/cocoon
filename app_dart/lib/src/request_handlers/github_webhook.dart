@@ -5,10 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/appengine/branch.dart';
-import 'package:cocoon_service/src/model/github/create_event.dart';
+import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
@@ -86,7 +84,8 @@ class GithubWebhook extends RequestHandler<Body> {
           }
           break;
         case 'create':
-          await _handleCreateRequest(stringRequest, datastore);
+          final BranchService branchService = BranchService(datastore, rawRequest: stringRequest);
+          await branchService.handleCreateRequest();
           break;
       }
 
@@ -95,30 +94,6 @@ class GithubWebhook extends RequestHandler<Body> {
       throw const BadRequestException('Could not process input data.');
     } on InternalServerError {
       rethrow;
-    }
-  }
-
-  Future<void> _handleCreateRequest(String rawRequest, DatastoreService datastore) async {
-    final CreateEvent? createEvent = await _getCreateRequestEvent(rawRequest);
-    if (createEvent == null) {
-      throw const BadRequestException('Expected create request event.');
-    }
-
-    final String? refType = createEvent.refType;
-    if (refType == 'tag') {
-      return;
-    }
-    final String? branch = createEvent.ref;
-    final String? repository = createEvent.repository!.slug().fullName;
-    final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
-
-    final String id = '$repository/$branch';
-    final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
-    final Branch currentBranch = Branch(key: key, lastActivity: lastActivity);
-    try {
-      await datastore.lookupByValue<Branch>(currentBranch.key);
-    } on KeyNotFoundException {
-      await datastore.insert(<Branch>[currentBranch]);
     }
   }
 
@@ -555,14 +530,6 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<PullRequestEvent?> _getPullRequestEvent(String request) async {
     try {
       return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
-    } on FormatException {
-      return null;
-    }
-  }
-
-  Future<CreateEvent?> _getCreateRequestEvent(String request) async {
-    try {
-      return CreateEvent.fromJson(json.decode(request) as Map<String, dynamic>);
     } on FormatException {
       return null;
     }
