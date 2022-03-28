@@ -45,7 +45,6 @@ class Config {
   }
 
   Future<String> generateGithubToken() async {
-    print('Come to generateGithubToken');
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
     final Uint8List? cacheValue = await cache['githubToken'].get(
       _generateGithubToken,
@@ -76,7 +75,6 @@ class Config {
   }
 
   Future<Uint8List> _generateGithubToken() async {
-    print('Come to _generateGithubToken');
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',

@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
+import 'package:auto_submit/foundation/providers.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -18,21 +18,21 @@ void main() {
     late CacheProvider cacheProvider;
     late Config config;
     const int kCacheSize = 1024;
+    final HttpProvider httpProvider = Providers.freshHttpClient;
+    final SecretManager secretManager = LocalSecretManager();
 
     setUp(() {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
       config = Config(
         cacheProvider: cacheProvider,
-        secretManager: CloudSecretManager(),
+        httpProvider: httpProvider,
+        secretManager: secretManager,
       );
     });
 
     test('githubAppInstallationId ', () async {
-      await withAppEngineServices(() async {
-        useLoggingPackageAdaptor();
-        final String installationId = await config.getInstallationId();
-        expect(installationId, '24369313');
-      });
+      final String installationId = await config.getInstallationId();
+      expect(installationId, '24369313');
     });
 
     test('generateGithubToken pulls from cache', () async {
