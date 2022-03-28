@@ -1,1 +1,1 @@
-String testMessage = 'This is to test the pubsub topic.';
+String testMessage = 'This is to test the pubsub topic and subsription.';
