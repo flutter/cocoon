@@ -40,6 +40,12 @@ class Config {
   }
 
   Future<GitHub> createGithubClient() async {
+    String token = await generateGithubToken();
+    return GitHub(auth: Authentication.withToken(token));
+  }
+
+  Future<String> generateGithubToken() async {
+    print('Come to generateGithubToken');
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
     final Uint8List? cacheValue = await cache['githubToken'].get(
       _generateGithubToken,
@@ -47,16 +53,16 @@ class Config {
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
     );
-    final String token = String.fromCharCodes(cacheValue!);
-    return GitHub(auth: Authentication.withToken(token));
+    return String.fromCharCodes(cacheValue!);
   }
 
-  Future<String> _getInstallationId() async {
+  Future<String> getInstallationId() async {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
+    // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
     final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
     final http.Client client = httpProvider();
     // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
@@ -70,12 +76,13 @@ class Config {
   }
 
   Future<Uint8List> _generateGithubToken() async {
+    print('Come to _generateGithubToken');
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final String installationId = await _getInstallationId();
+    final String installationId = await getInstallationId();
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
