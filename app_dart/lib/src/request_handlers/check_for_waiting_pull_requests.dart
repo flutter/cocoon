@@ -67,6 +67,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
     for (_AutoMergeQueryResult queryResult in queryResults) {
+      log.info('Trying to merge: $queryResult');
       if (await shouldMergePullRequest(mergeCount, queryResult, slug)) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -97,6 +98,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(int mergeCount, _AutoMergeQueryResult queryResult, RepositorySlug slug) async {
     if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
+      log.info('Should merge: ${queryResult.number} $queryResult');
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
@@ -131,7 +133,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     final String labelName = config.waitingForTreeToGoGreenLabelName;
-
     final QueryResult result = await client.query(
       QueryOptions(
         document: labeledPullRequestsWithReviewsQuery,
@@ -189,10 +190,20 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     ));
 
     if (result.hasException) {
-      log.severe(result.exception.toString());
+      log.severe('Failed to merge pr#: $number with ${result.exception.toString()}');
       return false;
     }
     return true;
+  }
+
+  /// Gets a labelId for a given pullRequest and label.
+  String? getLabelId(Map<String, dynamic> pullRequest, String label) {
+    for (Map<String, dynamic> labelMap in pullRequest['labels']['nodes']) {
+      if (labelMap['name'] == label) {
+        return labelMap['id'] as String;
+      }
+    }
+    return null;
   }
 
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
@@ -203,17 +214,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
-
-    final Map<String, dynamic>? label = repository['labels']['nodes'].single as Map<String, dynamic>?;
-    if (label == null || label.isEmpty) {
-      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
-    }
-    final String? labelId = label['id'] as String?;
-    log.info('LabelId of returned PRs: $labelId');
+    String? labelId;
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
-        (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+        (repository['pullRequests']['nodes'] as List<dynamic>).map((dynamic e) => e as Map<String, dynamic>);
     for (Map<String, dynamic> pullRequest in pullRequests) {
+      labelId = getLabelId(pullRequest, config.waitingForTreeToGoGreenLabelName);
       log.info('Is pull request #${pullRequest['number']} mergeable: ${pullRequest['mergeable']}');
       // This is used to remove the bot label as it requires manual intervention.
       final bool isConflicting = pullRequest['mergeable'] == 'CONFLICTING';
@@ -278,7 +284,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         labels,
       );
 
-      list.add(_AutoMergeQueryResult(
+      _AutoMergeQueryResult result = _AutoMergeQueryResult(
           graphQLId: id,
           ciSuccessful: ciSuccessful,
           failures: failures,
@@ -291,7 +297,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
-          labels: labels));
+          labels: labels);
+      log.info('Automerge result: $result');
+
+      list.add(result);
     }
     return list;
   }
@@ -354,20 +363,25 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       if (checkRun['conclusion'] == 'SUCCESS') {
         continue;
       } else if (checkRun['status'] == 'COMPLETED') {
+        log.info('Failure in status: ${checkRun['detailsUrl'] as String}');
         failures.add(_FailureDetail(name!, checkRun['detailsUrl'] as String));
       }
       allSuccess = false;
     }
 
+    if (!Config.cirrusSupportedRepos.contains(name)) {
+      return allSuccess;
+    }
     // Validate cirrus
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     // Returns the first build statues, which reflect the recent PR/commit statuses.
     final CirrusResult cirrusResult = await queryCirrusGraphQL(sha, cirrusClient, name);
+
     final List<Map<String, dynamic>> cirrusStatuses = cirrusResult.tasks;
     if (cirrusStatuses.isEmpty) {
-      return allSuccess;
+      failures.add(const _FailureDetail('Cirrus statuses were expected', ''));
     }
     for (Map<String, dynamic> runStatus in cirrusStatuses) {
       final String? status = runStatus['status'] as String?;
@@ -377,9 +391,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         allSuccess = false;
       }
       if (_failedStates.contains(status)) {
+        log.info('Failure in status: https://cirrus-ci.com/task/$id');
         failures.add(_FailureDetail(name!, 'https://cirrus-ci.com/task/$id'));
       }
     }
+    log.info('Completed cirrus validations with allSuccess: $allSuccess');
 
     return allSuccess;
   }

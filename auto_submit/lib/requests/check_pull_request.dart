@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:github/github.dart';
+import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 
+import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
@@ -20,32 +22,54 @@ import '../server/request_handler.dart';
 class CheckPullRequest extends RequestHandler {
   CheckPullRequest({
     required Config config,
+    this.pubsub = const PubSub(),
   }) : super(config: config);
 
-  Future<Response> get(Request request) async {
-    //TODO(Kristin): Change the way to get this PR later according to the real situation, https://github.com/flutter/flutter/issues/99720
-    final String rawBody = await request.readAsString();
-    final body = json.decode(rawBody) as Map<String, dynamic>;
-    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
+  final PubSub pubsub;
 
+  static const int kPullMesssageBatchSize = 100;
+
+  Future<List<Response>> get() async {
+    List<Response> responses = <Response>[];
+    final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
+    final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
+    if (receivedMessages == null) {
+      log.info('There are no requests in the queue');
+      responses.add(Response.ok('No requests in the queue.'));
+      return responses;
+    }
+    final List<Future<Response>> futures = <Future<Response>>[];
+    for (pub.ReceivedMessage message in receivedMessages) {
+      futures.add(_processMessage(message));
+    }
+    responses.addAll(await Future.wait(futures));
+    return responses;
+  }
+
+  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage) async {
+    final String data = receivedMessage.message!.data!;
+    final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
+    final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+    log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
+    await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       log.info('Merge the pull request: ${queryResult.number}');
       // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-      return Response.ok('Merge the pull request.');
+      return Response.ok('Merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
-      return Response.ok('Remove the autosubmit label.');
+      return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {
       log.info('The pull request ${queryResult.number} has unfinished tests,'
           'push to pubsub and check later.');
-      // TODO(Kristin): If the PR have tests that haven't finished running, leave this PR in pubsub.
-      // https://github.com/flutter/flutter/issues/100076
+      await pubsub.publish('auto-submit-queue', pullRequest);
     }
-    return Response.ok('Does not merge the pull request.');
+    return Response.ok('Does not merge the pull request ${queryResult.number}.');
   }
 
   /// Check if the pull request should be merged.

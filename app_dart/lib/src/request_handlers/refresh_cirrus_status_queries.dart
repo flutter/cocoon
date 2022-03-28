@@ -10,6 +10,6 @@ final DocumentNode cirusStatusQuery = lang.parseString(r'''
       searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
         id branch latestGroupTasks { 
           id name status 
-        } 
-      } 
+        }
+      }  
     }''');

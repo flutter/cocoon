@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:device_doctor/src/ios_device.dart';
+import 'package:process/process.dart';
 
 class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
   FakeIosDeviceDiscovery(File output) : super.testing(output);
@@ -19,7 +20,9 @@ class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
   }
 
   @override
-  Future<String> deviceListOutput() async {
+  Future<String> deviceListOutput({
+    ProcessManager processManager = const LocalProcessManager(),
+  }) async {
     _pos++;
     if (_outputs[_pos - 1] is String) {
       return _outputs[_pos - 1] as String;
