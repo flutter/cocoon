@@ -275,6 +275,10 @@ void main() {
     }
 
     test('Errors can be logged', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       final List<GraphQLError> errors = <GraphQLError>[
         const GraphQLError(message: 'message'),
@@ -289,10 +293,14 @@ void main() {
       await tester.get(handler);
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, errors.length);
-      expect(errorLogs.first.message, exception.toString());
+      expect(errorLogs.first.message, 'Failed to merge pr#: 0 with ${exception.toString()}');
     });
 
     test('Merges unapproved PR from autoroller', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
         author: 'engine-roller',
@@ -326,6 +334,10 @@ void main() {
     });
 
     test('Merges unapproved PR from dependabot', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       config.rollerAccountsValue = <String>{'dependabot'};
       flutterRepoPRs.add(PullRequestHelper(
           author: 'dependabot', reviews: const <PullRequestReviewHelper>[], labels: waitForTreeGreenlabels));
@@ -421,6 +433,10 @@ void main() {
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -477,6 +493,10 @@ void main() {
     });
 
     test('Merges PR with check that is successful but still considered running', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -500,6 +520,10 @@ void main() {
     });
 
     test('Does not merge PR with failed checks', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
@@ -533,6 +557,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not fail with null checks', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
@@ -563,6 +591,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Empty validations do not merge', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
@@ -592,6 +624,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merge PR with successful checks on repo without tree status', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         repo: 'cocoon',
@@ -614,6 +650,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merge PR with successful status and checks', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -636,6 +676,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge if non member does not have at least 2 member reviews', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
@@ -668,6 +712,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Self review is disallowed', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
@@ -763,6 +811,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge unapproved PR from a hacker', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
@@ -810,6 +862,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merges first 2 PRs in list, all successful', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels)); // will be ignored.
@@ -838,6 +894,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Merges 1st and 3rd PR, 2nd failed', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
@@ -884,6 +944,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Ignores PRs that are too new', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       flutterRepoPRs.add(PullRequestHelper(
         dateTime: DateTime.now().add(const Duration(minutes: -50)),
         labels: waitForTreeGreenlabels,
@@ -948,6 +1012,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Allows member to change review', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       final PullRequestHelper prChangedReview = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
@@ -972,6 +1040,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Ignores non-member/owner reviews', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
@@ -1038,6 +1110,10 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Remove labels', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prOneBadReview = PullRequestHelper(
