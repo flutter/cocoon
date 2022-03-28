@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../logic/qualified_task.dart';
 import '../model/build_status_response.pb.dart';
@@ -97,14 +98,16 @@ class DevelopmentCocoonService implements CocoonService {
     return _pausedStatus!.future;
   }
 
+  static const List<String> _repos = <String>[
+    'flutter',
+    'engine',
+    'cocoon',
+    'plugins',
+  ];
+
   @override
   Future<CocoonResponse<List<String>>> fetchRepos() async {
-    return const CocoonResponse<List<String>>.data(<String>[
-      'flutter',
-      'engine',
-      'cocoon',
-      'plugins',
-    ]);
+    return const CocoonResponse<List<String>>.data(_repos);
   }
 
   @override
@@ -123,8 +126,20 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    return const CocoonResponse<List<String>>.data(<String>['master', 'main', 'dev', 'beta', 'stable']);
+  Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
+    List<Branch> fakeBranches = <Branch>[];
+    for (String repo in _repos) {
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = 'master');
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = 'main');
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = '$repo-release');
+    }
+    return CocoonResponse<List<Branch>>.data(fakeBranches);
   }
 
   @override

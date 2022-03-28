@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
 
 import 'logic/task_grid_filter.dart';
@@ -69,7 +70,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   /// Convert the fields from this class into a URL.
   ///
   /// This enables bookmarking state specific values, like [repo].
-  void _updateNavigation(BuildContext context) {
+  void _updateNavigation(BuildContext context, BuildState buildState) {
     final Map<String, String> queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
@@ -78,7 +79,13 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       queryParameters.addAll(_filter!.toMap(includeDefaults: false));
     }
     queryParameters['repo'] = repo!;
-    queryParameters['branch'] = branch!;
+
+    Set<String> validOptions =
+        buildState.branches.where((Branch b) => b.repository == repo).map((Branch b) => b.branch).toSet();
+    branch = validOptions.contains(branch) ? branch : 'master';
+    queryParameters['branch'] = validOptions.contains(branch) ? branch! : 'master';
+    // FOR REVIEW: If we switch to a repo where the current release branch does not exist, I am updating the branch to be master
+
     final Uri uri = Uri(
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
@@ -134,7 +141,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                       ),
                       TextButton(
                         child: const Text('Apply'),
-                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
+                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context, _buildState),
                       ),
                       TextButton(
                         child: const Text('Cancel'),
@@ -183,7 +190,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedRepo) {
           repo = selectedRepo;
-          _updateNavigation(context);
+          _updateNavigation(context, _buildState);
         },
         items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
@@ -218,14 +225,18 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedBranch) {
           branch = selectedBranch;
-          _updateNavigation(context);
+          _updateNavigation(context, _buildState);
         },
-        items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+        items: _buildState.branches
+            .where((Branch b) => b.repository == _buildState.currentRepo)
+            .map<DropdownMenuItem<String>>((Branch b) {
+// FOR REVIW: ended up using _buildstate for the check, debugged really long but wasn't sure why [repo] will sometimes lag [_buildState.currentRepo],
+// seems like delayed network but not sure
           return DropdownMenuItem<String>(
-            value: value,
+            value: b.branch,
             child: Padding(
               padding: const EdgeInsets.only(top: 9.0),
-              child: Center(child: Text(value, style: theme.primaryTextTheme.bodyText1)),
+              child: Center(child: Text(b.branch, style: theme.primaryTextTheme.bodyText1)),
             ),
           );
         }).toList(),

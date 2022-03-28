@@ -5,6 +5,7 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/logic/qualified_task.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -202,30 +203,37 @@ void main() {
       }));
     });
 
-    test('should return CocoonResponse<List<String>>', () {
-      expect(service.fetchFlutterBranches(), const TypeMatcher<Future<CocoonResponse<List<String>>>>());
+    test('should return CocoonResponse<List<Branch>>', () {
+      expect(service.fetchFlutterBranches(), const TypeMatcher<Future<CocoonResponse<List<Branch>>>>());
     });
 
     test('data should be expected list of branches', () async {
-      final CocoonResponse<List<String>> branches = await service.fetchFlutterBranches();
+      final CocoonResponse<List<Branch>> branches = await service.fetchFlutterBranches();
 
-      expect(branches.data, <String>[
-        'master',
-        'flutter-0.0-candidate.1',
-      ]);
+      expect(branches.data!.length, 2);
+      expect(
+          branches.data,
+          allOf([
+            contains(Branch()
+              ..repository = 'flutter'
+              ..branch = 'branch-framework-release'),
+            contains(Branch()
+              ..repository = 'engine'
+              ..branch = 'branch-engine-release')
+          ]));
     });
 
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<List<String>> response = await service.fetchFlutterBranches();
+      final CocoonResponse<List<Branch>> response = await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<List<String>> response = await service.fetchFlutterBranches();
+      final CocoonResponse<List<Branch>> response = await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
     });
   });
