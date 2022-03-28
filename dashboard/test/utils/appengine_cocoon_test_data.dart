@@ -57,14 +57,24 @@ const String luciJsonGetStatsResponse = '''
   }
 ''';
 
-const String jsonGetBranchesResponse = '''
-  {
-    "Branches": [
-      "master",
-      "flutter-0.0-candidate.1"
-    ]
-  }
-''';
+const String jsonGetBranchesResponse = '''{
+   "Branches":[
+      {
+         "key":"ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtb2xkDKIBCVtkZWZhdWx0XQ",
+         "branch":{
+            "branch":"branch-framework-release",
+            "repository":"flutter/flutter"
+         }
+      },
+     {
+        "key":"ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtbm93DKIBCVtkZWZhdWx0XQ",
+        "branch":{
+           "branch":"branch-engine-release",
+           "repository":"flutter/engine"
+        }
+     }
+   ]
+}''';
 
 const String jsonGetReposResponse = '''
   [

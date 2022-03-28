@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show compute, kIsWeb, visibleForTesting;
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:http/http.dart' as http;
 
 import '../logic/qualified_task.dart';
@@ -113,22 +114,31 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
+  Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
     final Uri getBranchesUrl = apiEndpoint('/api/public/get-branches');
 
     /// This endpoint returns JSON {"Branches": List<String>}
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>.error('/api/public/get-branches returned ${response.statusCode}');
+      return CocoonResponse<List<Branch>>.error('/api/public/get-branches returned ${response.statusCode}');
     }
 
     try {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-      final List<String>? branches = jsonResponse['Branches'].cast<String>();
-      return CocoonResponse<List<String>>.data(branches);
+
+      final List<Branch> branches = <Branch>[];
+      for (final Map<String, dynamic> jsonBranch in jsonResponse['Branches']) {
+        final Map<String, dynamic> branchInfo = jsonBranch['branch'];
+        branches.add(Branch()
+          ..branch = branchInfo['branch']
+          ..repository = branchInfo['repository'].split('/')[1]);
+        // FOR REVIEW : currently only supports flutter/repo since the function name is fetchFlutterBranches
+        // will need to modify branch.proto, frontend, and split() a bit if we would like to support repo outside flutter
+      }
+      return CocoonResponse<List<Branch>>.data(branches);
     } catch (error) {
-      return CocoonResponse<List<String>>.error(error.toString());
+      return CocoonResponse<List<Branch>>.error(error.toString());
     }
   }
 

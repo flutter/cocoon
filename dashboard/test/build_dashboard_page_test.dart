@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -50,7 +51,7 @@ void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
     final MockCocoonService fakeCocoonService = MockCocoonService();
     throwOnMissingStub(fakeCocoonService);
-    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
     when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
     when(fakeCocoonService.fetchCommitStatuses(
       branch: anyNamed('branch'),

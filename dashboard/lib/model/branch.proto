@@ -4,9 +4,7 @@
 
 syntax = "proto3";
 
-import "lib/model/key.proto";
-
 message Branch {
-    optional RootKey key = 1;
-    optional int64 lastActivity = 2;
+    optional string branch = 1;
+    optional string repository = 2;
 }

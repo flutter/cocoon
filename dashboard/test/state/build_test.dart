@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
@@ -36,8 +37,11 @@ void main() {
               CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
       when(mockCocoonService.fetchRepos())
           .thenAnswer((_) async => const CocoonResponse<List<String>>.data(<String>['flutter']));
-      when(mockCocoonService.fetchFlutterBranches())
-          .thenAnswer((_) async => const CocoonResponse<List<String>>.data(<String>[_defaultBranch]));
+      when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) async => CocoonResponse<List<Branch>>.data(<Branch>[
+            Branch()
+              ..branch = _defaultBranch
+              ..repository = 'flutter'
+          ]));
     });
 
     tearDown(() {
@@ -315,7 +319,7 @@ void main() {
     when(mockSignInPlugin.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
     final MockCocoonService mockCocoonService = MockCocoonService();
-    when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
     when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
         .thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
     when(mockCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);

@@ -107,6 +107,7 @@ void main() {
 
       final Map<String, dynamic> result = (await decodeHandlerBody())!;
       expect((result['Branches'].single)['branch']['branch'], 'branch-created-now');
+      expect((result['Branches'].single)['key'].runtimeType, String);
     });
 
     test('should retrieve stale branch if after update, stale branch gains recent commit acitivties', () async {

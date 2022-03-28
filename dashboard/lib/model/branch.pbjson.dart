@@ -13,15 +13,15 @@ import 'dart:typed_data' as $typed_data;
 const Branch$json = {
   '1': 'Branch',
   '2': [
-    {'1': 'key', '3': 1, '4': 1, '5': 11, '6': '.RootKey', '9': 0, '10': 'key', '17': true},
-    {'1': 'lastActivity', '3': 2, '4': 1, '5': 3, '9': 1, '10': 'lastActivity', '17': true},
+    {'1': 'branch', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'branch', '17': true},
+    {'1': 'repository', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'repository', '17': true},
   ],
   '8': [
-    {'1': '_key'},
-    {'1': '_lastActivity'},
+    {'1': '_branch'},
+    {'1': '_repository'},
   ],
 };
 
 /// Descriptor for `Branch`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List branchDescriptor = $convert.base64Decode(
-    'CgZCcmFuY2gSHwoDa2V5GAEgASgLMgguUm9vdEtleUgAUgNrZXmIAQESJwoMbGFzdEFjdGl2aXR5GAIgASgDSAFSDGxhc3RBY3Rpdml0eYgBAUIGCgRfa2V5Qg8KDV9sYXN0QWN0aXZpdHk=');
+    'CgZCcmFuY2gSGwoGYnJhbmNoGAEgASgJSABSBmJyYW5jaIgBARIjCgpyZXBvc2l0b3J5GAIgASgJSAFSCnJlcG9zaXRvcnmIAQFCCQoHX2JyYW5jaEINCgtfcmVwb3NpdG9yeQ==');

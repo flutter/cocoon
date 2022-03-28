@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -67,7 +68,11 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<void>? fetchMoreCommitStatuses() => null;
 
   @override
-  List<String> get branches => <String>['master'];
+  List<Branch> get branches => <Branch>[
+        Branch()
+          ..branch = 'master'
+          ..repository = 'flutter'
+      ];
 
   @override
   String get currentBranch => _currentBranch;

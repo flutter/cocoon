@@ -7,32 +7,27 @@
 
 import 'dart:core' as $core;
 
-import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
-
-import 'key.pb.dart' as $0;
 
 class Branch extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Branch',
       createEmptyInstance: create)
-    ..aOM<$0.RootKey>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key',
-        subBuilder: $0.RootKey.create)
-    ..aInt64(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastActivity',
-        protoName: 'lastActivity')
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'branch')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'repository')
     ..hasRequiredFields = false;
 
   Branch._() : super();
   factory Branch({
-    $0.RootKey? key,
-    $fixnum.Int64? lastActivity,
+    $core.String? branch,
+    $core.String? repository,
   }) {
     final _result = create();
-    if (key != null) {
-      _result.key = key;
+    if (branch != null) {
+      _result.branch = branch;
     }
-    if (lastActivity != null) {
-      _result.lastActivity = lastActivity;
+    if (repository != null) {
+      _result.repository = repository;
     }
     return _result;
   }
@@ -59,28 +54,26 @@ class Branch extends $pb.GeneratedMessage {
   static Branch? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.RootKey get key => $_getN(0);
+  $core.String get branch => $_getSZ(0);
   @$pb.TagNumber(1)
-  set key($0.RootKey v) {
-    setField(1, v);
+  set branch($core.String v) {
+    $_setString(0, v);
   }
 
   @$pb.TagNumber(1)
-  $core.bool hasKey() => $_has(0);
+  $core.bool hasBranch() => $_has(0);
   @$pb.TagNumber(1)
-  void clearKey() => clearField(1);
-  @$pb.TagNumber(1)
-  $0.RootKey ensureKey() => $_ensure(0);
+  void clearBranch() => clearField(1);
 
   @$pb.TagNumber(2)
-  $fixnum.Int64 get lastActivity => $_getI64(1);
+  $core.String get repository => $_getSZ(1);
   @$pb.TagNumber(2)
-  set lastActivity($fixnum.Int64 v) {
-    $_setInt64(1, v);
+  set repository($core.String v) {
+    $_setString(1, v);
   }
 
   @$pb.TagNumber(2)
-  $core.bool hasLastActivity() => $_has(1);
+  $core.bool hasRepository() => $_has(1);
   @$pb.TagNumber(2)
-  void clearLastActivity() => clearField(2);
+  void clearRepository() => clearField(2);
 }
