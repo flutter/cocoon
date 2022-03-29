@@ -23,8 +23,8 @@ void main() {
     late CacheProvider cacheProvider;
     late Config config;
     late MockClient mockClient;
-    const int kCacheSize = 1024;
     final SecretManager secretManager = LocalSecretManager();
+    const int kCacheSize = 1024;
 
     setUp(() {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
@@ -36,7 +36,9 @@ void main() {
       );
     });
 
-    test('githubAppInstallationId ', () async {
+    test('verify github App InstallationId ', () async {
+      secretManager.put('AUTO_SUBMIT_GITHUB_KEY', 'testKey');
+      secretManager.put('AUTO_SUBMIT_GITHUB_APP_ID', '123');
       final String installationId = await config.getInstallationId();
       expect(installationId, '24369313');
     });
