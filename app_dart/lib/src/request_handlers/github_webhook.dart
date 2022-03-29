@@ -246,7 +246,7 @@ class GithubWebhook extends RequestHandler<Body> {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -368,7 +368,7 @@ class GithubWebhook extends RequestHandler<Body> {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -421,7 +421,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -460,9 +460,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (baseName == defaultBranchName) {
       return;
     }
-    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
-      // This is most likely a release branch
+    if (_isReleaseBranch(pr)) {
       body = config.releaseBranchPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -480,6 +478,21 @@ class GithubWebhook extends RequestHandler<Body> {
       );
       await gitHubClient.issues.createComment(slug, pr.number!, body);
     }
+  }
+
+  bool _isReleaseBranch(PullRequest pr) {
+    final String defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
+    final String baseName = pr.base!.ref!;
+
+    if (baseName == defaultBranchName) {
+      return false;
+    }
+    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
+      // This is most likely a release branch
+      return true;
+    }
+    return false;
   }
 
   Future<bool> _alreadyCommented(
