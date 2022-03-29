@@ -487,9 +487,13 @@ class GithubWebhook extends RequestHandler<Body> {
     if (baseName == defaultBranchName) {
       return false;
     }
+    // Check if branch name confroms to the format flutter-x.x-candidate.x,
+    // A pr with conforming branch name is likely to be intended
+    // for a release branch, whereas a pr with non conforming name is likely
+    // caused by user misoperations, in which case bot
+    // will suggest open pull request against default branch instead.
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
     if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
-      // This is most likely a release branch
       return true;
     }
     return false;
