@@ -28,6 +28,12 @@ import 'logging.dart';
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
+/// Name of an example release base branch name.
+const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
+
+/// Name of an example release head branch name.
+const String kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
+
 class Config {
   Config(this._db, this._cache);
 
