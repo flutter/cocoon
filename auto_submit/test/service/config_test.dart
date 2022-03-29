@@ -2,30 +2,36 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:auto_submit/foundation/providers.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
+import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
+import 'config_test_data.dart';
+
 /// Number of entries allowed in [Cache].
 const int kCacheSize = 1024;
+
 void main() {
   group('Config', () {
     late CacheProvider cacheProvider;
     late Config config;
+    late MockClient mockClient;
     const int kCacheSize = 1024;
-    final HttpProvider httpProvider = Providers.freshHttpClient;
     final SecretManager secretManager = LocalSecretManager();
 
     setUp(() {
       cacheProvider = Cache.inMemoryCacheProvider(kCacheSize);
+      mockClient = MockClient((_) async => http.Response(installations, HttpStatus.ok));
       config = Config(
         cacheProvider: cacheProvider,
-        httpProvider: httpProvider,
+        httpProvider: () => mockClient,
         secretManager: secretManager,
       );
     });
