@@ -29,6 +29,13 @@ class GuranteedPolicy implements SchedulerPolicy {
       LuciBuildService.kDefaultPriority;
 }
 
+/// [Task] is run at least every 3 commits.
+///
+/// If there is capacity, a backfiller cron triggers the latest task that was not run
+/// to ensure ToT is always tested.
+///
+/// This is intended for targets that are run in an infra pool that has limited capacity,
+/// such as the on device tests in the DeviceLab.
 class BatchPolicy implements SchedulerPolicy {
   static const int kBatchSize = 3;
   @override
