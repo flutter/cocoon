@@ -249,7 +249,7 @@ String failedAuthorsStatusesMock = '''{
   ]
 }''';
 
-String failedNonAuthorsStatusesMock = '''{
+final String failedNonAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {
@@ -321,3 +321,53 @@ final String createCommentMock = '''
   },
   "body": "Great stuff!"
 }''';
+
+String generateCommitsMock({String? date}) {
+  return '''
+[
+  {
+    "sha": "881bfbc1c937606c00a7077baabb2760d13d40b5",
+    "commit": {
+      "author": {
+        "name": "octocat",
+        "date": "2022-03-26T00:00:30Z"
+      },
+      "committer": {
+        "name": "octocat",
+        "date": "2022-03-26T00:00:30Z"
+      },
+      "message": "test commit"
+    },
+    "author": {
+      "login": "octocat",
+      "id": 98613535
+    },
+    "committer": {
+      "login": "octocat",
+      "id": 98613535
+    }
+  },
+  {
+    "sha": "881bfbc1c937606c00a7077baabb2760d13d43434",
+    "commit": {
+      "author": {
+        "name": "octocat",
+        "date": "${date ?? "2022-03-26T00:00:30Z"}"
+      },
+      "committer": {
+        "name": "octocat",
+        "date": "${date ?? "2022-03-26T00:00:30Z"}"
+      },
+      "message": "test commit"
+    },
+    "author": {
+      "login": "octocat",
+      "id": 98613535
+    },
+    "committer": {
+      "login": "octocat",
+      "id": 98613535
+    }
+  }
+]''';
+}

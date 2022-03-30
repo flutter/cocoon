@@ -20,6 +20,7 @@ class FakeGithubService implements GithubService {
     String? compareTowCommitsMock,
     String? successMergeMock,
     String? createCommentMock,
+    String? commitsMock,
   }) : github = client ?? MockGitHub();
 
   @override
@@ -32,6 +33,7 @@ class FakeGithubService implements GithubService {
   String? compareTowCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
+  String? commitsMock;
 
   set reviewsData(String? reviewsMock) {
     this.reviewsMock = reviewsMock;
@@ -59,6 +61,10 @@ class FakeGithubService implements GithubService {
 
   set createCommentData(String? createCommentMock) {
     this.createCommentMock = createCommentMock;
+  }
+
+  set commitsData(String? commitsMock) {
+    this.commitsMock = commitsMock;
   }
 
   @override
@@ -118,5 +124,14 @@ class FakeGithubService implements GithubService {
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
     final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
     return issueComment;
+  }
+
+  @override
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, int number) async {
+    @override
+    final List<dynamic> commits = json.decode(commitsMock!) as List;
+    final List<RepositoryCommit> prCommits =
+        commits.map((dynamic commit) => RepositoryCommit.fromJson(commit)).toList();
+    return prCommits;
   }
 }

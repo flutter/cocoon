@@ -15,6 +15,14 @@ import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 
+/// Injected latency per repository. Engine and Flutter use an injected latency of 1h meaning
+/// that the bot skips any commits younger than 1h. However 1h is too long for some repositories
+/// whose builds are faster. Use this constant to override the default 1h latency for a given repository.
+const Map<String, Duration> _kInjectedLatencies = <String, Duration>{
+  'cocoon': Duration(minutes: 10),
+  'packages': Duration(minutes: 10)
+};
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -51,25 +59,44 @@ class CheckPullRequest extends RequestHandler {
     final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
-    await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();
+    final int prNumber = pullRequest.number!;
+    if (await shouldSkip(slug, prNumber, gitHub)) {
+      return Response.ok('Skip the pull request $prNumber now and check it later.');
+    }
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       log.info('Merge the pull request: ${queryResult.number}');
       // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-      return Response.ok('Merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
+      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+      return Response.ok('Merge the pull request $prNumber in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
+      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
       return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {
-      log.info('The pull request ${queryResult.number} has unfinished tests,'
+      log.info('The pull request $prNumber has unfinished tests,'
           'push to pubsub and check later.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
     }
-    return Response.ok('Does not merge the pull request ${queryResult.number}.');
+    return Response.ok('Does not merge the pull request $prNumber.');
+  }
+
+  /// Skip commits that are less than injected latency.
+  Future<bool> shouldSkip(RepositorySlug slug, int number, GithubService gitHub) async {
+    List<RepositoryCommit> commits = await gitHub.listCommits(slug, number);
+    RepositoryCommit latestCommit = commits.last;
+    final DateTime utcDate = latestCommit.commit!.committer!.date!.toUtc();
+    final Duration injectedDuration = _kInjectedLatencies[slug.name] ?? const Duration(hours: 1);
+    if (utcDate.add(injectedDuration).isAfter(DateTime.now().toUtc())) {
+      log.info(
+          'Skipping PR#$number because it needs to land after ${utcDate.add(injectedDuration)} and current time is ${DateTime.now().toUtc()}');
+      return true;
+    }
+    return false;
   }
 
   /// Check if the pull request should be merged.

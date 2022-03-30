@@ -39,6 +39,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -65,6 +66,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -91,6 +93,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -113,6 +116,7 @@ void main() {
       githubService.compareTowCommitsData = compareToTCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -139,6 +143,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -165,6 +170,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -190,6 +196,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -215,6 +222,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -236,6 +244,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -261,6 +270,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -287,6 +297,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -313,6 +324,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
@@ -322,6 +334,61 @@ void main() {
         expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Merges PR with successful status and checks', () async {
+      final PullRequest pr1 = generatePullRequest(prNumber: 0);
+      final PullRequest pr2 = generatePullRequest(prNumber: 1);
+      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      for (PullRequest pr in pullRequests) {
+        pubsub.publish(testTopic, pr);
+      }
+      githubService.reviewsData = reviewsMock;
+      githubService.checkRunsData = checkRunsMock;
+      githubService.repositoryStatusesData = repositoryStatusesMock;
+      githubService.commitData = commitMock;
+      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.successMergeData = successMergeMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.commitsData = generateCommitsMock();
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+
+      final List<Response> responses = await checkPullRequest.get();
+      for (int i = 0; i < responses.length; i++) {
+        final String resBody = await responses[i].readAsString();
+        expect(resBody,
+            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+      }
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Skip PR that are less than injected latency', () async {
+      final PullRequest pr1 = generatePullRequest(prNumber: 2, login: login);
+      final PullRequest pr2 = generatePullRequest(prNumber: 3, login: login);
+      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      for (PullRequest pr in pullRequests) {
+        pubsub.publish(testTopic, pr);
+      }
+      githubService.reviewsData = unApprovedReviewsMock;
+      githubService.checkRunsData = checkRunsMock;
+      githubService.repositoryStatusesData = repositoryStatusesMock;
+      githubService.commitData = commitMock;
+      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.successMergeData = successMergeMock;
+      githubService.createCommentData = createCommentMock;
+      DateTime commitTime = DateTime.now();
+      githubService.commitsData = generateCommitsMock(date: commitTime.toString());
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+
+      final List<Response> responses = await checkPullRequest.get();
+      for (int i = 0; i < responses.length; i++) {
+        final String resBody = await responses[i].readAsString();
+        expect(resBody, 'Skip the pull request ${pullRequests[i].number} now and check it later.');
+      }
+      expect(pubsub.messagesQueue.length, 2);
+      pubsub.messagesQueue.clear();
     });
   });
 }

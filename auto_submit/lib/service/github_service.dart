@@ -57,4 +57,9 @@ class GithubService {
     CreatePullRequestComment comment = CreatePullRequestComment(commentBody, sha, null, null);
     return await github.pullRequests.createComment(slug, number, comment);
   }
+
+  /// List commits on a pull request.
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, int number) async {
+    return await github.pullRequests.listCommits(slug, number).toList();
+  }
 }
