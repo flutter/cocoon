@@ -2,12 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/key_converter.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:json_annotation/json_annotation.dart';
-
-part 'branch.g.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
@@ -45,28 +41,4 @@ class Branch extends Model<String> {
       ..write(')');
     return buf.toString();
   }
-}
-
-/// The serialized representation of a [Branch].
-// TODO(tvolkert): Directly serialize [Branch] once frontends migrate to new serialization format.
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
-class SerializableBranch {
-  const SerializableBranch(this.branch);
-
-  final Branch branch;
-
-  @JsonKey(name: 'Key')
-  @StringKeyConverter()
-  Key<String>? get key => branch.key;
-
-  @JsonKey(name: 'Branch')
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'branch': branch.branch,
-      'repository': branch.repository,
-    };
-  }
-
-  /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$SerializableBranchToJson(this);
 }

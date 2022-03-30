@@ -6,14 +6,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
@@ -2042,8 +2040,7 @@ void foo() {
   });
 
   group('github webhook create branch event', () {
-    test('should add branch to db if db is empty', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
+    test('process create branch event', () async {
       request.headers.set('X-GitHub-Event', 'create');
       request.body = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
@@ -2051,60 +2048,6 @@ void foo() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       await tester.post(webhook);
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-      final Branch branch = db.values.values.whereType<Branch>().single;
-      expect(branch.repository, 'flutter/flutter');
-      expect(branch.branch, 'flutter-2.12-candidate.4');
-    });
-
-    test('should not add duplicate entity if branch already exists in db', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-
-      const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
-      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
-      final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
-      db.values[currentBranch.key] = currentBranch;
-      expect(db.values.values.whereType<Branch>().length, 1);
-
-      request.headers.set('X-GitHub-Event', 'create');
-      request.body = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
-      final Uint8List body = utf8.encode(request.body!) as Uint8List;
-      final Uint8List key = utf8.encode(keyString) as Uint8List;
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      await tester.post(webhook);
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-      final Branch branch = db.values.values.whereType<Branch>().single;
-      expect(branch.repository, 'flutter/flutter');
-      expect(branch.branch, 'flutter-2.12-candidate.4');
-    });
-
-    test('should add branch if it is different from previously existing branches', () async {
-      expect(db.values.values.whereType<Branch>().length, 0);
-
-      const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
-      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
-      final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
-      db.values[currentBranch.key] = currentBranch;
-
-      expect(db.values.values.whereType<Branch>().length, 1);
-
-      request.headers.set('X-GitHub-Event', 'create');
-      request.body = generateCreateBranchEvent('flutter-2.12-candidate.5', 'flutter/flutter');
-      final Uint8List body = utf8.encode(request.body!) as Uint8List;
-      final Uint8List key = utf8.encode(keyString) as Uint8List;
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      tester = RequestHandlerTester(request: request);
-      await tester.post(webhook);
-
-      expect(db.values.values.whereType<Branch>().length, 2);
-      expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.branch),
-          containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']));
     });
   });
 

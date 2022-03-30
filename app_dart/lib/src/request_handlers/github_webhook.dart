@@ -87,6 +87,8 @@ class GithubWebhook extends RequestHandler<Body> {
           final BranchService branchService = BranchService(datastore, rawRequest: stringRequest);
           await branchService.handleCreateRequest();
           break;
+        default:
+          throw const InternalServerError('Not a valid github webhook event type');
       }
 
       return Body.empty;
