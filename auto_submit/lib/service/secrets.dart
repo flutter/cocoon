@@ -52,7 +52,9 @@ class LocalSecretManager implements SecretManager {
 
   @override
   Future<String> get(String key, {String? fields}) async {
-    if (Platform.environment.containsKey(key)) {
+    if (_secrets.containsKey(key)) {
+      return _secrets[key]!;
+    } else if (Platform.environment.containsKey(key)) {
       return Platform.environment[key]!;
     }
 

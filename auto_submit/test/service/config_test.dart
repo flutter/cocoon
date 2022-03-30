@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
@@ -37,10 +38,11 @@ void main() {
     });
 
     test('verify github App InstallationId ', () async {
-      secretManager.put('AUTO_SUBMIT_GITHUB_KEY', 'testKey');
-      secretManager.put('AUTO_SUBMIT_GITHUB_APP_ID', '123');
-      final String installationId = await config.getInstallationId();
-      expect(installationId, '24369313');
+      final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
+      final http.Response response = await mockClient.get(githubInstallationUri);
+      final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+      expect(list[0]['id'].toString(), '24369313');
+      expect(list[1]['id'].toString(), '23587612');
     });
 
     test('generateGithubToken pulls from cache', () async {
