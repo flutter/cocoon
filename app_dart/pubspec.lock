@@ -252,7 +252,7 @@ packages:
       name: github
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.5.0"
+    version: "9.1.0"
   glob:
     dependency: transitive
     description:

@@ -7,20 +7,23 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/hooks.dart';
 
 import '../model/appengine/branch.dart';
-import '../model/github/create_event.dart';
 import '../request_handling/exceptions.dart';
 
 class RetryException implements Exception {}
 
-/// Parse a create github webhook event, and add it to datastore.
+/// A class to manage GitHub branches.
+///
+/// Track branch activities such as branch creation, and helps manage release branches.
 class BranchService {
   BranchService(this.datastore, {this.rawRequest});
 
   DatastoreService datastore;
   String? rawRequest;
 
+  /// Parse a create github webhook event, and add it to datastore.
   Future<void> handleCreateRequest() async {
     final CreateEvent? createEvent = await _getCreateRequestEvent(rawRequest!);
     if (createEvent == null) {
