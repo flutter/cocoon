@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
 import 'package:github/hooks.dart';
-import 'package:meta/meta.dart';
 
 import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/body.dart';
@@ -37,14 +36,13 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
-@immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(
-    Config config, {
-    required this.scheduler,
-    this.githubChecksService,
-    this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config);
+  GithubWebhook(Config config,
+      {required this.scheduler,
+      this.githubChecksService,
+      this.datastoreProvider = DatastoreService.defaultProvider,
+      this.branchService})
+      : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
@@ -53,6 +51,7 @@ class GithubWebhook extends RequestHandler<Body> {
   final GithubChecksService? githubChecksService;
 
   final DatastoreServiceProvider datastoreProvider;
+  BranchService? branchService;
 
   @override
   Future<Body> post() async {
@@ -84,11 +83,9 @@ class GithubWebhook extends RequestHandler<Body> {
           }
           break;
         case 'create':
-          final BranchService branchService = BranchService(datastore, rawRequest: stringRequest);
-          await branchService.handleCreateRequest();
+          branchService = branchService ?? BranchService(datastore, rawRequest: stringRequest);
+          await branchService!.handleCreateRequest();
           break;
-        default:
-          throw const InternalServerError('Not a valid github webhook event type');
       }
 
       return Body.empty;

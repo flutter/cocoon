@@ -36,6 +36,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late MockBranchService branchService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -67,6 +68,7 @@ void main() {
       tabledataResource: tabledataResource,
       githubClient: gitHubClient,
     );
+    branchService = MockBranchService();
     issuesService = MockIssuesService();
     when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
     when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
@@ -97,12 +99,11 @@ void main() {
       });
     });
 
-    webhook = GithubWebhook(
-      config,
-      datastoreProvider: (_) => DatastoreService(config.db, 5),
-      githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
-    );
+    webhook = GithubWebhook(config,
+        datastoreProvider: (_) => DatastoreService(config.db, 5),
+        githubChecksService: mockGithubChecksService,
+        scheduler: scheduler,
+        branchService: branchService);
 
     config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
     config.wrongBaseBranchPullRequestMessageValue = '{{target_branch}} -> {{default_branch}}';
@@ -2048,6 +2049,8 @@ void foo() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       await tester.post(webhook);
+
+      verify(branchService.handleCreateRequest()).called(1);
     });
   });
 
