@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -59,6 +60,7 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
     AccessClientProvider,
     AccessTokenService,
     BigqueryService,
+    BranchService,
     BuildBucketClient,
     FakeEntry,
     IssuesService,

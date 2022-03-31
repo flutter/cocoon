@@ -9,9 +9,10 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -35,6 +36,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late MockBranchService branchService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -66,6 +68,7 @@ void main() {
       tabledataResource: tabledataResource,
       githubClient: gitHubClient,
     );
+    branchService = MockBranchService();
     issuesService = MockIssuesService();
     when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
     when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
@@ -96,11 +99,11 @@ void main() {
       });
     });
 
-    webhook = GithubWebhook(
-      config,
-      githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
-    );
+    webhook = GithubWebhook(config,
+        datastoreProvider: (_) => DatastoreService(config.db, 5),
+        githubChecksService: mockGithubChecksService,
+        scheduler: scheduler,
+        branchService: branchService);
 
     config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
     config.wrongBaseBranchPullRequestMessageValue = '{{target_branch}} -> {{default_branch}}';
@@ -2207,6 +2210,20 @@ void foo() {
 
         await tester.post(webhook);
       });
+    });
+  });
+
+  group('github webhook create branch event', () {
+    test('process create branch event', () async {
+      request.headers.set('X-GitHub-Event', 'create');
+      request.body = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      await tester.post(webhook);
+
+      verify(branchService.handleCreateRequest()).called(1);
     });
   });
 
