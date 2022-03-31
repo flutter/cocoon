@@ -6,69 +6,65 @@ import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
 
 final DocumentNode labeledPullRequestsWithReviewsQuery = lang.parseString(r'''
-query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
+query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
   repository(owner: $sOwner, name: $sName) {
-    labels(first: 1, query: $sLabelName) {
+    pullRequests(first: 20, states: OPEN, labels: [$sLabelName], orderBy: {direction: ASC, field: CREATED_AT}) {
       nodes {
+        author {
+          login
+        }
+        authorAssociation
         id
-        pullRequests(first: 20, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
+        baseRepository {
+          nameWithOwner
+        }
+        number
+        title
+        mergeable
+        commits(last:1) {
+          nodes {
+            commit {
+              abbreviatedOid
+              oid
+              committedDate
+              pushedDate
+              status {
+                contexts {
+                  context
+                  state
+                  targetUrl
+                }
+              }
+              # (appId: 64368) == flutter-dashbord. We only care about
+              # flutter-dashboard checks.
+              checkSuites(last:1, filterBy: { appId: 64368 } ) {
+                nodes {
+                  checkRuns(first:100) {
+                    nodes {
+                      name
+                      status
+                      conclusion
+                      detailsUrl
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        reviews(last: 30, states: [APPROVED, CHANGES_REQUESTED]) {
           nodes {
             author {
               login
             }
             authorAssociation
+            state
+          }
+        }
+        labels(first: 5) {
+          nodes {
+            name
             id
-            baseRepository {
-              nameWithOwner
-            }
-            number
-            title
-            mergeable
-            commits(last:1) {
-              nodes {
-                commit {
-                  abbreviatedOid
-                  oid
-                  committedDate
-                  pushedDate
-                  status {
-                    contexts {
-                      context
-                      state
-                      targetUrl
-                    }
-                  }
-                  # (appId: 64368) == flutter-dashbord. We only care about
-                  # flutter-dashboard checks.
-                  checkSuites(last:1, filterBy: { appId: 64368 } ) {
-                    nodes {
-                      checkRuns(first:100) {
-                        nodes {
-                          name
-                          status
-                          conclusion
-                          detailsUrl
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            reviews(last: 30, states: [APPROVED, CHANGES_REQUESTED]) {
-              nodes {
-                author {
-                  login
-                }
-                authorAssociation
-                state
-              }
-            }
-            labels(first: 5) {
-              nodes {
-                name
-              }
-            }
           }
         }
       }

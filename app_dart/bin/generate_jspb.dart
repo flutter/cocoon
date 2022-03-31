@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -66,12 +64,7 @@ Future<void> main(List<String> args) async {
   }
 
   final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-  final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
-  final pb.SchedulerConfig schedulerConfig = CiYaml(
-    slug: Config.flutterSlug,
-    branch: Config.defaultBranch(Config.flutterSlug),
-    config: unCheckedSchedulerConfig,
-  ).config;
+  final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
 
   print(jsonEncode(schedulerConfig.toProto3Json()));
 }

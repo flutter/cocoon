@@ -497,6 +497,7 @@ class LuciBuildService {
         bucket: target.getBucket(),
         builder: target.value.name,
       ),
+      dimensions: target.getDimensions(),
       gitilesCommit: GitilesCommit(
         project: 'mirrors/${commit.slug.name}',
         host: 'flutter.googlesource.com',
