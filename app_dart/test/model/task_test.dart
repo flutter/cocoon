@@ -186,6 +186,23 @@ void main() {
         expect(task.buildNumber, 2);
         expect(task.status, Task.statusNew);
       });
+
+      test('doesQ not update if build is older than task', () {
+        final Build build = generatePushMessageBuild(
+          1,
+          status: Status.completed,
+          result: Result.canceled,
+        );
+        final Task task = generateTask(
+          1,
+          buildNumber: 1,
+          status: Task.statusNew,
+        );
+
+        expect(task.status, Task.statusNew);
+        task.updateFromBuild(build);
+        expect(task.status, Task.statusCancelled);
+      });
     });
   });
 }

@@ -12,6 +12,7 @@ class TaskBox {
 
   /// Status messages that map to [TaskStatus] enums.
   // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
+  static const String statusCancelled = 'Cancelled';
   static const String statusFailed = 'Failed';
   static const String statusNew = 'New';
   static const String statusSkipped = 'Skipped';
@@ -22,7 +23,10 @@ class TaskBox {
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
+  /// 
+  /// These colors should map to the MILO color scheme.
   static const Map<String, Color> statusColor = <String, Color>{
+    statusCancelled: Colors.lightBlue,
     statusFailed: Colors.red,
     statusNew: Colors.grey,
     statusSkipped: Colors.transparent,

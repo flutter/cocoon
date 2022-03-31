@@ -93,6 +93,9 @@ class Task extends Model<int> {
     );
   }
 
+  /// The task was cancelled.
+  static const String statusCancelled = 'Cancelled';
+
   /// The task is yet to be run.
   static const String statusNew = 'New';
 
@@ -115,12 +118,13 @@ class Task extends Model<int> {
 
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
-    statusNew,
+    statusCancelled,
+    statusFailed,
     statusInfraFailure,
     statusInProgress,
-    statusSucceeded,
-    statusFailed,
+    statusNew,
     statusSkipped,
+    statusSucceeded,
   ];
 
   /// The key of the commit that owns this task.
@@ -313,8 +317,7 @@ class Task extends Model<int> {
       case Result.success:
         return status = statusSucceeded;
       case Result.canceled:
-        log.warning('$build was cancelled');
-        return status = statusNew;
+        return status = statusCancelled;
       case Result.infraFailure:
         return status = statusInfraFailure;
       case Result.failure:
@@ -326,9 +329,10 @@ class Task extends Model<int> {
 
   bool _isStatusCompleted() {
     const List<String> completedStatuses = <String>[
-      statusSucceeded,
+      statusCancelled,
       statusFailed,
       statusInfraFailure,
+      statusSucceeded,
     ];
     return completedStatuses.contains(status);
   }
