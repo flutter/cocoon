@@ -4,6 +4,8 @@
 
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:test/test.dart';
 
 import '../../src/utilities/entity_generators.dart';
@@ -187,6 +189,21 @@ void main() {
       test('properties are evaluated as string', () {
         final Target target = generateTarget(1, properties: <String, String>{"cores": "32"});
         expect(target.getDimensions().length, 1);
+      });
+    });
+
+    group('scheduler policy', () {
+      test('devicelab targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Linux_android').schedulerPolicy, isA<BatchPolicy>());
+      });
+
+      test('non-cocoon scheduler targets return omit policy', () {
+        expect(generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicy,
+            isA<OmitPolicy>());
+      });
+
+      test('vm cocoon targets return guranteed policy', () {
+        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuranteedPolicy>());
       });
     });
   });

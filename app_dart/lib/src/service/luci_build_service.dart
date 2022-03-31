@@ -439,16 +439,20 @@ class LuciBuildService {
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
   Future<void> schedulePostsubmitBuilds({
     required Commit commit,
-    required List<Pair<Target, Task>> toBeScheduled,
+    required List<Tuple<Target, Task, int>> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
       log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
       return;
     }
     final List<Request> buildRequests = <Request>[];
-    for (Pair<Target, Task> pair in toBeScheduled) {
-      final ScheduleBuildRequest scheduleBuildRequest =
-          _createPostsubmitScheduleBuild(commit: commit, target: pair.first, task: pair.second);
+    for (Tuple<Target, Task, int> tuple in toBeScheduled) {
+      final ScheduleBuildRequest scheduleBuildRequest = _createPostsubmitScheduleBuild(
+        commit: commit,
+        target: tuple.first,
+        task: tuple.second,
+        priority: tuple.third,
+      );
       buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
     }
     final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
