@@ -326,11 +326,16 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     final BuildState _buildState = Provider.of<BuildState>(context);
     _buildState.updateCurrentRepoBranch(repo!, branch!);
+    final String statusTitle = _getStatusTitle(_buildState);
+    final Widget titleWidget = Tooltip(
+      message: statusTitle,
+      child: Text(statusTitle),
+    );
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: CocoonAppBar(
-          title: Text(_getStatusTitle(_buildState)),
+          title: titleWidget,
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             if (!_smallScreen) ..._slugSelection(context, _buildState),
