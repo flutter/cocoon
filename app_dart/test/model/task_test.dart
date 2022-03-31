@@ -187,7 +187,7 @@ void main() {
         expect(task.status, Task.statusNew);
       });
 
-      test('doesQ not update if build is older than task', () {
+      test('handles cancelled build', () {
         final Build build = generatePushMessageBuild(
           1,
           status: Status.completed,
