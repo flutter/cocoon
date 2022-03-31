@@ -23,7 +23,7 @@ class TaskBox {
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
-  /// 
+  ///
   /// These colors should map to the MILO color scheme.
   static const Map<String, Color> statusColor = <String, Color>{
     statusCancelled: Colors.lightBlue,
