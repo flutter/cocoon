@@ -8,7 +8,10 @@ import 'dart:convert';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
+import 'package:graphql/client.dart' hide Response, Request;
 
+import 'check_pull_request_queries.dart';
+import 'exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -55,7 +58,8 @@ class CheckPullRequest extends RequestHandler {
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();
-    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
+    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
+    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       log.info('Merge the pull request: ${queryResult.number}');
       // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
@@ -70,6 +74,32 @@ class CheckPullRequest extends RequestHandler {
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
     return Response.ok('Does not merge the pull request ${queryResult.number}.');
+  }
+
+  Future<Map<String, dynamic>> _queryGraphQL(
+    RepositorySlug slug,
+    int prNumber,
+    GraphQLClient client,
+  ) async {
+    //final String labelName = config.waitingForTreeToGoGreenLabelName;
+
+    final QueryResult result = await client.query(
+      QueryOptions(
+        document: labeledPullRequestWithReviewsQuery,
+        fetchPolicy: FetchPolicy.noCache,
+        variables: <String, dynamic>{
+          'sOwner': slug.owner,
+          'sName': slug.name,
+          'sPrNumber': prNumber,
+        },
+      ),
+    );
+
+    if (result.hasException) {
+      log.severe(result.exception.toString());
+      throw const BadRequestException('GraphQL query failed');
+    }
+    return result.data!;
   }
 
   /// Check if the pull request should be merged.
@@ -125,33 +155,52 @@ class CheckPullRequest extends RequestHandler {
   /// Parses the Rest API query to a [_AutoMergeQueryResult].
   ///
   /// This method will not return null, but may return an empty list.
-  Future<_AutoMergeQueryResult> _parseQueryData(PullRequest pr, GithubService gitHub) async {
+  Future<_AutoMergeQueryResult> _parseQueryData(
+      PullRequest pr, GithubService gitHub, GraphQLClient graphQLClient) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
     final bool unknownMergeableState = pr.mergeableState == 'UNKNOWN';
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    List<CheckRun> checkRuns = <CheckRun>[];
-    if (pr.head != null && pr.head!.sha != null) {
-      checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
+    final int prNumber = pr.number!;
+    final Map<String, dynamic> data = await _queryGraphQL(
+      slug,
+      prNumber,
+      graphQLClient,
+    );
+
+    final Map<String, dynamic>? repository = data['repository'] as Map<String, dynamic>?;
+    if (repository == null || repository.isEmpty) {
+      throw StateError('Query did not return a repository.');
     }
-    List<RepositoryStatus> statuses = <RepositoryStatus>[];
-    if (pr.head != null && pr.head!.sha != null) {
-      statuses.addAll(await gitHub.getStatuses(slug, pr.head!.sha!));
+    final Map<String, dynamic> prMap = repository['pullRequest'].single as Map<String, dynamic>;
+    final String authorAssociation = prMap['authorAssociation'] as String;
+
+    final Map<String, dynamic> commit = prMap['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+    List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
+    if (commit['status'] != null &&
+        commit['status']['contexts'] != null &&
+        (commit['status']['contexts'] as List<dynamic>).isNotEmpty) {
+      statuses.addAll((commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
-    final List<PullRequestReview> reviews = await gitHub.getReviews(slug, pr.number!);
+    final List<Map<String, dynamic>> reviews =
+        (prMap['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String sha = pr.head!.sha as String;
     final String? author = pr.user!.login;
-    final String? authorAssociation = pr.authorAssociation;
 
     // List of labels associated with the pull request.
     final List<String> labelNames =
         (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
+
+    List<CheckRun> checkRuns = <CheckRun>[];
+    if (pr.head != null && pr.head!.sha != null) {
+      checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
+    }
 
     final bool hasApproval = config.rollerAccounts.contains(author) ||
         _checkApproval(
@@ -174,7 +223,7 @@ class CheckPullRequest extends RequestHandler {
       failures: failures,
       hasApprovedReview: hasApproval,
       changeRequestAuthors: changeRequestAuthors,
-      number: pr.number!,
+      number: prNumber,
       sha: sha,
       emptyChecks: checkRuns.isEmpty,
       isConflicting: isConflicting,
@@ -190,7 +239,7 @@ class CheckPullRequest extends RequestHandler {
     RepositorySlug slug,
     String sha,
     Set<_FailureDetail> failures,
-    List<RepositoryStatus> statuses,
+    List<Map<String, dynamic>> statuses,
     List<CheckRun> checkRuns,
     String name,
     List<String> labels,
@@ -211,8 +260,8 @@ class CheckPullRequest extends RequestHandler {
       final String treeStatusName = 'luci-${slug.name}';
 
       // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
-      for (RepositoryStatus status in statuses) {
-        if (status.context == treeStatusName) {
+      for (Map<String, dynamic> status in statuses) {
+        if (status['context'] == treeStatusName) {
           treeStatusExists = true;
         }
       }
@@ -224,15 +273,15 @@ class CheckPullRequest extends RequestHandler {
 
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: $name, status: $statuses');
-    for (RepositoryStatus status in statuses) {
-      final String? name = status.context;
-      if (status.state != 'success') {
+    for (Map<String, dynamic> status in statuses) {
+      final String? name = status['context'] as String?;
+      if (status['state'] != 'SUCCESS') {
         if (notInAuthorsControl.contains(name) && labels.contains(overrideTreeStatusLabel)) {
           continue;
         }
         allSuccess = false;
-        if (status.state == 'failure' && !notInAuthorsControl.contains(name)) {
-          failures.add(_FailureDetail(name!, status.targetUrl as String));
+        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+          failures.add(_FailureDetail(name!, status['targetUrl'] as String));
         }
       }
     }
@@ -274,7 +323,7 @@ class CheckPullRequest extends RequestHandler {
 bool _checkApproval(
   String? author,
   String? authorAssociation,
-  List<PullRequestReview> reviews,
+  List<Map<String, dynamic>> reviewNodes,
   Set<String?> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors.isEmpty);
@@ -284,20 +333,20 @@ bool _checkApproval(
     approvers.add(author);
   }
 
-  for (PullRequestReview review in reviews) {
+  for (Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (!allowedReviewers.contains(review.authorAssociation)) {
+    if (!allowedReviewers.contains(review['authorAssociation'])) {
       continue;
     }
     // Reviews come back in order of creation.
-    final String? state = review.state;
-    final String? authorlogin = review.user.login;
+    final String? state = review['state'] as String?;
+    final String? authorLogin = review['author']['login'] as String?;
 
     if (state == 'APPROVED') {
-      approvers.add(authorlogin);
-      changeRequestAuthors.remove(authorlogin);
+      approvers.add(authorLogin);
+      changeRequestAuthors.remove(authorLogin);
     } else if (state == 'CHANGES_REQUESTED') {
-      changeRequestAuthors.add(authorlogin);
+      changeRequestAuthors.add(authorLogin);
     }
   }
 

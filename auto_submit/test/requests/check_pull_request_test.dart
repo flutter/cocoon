@@ -3,27 +3,61 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/check_pull_request.dart';
+import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
+import 'package:graphql/client.dart' hide Response;
 
 import './github_webhook_test_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_graphql_client.dart';
 
 void main() {
   group('Check CheckPullRequest', () {
     late CheckPullRequest checkPullRequest;
     late FakeConfig config;
     final FakeGithubService githubService = FakeGithubService();
+    final FakeGraphQLClient githubGraphQLClient = FakeGraphQLClient();
     final FakePubSub pubsub = FakePubSub();
     const String testTopic = 'test-topic';
     const String login = "engine-flutter-autoroll";
     const String labelName = "warning: land on red to fix tree breakage";
     const String repoName = 'cocoon';
     const String autosubmitLabel = 'no_autosubmit';
+
+    setUp(() {
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        expect(options.variables['sOwner'], 'flutter');
+        expect(options.variables['sLabelName'], config.waitingForTreeToGoGreenLabelNameValue);
+
+      config.githubGraphQLClient = githubGraphQLClient;
+
+
+    });
+
+    void _verifyQueries() {
+      githubGraphQLClient.verifyQueries(
+        <QueryOptions>[
+          QueryOptions(
+            document: labeledPullRequestWithReviewsQuery,
+            fetchPolicy: FetchPolicy.noCache,
+            variables: <String, dynamic>{
+              'sOwner': 'flutter',
+              'sName': 'cocoon',
+              'sPrNumber': 1,
+            },
+          ),
+        ],
+      );
+    }
+
 
     test('Merges PR with successful status and checks', () async {
       final PullRequest pr1 = generatePullRequest(prNumber: 0);
@@ -39,7 +73,7 @@ void main() {
       githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService);
+      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
@@ -77,7 +111,9 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges PR with failed tree status if override tree status label is provided', () async {
+    test(
+        'Merges PR with failed tree status if override tree status label is provided',
+        () async {
       PullRequest pr1 = generatePullRequest(prNumber: 4, labelName: labelName);
       PullRequest pr2 = generatePullRequest(prNumber: 5, labelName: labelName);
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
@@ -125,7 +161,8 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges PR with successful checks on repo without tree status', () async {
+    test('Merges PR with successful checks on repo without tree status',
+        () async {
       PullRequest pr1 = generatePullRequest(prNumber: 7, repoName: repoName);
       PullRequest pr2 = generatePullRequest(prNumber: 8, repoName: repoName);
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
@@ -171,7 +208,8 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+        expect(resBody,
+            'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -196,14 +234,19 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+        expect(resBody,
+            'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Removes the label if non member does not have at least 2 member reviews', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 13, authorAssociation: '');
-      PullRequest pr2 = generatePullRequest(prNumber: 14, authorAssociation: '');
+    test(
+        'Removes the label if non member does not have at least 2 member reviews',
+        () async {
+      PullRequest pr1 =
+          generatePullRequest(prNumber: 13, authorAssociation: '');
+      PullRequest pr2 =
+          generatePullRequest(prNumber: 14, authorAssociation: '');
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -221,7 +264,8 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+        expect(resBody,
+            'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -242,7 +286,8 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (Response response in responses) {
         final String resBody = await response.readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pr.head!.sha}.');
+        expect(resBody,
+            'Remove the autosubmit label for commit: ${pr.head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -267,15 +312,18 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[i].number}.');
+        expect(resBody,
+            'Does not merge the pull request ${pullRequests[i].number}.');
       }
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
 
     test('Does not merge PR if no autosubmit label any more', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 18, autosubmitLabel: autosubmitLabel);
-      PullRequest pr2 = generatePullRequest(prNumber: 19, autosubmitLabel: autosubmitLabel);
+      PullRequest pr1 =
+          generatePullRequest(prNumber: 18, autosubmitLabel: autosubmitLabel);
+      PullRequest pr2 =
+          generatePullRequest(prNumber: 19, autosubmitLabel: autosubmitLabel);
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -293,7 +341,8 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[i].number}.');
+        expect(resBody,
+            'Does not merge the pull request ${pullRequests[i].number}.');
       }
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
@@ -319,7 +368,8 @@ void main() {
       final List<Response> responses = await checkPullRequest.get();
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+        expect(resBody,
+            'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
+import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -49,6 +50,30 @@ class Config {
     );
 
     return GitHub(auth: Authentication.withToken(token));
+  }
+
+  Future<GraphQLClient> createGitHubGraphQLClient() async {
+    final HttpLink httpLink = HttpLink(
+      'https://api.github.com/graphql',
+      defaultHeaders: <String, String>{
+        'Accept': 'application/vnd.github.antiope-preview+json',
+      },
+    );
+
+    final String token = await cache['githubToken'].get(
+      _generateGithubToken,
+      // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
+      // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
+      const Duration(minutes: 8),
+    );
+    final AuthLink _authLink = AuthLink(
+      getToken: () async => 'Bearer $token',
+    );
+
+    return GraphQLClient(
+      cache: GraphQLCache(),
+      link: _authLink.concat(httpLink),
+    );
   }
 
   Future<Uint8List> _generateGithubToken() async {
