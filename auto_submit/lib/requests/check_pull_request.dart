@@ -56,21 +56,18 @@ class CheckPullRequest extends RequestHandler {
     return responses;
   }
 
-  /// Check and collect the pull request we will merge this cycle.
+  /// Check and collect the pull requests to merge this cycle.
   ///
   /// The number of pull requests to be merged to each repo will not exceed
   /// the _kMergeCountPerRepo
   Future<Set> checkMerge(Set shouldMergeSet) async {
-    //The repo map stores the repo and the count of PRs we want to merge to this repo
+    //The repo map stores the repo name and the count of PRs to merge to this repo
     HashMap<String, int> repos = HashMap<String, int>();
     Set mergeSet = HashSet<PullRequest>();
     for (PullRequest pr in shouldMergeSet) {
       String repoName = pr.base!.repo!.slug().fullName;
-      if (!repos.containsKey(repoName)) {
-        repos[repoName] = 1;
-        mergeSet.add(pr);
-      } else if (repos[repoName]! < _kMergeCountPerRepo) {
-        repos[repoName] = repos[repoName]! + 1;
+      if (!repos.containsKey(repoName) || repos[repoName]! < _kMergeCountPerRepo) {
+        repos[repoName] = repos.containsKey(repoName) ? repos[repoName]! + 1 : 1;
         mergeSet.add(pr);
       } else {
         await pubsub.publish('auto-submit-queue', pr);

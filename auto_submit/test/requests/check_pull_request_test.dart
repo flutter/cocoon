@@ -324,7 +324,7 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges only 2 PR per cycle per repo', () async {
+    test('Merges only _kMergeCountPerRepo PR per cycle per repo', () async {
       final PullRequest pr1 = generatePullRequest(prNumber: 22);
       final PullRequest pr2 = generatePullRequest(prNumber: 23);
       final PullRequest pr3 = generatePullRequest(prNumber: 24);
@@ -339,7 +339,6 @@ void main() {
       }
       expect(pubsub.messagesQueue.length, 1);
       pubsub.messagesQueue.clear();
-      //assert(pubsub.messagesQueue.isEmpty);
     });
   });
 }
