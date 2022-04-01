@@ -69,21 +69,33 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     final String? rawTaskKey = userData['task_key'] as String?;
     final String? rawCommitKey = userData['commit_key'] as String?;
-    if (rawTaskKey == null || rawCommitKey == null) {
-      throw const BadRequestException('userData does not contain task_key');
+    if (rawCommitKey == null) {
+      throw const BadRequestException('userData does not contain commit_key');
     }
-    log.fine('Looking up key...');
-    final int taskId = int.parse(rawTaskKey);
-    final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
-    final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
-    final Task task = await datastore.lookupByValue<Task>(taskKey);
-    log.fine('Found $task');
-
     final Build? build = buildPushMessage.build;
     if (build == null) {
       log.warning('Build is null');
       return Body.empty;
     }
+    final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
+    Task? task;
+    if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
+      log.fine('Pulling builder name from parameters_json...');
+      log.fine(build.buildParameters);
+      final String? taskName = build.buildParameters?['builder_name'] as String?;
+      if (taskName == null) {
+        throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
+      }
+      final List<Task> tasks = await datastore.queryRecentTasksByName(name: taskName).toList();
+      task = tasks.singleWhere((Task task) => task.parentKey?.id == commitKey.id);
+    } else {
+      log.fine('Looking up key...');
+      final int taskId = int.parse(rawTaskKey);
+      final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
+      task = await datastore.lookupByValue<Task>(taskKey);
+    }
+    log.fine('Found $task');
+
     task.updateFromBuild(build);
     await datastore.insert(<Task>[task]);
     log.fine('Updated datastore');
@@ -92,7 +104,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.fine('Trying to auto-retry...');
       final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
       final CiYaml ciYaml = await scheduler.getCiYaml(commit);
-      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
       final bool retried = await luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
