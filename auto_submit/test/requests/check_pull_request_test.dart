@@ -27,7 +27,7 @@ void main() {
 
     test('Merges PR with successful status and checks', () async {
       final PullRequest pr1 = generatePullRequest(prNumber: 0);
-      final PullRequest pr2 = generatePullRequest(prNumber: 1);
+      final PullRequest pr2 = generatePullRequest(prNumber: 1, repoName: 'flutter', login: 'cocoon');
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -53,8 +53,7 @@ void main() {
 
     test('Merges unapproved PR from autoroller', () async {
       final PullRequest pr1 = generatePullRequest(prNumber: 2, login: login);
-      final PullRequest pr2 = generatePullRequest(prNumber: 3, login: login);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      final List<PullRequest> pullRequests = <PullRequest>[pr1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -79,8 +78,7 @@ void main() {
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
       PullRequest pr1 = generatePullRequest(prNumber: 4, labelName: labelName);
-      PullRequest pr2 = generatePullRequest(prNumber: 5, labelName: labelName);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      final List<PullRequest> pullRequests = <PullRequest>[pr1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -127,8 +125,7 @@ void main() {
 
     test('Merges PR with successful checks on repo without tree status', () async {
       PullRequest pr1 = generatePullRequest(prNumber: 7, repoName: repoName);
-      PullRequest pr2 = generatePullRequest(prNumber: 8, repoName: repoName);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      final List<PullRequest> pullRequests = <PullRequest>[pr1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -176,7 +173,7 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Remove the label for the PR with failed status', () async {
+    test('Removes the label for the PR with failed status', () async {
       PullRequest pr1 = generatePullRequest(prNumber: 11);
       PullRequest pr2 = generatePullRequest(prNumber: 12);
       final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
@@ -325,15 +322,23 @@ void main() {
     });
 
     test('Merges only _kMergeCountPerRepo PR per cycle per repo', () async {
-      final PullRequest pr1 = generatePullRequest(prNumber: 22);
-      final PullRequest pr2 = generatePullRequest(prNumber: 23);
-      final PullRequest pr3 = generatePullRequest(prNumber: 24);
+      final PullRequest pr1 = generatePullRequest(prNumber: 22, repoName: 'flutter', login: 'flutter');
+      final PullRequest pr2 = generatePullRequest(prNumber: 23, repoName: 'flutter', login: 'flutter');
+      final PullRequest pr3 = generatePullRequest(prNumber: 24, repoName: 'flutter', login: 'cocoon');
       config = FakeConfig(githubService: githubService);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      Set shouldMergeSet = {pr1, pr2, pr3};
-      final Set mergeSet = await checkPullRequest.checkMerge(shouldMergeSet);
-      List<bool> mergeResult = await checkPullRequest.mergePullRequest(mergeSet);
-      expect(mergeSet.length, 2);
+      final Map<String, Set<PullRequest>> shouldMergeMap = <String, Set<PullRequest>>{};
+      Set<PullRequest> shouldMergeSet = {pr1, pr2, pr3};
+      for (PullRequest pr in shouldMergeSet) {
+        String repoName = pr.base!.repo!.slug().fullName;
+        if (!shouldMergeMap.containsKey(repoName)) {
+          shouldMergeMap[repoName] = <PullRequest>{};
+        }
+        shouldMergeMap[repoName]!.add(pr);
+      }
+
+      List<bool> mergeResult = await checkPullRequest.checkMerge(shouldMergeMap);
+      expect(mergeResult.length, 2);
       for (int i = 0; i < mergeResult.length; i++) {
         expect(mergeResult[i], true);
       }

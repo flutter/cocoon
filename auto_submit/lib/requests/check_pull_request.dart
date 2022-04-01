@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:collection';
 
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
@@ -19,7 +18,7 @@ import '../server/request_handler.dart';
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
 /// goes green.
-const int _kMergeCountPerRepo = 2;
+const int _kMergeCountPerRepo = 1;
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
@@ -36,7 +35,7 @@ class CheckPullRequest extends RequestHandler {
   static const int kPullMesssageBatchSize = 100;
 
   Future<List<Response>> get() async {
-    List<Response> responses = <Response>[];
+    final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
@@ -45,45 +44,32 @@ class CheckPullRequest extends RequestHandler {
       return responses;
     }
     final List<Future<Response>> futures = <Future<Response>>[];
-    Set shouldMergeSet = <PullRequest>{};
+    //The shouldMergeMap stores the repo name and the set of PRs ready to merge to this repo
+    final Map<String, Set<PullRequest>> shouldMergeMap = <String, Set<PullRequest>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message, shouldMergeSet));
+      futures.add(_processMessage(message, shouldMergeMap));
     }
     responses.addAll(await Future.wait(futures));
 
-    final Set mergeSet = await checkMerge(shouldMergeSet);
-    await mergePullRequest(mergeSet);
+    await checkMerge(shouldMergeMap);
     return responses;
   }
 
-  /// Check and collect the pull requests to merge this cycle.
+  /// Check and merge the pull requests to each repo this cycle.
   ///
   /// The number of pull requests to be merged to each repo will not exceed
   /// the _kMergeCountPerRepo
-  Future<Set> checkMerge(Set shouldMergeSet) async {
-    //The repo map stores the repo name and the count of PRs to merge to this repo
-    HashMap<String, int> repos = HashMap<String, int>();
-    Set mergeSet = HashSet<PullRequest>();
-    for (PullRequest pr in shouldMergeSet) {
-      String repoName = pr.base!.repo!.slug().fullName;
-      if (!repos.containsKey(repoName) || repos[repoName]! < _kMergeCountPerRepo) {
-        repos[repoName] = repos.containsKey(repoName) ? repos[repoName]! + 1 : 1;
-        mergeSet.add(pr);
-      } else {
-        await pubsub.publish('auto-submit-queue', pr);
+  Future<List<bool>> checkMerge(Map<String, Set<PullRequest>> shouldMergeMap) async {
+    final List<bool> responses = <bool>[];
+    for (Set<PullRequest> prSet in shouldMergeMap.values) {
+      // Merge first _kMergeCountPerRepo counts of pull requests to each repo
+      for (int i = 0; i < _kMergeCountPerRepo; i++) {
+        responses.add(await _processMerge(prSet.elementAt(i)));
+      }
+      for (int j = _kMergeCountPerRepo; j < prSet.length; j++) {
+        await pubsub.publish('auto-submit-queue', prSet.elementAt(j));
       }
     }
-    return mergeSet;
-  }
-
-  /// Merges the pull requests in the mergeSet.
-  Future<List<bool>> mergePullRequest(Set mergeSet) async {
-    List<bool> responses = <bool>[];
-    final List<Future<bool>> mergeFutures = <Future<bool>>[];
-    for (PullRequest pr in mergeSet) {
-      mergeFutures.add(_processMerge(pr));
-    }
-    responses.addAll(await Future.wait(mergeFutures));
     return responses;
   }
 
@@ -100,7 +86,8 @@ class CheckPullRequest extends RequestHandler {
     return merged;
   }
 
-  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage, Set shouldMergeSet) async {
+  Future<Response> _processMessage(
+      pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> shouldMergeMap) async {
     final String data = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -112,7 +99,11 @@ class CheckPullRequest extends RequestHandler {
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       log.info('Should merge the pull request: ${queryResult.number}');
-      shouldMergeSet.add(pullRequest);
+      if (!shouldMergeMap.containsKey(slug.fullName)) {
+        shouldMergeMap[slug.fullName] = <PullRequest>{};
+      }
+      shouldMergeMap[slug.fullName]!.add(pullRequest);
+
       return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
