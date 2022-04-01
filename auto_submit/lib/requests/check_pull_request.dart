@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:collection';
 
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
@@ -14,6 +15,11 @@ import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
+
+/// Maximum number of pull requests to merge on each check on each repo.
+/// This should be kept reasonably low to avoid flooding infra when the tree
+/// goes green.
+const int _kMergeCountPerRepo = 2;
 
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
@@ -39,14 +45,65 @@ class CheckPullRequest extends RequestHandler {
       return responses;
     }
     final List<Future<Response>> futures = <Future<Response>>[];
+    Set shouldMergeSet = <PullRequest>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message));
+      futures.add(_processMessage(message, shouldMergeSet));
     }
     responses.addAll(await Future.wait(futures));
+
+    final Set mergeSet = await checkMerge(shouldMergeSet);
+    await mergePullRequest(mergeSet);
     return responses;
   }
 
-  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage) async {
+  /// Check and collect the pull request we will merge this cycle.
+  ///
+  /// The number of pull requests to be merged to each repo will not exceed
+  /// the _kMergeCountPerRepo
+  Future<Set> checkMerge(Set shouldMergeSet) async {
+    //The repo map stores the repo and the count of PRs we want to merge to this repo
+    HashMap<String, int> repos = HashMap<String, int>();
+    Set mergeSet = HashSet<PullRequest>();
+    for (PullRequest pr in shouldMergeSet) {
+      String repoName = pr.base!.repo!.slug().fullName;
+      if (!repos.containsKey(repoName)) {
+        repos[repoName] = 1;
+        mergeSet.add(pr);
+      } else if (repos[repoName]! < _kMergeCountPerRepo) {
+        repos[repoName] = repos[repoName]! + 1;
+        mergeSet.add(pr);
+      } else {
+        await pubsub.publish('auto-submit-queue', pr);
+      }
+    }
+    return mergeSet;
+  }
+
+  /// Merges the pull requests in the mergeSet.
+  Future<List<bool>> mergePullRequest(Set mergeSet) async {
+    List<bool> responses = <bool>[];
+    final List<Future<bool>> mergeFutures = <Future<bool>>[];
+    for (PullRequest pr in mergeSet) {
+      mergeFutures.add(_processMerge(pr));
+    }
+    responses.addAll(await Future.wait(mergeFutures));
+    return responses;
+  }
+
+  Future<bool> _processMerge(PullRequest pullRequest) async {
+    // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+    bool merged = 1 < 2;
+    if (merged) {
+      log.info(
+          'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+    } else {
+      log.info('Failed to merge the pull request ${pullRequest.number}');
+      await pubsub.publish('auto-submit-queue', pullRequest);
+    }
+    return merged;
+  }
+
+  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage, Set shouldMergeSet) async {
     final String data = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -57,9 +114,9 @@ class CheckPullRequest extends RequestHandler {
     final GithubService gitHub = await config.createGithubService();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      log.info('Merge the pull request: ${queryResult.number}');
-      // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-      return Response.ok('Merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
+      log.info('Should merge the pull request: ${queryResult.number}');
+      shouldMergeSet.add(pullRequest);
+      return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);

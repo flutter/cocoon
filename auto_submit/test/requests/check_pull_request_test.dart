@@ -46,7 +46,7 @@ void main() {
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -72,7 +72,7 @@ void main() {
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -98,7 +98,7 @@ void main() {
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -120,7 +120,7 @@ void main() {
       for (Response response in responses) {
         final String resBody = await response.readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -146,7 +146,7 @@ void main() {
       for (int i = 0; i < responses.length; i++) {
         final String resBody = await responses[i].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -322,6 +322,24 @@ void main() {
         expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Merges only 2 PR per cycle per repo', () async {
+      final PullRequest pr1 = generatePullRequest(prNumber: 22);
+      final PullRequest pr2 = generatePullRequest(prNumber: 23);
+      final PullRequest pr3 = generatePullRequest(prNumber: 24);
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+      Set shouldMergeSet = {pr1, pr2, pr3};
+      final Set mergeSet = await checkPullRequest.checkMerge(shouldMergeSet);
+      List<bool> mergeResult = await checkPullRequest.mergePullRequest(mergeSet);
+      expect(mergeSet.length, 2);
+      for (int i = 0; i < mergeResult.length; i++) {
+        expect(mergeResult[i], true);
+      }
+      expect(pubsub.messagesQueue.length, 1);
+      pubsub.messagesQueue.clear();
+      //assert(pubsub.messagesQueue.isEmpty);
     });
   });
 }
