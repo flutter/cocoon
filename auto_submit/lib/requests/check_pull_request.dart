@@ -44,14 +44,14 @@ class CheckPullRequest extends RequestHandler {
       return responses;
     }
     final List<Future<Response>> futures = <Future<Response>>[];
-    //The shouldMergeMap stores the repo name and the set of PRs ready to merge to this repo
-    final Map<String, Set<PullRequest>> shouldMergeMap = <String, Set<PullRequest>>{};
+    //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
+    final Map<String, Set<PullRequest>> repoPullRequestsMap = <String, Set<PullRequest>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message, shouldMergeMap));
+      futures.add(_processMessage(message, repoPullRequestsMap));
     }
     responses.addAll(await Future.wait(futures));
 
-    await checkMerge(shouldMergeMap);
+    await checkPullRequests(repoPullRequestsMap);
     return responses;
   }
 
@@ -59,15 +59,26 @@ class CheckPullRequest extends RequestHandler {
   ///
   /// The number of pull requests to be merged to each repo will not exceed
   /// the _kMergeCountPerRepo
-  Future<List<bool>> checkMerge(Map<String, Set<PullRequest>> shouldMergeMap) async {
-    final List<bool> responses = <bool>[];
-    for (Set<PullRequest> prSet in shouldMergeMap.values) {
+  Future<List<Response>> checkPullRequests(Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    final List<Response> responses = <Response>[];
+    for (String repoName in repoPullRequestsMap.keys) {
       // Merge first _kMergeCountPerRepo counts of pull requests to each repo
-      for (int i = 0; i < _kMergeCountPerRepo; i++) {
-        responses.add(await _processMerge(prSet.elementAt(i)));
-      }
-      for (int j = _kMergeCountPerRepo; j < prSet.length; j++) {
-        await pubsub.publish('auto-submit-queue', prSet.elementAt(j));
+      for (int index = 0; index < repoPullRequestsMap[repoName]!.length; index++) {
+        final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
+        if (index < _kMergeCountPerRepo) {
+          final bool mergeResult = await _processMerge(pullRequest);
+          if (!mergeResult) {
+            responses
+                .add(Response.ok('Failed to merge the pull request ${pullRequest.number} to $repoName repository.'));
+          } else {
+            responses.add(
+                Response.ok('Successfully merged the pull request ${pullRequest.number} to $repoName repository.'));
+          }
+        } else {
+          await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
+          responses.add(Response.ok('Cannot merge the pull request ${pullRequest.number} to $repoName repository'
+              'this time because we already merged $_kMergeCountPerRepo pull requests to this repository.'));
+        }
       }
     }
     return responses;
@@ -87,7 +98,7 @@ class CheckPullRequest extends RequestHandler {
   }
 
   Future<Response> _processMessage(
-      pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> shouldMergeMap) async {
+      pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
     final String data = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -99,10 +110,10 @@ class CheckPullRequest extends RequestHandler {
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       log.info('Should merge the pull request: ${queryResult.number}');
-      if (!shouldMergeMap.containsKey(slug.fullName)) {
-        shouldMergeMap[slug.fullName] = <PullRequest>{};
+      if (!repoPullRequestsMap.containsKey(slug.fullName)) {
+        repoPullRequestsMap[slug.fullName] = <PullRequest>{};
       }
-      shouldMergeMap[slug.fullName]!.add(pullRequest);
+      repoPullRequestsMap[slug.fullName]!.add(pullRequest);
 
       return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
