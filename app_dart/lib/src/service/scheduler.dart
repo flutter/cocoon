@@ -156,7 +156,11 @@ class Scheduler {
 
     await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
     // Update tasks for those that were scheduled
-    await datastore.insert(tasks);
+    try {
+      await datastore.insert(tasks);
+    } catch (error) {
+      log.severe('Failed to update tasks: $error');
+    }
 
     await _uploadToBigQuery(commit);
   }

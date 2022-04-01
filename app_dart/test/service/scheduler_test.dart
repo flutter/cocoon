@@ -195,7 +195,8 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+        // TODO(chillers): FakeDatastore does not handle inserts on Task to show updates. https://github.com/flutter/flutter/issues/78876
+        expect(db.values.values.whereType<Task>().length, (2 + 3) * 3);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -217,7 +218,8 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+        // TODO(chillers): FakeDatastore does not handle inserts on Task to show updates. https://github.com/flutter/flutter/issues/78876
+        expect(db.values.values.whereType<Task>().length, (2 + 2) * 3);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -253,7 +255,8 @@ void main() {
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
         // Tasks triggered by cocoon are marked as in progress
         final Iterable<Task> tasks = db.values.values.whereType<Task>();
-        expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status, Task.statusInProgress);
+        // TODO(chillers): FakeDatastore does not handle inserts on Task to show updates. https://github.com/flutter/flutter/issues/78876
+        expect(tasks.where((Task task) => task.name == 'Linux A').last.status, Task.statusInProgress);
       });
     });
 
@@ -278,7 +281,8 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 3);
+        // TODO(chillers): FakeDatastore does not handle inserts on Task to show updates. https://github.com/flutter/flutter/issues/78876
+        expect(db.values.values.whereType<Task>().length, 3 * 2);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
