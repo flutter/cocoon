@@ -24,7 +24,6 @@ void main() {
     const String labelName = "warning: land on red to fix tree breakage";
     const String repoName = 'cocoon';
     const String autosubmitLabel = 'no_autosubmit';
-    const int _kMergeCountPerRepo = 1;
 
     test('Merges PR with successful status and checks', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
@@ -333,17 +332,10 @@ void main() {
         'flutter/cocoon': <PullRequest>{pullRequest3}
       };
 
-      List<Response> mergeResult = await checkPullRequest.checkPullRequests(repoPullRequestsMap);
-      expect(mergeResult.length, 3);
-      expect(await mergeResult[0].readAsString(),
-          'Successfully merged the pull request ${pullRequest1.number} to ${pullRequest1.base!.repo!.slug().fullName} repository.');
-      expect(
-          await mergeResult[1].readAsString(),
-          'Cannot merge the pull request ${pullRequest2.number} to ${pullRequest2.base!.repo!.slug().fullName} repository'
-          'this time because we already merged $_kMergeCountPerRepo pull requests to this repository.');
-      expect(await mergeResult[2].readAsString(),
-          'Successfully merged the pull request ${pullRequest3.number} to ${pullRequest3.base!.repo!.slug().fullName} repository.');
-
+      List<Map<int, String>> mergeResult = await checkPullRequest.checkPullRequests(repoPullRequestsMap);
+      expect(mergeResult[0], <int, String>{22: 'merged'});
+      expect(mergeResult[1], <int, String>{23: 'queued'});
+      expect(mergeResult[2], <int, String>{24: 'merged'});
       expect(pubsub.messagesQueue.length, 1);
       pubsub.messagesQueue.clear();
     });

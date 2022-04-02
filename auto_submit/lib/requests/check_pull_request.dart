@@ -59,25 +59,22 @@ class CheckPullRequest extends RequestHandler {
   ///
   /// The number of pull requests to be merged to each repo will not exceed
   /// the _kMergeCountPerRepo
-  Future<List<Response>> checkPullRequests(Map<String, Set<PullRequest>> repoPullRequestsMap) async {
-    final List<Response> responses = <Response>[];
+  Future<List<Map<int, String>>> checkPullRequests(Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    final List<Map<int, String>> responses = <Map<int, String>>[];
     for (String repoName in repoPullRequestsMap.keys) {
       // Merge first _kMergeCountPerRepo counts of pull requests to each repo
       for (int index = 0; index < repoPullRequestsMap[repoName]!.length; index++) {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
           final bool mergeResult = await _processMerge(pullRequest);
-          if (!mergeResult) {
-            responses
-                .add(Response.ok('Failed to merge the pull request ${pullRequest.number} to $repoName repository.'));
+          if (mergeResult) {
+            responses.add(<int, String>{pullRequest.number!: 'merged'});
           } else {
-            responses.add(
-                Response.ok('Successfully merged the pull request ${pullRequest.number} to $repoName repository.'));
+            responses.add(<int, String>{pullRequest.number!: 'unmerged'});
           }
         } else {
           await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
-          responses.add(Response.ok('Cannot merge the pull request ${pullRequest.number} to $repoName repository'
-              'this time because we already merged $_kMergeCountPerRepo pull requests to this repository.'));
+          responses.add(<int, String>{pullRequest.number!: 'queued'});
         }
       }
     }
