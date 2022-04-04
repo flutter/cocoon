@@ -86,7 +86,7 @@ void main() {
       }
 
       githubService.checkRunsData = checkRunsMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -111,7 +111,7 @@ void main() {
       pubsub.publish(testTopic, pullRequest);
 
       githubService.checkRunsData = checkRunsMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -140,7 +140,7 @@ void main() {
       pubsub.publish(testTopic, pullRequest);
 
       githubService.checkRunsData = checkRunsMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -167,7 +167,7 @@ void main() {
       pubsub.publish(testTopic, pullRequest);
       githubService.checkRunsData = inProgressCheckRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareToTCommitsMock;
+      githubService.compareTwoCommitsData = compareToTCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -195,7 +195,7 @@ void main() {
       pubsub.publish(testTopic, pullRequest);
 
       githubService.checkRunsData = checkRunsMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -224,7 +224,7 @@ void main() {
       }
       githubService.checkRunsData = failedCheckRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -249,7 +249,7 @@ void main() {
 
       githubService.checkRunsData = checkRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -275,7 +275,7 @@ void main() {
 
       githubService.checkRunsData = checkRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -302,7 +302,7 @@ void main() {
 
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -330,7 +330,7 @@ void main() {
 
       githubService.checkRunsData = inProgressCheckRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -360,7 +360,7 @@ void main() {
       }
       githubService.checkRunsData = checkRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
@@ -388,7 +388,7 @@ void main() {
 
       githubService.checkRunsData = checkRunsMock;
       githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
+      githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);

@@ -277,8 +277,8 @@ final String commitMock = '''{
   }
 }''';
 
-// compareTowCOmmitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-final String compareTowCommitsMock = '''{
+// compareTwoCommitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
+final String compareTwoCommitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "status": "behind",
   "ahead_by": 1,

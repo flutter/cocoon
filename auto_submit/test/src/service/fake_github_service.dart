@@ -15,7 +15,7 @@ class FakeGithubService implements GithubService {
     GitHub? client,
     String? checkRunsMock,
     String? commitMock,
-    String? compareTowCommitsMock,
+    String? compareTwoCommitsMock,
     String? successMergeMock,
     String? createCommentMock,
   }) : github = client ?? MockGitHub();
@@ -25,7 +25,7 @@ class FakeGithubService implements GithubService {
 
   String? checkRunsMock;
   String? commitMock;
-  String? compareTowCommitsMock;
+  String? compareTwoCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
 
@@ -37,8 +37,8 @@ class FakeGithubService implements GithubService {
     this.commitMock = commitMock;
   }
 
-  set compareTowCommitsData(String? compareTowCommitsMock) {
-    this.compareTowCommitsMock = compareTowCommitsMock;
+  set compareTwoCommitsData(String? compareTwoCommitsMock) {
+    this.compareTwoCommitsMock = compareTwoCommitsMock;
   }
 
   set successMergeData(String? successMergeMock) {
@@ -71,7 +71,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCommitsMock!));
+    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTwoCommitsMock!));
     return githubComparison;
   }
 
