@@ -165,7 +165,6 @@ class CheckPullRequest extends RequestHandler {
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
     // Check the label again before merge the pull request.
-    //final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
     if (queryResult.shouldMerge) {
       return true;
     }
