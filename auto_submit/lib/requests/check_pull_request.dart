@@ -103,28 +103,32 @@ class CheckPullRequest extends RequestHandler {
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
-    await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      log.info('Should merge the pull request: ${queryResult.number}');
-      if (!repoPullRequestsMap.containsKey(slug.fullName)) {
-        repoPullRequestsMap[slug.fullName] = <PullRequest>{};
+      final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
+      if (hasAutosubmitLabel) {
+        if (!repoPullRequestsMap.containsKey(slug.fullName)) {
+          repoPullRequestsMap[slug.fullName] = <PullRequest>{};
+        }
+        repoPullRequestsMap[slug.fullName]!.add(pullRequest);
+        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
+      } else {
+        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
-      repoPullRequestsMap[slug.fullName]!.add(pullRequest);
-
-      return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
+      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
       return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {
       log.info('The pull request ${queryResult.number} has unfinished tests,'
-          'push to pubsub and check later.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
+          'leave it at pubsub and check later.');
     }
     return Response.ok('Does not merge the pull request ${queryResult.number}.');
   }
@@ -134,11 +138,9 @@ class CheckPullRequest extends RequestHandler {
     int prNumber,
     GraphQLClient client,
   ) async {
-    //final String labelName = config.waitingForTreeToGoGreenLabelName;
-
     final QueryResult result = await client.query(
       QueryOptions(
-        document: labeledPullRequestWithReviewsQuery,
+        document: pullRequestWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
         variables: <String, dynamic>{
           'sOwner': slug.owner,
@@ -163,8 +165,8 @@ class CheckPullRequest extends RequestHandler {
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
     // Check the label again before merge the pull request.
-    final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
-    if (queryResult.shouldMerge && hasAutosubmitLabel) {
+    //final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
+    if (queryResult.shouldMerge) {
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
@@ -250,8 +252,8 @@ class CheckPullRequest extends RequestHandler {
         (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
 
     List<CheckRun> checkRuns = <CheckRun>[];
-    if (pr.head != null && pr.head!.sha != null) {
-      checkRuns.addAll(await gitHub.getCheckRuns(slug, pr.head!.sha!));
+    if (pr.head != null) {
+      checkRuns.addAll(await gitHub.getCheckRuns(slug, sha));
     }
 
     final bool hasApproval = config.rollerAccounts.contains(author) ||

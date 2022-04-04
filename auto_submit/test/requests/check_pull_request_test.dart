@@ -26,8 +26,8 @@ void main() {
     late FakeGraphQLClient githubGraphQLClient;
     final FakeGithubService githubService = FakeGithubService();
     final FakePubSub pubsub = FakePubSub();
-    late PullRequestHelper prRequested1;
-    late PullRequestHelper prRequested2;
+    late PullRequestHelper flutterRequest;
+    late PullRequestHelper cocoonRequest;
     late List<QueryOptions> expectedOptions;
     late QueryOptions flutterOption;
     late QueryOptions cocoonOption;
@@ -45,16 +45,16 @@ void main() {
         expect(options.variables['sOwner'], 'flutter');
         final String? repoName = options.variables['sName'] as String?;
         if (repoName == 'flutter') {
-          return createQueryResult(prRequested1);
+          return createQueryResult(flutterRequest);
         } else if (repoName == 'cocoon') {
-          return createQueryResult(prRequested2);
+          return createQueryResult(cocoonRequest);
         } else {
           fail('unexpected repo $repoName');
         }
       };
 
       flutterOption = QueryOptions(
-        document: labeledPullRequestWithReviewsQuery,
+        document: pullRequestWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
         variables: <String, dynamic>{
           'sOwner': 'flutter',
@@ -63,7 +63,7 @@ void main() {
         },
       );
       cocoonOption = QueryOptions(
-        document: labeledPullRequestWithReviewsQuery,
+        document: pullRequestWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
         variables: <String, dynamic>{
           'sOwner': 'flutter',
@@ -86,13 +86,12 @@ void main() {
       }
 
       githubService.checkRunsData = checkRunsMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      prRequested1 = PullRequestHelper(prNumber: 0);
-      prRequested2 = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0);
+      cocoonRequest = PullRequestHelper(prNumber: 1);
 
       final List<Response> responses = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -117,11 +116,11 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         prNumber: 0,
         reviews: const <PullRequestReviewHelper>[],
       );
-      prRequested2 = PullRequestHelper(
+      cocoonRequest = PullRequestHelper(
         prNumber: 1,
         reviews: const <PullRequestReviewHelper>[],
       );
@@ -146,7 +145,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
@@ -173,7 +172,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
@@ -201,7 +200,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested2 = PullRequestHelper(
+      cocoonRequest = PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[],
       );
 
@@ -229,8 +228,8 @@ void main() {
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      prRequested1 = PullRequestHelper(prNumber: 0);
-      prRequested2 = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0);
+      cocoonRequest = PullRequestHelper(prNumber: 1);
 
       final List<Response> responses = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -255,7 +254,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.otherStatusFailure,
         ],
@@ -281,7 +280,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         authorAssociation: '',
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
@@ -296,9 +295,10 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Does not fail with null checks', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
+    test('Removes the label for the PR with null checks and statuses', () async {
+      PullRequest pullRequest = generatePullRequest(prNumber: 0);
       pubsub.publish(testTopic, pullRequest);
+
       githubService.checkRunsData = emptyCheckRunsMock;
       githubService.commitData = commitMock;
       githubService.compareTowCommitsData = compareTowCommitsMock;
@@ -306,12 +306,15 @@ void main() {
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      prRequested1 = PullRequestHelper(prNumber: 0);
+
+      flutterRequest = PullRequestHelper(
+        lastCommitStatuses: const <StatusHelper>[],
+      );
 
       final List<Response> responses = await checkPullRequest.get();
+      final String resBody = await responses[0].readAsString();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
       expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -331,8 +334,8 @@ void main() {
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      prRequested1 = PullRequestHelper(prNumber: 0);
-      prRequested2 = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0);
+      cocoonRequest = PullRequestHelper(prNumber: 1);
 
       final List<Response> responses = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -361,8 +364,8 @@ void main() {
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-      prRequested1 = PullRequestHelper(prNumber: 0);
-      prRequested2 = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0);
+      cocoonRequest = PullRequestHelper(prNumber: 1);
 
       final List<Response> responses = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -370,33 +373,11 @@ void main() {
       _verifyQueries(expectedOptions);
       for (int index = 0; index < responses.length; index++) {
         final String resBody = await responses[index].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[index].number}.');
+        expect(
+            resBody,
+            'Does not merge the pull request ${pullRequests[index].number} '
+            'for no autosubmit label any more.');
       }
-      expect(pubsub.messagesQueue.length, 2);
-      pubsub.messagesQueue.clear();
-    });
-
-    test('Empty validations do not merge', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0);
-      pubsub.publish(testTopic, pullRequest);
-
-      githubService.checkRunsData = emptyCheckRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTowCommitsData = compareTowCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
-
-      prRequested1 = PullRequestHelper(
-        lastCommitStatuses: const <StatusHelper>[],
-      );
-
-      final List<Response> responses = await checkPullRequest.get();
-      final String resBody = await responses[0].readAsString();
-      expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
-      expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -412,7 +393,7 @@ void main() {
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
-      prRequested1 = PullRequestHelper(
+      flutterRequest = PullRequestHelper(
         authorAssociation: 'MEMBER',
         reviews: <PullRequestReviewHelper>[
           const PullRequestReviewHelper(

@@ -5,7 +5,7 @@
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
 
-final DocumentNode labeledPullRequestWithReviewsQuery = lang.parseString(r'''
+final DocumentNode pullRequestWithReviewsQuery = lang.parseString(r'''
 query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrNumber: int!) {
   repository(owner: $sOwner, name: $sName) { 
     pullRequest(number: $sPrNumber) {
