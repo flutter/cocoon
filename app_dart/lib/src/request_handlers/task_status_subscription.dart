@@ -56,16 +56,16 @@ class TaskStatusSubscription extends SubscriptionHandler {
     if (builderName == null) {
       throw const BadRequestException('userData does not contain builder_name');
     }
-    final String? newStatus = buildPushMessage.build?.status as String?;
+    final String? newStatus = buildPushMessage.build?.status.toString();
     if (newStatus == null) {
       throw const BadRequestException('userData does not contain status');
     }
 
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
-    }
+    // if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
+    //   throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
+    // }
 
     final Task task = await _getTaskFromNamedParams(datastore, builderName, commitBranch, commitSha);
 
