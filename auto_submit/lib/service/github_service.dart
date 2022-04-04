@@ -53,7 +53,7 @@ class GithubService {
   }
 
   /// Create a comment for a pull request.
-  Future<IssueComment?> createComment(
+  Future<IssueComment> createComment(
     RepositorySlug slug,
     int issueNumber,
     String body,

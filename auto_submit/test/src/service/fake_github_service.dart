@@ -115,7 +115,7 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
+  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
     final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
     return issueComment;
   }
