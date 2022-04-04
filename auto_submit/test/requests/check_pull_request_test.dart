@@ -86,6 +86,7 @@ void main() {
       }
 
       githubService.checkRunsData = checkRunsMock;
+      githubService.compareTowCommitsData = compareTowCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
