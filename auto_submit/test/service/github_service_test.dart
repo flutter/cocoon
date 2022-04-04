@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/runtimeconfig/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
