@@ -138,6 +138,17 @@ Future<void> main() async {
       ///
       /// Response: Status 200 OK
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
+
+      /// Apply task updates via PubSub messages.
+      ///
+      /// This API updates task status in datastore which have been
+      /// communicated via PubSub messages.
+      ///
+      /// POST: /api/results/task-status-subscription
+      ///
+      /// Response: Status 200 OK
+      '/api/results/task-status-subscription': TaskStatusSubscription(cache, config, authProvider),
+
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,
