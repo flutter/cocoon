@@ -13,9 +13,7 @@ import '../../utilities/mocks.dart';
 class FakeGithubService implements GithubService {
   FakeGithubService({
     GitHub? client,
-    String? reviewsMock,
     String? checkRunsMock,
-    String? repositoryStatusesMock,
     String? commitMock,
     String? compareTowCommitsMock,
     String? successMergeMock,
@@ -25,24 +23,14 @@ class FakeGithubService implements GithubService {
   @override
   final GitHub github;
 
-  String? reviewsMock;
   String? checkRunsMock;
-  String? repositoryStatusesMock;
   String? commitMock;
   String? compareTowCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
 
-  set reviewsData(String? reviewsMock) {
-    this.reviewsMock = reviewsMock;
-  }
-
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
-  }
-
-  set repositoryStatusesData(String? repositoryStatusesMock) {
-    this.repositoryStatusesMock = repositoryStatusesMock;
   }
 
   set commitData(String? commitMock) {
@@ -62,14 +50,6 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
-    final List<dynamic> reviews = json.decode(reviewsMock!) as List;
-    final List<PullRequestReview> prReviews =
-        reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
-    return prReviews;
-  }
-
-  @override
   Future<List<CheckRun>> getCheckRuns(
     RepositorySlug slug,
     String ref,
@@ -81,20 +61,6 @@ class FakeGithubService implements GithubService {
       checkRuns.addAll(checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList());
     }
     return checkRuns;
-  }
-
-  @override
-  Future<List<RepositoryStatus>> getStatuses(
-    RepositorySlug slug,
-    String ref,
-  ) async {
-    final rawBody = json.decode(repositoryStatusesMock!) as Map<String, dynamic>;
-    final List<dynamic> statusesBody = rawBody["statuses"]!;
-    List<RepositoryStatus> statuses = <RepositoryStatus>[];
-    if (statusesBody[0].isNotEmpty) {
-      statuses.addAll(statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList());
-    }
-    return statuses;
   }
 
   @override

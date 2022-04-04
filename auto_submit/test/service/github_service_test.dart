@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/runtimeconfig/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -14,33 +15,29 @@ import '../utilities/mocks.dart';
 void main() {
   late GithubService githubService;
   late RepositorySlug slug;
-  late PullRequestReview testReview;
-  late List<PullRequestReview> testReviews;
+  late RepositoryCommit testCommit;
   final MockGitHub mockGitHub = MockGitHub();
-  final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
-  final String user = '''{"login": "octocat", "id": 1}''';
+  final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
 
-  const int number = 1347;
-  const int id = 1;
-  const String state = "APPROVED";
+  const String author = '''{"login": "octocat", "id": 1}''';
+  const String url = 'testUrl';
+  const String sha = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 
   setUp(() {
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'cocoon');
-    testReview = PullRequestReview.fromJson(
-      jsonDecode('{"id": $id, "user": $user, "state": "$state"}') as Map<String, dynamic>,
+    testCommit = RepositoryCommit.fromJson(
+      jsonDecode('{"url": "$url", "author": $author, "sha": "$sha"}') as Map<String, dynamic>,
     );
-    testReviews = <PullRequestReview>[testReview];
 
-    when(mockGitHub.pullRequests).thenReturn(mockPullRequestsService);
-    when(mockPullRequestsService.listReviews(slug, number))
-        .thenAnswer((_) => Stream<PullRequestReview>.fromIterable(testReviews));
+    when(mockGitHub.repositories).thenReturn(mockRepositoriesService);
+    when(mockRepositoriesService.getCommit(slug, sha)).thenAnswer((_) => Future.value(testCommit));
   });
 
   test('listReviews retrieves all reviews of the pull request', () async {
-    final Iterable<PullRequestReview> reviews = await githubService.getReviews(slug, number);
-    PullRequestReview review = reviews.first;
-    expect(review.id, id);
-    expect(review.state, state);
+    final RepositoryCommit commit = await githubService.getCommit(slug, sha);
+    expect(commit.author!.login, 'octocat');
+    expect(commit.url, 'testUrl');
+    expect(commit.sha, '6dcb09b5b57875f334f61aebed695e2e4193db5e');
   });
 }
