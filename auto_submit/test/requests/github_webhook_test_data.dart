@@ -75,6 +75,7 @@ PullRequest generatePullRequest(
     String? repoName,
     String? login,
     String? authorAssociation,
+    String? author,
     int? prNumber}) {
   return PullRequest.fromJson(json.decode('''{
       "id": 1,
@@ -82,7 +83,7 @@ PullRequest generatePullRequest(
       "state": "open",
       "title": "Amazing new feature",
       "user": {
-        "login": "${login ?? "octocat"}",
+        "login": "${author ?? "octocat"}",
         "id": 1
       },
       "body": "Please pull these awesome changes in!",

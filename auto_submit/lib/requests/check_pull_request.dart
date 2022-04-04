@@ -18,6 +18,11 @@ import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 
+/// Maximum number of pull requests to merge on each check on each repo.
+/// This should be kept reasonably low to avoid flooding infra when the tree
+/// goes green.
+const int _kMergeCountPerRepo = 1;
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -33,7 +38,7 @@ class CheckPullRequest extends RequestHandler {
   static const int kPullMesssageBatchSize = 100;
 
   Future<List<Response>> get() async {
-    List<Response> responses = <Response>[];
+    final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
@@ -42,16 +47,60 @@ class CheckPullRequest extends RequestHandler {
       return responses;
     }
     final List<Future<Response>> futures = <Future<Response>>[];
+    //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
+    final Map<String, Set<PullRequest>> repoPullRequestsMap = <String, Set<PullRequest>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message));
+      futures.add(_processMessage(message, repoPullRequestsMap));
     }
     responses.addAll(await Future.wait(futures));
+
+    await checkPullRequests(repoPullRequestsMap);
     return responses;
   }
 
-  Future<Response> _processMessage(pub.ReceivedMessage receivedMessage) async {
-    final String data = receivedMessage.message!.data!;
-    final rawBody = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
+  /// Check and merge the pull requests to each repo this cycle.
+  ///
+  /// The number of pull requests to be merged to each repo will not exceed
+  /// the _kMergeCountPerRepo
+  Future<List<Map<int, String>>> checkPullRequests(Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    final List<Map<int, String>> responses = <Map<int, String>>[];
+    for (String repoName in repoPullRequestsMap.keys) {
+      // Merge first _kMergeCountPerRepo counts of pull requests to each repo
+      for (int index = 0; index < repoPullRequestsMap[repoName]!.length; index++) {
+        final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
+        if (index < _kMergeCountPerRepo) {
+          final bool mergeResult = await _processMerge(pullRequest);
+          if (mergeResult) {
+            responses.add(<int, String>{pullRequest.number!: 'merged'});
+          } else {
+            responses.add(<int, String>{pullRequest.number!: 'unmerged'});
+          }
+        } else {
+          await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
+          responses.add(<int, String>{pullRequest.number!: 'queued'});
+        }
+      }
+    }
+    return responses;
+  }
+
+  Future<bool> _processMerge(PullRequest pullRequest) async {
+    // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+    bool merged = 1 < 2;
+    if (merged) {
+      log.info(
+          'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+    } else {
+      log.info('Failed to merge the pull request ${pullRequest.number}');
+      await pubsub.publish('auto-submit-queue', pullRequest);
+    }
+    return merged;
+  }
+
+  Future<Response> _processMessage(
+      pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    final String messageData = receivedMessage.message!.data!;
+    final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
     await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
@@ -61,9 +110,13 @@ class CheckPullRequest extends RequestHandler {
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      log.info('Merge the pull request: ${queryResult.number}');
-      // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-      return Response.ok('Merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
+      log.info('Should merge the pull request: ${queryResult.number}');
+      if (!repoPullRequestsMap.containsKey(slug.fullName)) {
+        repoPullRequestsMap[slug.fullName] = <PullRequest>{};
+      }
+      repoPullRequestsMap[slug.fullName]!.add(pullRequest);
+
+      return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
@@ -169,15 +222,14 @@ class CheckPullRequest extends RequestHandler {
       prNumber,
       graphQLClient,
     );
-
     final Map<String, dynamic>? repository = data['repository'] as Map<String, dynamic>?;
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
-    final Map<String, dynamic> prMap = repository['pullRequest'].single as Map<String, dynamic>;
-    final String authorAssociation = prMap['authorAssociation'] as String;
+    final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
+    final String authorAssociation = pullRequest['authorAssociation'] as String;
 
-    final Map<String, dynamic> commit = prMap['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+    final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
     if (commit['status'] != null &&
         commit['status']['contexts'] != null &&
@@ -186,7 +238,7 @@ class CheckPullRequest extends RequestHandler {
     }
 
     final List<Map<String, dynamic>> reviews =
-        (prMap['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+        (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
@@ -341,7 +393,6 @@ bool _checkApproval(
     // Reviews come back in order of creation.
     final String? state = review['state'] as String?;
     final String? authorLogin = review['author']['login'] as String?;
-
     if (state == 'APPROVED') {
       approvers.add(authorLogin);
       changeRequestAuthors.remove(authorLogin);
@@ -349,7 +400,6 @@ bool _checkApproval(
       changeRequestAuthors.add(authorLogin);
     }
   }
-
   final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
   log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
   return (approvers.length > 1) && changeRequestAuthors.isEmpty;
