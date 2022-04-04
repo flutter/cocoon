@@ -26,9 +26,9 @@ void main() {
     const String autosubmitLabel = 'no_autosubmit';
 
     test('Merges PR with successful status and checks', () async {
-      final PullRequest pr1 = generatePullRequest(prNumber: 0);
-      final PullRequest pr2 = generatePullRequest(prNumber: 1);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: 'flutter', login: 'cocoon');
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -43,18 +43,17 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[index].number} in ${pullRequests[index].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges unapproved PR from autoroller', () async {
-      final PullRequest pr1 = generatePullRequest(prNumber: 2, login: login);
-      final PullRequest pr2 = generatePullRequest(prNumber: 3, login: login);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 2, login: login);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -69,18 +68,17 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[index].number} in ${pullRequests[index].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 4, labelName: labelName);
-      PullRequest pr2 = generatePullRequest(prNumber: 5, labelName: labelName);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 4, labelName: labelName);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -95,10 +93,10 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[index].number} in ${pullRequests[index].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -120,15 +118,14 @@ void main() {
       for (Response response in responses) {
         final String resBody = await response.readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 7, repoName: repoName);
-      PullRequest pr2 = generatePullRequest(prNumber: 8, repoName: repoName);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 7, repoName: repoName);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -143,18 +140,18 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
         expect(resBody,
-            'Merge the pull request ${pullRequests[i].number} in ${pullRequests[i].base!.repo!.slug().fullName} repository.');
+            'Should merge the pull request ${pullRequests[index].number} in ${pullRequests[index].base!.repo!.slug().fullName} repository.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 9);
-      PullRequest pr2 = generatePullRequest(prNumber: 10);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 9);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 10);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -169,17 +166,17 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[index].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Remove the label for the PR with failed status', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 11);
-      PullRequest pr2 = generatePullRequest(prNumber: 12);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+    test('Removes the label for the PR with failed status', () async {
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 11);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 12);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -194,17 +191,17 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[index].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 13, authorAssociation: '');
-      PullRequest pr2 = generatePullRequest(prNumber: 14, authorAssociation: '');
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 13, authorAssociation: '');
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 14, authorAssociation: '');
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -219,9 +216,9 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[index].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -248,9 +245,9 @@ void main() {
     });
 
     test('Does not merge PR with in progress checks', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 16);
-      PullRequest pr2 = generatePullRequest(prNumber: 17);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 16);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 17);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -265,18 +262,18 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[i].number}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Does not merge the pull request ${pullRequests[index].number}.');
       }
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
 
     test('Does not merge PR if no autosubmit label any more', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 18, autosubmitLabel: autosubmitLabel);
-      PullRequest pr2 = generatePullRequest(prNumber: 19, autosubmitLabel: autosubmitLabel);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 18, autosubmitLabel: autosubmitLabel);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 19, autosubmitLabel: autosubmitLabel);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -291,18 +288,18 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[i].number}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Does not merge the pull request ${pullRequests[index].number}.');
       }
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
 
     test('Empty validations do not merge', () async {
-      PullRequest pr1 = generatePullRequest(prNumber: 20);
-      PullRequest pr2 = generatePullRequest(prNumber: 21);
-      final List<PullRequest> pullRequests = <PullRequest>[pr1, pr2];
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 20);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 21);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
@@ -317,11 +314,30 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
 
       final List<Response> responses = await checkPullRequest.get();
-      for (int i = 0; i < responses.length; i++) {
-        final String resBody = await responses[i].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[i].head!.sha}.');
+      for (int index = 0; index < responses.length; index++) {
+        final String resBody = await responses[index].readAsString();
+        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[index].head!.sha}.');
       }
       assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('Merges only _kMergeCountPerRepo PR per cycle per repo', () async {
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 22, repoName: 'flutter', login: 'flutter');
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 23, repoName: 'flutter', login: 'flutter');
+      final PullRequest pullRequest3 = generatePullRequest(prNumber: 24, repoName: 'cocoon', login: 'flutter');
+      config = FakeConfig(githubService: githubService);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+      final Map<String, Set<PullRequest>> repoPullRequestsMap = <String, Set<PullRequest>>{
+        'flutter/flutter': <PullRequest>{pullRequest1, pullRequest2},
+        'flutter/cocoon': <PullRequest>{pullRequest3}
+      };
+
+      List<Map<int, String>> mergeResult = await checkPullRequest.checkPullRequests(repoPullRequestsMap);
+      expect(mergeResult[0], <int, String>{22: 'merged'});
+      expect(mergeResult[1], <int, String>{23: 'queued'});
+      expect(mergeResult[2], <int, String>{24: 'merged'});
+      expect(pubsub.messagesQueue.length, 1);
+      pubsub.messagesQueue.clear();
     });
   });
 }
