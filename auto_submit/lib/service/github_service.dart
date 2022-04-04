@@ -53,8 +53,11 @@ class GithubService {
   }
 
   /// Create a comment for a pull request.
-  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
-    CreatePullRequestComment comment = CreatePullRequestComment(commentBody, sha, null, null);
-    return await github.pullRequests.createComment(slug, number, comment);
+  Future<IssueComment> createComment(
+    RepositorySlug slug,
+    int issueNumber,
+    String body,
+  ) async {
+    return await github.issues.createComment(slug, issueNumber, body);
   }
 }

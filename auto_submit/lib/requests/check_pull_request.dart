@@ -166,7 +166,7 @@ class CheckPullRequest extends RequestHandler {
   Future<bool> _removeLabel(
       _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
     final String commentBody = queryResult.removalMessage;
-    await gitHub.createComment(slug, queryResult.number, commentBody, queryResult.sha);
+    await gitHub.createComment(slug, queryResult.number, commentBody);
     final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autosubmitLabel);
     if (!result) {
       log.info('Failed to remove the autosubmit label.');
