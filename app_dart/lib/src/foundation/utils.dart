@@ -222,9 +222,10 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
 }
 
 /// Utility to class to wrap related objects in.
-class Pair<S, T> {
-  const Pair(this.first, this.second);
+class Tuple<S, T, U> {
+  const Tuple(this.first, this.second, this.third);
 
   final S first;
   final T second;
+  final U third;
 }

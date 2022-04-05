@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart';
 
 import '../luci/buildbucket.dart';
@@ -50,6 +51,19 @@ class Target {
       }
     }
     return dimensions;
+  }
+
+  /// [SchedulerPolicy] this target follows.
+  ///
+  /// Targets not triggered by Cocoon will not be triggered.
+  ///
+  /// Targets by default run on a [GuranteedPolicy], but targets in the devicelab run with [BatchPolicy].
+  SchedulerPolicy get schedulerPolicy {
+    if (value.scheduler != pb.SchedulerSystem.cocoon) {
+      return OmitPolicy();
+    }
+
+    return isDevicelab ? BatchPolicy() : GuranteedPolicy();
   }
 
   /// Gets the assembled properties for this [pb.Target].
@@ -162,6 +176,12 @@ class Target {
   String getPlatform() {
     return value.name.split(' ').first.toLowerCase();
   }
+
+  /// Indicates whether this target is run in the DeviceLab.
+  ///
+  /// DeviceLab targets are special as they run on a host + physical device, and there is limited
+  /// capacity in the labs to run them.
+  bool get isDevicelab => getPlatform().contains('android') || getPlatform().contains('ios');
 
   /// Get the associated LUCI bucket to run this [Target] in.
   String getBucket() {

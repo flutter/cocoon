@@ -9,6 +9,7 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/secrets.dart';
 import 'package:github/github.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:graphql/client.dart';
 
 import 'fake_github_service.dart';
 
@@ -16,6 +17,7 @@ import 'fake_github_service.dart';
 class FakeConfig extends Config {
   FakeConfig({
     this.githubClient,
+    this.githubGraphQLClient,
     this.githubService,
     this.rollerAccountsValue,
     this.overrideTreeStatusLabelValue,
@@ -26,6 +28,7 @@ class FakeConfig extends Config {
         );
 
   GitHub? githubClient;
+  GraphQLClient? githubGraphQLClient;
   GithubService? githubService = FakeGithubService();
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
@@ -37,6 +40,8 @@ class FakeConfig extends Config {
   @override
   Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
 
+  @override
+  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
   @override
   Set<String> get rollerAccounts =>
       rollerAccountsValue ??

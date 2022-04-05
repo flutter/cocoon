@@ -5,16 +5,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
 import 'package:github/hooks.dart';
-import 'package:meta/meta.dart';
 
 import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
+import '../service/datastore.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
 import '../service/scheduler.dart';
@@ -35,12 +36,13 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
-@immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(
+  GithubWebhook(
     Config config, {
     required this.scheduler,
     this.githubChecksService,
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    this.branchService,
   }) : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
@@ -49,8 +51,12 @@ class GithubWebhook extends RequestHandler<Body> {
   /// Github checks service. Used to provide build status to github.
   final GithubChecksService? githubChecksService;
 
+  final DatastoreServiceProvider datastoreProvider;
+  BranchService? branchService;
+
   @override
   Future<Body> post() async {
+    final DatastoreService datastore = datastoreProvider(config.db);
     final String? gitHubEvent = request!.headers.value('X-GitHub-Event');
 
     if (gitHubEvent == null || request!.headers.value('X-Hub-Signature') == null) {
@@ -76,6 +82,11 @@ class GithubWebhook extends RequestHandler<Body> {
           if (await scheduler.processCheckRun(checkRunEvent) == false) {
             throw InternalServerError('Failed to process $checkRunEvent');
           }
+          break;
+        case 'create':
+          branchService ??= BranchService(datastore, rawRequest: stringRequest);
+          await branchService!.handleCreateRequest();
+          break;
       }
 
       return Body.empty;
