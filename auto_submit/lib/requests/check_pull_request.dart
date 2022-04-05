@@ -169,7 +169,7 @@ class CheckPullRequest extends RequestHandler {
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
-    return await isTOTRevert(queryResult.sha, slug, github);
+    return await isTOTRevert(queryResult.sha!, slug, github);
   }
 
   /// Check if the `commitSha` is a clean revert of TOT commit.
@@ -197,8 +197,8 @@ class CheckPullRequest extends RequestHandler {
   Future<bool> _removeLabel(
       _AutoMergeQueryResult queryResult, GithubService gitHub, RepositorySlug slug, String label) async {
     final String commentBody = queryResult.removalMessage;
-    await gitHub.createComment(slug, queryResult.number, commentBody, queryResult.sha);
-    final bool result = await gitHub.removeLabel(slug, queryResult.number, config.autosubmitLabel);
+    await gitHub.createComment(slug, queryResult.number!, commentBody, queryResult.sha!);
+    final bool result = await gitHub.removeLabel(slug, queryResult.number!, config.autosubmitLabel);
     if (!result) {
       log.info('Failed to remove the autosubmit label.');
       return false;
@@ -217,10 +217,10 @@ class CheckPullRequest extends RequestHandler {
     final bool unknownMergeableState = pr.mergeableState == 'UNKNOWN';
 
     final RepositorySlug slug = pr.base!.repo!.slug();
-    final int prNumber = pr.number!;
+    final int? prNumber = pr.number;
     final Map<String, dynamic> data = await _queryGraphQL(
       slug,
-      prNumber,
+      prNumber!,
       graphQLClient,
     );
     final Map<String, dynamic>? repository = data['repository'] as Map<String, dynamic>?;
@@ -243,7 +243,7 @@ class CheckPullRequest extends RequestHandler {
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
-    final String sha = pr.head!.sha as String;
+    final String? sha = pr.head!.sha;
     final String? author = pr.user!.login;
 
     // List of labels associated with the pull request.
@@ -251,7 +251,7 @@ class CheckPullRequest extends RequestHandler {
         (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
 
     List<CheckRun> checkRuns = <CheckRun>[];
-    if (pr.head != null) {
+    if (pr.head != null && sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, sha));
     }
 
@@ -264,7 +264,6 @@ class CheckPullRequest extends RequestHandler {
         );
     final bool ciSuccessful = await _checkStatuses(
       slug,
-      sha,
       failures,
       statuses,
       checkRuns,
@@ -290,7 +289,6 @@ class CheckPullRequest extends RequestHandler {
   /// Also fills [failures] with the names of any status/check that has failed.
   Future<bool> _checkStatuses(
     RepositorySlug slug,
-    String sha,
     Set<_FailureDetail> failures,
     List<Map<String, dynamic>> statuses,
     List<CheckRun> checkRuns,
@@ -434,10 +432,10 @@ class _AutoMergeQueryResult {
   final Set<_FailureDetail> failures;
 
   /// The pull request number.
-  final int number;
+  final int? number;
 
   /// The git SHA to be merged.
-  final String sha;
+  final String? sha;
 
   /// Whether the commit has checks or not.
   final bool emptyChecks;
