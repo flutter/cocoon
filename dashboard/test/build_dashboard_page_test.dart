@@ -240,11 +240,7 @@ void main() {
       ),
     );
 
-    // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
-    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
-      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
-    });
-    expect(tooltipFinder, findsOneWidget);
+    expect(find.textContaining('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red);
@@ -269,11 +265,7 @@ void main() {
       ),
     );
 
-    // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
-    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
-      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
-    });
-    expect(tooltipFinder, findsOneWidget);
+    expect(find.textContaining('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red[800]);
