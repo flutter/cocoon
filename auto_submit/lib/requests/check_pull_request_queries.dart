@@ -6,7 +6,7 @@ import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
 
 final DocumentNode pullRequestWithReviewsQuery = lang.parseString(r'''
-query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrNumber: int!) {
+query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrNumber: Int!) {
   repository(owner: $sOwner, name: $sName) { 
     pullRequest(number: $sPrNumber) {
       authorAssociation
