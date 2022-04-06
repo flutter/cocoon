@@ -328,8 +328,8 @@ void main() {
       });
 
       test('iOS label applied', () {
-        expect(GithubWebhook.getLabelsForFrameworkPath(
-          'packages/flutter_tools/lib/src/ios/devices.dart'),
+        expect(
+          GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/lib/src/ios/devices.dart'),
           contains('platform-ios'),
         );
       });
