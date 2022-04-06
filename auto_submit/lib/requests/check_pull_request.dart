@@ -37,14 +37,13 @@ class CheckPullRequest extends RequestHandler {
 
   static const int kPullMesssageBatchSize = 100;
 
-  Future<List<Response>> get() async {
+  Future<Response> get() async {
     final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
       log.info('There are no requests in the queue');
-      responses.add(Response.ok('No requests in the queue.'));
-      return responses;
+      return Response.ok('No requests in the queue.');
     }
     final List<Future<Response>> futures = <Future<Response>>[];
     //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
@@ -55,7 +54,11 @@ class CheckPullRequest extends RequestHandler {
     responses.addAll(await Future.wait(futures));
 
     await checkPullRequests(repoPullRequestsMap);
-    return responses;
+    final StringBuffer responseMessages = StringBuffer();
+    for (Response response in responses) {
+      responseMessages.write(await response.readAsString());
+    }
+    return Response.ok(responseMessages.toString());
   }
 
   /// Check and merge the pull requests to each repo this cycle.
@@ -124,7 +127,9 @@ class CheckPullRequest extends RequestHandler {
     } else if (queryResult.shouldRemoveLabel) {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
+      log.info('Removed the label for commit: ${queryResult.sha}');
       await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+      log.info('Acknowledged the pubsub for commit: ${queryResult.sha}');
       return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {
       log.info('The pull request ${queryResult.number} has unfinished tests,'
