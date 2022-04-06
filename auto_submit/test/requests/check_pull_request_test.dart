@@ -41,6 +41,9 @@ void main() {
       githubGraphQLClient = FakeGraphQLClient();
       expectedOptions = <QueryOptions>[];
 
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
         final String? repoName = options.variables['sName'] as String?;
@@ -431,6 +434,27 @@ void main() {
       expect(pubsub.messagesQueue.length, 1);
       pubsub.messagesQueue.clear();
     });
+
+    test('Rebases the PR if it was behind the ToT by _kBehindToT commits', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+
+      githubService.commitData = commitMock;
+      githubService.compareTwoCommitsData = shouldRebaseMock;
+      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub);
+      Response response = await checkPullRequest.autoRebase(pullRequest, githubService, githubGraphQLClient);
+      expect(await response.readAsString(), 'Successfully rebased the pull request ${pullRequest.number}');
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(
+                pullRequest.base!.ref!, pullRequest.head!.ref!, pullRequest.head!.repo!.id.toString()),
+          ),
+        ],
+      );
+    });
   });
 }
 
@@ -547,4 +571,12 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
     },
     source: QueryResultSource.network,
   );
+}
+
+Map<String, dynamic> getMergePullRequestVariables(String toBranch, String fromBranch, String repositoryId) {
+  return <String, dynamic>{
+    'base': toBranch,
+    'head': fromBranch,
+    'repositoryId': repositoryId,
+  };
 }

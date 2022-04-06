@@ -44,4 +44,14 @@ class GithubService {
   ) async {
     return await github.issues.createComment(slug, issueNumber, body);
   }
+
+  /// Gets the latest commit of the branch.
+  Future<RepositoryCommit> getLastCommit(RepositorySlug slug, String branchName) async {
+    ArgumentError.checkNotNull(slug);
+    return github.getJSON<Map<String, dynamic>, RepositoryCommit>(
+      '/repos/${slug.fullName}/commits/$branchName',
+      convert: (i) => RepositoryCommit.fromJson(i),
+      statusCode: StatusCodes.OK,
+    );
+  }
 }

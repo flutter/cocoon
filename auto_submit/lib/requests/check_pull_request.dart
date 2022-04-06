@@ -23,6 +23,10 @@ import '../server/request_handler.dart';
 /// goes green.
 const int _kMergeCountPerRepo = 1;
 
+/// If a pull request was behind the tip of tree by _kBehindToT commits
+/// then the bot tries to rebase it
+const int _kBehindToT = 5;
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -107,6 +111,9 @@ class CheckPullRequest extends RequestHandler {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService();
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
+
+    await autoRebase(pullRequest, gitHub, graphQLClient);
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
@@ -155,6 +162,45 @@ class CheckPullRequest extends RequestHandler {
       throw const BadRequestException('GraphQL query failed');
     }
     return result.data!;
+  }
+
+  Future<Response> autoRebase(PullRequest pullRequest, GithubService github, GraphQLClient client) async {
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
+    RepositoryCommit lastCommit = await github.getLastCommit(slug, 'main');
+    final GitHubComparison comparison = await github.compareTwoCommits(slug, lastCommit.sha!, pullRequest.base!.sha!);
+    if (comparison.behindBy! >= _kBehindToT) {
+      final bool result = await _mergeBranch(pullRequest, pullRequest.base!.repo!.id.toString(), client);
+      if (result) {
+        log.info('Successfully rebased the pull request ${pullRequest.number}');
+        return Response.ok('Successfully rebased the pull request ${pullRequest.number}');
+      }
+      return Response.ok('Failed to rebase the pull request ${pullRequest.number}');
+    }
+    return Response.ok('No need to rebase the pull request ${pullRequest.number}');
+  }
+
+  Future<bool> _mergeBranch(
+    PullRequest pullRequest,
+    String repositoryId,
+    GraphQLClient client,
+  ) async {
+    String toBranch = pullRequest.base!.ref!;
+    String fromBranch = pullRequest.head!.ref!;
+
+    final QueryResult result = await client.mutate(MutationOptions(
+      document: mergePullRequestMutation,
+      variables: <String, dynamic>{
+        'id': repositoryId,
+        'baseBranch': toBranch,
+        'headBranch': fromBranch,
+      },
+    ));
+
+    if (result.hasException) {
+      log.severe('Failed to merge branch#: $fromBranch to branch#: $toBranch, ${result.exception.toString()}');
+      return false;
+    }
+    return true;
   }
 
   /// Check if the pull request should be merged.
@@ -385,6 +431,7 @@ bool _checkApproval(
   }
 
   for (Map<String, dynamic> review in reviewNodes) {
+    log.info('author: ${review['author']}, login: ${review['author']['login']}');
     // Ignore reviews from non-members/owners.
     if (!allowedReviewers.contains(review['authorAssociation'])) {
       continue;

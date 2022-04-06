@@ -100,6 +100,7 @@ PullRequest generatePullRequest(
       "created_at": "2011-01-26T19:01:12Z",
       "head": {
         "label": "octocat:new-topic",
+        "ref": "new-topic",
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,
@@ -114,7 +115,8 @@ PullRequest generatePullRequest(
         }
       },
       "base": {
-        "label": "octocat:master",
+        "label": "octocat:main",
+        "ref": "main",
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,
@@ -283,6 +285,22 @@ final String compareTwoCommitsMock = '''{
   "status": "behind",
   "ahead_by": 1,
   "behind_by": 2,
+  "total_commits": 1,
+  "files": [
+    {
+      "sha": "bbcd538c8e72b8c175046e27cc8f907076331401",
+      "filename": "file1.txt",
+      "status": "added",
+      "changes": 124
+    }
+  ]
+}''';
+
+final String shouldRebaseMock = '''{
+  "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
+  "status": "behind",
+  "ahead_by": 1,
+  "behind_by": 10,
   "total_commits": 1,
   "files": [
     {

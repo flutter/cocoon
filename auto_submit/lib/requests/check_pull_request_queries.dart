@@ -39,3 +39,15 @@ query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrN
     } 
   }
 }''');
+
+final DocumentNode mergePullRequestMutation = lang.parseString(r'''
+mutation mergeBranch($id: ID!, $baseBranch: String!, $headBranch: String!,) {
+  mergeBranch (input: {
+    repositoryId: $id,
+    base: $baseBranch,
+    head: $headBranch,
+    commitMessage: "",
+  }) {
+    clientMutationId
+  }
+}''');

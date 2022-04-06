@@ -85,4 +85,10 @@ class FakeGithubService implements GithubService {
     final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
     return issueComment;
   }
+
+  @override
+  Future<RepositoryCommit> getLastCommit(RepositorySlug slug, String branchName) async {
+    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!));
+    return commit;
+  }
 }
