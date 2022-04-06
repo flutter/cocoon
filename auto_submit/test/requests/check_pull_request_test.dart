@@ -97,15 +97,17 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      for (int index = 0; index < responses.length; index++) {
-        final String resBody = await responses[index].readAsString();
-        expect(resBody,
-            'Should merge the pull request ${pullRequests[index].number} in ${pullRequests[index].base!.repo!.slug().fullName} repository.');
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write(
+            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       }
+      expect(await response.readAsString(), responseMessages.toString());
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -129,11 +131,10 @@ void main() {
         reviews: const <PullRequestReviewHelper>[],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody,
+      expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -156,11 +157,10 @@ void main() {
         ],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody,
+      expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -184,11 +184,10 @@ void main() {
         lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody,
+      expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -208,12 +207,10 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-
-      final String resBody = await responses[0].readAsString();
-      expect(resBody,
+      expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
@@ -235,14 +232,15 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      for (int index = 0; index < responses.length; index++) {
-        final String resBody = await responses[index].readAsString();
-        expect(resBody, 'Remove the autosubmit label for commit: ${pullRequests[index].head!.sha}.');
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write('Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       }
+      expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -264,11 +262,10 @@ void main() {
         ],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
+      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -291,11 +288,10 @@ void main() {
         ],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
+      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -315,11 +311,10 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
-      final String resBody = await responses[0].readAsString();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
+      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -341,14 +336,16 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      for (int index = 0; index < responses.length; index++) {
-        final String resBody = await responses[index].readAsString();
-        expect(resBody, 'Does not merge the pull request ${pullRequests[index].number}.');
+
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write('Does not merge the pull request ${pullRequest.number}.');
       }
+      expect(await response.readAsString(), responseMessages.toString());
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
@@ -371,17 +368,17 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      for (int index = 0; index < responses.length; index++) {
-        final String resBody = await responses[index].readAsString();
-        expect(
-            resBody,
-            'Does not merge the pull request ${pullRequests[index].number} '
+
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write('Does not merge the pull request ${pullRequest.number} '
             'for no autosubmit label any more.');
       }
+      expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -408,11 +405,10 @@ void main() {
         ],
       );
 
-      final List<Response> responses = await checkPullRequest.get();
+      final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      final String resBody = await responses[0].readAsString();
-      expect(resBody, 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
+      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
