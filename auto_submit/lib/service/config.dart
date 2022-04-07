@@ -56,7 +56,7 @@ class Config {
     return String.fromCharCodes(cacheValue!);
   }
 
-  Future<String?> getInstallationId() async {
+  Future<String> getInstallationId() async {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
@@ -70,14 +70,14 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
-    String? installatinId;
+    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    late String installationId;
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == 'flutter') {
-        installatinId = installData['id']!.toString();
+        installationId = installData['id']!.toString();
       }
     }
-    return installatinId;
+    return installationId;
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
@@ -106,7 +106,7 @@ class Config {
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final String? installationId = await getInstallationId();
+    final String installationId = await getInstallationId();
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
