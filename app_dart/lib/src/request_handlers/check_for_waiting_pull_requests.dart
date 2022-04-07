@@ -203,7 +203,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         return labelMap['id'] as String;
       }
     }
-    log.severe('No label ID found for label: $label');
+    log.warning('No label ID found for label: $label');
     return null;
   }
 
