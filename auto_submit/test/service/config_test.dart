@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
+import 'package:github/github.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
@@ -25,6 +26,7 @@ void main() {
     late Config config;
     late MockClient mockClient;
     final SecretManager secretManager = LocalSecretManager();
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     const int kCacheSize = 1024;
 
     setUp(() {
@@ -54,7 +56,7 @@ void main() {
         const Duration(minutes: 1),
       );
 
-      final String githubToken = await config.generateGithubToken();
+      final String githubToken = await config.generateGithubToken(slug);
       expect(githubToken, 'githubToken');
     });
   });
