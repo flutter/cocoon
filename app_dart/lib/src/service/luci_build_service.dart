@@ -445,6 +445,15 @@ class LuciBuildService {
       log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
       return;
     }
+
+    // Delay till GoB mirror is at commit, or we hit max acceptable delay.
+    for (int delaySecs in [0, 5, 10, 30]) {
+      await Future<void>.delayed(Duration(seconds: delaySecs));
+      if (await isGobMirrorAtCommit(commit: commit)) {
+        break;
+      }
+    }
+
     final List<Request> buildRequests = <Request>[];
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
       final ScheduleBuildRequest scheduleBuildRequest = _createPostsubmitScheduleBuild(
@@ -459,6 +468,13 @@ class LuciBuildService {
     log.fine(batchRequest);
     await pubsub.publish('scheduler-requests', batchRequest);
     log.info('Published a request with ${buildRequests.length} builds');
+  }
+
+  /// Waits for GoB mirror to get the commit before publishing build requests.
+  Future<bool> isGobMirrorAtCommit({
+    required Commit commit,
+  }) async {
+    return true;
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].

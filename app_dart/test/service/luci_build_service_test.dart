@@ -393,7 +393,7 @@ void main() {
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
           'debian-10.12');
-    });
+    }, timeout: const Timeout(Duration(minutes: 1)));
   });
 
   group('cancelBuilds', () {
