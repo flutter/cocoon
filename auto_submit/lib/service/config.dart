@@ -70,9 +70,14 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
-    final String installatinId = list[0]['id'].toString();
-    return installatinId;
+    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    late String installationId;
+    for (Map<String, dynamic> installData in list) {
+      if (installData['account']!['login']!.toString() == 'flutter') {
+        installationId = installData['id']!.toString();
+      }
+    }
+    return installationId;
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
