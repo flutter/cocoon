@@ -47,7 +47,7 @@ class Config {
 
   Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final Uint8List? cacheValue = await cache['githubToken'].get(
+    final Uint8List? cacheValue = await cache['githubToken-${slug.owner}'].get(
       () => _generateGithubToken(slug),
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
