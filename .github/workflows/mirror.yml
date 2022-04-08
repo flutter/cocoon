@@ -12,6 +12,7 @@ jobs:
     permissions:
       pull-requests: write
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'flutter/cocoon' }}
     name: Mirror main branch to master branch
     steps:
       - name: Mirror action step
