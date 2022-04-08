@@ -55,12 +55,12 @@ class GetBranches extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final KeyHelper keyHelper = config.keyHelper;
 
-    final List<BranchWrapper> branches = await datastore
+    final List<md.SerializableBranch> branches = await datastore
         .queryBranches()
         .where((md.Branch b) =>
             DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
             const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
-        .map<BranchWrapper>((md.Branch branch) => BranchWrapper(branch, keyHelper.encode(branch.key)))
+        .map<md.SerializableBranch>((md.Branch branch) => md.SerializableBranch(branch, keyHelper.encode(branch.key)))
         .toList();
     return Body.forJson(branches);
   }

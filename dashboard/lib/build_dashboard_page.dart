@@ -83,7 +83,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     Set<String> validOptions =
         buildState.branches.where((Branch b) => b.repository == repo).map((Branch b) => b.branch).toSet();
     branch = validOptions.contains(branch) ? branch : 'master';
-    queryParameters['branch'] = validOptions.contains(branch) ? branch! : 'master';
+    queryParameters['branch'] = validOptions.contains(branch) ? branch! : defaultBranches[repo]!;
     // FOR REVIEW: If we switch to a repo where the current release branch does not exist, I am updating the branch to be master
 
     final Uri uri = Uri(

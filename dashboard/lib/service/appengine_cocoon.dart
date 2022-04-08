@@ -133,8 +133,6 @@ class AppEngineCocoonService implements CocoonService {
         branches.add(Branch()
           ..branch = branchInfo['branch']
           ..repository = branchInfo['repository'].split('/')[1]);
-        // FOR REVIEW : currently only supports flutter/repo since the function name is fetchFlutterBranches
-        // will need to modify branch.proto, frontend, and split() a bit if we would like to support repo outside flutter
       }
       return CocoonResponse<List<Branch>>.data(branches);
     } catch (error) {

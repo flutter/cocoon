@@ -23,7 +23,7 @@ import '../src/utilities/mocks.dart';
 import 'update_branches_test_data.dart';
 
 void main() {
-  group('GetBranches', () {
+  group('update branches', () {
     late FakeConfig config;
     late RequestHandlerTester tester;
     late UpdateBranches handler;
@@ -70,7 +70,7 @@ void main() {
       db.values[currentBranch.key] = currentBranch;
     });
 
-    test('should not retrieve branches older than a week', () async {
+    test('should not retrieve branches older than 2 months', () async {
       expect(db.values.values.whereType<Branch>().length, 1);
       when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(
@@ -79,7 +79,7 @@ void main() {
                 committer: GitCommitUser(
               'xilaizhang',
               'xilaizhang@google.com',
-              DateTime.tryParse("2019-05-15T15:20:56Z"),
+              DateTime.now().subtract(const Duration(days: 90)),
             ))));
       });
 
@@ -123,7 +123,7 @@ void main() {
                 committer: GitCommitUser(
               'xilaizhang',
               'xilaizhang@google.com',
-              DateTime.tryParse("2020-05-15T15:20:56Z"),
+              DateTime.tryParse('2020-05-15T15:20:56Z'),
             ))));
       });
 

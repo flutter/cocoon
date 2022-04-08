@@ -51,7 +51,7 @@ class UpdateBranches extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   ProcessRunner? processRunner;
 
-  static const int kActiveBranchActivityPeriod = 7;
+  static const int kActiveBranchActivityPeriod = 60;
 
   @override
   Future<Body> get() async {
@@ -60,12 +60,12 @@ class UpdateBranches extends RequestHandler<Body> {
 
     await _updateBranchesForAllRepos(config, datastore);
 
-    final List<BranchWrapper> branches = await datastore
+    final List<md.SerializableBranch> branches = await datastore
         .queryBranches()
         .where((md.Branch b) =>
             DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
             const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
-        .map<BranchWrapper>((md.Branch branch) => BranchWrapper(branch, keyHelper.encode(branch.key)))
+        .map<md.SerializableBranch>((md.Branch branch) => md.SerializableBranch(branch, keyHelper.encode(branch.key)))
         .toList();
     return Body.forJson(branches);
   }
@@ -104,21 +104,5 @@ class UpdateBranches extends RequestHandler<Body> {
       }
     }
     await datastore.insert(updatedBranches);
-  }
-}
-
-// FOR REVIEW: Probably related to how keyhelper is implementated,
-// but I have to add a wrapper class to avoid `Converting object to an encodable object failed: Instance of 'SerializableBranch'` error
-class BranchWrapper {
-  const BranchWrapper(this.branch, this.key);
-
-  final md.Branch branch;
-  final String key;
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'key': key,
-      'branch': md.SerializableBranch(branch).facade,
-    };
   }
 }

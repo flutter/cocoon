@@ -60,5 +60,5 @@ cron:
   schedule: every wednesday 16:00
 
 - description: update branches to reflect most recent commit activity
-  url: '/api/public/get-branches?update=true' 
+  url: '/api/update-branches' 
   schedule: every wednesday 19:00
