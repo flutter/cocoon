@@ -26,7 +26,8 @@ void main() {
     late Config config;
     late MockClient mockClient;
     final SecretManager secretManager = LocalSecretManager();
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final RepositorySlug flutterSlug = RepositorySlug('flutter', 'flutter');
+    final RepositorySlug testSlug = RepositorySlug('test', 'test');
     const int kCacheSize = 1024;
 
     setUp(() {
@@ -39,7 +40,7 @@ void main() {
       );
     });
 
-    test('verify github App InstallationId ', () async {
+    test('verify github App Installation Id ', () async {
       final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
       final http.Response response = await mockClient.get(githubInstallationUri);
       final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
@@ -51,13 +52,34 @@ void main() {
       const String configValue = 'githubToken';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
       Cache cache = Cache(cacheProvider).withPrefix('config');
-      await cache['githubToken'].set(
+      await cache['githubToken-${flutterSlug.owner}'].set(
         cachedValue,
         const Duration(minutes: 1),
       );
 
-      final String githubToken = await config.generateGithubToken(slug);
-      expect(githubToken, 'githubToken');
+      final String githubToken = await config.generateGithubToken(flutterSlug);
+      expect(githubToken, configValue);
+    });
+
+    test('Github clients are created with correct token', () async {
+      const String flutterToken = 'flutterToken';
+      final Uint8List flutterValue = Uint8List.fromList(flutterToken.codeUnits);
+      const String testToken = 'testToken';
+      final Uint8List testValue = Uint8List.fromList(testToken.codeUnits);
+      Cache cache = Cache(cacheProvider).withPrefix('config');
+      await cache['githubToken-${flutterSlug.owner}'].set(
+        flutterValue,
+        const Duration(minutes: 1),
+      );
+      await cache['githubToken-${testSlug.owner}'].set(
+        testValue,
+        const Duration(minutes: 1),
+      );
+
+      GitHub flutterClient = await config.createGithubClient(flutterSlug);
+      GitHub testClient = await config.createGithubClient(testSlug);
+      expect(flutterClient.auth!.token!, flutterToken);
+      expect(testClient.auth!.token!, testToken);
     });
   });
 }
