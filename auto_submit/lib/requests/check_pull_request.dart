@@ -12,11 +12,12 @@ import 'package:graphql/client.dart' hide Response, Request;
 
 import 'check_pull_request_queries.dart';
 import 'exceptions.dart';
+import '../request_handling/authentication.dart';
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
-import '../server/request_handler.dart';
+import '../server/api_request_handler.dart';
 
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -27,16 +28,18 @@ const int _kMergeCountPerRepo = 1;
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
-class CheckPullRequest extends RequestHandler {
+class CheckPullRequest extends ApiRequestHandler {
   CheckPullRequest({
     required Config config,
+    required AuthenticationProvider authenticationProvider,
     this.pubsub = const PubSub(),
-  }) : super(config: config);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final PubSub pubsub;
 
   static const int kPullMesssageBatchSize = 100;
 
+  @override
   Future<Response> get() async {
     final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
@@ -110,6 +113,7 @@ class CheckPullRequest extends RequestHandler {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService(slug);
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
