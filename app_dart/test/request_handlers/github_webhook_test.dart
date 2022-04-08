@@ -327,6 +327,13 @@ void main() {
             contains('tool'));
       });
 
+      test('iOS label applied', () {
+        expect(
+          GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/lib/src/ios/devices.dart'),
+          <String>{'platform-ios', 'tool'},
+        );
+      });
+
       test('Engine label applied', () {
         expect(GithubWebhook.getLabelsForFrameworkPath('bin/internal/engine.version'), contains('engine'));
       });

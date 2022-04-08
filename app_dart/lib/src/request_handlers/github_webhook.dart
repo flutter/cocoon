@@ -287,6 +287,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'examples/api/': <String>['d: examples', 'team', 'd: api docs', 'documentation'],
       'examples/flutter_gallery/': <String>['d: examples', 'team', 'team: gallery'],
       'packages/flutter_tools/': <String>['tool'],
+      'packages/flutter_tools/lib/src/ios/': <String>['platform-ios'],
       'packages/flutter/': <String>['framework'],
       'packages/flutter_driver/': <String>['framework', 'a: tests'],
       'packages/flutter_localizations/': <String>['a: internationalization'],
