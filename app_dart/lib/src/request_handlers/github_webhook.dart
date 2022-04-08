@@ -7,7 +7,8 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
+import 'package:github/github.dart'
+    show CreatePullRequestReview, GitHub, IssueComment, PullRequest, PullRequestFile, RepositorySlug;
 import 'package:github/hooks.dart';
 
 import '../model/github/checks.dart' as cocoon_checks;
@@ -134,6 +135,7 @@ class GithubWebhook extends RequestHandler<Body> {
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
+        await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
         break;
@@ -179,6 +181,29 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     await scheduler.triggerPresubmitTargets(pullRequest: pr);
+  }
+
+  /// Release tooling generates cherrypick pull requests that should be granted an approval.
+  Future<void> _tryReleaseApproval(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final PullRequest pr = pullRequestEvent.pullRequest!;
+    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+
+    if (pr.head?.ref == null && pr.head!.ref!.contains(Config.defaultBranch(slug))) {
+      // This isn't a release branch PR
+      return;
+    }
+
+    final List<String> releaseAccounts = await config.releaseAccounts;
+    if (releaseAccounts.contains(pr.user?.login) == false) {
+      // The author isn't in the list of release accounts, do nothing
+      return;
+    }
+
+    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
+    await gitHubClient.pullRequests.createReview(slug, review);
   }
 
   Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
