@@ -102,13 +102,11 @@ class DatastoreService {
     return query.run();
   }
 
-
-
   Stream<Branch> queryBranches() {
     final Query<Branch> query = db.query<Branch>();
     return query.run();
   }
-  
+
   /// Queries for recent [Task] by name.
   ///
   /// The [limit] argument specifies the maximum number of tasks to retrieve.
