@@ -63,6 +63,7 @@ Target generateTarget(
   Map<String, String>? properties,
   List<String>? runIf,
   github.RepositorySlug? slug,
+  pb.SchedulerSystem? schedulerSystem,
 }) {
   final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
   if (platformProperties != null) {
@@ -75,6 +76,7 @@ Target generateTarget(
       name: '$platform $i',
       properties: properties,
       runIf: runIf ?? <String>[],
+      scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),
   );
 }

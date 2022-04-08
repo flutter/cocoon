@@ -11,7 +11,7 @@
 # To build iOS applications, a Mac development environment is necessary.
 #
 
-FROM debian:stretch
+FROM debian:bullseye-slim@sha256:82da53aa627b9d5032a1e57903356b8f34d613a5bc1e07ae5e9149bd88fa3128
 
 # Install Dependencies.
 RUN apt update -y

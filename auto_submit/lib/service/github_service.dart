@@ -10,28 +10,12 @@ class GithubService {
 
   final GitHub github;
 
-  /// Retrieves the reviews for a pull request.
-  Future<List<PullRequestReview>> getReviews(
-    RepositorySlug slug,
-    int prNumber,
-  ) async {
-    return await github.pullRequests.listReviews(slug, prNumber).toList();
-  }
-
   /// Retrieves check runs with the ref.
   Future<List<CheckRun>> getCheckRuns(
     RepositorySlug slug,
     String ref,
   ) async {
     return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
-  }
-
-  /// Retrieves the statuses of a repository at the specified reference.
-  Future<List<RepositoryStatus>> getStatuses(
-    RepositorySlug slug,
-    String ref,
-  ) async {
-    return await github.repositories.listStatuses(slug, ref).toList();
   }
 
   /// Fetches the specified commit.
@@ -53,8 +37,11 @@ class GithubService {
   }
 
   /// Create a comment for a pull request.
-  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
-    CreatePullRequestComment comment = CreatePullRequestComment(commentBody, sha, null, null);
-    return await github.pullRequests.createComment(slug, number, comment);
+  Future<IssueComment> createComment(
+    RepositorySlug slug,
+    int issueNumber,
+    String body,
+  ) async {
+    return await github.issues.createComment(slug, issueNumber, body);
   }
 }

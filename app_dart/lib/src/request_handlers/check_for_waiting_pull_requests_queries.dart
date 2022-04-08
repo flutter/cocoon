@@ -61,7 +61,7 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
             state
           }
         }
-        labels(first: 5) {
+        labels(first: 10) {
           nodes {
             name
             id

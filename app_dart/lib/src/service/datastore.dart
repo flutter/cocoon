@@ -102,21 +102,26 @@ class DatastoreService {
     return query.run();
   }
 
-  //FOR REVIEW:
-  //creating a new query here instead of nesting conditionals on existing queries, to avoid https://github.com/dart-lang/linter/issues/86
-  /// Queries for recent active commits happening after timestamp.
-  ///
-  /// The commits will NOT be filtered based on slug (branch or repository).
-  Stream<Commit> queryActiveCommits({
-    int? timestamp,
-  }) {
-    timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    final Query<Commit> query = db.query<Commit>()..filter('timestamp >', timestamp);
-    return query.run();
-  }
+
 
   Stream<Branch> queryBranches() {
     final Query<Branch> query = db.query<Branch>();
+    return query.run();
+  }
+  
+  /// Queries for recent [Task] by name.
+  ///
+  /// The [limit] argument specifies the maximum number of tasks to retrieve.
+  ///
+  /// The returned tasks will be ordered by most recent to oldest.
+  Stream<Task> queryRecentTasksByName({
+    int limit = 100,
+    required String name,
+  }) {
+    final Query<Task> query = db.query<Task>()
+      ..limit(limit)
+      ..filter('name =', name)
+      ..order('-createTimestamp');
     return query.run();
   }
 

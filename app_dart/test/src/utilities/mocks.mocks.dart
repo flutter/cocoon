@@ -1477,7 +1477,7 @@ class MockLuciBuildService extends _i1.Mock implements _i32.LuciBuildService {
           returnValue: Future<_i8.Build>.value(_FakeBuild_7())) as _i15.Future<_i8.Build>);
   @override
   _i15.Future<void> schedulePostsubmitBuilds(
-          {_i37.Commit? commit, List<_i38.Pair<_i35.Target, _i39.Task>>? toBeScheduled}) =>
+          {_i35.Commit? commit, List<_i36.Tuple<_i33.Target, _i37.Task, int>>? toBeScheduled}) =>
       (super.noSuchMethod(
           Invocation.method(#schedulePostsubmitBuilds, [], {#commit: commit, #toBeScheduled: toBeScheduled}),
           returnValue: Future<void>.value(),
