@@ -108,8 +108,8 @@ class CheckPullRequest extends RequestHandler {
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHub = await config.createGithubService();
-    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
+    final GithubService gitHub = await config.createGithubService(slug);
+    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);

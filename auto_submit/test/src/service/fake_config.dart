@@ -35,13 +35,13 @@ class FakeConfig extends Config {
   String? autosubmitLabelValue;
 
   @override
-  Future<GitHub> createGithubClient() async => githubClient!;
+  Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
 
   @override
-  Future<GithubService> createGithubService() async => githubService ?? FakeGithubService();
+  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService ?? FakeGithubService();
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
+  Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async => githubGraphQLClient!;
   @override
   Set<String> get rollerAccounts =>
       rollerAccountsValue ??

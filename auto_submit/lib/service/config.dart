@@ -35,20 +35,20 @@ class Config {
 
   Cache get cache => Cache(cacheProvider).withPrefix('config');
 
-  Future<GithubService> createGithubService() async {
-    final GitHub github = await createGithubClient();
+  Future<GithubService> createGithubService(RepositorySlug slug) async {
+    final GitHub github = await createGithubClient(slug);
     return GithubService(github);
   }
 
-  Future<GitHub> createGithubClient() async {
-    String token = await generateGithubToken();
+  Future<GitHub> createGithubClient(RepositorySlug slug) async {
+    String token = await generateGithubToken(slug);
     return GitHub(auth: Authentication.withToken(token));
   }
 
-  Future<String> generateGithubToken() async {
+  Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final Uint8List? cacheValue = await cache['githubToken'].get(
-      _generateGithubToken,
+    final Uint8List? cacheValue = await cache['githubToken-${slug.owner}'].get(
+      () => _generateGithubToken(slug),
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
@@ -56,7 +56,7 @@ class Config {
     return String.fromCharCodes(cacheValue!);
   }
 
-  Future<String> getInstallationId() async {
+  Future<String> getInstallationId(RepositorySlug slug) async {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
@@ -70,12 +70,17 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
-    final String installatinId = list[0]['id'].toString();
-    return installatinId;
+    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    late String installationId;
+    for (Map<String, dynamic> installData in list) {
+      if (installData['account']!['login']!.toString() == slug.owner) {
+        installationId = installData['id']!.toString();
+      }
+    }
+    return installationId;
   }
 
-  Future<GraphQLClient> createGitHubGraphQLClient() async {
+  Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async {
     final HttpLink httpLink = HttpLink(
       'https://api.github.com/graphql',
       defaultHeaders: <String, String>{
@@ -83,7 +88,7 @@ class Config {
       },
     );
 
-    String token = await generateGithubToken();
+    final String token = await generateGithubToken(slug);
 
     final AuthLink _authLink = AuthLink(
       getToken: () async => 'Bearer $token',
@@ -95,13 +100,13 @@ class Config {
     );
   }
 
-  Future<Uint8List> _generateGithubToken() async {
+  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final String installationId = await getInstallationId();
+    final String installationId = await getInstallationId(slug);
     final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
