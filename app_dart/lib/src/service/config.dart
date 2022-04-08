@@ -144,10 +144,17 @@ class Config {
 
   /// Retrieve the supported branches for a repository.
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async {
-    if (slug.name == 'flutter') {
-      return flutterBranches;
+    // TODO(xilaizhang): Switch this to query datastore once branch entities are being written. https://github.com/flutter/flutter/issues/100491
+    final List<String> branches = await flutterBranches;
+    if (slug == Config.flutterSlug) {
+      branches.remove('main');
+      return branches;
+    } else if (slug == Config.engineSlug) {
+      branches.remove('master');
+      return branches;
     }
-    return <String>['master'];
+
+    return <String>['main'];
   }
 
   Future<List<String>> get flutterBranches => _getFlutterBranches();
