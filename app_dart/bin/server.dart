@@ -120,6 +120,7 @@ Future<void> main() async {
         config,
         authProvider,
       ),
+      '/api/update-branches': UpdateBranches(config),
 
       /// Updates task related details.
       ///

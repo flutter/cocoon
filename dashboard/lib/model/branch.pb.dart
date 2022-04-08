@@ -7,6 +7,7 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Branch extends $pb.GeneratedMessage {
@@ -15,12 +16,17 @@ class Branch extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'branch')
     ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'repository')
+    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'channel')
+    ..aInt64(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastActivity',
+        protoName: 'lastActivity')
     ..hasRequiredFields = false;
 
   Branch._() : super();
   factory Branch({
     $core.String? branch,
     $core.String? repository,
+    $core.String? channel,
+    $fixnum.Int64? lastActivity,
   }) {
     final _result = create();
     if (branch != null) {
@@ -28,6 +34,12 @@ class Branch extends $pb.GeneratedMessage {
     }
     if (repository != null) {
       _result.repository = repository;
+    }
+    if (channel != null) {
+      _result.channel = channel;
+    }
+    if (lastActivity != null) {
+      _result.lastActivity = lastActivity;
     }
     return _result;
   }
@@ -76,4 +88,28 @@ class Branch extends $pb.GeneratedMessage {
   $core.bool hasRepository() => $_has(1);
   @$pb.TagNumber(2)
   void clearRepository() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get channel => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set channel($core.String v) {
+    $_setString(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasChannel() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearChannel() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get lastActivity => $_getI64(3);
+  @$pb.TagNumber(4)
+  set lastActivity($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasLastActivity() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLastActivity() => clearField(4);
 }

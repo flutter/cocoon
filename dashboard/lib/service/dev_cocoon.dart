@@ -105,6 +105,13 @@ class DevelopmentCocoonService implements CocoonService {
     'plugins',
   ];
 
+  static const Map<String, String> _defaultBranch = {
+    'flutter': 'master',
+    'engine': 'main',
+    'cocoon': 'main',
+    'plugins': 'main',
+  };
+
   @override
   Future<CocoonResponse<List<String>>> fetchRepos() async {
     return const CocoonResponse<List<String>>.data(_repos);
@@ -131,10 +138,7 @@ class DevelopmentCocoonService implements CocoonService {
     for (String repo in _repos) {
       fakeBranches.add(Branch()
         ..repository = repo
-        ..branch = 'master');
-      fakeBranches.add(Branch()
-        ..repository = repo
-        ..branch = 'main');
+        ..branch = _defaultBranch[repo]!);
       fakeBranches.add(Branch()
         ..repository = repo
         ..branch = '$repo-release');

@@ -519,6 +519,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.4"
+  process_runner:
+    dependency: "direct main"
+    description:
+      name: process_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.2"
   protobuf:
     dependency: "direct main"
     description:

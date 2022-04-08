@@ -7,4 +7,6 @@ syntax = "proto3";
 message Branch {
     optional string branch = 1;
     optional string repository = 2;
+    optional string channel = 3;
+    optional int64 lastActivity = 4;
 }

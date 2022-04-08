@@ -254,16 +254,6 @@ class DatastoreService {
     }
   }
 
-  /// Deletes entities with the associated [Key] from datastore.
-  Future<void> delete(List<Key<dynamic>> deletedKeys) async {
-    await runTransactionWithRetries(() async {
-      await db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(deletes: deletedKeys);
-        await transaction.commit();
-      });
-    }, retryOptions: retryOptions);
-  }
-
   /// Looks up registers by [keys].
   Future<List<T?>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     List<T?> results = <T>[];

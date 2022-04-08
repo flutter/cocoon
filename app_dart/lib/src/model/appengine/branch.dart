@@ -11,7 +11,7 @@ part 'branch.g.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
-  Branch({Key<String>? key, this.lastActivity}) {
+  Branch({Key<String>? key, this.lastActivity, this.channel}) {
     parentKey = key?.parent;
     id = key?.id;
   }
