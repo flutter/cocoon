@@ -517,7 +517,7 @@ void main() {
         'opened',
         issueNumber,
         'flutter-2.13-candidate.0',
-        login: 'dash-releaser',
+        login: 'dart-flutter-releaser',
       );
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;

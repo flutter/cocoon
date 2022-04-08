@@ -260,5 +260,5 @@ class FakeConfig implements Config {
   String get defaultRecipeBundleRef => 'refs/heads/main';
 
   @override
-  Future<List<String>> get releaseAccounts async => <String>['dash-releaser'];
+  Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
 }
