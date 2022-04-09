@@ -24,6 +24,7 @@ import '../requests/exceptions.dart';
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
+// TODO(Kristin): Generalize this to implement from a AuthProvider. https://github.com/flutter/flutter/issues/101614
 class CronAuthProvider {
   const CronAuthProvider();
 
