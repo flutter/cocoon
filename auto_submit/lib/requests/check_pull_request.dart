@@ -17,7 +17,7 @@ import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
-import '../server/api_request_handler.dart';
+import '../server/authenticated_request_handler.dart';
 
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -28,7 +28,7 @@ const int _kMergeCountPerRepo = 1;
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
-class CheckPullRequest extends ApiRequestHandler {
+class CheckPullRequest extends AuthenticatedRequestHandler {
   CheckPullRequest({
     required Config config,
     required AuthenticationProvider authenticationProvider,

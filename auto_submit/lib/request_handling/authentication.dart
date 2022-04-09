@@ -3,42 +3,27 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../model/google/token_info.dart';
 import '../requests/exceptions.dart';
 import '../service/config.dart';
-import '../service/log.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are two types of authentication this class supports:
+///  If the request has the `'X-Appengine-Cron'` HTTP header set to "true",
+///  then the request will be authenticated as an App Engine cron job.
 ///
-///  1. If the request has the `'X-Appengine-Cron'` HTTP header set to "true",
-///     then the request will be authenticated as an App Engine cron job.
+///  The `'X-Appengine-Cron'` HTTP header is set automatically by App Engine
+///  and will be automatically stripped from the request by the App Engine
+///  runtime if the request originated from anything other than a cron job.
+///  Thus, the header is safe to trust as an authentication indicator.
 ///
-///     The `'X-Appengine-Cron'` HTTP header is set automatically by App Engine
-///     and will be automatically stripped from the request by the App Engine
-///     runtime if the request originated from anything other than a cron job.
-///     Thus, the header is safe to trust as an authentication indicator.
-///
-///  2. If the request has the `'X-Flutter-IdToken'` HTTP header
-///     set to a valid encrypted JWT token, then the request will be authenticated
-///     as a user account.
-///
-///     @google.com accounts can call APIs using curl and gcloud.
-///     E.g. curl '<api_url>' -H "X-Flutter-IdToken: $(gcloud auth print-identity-token)"
-///
-///     User accounts are only authorized if the user is either a "@google.com"
-///     account or is an [AllowedAccount] in Cocoon's Datastore.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -81,80 +66,15 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     final bool isCron = reqHeader['X-Appengine-Cron'] == 'true';
-    final String? idTokenFromHeader = reqHeader['X-Flutter-IdToken'];
     final ClientContext clientContext = clientContextProvider();
 
     if (isCron) {
       // Authenticate cron requests
       return AuthenticatedContext(clientContext: clientContext);
-    } else if (idTokenFromHeader != null) {
-      TokenInfo token;
-      try {
-        token = await tokenInfo(request);
-      } on Unauthenticated {
-        token = await tokenInfo(request, tokenType: 'access_token');
-      }
-      return authenticateToken(token, clientContext: clientContext);
     }
 
     throw const Unauthenticated('User is not signed in');
   }
-
-  /// Gets oauth token information. This method requires the token to be stored in
-  /// X-Flutter-IdToken header.
-  Future<TokenInfo> tokenInfo(Request request, {String tokenType = 'id_token'}) async {
-    final String? idTokenFromHeader = request.headers['X-Flutter-IdToken'];
-    final http.Client client = httpClientProvider();
-    try {
-      final http.Response verifyTokenResponse = await client.get(Uri.https(
-        'oauth2.googleapis.com',
-        '/tokeninfo',
-        <String, String?>{
-          tokenType: idTokenFromHeader,
-        },
-      ));
-
-      if (verifyTokenResponse.statusCode != HttpStatus.ok) {
-        /// Google Auth API returns a message in the response body explaining why
-        /// the request failed. Such as "Invalid Token".
-        log.fine('Token verification failed: ${verifyTokenResponse.statusCode}; ${verifyTokenResponse.body}');
-        throw const Unauthenticated('Invalid ID token');
-      }
-
-      try {
-        return TokenInfo.fromJson(json.decode(verifyTokenResponse.body) as Map<String, dynamic>);
-      } on FormatException {
-        throw InternalServerError('Invalid JSON: "${verifyTokenResponse.body}"');
-      }
-    } finally {
-      client.close();
-    }
-  }
-
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {required ClientContext clientContext}) async {
-    // Authenticate as a signed-in Google account via OAuth id token.
-    final String clientId = await config.getOauthClientId();
-    if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
-      log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
-      throw const Unauthenticated('Invalid ID token');
-    }
-
-    // if (token.hostedDomain != 'google.com') {
-    //   final bool isAllowed = await _isAllowed(token.email);
-    //   if (!isAllowed) {
-    //     throw Unauthenticated('${token.email} is not authorized to access the dashboard');
-    //   }
-    // }
-    return AuthenticatedContext(clientContext: clientContext);
-  }
-
-  // Future<bool> _isAllowed(String? email) async {
-  //   final Query<AllowedAccount> query = config.db.query<AllowedAccount>()
-  //     ..filter('email =', email)
-  //     ..limit(20);
-
-  //   return !(await query.run().isEmpty);
-  // }
 }
 
 /// Class that represents an authenticated request having been made, and any

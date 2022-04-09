@@ -4,8 +4,6 @@
 
 import 'package:appengine/appengine.dart';
 import 'package:auto_submit/foundation/typedefs.dart';
-import 'package:auto_submit/model/appengine/key_helper.dart';
-import 'package:auto_submit/model/google/token_info.dart';
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/exceptions.dart';
 import 'package:auto_submit/service/config.dart';
@@ -31,15 +29,6 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   }
 
   @override
-  Future<AuthenticatedContext> authenticateToken(TokenInfo token, {ClientContext? clientContext, Logging? log}) async {
-    if (authenticated) {
-      return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext?);
-    } else {
-      throw const Unauthenticated('Not authenticated');
-    }
-  }
-
-  @override
   ClientContextProvider get clientContextProvider => throw UnimplementedError();
 
   @override
@@ -47,14 +36,6 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 
   @override
   HttpClientProvider get httpClientProvider => throw UnimplementedError();
-
-  @override
-  Future<TokenInfo> tokenInfo(Request request, {Logging? log, String tokenType = 'id_token'}) async {
-    return TokenInfo(
-      email: 'abc@gmail.com',
-      issued: DateTime.now(),
-    );
-  }
 }
 
 // ignore: must_be_immutable
@@ -114,10 +95,4 @@ class FakeAppEngineContext implements AppEngineContext {
 
   @override
   late String version;
-}
-
-class FakeKeyHelper extends KeyHelper {
-  FakeKeyHelper({
-    AppEngineContext? applicationContext,
-  }) : super(applicationContext: applicationContext ?? FakeAppEngineContext());
 }

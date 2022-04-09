@@ -34,7 +34,12 @@ Future<void> main() async {
           GithubWebhook(
             config: config,
           ).post)
-      ..get('/check-pull-request', CheckPullRequest(config: config, authenticationProvider: authProvider).get);
+      ..get(
+          '/check-pull-request',
+          CheckPullRequest(
+            config: config,
+            authenticationProvider: authProvider,
+          ).get);
     await serveHandler(router);
   });
 }
