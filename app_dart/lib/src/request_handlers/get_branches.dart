@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:process_runner/process_runner.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/key_helper.dart';
 import '../service/datastore.dart';
 
 /// Return currently active branches across all repos.
@@ -53,14 +52,12 @@ class GetBranches extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final KeyHelper keyHelper = config.keyHelper;
 
-    final List<SerializableBranch> branches = await datastore
+    final List<Branch> branches = await datastore
         .queryBranches()
         .where((Branch b) =>
             DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
             const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
-        .map<SerializableBranch>((Branch branch) => SerializableBranch(branch, keyHelper.encode(branch.key)))
         .toList();
     return Body.forJson(branches);
   }

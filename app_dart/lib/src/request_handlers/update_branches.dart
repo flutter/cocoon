@@ -9,7 +9,6 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show Branch, GitHub, RepositoryCommit, RepositorySlug;
 import 'package:process_runner/process_runner.dart';
 
-import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
@@ -56,16 +55,14 @@ class UpdateBranches extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final KeyHelper keyHelper = config.keyHelper;
 
     await _updateBranchesForAllRepos(config, datastore);
 
-    final List<md.SerializableBranch> branches = await datastore
+    final List<md.Branch> branches = await datastore
         .queryBranches()
         .where((md.Branch b) =>
             DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
             const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
-        .map<md.SerializableBranch>((md.Branch branch) => md.SerializableBranch(branch, keyHelper.encode(branch.key)))
         .toList();
     return Body.forJson(branches);
   }

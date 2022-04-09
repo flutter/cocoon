@@ -41,25 +41,32 @@ class Branch extends Model<String> {
       ..write(')');
     return buf.toString();
   }
-}
-
-class SerializableBranch {
-  const SerializableBranch(this.branch, this.id);
-
-  final Branch branch;
-  final String id; // this id is in datastore format and different from branch.id
-
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'branch': branch.branch,
-      'repository': branch.repository,
-    };
-  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'id': id,
-      'branch': facade,
+      'branch': <String, dynamic>{
+        'branch': branch,
+        'repository': repository,
+      },
     };
   }
 }
+
+// class SerializableBranch {
+//   const SerializableBranch(this.branch, this.id);
+
+//   final Branch branch;
+//   final String id; // this id is in datastore format and different from branch.id
+
+//   Map<String, dynamic> get facade {
+
+//   }
+
+//   Map<String, dynamic> toJson() {
+//     return <String, dynamic>{
+//       'id': id,
+//       'branch': facade,
+//     };
+//   }
+// }
