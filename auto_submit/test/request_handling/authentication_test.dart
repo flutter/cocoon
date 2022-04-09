@@ -7,17 +7,13 @@ import 'package:auto_submit/requests/exceptions.dart';
 import 'package:test/test.dart';
 import 'package:shelf/shelf.dart';
 
-import '../src/service/fake_config.dart';
-
 void main() {
   group('CronAuthProvider', () {
     late Request request;
-    late FakeConfig config;
     late CronAuthProvider auth;
 
     setUp(() {
-      config = FakeConfig();
-      auth = CronAuthProvider(config);
+      auth = CronAuthProvider();
     });
 
     test('throws Unauthenticated with no auth headers', () async {

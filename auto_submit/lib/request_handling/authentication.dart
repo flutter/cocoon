@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
 import '../requests/exceptions.dart';
-import '../service/config.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
@@ -21,37 +20,24 @@ import '../service/config.dart';
 ///  runtime if the request originated from anything other than a cron job.
 ///  Thus, the header is safe to trust as an authentication indicator.
 ///
-///
-/// If none of the above authentication methods yield an authenticated
-/// request, then the request is unauthenticated, and any call to
-/// [authenticate] will throw an [Unauthenticated] exception.
-///
 /// See also:
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 class CronAuthProvider {
-  const CronAuthProvider(this.config);
-
-  /// The Cocoon config, guaranteed to be non-null.
-  final Config config;
+  const CronAuthProvider();
 
   /// Authenticates the specified [request].
-  ///
-  /// See the class documentation on [CronAuthProviderer] for a discussion
-  /// of the different types of authentication that are accepted.
   ///
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   Future<bool> authenticate(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     final bool isCron = reqHeader['X-Appengine-Cron'] == 'true';
-
     if (isCron) {
       // Authenticate cron requests
       return true;
     }
-
     throw const Unauthenticated('User is not signed in');
   }
 }

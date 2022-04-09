@@ -4,7 +4,6 @@
 
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/exceptions.dart';
-import 'package:auto_submit/service/config.dart';
 import 'package:shelf/shelf.dart';
 
 // ignore: must_be_immutable
@@ -23,7 +22,4 @@ class FakeCronAuthProvider implements CronAuthProvider {
       throw const Unauthenticated('Not authenticated');
     }
   }
-
-  @override
-  Config get config => throw UnimplementedError();
 }
