@@ -5,12 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../requests/exceptions.dart';
 import '../service/config.dart';
 
@@ -33,65 +30,28 @@ import '../service/config.dart';
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
-class AuthenticationProvider {
-  const AuthenticationProvider(
-    this.config, {
-    this.clientContextProvider = Providers.serviceScopeContext,
-    this.httpClientProvider = Providers.freshHttpClient,
-  });
+class CronAuthProvider {
+  const CronAuthProvider(this.config);
 
   /// The Cocoon config, guaranteed to be non-null.
   final Config config;
 
-  /// Provides the App Engine client context as part of the
-  /// [AuthenticatedContext].
+  /// Authenticates the specified [request].
   ///
-  /// This is guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
-
-  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
-  /// ID tokens (JWT tokens).
-  ///
-  /// This is guaranteed to be non-null.
-  final HttpClientProvider httpClientProvider;
-
-  /// Authenticates the specified [request] and returns the associated
-  /// [AuthenticatedContext].
-  ///
-  /// See the class documentation on [AuthenticationProvider] for a discussion
+  /// See the class documentation on [CronAuthProviderer] for a discussion
   /// of the different types of authentication that are accepted.
   ///
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
-  Future<AuthenticatedContext> authenticate(Request request) async {
+  Future<bool> authenticate(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     final bool isCron = reqHeader['X-Appengine-Cron'] == 'true';
-    final ClientContext clientContext = clientContextProvider();
 
     if (isCron) {
       // Authenticate cron requests
-      return AuthenticatedContext(clientContext: clientContext);
+      return true;
     }
 
     throw const Unauthenticated('User is not signed in');
   }
-}
-
-/// Class that represents an authenticated request having been made, and any
-/// attached metadata to that request.
-///
-/// See also:
-///
-///  * [AuthenticationProvider]
-@immutable
-class AuthenticatedContext {
-  /// Creates a new [AuthenticatedContext].
-  const AuthenticatedContext({
-    required this.clientContext,
-  });
-
-  /// The App Engine [ClientContext] of the current request.
-  ///
-  /// This is guaranteed to be non-null.
-  final ClientContext clientContext;
 }

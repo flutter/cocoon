@@ -31,9 +31,9 @@ const int _kMergeCountPerRepo = 1;
 class CheckPullRequest extends AuthenticatedRequestHandler {
   CheckPullRequest({
     required Config config,
-    required AuthenticationProvider authenticationProvider,
+    required CronAuthProvider cronAuthProvider,
     this.pubsub = const PubSub(),
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(config: config, cronAuthProvider: cronAuthProvider);
 
   final PubSub pubsub;
 

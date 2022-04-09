@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart' as gae;
 import 'package:http/http.dart' as http;
 
 /// Signature for a function that returns an [http.Client].
@@ -14,11 +13,4 @@ class Providers {
 
   /// Creates a [http.Client] that interacts with the internet.
   static http.Client freshHttpClient() => http.Client();
-
-  /// Default [gae.ClientContext] provider.
-  ///
-  /// See also:
-  ///
-  ///  * [ClientContextProvider], which defines this interface.
-  static gae.ClientContext serviceScopeContext() => gae.context;
 }

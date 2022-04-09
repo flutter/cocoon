@@ -8,24 +8,16 @@ import 'package:test/test.dart';
 import 'package:shelf/shelf.dart';
 
 import '../src/service/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
 
 void main() {
-  group('AuthenticationProvider', () {
+  group('CronAuthProvider', () {
     late Request request;
     late FakeConfig config;
-    late FakeClientContext clientContext;
-    late AuthenticationProvider auth;
+    late CronAuthProvider auth;
 
     setUp(() {
       config = FakeConfig();
-      clientContext = FakeClientContext();
-      //request = FakeHttpRequest();
-      auth = AuthenticationProvider(
-        config,
-        clientContextProvider: () => clientContext,
-        httpClientProvider: () => throw AssertionError(),
-      );
+      auth = CronAuthProvider(config);
     });
 
     test('throws Unauthenticated with no auth headers', () async {
@@ -36,8 +28,8 @@ void main() {
     test('succeeds for App Engine cronjobs', () async {
       Map<String, String> header = {'X-Appengine-Cron': 'true'};
       request = Request('POST', Uri.parse('http://localhost/'), headers: header);
-      final AuthenticatedContext result = await auth.authenticate(request);
-      expect(result.clientContext, same(clientContext));
+      final bool result = await auth.authenticate(request);
+      expect(result, true);
     });
   });
 }

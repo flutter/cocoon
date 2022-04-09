@@ -26,7 +26,7 @@ Future<void> main() async {
       cacheProvider: cache,
       secretManager: CloudSecretManager(),
     );
-    final AuthenticationProvider authProvider = AuthenticationProvider(config);
+    final CronAuthProvider authProvider = CronAuthProvider(config);
 
     final Router router = Router()
       ..post(
@@ -38,7 +38,7 @@ Future<void> main() async {
           '/check-pull-request',
           CheckPullRequest(
             config: config,
-            authenticationProvider: authProvider,
+            cronAuthProvider: authProvider,
           ).get);
     await serveHandler(router);
   });

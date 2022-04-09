@@ -11,15 +11,15 @@ import '../service/config.dart';
 
 /// A [RequestHandler] that handles API requests.
 ///
-///  * All requests must be authenticated per [AuthenticationProvider].
+///  * All requests must be authenticated per [CronAuthProvider].
 @immutable
 abstract class AuthenticatedRequestHandler extends RequestHandler {
   /// Creates a new [ApiRequestHandler].
   const AuthenticatedRequestHandler({
     required Config config,
-    required this.authenticationProvider,
+    required this.cronAuthProvider,
   }) : super(config: config);
 
   /// Service responsible for authenticating this [Request].
-  final AuthenticationProvider authenticationProvider;
+  final CronAuthProvider cronAuthProvider;
 }
