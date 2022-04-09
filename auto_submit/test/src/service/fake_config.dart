@@ -58,7 +58,4 @@ class FakeConfig extends Config {
 
   @override
   String get autosubmitLabel => autosubmitLabelValue ?? 'autosubmit';
-
-  @override
-  Future<String> getOauthClientId() async => oauthClientIdValue!;
 }

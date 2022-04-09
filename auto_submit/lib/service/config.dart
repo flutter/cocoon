@@ -29,8 +29,6 @@ class Config {
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
 
-  static const String oauthClientId = 'OAUTH_CLIENT_ID';
-
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
   final SecretManager secretManager;
@@ -167,12 +165,4 @@ class Config {
 
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
-
-  /// The OAuth Client Id
-  Future<String> getOauthClientId() async {
-    final Uint8List? cacheValue = await cache['oauthClientId'].get(
-      () => secretManager.get(oauthClientId),
-    );
-    return String.fromCharCodes(cacheValue!);
-  }
 }
