@@ -100,6 +100,11 @@ class Config {
     return String.fromCharCodes(cacheValue!).split(',');
   }
 
+  Future<List<String>> _getReleaseAccounts() async {
+    final String releaseAccountsConcat = await _getSingleValue('ReleaseAccounts');
+    return releaseAccountsConcat.split(',');
+  }
+
   Future<String> _getSingleValue(String id) async {
     final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
@@ -158,6 +163,9 @@ class Config {
   }
 
   Future<List<String>> get flutterBranches => _getFlutterBranches();
+
+  /// List of GitHub accounts related to releases.
+  Future<List<String>> get releaseAccounts => _getReleaseAccounts();
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
