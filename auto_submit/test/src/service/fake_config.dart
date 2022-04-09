@@ -22,7 +22,6 @@ class FakeConfig extends Config {
     this.rollerAccountsValue,
     this.overrideTreeStatusLabelValue,
     this.autosubmitLabelValue,
-    this.oauthClientIdValue,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),
@@ -34,7 +33,6 @@ class FakeConfig extends Config {
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
   String? autosubmitLabelValue;
-  String? oauthClientIdValue;
 
   @override
   Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
