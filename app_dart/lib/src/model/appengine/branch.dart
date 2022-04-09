@@ -44,10 +44,10 @@ class Branch extends Model<String> {
 }
 
 class SerializableBranch {
-  const SerializableBranch(this.branch, this.key);
+  const SerializableBranch(this.branch, this.id);
 
   final Branch branch;
-  final String key;
+  final String id; // this id is in datastore format and different from branch.id
 
   Map<String, dynamic> get facade {
     return <String, dynamic>{
@@ -58,7 +58,7 @@ class SerializableBranch {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'key': key,
+      'id': id,
       'branch': facade,
     };
   }

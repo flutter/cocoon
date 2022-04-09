@@ -84,7 +84,7 @@ void main() {
 
       final List<dynamic> result = (await decodeHandlerBody())!;
       expect((result.single)['branch']['branch'], 'branch-created-now');
-      expect((result.single)['key'].runtimeType, String);
+      expect((result.single)['id'].runtimeType, String);
     });
   });
 }

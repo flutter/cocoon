@@ -20,7 +20,6 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/utilities/mocks.dart';
-import 'update_branches_test_data.dart';
 
 void main() {
   group('update branches', () {
@@ -33,6 +32,11 @@ void main() {
     FakeKeyHelper keyHelper;
     late MockRepositoriesService mockRepositoriesService;
     final MockProcessRunner processRunner = MockProcessRunner();
+
+    const List<int> stderrArray = [];
+    List<int> stdoutArray = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main'.codeUnits;
+    List<int> outputArray = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main'.codeUnits;
+    const String testBranchSha = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa';
 
     Future<T?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -77,8 +81,8 @@ void main() {
             sha: testBranchSha,
             commit: GitCommit(
                 committer: GitCommitUser(
-              'xilaizhang',
-              'xilaizhang@google.com',
+              'dash',
+              'dash@google.com',
               DateTime.now().subtract(const Duration(days: 90)),
             ))));
       });
@@ -96,8 +100,8 @@ void main() {
             sha: testBranchSha,
             commit: GitCommit(
                 committer: GitCommitUser(
-              'xilaizhang',
-              'xilaizhang@google.com',
+              'dash',
+              'dash@google.com',
               DateTime.now(),
             ))));
       });
@@ -121,8 +125,8 @@ void main() {
             sha: testBranchSha,
             commit: GitCommit(
                 committer: GitCommitUser(
-              'xilaizhang',
-              'xilaizhang@google.com',
+              'dash',
+              'dash@google.com',
               DateTime.tryParse('2020-05-15T15:20:56Z'),
             ))));
       });

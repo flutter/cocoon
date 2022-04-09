@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/appengine/branch.dart' as md;
+import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:process_runner/process_runner.dart';
 
 import '../../cocoon_service.dart';
@@ -55,12 +55,12 @@ class GetBranches extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final KeyHelper keyHelper = config.keyHelper;
 
-    final List<md.SerializableBranch> branches = await datastore
+    final List<SerializableBranch> branches = await datastore
         .queryBranches()
-        .where((md.Branch b) =>
+        .where((Branch b) =>
             DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
             const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
-        .map<md.SerializableBranch>((md.Branch branch) => md.SerializableBranch(branch, keyHelper.encode(branch.key)))
+        .map<SerializableBranch>((Branch branch) => SerializableBranch(branch, keyHelper.encode(branch.key)))
         .toList();
     return Body.forJson(branches);
   }
