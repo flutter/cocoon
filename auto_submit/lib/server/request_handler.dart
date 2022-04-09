@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
 import '../service/config.dart';
-import 'exceptions.dart';
+import '../requests/exceptions.dart';
 
 @immutable
 abstract class RequestHandler {
@@ -18,11 +18,29 @@ abstract class RequestHandler {
 
   final Config config;
 
-  /// Services an HTTP request.
+  /// Services a request.
   ///
-  /// The default implementation will respond with HTTP 405 method not allowed.
+  /// The default implementation will respond with 405 method not allowed.
   @protected
   Future<Response> run(Request request) async {
     throw const MethodNotAllowed('GET');
+  }
+
+  /// Services a GET request.
+  ///
+  /// Subclasses should override this method if they support GET requests.
+  /// The default implementation will respond with  405 method not allowed.
+  @protected
+  Future get() async {
+    throw const MethodNotAllowed('GET');
+  }
+
+  /// Services a POST request.
+  ///
+  /// Subclasses should override this method if they support POST requests.
+  /// The default implementation will respond with  405 method not allowed.
+  @protected
+  Future post(Request request) async {
+    throw const MethodNotAllowed('POST');
   }
 }
