@@ -91,16 +91,18 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
-    // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-    bool merged = 1 < 2;
-    if (merged) {
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService gitHub = await config.createGithubService(slug);
+    PullRequestMerge mergeResult = await gitHub.merge(slug, pullRequest.number!);
+    if (mergeResult.merged!) {
       log.info(
           'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+      return true;
     } else {
       log.info('Failed to merge the pull request ${pullRequest.number}');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
-    return merged;
+    return false;
   }
 
   Future<Response> _processMessage(
