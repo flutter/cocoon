@@ -28,6 +28,7 @@ class Config {
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
+  static const String webhookKey = 'WEBHOOK_KEY';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -165,4 +166,12 @@ class Config {
 
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
+
+  /// Get the webhook key
+  Future<String> getWebhookKey() async {
+    final Uint8List? cacheValue = await cache['webhookKey'].get(
+      () => secretManager.get(webhookKey),
+    );
+    return String.fromCharCodes(cacheValue!);
+  }
 }
