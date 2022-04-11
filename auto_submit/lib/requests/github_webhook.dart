@@ -27,6 +27,7 @@ class GithubWebhook extends RequestHandler {
 
   final PubSub pubsub;
 
+  @override
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');
@@ -44,7 +45,7 @@ class GithubWebhook extends RequestHandler {
 
     // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
-    final String rawBody = await request.readAsString();
+    final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
@@ -53,7 +54,6 @@ class GithubWebhook extends RequestHandler {
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
-    print('pullRequest: ${pullRequest.id}');
 
     if (hasAutosubmit) {
       log.info('Found pull request with auto submit label.');

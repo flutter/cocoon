@@ -3,8 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:auto_submit/requests/github_webhook.dart';
+import 'package:auto_submit/requests/exceptions.dart';
+import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
@@ -17,21 +20,43 @@ void main() {
   group('Check Webhook', () {
     late Request req;
     late GithubWebhook githubWebhook;
-    final FakeConfig config = FakeConfig();
+    const String keyString = 'not_a_real_key';
+    final FakeConfig config = FakeConfig(webhookKey: keyString);
     final FakePubSub pubsub = FakePubSub();
+    late Map<String, String> validHeader;
+
+    String getHmac(Uint8List list, Uint8List key) {
+      final Hmac hmac = Hmac(sha1, key);
+      return hmac.convert(list).toString();
+    }
 
     setUp(() {
-      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent());
       githubWebhook = GithubWebhook(config: config, pubsub: pubsub);
     });
 
     test('call handler to handle the post request', () async {
+      final Uint8List body = utf8.encode(generateWebhookEvent()) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
+      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
       final Response response = await githubWebhook.post(req);
       final String resBody = await response.readAsString();
-      final body = json.decode(resBody) as Map<String, dynamic>;
-      List<IssueLabel> labels = PullRequest.fromJson(body['pull_request']).labels!;
+      final reqBody = json.decode(resBody) as Map<String, dynamic>;
+      List<IssueLabel> labels = PullRequest.fromJson(reqBody['pull_request']).labels!;
       expect(labels[0].name, 'cla: yes');
       expect(labels[1].name, 'autosubmit');
+    });
+
+    test('Rejects invalid hmac', () async {
+      final Map<String, String> inValidHeader = {'X-GitHub-Event': 'pull_request', 'X-Hub-Signature': 'bar'};
+      req = Request('POST', Uri.parse('http://localhost/'), body: 'Hello, World!', headers: inValidHeader);
+      await expectLater(githubWebhook.post(req), throwsA(isA<Forbidden>()));
+    });
+
+    test('Rejects missing headers', () async {
+      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent());
+      await expectLater(githubWebhook.post(req), throwsA(isA<BadRequestException>()));
     });
   });
 }
