@@ -92,14 +92,14 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final int number = pullRequest.number!;
     final GithubService gitHub = await config.createGithubService(slug);
-    PullRequestMerge mergeResult = await gitHub.merge(slug, pullRequest.number!);
+    PullRequestMerge mergeResult = await gitHub.merge(slug, number);
     if (mergeResult.merged!) {
-      log.info(
-          'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+      log.info('Merged the pull request $number in ${slug.fullName} repository.');
       return true;
     } else {
-      log.info('Failed to merge the pull request ${pullRequest.number}');
+      log.info('Failed to merge the pull request $number');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
     return false;
