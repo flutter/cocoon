@@ -169,7 +169,7 @@ class Config {
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
-    final Uint8List? cacheValue = await cache['webhookKey'].get(
+    final Uint8List? cacheValue = await cache[webhookKey].get(
       () => secretManager.get(webhookKey),
     );
     return String.fromCharCodes(cacheValue!);

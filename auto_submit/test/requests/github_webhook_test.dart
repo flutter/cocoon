@@ -24,6 +24,7 @@ void main() {
     final FakeConfig config = FakeConfig(webhookKey: keyString);
     final FakePubSub pubsub = FakePubSub();
     late Map<String, String> validHeader;
+    late Map<String, String> inValidHeader;
 
     String getHmac(Uint8List list, Uint8List key) {
       final Hmac hmac = Hmac(sha1, key);
@@ -49,7 +50,7 @@ void main() {
     });
 
     test('Rejects invalid hmac', () async {
-      final Map<String, String> inValidHeader = {'X-GitHub-Event': 'pull_request', 'X-Hub-Signature': 'bar'};
+      inValidHeader = <String, String>{'X-GitHub-Event': 'pull_request', 'X-Hub-Signature': 'bar'};
       req = Request('POST', Uri.parse('http://localhost/'), body: 'Hello, World!', headers: inValidHeader);
       await expectLater(githubWebhook.post(req), throwsA(isA<Forbidden>()));
     });
