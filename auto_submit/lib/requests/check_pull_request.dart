@@ -99,7 +99,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('Merged the pull request $number in ${slug.fullName} repository.');
       return true;
     } else {
-      log.info('Failed to merge the pull request $number');
+      log.warning('Failed to merge the pull request $number. ${mergeResult.message}.');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
     return false;
