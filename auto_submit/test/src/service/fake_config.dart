@@ -22,6 +22,7 @@ class FakeConfig extends Config {
     this.rollerAccountsValue,
     this.overrideTreeStatusLabelValue,
     this.autosubmitLabelValue,
+    this.webhookKey,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),
@@ -33,6 +34,7 @@ class FakeConfig extends Config {
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
   String? autosubmitLabelValue;
+  String? webhookKey;
 
   @override
   Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
@@ -56,4 +58,9 @@ class FakeConfig extends Config {
 
   @override
   String get autosubmitLabel => autosubmitLabelValue ?? 'autosubmit';
+
+  @override
+  Future<String> getWebhookKey() async {
+    return webhookKey ?? 'not_a_real_key';
+  }
 }

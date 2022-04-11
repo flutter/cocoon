@@ -7,11 +7,13 @@ import 'dart:convert';
 
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
+import 'package:crypto/crypto.dart';
 
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
+import '../requests/exceptions.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -30,9 +32,20 @@ class GithubWebhook extends RequestHandler {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');
 
+    final String? gitHubEvent = request.headers['X-GitHub-Event'];
+
+    if (gitHubEvent == null || request.headers['X-Hub-Signature'] == null) {
+      throw const BadRequestException('Missing required headers.');
+    }
+    final List<int> requestBytes = await request.read().expand((_) => _).toList();
+    final String? hmacSignature = request.headers['X-Hub-Signature'];
+    if (!await _validateRequest(hmacSignature, requestBytes)) {
+      throw const Forbidden();
+    }
+
     // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
-    final String rawBody = await request.readAsString();
+    final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
@@ -41,7 +54,6 @@ class GithubWebhook extends RequestHandler {
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
-    print('pullRequest: ${pullRequest.id}');
 
     if (hasAutosubmit) {
       log.info('Found pull request with auto submit label.');
@@ -49,5 +61,17 @@ class GithubWebhook extends RequestHandler {
     }
 
     return Response.ok(rawBody);
+  }
+
+  Future<bool> _validateRequest(
+    String? signature,
+    List<int> requestBody,
+  ) async {
+    final String rawKey = await config.getWebhookKey();
+    final List<int> key = utf8.encode(rawKey);
+    final Hmac hmac = Hmac(sha1, key);
+    final Digest digest = hmac.convert(requestBody);
+    final String bodySignature = 'sha1=$digest';
+    return bodySignature == signature;
   }
 }
