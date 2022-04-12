@@ -23,13 +23,24 @@ abstract class RequestHandler {
   /// The default implementation will respond with 405 method not allowed.
   @protected
   Future<Response> run(Request request) async {
-    throw const MethodNotAllowed('GET');
+    try {
+      switch (request.method) {
+        case 'GET':
+          return await get();
+        case 'POST':
+          return await post(request);
+        default:
+          throw MethodNotAllowed(request.method);
+      }
+    } on HttpStatusException {
+      rethrow;
+    }
   }
 
   /// Services a GET request.
   ///
   /// Subclasses should override this method if they support GET requests.
-  /// The default implementation will respond with  405 method not allowed.
+  /// The default implementation will respond with 405 method not allowed.
   @protected
   Future get() async {
     throw const MethodNotAllowed('GET');

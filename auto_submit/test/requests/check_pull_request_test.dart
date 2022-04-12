@@ -10,7 +10,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
-import 'package:graphql/client.dart' hide Response;
+import 'package:graphql/client.dart' hide Request, Response;
 
 import './github_webhook_test_data.dart';
 import '../requests/github_webhook_test_data.dart';

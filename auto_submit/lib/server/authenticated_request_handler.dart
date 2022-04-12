@@ -5,9 +5,11 @@
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
-import '../request_handling/authentication.dart';
 import 'request_handler.dart';
+import '../request_handling/authentication.dart';
 import '../service/config.dart';
+import '../requests/exceptions.dart';
+import '../service/log.dart';
 
 /// A [RequestHandler] that handles API requests.
 ///
@@ -22,4 +24,15 @@ abstract class AuthenticatedRequestHandler extends RequestHandler {
 
   /// Service responsible for authenticating this [Request].
   final CronAuthProvider cronAuthProvider;
+
+  @override
+  Future<Response> run(Request request) async {
+    try {
+      await cronAuthProvider.authenticate(request);
+    } on Unauthenticated catch (error) {
+      log.info('Authenticate error: $error');
+      return Response.forbidden(error.toString());
+    }
+    return await super.run(request);
+  }
 }
