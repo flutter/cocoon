@@ -28,7 +28,7 @@ class Config {
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
-  static const String webhookKey = 'WEBHOOK_KEY';
+  static const String webhookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -170,8 +170,13 @@ class Config {
   /// Get the webhook key
   Future<String> getWebhookKey() async {
     final Uint8List? cacheValue = await cache[webhookKey].get(
-      () => secretManager.get(webhookKey),
+      () => _getValueFromSecretManager(webhookKey),
     );
     return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<Uint8List> _getValueFromSecretManager(String key) async {
+    String value = await secretManager.get(key);
+    return Uint8List.fromList(value.codeUnits);
   }
 }

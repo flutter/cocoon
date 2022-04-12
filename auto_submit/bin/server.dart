@@ -39,7 +39,7 @@ Future<void> main() async {
           CheckPullRequest(
             config: config,
             cronAuthProvider: authProvider,
-          ).get);
+          ).run);
     await serveHandler(router);
   });
 }
