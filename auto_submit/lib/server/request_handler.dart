@@ -23,7 +23,6 @@ abstract class RequestHandler {
   /// The default implementation will respond with 405 method not allowed.
   @protected
   Future<Response> run(Request request) async {
-    //throw const MethodNotAllowed('GET');
     try {
       switch (request.method) {
         case 'GET':
