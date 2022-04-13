@@ -76,7 +76,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
           final bool mergeResult = await _processMerge(pullRequest);
-          log.info('Finished merge pull request.');
           if (mergeResult) {
             responses.add(<int, String>{pullRequest.number!: 'merged'});
           } else {
@@ -110,7 +109,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<Response> _processMessage(
       pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
-    log.info('Comes to merge PR');
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -180,7 +178,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
-    log.info('Before checking should merge logic');
     // Check the label again before merge the pull request.
     if (queryResult.shouldMerge) {
       return true;
