@@ -245,6 +245,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     }
     final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
     final String authorAssociation = pullRequest['authorAssociation'] as String;
+    log.info('The author association is $authorAssociation');
 
     final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
