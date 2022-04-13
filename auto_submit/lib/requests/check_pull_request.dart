@@ -12,11 +12,12 @@ import 'package:graphql/client.dart' hide Response, Request;
 
 import 'check_pull_request_queries.dart';
 import 'exceptions.dart';
+import '../request_handling/authentication.dart';
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
-import '../server/request_handler.dart';
+import '../server/authenticated_request_handler.dart';
 
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -31,17 +32,19 @@ const int _kBehindToT = 5;
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
-class CheckPullRequest extends RequestHandler {
+class CheckPullRequest extends AuthenticatedRequestHandler {
   CheckPullRequest({
     required Config config,
+    required CronAuthProvider cronAuthProvider,
     this.pubsub = const PubSub(),
-  }) : super(config: config);
+  }) : super(config: config, cronAuthProvider: cronAuthProvider);
 
   final PubSub pubsub;
 
   static const int kPullMesssageBatchSize = 100;
 
-  Future<Response> get() async {
+  @override
+  Future<Response> get(Request r) async {
     final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
@@ -110,38 +113,43 @@ class CheckPullRequest extends RequestHandler {
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
+    //await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHub = await config.createGithubService();
-    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
-
-    await autoRebase(pullRequest, gitHub, graphQLClient);
+    final GithubService gitHub = await config.createGithubService(slug);
+    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
 
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
-    if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
-      final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
-      if (hasAutosubmitLabel) {
-        if (!repoPullRequestsMap.containsKey(slug.fullName)) {
-          repoPullRequestsMap[slug.fullName] = <PullRequest>{};
-        }
-        repoPullRequestsMap[slug.fullName]!.add(pullRequest);
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
-        return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
-      } else {
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
-        return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
-      }
-    } else if (queryResult.shouldRemoveLabel) {
-      log.info('Removing label for commit: ${queryResult.sha}');
-      await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
-      log.info('Removed the label for commit: ${queryResult.sha}');
-      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
-      log.info('Acknowledged the pubsub for commit: ${queryResult.sha}');
-      return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
-    } else {
-      log.info('The pull request ${queryResult.number} has unfinished tests,'
-          'leave it at pubsub and check later.');
-    }
+    // if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
+    //   final bool hasAutosubmitLabel =
+    //       queryResult.labels.any((label) => label == config.autosubmitLabel);
+    //   if (hasAutosubmitLabel) {
+    //     if (!repoPullRequestsMap.containsKey(slug.fullName)) {
+    //       repoPullRequestsMap[slug.fullName] = <PullRequest>{};
+    //     }
+    //     repoPullRequestsMap[slug.fullName]!.add(pullRequest);
+    //     await pubsub.acknowledge(
+    //         'auto-submit-queue-sub', receivedMessage.ackId!);
+    //     return Response.ok(
+    //         'Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
+    //   } else {
+    //     await pubsub.acknowledge(
+    //         'auto-submit-queue-sub', receivedMessage.ackId!);
+    //     return Response.ok(
+    //         'Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
+    //   }
+    // } else if (queryResult.shouldRemoveLabel) {
+    //   log.info('Removing label for commit: ${queryResult.sha}');
+    //   await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
+    //   log.info('Removed the label for commit: ${queryResult.sha}');
+    //   await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+    //   log.info('Acknowledged the pubsub for commit: ${queryResult.sha}');
+    //   return Response.ok(
+    //       'Remove the autosubmit label for commit: ${queryResult.sha}.');
+    // } else {
+    //   log.info('The pull request ${queryResult.number} has unfinished tests,'
+    //       'leave it at pubsub and check later.');
+    // }
     return Response.ok('Does not merge the pull request ${queryResult.number}.');
   }
 
@@ -169,12 +177,14 @@ class CheckPullRequest extends RequestHandler {
     return result.data!;
   }
 
-  Future<Response> autoRebase(PullRequest pullRequest, GithubService github, GraphQLClient client) async {
+  Future<Response> autoRebase(PullRequest pullRequest, String repositoryId, GithubService github, GraphQLClient client,
+      String base, String head) async {
     RepositorySlug slug = pullRequest.base!.repo!.slug();
     RepositoryCommit lastCommit = await github.getLastCommit(slug, 'main');
     final GitHubComparison comparison = await github.compareTwoCommits(slug, lastCommit.sha!, pullRequest.base!.sha!);
     if (comparison.behindBy! >= _kBehindToT) {
-      final bool result = await _mergeBranch(pullRequest, pullRequest.base!.repo!.id.toString(), client);
+      log.info('behind ${comparison.behindBy} commits');
+      final bool result = await _mergeBranch(pullRequest, repositoryId, client, base, head);
       if (result) {
         log.info('Successfully rebased the pull request ${pullRequest.number}');
         return Response.ok('Successfully rebased the pull request ${pullRequest.number}');
@@ -188,21 +198,30 @@ class CheckPullRequest extends RequestHandler {
     PullRequest pullRequest,
     String repositoryId,
     GraphQLClient client,
+    String base,
+    String head,
   ) async {
-    String toBranch = pullRequest.base!.ref!;
-    String fromBranch = pullRequest.head!.ref!;
+    // String toBranch = pullRequest.base!.ref!;
+    // String fromBranch = pullRequest.head!.ref!;
+    // log.info('fromBranch: $fromBranch, toBranch: $toBranch');
+    // // log.info('fromBranch: $head, toBranch: $base');
+
+    // String head = "refs/heads/" + fromBranch;
+    // String base = "refs/heads/" + toBranch;
+
+    log.info('head: $head, base: $base');
 
     final QueryResult result = await client.mutate(MutationOptions(
       document: mergePullRequestMutation,
       variables: <String, dynamic>{
         'id': repositoryId,
-        'baseBranch': toBranch,
-        'headBranch': fromBranch,
+        'baseBranch': base,
+        'headBranch': head,
       },
     ));
 
     if (result.hasException) {
-      log.severe('Failed to merge branch#: $fromBranch to branch#: $toBranch, ${result.exception.toString()}');
+      log.severe('Failed to merge branch#: $head to branch#: $base, ${result.exception.toString()}');
       return false;
     }
     return true;
@@ -280,6 +299,13 @@ class CheckPullRequest extends RequestHandler {
     }
     final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
     final String authorAssociation = pullRequest['authorAssociation'] as String;
+    final String repositoryId = pullRequest['baseRepository']['id'] as String;
+    final String baseRef = pullRequest['baseRef']['prefix'] as String;
+    final String toBranch = pullRequest['baseRef']['name'] as String;
+    final String base = baseRef + toBranch;
+    final String headRef = pullRequest['headRef']['prefix'] as String;
+    final String fromBranch = pullRequest['headRef']['name'] as String;
+    final String head = headRef + fromBranch;
 
     final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
@@ -305,6 +331,8 @@ class CheckPullRequest extends RequestHandler {
     if (pr.head != null && sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, sha));
     }
+
+    await autoRebase(pr, repositoryId, gitHub, graphQLClient, base, head);
 
     final bool hasApproval = config.rollerAccounts.contains(author) ||
         _checkApproval(
@@ -436,7 +464,8 @@ bool _checkApproval(
   }
 
   for (Map<String, dynamic> review in reviewNodes) {
-    log.info('author: ${review['author']}, login: ${review['author']['login']}');
+    // log.info(
+    //     'author: ${review['author']}, login: ${review['author']['login']}');
     // Ignore reviews from non-members/owners.
     if (!allowedReviewers.contains(review['authorAssociation'])) {
       continue;

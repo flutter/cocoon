@@ -10,6 +10,17 @@ query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrN
   repository(owner: $sOwner, name: $sName) { 
     pullRequest(number: $sPrNumber) {
       authorAssociation
+      baseRepository{
+        id
+      }
+      baseRef{
+          name
+          prefix
+      }
+      headRef{
+          name
+          prefix
+      }
       commits(last:1) {
         nodes {
           commit {
