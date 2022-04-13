@@ -76,7 +76,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
           final bool mergeResult = await _processMerge(pullRequest);
-          log.info('Finished merge pull request.');
           if (mergeResult) {
             responses.add(<int, String>{pullRequest.number!: 'merged'});
           } else {
@@ -92,19 +91,17 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int number = pullRequest.number!;
+    String base = pullRequest.base!.ref!;
+    String head = pullRequest.head!.sha!;
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService(slug);
-    PullRequestMerge mergeResult = await gitHub.merge(slug, number);
-    final bool? merged = mergeResult.merged;
-    if (merged == null) {
-      log.warning('Can not merge the pull request $number. ${mergeResult.message}.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
-    } else if (merged) {
+    bool merged = await gitHub.merge(slug, base, head);
+    final int number = pullRequest.number!;
+    if (merged) {
       log.info('Merged the pull request $number in ${slug.fullName} repository.');
       return true;
     } else {
-      log.warning('Failed to merge the pull request $number. ${mergeResult.message}.');
+      log.warning('Failed to merge the pull request $number.');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
     return false;
@@ -112,7 +109,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<Response> _processMessage(
       pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
-    log.info('Comes to merge PR');
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -182,7 +178,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
-    log.info('Before checking should merge logic');
     // Check the label again before merge the pull request.
     if (queryResult.shouldMerge) {
       return true;
