@@ -92,6 +92,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
     // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
+    log.info('comes to merge pr');
     bool merged = 1 < 2;
     if (merged) {
       log.info(
