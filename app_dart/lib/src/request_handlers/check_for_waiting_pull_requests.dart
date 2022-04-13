@@ -203,6 +203,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         return labelMap['id'] as String;
       }
     }
+    log.warning('No label ID found for label: $label');
     return null;
   }
 
@@ -369,6 +370,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       allSuccess = false;
     }
 
+    log.info('Before cirrus validations with allSuccess: $allSuccess');
     if (!Config.cirrusSupportedRepos.contains(name)) {
       return allSuccess;
     }
@@ -395,7 +397,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         failures.add(_FailureDetail(name!, 'https://cirrus-ci.com/task/$id'));
       }
     }
-    log.info('Completed cirrus validations with allSuccess: $allSuccess');
+    log.info('After cirrus validations with allSuccess: $allSuccess');
 
     return allSuccess;
   }

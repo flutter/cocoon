@@ -27,6 +27,7 @@ import '../service/datastore.dart';
 /// with a later timestamp.
 ///
 /// Parameters:
+///   branch: defaults to the defaults branch for the repository.
 ///   repo: default: 'flutter'. Name of the repository.
 ///
 /// GET: /api/public/get-green-commits?repo=$repo
@@ -43,13 +44,14 @@ class GetGreenCommits extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
 
+  static const String kBranchParam = 'branch';
   static const String kRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
     final String repoName = request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final RepositorySlug slug = RepositorySlug('flutter', repoName);
-    final String branch = Config.defaultBranch(slug);
+    final String branch = request!.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final int commitNumber = config.commitNumber;

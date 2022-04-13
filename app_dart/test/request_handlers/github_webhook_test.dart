@@ -327,6 +327,13 @@ void main() {
             contains('tool'));
       });
 
+      test('iOS label applied', () {
+        expect(
+          GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/lib/src/ios/devices.dart'),
+          <String>{'platform-ios', 'tool'},
+        );
+      });
+
       test('Engine label applied', () {
         expect(GithubWebhook.getLabelsForFrameworkPath('bin/internal/engine.version'), contains('engine'));
       });
@@ -508,6 +515,52 @@ void main() {
         expect(GithubWebhook.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
         expect(GithubWebhook.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
       });
+    });
+
+    test('release PRs are approved', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        'flutter-2.13-candidate.0',
+        login: 'dart-flutter-releaser',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.createReview(slug, any))
+          .thenAnswer((_) async => PullRequestReview(id: 123, user: User()));
+
+      await tester.post(webhook);
+
+      final List<dynamic> reviews = verify(pullRequestsService.createReview(slug, captureAny)).captured;
+      expect(reviews.length, 1);
+      final CreatePullRequestReview review = reviews.single as CreatePullRequestReview;
+      expect(review.event, 'APPROVE');
+    });
+
+    test('release PRs are not approved for outsider PRs', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, 'flutter-2.13-candidate.0');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.createReview(slug, any))
+          .thenAnswer((_) async => PullRequestReview(id: 123, user: User()));
+
+      await tester.post(webhook);
+
+      verifyNever(pullRequestsService.createReview(slug, any));
     });
 
     test('Framework labels PRs, comment if no tests', () async {

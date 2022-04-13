@@ -258,4 +258,7 @@ class FakeConfig implements Config {
 
   @override
   String get defaultRecipeBundleRef => 'refs/heads/main';
+
+  @override
+  Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
 }

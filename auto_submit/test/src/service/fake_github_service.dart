@@ -18,6 +18,7 @@ class FakeGithubService implements GithubService {
     String? compareTwoCommitsMock,
     String? successMergeMock,
     String? createCommentMock,
+    String? pullRequestMergeMock,
   }) : github = client ?? MockGitHub();
 
   @override
@@ -28,6 +29,7 @@ class FakeGithubService implements GithubService {
   String? compareTwoCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
+  String? pullRequestMergeMock;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
@@ -47,6 +49,10 @@ class FakeGithubService implements GithubService {
 
   set createCommentData(String? createCommentMock) {
     this.createCommentMock = createCommentMock;
+  }
+
+  set pullRequestMergeData(String? pullRequestMergeMock) {
+    this.pullRequestMergeMock = pullRequestMergeMock;
   }
 
   @override
@@ -84,5 +90,10 @@ class FakeGithubService implements GithubService {
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
     final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
     return issueComment;
+  }
+
+  @override
+  Future<bool> merge(RepositorySlug slug, String base, String head) async {
+    return true;
   }
 }

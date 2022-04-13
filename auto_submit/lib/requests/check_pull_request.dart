@@ -12,11 +12,12 @@ import 'package:graphql/client.dart' hide Response, Request;
 
 import 'check_pull_request_queries.dart';
 import 'exceptions.dart';
+import '../request_handling/authentication.dart';
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
-import '../server/request_handler.dart';
+import '../server/authenticated_request_handler.dart';
 
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -27,16 +28,18 @@ const int _kMergeCountPerRepo = 1;
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
-class CheckPullRequest extends RequestHandler {
+class CheckPullRequest extends AuthenticatedRequestHandler {
   CheckPullRequest({
     required Config config,
+    required CronAuthProvider cronAuthProvider,
     this.pubsub = const PubSub(),
-  }) : super(config: config);
+  }) : super(config: config, cronAuthProvider: cronAuthProvider);
 
   final PubSub pubsub;
 
   static const int kPullMesssageBatchSize = 100;
 
+  @override
   Future<Response> get() async {
     final List<Response> responses = <Response>[];
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
@@ -88,16 +91,20 @@ class CheckPullRequest extends RequestHandler {
   }
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
-    // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-    bool merged = 1 < 2;
+    String base = pullRequest.base!.ref!;
+    String head = pullRequest.head!.sha!;
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService gitHub = await config.createGithubService(slug);
+    bool merged = await gitHub.merge(slug, base, head);
+    final int number = pullRequest.number!;
     if (merged) {
-      log.info(
-          'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+      log.info('Merged the pull request $number in ${slug.fullName} repository.');
+      return true;
     } else {
-      log.info('Failed to merge the pull request ${pullRequest.number}');
+      log.warning('Failed to merge the pull request $number.');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
-    return merged;
+    return false;
   }
 
   Future<Response> _processMessage(
@@ -108,8 +115,9 @@ class CheckPullRequest extends RequestHandler {
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHub = await config.createGithubService();
-    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient();
+    final GithubService gitHub = await config.createGithubService(slug);
+    final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
@@ -122,6 +130,7 @@ class CheckPullRequest extends RequestHandler {
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        log.info('Acknowledged the pubsub.');
         return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
     } else if (queryResult.shouldRemoveLabel) {
@@ -234,6 +243,7 @@ class CheckPullRequest extends RequestHandler {
     }
     final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
     final String authorAssociation = pullRequest['authorAssociation'] as String;
+    log.info('The author association is $authorAssociation');
 
     final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
