@@ -46,10 +46,9 @@ class GithubService {
   }
 
   /// Merge a pull request
-  Future<PullRequestMerge> merge(
-    RepositorySlug slug,
-    int number,
-  ) async {
-    return await github.pullRequests.merge(slug, number);
+  Future<bool> merge(RepositorySlug slug, String base, String head) async {
+    final response = await github.request('POST', '/repos/${slug.fullName}/merges',
+        body: GitHubJson.encode({'base': base, 'head': head}));
+    return response.statusCode == StatusCodes.CREATED;
   }
 }

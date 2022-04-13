@@ -100,6 +100,7 @@ PullRequest generatePullRequest(
       "created_at": "2011-01-26T19:01:12Z",
       "head": {
         "label": "octocat:new-topic",
+        "ref": "new-topic",
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,
@@ -115,6 +116,8 @@ PullRequest generatePullRequest(
       },
       "base": {
         "label": "octocat:master",
+        "label": "octocat:main",
+        "ref": "main",
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,
