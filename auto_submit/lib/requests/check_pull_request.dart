@@ -134,6 +134,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        log.info('Acknowledged the pubsub.');
         return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
     } else if (queryResult.shouldRemoveLabel) {
