@@ -179,6 +179,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
+    log.info('Before checking should merge logic');
     // Check the label again before merge the pull request.
     if (queryResult.shouldMerge) {
       return true;
