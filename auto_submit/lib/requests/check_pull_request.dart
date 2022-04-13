@@ -76,6 +76,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
           final bool mergeResult = await _processMerge(pullRequest);
+          log.info('Finished merge pull request.');
           if (mergeResult) {
             responses.add(<int, String>{pullRequest.number!: 'merged'});
           } else {
@@ -109,6 +110,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<Response> _processMessage(
       pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    log.info('Comes to merge PR');
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -130,6 +132,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        log.info('Acknowledged the pubsub.');
         return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
     } else if (queryResult.shouldRemoveLabel) {
@@ -177,6 +180,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
+    log.info('Before checking should merge logic');
     // Check the label again before merge the pull request.
     if (queryResult.shouldMerge) {
       return true;
@@ -242,6 +246,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     }
     final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
     final String authorAssociation = pullRequest['authorAssociation'] as String;
+    log.info('The author association is $authorAssociation');
 
     final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
