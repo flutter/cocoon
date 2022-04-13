@@ -355,13 +355,16 @@ void main() {
 
     test('schedule postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
-      final Pair<Target, Task> toBeScheduled = Pair<Target, Task>(
-        generateTarget(1),
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
+        generateTarget(1, properties: <String, String>{
+          'os': 'debian-10.12',
+        }),
         generateTask(1),
+        LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
         commit: commit,
-        toBeScheduled: <Pair<Target, Task>>[
+        toBeScheduled: <Tuple<Target, Task, int>>[
           toBeScheduled,
         ],
       );
@@ -384,8 +387,12 @@ void main() {
         'dependencies': <dynamic>[],
         'bringup': false,
         'git_branch': 'master',
-        'exe_cipd_version': 'refs/heads/master'
+        'exe_cipd_version': 'refs/heads/master',
+        'os': 'debian-10.12',
       });
+      expect(scheduleBuild.dimensions, isNotEmpty);
+      expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
+          'debian-10.12');
     });
   });
 

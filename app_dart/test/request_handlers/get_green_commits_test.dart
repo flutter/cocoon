@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/utilities/entity_generators.dart';
@@ -30,6 +31,12 @@ void main() {
 
     final Commit commit1 = generateCommit(1, timestamp: 3, sha: 'ea28a9c34dc701de891eaf74503ca4717019f829');
     final Commit commit2 = generateCommit(2, timestamp: 1, sha: 'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4');
+    final Commit commitBranched = generateCommit(
+      2,
+      timestamp: 1,
+      sha: 'ffffffffffffffffffffffffffffffffaae045e4',
+      branch: 'flutter-2.13-candidate.0',
+    );
 
     final Task task1Succeed = generateTask(1, status: Task.statusSucceeded);
     final Task task2Failed = generateTask(2, status: Task.statusFailed); // should fail if included
@@ -86,8 +93,8 @@ void main() {
 
       expect(result.length, 2);
       expect(result, <String>[
-        'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-        'ea28a9c34dc701de891eaf74503ca4717019f829',
+        commit2.sha!,
+        commit1.sha!,
       ]);
     });
 
@@ -105,7 +112,7 @@ void main() {
       final List<String?> result = (await decodeHandlerBody())!;
 
       expect(result.length, 1);
-      expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
+      expect(result, <String>[commit2.sha!]);
     });
 
     test('should return commits with failed tasks but with `bringup: true` label', () async {
@@ -122,7 +129,7 @@ void main() {
       final List<String?> result = (await decodeHandlerBody())!;
 
       expect(result.length, 1);
-      expect(result, <String>['d5b0b3c8d1c5fd89302089077ccabbcfaae045e4']);
+      expect(result, <String>[commit2.sha!]);
     });
 
     test('should return commits with both flaky and succeeded tasks', () async {
@@ -140,8 +147,28 @@ void main() {
 
       expect(result.length, 2);
       expect(result, <String>[
-        'd5b0b3c8d1c5fd89302089077ccabbcfaae045e4',
-        'ea28a9c34dc701de891eaf74503ca4717019f829',
+        commit2.sha!,
+        commit1.sha!,
+      ]);
+    });
+
+    test('should return branched commits', () async {
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commitBranched, <Stage>[stageOneSucceed]),
+      ]);
+      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
+        GetGreenCommits.kBranchParam: commitBranched.branch!,
+      });
+      handler = GetGreenCommits(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        buildStatusProvider: (_) => buildStatusService,
+      );
+
+      final List<String?> result = (await decodeHandlerBody())!;
+
+      expect(result, <String>[
+        commitBranched.sha!,
       ]);
     });
   });

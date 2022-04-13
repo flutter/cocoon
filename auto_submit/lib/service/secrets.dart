@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
@@ -38,7 +39,7 @@ class CloudSecretManager implements SecretManager {
     if (payload?.data == null) {
       throw SecretManagerException('Failed to find secret for $key with \$fields=$fields');
     }
-    return payload!.data!;
+    return String.fromCharCodes(base64Decode(payload!.data!));
   }
 
   @override
@@ -51,7 +52,9 @@ class LocalSecretManager implements SecretManager {
 
   @override
   Future<String> get(String key, {String? fields}) async {
-    if (Platform.environment.containsKey(key)) {
+    if (_secrets.containsKey(key)) {
+      return _secrets[key]!;
+    } else if (Platform.environment.containsKey(key)) {
       return Platform.environment[key]!;
     }
 

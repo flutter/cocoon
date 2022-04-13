@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
+import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -27,6 +28,7 @@ class Config {
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
+  static const String webhookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -34,31 +36,79 @@ class Config {
 
   Cache get cache => Cache(cacheProvider).withPrefix('config');
 
-  Future<GithubService> createGithubService() async {
-    final GitHub github = await createGithubClient();
+  Future<GithubService> createGithubService(RepositorySlug slug) async {
+    final GitHub github = await createGithubClient(slug);
     return GithubService(github);
   }
 
-  Future<GitHub> createGithubClient() async {
+  Future<GitHub> createGithubClient(RepositorySlug slug) async {
+    String token = await generateGithubToken(slug);
+    return GitHub(auth: Authentication.withToken(token));
+  }
+
+  Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final String token = await cache['githubToken'].get(
-      _generateGithubToken,
+    final Uint8List? cacheValue = await cache['githubToken-${slug.owner}'].get(
+      () => _generateGithubToken(slug),
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
     );
-
-    return GitHub(auth: Authentication.withToken(token));
+    return String.fromCharCodes(cacheValue!);
   }
 
-  Future<Uint8List> _generateGithubToken() async {
+  Future<String> getInstallationId(RepositorySlug slug) async {
     final String jwt = await _generateGithubJwt();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final String appId = await secretManager.get(kGithubAppId);
-    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$appId/access_tokens');
+    // TODO(KristinBi): Upstream the github package.https://github.com/flutter/flutter/issues/100920
+    final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
+    final http.Client client = httpProvider();
+    // TODO(KristinBi): Track the installation id by repo. https://github.com/flutter/flutter/issues/100808
+    final http.Response response = await client.get(
+      githubInstallationUri,
+      headers: headers,
+    );
+    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    late String installationId;
+    for (Map<String, dynamic> installData in list) {
+      if (installData['account']!['login']!.toString() == slug.owner) {
+        installationId = installData['id']!.toString();
+      }
+    }
+    return installationId;
+  }
+
+  Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async {
+    final HttpLink httpLink = HttpLink(
+      'https://api.github.com/graphql',
+      defaultHeaders: <String, String>{
+        'Accept': 'application/vnd.github.antiope-preview+json',
+      },
+    );
+
+    final String token = await generateGithubToken(slug);
+
+    final AuthLink _authLink = AuthLink(
+      getToken: () async => 'Bearer $token',
+    );
+
+    return GraphQLClient(
+      cache: GraphQLCache(),
+      link: _authLink.concat(httpLink),
+    );
+  }
+
+  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
+    final String jwt = await _generateGithubJwt();
+    final Map<String, String> headers = <String, String>{
+      'Authorization': 'Bearer $jwt',
+      'Accept': 'application/vnd.github.machine-man-preview+json'
+    };
+    final String installationId = await getInstallationId(slug);
+    final Uri githubAccessTokensUri = Uri.https('api.github.com', 'app/installations/$installationId/access_tokens');
     final http.Client client = httpProvider();
     final http.Response response = await client.post(
       githubAccessTokensUri,
@@ -74,7 +124,13 @@ class Config {
   }
 
   Future<String> _generateGithubJwt() async {
-    final String privateKey = await secretManager.get(kGithubKey);
+    final String rawKey = await secretManager.get(kGithubKey);
+    StringBuffer sb = StringBuffer();
+    sb.writeln(rawKey.substring(0, 32));
+    sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
+    sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
+    final String privateKey = sb.toString();
+
     final JWTBuilder builder = JWTBuilder();
     final DateTime now = DateTime.now();
     builder
@@ -110,4 +166,17 @@ class Config {
 
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
+
+  /// Get the webhook key
+  Future<String> getWebhookKey() async {
+    final Uint8List? cacheValue = await cache[webhookKey].get(
+      () => _getValueFromSecretManager(webhookKey),
+    );
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<Uint8List> _getValueFromSecretManager(String key) async {
+    String value = await secretManager.get(key);
+    return Uint8List.fromList(value.codeUnits);
+  }
 }

@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:github/github.dart';
+
 String generateWebhookEvent(
     {String? labelName, String? autosubmitLabel, String? repoName, String? login, String? authorAssociation}) {
   return '''{
@@ -63,6 +67,74 @@ String generateWebhookEvent(
           "mergeable_state": "clean"
       }
     }''';
+}
+
+PullRequest generatePullRequest(
+    {String? labelName,
+    String? autosubmitLabel,
+    String? repoName,
+    String? login,
+    String? authorAssociation,
+    String? author,
+    int? prNumber}) {
+  return PullRequest.fromJson(json.decode('''{
+      "id": 1,
+      "number": ${prNumber ?? 1347},
+      "state": "open",
+      "title": "Amazing new feature",
+      "user": {
+        "login": "${author ?? "octocat"}",
+        "id": 1
+      },
+      "body": "Please pull these awesome changes in!",
+      "labels": [
+        {
+          "id": 487496476,
+          "name": "${labelName ?? "cla: yes"}"
+        },
+        {
+          "id": 284437560,
+          "name": "${autosubmitLabel ?? "autosubmit"}"
+        }
+      ],
+      "created_at": "2011-01-26T19:01:12Z",
+      "head": {
+        "label": "octocat:new-topic",
+        "ref": "new-topic",
+        "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+        "repo": {
+          "id": 1296269,
+          "name": "Hello-World",
+          "full_name": "octocat/Hello-World",
+          "owner": {
+            "login": "octocat",
+            "id": 1,
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "html_url": "https://github.com/octocat"
+          }
+        }
+      },
+      "base": {
+        "label": "octocat:master",
+        "label": "octocat:main",
+        "ref": "main",
+        "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+        "repo": {
+          "id": 1296269,
+          "name": "${repoName ?? "flutter"}",
+          "full_name": "${login ?? "flutter"}/${repoName ?? "flutter"}",
+          "owner": {
+            "login": "${login ?? "flutter"}",
+            "id": 1,
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "html_url": "https://github.com/octocat"
+          }
+        } 
+      },
+      "author_association": "${authorAssociation ?? "OWNER"}",
+      "mergeable": true,
+      "mergeable_state": "clean"
+  }'''));
 }
 
 final String reviewsMock = '''[
@@ -208,8 +280,8 @@ final String commitMock = '''{
   }
 }''';
 
-// compareTowCOmmitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-final String compareTowCommitsMock = '''{
+// compareTwoCommitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
+final String compareTwoCommitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "status": "behind",
   "ahead_by": 1,
@@ -252,4 +324,10 @@ final String createCommentMock = '''
     "id": 1
   },
   "body": "Great stuff!"
+}''';
+
+final String pullRequestMergeMock = '''
+{
+  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "merged": true
 }''';

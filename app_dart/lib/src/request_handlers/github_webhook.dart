@@ -5,16 +5,18 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart'
+    show CreatePullRequestReview, GitHub, IssueComment, PullRequest, PullRequestFile, RepositorySlug;
 import 'package:github/hooks.dart';
-import 'package:meta/meta.dart';
 
 import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
+import '../service/datastore.dart';
 import '../service/github_checks_service.dart';
 import '../service/logging.dart';
 import '../service/scheduler.dart';
@@ -35,12 +37,13 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
-@immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(
+  GithubWebhook(
     Config config, {
     required this.scheduler,
     this.githubChecksService,
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    this.branchService,
   }) : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
@@ -49,8 +52,12 @@ class GithubWebhook extends RequestHandler<Body> {
   /// Github checks service. Used to provide build status to github.
   final GithubChecksService? githubChecksService;
 
+  final DatastoreServiceProvider datastoreProvider;
+  BranchService? branchService;
+
   @override
   Future<Body> post() async {
+    final DatastoreService datastore = datastoreProvider(config.db);
     final String? gitHubEvent = request!.headers.value('X-GitHub-Event');
 
     if (gitHubEvent == null || request!.headers.value('X-Hub-Signature') == null) {
@@ -76,6 +83,11 @@ class GithubWebhook extends RequestHandler<Body> {
           if (await scheduler.processCheckRun(checkRunEvent) == false) {
             throw InternalServerError('Failed to process $checkRunEvent');
           }
+          break;
+        case 'create':
+          branchService ??= BranchService(datastore, rawRequest: stringRequest);
+          await branchService!.handleCreateRequest();
+          break;
       }
 
       return Body.empty;
@@ -123,6 +135,7 @@ class GithubWebhook extends RequestHandler<Body> {
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
+        await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
         break;
@@ -168,6 +181,29 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     await scheduler.triggerPresubmitTargets(pullRequest: pr);
+  }
+
+  /// Release tooling generates cherrypick pull requests that should be granted an approval.
+  Future<void> _tryReleaseApproval(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final PullRequest pr = pullRequestEvent.pullRequest!;
+    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+
+    if (pr.head?.ref == null && pr.head!.ref!.contains(Config.defaultBranch(slug))) {
+      // This isn't a release branch PR
+      return;
+    }
+
+    final List<String> releaseAccounts = await config.releaseAccounts;
+    if (releaseAccounts.contains(pr.user?.login) == false) {
+      // The author isn't in the list of release accounts, do nothing
+      return;
+    }
+
+    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
+    await gitHubClient.pullRequests.createReview(slug, review);
   }
 
   Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
@@ -219,6 +255,7 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.contains('.cirrus.yml') &&
           !filename.contains('.github') &&
           !filename.endsWith('.md') &&
+          !filename.contains('CODEOWNERS') &&
           !filename.startsWith('dev/devicelab/bin/tasks') &&
           !filename.startsWith('dev/devicelab/lib/tasks') &&
           !filename.startsWith('dev/bots/')) {
@@ -245,7 +282,7 @@ class GithubWebhook extends RequestHandler<Body> {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -275,6 +312,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'examples/api/': <String>['d: examples', 'team', 'd: api docs', 'documentation'],
       'examples/flutter_gallery/': <String>['d: examples', 'team', 'team: gallery'],
       'packages/flutter_tools/': <String>['tool'],
+      'packages/flutter_tools/lib/src/ios/': <String>['platform-ios'],
       'packages/flutter/': <String>['framework'],
       'packages/flutter_driver/': <String>['framework', 'a: tests'],
       'packages/flutter_localizations/': <String>['a: internationalization'],
@@ -367,7 +405,7 @@ class GithubWebhook extends RequestHandler<Body> {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -420,7 +458,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    if (!hasTests && needsTests && !pr.draft!) {
+    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -459,9 +497,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (baseName == defaultBranchName) {
       return;
     }
-    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
-      // This is most likely a release branch
+    if (_isReleaseBranch(pr)) {
       body = config.releaseBranchPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -479,6 +515,25 @@ class GithubWebhook extends RequestHandler<Body> {
       );
       await gitHubClient.issues.createComment(slug, pr.number!, body);
     }
+  }
+
+  bool _isReleaseBranch(PullRequest pr) {
+    final String defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
+    final String baseName = pr.base!.ref!;
+
+    if (baseName == defaultBranchName) {
+      return false;
+    }
+    // Check if branch name confroms to the format flutter-x.x-candidate.x,
+    // A pr with conforming branch name is likely to be intended
+    // for a release branch, whereas a pr with non conforming name is likely
+    // caused by user misoperations, in which case bot
+    // will suggest open pull request against default branch instead.
+    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    if (candidateTest.hasMatch(baseName) && candidateTest.hasMatch(pr.head!.ref!)) {
+      return true;
+    }
+    return false;
   }
 
   Future<bool> _alreadyCommented(

@@ -10,13 +10,15 @@ import 'package:cocoon_service/src/model/luci/push_message.dart';
 
 const String ref = 'deadbeef';
 
-PushMessage createBuildbucketPushMessage(String status,
-    {String? result,
-    String builderName = 'Linux Coverage',
-    String urlParam = '',
-    int retries = 0,
-    String? failureReason,
-    String? userData = ''}) {
+PushMessage createBuildbucketPushMessage(
+  String status, {
+  String? result,
+  String builderName = 'Linux Coverage',
+  String urlParam = '',
+  int retries = 0,
+  String? failureReason,
+  String? userData = '',
+}) {
   return PushMessage(
     data: buildPushMessageJson(
       status,
@@ -52,13 +54,15 @@ PushMessage pushMessageJsonNoBuildset(
   );
 }
 
-String buildPushMessageJson(String status,
-        {String? result,
-        String builderName = 'Linux Coverage',
-        String urlParam = '',
-        int retries = 0,
-        String? failureReason,
-        String? userData}) =>
+String buildPushMessageJson(
+  String status, {
+  String? result,
+  String builderName = 'Linux Coverage',
+  String urlParam = '',
+  int retries = 0,
+  String? failureReason,
+  String? userData,
+}) =>
     base64.encode(utf8.encode(buildPushMessageString(
       status,
       result: result,

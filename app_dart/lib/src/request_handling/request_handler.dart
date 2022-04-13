@@ -20,7 +20,7 @@ import 'exceptions.dart';
 /// (before serialization). Subclasses whose HTTP responses don't include a
 /// body should extend `RequestHandler<Body>` and return null in their service
 /// handlers ([get] and [post]).
-@immutable
+
 abstract class RequestHandler<T extends Body> {
   /// Creates a new [RequestHandler].
   const RequestHandler({

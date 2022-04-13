@@ -9,9 +9,10 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' hide Branch;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -35,6 +36,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late MockBranchService branchService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -66,6 +68,7 @@ void main() {
       tabledataResource: tabledataResource,
       githubClient: gitHubClient,
     );
+    branchService = MockBranchService();
     issuesService = MockIssuesService();
     when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
     when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
@@ -96,11 +99,11 @@ void main() {
       });
     });
 
-    webhook = GithubWebhook(
-      config,
-      githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
-    );
+    webhook = GithubWebhook(config,
+        datastoreProvider: (_) => DatastoreService(config.db, 5),
+        githubChecksService: mockGithubChecksService,
+        scheduler: scheduler,
+        branchService: branchService);
 
     config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
     config.wrongBaseBranchPullRequestMessageValue = '{{target_branch}} -> {{default_branch}}';
@@ -324,6 +327,13 @@ void main() {
             contains('tool'));
       });
 
+      test('iOS label applied', () {
+        expect(
+          GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/lib/src/ios/devices.dart'),
+          <String>{'platform-ios', 'tool'},
+        );
+      });
+
       test('Engine label applied', () {
         expect(GithubWebhook.getLabelsForFrameworkPath('bin/internal/engine.version'), contains('engine'));
       });
@@ -505,6 +515,52 @@ void main() {
         expect(GithubWebhook.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
         expect(GithubWebhook.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
       });
+    });
+
+    test('release PRs are approved', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        'flutter-2.13-candidate.0',
+        login: 'dart-flutter-releaser',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.createReview(slug, any))
+          .thenAnswer((_) async => PullRequestReview(id: 123, user: User()));
+
+      await tester.post(webhook);
+
+      final List<dynamic> reviews = verify(pullRequestsService.createReview(slug, captureAny)).captured;
+      expect(reviews.length, 1);
+      final CreatePullRequestReview review = reviews.single as CreatePullRequestReview;
+      expect(review.event, 'APPROVE');
+    });
+
+    test('release PRs are not approved for outsider PRs', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, 'flutter-2.13-candidate.0');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.createReview(slug, any))
+          .thenAnswer((_) async => PullRequestReview(id: 123, user: User()));
+
+      await tester.post(webhook);
+
+      verifyNever(pullRequestsService.createReview(slug, any));
     });
 
     test('Framework labels PRs, comment if no tests', () async {
@@ -880,6 +936,31 @@ void main() {
       ));
     });
 
+    test('Framework no comment if only CODEOWNERS changed', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'CODEOWNERS',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Framework no comment if only comments changed', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -974,6 +1055,46 @@ void foo() {
       );
 
       await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework labels PRs, apply label but no comment when rolling engine version', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kReleaseBaseRef,
+        headRef: kReleaseHeadRef,
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'bin/internal/engine.version'
+            ..deletionsCount = 20
+            ..additionsCount = 1
+            ..changesCount = 21,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['engine'],
+      )).called(1);
 
       verifyNever(issuesService.createComment(
         slug,
@@ -1184,6 +1305,50 @@ void foo() {
       ));
     });
 
+    test('Engine labels PRs, no comments if pr is for release branches', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kReleaseBaseRef,
+        headRef: kReleaseHeadRef,
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['platform-ios'],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1257,6 +1422,50 @@ void foo() {
         issueNumber,
         <String>['needs tests'],
       )).called(1);
+    });
+
+    test('Plugins apply no label or comment if pr is for release branches', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kReleaseBaseRef,
+        headRef: kReleaseHeadRef,
+        repoName: 'plugins',
+        repoFullName: 'flutter/plugins',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'plugins');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/foo/foo_ios/ios/Classes/Foo.m',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
     });
 
     test('Plugins comments and labels for code change', () async {
@@ -1696,6 +1905,50 @@ void foo() {
       )).called(1);
     });
 
+    test('Packages do not comment or label if pr is for release branches', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kReleaseBaseRef,
+        headRef: kReleaseHeadRef,
+        repoName: 'packages',
+        repoFullName: 'flutter/packages',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'packages');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/foo/lib/foo.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
+    });
+
     test('Packages does not comment if Dart tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1743,6 +1996,7 @@ void foo() {
     });
 
     test('Does not test pest draft pull requests.', () async {
+      //FOR REVIEW : umm is pest a typo here or maybe some form of pr
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = generatePullRequestEvent(
@@ -2009,6 +2263,20 @@ void foo() {
 
         await tester.post(webhook);
       });
+    });
+  });
+
+  group('github webhook create branch event', () {
+    test('process create branch event', () async {
+      request.headers.set('X-GitHub-Event', 'create');
+      request.body = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      await tester.post(webhook);
+
+      verify(branchService.handleCreateRequest()).called(1);
     });
   });
 

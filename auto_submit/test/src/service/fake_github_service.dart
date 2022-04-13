@@ -13,44 +13,34 @@ import '../../utilities/mocks.dart';
 class FakeGithubService implements GithubService {
   FakeGithubService({
     GitHub? client,
-    String? reviewsMock,
     String? checkRunsMock,
-    String? repositoryStatusesMock,
     String? commitMock,
-    String? compareTowCommitsMock,
+    String? compareTwoCommitsMock,
     String? successMergeMock,
     String? createCommentMock,
+    String? pullRequestMergeMock,
   }) : github = client ?? MockGitHub();
 
   @override
   final GitHub github;
 
-  String? reviewsMock;
   String? checkRunsMock;
-  String? repositoryStatusesMock;
   String? commitMock;
-  String? compareTowCommitsMock;
+  String? compareTwoCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
-
-  set reviewsData(String? reviewsMock) {
-    this.reviewsMock = reviewsMock;
-  }
+  String? pullRequestMergeMock;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
-  }
-
-  set repositoryStatusesData(String? repositoryStatusesMock) {
-    this.repositoryStatusesMock = repositoryStatusesMock;
   }
 
   set commitData(String? commitMock) {
     this.commitMock = commitMock;
   }
 
-  set compareTowCommitsData(String? compareTowCommitsMock) {
-    this.compareTowCommitsMock = compareTowCommitsMock;
+  set compareTwoCommitsData(String? compareTwoCommitsMock) {
+    this.compareTwoCommitsMock = compareTwoCommitsMock;
   }
 
   set successMergeData(String? successMergeMock) {
@@ -61,12 +51,8 @@ class FakeGithubService implements GithubService {
     this.createCommentMock = createCommentMock;
   }
 
-  @override
-  Future<List<PullRequestReview>> getReviews(RepositorySlug slug, int prNumber) async {
-    final List<dynamic> reviews = json.decode(reviewsMock!) as List;
-    final List<PullRequestReview> prReviews =
-        reviews.map((dynamic review) => PullRequestReview.fromJson(review)).toList();
-    return prReviews;
+  set pullRequestMergeData(String? pullRequestMergeMock) {
+    this.pullRequestMergeMock = pullRequestMergeMock;
   }
 
   @override
@@ -84,20 +70,6 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<RepositoryStatus>> getStatuses(
-    RepositorySlug slug,
-    String ref,
-  ) async {
-    final rawBody = json.decode(repositoryStatusesMock!) as Map<String, dynamic>;
-    final List<dynamic> statusesBody = rawBody["statuses"]!;
-    List<RepositoryStatus> statuses = <RepositoryStatus>[];
-    if (statusesBody[0].isNotEmpty) {
-      statuses.addAll(statusesBody.map((dynamic state) => RepositoryStatus.fromJson(state)).toList());
-    }
-    return statuses;
-  }
-
-  @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!));
     return commit;
@@ -105,7 +77,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTowCommitsMock!));
+    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTwoCommitsMock!));
     return githubComparison;
   }
 
@@ -115,8 +87,13 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody, String sha) async {
+  Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
     final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
     return issueComment;
+  }
+
+  @override
+  Future<bool> merge(RepositorySlug slug, String base, String head) async {
+    return true;
   }
 }

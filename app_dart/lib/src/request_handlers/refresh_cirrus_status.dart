@@ -26,6 +26,7 @@ Future<CirrusResult> queryCirrusGraphQL(
   String name,
 ) async {
   const String owner = 'flutter';
+  log.info('Cirrus query owner:$owner, name:$name, sha:$sha ');
   final QueryResult result = await client.query(
     QueryOptions(
       document: cirusStatusQuery,
@@ -37,7 +38,6 @@ Future<CirrusResult> queryCirrusGraphQL(
       },
     ),
   );
-
   if (result.hasException) {
     log.severe(result.exception.toString());
     throw const BadRequestException('GraphQL query failed');
@@ -67,7 +67,11 @@ CirrusResult getFirstBuildResult(
   String? name,
   String? sha,
 }) {
+  log.info('Cirrus data: $data');
   final List<dynamic> searchBuilds = data!['searchBuilds'] as List<dynamic>;
+  if (searchBuilds.isEmpty) {
+    return const CirrusResult(null, null, <Map<String, dynamic>>[]);
+  }
   final Map<String, dynamic> searchBuild = searchBuilds.first as Map<String, dynamic>;
   tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
   String? id = searchBuild['id'] as String?;
