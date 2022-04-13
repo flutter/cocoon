@@ -51,4 +51,11 @@ class GithubService {
         body: GitHubJson.encode({'base': base, 'head': head}));
     return response.statusCode == StatusCodes.CREATED;
   }
+
+  /// Update a pull request branch
+  Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
+    final response = await github.request('PUT', '/repos/${slug.fullName}/pulls/$number/update-branch',
+        body: GitHubJson.encode({'expected_head_sha': headSha}));
+    return response.statusCode == StatusCodes.ACCEPTED;
+  }
 }

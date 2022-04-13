@@ -92,7 +92,7 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -120,7 +120,7 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -149,7 +149,7 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -176,7 +176,6 @@ void main() {
       githubService.compareTwoCommitsData = compareToTCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -204,7 +203,7 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -232,7 +231,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -259,7 +257,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -285,7 +282,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -312,7 +308,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -340,7 +335,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -373,7 +367,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -402,7 +395,6 @@ void main() {
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
-
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -442,6 +434,17 @@ void main() {
       expect(mergeResult[2], <int, String>{2: 'merged'});
       expect(pubsub.messagesQueue.length, 1);
       pubsub.messagesQueue.clear();
+    });
+
+    test('Auto Merges the branch if it was behind the ToT by _kBehindToT commits', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+
+      githubService.commitData = commitMock;
+      githubService.compareTwoCommitsData = shouldRebaseMock;
+      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      Response response = await checkPullRequest.autoMergeBranch(pullRequest, githubService);
+      expect(await response.readAsString(), 'Successfully updated the pull request ${pullRequest.number} branch.');
     });
   });
 }
