@@ -76,6 +76,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
           final bool mergeResult = await _processMerge(pullRequest);
+          log.info('Finished merge pull request.');
           if (mergeResult) {
             responses.add(<int, String>{pullRequest.number!: 'merged'});
           } else {
