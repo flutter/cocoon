@@ -112,6 +112,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<Response> _processMessage(
       pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    log.info('Comes to merge PR');
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
