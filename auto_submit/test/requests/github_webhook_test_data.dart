@@ -280,6 +280,22 @@ final String commitMock = '''{
   }
 }''';
 
+final String shouldRebaseMock = '''{
+  "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
+  "status": "behind",
+  "ahead_by": 1,
+  "behind_by": 11,
+  "total_commits": 1,
+  "files": [
+    {
+      "sha": "bbcd538c8e72b8c175046e27cc8f907076331401",
+      "filename": "file1.txt",
+      "status": "added",
+      "changes": 124
+    }
+  ]
+}''';
+
 // compareTwoCommitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
 final String compareTwoCommitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",

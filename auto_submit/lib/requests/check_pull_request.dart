@@ -24,6 +24,10 @@ import '../server/authenticated_request_handler.dart';
 /// goes green.
 const int _kMergeCountPerRepo = 1;
 
+/// If a pull request was behind the tip of tree by _kBehindToT commits
+/// then the bot tries to rebase it
+const int _kBehindToT = 10;
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -118,6 +122,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final GithubService gitHub = await config.createGithubService(slug);
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
 
+    await autoMergeBranch(pullRequest, gitHub);
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
@@ -169,6 +175,23 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       throw const BadRequestException('GraphQL query failed');
     }
     return result.data!;
+  }
+
+  Future<Response> autoMergeBranch(PullRequest pullRequest, GithubService github) async {
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final int prNumber = pullRequest.number!;
+    final RepositoryCommit totCommit = await github.getCommit(slug, 'HEAD');
+    final GitHubComparison comparison = await github.compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    if (comparison.behindBy! >= _kBehindToT) {
+      log.info('The current branch behinds by ${comparison.behindBy} commits.');
+      final String headSha = pullRequest.head!.sha!;
+      bool updateResult = await github.updateBranch(slug, prNumber, headSha);
+      if (updateResult) {
+        return Response.ok('Successfully updated the pull request $prNumber branch.');
+      }
+      return Response.ok('Failed to merge the pull request $prNumber branch.');
+    }
+    return Response.ok('No need to merge the pull request $prNumber branch.');
   }
 
   /// Check if the pull request should be merged.
