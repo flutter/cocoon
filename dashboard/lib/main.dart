@@ -53,6 +53,7 @@ void main([List<String> args = const <String>[]]) {
       child: Now(child: const MyApp()),
     ),
   );
+  // Enable extensions like Vimium to traverse the dashboard
   RendererBinding.instance.setSemanticsEnabled(true);
 }
 
