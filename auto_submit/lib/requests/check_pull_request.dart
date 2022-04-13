@@ -91,21 +91,27 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
-    // TODO(Kristin): Merge this PR. https://github.com/flutter/flutter/issues/100088
-    log.info('comes to merge pr');
-    bool merged = 1 < 2;
-    if (merged) {
-      log.info(
-          'Merged the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final int number = pullRequest.number!;
+    final GithubService gitHub = await config.createGithubService(slug);
+    PullRequestMerge mergeResult = await gitHub.merge(slug, number);
+    final bool? merged = mergeResult.merged;
+    if (merged == null) {
+      log.warning('Can not merge the pull request $number. ${mergeResult.message}.');
+      await pubsub.publish('auto-submit-queue', pullRequest);
+    } else if (merged) {
+      log.info('Merged the pull request $number in ${slug.fullName} repository.');
+      return true;
     } else {
-      log.info('Failed to merge the pull request ${pullRequest.number}');
+      log.warning('Failed to merge the pull request $number. ${mergeResult.message}.');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
-    return merged;
+    return false;
   }
 
   Future<Response> _processMessage(
       pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+    log.info('Comes to merge PR');
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
