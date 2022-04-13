@@ -15,7 +15,9 @@ class GithubService {
     RepositorySlug slug,
     String ref,
   ) async {
-    return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
+    return await github.checks.checkRuns
+        .listCheckRunsForRef(slug, ref: ref)
+        .toList();
   }
 
   /// Fetches the specified commit.
@@ -27,12 +29,14 @@ class GithubService {
   ///
   /// The response will include details on the files that were changed between the two commits.
   /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
+  Future<GitHubComparison> compareTwoCommits(
+      RepositorySlug slug, String refBase, String refHead) async {
     return await github.repositories.compareCommits(slug, refBase, refHead);
   }
 
   /// Removes a lable for a pull request.
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
+  Future<bool> removeLabel(
+      RepositorySlug slug, int issueNumber, String label) async {
     return await github.issues.removeLabelForIssue(slug, issueNumber, label);
   }
 
@@ -46,12 +50,22 @@ class GithubService {
   }
 
   /// Gets the latest commit of the branch.
-  Future<RepositoryCommit> getLastCommit(RepositorySlug slug, String branchName) async {
+  Future<RepositoryCommit> getLastCommit(
+      RepositorySlug slug, String branchName) async {
     ArgumentError.checkNotNull(slug);
     return github.getJSON<Map<String, dynamic>, RepositoryCommit>(
       '/repos/${slug.fullName}/commits/$branchName',
       convert: (i) => RepositoryCommit.fromJson(i),
       statusCode: StatusCodes.OK,
     );
+  }
+
+  Future<String> mergeBranch(
+      RepositorySlug slug, String base, String head) async {
+    final response = await github.postJSON('/repos/kristinbi/cocoon/merges',
+        body: GitHubJson.encode({'base': base, 'head': head}));
+    // return github.postJSON('/repos/${slug.fullName}/merges',
+    //     body: GitHubJson.encode({'base': base, 'head': head}));
+    return response.toString();
   }
 }
