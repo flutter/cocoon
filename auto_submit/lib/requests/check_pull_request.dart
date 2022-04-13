@@ -95,7 +95,11 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final int number = pullRequest.number!;
     final GithubService gitHub = await config.createGithubService(slug);
     PullRequestMerge mergeResult = await gitHub.merge(slug, number);
-    if (mergeResult.merged!) {
+    final bool? merged = mergeResult.merged;
+    if (merged == null) {
+      log.warning('Can not merge the pull request $number. ${mergeResult.message}.');
+      await pubsub.publish('auto-submit-queue', pullRequest);
+    } else if (merged) {
       log.info('Merged the pull request $number in ${slug.fullName} repository.');
       return true;
     } else {
