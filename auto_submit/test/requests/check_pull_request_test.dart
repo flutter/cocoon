@@ -44,6 +44,9 @@ void main() {
       auth = FakeCronAuthProvider();
       expectedOptions = <QueryOptions>[];
 
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
         final String? repoName = options.variables['sName'] as String?;
@@ -93,6 +96,7 @@ void main() {
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.pullRequestMergeData = pullRequestMergeMock;
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -121,6 +125,7 @@ void main() {
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.pullRequestMergeData = pullRequestMergeMock;
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -150,6 +155,7 @@ void main() {
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.pullRequestMergeData = pullRequestMergeMock;
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -205,6 +211,7 @@ void main() {
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.pullRequestMergeData = pullRequestMergeMock;
+      githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -443,6 +450,28 @@ void main() {
       expect(pubsub.messagesQueue.length, 1);
       pubsub.messagesQueue.clear();
     });
+
+    test('Auto Merges the branch if it was behind the ToT by _kBehindToT commits', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
+
+      githubService.commitData = commitMock;
+      githubService.compareTwoCommitsData = shouldRebaseMock;
+      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      Response response = await checkPullRequest.autoMergeBranch(pullRequest, pullRequest.head!.repo!.id.toString(),
+          githubService, githubGraphQLClient, pullRequest.head!.ref!, pullRequest.base!.ref!);
+      expect(await response.readAsString(), 'Successfully rebased the pull request ${pullRequest.number}');
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(
+                pullRequest.head!.ref!, pullRequest.base!.ref!, pullRequest.head!.repo!.id.toString()),
+          ),
+        ],
+      );
+    });
   });
 }
 
@@ -487,6 +516,7 @@ class PullRequestHelper {
     this.prNumber = 0,
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
+    this.prefix = 'refs/heads',
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
@@ -494,16 +524,13 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitMessage = '',
     this.dateTime,
-  }) : _count = _counter++;
+  });
 
-  static int _counter = 0;
-
-  final int _count;
-  String get id => _count.toString();
-
+  static int id = 0;
   final int prNumber;
   final String repo;
   final String authorAssociation;
+  final String prefix;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   List<StatusHelper>? lastCommitStatuses;
@@ -515,6 +542,20 @@ class PullRequestHelper {
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'authorAssociation': authorAssociation,
+      'baseRepository': <String, dynamic>{
+        'id': id.toString(),
+      },
+      'headRepository': <String, dynamic>{
+        'id': id.toString(),
+      },
+      'baseRef': <String, dynamic>{
+        'prefix': prefix,
+        'name': slug.name,
+      },
+      'headRef': <String, dynamic>{
+        'prefix': prefix,
+        'name': slug.name,
+      },
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
@@ -559,4 +600,12 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
     },
     source: QueryResultSource.network,
   );
+}
+
+Map<String, dynamic> getMergePullRequestVariables(String toBranch, String fromBranch, String repositoryId) {
+  return <String, dynamic>{
+    'id': repositoryId,
+    'baseBranch': toBranch,
+    'headBranch': fromBranch,
+  };
 }

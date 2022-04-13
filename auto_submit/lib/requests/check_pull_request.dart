@@ -24,6 +24,10 @@ import '../server/authenticated_request_handler.dart';
 /// goes green.
 const int _kMergeCountPerRepo = 1;
 
+/// If a pull request was behind the tip of tree by _kBehindToT commits
+/// then the bot tries to rebase it
+const int _kBehindToT = 5;
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -172,6 +176,46 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     return result.data!;
   }
 
+  Future<Response> autoMergeBranch(PullRequest pullRequest, String repositoryId, GithubService github,
+      GraphQLClient client, String base, String head) async {
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final RepositoryCommit totCommit = await github.getCommit(slug, 'HEAD');
+    log.info('ToT commit sha is: ${totCommit.sha}');
+    final GitHubComparison comparison = await github.compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    if (comparison.behindBy! >= _kBehindToT) {
+      log.info('behind ${comparison.behindBy} commits');
+      final bool result = await _mergeBranch(client, repositoryId, base, head);
+      if (result) {
+        log.info('Successfully rebased the pull request ${pullRequest.number}');
+        return Response.ok('Successfully rebased the pull request ${pullRequest.number}');
+      }
+      return Response.ok('Failed to rebase the pull request ${pullRequest.number}');
+    }
+    return Response.ok('No need to rebase the pull request ${pullRequest.number}');
+  }
+
+  Future<bool> _mergeBranch(
+    GraphQLClient client,
+    String repositoryId,
+    String base,
+    String head,
+  ) async {
+    final QueryResult result = await client.mutate(MutationOptions(
+      document: mergePullRequestMutation,
+      variables: <String, dynamic>{
+        'id': repositoryId,
+        'baseBranch': base,
+        'headBranch': head,
+      },
+    ));
+
+    if (result.hasException) {
+      log.severe('Failed to merge branch#: $head to branch#: $base, ${result.exception.toString()}');
+      return false;
+    }
+    return true;
+  }
+
   /// Check if the pull request should be merged.
   ///
   /// A pull request should be merged on either cases:
@@ -245,6 +289,15 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
     final String authorAssociation = pullRequest['authorAssociation'] as String;
 
+    final String repositoryId = pullRequest['headRepository']['id'] as String;
+
+    final String fromBranch = pullRequest['baseRef']['name'] as String;
+    final String toBranch = pullRequest['headRef']['name'] as String;
+    final String headPrefix = pullRequest['headRef']['prefix'] as String;
+    final String basePrefix = pullRequest['baseRef']['prefix'] as String;
+    final String head = basePrefix + fromBranch;
+    final String base = headPrefix + toBranch;
+
     final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
     List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
     if (commit['status'] != null &&
@@ -269,6 +322,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     if (pr.head != null && sha != null) {
       checkRuns.addAll(await gitHub.getCheckRuns(slug, sha));
     }
+
+    await autoMergeBranch(pr, repositoryId, gitHub, graphQLClient, base, head);
 
     final bool hasApproval = config.rollerAccounts.contains(author) ||
         _checkApproval(
