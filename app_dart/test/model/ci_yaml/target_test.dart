@@ -179,11 +179,13 @@ void main() {
       });
 
       test('dimensions exit', () {
-        final Target target = generateTarget(1, properties: <String, String>{'os': 'abc'});
+        final Target target = generateTarget(1, properties: <String, String>{'os': 'abc', 'cpu': 'x64'});
         final List<RequestedDimension> dimensions = target.getDimensions();
-        expect(dimensions.length, 1);
+        expect(dimensions.length, 2);
         expect(dimensions[0].key, 'os');
         expect(dimensions[0].value, 'abc');
+        expect(dimensions[1].key, 'cpu');
+        expect(dimensions[1].value, 'x64');
       });
 
       test('properties are evaluated as string', () {
