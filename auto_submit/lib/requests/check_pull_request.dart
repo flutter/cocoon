@@ -76,6 +76,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final List<Map<int, String>> responses = <Map<int, String>>[];
     for (String repoName in repoPullRequestsMap.keys) {
       // Merge first _kMergeCountPerRepo counts of pull requests to each repo
+      log.info('Merge first $_kMergeCountPerRepo counts of pull requests to each repo');
       for (int index = 0; index < repoPullRequestsMap[repoName]!.length; index++) {
         final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
