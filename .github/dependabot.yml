@@ -2,8 +2,22 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+enable-beta-ecosystems: true
 updates:
   - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "hixie"
+      - "godofredoc"
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "waiting for tree to go green"
+  - package-ecosystem: "pub"
     directory: "/"
     schedule:
       interval: "daily"
