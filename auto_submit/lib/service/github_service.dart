@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'package:github/github.dart';
 
 /// [GithubService] handles communication with the GitHub API.
