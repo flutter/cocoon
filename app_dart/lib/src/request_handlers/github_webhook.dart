@@ -262,12 +262,7 @@ class GithubWebhook extends RequestHandler<Body> {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if ((filename.endsWith('_test.dart') ||
-              filename.endsWith('.expect') ||
-              filename.contains('test_fixes') ||
-              filename.startsWith('dev/bots/test.dart') ||
-              filename.startsWith('dev/bots/analyze.dart')) &&
-          !kNotActuallyATest.any(filename.endsWith)) {
+      if (_isATest(filename)) {
         hasTests = true;
       }
       labels.addAll(getLabelsForFrameworkPath(filename));
@@ -288,6 +283,19 @@ class GithubWebhook extends RequestHandler<Body> {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
     }
+  }
+
+  bool _isATest(String filename) {
+    if (kNotActuallyATest.any(filename.endsWith)) {
+      return false;
+    }
+    return filename.endsWith('_test.dart') ||
+           filename.endsWith('.expect') ||
+           filename.contains('test_fixes') ||
+           filename.startsWith('dev/bots/analyze.dart') ||
+           filename.startsWith('dev/bots/test.dart') ||
+           filename.startsWith('dev/devicelab/bin/tasks') ||
+           filename.startsWith('dev/devicelab/lib/tasks');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
