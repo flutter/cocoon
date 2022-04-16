@@ -20,6 +20,9 @@ import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
 
+const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
+const String title = 'some_title';
+
 void main() {
   group('Check CheckPullRequest', () {
     late CheckPullRequest checkPullRequest;
@@ -43,6 +46,9 @@ void main() {
       githubGraphQLClient = FakeGraphQLClient();
       auth = FakeCronAuthProvider();
       expectedOptions = <QueryOptions>[];
+
+      githubGraphQLClient.mutateResultForOptions =
+          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
@@ -102,6 +108,18 @@ void main() {
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest1.number!.toString(), pullRequest1.number!.toString()),
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest2.number!.toString(), pullRequest2.number!.toString()),
+          ),
+        ],
+      );
       final StringBuffer responseMessages = StringBuffer();
       for (PullRequest pullRequest in pullRequests) {
         responseMessages.write(
@@ -136,6 +154,14 @@ void main() {
       final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
+          ),
+        ],
+      );
       expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
@@ -163,6 +189,14 @@ void main() {
       final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
+          ),
+        ],
+      );
       expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
@@ -190,6 +224,14 @@ void main() {
       final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
+          ),
+        ],
+      );
       expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
@@ -214,6 +256,14 @@ void main() {
       final Response response = await checkPullRequest.get();
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables('0', pullRequest.number!.toString()),
+          ),
+        ],
+      );
       expect(await response.readAsString(),
           'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
@@ -470,6 +520,7 @@ class PullRequestHelper {
     this.prNumber = 0,
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
+    this.title = 'some_title',
     this.reviews = const <PullRequestReviewHelper>[
       PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
@@ -477,12 +528,7 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
     this.lastCommitMessage = '',
     this.dateTime,
-  }) : _count = _counter++;
-
-  static int _counter = 0;
-
-  final int _count;
-  String get id => _count.toString();
+  });
 
   final int prNumber;
   final String repo;
@@ -492,12 +538,15 @@ class PullRequestHelper {
   List<StatusHelper>? lastCommitStatuses;
   final String? lastCommitMessage;
   final DateTime? dateTime;
+  final String title;
 
   RepositorySlug get slug => RepositorySlug('flutter', repo);
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
       'authorAssociation': authorAssociation,
+      'id': prNumber.toString(),
+      'title': title,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
@@ -542,4 +591,12 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
     },
     source: QueryResultSource.network,
   );
+}
+
+Map<String, dynamic> getMergePullRequestVariables(String id, String number) {
+  return <String, dynamic>{
+    'id': id,
+    'oid': oid,
+    'title': '$title (#$number)',
+  };
 }

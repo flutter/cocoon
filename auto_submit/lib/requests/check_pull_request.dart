@@ -126,7 +126,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
-    //await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHub = await config.createGithubService(slug);
