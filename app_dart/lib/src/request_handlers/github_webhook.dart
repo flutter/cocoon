@@ -256,8 +256,6 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.contains('.github') &&
           !filename.endsWith('.md') &&
           !filename.contains('CODEOWNERS') &&
-          !filename.startsWith('dev/devicelab/bin/tasks') &&
-          !filename.startsWith('dev/devicelab/lib/tasks') &&
           !filename.startsWith('dev/bots/')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
@@ -290,12 +288,12 @@ class GithubWebhook extends RequestHandler<Body> {
       return false;
     }
     return filename.endsWith('_test.dart') ||
-           filename.endsWith('.expect') ||
-           filename.contains('test_fixes') ||
-           filename.startsWith('dev/bots/analyze.dart') ||
-           filename.startsWith('dev/bots/test.dart') ||
-           filename.startsWith('dev/devicelab/bin/tasks') ||
-           filename.startsWith('dev/devicelab/lib/tasks');
+        filename.endsWith('.expect') ||
+        filename.contains('test_fixes') ||
+        filename.startsWith('dev/bots/analyze.dart') ||
+        filename.startsWith('dev/bots/test.dart') ||
+        filename.startsWith('dev/devicelab/bin/tasks') ||
+        filename.startsWith('dev/devicelab/lib/tasks');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
