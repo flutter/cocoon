@@ -416,26 +416,6 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Merges only _kMergeCountPerRepo PR per cycle per repo', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: 'flutter', login: 'flutter');
-      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: 'flutter', login: 'flutter');
-      final PullRequest pullRequest3 = generatePullRequest(prNumber: 2, repoName: cocoonRepo, login: 'flutter');
-
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
-      final Map<String, Set<PullRequest>> repoPullRequestsMap = <String, Set<PullRequest>>{
-        'flutter/flutter': <PullRequest>{pullRequest1, pullRequest2},
-        'flutter/cocoon': <PullRequest>{pullRequest3}
-      };
-
-      List<Map<int, String>> mergeResult = await checkPullRequest.checkPullRequests(repoPullRequestsMap);
-      expect(mergeResult[0], <int, String>{0: 'merged'});
-      expect(mergeResult[1], <int, String>{1: 'queued'});
-      expect(mergeResult[2], <int, String>{2: 'merged'});
-      expect(pubsub.messagesQueue.length, 1);
-      pubsub.messagesQueue.clear();
-    });
-
     test('Auto Merges the branch if it was behind the ToT by _kBehindToT commits', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
 

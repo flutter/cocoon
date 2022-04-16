@@ -10,6 +10,8 @@ query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrN
   repository(owner: $sOwner, name: $sName) { 
     pullRequest(number: $sPrNumber) {
       authorAssociation
+      id
+      title
       commits(last:1) {
         nodes {
           commit {
@@ -37,5 +39,18 @@ query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrN
         }
       }
     } 
+  }
+}''');
+
+final DocumentNode mergePullRequestMutation = lang.parseString(r'''
+mutation MergePR($id: ID!, $oid: GitObjectID!, $title: String) {
+  mergePullRequest(input: {
+    pullRequestId: $id,
+    expectedHeadOid: $oid,
+    mergeMethod: SQUASH,
+    commitBody: "",
+    commitHeadline: $title
+  }) {
+    clientMutationId
   }
 }''');
