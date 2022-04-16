@@ -96,6 +96,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<bool> _processMerge(PullRequest pullRequest) async {
+    log.info('Before merge the pull request.');
     String base = pullRequest.base!.ref!;
     String head = pullRequest.head!.sha!;
     RepositorySlug slug = pullRequest.base!.repo!.slug();
