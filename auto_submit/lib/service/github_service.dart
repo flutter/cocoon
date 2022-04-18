@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'package:github/github.dart';
 
 /// [GithubService] handles communication with the GitHub API.
@@ -43,13 +44,6 @@ class GithubService {
     String body,
   ) async {
     return await github.issues.createComment(slug, issueNumber, body);
-  }
-
-  /// Merge a pull request
-  Future<bool> merge(RepositorySlug slug, String base, String head) async {
-    final response = await github.request('POST', '/repos/${slug.fullName}/merges',
-        body: GitHubJson.encode({'base': base, 'head': head}));
-    return response.statusCode == StatusCodes.CREATED;
   }
 
   /// Update a pull request branch

@@ -93,11 +93,6 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<bool> merge(RepositorySlug slug, String base, String head) async {
-    return true;
-  }
-
-  @override
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
     return true;
   }
