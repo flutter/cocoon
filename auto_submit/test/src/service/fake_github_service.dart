@@ -93,8 +93,7 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<PullRequestMerge> merge(RepositorySlug slug, int number) async {
-    final PullRequestMerge mergeResult = PullRequestMerge.fromJson(jsonDecode(pullRequestMergeMock!));
-    return mergeResult;
+  Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
+    return true;
   }
 }

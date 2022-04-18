@@ -24,6 +24,10 @@ import '../server/authenticated_request_handler.dart';
 /// goes green.
 const int _kMergeCountPerRepo = 1;
 
+/// If a pull request was behind the tip of tree by _kBehindToT commits
+/// then the bot tries to rebase it
+const int _kBehindToT = 10;
+
 /// Handler for processing pull requests with 'autosubmit' label.
 ///
 /// For pull requests where an 'autosubmit' label was added in pubsub,
@@ -50,7 +54,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     }
     final List<Future<Response>> futures = <Future<Response>>[];
     //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
-    final Map<String, Set<PullRequest>> repoPullRequestsMap = <String, Set<PullRequest>>{};
+    final Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap = <String, Set<_AutoMergeQueryResult>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
       futures.add(_processMessage(message, repoPullRequestsMap));
     }
@@ -68,51 +72,56 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   ///
   /// The number of pull requests to be merged to each repo will not exceed
   /// the _kMergeCountPerRepo
-  Future<List<Map<int, String>>> checkPullRequests(Map<String, Set<PullRequest>> repoPullRequestsMap) async {
+  Future<List<Map<int, String>>> checkPullRequests(Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap) async {
     final List<Map<int, String>> responses = <Map<int, String>>[];
     for (String repoName in repoPullRequestsMap.keys) {
       // Merge first _kMergeCountPerRepo counts of pull requests to each repo
+      log.info('Merge first $_kMergeCountPerRepo counts of pull requests to each repo');
       for (int index = 0; index < repoPullRequestsMap[repoName]!.length; index++) {
-        final PullRequest pullRequest = repoPullRequestsMap[repoName]!.elementAt(index);
+        final _AutoMergeQueryResult queryResult = repoPullRequestsMap[repoName]!.elementAt(index);
         if (index < _kMergeCountPerRepo) {
-          final bool mergeResult = await _processMerge(pullRequest);
-          log.info('Finished merge pull request.');
+          final bool mergeResult = await _processMerge(
+              queryResult.graphQLId, queryResult.sha!, queryResult.number!, queryResult.title, queryResult.slug);
           if (mergeResult) {
-            responses.add(<int, String>{pullRequest.number!: 'merged'});
+            responses.add(<int, String>{queryResult.number!: 'merged'});
           } else {
-            responses.add(<int, String>{pullRequest.number!: 'unmerged'});
+            responses.add(<int, String>{queryResult.number!: 'unmerged'});
           }
         } else {
           await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
-          responses.add(<int, String>{pullRequest.number!: 'queued'});
+          responses.add(<int, String>{queryResult.number!: 'queued'});
         }
       }
     }
     return responses;
   }
 
-  Future<bool> _processMerge(PullRequest pullRequest) async {
-    final RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final int number = pullRequest.number!;
-    final GithubService gitHub = await config.createGithubService(slug);
-    PullRequestMerge mergeResult = await gitHub.merge(slug, number);
-    final bool? merged = mergeResult.merged;
-    if (merged == null) {
-      log.warning('Can not merge the pull request $number. ${mergeResult.message}.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
-    } else if (merged) {
-      log.info('Merged the pull request $number in ${slug.fullName} repository.');
-      return true;
-    } else {
-      log.warning('Failed to merge the pull request $number. ${mergeResult.message}.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
+  Future<bool> _processMerge(
+    String id,
+    String sha,
+    int number,
+    String title,
+    RepositorySlug slug,
+  ) async {
+    final GraphQLClient client = await config.createGitHubGraphQLClient(slug);
+    final QueryResult result = await client.mutate(MutationOptions(
+      document: mergePullRequestMutation,
+      variables: <String, dynamic>{
+        'id': id,
+        'oid': sha,
+        'title': '$title (#$number)',
+      },
+    ));
+
+    if (result.hasException) {
+      log.severe('Failed to merge pr#: $number with ${result.exception.toString()}');
+      return false;
     }
-    return false;
+    return true;
   }
 
   Future<Response> _processMessage(
-      pub.ReceivedMessage receivedMessage, Map<String, Set<PullRequest>> repoPullRequestsMap) async {
-    log.info('Comes to merge PR');
+      pub.ReceivedMessage receivedMessage, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap) async {
     final String messageData = receivedMessage.message!.data!;
     final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
     final PullRequest pullRequest = PullRequest.fromJson(rawBody);
@@ -122,14 +131,16 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final GithubService gitHub = await config.createGithubService(slug);
     final GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
 
+    await autoMergeBranch(pullRequest, gitHub);
+
     final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
       if (hasAutosubmitLabel) {
         if (!repoPullRequestsMap.containsKey(slug.fullName)) {
-          repoPullRequestsMap[slug.fullName] = <PullRequest>{};
+          repoPullRequestsMap[slug.fullName] = <_AutoMergeQueryResult>{};
         }
-        repoPullRequestsMap[slug.fullName]!.add(pullRequest);
+        repoPullRequestsMap[slug.fullName]!.add(queryResult);
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
@@ -175,6 +186,23 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     return result.data!;
   }
 
+  Future<Response> autoMergeBranch(PullRequest pullRequest, GithubService github) async {
+    final RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final int prNumber = pullRequest.number!;
+    final RepositoryCommit totCommit = await github.getCommit(slug, 'HEAD');
+    final GitHubComparison comparison = await github.compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    if (comparison.behindBy! >= _kBehindToT) {
+      log.info('The current branch behinds by ${comparison.behindBy} commits.');
+      final String headSha = pullRequest.head!.sha!;
+      bool updateResult = await github.updateBranch(slug, prNumber, headSha);
+      if (updateResult) {
+        return Response.ok('Successfully updated the pull request $prNumber branch.');
+      }
+      return Response.ok('Failed to merge the pull request $prNumber branch.');
+    }
+    return Response.ok('No need to merge the pull request $prNumber branch.');
+  }
+
   /// Check if the pull request should be merged.
   ///
   /// A pull request should be merged on either cases:
@@ -182,7 +210,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   /// 2) Not all tests finish but this is a clean revert of the Tip of Tree (TOT) commit.
   Future<bool> shouldMergePullRequest(
       _AutoMergeQueryResult queryResult, RepositorySlug slug, GithubService github) async {
-    log.info('Before checking should merge logic');
     // Check the label again before merge the pull request.
     if (queryResult.shouldMerge) {
       return true;
@@ -290,7 +317,14 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       slug.name,
       labelNames,
     );
+
+    final String id = pullRequest['id'] as String;
+    final String title = pullRequest['title'] as String;
+
     return _AutoMergeQueryResult(
+      slug: slug,
+      graphQLId: id,
+      title: title,
       ciSuccessful: ciSuccessful,
       failures: failures,
       hasApprovedReview: hasApproval,
@@ -427,6 +461,8 @@ bool _checkApproval(
 // TODO(Kristin): Simplify the _AutoMergeQueryResult class. https://github.com/flutter/flutter/issues/99717.
 class _AutoMergeQueryResult {
   const _AutoMergeQueryResult({
+    required this.graphQLId,
+    required this.title,
     required this.hasApprovedReview,
     required this.changeRequestAuthors,
     required this.ciSuccessful,
@@ -437,7 +473,14 @@ class _AutoMergeQueryResult {
     required this.isConflicting,
     required this.unknownMergeableState,
     required this.labels,
+    required this.slug,
   });
+
+  /// The GitHub GraphQL ID of this pull request.
+  final String graphQLId;
+
+  /// The pull request title.
+  final String title;
 
   /// Whether the pull request has at least one approved review.
   final bool hasApprovedReview;
@@ -468,6 +511,9 @@ class _AutoMergeQueryResult {
 
   /// List of labels associated with the PR.
   final List<String> labels;
+
+  /// The slug of the repository
+  final RepositorySlug slug;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
