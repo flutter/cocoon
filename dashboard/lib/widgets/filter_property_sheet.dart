@@ -76,11 +76,13 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
 
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
-  RegExpFilterProperty({required String fieldName, String? label, String? value})
+  RegExpFilterProperty({required String fieldName, String? label, String? value, bool caseSensitive = true})
       : _value = value,
+        _caseSensitive = caseSensitive,
         super(fieldName: fieldName, label: label);
 
   String? _value;
+  final bool _caseSensitive;
   @override
   String? get value => _value;
   set value(String? newValue) {
@@ -125,7 +127,7 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
   /// The value of this property as a [RegExp] object, useful for matching its pattern
   /// against candidate values in the list being filtered.
   RegExp? _regExp;
-  RegExp? get regExp => _regExp ??= _value == null ? null : RegExp(_value!);
+  RegExp? get regExp => _regExp ??= _value == null ? null : RegExp(_value!, caseSensitive: _caseSensitive);
   set regExp(RegExp? newRegExp) => value = newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
 
   /// True iff the value, interpreted as a regular expression, matches the candidate [String].
