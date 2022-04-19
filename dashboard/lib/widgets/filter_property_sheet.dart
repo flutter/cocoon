@@ -77,7 +77,8 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
   RegExpFilterProperty({required String fieldName, String? label, String? value, bool caseSensitive = true})
-      : _value = value, _caseSensitive = caseSensitive,
+      : _value = value,
+        _caseSensitive = caseSensitive,
         super(fieldName: fieldName, label: label);
 
   String? _value;
