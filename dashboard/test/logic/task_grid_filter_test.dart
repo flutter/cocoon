@@ -90,7 +90,23 @@ void main() {
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah foo blah')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
+    }
+  });
+
+  test('matches task name simple substring case insensitive', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter.fromMap(<String, String>{'taskFilter': 'foo'}),
+      TaskGridFilter()..taskFilter = RegExp('foo'),
+      TaskGridFilter()..taskFilter = RegExp('FOO'),
+    ];
+    expect(filters[0], filters[1]);
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah fOO blah')), true);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
     }
   });
