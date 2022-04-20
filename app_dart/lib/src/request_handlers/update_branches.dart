@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart' as md;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show Branch, GitHub, RepositoryCommit, RepositorySlug;
-import 'package:process_runner/process_runner.dart';
+import 'package:process/process.dart';
 
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
@@ -44,13 +45,13 @@ class UpdateBranches extends RequestHandler<Body> {
   UpdateBranches(
     Config config, {
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.processRunner,
+    this.processManager,
   }) : super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
-  ProcessRunner? processRunner;
+  ProcessManager? processManager;
 
-  static const int kActiveBranchActivityPeriod = 60;
+  static const Duration kActiveBranchActivityPeriod = Duration(days: 60);
 
   @override
   Future<Body> get() async {
@@ -61,8 +62,7 @@ class UpdateBranches extends RequestHandler<Body> {
     final List<md.Branch> branches = await datastore
         .queryBranches()
         .where((md.Branch b) =>
-            DateTime.now().millisecondsSinceEpoch - b.lastActivity! <
-            const Duration(days: kActiveBranchActivityPeriod).inMilliseconds)
+            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivityPeriod.inMilliseconds)
         .toList();
     return Body.forJson(branches);
   }
@@ -70,12 +70,18 @@ class UpdateBranches extends RequestHandler<Body> {
   Future<void> _updateBranchesForAllRepos(Config config, DatastoreService datastore) async {
     DateTime timeNow = DateTime.now();
 
-    processRunner ??= ProcessRunner();
+    processManager ??= const LocalProcessManager();
     final Set<RepositorySlug> slugs = Config.supportedRepos;
     for (RepositorySlug slug in slugs) {
-      ProcessRunnerResult result =
-          await processRunner!.runProcess(['git', 'ls-remote', '--heads', 'git@github.com:flutter/${slug.name}']);
-      List<String> shaAndName = result.stdout.trim().split(RegExp(' |\t|\r?\n'));
+      ProcessResult result =
+          processManager!.runSync(['git', 'ls-remote', '--heads', 'git@github.com:flutter/${slug.name}']);
+      // https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499- only a exit code of 0 is good for windows
+      // for mac or linux, exit code in the range 0 to 255 is good
+      if ((Platform.isWindows && result.exitCode != 0) ||
+          ((Platform.isMacOS || Platform.isLinux) && result.exitCode < 0)) {
+        throw const FormatException('returned exit code from git ls-remote is bad');
+      }
+      List<String> shaAndName = (result.stdout as String).trim().split(RegExp(' |\t|\r?\n'));
       List<String> branchShas = [];
       List<String> branchNames = [];
       for (int i = 0; i < shaAndName.length; i += 2) {
@@ -94,7 +100,7 @@ class UpdateBranches extends RequestHandler<Body> {
     for (int i = 0; i < branchShas.length; i += 1) {
       final RepositoryCommit branchCommit = await github.repositories.getCommit(slug, branchShas[i]);
       int lastUpdate = branchCommit.commit!.committer!.date!.millisecondsSinceEpoch;
-      if (lastUpdate > timeNow.subtract(const Duration(days: kActiveBranchActivityPeriod)).millisecondsSinceEpoch) {
+      if (lastUpdate > timeNow.subtract(kActiveBranchActivityPeriod).millisecondsSinceEpoch) {
         final String id = '${slug.fullName}/${branchNames[i]}';
         final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
         updatedBranches.add(md.Branch(key: key, lastActivity: lastUpdate));

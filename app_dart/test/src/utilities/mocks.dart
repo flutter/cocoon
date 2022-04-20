@@ -22,7 +22,7 @@ import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:process_runner/process_runner.dart';
+import 'package:process/process.dart';
 
 import '../../service/cache_service_test.dart';
 
@@ -76,7 +76,7 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
     JobsResource,
     LuciBuildService,
     LuciService,
-    ProcessRunner,
+    ProcessManager,
     PullRequestsService,
     RepositoriesService,
     TabledataResource,

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/request_handlers/update_branches.dart';
@@ -11,7 +12,6 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show GitCommit, GitCommitUser, RepositoryCommit;
 import 'package:mockito/mockito.dart';
-import 'package:process_runner/process_runner.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -31,11 +31,9 @@ void main() {
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
     late MockRepositoriesService mockRepositoriesService;
-    final MockProcessRunner processRunner = MockProcessRunner();
+    final MockProcessManager processManager = MockProcessManager();
 
-    const List<int> stderrArray = [];
-    List<int> stdoutArray = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main'.codeUnits;
-    List<int> outputArray = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main'.codeUnits;
+    String stdoutResult = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main';
     const String testBranchSha = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa';
 
     Future<T?> decodeHandlerBody<T>() async {
@@ -53,15 +51,13 @@ void main() {
       final MockGitHub mockGitHubClient = MockGitHub();
       mockRepositoriesService = MockRepositoriesService();
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
-      when(processRunner.runProcess(any)).thenAnswer(
-          (Invocation invocation) => Future.value(ProcessRunnerResult(0, stdoutArray, stderrArray, outputArray)));
-      // this encodes '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa' and 'refs/heads/main'
+      when(processManager.runSync(any)).thenAnswer((Invocation invocation) => ProcessResult(1, 0, stdoutResult, ''));
 
       config = FakeConfig(dbValue: db, keyHelperValue: keyHelper, githubClient: mockGitHubClient);
       handler = UpdateBranches(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        processRunner: processRunner,
+        processManager: processManager,
       );
 
       const String id = 'flutter/flutter/main';
@@ -133,6 +129,24 @@ void main() {
 
       final List<dynamic> result = (await decodeHandlerBody())!;
       expect(result, isEmpty);
+    });
+
+    test('should throw exception when git ls-remote fails', () async {
+      expect(db.values.values.whereType<Branch>().length, 1);
+      when(processManager.runSync(any)).thenAnswer((Invocation invocation) => ProcessResult(1, -1, stdoutResult, ''));
+
+      when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(
+            sha: testBranchSha,
+            commit: GitCommit(
+                committer: GitCommitUser(
+              'dash',
+              'dash@google.com',
+              DateTime.tryParse('2020-05-15T15:20:56Z'),
+            ))));
+      });
+
+      expect(() => decodeHandlerBody<List<dynamic>>(), throwsA(const TypeMatcher<FormatException>()));
     });
   });
 }

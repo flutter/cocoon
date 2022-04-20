@@ -80,11 +80,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     }
     queryParameters['repo'] = repo!;
 
-    Set<String> validOptions =
-        buildState.branches.where((Branch b) => b.repository == repo).map((Branch b) => b.branch).toSet();
-    branch = validOptions.contains(branch) ? branch : 'master';
-    queryParameters['branch'] = validOptions.contains(branch) ? branch! : defaultBranches[repo]!;
-    // FOR REVIEW: If we switch to a repo where the current release branch does not exist, I am updating the branch to be master
+    queryParameters['branch'] = branch!;
 
     final Uri uri = Uri(
       path: BuildDashboardPage.routeName,
@@ -227,19 +223,31 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           branch = selectedBranch;
           _updateNavigation(context, _buildState);
         },
-        items: _buildState.branches
-            .where((Branch b) => b.repository == _buildState.currentRepo)
-            .map<DropdownMenuItem<String>>((Branch b) {
-// FOR REVIW: ended up using _buildstate for the check, debugged really long but wasn't sure why [repo] will sometimes lag [_buildState.currentRepo],
-// seems like delayed network but not sure
-          return DropdownMenuItem<String>(
-            value: b.branch,
+        items:
+            // FOR REVIEW: to ensure a valid transition no matter what invalid combinations of repo + branch user inputed,
+            // we preserve that invalid combination as a single entry, along with the other valid combinations
+            [
+          DropdownMenuItem<String>(
+            value: _buildState.currentBranch,
             child: Padding(
               padding: const EdgeInsets.only(top: 9.0),
-              child: Center(child: Text(b.branch, style: theme.primaryTextTheme.bodyText1)),
+              child: Center(child: Text(_buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
             ),
-          );
-        }).toList(),
+          ),
+          ..._buildState.branches
+              .where((Branch b) => b.repository == _buildState.currentRepo && b.branch != _buildState.currentBranch)
+              .map<DropdownMenuItem<String>>((Branch b) {
+// FOR REVIW: ended up using _buildstate for the check, debugged really long but wasn't sure why [repo] will sometimes lag [_buildState.currentRepo],
+// seems like delayed network but not sure
+            return DropdownMenuItem<String>(
+              value: b.branch,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 9.0),
+                child: Center(child: Text(b.branch, style: theme.primaryTextTheme.bodyText1)),
+              ),
+            );
+          })
+        ],
       ),
       const Padding(padding: EdgeInsets.symmetric(horizontal: 4)),
     ];
