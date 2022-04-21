@@ -38,7 +38,7 @@ const String kCiYamlTargetTagsFramework = 'framework';
 const String kCiYamlTargetTagsHostonly = 'hostonly';
 
 const String kMasterRefs = 'heads/master';
-const String kModifyMode = '100755';
+const String kModifyMode = '100644'; // This is equivalent to mode: `-rw-r--r--`.
 const String kModifyType = 'blob';
 
 const int kSuccessBuildNumberLimit = 3;
