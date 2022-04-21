@@ -140,14 +140,14 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
     Map<String, String> showOSs = {
-      "showMac": "Mac",
-      "showWindows": "Windows",
+      "showMac": "mac",
+      "showWindows": "windows",
       "showiOS": "ios",
-      "showLinux": "Linux",
-      "showAndroid": "Android",
+      "showLinux": "linux",
+      "showAndroid": "android",
     };
     for (var os in showOSs.entries) {
-      if (!_allProperties[os.key]?.value && qualifiedTask.task!.toLowerCase().contains(os.value.toLowerCase())) {
+      if (!_allProperties[os.key]?.value && qualifiedTask.task!.toLowerCase().contains(os.value)) {
         return false;
       }
     }
