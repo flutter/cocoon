@@ -17,7 +17,7 @@ void main() {
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
-    expect(filter.showLuci, true);
+    expect(filter.showiOS, true);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
@@ -55,7 +55,7 @@ void main() {
     expect(TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
         TaskGridFilter()..messageFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'showLuci': 'false'}), TaskGridFilter()..showLuci = false);
+    expect(TaskGridFilter.fromMap(<String, String>{'showMac': 'false'}), TaskGridFilter()..showMac = false);
   });
 
   test('cross check on inequality', () {
@@ -65,7 +65,7 @@ void main() {
       TaskGridFilter()..authorFilter = RegExp('foo'),
       TaskGridFilter()..messageFilter = RegExp('foo'),
       TaskGridFilter()..hashFilter = RegExp('foo'),
-      TaskGridFilter()..showLuci = false,
+      TaskGridFilter()..showLinux = false,
     ];
     for (final TaskGridFilter filter in nonDefaultFilters) {
       expect(filter, isNot(equals(defaultFilter)));
@@ -126,7 +126,7 @@ void main() {
   });
 
   void testStage(
-      {required String stageName,
+      {required String taskName,
       required String fieldName,
       required TaskGridFilter trueFilter,
       required TaskGridFilter falseFilter}) {
@@ -140,19 +140,19 @@ void main() {
     expect(falseFilter, isNot(equals(trueFilterMap)));
     expect(falseFilter, isNot(equals(trueFilter)));
 
-    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
-    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
+    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
+    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
 
-    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
-    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
+    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
+    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
   }
 
-  test('matches Luci stage', () {
+  test('matches Windows stage', () {
     testStage(
-      stageName: StageName.luci,
-      fieldName: 'showLuci',
-      trueFilter: TaskGridFilter()..showLuci = true,
-      falseFilter: TaskGridFilter()..showLuci = false,
+      taskName: 'Windows',
+      fieldName: 'showWindows',
+      trueFilter: TaskGridFilter()..showWindows = true,
+      falseFilter: TaskGridFilter()..showWindows = false,
     );
   });
 
