@@ -13,7 +13,7 @@ import 'ios_device.dart';
 
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
-  factory DeviceDiscovery(String deviceOs, File output) {
+  factory DeviceDiscovery(String? deviceOs, File? output) {
     switch (deviceOs) {
       case 'ios':
         return IosDeviceDiscovery(output);
@@ -45,7 +45,7 @@ abstract class DeviceDiscovery {
 /// A proxy for one specific phone device.
 abstract class Device {
   /// A unique device identifier.
-  String get deviceId;
+  String? get deviceId;
 
   /// Recovers the device back to a healthy state.
   Future<void> recover();

@@ -18,9 +18,9 @@ const String defaultOutputPath = '.output';
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
-String _action;
-String _deviceOS;
-File _output;
+String? _action;
+String? _deviceOS;
+File? _output;
 
 /// Manage `healthcheck`, `prepare, `recovery`, and `properties` for devices.
 ///

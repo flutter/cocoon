@@ -22,11 +22,11 @@ const int _kBatteryMinLevel = 15;
 const int _kBatteryMaxTemperatureInCelsius = 34;
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
-  factory AndroidDeviceDiscovery(File output) {
+  factory AndroidDeviceDiscovery(File? output) {
     return _instance ??= AndroidDeviceDiscovery._(output);
   }
 
-  final File _outputFilePath;
+  final File? _outputFilePath;
   AndroidDeviceDiscovery._(this._outputFilePath);
 
   @visibleForTesting
@@ -37,13 +37,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   // 015d172c98400a03       device usb:340787200X product:nakasi model:Nexus_7 device:grouper
   static final RegExp _kDeviceRegex = RegExp(r'^(\S+)\s+(\S+)(.*)');
 
-  static AndroidDeviceDiscovery _instance;
+  static AndroidDeviceDiscovery? _instance;
 
-  Future<String> _deviceListOutput(Duration timeout, {ProcessManager processManager}) async {
+  Future<String> _deviceListOutput(Duration timeout, {ProcessManager? processManager}) async {
     return eval('adb', <String>['devices', '-l'], canFail: false, processManager: processManager).timeout(timeout);
   }
 
-  Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager processManager}) async {
+  Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager? processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
     RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -59,7 +59,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     );
   }
 
-  void _killAdbServer({ProcessManager processManager}) async {
+  void _killAdbServer({ProcessManager? processManager}) async {
     if (Platform.isWindows) {
       await killAllRunningProcessesOnWindows('adb', processManager: processManager);
     } else {
@@ -69,7 +69,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<AndroidDevice>> discoverDevices(
-      {Duration retryDuration = const Duration(seconds: 10), ProcessManager processManager}) async {
+      {Duration retryDuration = const Duration(seconds: 10), ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
     List<String> results = <String>[];
@@ -80,13 +80,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       if (line.startsWith('List of devices')) continue;
 
       if (_kDeviceRegex.hasMatch(line)) {
-        Match match = _kDeviceRegex.firstMatch(line);
+        Match? match = _kDeviceRegex.firstMatch(line);
 
-        String deviceID = match[1];
-        String deviceState = match[2];
+        String? deviceID = match?[1];
+        String? deviceState = match?[2];
 
         if (!const ['unauthorized', 'offline'].contains(deviceState)) {
-          results.add(deviceID);
+          results.add(deviceID!);
         }
       } else {
         throw 'Failed to parse device from adb output: $line';
@@ -96,7 +96,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager}) async {
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     final List<HealthCheckResult> defaultChecks = <HealthCheckResult>[];
     defaultChecks.add(await killAdbServerCheck(processManager: processManager));
@@ -117,7 +117,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
-    await writeToFile(json.encode(healthCheckMap), _outputFilePath);
+    writeToFile(json.encode(healthCheckMap), _outputFilePath!);
     return results;
   }
 
@@ -125,18 +125,18 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// It supports multiple devices, but here we are assuming only one device is attached.
   @override
-  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
+  Future<Map<String, String>> deviceProperties({ProcessManager? processManager}) async {
     final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
     Map<String, String> properties = <String, String>{};
     if (devices.isEmpty) {
-      await writeToFile(json.encode(properties), _outputFilePath);
+      writeToFile(json.encode(properties), _outputFilePath!);
       logger.info('No device is available.');
       return properties;
     }
     properties = await getDeviceProperties(devices[0], processManager: processManager);
     final String propertiesJson = json.encode(properties);
 
-    await writeToFile(propertiesJson, _outputFilePath);
+    writeToFile(propertiesJson, _outputFilePath!);
     logger.info('Properties for deviceID ${devices[0].deviceId}: $propertiesJson');
     return properties;
   }
@@ -145,12 +145,12 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// Refer function `get_dimensions` from
   /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
-  Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager processManager}) async {
+  Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     final Map<String, String> deviceProperties = <String, String>{};
     final Map<String, String> propertyMap = <String, String>{};
     LineSplitter.split(
-            await eval('adb', <String>['-s', device.deviceId, 'shell', 'getprop'], processManager: processManager))
+            await eval('adb', <String>['-s', device.deviceId!, 'shell', 'getprop'], processManager: processManager))
         .forEach((String property) {
       final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
 
@@ -166,11 +166,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     });
 
-    deviceProperties['product_brand'] = propertyMap['ro.product.brand'];
-    deviceProperties['build_id'] = propertyMap['ro.build.id'];
-    deviceProperties['build_type'] = propertyMap['ro.build.type'];
-    deviceProperties['product_model'] = propertyMap['ro.product.model'];
-    deviceProperties['product_board'] = propertyMap['ro.product.board'];
+    deviceProperties['product_brand'] = propertyMap['ro.product.brand']!;
+    deviceProperties['build_id'] = propertyMap['ro.build.id']!;
+    deviceProperties['build_type'] = propertyMap['ro.build.type']!;
+    deviceProperties['product_model'] = propertyMap['ro.product.model']!;
+    deviceProperties['product_board'] = propertyMap['ro.product.board']!;
     return deviceProperties;
   }
 
@@ -182,7 +182,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> adbPowerServiceCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> adbPowerServiceCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       await eval('adb', <String>['shell', 'dumpsys', 'power'], processManager: processManager);
@@ -199,7 +199,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// An Android device screen is on when both `mHoldingWakeLockSuspendBlocker` and
   /// `mHoldingDisplaySuspendBlocker` are true.
-  Future<HealthCheckResult> screenOnCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> screenOnCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval(
@@ -222,7 +222,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// Kill adb server before running any health check to avoid device quarantine:
   /// https://github.com/flutter/flutter/issues/93075.
-  Future<HealthCheckResult> killAdbServerCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> killAdbServerCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       await eval('adb', <String>['kill-server'], processManager: processManager);
@@ -238,7 +238,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// The health check for Android device developer mode.
   ///
   /// Developer mode `on` is expected for a healthy Android device.
-  Future<HealthCheckResult> developerModeCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> developerModeCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval(
@@ -259,7 +259,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// The health check to validate screen rotation is off.
   ///
   /// Screen rotation is expected disabled for a healthy Android device.
-  Future<HealthCheckResult> screenRotationCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> screenRotationCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval('adb', <String>['shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
@@ -279,7 +279,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// The health check to validate screensaver is off.
   ///
   /// Screensaver`off` is expected for a healthy Android device.
-  Future<HealthCheckResult> screenSaverCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> screenSaverCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval('adb', <String>['shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
@@ -297,7 +297,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   /// The health check for battery level.
-  Future<HealthCheckResult> batteryLevelCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> batteryLevelCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       // The battery level returns two rows. For example:
@@ -306,8 +306,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       final String levelResults = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
           processManager: processManager);
       final RegExp levelRegExp = RegExp('level: (?<level>.+)');
-      final RegExpMatch match = levelRegExp.firstMatch(levelResults);
-      final int level = int.parse(match.namedGroup('level'));
+      final RegExpMatch? match = levelRegExp.firstMatch(levelResults);
+      final int level = int.parse(match!.namedGroup('level')!);
       if (level < _kBatteryMinLevel) {
         healthCheckResult =
             HealthCheckResult.failure(kBatteryLevelCheckKey, 'Battery level ($level) is below $_kBatteryMinLevel');
@@ -321,7 +321,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   /// The health check for battery temperature.
-  Future<HealthCheckResult> batteryTemperatureCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> batteryTemperatureCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       // The battery temperature returns one row. For example:
@@ -329,9 +329,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       // It means 24°C.
       final String tempResult = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
           processManager: processManager);
-      final RegExp tempRegExp = RegExp('temperature: (?<temperature>.+)');
-      final RegExpMatch match = tempRegExp.firstMatch(tempResult);
-      final int temperature = int.parse(match.namedGroup('temperature'));
+      final RegExp? tempRegExp = RegExp('temperature: (?<temperature>.+)');
+      final RegExpMatch match = tempRegExp!.firstMatch(tempResult)!;
+      final int temperature = int.parse(match.namedGroup('temperature')!);
       if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
         healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey,
             'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C');
@@ -356,11 +356,11 @@ class AndroidDevice implements Device {
   AndroidDevice({@required this.deviceId});
 
   @override
-  final String deviceId;
+  final String? deviceId;
 
   @override
   Future<void> recover() async {
-    await eval('adb', <String>['-s', deviceId, 'reboot'], canFail: false);
+    await eval('adb', <String>['-s', deviceId!, 'reboot'], canFail: false);
   }
 
   @override
@@ -370,7 +370,7 @@ class AndroidDevice implements Device {
 
   /// Kill top running process if existing.
   @visibleForTesting
-  Future<bool> killProcesses({ProcessManager processManager}) async {
+  Future<bool> killProcesses({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     String result;
     result = await eval('adb', <String>['shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],

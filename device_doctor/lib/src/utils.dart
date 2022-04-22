@@ -47,7 +47,7 @@ class BuildFailedError extends Error {
 /// Creates a directory from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
 Directory dir(String thePath,
-    [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
+    [String? part2, String? part3, String? part4, String? part5, String? part6, String? part7, String? part8]) {
   return Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
@@ -76,12 +76,12 @@ void cd(dynamic directory) {
 
 /// Starts a process for an executable command, and returns the processes.
 Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String> env, bool silent = false, ProcessManager processManager = const LocalProcessManager()}) async {
-  String command = '$executable ${arguments?.join(" ") ?? ""}';
+    {Map<String, String>? env, bool silent = false, ProcessManager? processManager = const LocalProcessManager()}) async {
+  String command = '$executable ${arguments.join(" ")}';
   if (!silent) logger.info('Executing: $command');
-  Process proc;
+  late Process proc;
   try {
-    proc = await processManager.start(<String>[executable]..addAll(arguments),
+    proc = await processManager!.start(<String>[executable]..addAll(arguments),
         environment: env, workingDirectory: path.current);
   } catch (error) {
     fail(error.toString());
@@ -93,10 +93,10 @@ Future<Process> startProcess(String executable, List<String> arguments,
 ///
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env,
+    {Map<String, String>? env,
     bool canFail = false,
     bool silent = false,
-    ProcessManager processManager = const LocalProcessManager()}) async {
+    ProcessManager? processManager = const LocalProcessManager()}) async {
   Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
@@ -110,8 +110,8 @@ Future<String> eval(String executable, List<String> arguments,
 }
 
 /// Splits [from] into lines and selects those that contain [pattern].
-Iterable<String> grep(Pattern pattern, {@required String from}) {
-  return from.split('\n').where((String line) {
+Iterable<String> grep(Pattern pattern, {@required String? from}) {
+  return from!.split('\n').where((String line) {
     return line.contains(pattern);
   });
 }

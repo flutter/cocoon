@@ -28,7 +28,7 @@ void main() {
   });
 
   group('startProcess', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
 
     setUp(() {
@@ -49,14 +49,12 @@ void main() {
   });
 
   group('eval', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
     Process process;
 
     setUp(() {
       processManager = MockProcessManager();
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
     });
 
     test('exit code 0', () async {
@@ -64,6 +62,8 @@ void main() {
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
       final String result = await eval('abc', <String>['a', 'b', 'c'], processManager: processManager);
       expect('$result\n', sb.toString());
     });
@@ -82,7 +82,7 @@ void main() {
   });
 
   group('getMacBinaryPath', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
 
     setUp(() {
