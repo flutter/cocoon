@@ -147,14 +147,23 @@ void main() {
     expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
   }
 
-  test('matches Windows stage', () {
-    testStage(
-      taskName: 'Windows',
-      fieldName: 'showWindows',
-      trueFilter: TaskGridFilter()..showWindows = true,
-      falseFilter: TaskGridFilter()..showWindows = false,
-    );
-  });
+  const Map<String, String> showOSs = {
+    'showMac': 'Mac',
+    'showWindows': 'Windows',
+    'showiOS': 'ios',
+    'showLinux': 'Linux',
+    'showAndroid': 'Android',
+  };
+  for (MapEntry<String, String> os in showOSs.entries) {
+    test('matches ${os.value} stage', () {
+      testStage(
+        taskName: os.value,
+        fieldName: os.key,
+        trueFilter: TaskGridFilter.fromMap(<String, String>{os.key: 'true'}),
+        falseFilter: TaskGridFilter.fromMap(<String, String>{os.key: 'false'}),
+      );
+    });
+  }
 
   test('matches author name simple substring', () {
     final List<TaskGridFilter> filters = <TaskGridFilter>[

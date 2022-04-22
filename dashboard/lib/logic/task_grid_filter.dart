@@ -88,32 +88,37 @@ class TaskGridFilter extends FilterPropertySource {
   RegExp? get hashFilter => _hashProperty.regExp;
   set hashFilter(RegExp? regExp) => _hashProperty.regExp = regExp;
 
-  /// The [showWindows] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
+  /// The [showWindows] property is a boolean
+  ///
+  /// it indicates whether to display tasks produced by a Windows stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showWindows => _windowsPorperty.value;
   set showWindows(bool? value) => _windowsPorperty.value = value;
 
-  /// The [showMac] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
+  /// The [showMac] property is a boolean
+  ///
+  /// it indicates whether to display tasks produced by a Mac stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showMac => _macProperty.value;
   set showMac(bool? value) => _macProperty.value = value;
 
-  /// The [showiOS] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
+  /// The [showiOS] property is a boolean
+  ///
+  /// it indicates whether to display tasks produced by an iOS stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showiOS => _iosProperty.value;
   set showiOS(bool? value) => _iosProperty.value = value;
 
-  /// The [showLinux] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
+  /// The [showLinux] property is a boolean
+  ///
+  /// it indicates whether to display tasks produced by a Linux stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showLinux => _linuxPorperty.value;
   set showLinux(bool? value) => _linuxPorperty.value = value;
 
-  /// The [showAndroid] property is a boolean that indicates whether to display tasks produced
-  /// by a Windows stage in the devicelab.
+  /// The [showAndroid] property is a boolean
+  ///
+  /// it indicates whether to display tasks produced by an Android stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showAndroid => _androidProperty.value;
   set showAndroid(bool? value) => _androidProperty.value = value;
@@ -133,20 +138,20 @@ class TaskGridFilter extends FilterPropertySource {
     return true;
   }
 
-  /// Check the values in the [QualifiedTask] for compatibility with the properties of this
-  /// filter and return [true] iff the commit column should be displayed.
+  /// Check the values in the [QualifiedTask] for compatibility with the
+  /// properties of this filter and return [true] iff the commit column should be displayed.
   bool matchesTask(QualifiedTask qualifiedTask) {
     if (!_taskProperty.matches(qualifiedTask.task!)) {
       return false;
     }
-    Map<String, String> showOSs = {
-      "showMac": "mac",
-      "showWindows": "windows",
-      "showiOS": "ios",
-      "showLinux": "linux",
-      "showAndroid": "android",
+    const Map<String, String> showOSs = {
+      'showMac': 'mac',
+      'showWindows': 'windows',
+      'showiOS': 'ios',
+      'showLinux': 'linux',
+      'showAndroid': 'android',
     };
-    for (var os in showOSs.entries) {
+    for (MapEntry<String, String> os in showOSs.entries) {
       if (!_allProperties[os.key]?.value && qualifiedTask.task!.toLowerCase().contains(os.value)) {
         return false;
       }
