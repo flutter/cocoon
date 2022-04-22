@@ -36,12 +36,6 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
           launch('https://flutter-engine-perf.skia.org/');
         }),
     CocoonLink(
-        name: 'Repository',
-        icon: const Icon(Icons.info_outline),
-        action: () {
-          launch('/repository.html');
-        }),
-    CocoonLink(
         name: 'Source Code',
         icon: const Icon(Icons.code),
         action: () {
