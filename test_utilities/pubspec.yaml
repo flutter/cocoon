@@ -12,4 +12,4 @@ environment:
 dev_dependencies:
   args: ^1.5.2
   yaml: ^2.2.0
-  path: any
+  path: ^1.8.1
