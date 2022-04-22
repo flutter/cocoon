@@ -92,3 +92,15 @@ CiYaml exampleConfig = CiYaml(
     ),
   ]),
 );
+
+CiYaml batchPolicyConfig = CiYaml(
+  slug: RepositorySlug('flutter', 'flutter'),
+  branch: 'master',
+  config: pb.SchedulerConfig(enabledBranches: <String>[
+    'master'
+  ], targets: <pb.Target>[
+    pb.Target(
+      name: 'Linux_android A',
+    ),
+  ]),
+);

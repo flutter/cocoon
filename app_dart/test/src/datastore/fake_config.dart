@@ -55,6 +55,7 @@ class FakeConfig implements Config {
     this.flutterGoldStalePRValue,
     this.supportedBranchesValue,
     this.luciBuildersValue,
+    this.supportedReposValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -95,6 +96,7 @@ class FakeConfig implements Config {
   List<String>? supportedBranchesValue;
   List<LuciBuilder>? luciBuildersValue;
   String? overrideTreeStatusLabelValue;
+  Set<RepositorySlug>? supportedReposValue;
 
   @override
   Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async => githubClient!;
@@ -261,4 +263,7 @@ class FakeConfig implements Config {
 
   @override
   Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
+
+  @override
+  Set<RepositorySlug> supportedRepos = <RepositorySlug>{Config.flutterSlug};
 }

@@ -46,7 +46,7 @@ class Config {
   /// This adds support for the `waiting for tree to go green label` to the repo.
   ///
   /// Relies on the GitHub Checks API being enabled for this repo.
-  static Set<RepositorySlug> supportedRepos = <RepositorySlug>{
+  Set<RepositorySlug> supportedRepos = <RepositorySlug>{
     cocoonSlug,
     engineSlug,
     flutterSlug,

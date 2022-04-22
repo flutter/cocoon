@@ -111,6 +111,10 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+      '/api/scheduler/batch-backfiller': BatchBackfiller(
+        config: config,
+        scheduler: scheduler,
+      ),
       '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
         cache: cache,
         config: config,
