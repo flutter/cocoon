@@ -9,24 +9,86 @@ updates:
     schedule:
       interval: "daily"
     reviewers:
-      - "hixie"
-      - "godofredoc"
       - "keyonghan"
       - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/"
+    directory: "/test_utilities"
     schedule:
       interval: "daily"
     reviewers:
-      - "hixie"
-      - "godofredoc"
       - "keyonghan"
       - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/repo_dashboard"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/licenses"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/device_doctor"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/dashboard"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/app_dart"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "pub"
+    directory: "/auto_submit"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "keyonghan"
+      - "caseyhillers"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
