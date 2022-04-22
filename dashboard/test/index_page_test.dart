@@ -50,6 +50,5 @@ void main() {
     expect(find.text('BUILD'), findsOneWidget);
     expect(find.text('FRAMEWORK BENCHMARKS'), findsOneWidget);
     expect(find.text('ENGINE BENCHMARKS'), findsOneWidget);
-    expect(find.text('REPOSITORY'), findsOneWidget);
   });
 }
