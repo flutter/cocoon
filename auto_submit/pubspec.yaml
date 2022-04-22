@@ -11,7 +11,7 @@ environment:
   sdk: '>=2.15.0 <3.0.0'
 
 dependencies: 
-  appengine: ^0.13.1
+  appengine: ^0.13.2
   corsac_jwt: ^1.0.0-nullsafety.1
   github: ^9.0.1
   googleapis: ^7.0.0
