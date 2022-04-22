@@ -14,7 +14,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/test_utilities"
     schedule:
@@ -25,7 +25,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/repo_dashboard"
     schedule:
@@ -36,7 +36,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/licenses"
     schedule:
@@ -47,7 +47,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/device_doctor"
     schedule:
@@ -58,7 +58,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/dashboard"
     schedule:
@@ -69,7 +69,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/app_dart"
     schedule:
@@ -80,7 +80,7 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/auto_submit"
     schedule:
@@ -91,4 +91,4 @@ updates:
     labels:
       - "team"
       - "team: infra"
-      - "waiting for tree to go green"
+      - "autosubmit"
