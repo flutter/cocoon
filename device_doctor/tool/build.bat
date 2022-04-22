@@ -24,7 +24,7 @@ if exist %BUILD_DIR%\build (
 )
 MKDIR %BUILD_DIR%\build
 
-call tool\dart-sdk\bin\pub.bat get
+call tool\dart-sdk\bin\dart.exe pub get
 call tool\dart-sdk\bin\dart.exe compile exe bin\main.dart -o build\device_doctor.exe
 IF "%ERRORLEVEL%" NEQ "0" (
         EXIT 1
