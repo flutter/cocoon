@@ -7,7 +7,7 @@ environment:
 
 dependencies:
   analyzer: ^1.7.2
-  args: ^1.5.2
+  args: ">=1.5.2 <3.0.0"
   logging: ^0.11.4
   meta: ^1.1.7
   path: ^1.6.4
