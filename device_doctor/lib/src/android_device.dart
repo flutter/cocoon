@@ -377,7 +377,7 @@ class AndroidDevice implements Device {
         canFail: true, processManager: processManager);
 
     // Skip uninstalling process when no device is available or no application exists.
-    if (result == 'adb: no devices/emulators found' || result == null || result.isEmpty) {
+    if (result == 'adb: no devices/emulators found' || result.isEmpty) {
       stdout.write('no process is running');
       return true;
     }

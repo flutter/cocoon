@@ -142,11 +142,11 @@ Future<String> getMacBinaryPath(
   ProcessManager processManager = const LocalProcessManager(),
 }) async {
   String path = await eval('which', <String>[name], canFail: true, processManager: processManager);
-  if (path == null || path.isEmpty) {
+  if (path.isEmpty) {
     path = await eval('which', <String>['$kM1BrewBinPath/$name'], canFail: true, processManager: processManager);
   }
   // Throws exception when the binary doesn't exist in either location.
-  if (path == null || path.isEmpty) {
+  if (path.isEmpty) {
     fail('$name not found.');
   }
   return path;
