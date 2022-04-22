@@ -36,7 +36,7 @@ dev_dependencies:
   fake_async: ^1.2.0
   flutter_lints: ^1.0.4
   json_serializable: ^6.0.0
-  mockito: ^5.0.14
+  mockito: ^5.1.0
   pedantic: ^1.11.1
   platform: ^3.1.0
   process: ^4.2.4
