@@ -280,7 +280,7 @@ packages:
       name: gql
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   gql_dedupe_link:
     dependency: transitive
     description:
