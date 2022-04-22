@@ -34,8 +34,7 @@ class MockProcessManager extends Mock implements ProcessManager {
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
   }) {
-    return super.noSuchMethod(Invocation.method(#runSync, [command]),
-        returnValue: ProcessResult(1, 0, 'abc', 'def'));
+    return super.noSuchMethod(Invocation.method(#runSync, [command]), returnValue: ProcessResult(1, 0, 'abc', 'def'));
   }
 }
 

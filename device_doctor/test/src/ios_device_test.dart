@@ -19,7 +19,7 @@ import 'utils.dart';
 
 void main() {
   group('IosDeviceDiscovery', () {
-    late  FakeIosDeviceDiscovery deviceDiscovery;
+    late FakeIosDeviceDiscovery deviceDiscovery;
     late MockProcessManager processManager;
     Process process;
 
