@@ -93,7 +93,7 @@ void main() {
       String path = '$kM1BrewBinPath/ideviceinstaller';
       output = <List<int>>[utf8.encode(path)];
       Process processM1 = FakeProcess(0, out: output);
-      Process processDefault = FakeProcess(1, out: null);
+      Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
       when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
@@ -116,8 +116,8 @@ void main() {
     });
 
     test('throws exception when binary does not exist in any location', () async {
-      Process processM1 = FakeProcess(1, out: null);
-      Process processDefault = FakeProcess(1, out: null);
+      Process processM1 = FakeProcess(1, out: <List<int>>[]);
+      Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
       when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],

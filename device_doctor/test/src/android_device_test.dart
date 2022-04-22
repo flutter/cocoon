@@ -334,6 +334,7 @@ void main() {
     });
 
     test('no running processes', () async {
+      output = <List<int>>[];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(0);
       when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],

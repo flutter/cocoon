@@ -46,7 +46,7 @@ void main() {
     });
 
     test('checkDevices with device', () async {
-      process = FakeProcess(0, out: null);
+      process = FakeProcess(0, out: <List<int>>[]);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       deviceDiscovery.outputs = <dynamic>['abcdefg'];
