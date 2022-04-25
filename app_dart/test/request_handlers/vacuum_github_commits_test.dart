@@ -73,10 +73,20 @@ void main() {
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
       config = FakeConfig(
-          tabledataResource: tabledataResourceApi,
-          githubService: githubService,
-          dbValue: db,
-          supportedBranchesValue: <String>['master', 'main']);
+        tabledataResource: tabledataResourceApi,
+        githubService: githubService,
+        dbValue: db,
+        supportedBranchesValue: <String>['master', 'main'],
+        supportedReposValue: <RepositorySlug>{
+          Config.cocoonSlug,
+          Config.engineSlug,
+          Config.flutterSlug,
+          Config.packagesSlug,
+          Config.pluginsSlug,
+          Config.impellerSlug,
+        },
+      );
+
       auth = FakeAuthenticationProvider();
       scheduler = FakeScheduler(
         config: config,

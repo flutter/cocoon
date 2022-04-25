@@ -69,12 +69,12 @@ void main() {
           githubGraphQLClient: githubGraphQLClient,
           cirrusGraphQLClient: cirrusGraphQLClient,
           supportedReposValue: <RepositorySlug>{
-            Config.flutterSlug,
-            Config.engineSlug,
             Config.cocoonSlug,
-            Config.impellerSlug,
+            Config.engineSlug,
+            Config.flutterSlug,
             Config.packagesSlug,
             Config.pluginsSlug,
+            Config.impellerSlug,
           });
       flutterRepoPRs.clear();
       statuses.clear();
@@ -157,9 +157,9 @@ void main() {
             Config.cocoonSlug,
             Config.engineSlug,
             Config.flutterSlug,
-            Config.impellerSlug,
             Config.packagesSlug,
             Config.pluginsSlug,
+            Config.impellerSlug,
           });
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       branch = null;
