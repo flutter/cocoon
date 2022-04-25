@@ -50,24 +50,27 @@ void main() {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       deviceDiscovery.outputs = <dynamic>['abcdefg'];
-      Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices(processManager: processManager);
+      final Map<String, List<HealthCheckResult>> results =
+          await deviceDiscovery.checkDevices(processManager: processManager);
+      expect(results['ios-device-abcdefg'], isNotNull);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg']?.length, 7);
-      expect(results['ios-device-abcdefg']?[0].name, kDeviceAccessCheckKey);
-      expect(results['ios-device-abcdefg']?[0].succeeded, true);
-      expect(results['ios-device-abcdefg']?[1].name, kKeychainUnlockCheckKey);
-      expect(results['ios-device-abcdefg']?[1].succeeded, true);
-      expect(results['ios-device-abcdefg']?[2].name, kCertCheckKey);
-      expect(results['ios-device-abcdefg']?[2].succeeded, false);
-      expect(results['ios-device-abcdefg']?[3].name, kDevicePairCheckKey);
-      expect(results['ios-device-abcdefg']?[3].succeeded, false);
-      expect(results['ios-device-abcdefg']?[4].name, kUserAutoLoginCheckKey);
-      expect(results['ios-device-abcdefg']?[4].succeeded, false);
-      expect(results['ios-device-abcdefg']?[5].name, kDeviceProvisioningProfileCheckKey);
-      expect(results['ios-device-abcdefg']?[5].succeeded, false);
-      expect(results['ios-device-abcdefg']?[6].name, kBatteryLevelCheckKey);
-      expect(results['ios-device-abcdefg']?[6].succeeded, false);
+      final List<HealthCheckResult> healthCheckResults = results['ios-device-abcdefg']!;
+      expect(healthCheckResults.length, 7);
+      expect(healthCheckResults[0].name, kDeviceAccessCheckKey);
+      expect(healthCheckResults[0].succeeded, true);
+      expect(healthCheckResults[1].name, kKeychainUnlockCheckKey);
+      expect(healthCheckResults[1].succeeded, true);
+      expect(healthCheckResults[2].name, kCertCheckKey);
+      expect(healthCheckResults[2].succeeded, false);
+      expect(healthCheckResults[3].name, kDevicePairCheckKey);
+      expect(healthCheckResults[3].succeeded, false);
+      expect(healthCheckResults[4].name, kUserAutoLoginCheckKey);
+      expect(healthCheckResults[4].succeeded, false);
+      expect(healthCheckResults[5].name, kDeviceProvisioningProfileCheckKey);
+      expect(healthCheckResults[5].succeeded, false);
+      expect(healthCheckResults[6].name, kBatteryLevelCheckKey);
+      expect(healthCheckResults[6].succeeded, false);
     });
   });
 
