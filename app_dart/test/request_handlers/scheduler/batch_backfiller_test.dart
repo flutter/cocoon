@@ -15,30 +15,6 @@ import '../../src/service/fake_luci_build_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
 
-List<Task> allGray = <Task>[
-  generateTask(1, name: 'Linux_android A', status: Task.statusNew),
-  generateTask(2, name: 'Linux_android A', status: Task.statusNew),
-  generateTask(3, name: 'Linux_android A', status: Task.statusNew),
-];
-
-List<Task> allGreen = <Task>[
-  generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
-  generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
-  generateTask(3, name: 'Linux_android A', status: Task.statusSucceeded),
-];
-
-List<Task> middleTaskInProgress = <Task>[
-  generateTask(1, name: 'Linux_android A', status: Task.statusNew),
-  generateTask(2, name: 'Linux_android A', status: Task.statusInProgress),
-  generateTask(3, name: 'Linux_android A', status: Task.statusNew),
-];
-
-List<Task> oldestGray = <Task>[
-  generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
-  generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
-  generateTask(3, name: 'Linux_android A', status: Task.statusNew),
-];
-
 final List<Commit> commits = <Commit>[
   generateCommit(3),
   generateCommit(2),
@@ -73,27 +49,79 @@ void main() {
     });
 
     test('does not backfill on completed task column', () async {
+      List<Task> allGreen = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android A', status: Task.statusSucceeded),
+      ];
       db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
       await tester.get(handler);
       expect(pubsub.messages, isEmpty);
     });
 
     test('does not backfill when there is a running task', () async {
+      List<Task> middleTaskInProgress = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusInProgress),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+      ];
       db.addOnQuery<Task>((Iterable<Task> results) => middleTaskInProgress);
       await tester.get(handler);
       expect(pubsub.messages, isEmpty);
     });
 
     test('backfills latest task', () async {
+      List<Task> allGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+      ];
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
     });
 
     test('backfills older task', () async {
+      List<Task> oldestGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+      ];
       db.addOnQuery<Task>((Iterable<Task> results) => oldestGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
+    });
+
+    test('backfills only column A when B does need backfill', () async {
+      List<Task> scheduleA = <Task>[
+        // Linux_android A
+        generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+        // Linux_android B
+        generateTask(1, name: 'Linux_android B', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android B', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android B', status: Task.statusSucceeded),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 1);
+    });
+
+    test('backfills both column A and B', () async {
+      List<Task> scheduleA = <Task>[
+        // Linux_android A
+        generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+        // Linux_android B
+        generateTask(1, name: 'Linux_android B', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android B', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android B', status: Task.statusNew),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 2);
     });
   });
 }
