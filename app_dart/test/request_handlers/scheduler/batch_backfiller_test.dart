@@ -5,7 +5,6 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
@@ -50,7 +49,6 @@ void main() {
   late BatchBackfiller handler;
   late RequestHandlerTester tester;
   late FakeDatastoreDB db;
-  late FakeLuciBuildService luciBuildService;
   late FakePubSub pubsub;
   late FakeScheduler scheduler;
 
@@ -73,8 +71,6 @@ void main() {
       );
       tester = RequestHandlerTester();
     });
-
-    Future<List<Task>> tasks() async => db.query<Task>().run().toList();
 
     test('does not backfill on completed task column', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => allGreen);

@@ -113,7 +113,7 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().first;
-      expect(db.values.values.whereType<Commit>().length, 2 * Config.supportedRepos.length);
+      expect(db.values.values.whereType<Commit>().length, 2 * config.supportedRepos.length);
       expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
@@ -123,7 +123,7 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length);
+      expect(db.values.values.whereType<Commit>().length, config.supportedRepos.length);
       expect(db.values.values.whereType<Commit>().first.sha, '9');
     });
 
@@ -148,7 +148,7 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
       const int supportedBranchesCount = 2;
-      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length * supportedBranchesCount);
+      expect(db.values.values.whereType<Commit>().length, config.supportedRepos.length * supportedBranchesCount);
       final List<Commit> commits = db.values.values.whereType<Commit>().toList();
       final Commit commit = commits.first;
       expect(commit.repository, 'flutter/cocoon');
@@ -179,7 +179,7 @@ void main() {
       final Body body = await tester.get<Body>(handler);
 
       /// The +1 is coming from the engine repository and manually added commit on the top of this test.
-      expect(db.values.values.whereType<Commit>().length, Config.supportedRepos.length * githubCommits.length + 1);
+      expect(db.values.values.whereType<Commit>().length, config.supportedRepos.length * githubCommits.length + 1);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);

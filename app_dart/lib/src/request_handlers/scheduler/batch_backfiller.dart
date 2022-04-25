@@ -5,7 +5,6 @@
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart';
@@ -53,25 +52,29 @@ class BatchBackfiller extends RequestHandler {
     final DatastoreService datastore = datastoreProvider(config.db);
     // TODO(chillers): There's a bug in how this is getting the tasks for the test. It's duplicating all of them.
     final List<FullTask> tasks = await (datastore.queryRecentTasks(slug: slug)).toList();
-    List<Tuple<Target, Task, Commit>> backfillTargets = <Tuple<Target, Task, Commit>>[];
 
-    // Scan latest commits for tasks we want to check for backfilling
-    for (FullTask task in tasks.where((FullTask task) => task.commit == tasks.first.commit)) {
-      final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
-      final Target? target =
-          ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.task.name);
-      if (target != null) {
-        backfillTargets.add(Tuple(target, task.task, task.commit));
+    // Construct Task columns to scan for backfilling
+    final Map<String, List<FullTask>> taskMap = <String, List<FullTask>>{};
+    for (FullTask fullTask in tasks) {
+      if (taskMap.containsKey(fullTask.task.name)) {
+        taskMap[fullTask.task.name]!.add(fullTask);
+      } else {
+        taskMap[fullTask.task.name!] = <FullTask>[fullTask];
       }
     }
-    // Filter targets to backfill to only those with a [BatchPolicy]
-    backfillTargets.removeWhere((Tuple tuple) => tuple.first.schedulerPolicy is! BatchPolicy);
+
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
     final List<Tuple<Target, Task, Commit>> backfill = <Tuple<Target, Task, Commit>>[];
-    for (Tuple<Target, Task, Commit> tuple in backfillTargets) {
-      final FullTask? _backfill = _backfillTask(tuple.first, tasks);
+    for (List<FullTask> taskColumn in taskMap.values) {
+      final FullTask task = taskColumn.first;
+      final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
+      final Target target = ciYaml.postsubmitTargets.singleWhere((target) => target.value.name == task.task.name);
+      if (target.schedulerPolicy is! BatchPolicy) {
+        continue;
+      }
+      final FullTask? _backfill = _backfillTask(target, taskColumn);
       if (_backfill != null) {
-        backfill.add(Tuple<Target, Task, Commit>(tuple.first, _backfill.task, _backfill.commit));
+        backfill.add(Tuple<Target, Task, Commit>(target, _backfill.task, _backfill.commit));
       }
     }
 
