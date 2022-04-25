@@ -290,8 +290,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
-    final String? sha = pr.head!.sha;
-    final String? author = pr.user!.login;
+    final String? sha = commit['oid'] as String?;
+    final String? author = pullRequest['author']['login'] as String?;
 
     // List of labels associated with the pull request.
     final List<String> labelNames =
