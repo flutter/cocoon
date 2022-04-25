@@ -19,8 +19,8 @@ import 'utils.dart';
 
 void main() {
   group('AndroidDeviceDiscovery', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     List<List<int>> output;
     Process process;
 
@@ -53,8 +53,8 @@ void main() {
   });
 
   group('AndroidDeviceProperties', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process property_process;
     Process process;
     String output;
@@ -68,7 +68,7 @@ void main() {
       output = 'List of devices attached';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'devices', '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, String>{}));
@@ -83,7 +83,7 @@ void main() {
       ''';
       property_process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
-      when(processManager.start(<dynamic>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
+      when(processManager.start(<Object>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(property_process));
 
@@ -102,8 +102,8 @@ void main() {
   });
 
   group('AndroidAdbPowerServiceCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
 
     setUp(() {
@@ -114,7 +114,7 @@ void main() {
     test('returns success when adb power service is available', () async {
       process = FakeProcess(0);
       when(processManager
-              .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
@@ -125,7 +125,7 @@ void main() {
     test('returns failure when adb returns none 0 code', () async {
       process = FakeProcess(1);
       when(processManager
-              .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
@@ -136,8 +136,8 @@ void main() {
   });
 
   group('AndroidDevloperModeCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
     List<List<int>> output;
 
@@ -149,7 +149,7 @@ void main() {
     test('returns success when developer mode is on', () async {
       output = <List<int>>[utf8.encode('1')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -161,7 +161,7 @@ void main() {
     test('returns failure when developer mode is off', () async {
       output = <List<int>>[utf8.encode('0')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -174,7 +174,7 @@ void main() {
     test('returns success when screensaver is off', () async {
       output = <List<int>>[utf8.encode('0')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -186,7 +186,7 @@ void main() {
     test('returns failure when screensaver is on', () async {
       output = <List<int>>[utf8.encode('1')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -198,7 +198,7 @@ void main() {
 
     test('returns failure when adb return none 0 code', () async {
       process = FakeProcess(1);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'global', 'development_settings_enabled'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -210,8 +210,8 @@ void main() {
   });
 
   group('AndroidScreenOnCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
     List<List<int>> output;
 
@@ -227,7 +227,7 @@ void main() {
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(processManager.start(
-              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+              <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -243,7 +243,7 @@ void main() {
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
       when(processManager.start(
-              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+              <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -256,7 +256,7 @@ void main() {
     test('returns failure when adb return non 0 code', () async {
       process = FakeProcess(1);
       when(processManager.start(
-              <dynamic>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+              <Object>['adb', 'shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -268,8 +268,8 @@ void main() {
   });
 
   group('AndroidScreenRotationCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
     List<List<int>> output;
 
@@ -281,7 +281,7 @@ void main() {
     test('returns success when rotation is disabled', () async {
       output = <List<int>>[utf8.encode('0')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -293,7 +293,7 @@ void main() {
     test('returns failure when screen rotation is enabled', () async {
       output = <List<int>>[utf8.encode('1')];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+      when(processManager.start(<Object>['adb', 'shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -305,11 +305,11 @@ void main() {
   });
 
   group('AndroidDeviceKillProcesses', () {
-    AndroidDevice device;
-    MockProcessManager processManager;
+    late AndroidDevice device;
+    late MockProcessManager processManager;
     Process listProcess;
     Process killProcess;
-    List<List<int>> output;
+    List<List<int>>? output;
 
     setUp(() {
       device = AndroidDevice(deviceId: 'abc');
@@ -322,10 +322,10 @@ void main() {
       ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(0);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
-      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+      when(processManager.start(<Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
 
@@ -334,12 +334,13 @@ void main() {
     });
 
     test('no running processes', () async {
+      output = <List<int>>[];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(0);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
-      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+      when(processManager.start(<Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
 
@@ -353,10 +354,10 @@ void main() {
       ];
       listProcess = FakeProcess(0, out: output);
       killProcess = FakeProcess(1);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(listProcess));
-      when(processManager.start(<dynamic>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
+      when(processManager.start(<Object>['adb', 'shell', 'am', 'force-stop', 'com.google.android.apps.nexuslauncher'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(killProcess));
 
@@ -366,8 +367,8 @@ void main() {
   });
 
   group('KillAdbServerCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
 
     setUp(() {
@@ -377,7 +378,7 @@ void main() {
 
     test('returns success when adb power service is killed', () async {
       process = FakeProcess(0);
-      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
@@ -387,7 +388,7 @@ void main() {
 
     test('returns failure when adb returns non 0 code', () async {
       process = FakeProcess(1);
-      when(processManager.start(<dynamic>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
+      when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
@@ -398,8 +399,8 @@ void main() {
   });
 
   group('BatteryLevelCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
     List<List<int>> output;
 
@@ -415,7 +416,7 @@ void main() {
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -431,7 +432,7 @@ void main() {
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -443,8 +444,8 @@ void main() {
   });
 
   group('BatteryTemperatureCheck', () {
-    AndroidDeviceDiscovery deviceDiscovery;
-    MockProcessManager processManager;
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
     Process process;
     List<List<int>> output;
 
@@ -459,7 +460,7 @@ void main() {
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
@@ -475,7 +476,7 @@ void main() {
       ''';
       output = <List<int>>[utf8.encode(screenMessage)];
       process = FakeProcess(0, out: output);
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+      when(processManager.start(<Object>['adb', 'shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 

@@ -16,7 +16,7 @@ import 'utils.dart';
 /// The dialogs often cause test flakiness and performance regressions.
 Future<HealthCheckResult> closeIosDialog({
   ProcessManager pm = const LocalProcessManager(),
-  String deviceId,
+  String? deviceId,
   platform.Platform pl = const platform.LocalPlatform(),
   String infraDialog = 'infra-dialog',
 }) async {
@@ -43,9 +43,6 @@ Future<HealthCheckResult> closeIosDialog({
     }
     Process proc = await pm.start(command, workingDirectory: dialogDir.path);
     logger.info('Executing: $command');
-    // Discards stdout and stderr as they are too large.
-    await proc.stdout.drain<Object>();
-    await proc.stderr.drain<Object>();
     int exitCode = await proc.exitCode;
     if (exitCode != 0) {
       fail('Command "$command" failed with exit code $exitCode.');
@@ -64,16 +61,16 @@ class HealthCheckResult {
 
   final String name;
   final bool succeeded;
-  final String details;
+  final String? details;
 
   @override
   String toString() {
     StringBuffer buf = StringBuffer(name);
     buf.writeln(succeeded ? 'succeeded' : 'failed');
-    if (details != null && details.trim().isNotEmpty) {
+    if (details != null && details!.trim().isNotEmpty) {
       buf.writeln();
       // Indent details by 4 spaces
-      for (String line in details.trim().split('\n')) {
+      for (String line in details!.trim().split('\n')) {
         buf.writeln('    $line');
       }
     }
@@ -93,7 +90,7 @@ Future<Map<String, Map<String, dynamic>>> healthcheck(Map<String, List<HealthChe
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{'status': true, 'details': null};
   }
   for (String deviceID in deviceChecks.keys) {
-    List<HealthCheckResult> checks = deviceChecks[deviceID];
+    List<HealthCheckResult> checks = deviceChecks[deviceID]!;
     for (HealthCheckResult healthCheckResult in checks) {
       final Map<String, dynamic> healthCheckResultMap = <String, dynamic>{
         'status': healthCheckResult.succeeded,

@@ -28,7 +28,7 @@ void main() {
   });
 
   group('startProcess', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
 
     setUp(() {
@@ -49,14 +49,12 @@ void main() {
   });
 
   group('eval', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
     Process process;
 
     setUp(() {
       processManager = MockProcessManager();
-      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(process));
     });
 
     test('exit code 0', () async {
@@ -64,6 +62,8 @@ void main() {
       sb.writeln('abc');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
       final String result = await eval('abc', <String>['a', 'b', 'c'], processManager: processManager);
       expect('$result\n', sb.toString());
     });
@@ -82,7 +82,7 @@ void main() {
   });
 
   group('getMacBinaryPath', () {
-    MockProcessManager processManager;
+    late MockProcessManager processManager;
     List<List<int>> output;
 
     setUp(() {
@@ -93,7 +93,7 @@ void main() {
       String path = '$kM1BrewBinPath/ideviceinstaller';
       output = <List<int>>[utf8.encode(path)];
       Process processM1 = FakeProcess(0, out: output);
-      Process processDefault = FakeProcess(1, out: null);
+      Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
       when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
@@ -116,8 +116,8 @@ void main() {
     });
 
     test('throws exception when binary does not exist in any location', () async {
-      Process processM1 = FakeProcess(1, out: null);
-      Process processDefault = FakeProcess(1, out: null);
+      Process processM1 = FakeProcess(1, out: <List<int>>[]);
+      Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
       when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
