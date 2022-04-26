@@ -163,9 +163,9 @@ class TaskGridFilter extends FilterPropertySource {
     };
 
     // Replacing mac_ios by ios only, so that filtering out mac doesn't remove ios.
-    // Same for linux_android
+    // Same for *_android
     String compareStr =
-        qualifiedTask.task!.toLowerCase().replaceAll('mac_ios', 'ios').replaceAll('linux_android', 'android');
+        qualifiedTask.task!.toLowerCase().replaceAll('mac_ios', 'ios').replaceAll(RegExp(r'[a-z]*_android'), 'android');
     for (MapEntry<String, String> os in showOSs.entries) {
       if (!_allProperties[os.key]?.value && compareStr.contains(os.value)) {
         return false;
