@@ -13,7 +13,7 @@ import 'utils.dart';
 ///
 /// The `swarming` user auto login is required for Flutter desktop tests which need to run
 /// GUI application on Mac.
-Future<HealthCheckResult> userAutoLoginCheck({ProcessManager processManager}) async {
+Future<HealthCheckResult> userAutoLoginCheck({ProcessManager? processManager}) async {
   HealthCheckResult healthCheckResult;
   try {
     final String user = await eval(

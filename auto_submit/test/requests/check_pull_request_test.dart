@@ -101,8 +101,8 @@ void main() {
       githubService.commitData = commitMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
-      flutterRequest = PullRequestHelper(prNumber: 0);
-      cocoonRequest = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -144,10 +144,13 @@ void main() {
 
       flutterRequest = PullRequestHelper(
         prNumber: 0,
+        author: 'dependabot',
         reviews: const <PullRequestReviewHelper>[],
+        lastCommitHash: oid,
       );
       cocoonRequest = PullRequestHelper(
         prNumber: 1,
+        author: 'dependabot',
         reviews: const <PullRequestReviewHelper>[],
       );
 
@@ -181,6 +184,7 @@ void main() {
 
       flutterRequest = PullRequestHelper(
         prNumber: 0,
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure,
         ],
@@ -215,6 +219,7 @@ void main() {
 
       flutterRequest = PullRequestHelper(
         prNumber: 0,
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
@@ -250,6 +255,7 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       cocoonRequest = PullRequestHelper(
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[],
       );
 
@@ -283,8 +289,8 @@ void main() {
       githubService.createCommentData = createCommentMock;
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
-      flutterRequest = PullRequestHelper(prNumber: 0);
-      cocoonRequest = PullRequestHelper(prNumber: 1);
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
       final Response response = await checkPullRequest.get();
       expectedOptions.add(flutterOption);
@@ -311,6 +317,7 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.otherStatusFailure,
         ],
@@ -337,6 +344,7 @@ void main() {
 
       flutterRequest = PullRequestHelper(
         authorAssociation: '',
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
         ],
@@ -362,6 +370,7 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
+        lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[],
       );
 
@@ -449,6 +458,8 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
+        author: 'some_rando',
+        lastCommitHash: oid,
         authorAssociation: 'MEMBER',
         reviews: <PullRequestReviewHelper>[
           const PullRequestReviewHelper(
@@ -517,6 +528,7 @@ class StatusHelper {
 
 class PullRequestHelper {
   PullRequestHelper({
+    this.author = 'author1',
     this.prNumber = 0,
     this.repo = 'flutter',
     this.authorAssociation = 'MEMBER',
@@ -532,6 +544,7 @@ class PullRequestHelper {
 
   final int prNumber;
   final String repo;
+  final String author;
   final String authorAssociation;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
@@ -544,6 +557,7 @@ class PullRequestHelper {
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
+      'author': <String, dynamic>{'login': author},
       'authorAssociation': authorAssociation,
       'id': prNumber.toString(),
       'title': title,

@@ -6,15 +6,16 @@ import 'dart:io';
 
 import 'package:mockito/mockito.dart';
 import 'package:platform/platform.dart' as platform;
-import 'package:process/process.dart';
 import 'package:test/test.dart';
 
 import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/utils.dart';
 
+import 'utils.dart';
+
 void main() {
   group('testCloseIosDialog', () {
-    MockProcessManager pm;
+    late MockProcessManager pm;
 
     setUp(() async {
       pm = MockProcessManager();
@@ -65,7 +66,7 @@ void main() {
   });
 
   group('healthCheck', () {
-    Map<String, List<HealthCheckResult>> deviceChecks;
+    late Map<String, List<HealthCheckResult>> deviceChecks;
 
     setUp(() async {
       deviceChecks = <String, List<HealthCheckResult>>{};
@@ -106,27 +107,4 @@ void main() {
       });
     });
   });
-}
-
-class MockPlatform extends Mock implements Platform {}
-
-class MockProcessManager extends Mock implements ProcessManager {}
-
-class FakeProcess extends Fake implements Process {
-  FakeProcess(int exitCode) : _exitCode = exitCode;
-
-  int _exitCode;
-
-  @override
-  Future<int> get exitCode => Future.value(_exitCode);
-
-  @override
-  Stream<List<int>> get stderr => Stream.fromIterable([
-        [1, 2, 3]
-      ]);
-
-  @override
-  Stream<List<int>> get stdout => Stream.fromIterable([
-        [1, 2, 3]
-      ]);
 }

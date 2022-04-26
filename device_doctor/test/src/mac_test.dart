@@ -16,8 +16,8 @@ import 'utils.dart';
 
 void main() {
   group('Mac - health checks', () {
-    MockProcessManager processManager;
-    Process process;
+    late MockProcessManager processManager;
+    late Process process;
     List<List<int>> output;
 
     setUp(() {

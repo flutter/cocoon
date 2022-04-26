@@ -27,17 +27,6 @@ updates:
       - "team: infra"
       - "autosubmit"
   - package-ecosystem: "pub"
-    directory: "/repo_dashboard"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
-    labels:
-      - "team"
-      - "team: infra"
-      - "autosubmit"
-  - package-ecosystem: "pub"
     directory: "/licenses"
     schedule:
       interval: "daily"

@@ -11,7 +11,7 @@ import 'package:process/process.dart';
 class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
   FakeIosDeviceDiscovery(File output) : super.testing(output);
 
-  List<dynamic> _outputs;
+  List<dynamic>? _outputs;
   int _pos = 0;
 
   set outputs(List<dynamic> outputs) {
@@ -24,10 +24,10 @@ class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
     ProcessManager processManager = const LocalProcessManager(),
   }) async {
     _pos++;
-    if (_outputs[_pos - 1] is String) {
-      return _outputs[_pos - 1] as String;
+    if (_outputs?[_pos - 1] is String) {
+      return _outputs?[_pos - 1] as String;
     } else {
-      throw _outputs[_pos - 1];
+      throw _outputs?[_pos - 1];
     }
   }
 }

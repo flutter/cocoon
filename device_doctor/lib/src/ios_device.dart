@@ -26,18 +26,18 @@ final Set<String> noRebootList = <String>{
 ///
 /// Discovers available ios devices and chooses one to work with.
 class IosDeviceDiscovery implements DeviceDiscovery {
-  factory IosDeviceDiscovery(File output) {
+  factory IosDeviceDiscovery(File? output) {
     return _instance ??= IosDeviceDiscovery._(output);
   }
 
-  final File _outputFilePath;
+  final File? _outputFilePath;
 
   IosDeviceDiscovery._(this._outputFilePath);
 
   @visibleForTesting
   IosDeviceDiscovery.testing(this._outputFilePath);
 
-  static IosDeviceDiscovery _instance;
+  static IosDeviceDiscovery? _instance;
 
   @override
   Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
@@ -52,7 +52,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager}) async {
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (Device device in await discoverDevices()) {
@@ -67,13 +67,13 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
-    await writeToFile(json.encode(healthCheckMap), _outputFilePath);
+    writeToFile(json.encode(healthCheckMap), _outputFilePath!);
     return results;
   }
 
   /// Checks and returns the device properties.
   @override
-  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
+  Future<Map<String, String>> deviceProperties({ProcessManager? processManager}) async {
     return <String, String>{};
   }
 
@@ -85,16 +85,16 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> deviceProvisioningProfileCheck(String deviceId, {ProcessManager processManager}) async {
+  Future<HealthCheckResult> deviceProvisioningProfileCheck(String? deviceId, {ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String homeDir = Platform.environment['HOME'];
+      final String? homeDir = Platform.environment['HOME'];
       final String profile = await eval('ls', <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
           processManager: processManager);
       final String provisionFileContent = await eval(
           'security', <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
           processManager: processManager);
-      if (provisionFileContent.contains(deviceId)) {
+      if (provisionFileContent.contains(deviceId!)) {
         healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(
@@ -107,7 +107,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> keychainUnlockCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> keychainUnlockCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       await eval(kUnlockLoginKeychain, <String>[], processManager: processManager);
@@ -119,7 +119,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> batteryLevelCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> batteryLevelCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String batteryCheckResult = await eval(
@@ -139,7 +139,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> certCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> certCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String certCheckResult =
@@ -158,7 +158,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
-  Future<HealthCheckResult> devicePairCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> devicePairCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String devicePairCheckResult =
@@ -187,7 +187,7 @@ class IosDevice implements Device {
   const IosDevice({@required this.deviceId});
 
   @override
-  final String deviceId;
+  final String? deviceId;
 
   @override
   Future<void> recover() async {
@@ -202,7 +202,7 @@ class IosDevice implements Device {
 
   /// Restart iOS device.
   @visibleForTesting
-  Future<bool> restart_device({ProcessManager processManager}) async {
+  Future<bool> restart_device({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     try {
       if (noRebootList.contains(deviceId)) {
@@ -223,7 +223,7 @@ class IosDevice implements Device {
   /// certificate from previous installed application.
   /// Issue: https://github.com/flutter/flutter/issues/76896
   @visibleForTesting
-  Future<bool> uninstall_applications({ProcessManager processManager}) async {
+  Future<bool> uninstall_applications({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     String result;
     final String fullPathIdeviceInstaller = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
