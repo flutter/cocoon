@@ -22,7 +22,7 @@ dependencies:
   github: ^9.1.0
   googleapis: ^7.0.0
   googleapis_auth: ^1.1.0
-  gql: ^0.13.0
+  gql: ^0.13.1
   graphql: ^5.0.0
   http: ^0.13.3
   json_annotation: ^4.3.0
