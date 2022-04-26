@@ -428,6 +428,41 @@ void main() {
     buildState.dispose();
   });
 
+  testWidgets('ensure smooth transition between invalid states', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'flutter',
+      'branch': 'flutter-release',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: controlledBuildDashboardPage,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(dropdownButtonType), findsNWidgets(2));
+    // simulate a url request, which retriggers a rebuild of the widget
+    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'engine',
+    });
+    expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value,
+        equals('flutter-release')); //invalid state: engine + flutter-release
+    await tester.pump(); //an invalid state will generate delayed network responses
+
+    //if a delayed network request come in, from a previous invalid state: cocoon + engine - release, no exceptions should be raised
+    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'cocoon',
+      'branch': 'engine-release',
+    });
+  });
+
   testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {
     binding.window.physicalSizeTestValue = const Size(500, 500);
     binding.window.devicePixelRatioTestValue = 1.0;

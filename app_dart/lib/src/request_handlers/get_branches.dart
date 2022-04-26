@@ -47,7 +47,7 @@ class GetBranches extends RequestHandler<Body> {
   ProcessRunner? processRunner;
 
   static const String kUpdateBranchParam = 'update';
-  static const Duration kActiveBranchActivityPeriod = Duration(days: 60);
+  static const Duration kActiveBranchActivity = Duration(days: 60);
 
   @override
   Future<Body> get() async {
@@ -56,7 +56,7 @@ class GetBranches extends RequestHandler<Body> {
     final List<Branch> branches = await datastore
         .queryBranches()
         .where((Branch b) =>
-            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivityPeriod.inMilliseconds)
+            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds)
         .toList();
     return Body.forJson(branches);
   }

@@ -223,10 +223,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           branch = selectedBranch;
           _updateNavigation(context, _buildState);
         },
-        items:
-            // FOR REVIEW: to ensure a valid transition no matter what invalid combinations of repo + branch user inputed,
-            // we preserve that invalid combination as a single entry, along with the other valid combinations
-            [
+        items: [
+          // To ensure a valid transition no matter what invalid combinations of repo + branch user inputed,
+          // we preserve that invalid combination as a single entry, along with the other valid combinations
+          // corresponding test is "ensure smooth transition between invalid state"
           DropdownMenuItem<String>(
             value: _buildState.currentBranch,
             child: Padding(
@@ -234,11 +234,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               child: Center(child: Text(_buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
             ),
           ),
+          // we use _buildstate.repo/branch instead of repo/branch for the check, to handle delayed network
+          // requests from previous invalid states.
           ..._buildState.branches
               .where((Branch b) => b.repository == _buildState.currentRepo && b.branch != _buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
-// FOR REVIW: ended up using _buildstate for the check, debugged really long but wasn't sure why [repo] will sometimes lag [_buildState.currentRepo],
-// seems like delayed network but not sure
             return DropdownMenuItem<String>(
               value: b.branch,
               child: Padding(
