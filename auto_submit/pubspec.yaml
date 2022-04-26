@@ -25,7 +25,7 @@ dependencies:
   
 
 dev_dependencies:
-  build_runner: ^2.1.1
+  build_runner: ^2.1.10
   linter: ^1.22.0
   lints: ^1.0.0
   mockito: ^5.0.14
