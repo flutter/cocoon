@@ -33,10 +33,10 @@ class Target {
   final RepositorySlug slug;
 
   /// Target prefixes that indicate it will run on an ios device.
-  static const List<String> iosPlatforms = <String>['mac_ios', 'mac_ios32'];
+  static const List<String> iosPlatforms = <String>['mac_ios', 'mac_arm64_ios'];
 
   /// Dimension list defined in .ci.yaml.
-  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model', 'cores'];
+  static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model', 'cores', 'cpu'];
 
   /// Gets dimensions for this [pb.Target].
   ///

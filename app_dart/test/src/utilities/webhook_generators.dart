@@ -4,15 +4,19 @@
 
 import 'package:cocoon_service/src/service/config.dart';
 
-String generatePullRequestEvent(String action, int number, String baseRef,
-        {String login = 'flutter',
-        String headRef = 'wait_for_reassemble',
-        bool includeCqLabel = false,
-        bool isDraft = false,
-        bool merged = false,
-        String repoFullName = 'flutter/flutter',
-        String repoName = 'flutter',
-        bool isMergeable = true}) =>
+String generatePullRequestEvent(
+  String action,
+  int number,
+  String baseRef, {
+  String login = 'flutter',
+  String headRef = 'wait_for_reassemble',
+  bool includeCqLabel = false,
+  bool isDraft = false,
+  bool merged = false,
+  String repoFullName = 'flutter/flutter',
+  String repoName = 'flutter',
+  bool isMergeable = true,
+}) =>
     '''{
   "action": "$action",
   "number": $number,

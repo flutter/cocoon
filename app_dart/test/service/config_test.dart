@@ -25,7 +25,7 @@ void main() {
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
 
       await cacheService.set(
-        'config',
+        Config.configCacheName,
         'githubapp_installations',
         cachedValue,
       );
@@ -37,7 +37,7 @@ void main() {
       const String configValue = 'githubToken';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
       await cacheService.set(
-        'config',
+        Config.configCacheName,
         'githubToken-${Config.flutterSlug}',
         cachedValue,
       );
@@ -55,6 +55,15 @@ void main() {
         config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
         isNot(contains('package:flutter')),
       );
+    });
+
+    test('flutter branches', () async {
+      final List<String> branches = <String>['master', 'main', 'flutter-2.13-candidate.0'];
+      final Uint8List branchesBytes = Uint8List.fromList(branches.join(',').codeUnits);
+      await cacheService.set(Config.configCacheName, 'flutterBranches', branchesBytes);
+      expect(await config.getSupportedBranches(Config.flutterSlug), <String>['master', 'flutter-2.13-candidate.0']);
+      expect(await config.getSupportedBranches(Config.engineSlug), <String>['main', 'flutter-2.13-candidate.0']);
+      expect(await config.getSupportedBranches(Config.cocoonSlug), <String>['main']);
     });
   });
 }

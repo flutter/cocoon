@@ -114,7 +114,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           child: FocusTraversalGroup(
             child: SizedBox(
               width: 500,
-              height: 350,
+              height: 360,
               child: ListView(
                 children: <Widget>[
                   if (_smallScreen) ..._slugSelection(context, _buildState),

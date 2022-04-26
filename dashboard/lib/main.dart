@@ -6,6 +6,7 @@ import 'dart:io' if (kIsWeb) '';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'build_dashboard_page.dart';
 import 'index_page.dart';
@@ -52,6 +53,8 @@ void main([List<String> args = const <String>[]]) {
       child: Now(child: const MyApp()),
     ),
   );
+  // Enable extensions like Vimium to traverse the dashboard
+  RendererBinding.instance.setSemanticsEnabled(true);
 }
 
 class MyApp extends StatelessWidget {

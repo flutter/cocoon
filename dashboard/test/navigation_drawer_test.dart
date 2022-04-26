@@ -36,7 +36,6 @@ void main() {
       expect(find.text('Build'), findsOneWidget);
       expect(find.text('Framework Benchmarks'), findsOneWidget);
       expect(find.text('Engine Benchmarks'), findsOneWidget);
-      expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
       await tester.drag(find.text('Source Code'), const Offset(0.0, -100));
       await tester.pump();
@@ -81,21 +80,6 @@ void main() {
 
       expect(urlLauncher.launches, isNotEmpty);
       expect(urlLauncher.launches.single, 'https://flutter-engine-perf.skia.org/');
-    });
-
-    testWidgets('repository opens repository html url', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: NavigationDrawer(),
-        ),
-      );
-
-      expect(find.text('Repository'), findsOneWidget);
-      await tester.tap(find.text('Repository'));
-      await tester.pump();
-
-      expect(urlLauncher.launches, isNotEmpty);
-      expect(urlLauncher.launches.single, '/repository.html');
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {

@@ -71,7 +71,7 @@ class UpdateBranches extends RequestHandler<Body> {
     DateTime timeNow = DateTime.now();
 
     processManager ??= const LocalProcessManager();
-    final Set<RepositorySlug> slugs = Config.supportedRepos;
+    final Set<RepositorySlug> slugs = config.supportedRepos;
     for (RepositorySlug slug in slugs) {
       ProcessResult result =
           processManager!.runSync(['git', 'ls-remote', '--heads', 'git@github.com:flutter/${slug.name}']);

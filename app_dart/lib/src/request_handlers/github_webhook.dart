@@ -7,7 +7,8 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:crypto/crypto.dart';
-import 'package:github/github.dart' show PullRequest, RepositorySlug, GitHub, PullRequestFile, IssueComment;
+import 'package:github/github.dart'
+    show CreatePullRequestReview, GitHub, IssueComment, PullRequest, PullRequestFile, RepositorySlug;
 import 'package:github/hooks.dart';
 
 import '../model/github/checks.dart' as cocoon_checks;
@@ -134,6 +135,7 @@ class GithubWebhook extends RequestHandler<Body> {
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
+        await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'labeled':
         break;
@@ -179,6 +181,29 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     await scheduler.triggerPresubmitTargets(pullRequest: pr);
+  }
+
+  /// Release tooling generates cherrypick pull requests that should be granted an approval.
+  Future<void> _tryReleaseApproval(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final PullRequest pr = pullRequestEvent.pullRequest!;
+    final RepositorySlug slug = pullRequestEvent.repository!.slug();
+
+    if (pr.head?.ref == null && pr.head!.ref!.contains(Config.defaultBranch(slug))) {
+      // This isn't a release branch PR
+      return;
+    }
+
+    final List<String> releaseAccounts = await config.releaseAccounts;
+    if (releaseAccounts.contains(pr.user?.login) == false) {
+      // The author isn't in the list of release accounts, do nothing
+      return;
+    }
+
+    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
+    await gitHubClient.pullRequests.createReview(slug, review);
   }
 
   Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
@@ -231,18 +256,11 @@ class GithubWebhook extends RequestHandler<Body> {
           !filename.contains('.github') &&
           !filename.endsWith('.md') &&
           !filename.contains('CODEOWNERS') &&
-          !filename.startsWith('dev/devicelab/bin/tasks') &&
-          !filename.startsWith('dev/devicelab/lib/tasks') &&
           !filename.startsWith('dev/bots/')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
-      if ((filename.endsWith('_test.dart') ||
-              filename.endsWith('.expect') ||
-              filename.contains('test_fixes') ||
-              filename.startsWith('dev/bots/test.dart') ||
-              filename.startsWith('dev/bots/analyze.dart')) &&
-          !kNotActuallyATest.any(filename.endsWith)) {
+      if (_isATest(filename)) {
         hasTests = true;
       }
       labels.addAll(getLabelsForFrameworkPath(filename));
@@ -263,6 +281,19 @@ class GithubWebhook extends RequestHandler<Body> {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
     }
+  }
+
+  bool _isATest(String filename) {
+    if (kNotActuallyATest.any(filename.endsWith)) {
+      return false;
+    }
+    return filename.endsWith('_test.dart') ||
+        filename.endsWith('.expect') ||
+        filename.contains('test_fixes') ||
+        filename.startsWith('dev/bots/analyze.dart') ||
+        filename.startsWith('dev/bots/test.dart') ||
+        filename.startsWith('dev/devicelab/bin/tasks') ||
+        filename.startsWith('dev/devicelab/lib/tasks');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
@@ -287,6 +318,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'examples/api/': <String>['d: examples', 'team', 'd: api docs', 'documentation'],
       'examples/flutter_gallery/': <String>['d: examples', 'team', 'team: gallery'],
       'packages/flutter_tools/': <String>['tool'],
+      'packages/flutter_tools/lib/src/ios/': <String>['platform-ios'],
       'packages/flutter/': <String>['framework'],
       'packages/flutter_driver/': <String>['framework', 'a: tests'],
       'packages/flutter_localizations/': <String>['a: internationalization'],

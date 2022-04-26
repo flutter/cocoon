@@ -49,6 +49,7 @@ class LuciBuildService {
 
   static const Set<Status> failStatusSet = <Status>{Status.canceled, Status.failure, Status.infraFailure};
 
+  static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
 

@@ -41,7 +41,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
-    for (RepositorySlug slug in Config.supportedRepos) {
+    for (RepositorySlug slug in config.supportedRepos) {
       try {
         log.info('Checking PRs for $slug');
         await _checkPRs(slug, client);

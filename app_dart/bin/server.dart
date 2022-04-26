@@ -111,6 +111,10 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+      '/api/scheduler/batch-backfiller': BatchBackfiller(
+        config: config,
+        scheduler: scheduler,
+      ),
       '/api/scheduler/batch-request-subscription': SchedulerRequestSubscription(
         cache: cache,
         config: config,
@@ -267,9 +271,6 @@ Future<void> main() async {
 
         const Map<String, String> redirects = <String, String>{
           '/build.html': '/#/build',
-          '/repository': '/repository/index.html',
-          '/repository/': '/repository/index.html',
-          '/repository.html': '/repository/index.html',
         };
         if (redirects.containsKey(filePath)) {
           request.response.statusCode = HttpStatus.permanentRedirect;

@@ -17,7 +17,7 @@ void main() {
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
-    expect(filter.showLuci, true);
+    expect(filter.showiOS, true);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
@@ -55,7 +55,7 @@ void main() {
     expect(TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
         TaskGridFilter()..messageFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'showLuci': 'false'}), TaskGridFilter()..showLuci = false);
+    expect(TaskGridFilter.fromMap(<String, String>{'showMac': 'false'}), TaskGridFilter()..showMac = false);
   });
 
   test('cross check on inequality', () {
@@ -65,7 +65,7 @@ void main() {
       TaskGridFilter()..authorFilter = RegExp('foo'),
       TaskGridFilter()..messageFilter = RegExp('foo'),
       TaskGridFilter()..hashFilter = RegExp('foo'),
-      TaskGridFilter()..showLuci = false,
+      TaskGridFilter()..showLinux = false,
     ];
     for (final TaskGridFilter filter in nonDefaultFilters) {
       expect(filter, isNot(equals(defaultFilter)));
@@ -90,7 +90,23 @@ void main() {
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah foo blah')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
+    }
+  });
+
+  test('matches task name simple substring case insensitive', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter.fromMap(<String, String>{'taskFilter': 'foo'}),
+      TaskGridFilter()..taskFilter = RegExp('foo'),
+      TaskGridFilter()..taskFilter = RegExp('FOO'),
+    ];
+    expect(filters[0], filters[1]);
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'blah fOO blah')), true);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')), false);
     }
   });
@@ -110,7 +126,7 @@ void main() {
   });
 
   void testStage(
-      {required String stageName,
+      {required String taskName,
       required String fieldName,
       required TaskGridFilter trueFilter,
       required TaskGridFilter falseFilter}) {
@@ -124,21 +140,30 @@ void main() {
     expect(falseFilter, isNot(equals(trueFilterMap)));
     expect(falseFilter, isNot(equals(trueFilter)));
 
-    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
-    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), true);
+    expect(trueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
+    expect(trueFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), true);
 
-    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
-    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..stageName = stageName)), false);
+    expect(falseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
+    expect(falseFilterMap.matchesTask(QualifiedTask.fromTask(Task()..builderName = taskName)), false);
   }
 
-  test('matches Luci stage', () {
-    testStage(
-      stageName: StageName.luci,
-      fieldName: 'showLuci',
-      trueFilter: TaskGridFilter()..showLuci = true,
-      falseFilter: TaskGridFilter()..showLuci = false,
-    );
-  });
+  const Map<String, String> showOSs = {
+    'showMac': 'Mac',
+    'showWindows': 'Windows',
+    'showiOS': 'ios',
+    'showLinux': 'Linux',
+    'showAndroid': 'Android',
+  };
+  for (MapEntry<String, String> os in showOSs.entries) {
+    test('matches ${os.value} stage', () {
+      testStage(
+        taskName: os.value,
+        fieldName: os.key,
+        trueFilter: TaskGridFilter.fromMap(<String, String>{os.key: 'true'}),
+        falseFilter: TaskGridFilter.fromMap(<String, String>{os.key: 'false'}),
+      );
+    });
+  }
 
   test('matches author name simple substring', () {
     final List<TaskGridFilter> filters = <TaskGridFilter>[
