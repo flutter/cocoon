@@ -65,10 +65,17 @@ void main() {
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(
-        rollerAccountsValue: <String>{},
-        githubGraphQLClient: githubGraphQLClient,
-        cirrusGraphQLClient: cirrusGraphQLClient,
-      );
+          rollerAccountsValue: <String>{},
+          githubGraphQLClient: githubGraphQLClient,
+          cirrusGraphQLClient: cirrusGraphQLClient,
+          supportedReposValue: <RepositorySlug>{
+            Config.cocoonSlug,
+            Config.engineSlug,
+            Config.flutterSlug,
+            Config.packagesSlug,
+            Config.pluginsSlug,
+            Config.impellerSlug,
+          });
       flutterRepoPRs.clear();
       statuses.clear();
       cirrusGraphQLClient.mutateResultForOptions =
@@ -145,7 +152,15 @@ void main() {
           rollerAccountsValue: <String>{},
           cirrusGraphQLClient: cirrusGraphQLClient,
           githubGraphQLClient: githubGraphQLClient,
-          githubClient: mockGitHubClient);
+          githubClient: mockGitHubClient,
+          supportedReposValue: <RepositorySlug>{
+            Config.cocoonSlug,
+            Config.engineSlug,
+            Config.flutterSlug,
+            Config.packagesSlug,
+            Config.pluginsSlug,
+            Config.impellerSlug,
+          });
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       branch = null;
       totSha = null;
