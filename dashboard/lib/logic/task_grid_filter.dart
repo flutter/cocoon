@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-
+import 'package:collection/collection.dart';
 import '../logic/qualified_task.dart';
 import '../model/commit_status.pb.dart';
 import '../widgets/filter_property_sheet.dart';
@@ -154,26 +154,18 @@ class TaskGridFilter extends FilterPropertySource {
     if (!_taskProperty.matches(qualifiedTask.task!)) {
       return false;
     }
-    const Map<String, String> showOSs = {
-      'showMac': 'mac',
-      'showWindows': 'windows',
-      'showiOS': 'ios',
-      'showLinux': 'linux',
-      'showAndroid': 'android',
-    };
 
-    // Replacing mac_ios by ios only, so that filtering out mac doesn't remove ios.
-    // Same for *_android
-    String compareStr =
-        qualifiedTask.task!.toLowerCase().replaceAll('mac_ios', 'ios').replaceAll(RegExp(r'[a-z]*_android'), 'android');
-    for (MapEntry<String, String> os in showOSs.entries) {
-      if (!_allProperties[os.key]?.value && compareStr.contains(os.value)) {
-        return false;
-      }
-    }
-
-    // Unrecognized stages always pass.
-    return true;
+    LinkedHashMap<String, bool> orderedOSFilter = LinkedHashMap<String, bool>.of({
+      'ios': _allProperties['showiOS']?.value ?? false,
+      'android': _allProperties['showAndroid']?.value ?? false,
+      'mac': _allProperties['showMac']?.value ?? false,
+      'windows': _allProperties['showWindows']?.value ?? false,
+      'linux': _allProperties['showLinux']?.value ?? false,
+    });
+    return orderedOSFilter.entries
+            .firstWhereOrNull((MapEntry<String, bool> os) => qualifiedTask.task!.toLowerCase().contains(os.key))
+            ?.value ??
+        true;
   }
 
   /// Convert the filter into a String map (with or without default values populated) that
