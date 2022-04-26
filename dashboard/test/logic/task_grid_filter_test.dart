@@ -165,6 +165,17 @@ void main() {
     });
   }
 
+  test('matches ios and android (replace) filters logic', () {
+    final TaskGridFilter iosFilter = TaskGridFilter.fromMap(<String, String>{'showiOS': 'true'});
+    final TaskGridFilter androidFilter = TaskGridFilter.fromMap(<String, String>{'showAndroid': 'true'});
+    final TaskGridFilter androidFalseFilter = TaskGridFilter.fromMap(<String, String>{'showAndroid': 'false'});
+
+    expect(iosFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_iOS')), true);
+    expect(androidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_Android')), true);
+    expect(androidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_Android')), true);
+    expect(androidFalseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Anything_Android')), false);
+  });
+
   test('matches author name simple substring', () {
     final List<TaskGridFilter> filters = <TaskGridFilter>[
       TaskGridFilter.fromMap(<String, String>{'authorFilter': 'foo'}),
