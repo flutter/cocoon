@@ -491,7 +491,8 @@ class LuciBuildService {
     final Map<String, Object> processedProperties = target.getProperties();
     processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
-    processedProperties['exe_cipd_version'] = 'refs/heads/${commit.branch}';
+    final String cipdVersion = 'refs/heads/${commit.branch}';
+    processedProperties['exe_cipd_version'] = cipdVersion;
     return ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
@@ -499,6 +500,9 @@ class LuciBuildService {
         builder: target.value.name,
       ),
       dimensions: target.getDimensions(),
+      exe: <String, dynamic>{
+        'cipdVersion': cipdVersion,
+      },
       gitilesCommit: GitilesCommit(
         project: 'mirrors/${commit.slug.name}',
         host: 'flutter.googlesource.com',
