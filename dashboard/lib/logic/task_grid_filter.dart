@@ -165,7 +165,7 @@ class TaskGridFilter extends FilterPropertySource {
     return orderedOSFilter.entries
             .firstWhereOrNull((MapEntry<String, bool> os) => qualifiedTask.task!.toLowerCase().contains(os.key))
             ?.value ??
-        true;
+        true; // Unrecognized stages always pass.
   }
 
   /// Convert the filter into a String map (with or without default values populated) that
