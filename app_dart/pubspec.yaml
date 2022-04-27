@@ -14,7 +14,7 @@ dependencies:
   appengine: ^0.13.2
   collection: ^1.16.0
   corsac_jwt: ^1.0.0-nullsafety.1
-  crypto: ^3.0.1
+  crypto: ^3.0.2
   dbcrypt: ^2.0.0
   file: ^6.1.2
   fixnum: ^1.0.0
