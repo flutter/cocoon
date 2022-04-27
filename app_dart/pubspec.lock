@@ -28,7 +28,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.1"
+    version: "0.13.2"
   archive:
     dependency: transitive
     description:
@@ -252,7 +252,7 @@ packages:
       name: github
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.1.0"
+    version: "9.2.0"
   glob:
     dependency: transitive
     description:
@@ -280,7 +280,7 @@ packages:
       name: gql
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   gql_dedupe_link:
     dependency: transitive
     description:
@@ -406,7 +406,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.4"
+    version: "6.1.6"
   lints:
     dependency: transitive
     description:

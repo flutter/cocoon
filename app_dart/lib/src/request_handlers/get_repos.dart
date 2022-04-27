@@ -20,7 +20,7 @@ class GetRepos extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final List<String> repos = Config.supportedRepos.map((RepositorySlug slug) => slug.name).toList();
+    final List<String> repos = config.supportedRepos.map((RepositorySlug slug) => slug.name).toList();
     return Body.forJson(repos);
   }
 }
