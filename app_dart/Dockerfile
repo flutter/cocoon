@@ -5,7 +5,7 @@
 
 # The VM service listens on port 8181
 
-FROM google/dart-runtime@sha256:401b118e8fe9b791129d156f0918c740d441e94a395c8b37167315a4318ace6f
+FROM google/dart-runtime:dev:@sha256:401b118e8fe9b791129d156f0918c740d441e94a395c8b37167315a4318ace6f
 
 ################################################################################
 # For local development & testing, you need to create a service account
