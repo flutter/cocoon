@@ -9,5 +9,3 @@
 set -ex
 
 dart pub global activate tuneup
-flutter channel master
-flutter upgrade
