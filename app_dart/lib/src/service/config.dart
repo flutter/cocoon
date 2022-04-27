@@ -306,6 +306,9 @@ class Config {
   static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
   static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
 
+  /// Flutter recipes is hosted on Gerrit instead of GitHub.
+  static RepositorySlug get recipesSlug => RepositorySlug('flutter', 'recipes');
+
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
   /// The names of autoroller accounts for the repositories.

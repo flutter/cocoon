@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
@@ -189,3 +190,22 @@ github.PullRequest generatePullRequest({
     merged: merged,
   );
 }
+
+GerritCommit generateGerritCommit(int i) => GerritCommit(
+      commit: 'sha$i',
+      tree: 'main',
+      author: GerritUser(
+        email: 'dash@flutter.dev',
+        time: DateTime.fromMillisecondsSinceEpoch(i),
+      ),
+    );
+
+github.RepositoryCommit generateGitCommit(int i) => github.RepositoryCommit(
+      commit: github.GitCommit(
+        committer: github.GitCommitUser(
+          'dash',
+          'dash@flutter.dev',
+          DateTime.fromMillisecondsSinceEpoch(i),
+        ),
+      ),
+    );

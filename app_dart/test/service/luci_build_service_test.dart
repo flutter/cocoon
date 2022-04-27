@@ -234,7 +234,8 @@ void main() {
         gerritService: mockGerritService,
         pubsub: pubsub,
       );
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
+      when(mockGerritService.branches(any, any, subString: anyNamed('subString')))
+          .thenAnswer((_) async => <String>['master']);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 

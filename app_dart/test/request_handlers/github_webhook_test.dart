@@ -2646,9 +2646,6 @@ void foo() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       await tester.post(webhook);
-
-      expect(webhook.branchService, isNotNull);
-      expect(webhook.branchService!.rawRequest, request.body);
     });
   });
 

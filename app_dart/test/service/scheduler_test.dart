@@ -110,7 +110,8 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
       mockGerritService = MockGerritService();
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
+      when(mockGerritService.branches(any, any, subString: anyNamed('subString')))
+          .thenAnswer((_) async => <String>['master']);
       scheduler = Scheduler(
         cache: cache,
         config: config,
