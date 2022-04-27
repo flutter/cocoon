@@ -224,9 +224,6 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           _updateNavigation(context, _buildState);
         },
         items: [
-          // To ensure a valid transition no matter what invalid combinations of repo + branch user inputed,
-          // we preserve that invalid combination as a single entry, along with the other valid combinations
-          // corresponding test is "ensure smooth transition between invalid state"
           DropdownMenuItem<String>(
             value: _buildState.currentBranch,
             child: Padding(
@@ -234,8 +231,6 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               child: Center(child: Text(_buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
             ),
           ),
-          // we use _buildstate.repo/branch instead of repo/branch for the check, to handle delayed network
-          // requests from previous invalid states.
           ..._buildState.branches
               .where((Branch b) => b.repository == _buildState.currentRepo && b.branch != _buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
