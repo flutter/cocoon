@@ -84,11 +84,11 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
               queryResult.graphQLId, queryResult.sha!, queryResult.number!, queryResult.title, queryResult.slug);
           if (mergeResult) {
             responses.add(<int, String>{queryResult.number!: 'merged'});
+            await pubsub.acknowledge('auto-submit-queue-sub', queryResult.ackId!);
           } else {
             responses.add(<int, String>{queryResult.number!: 'unmerged'});
           }
         } else {
-          await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
           responses.add(<int, String>{queryResult.number!: 'queued'});
         }
       }
@@ -133,7 +133,12 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
     await autoMergeBranch(pullRequest, gitHub);
 
-    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
+    final _AutoMergeQueryResult queryResult = await _parseQueryData(
+      pullRequest,
+      gitHub,
+      graphQLClient,
+      receivedMessage.ackId!,
+    );
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
       if (hasAutosubmitLabel) {
@@ -141,7 +146,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
           repoPullRequestsMap[slug.fullName] = <_AutoMergeQueryResult>{};
         }
         repoPullRequestsMap[slug.fullName]!.add(queryResult);
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        //await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
@@ -256,7 +261,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   ///
   /// This method will not return null, but may return an empty list.
   Future<_AutoMergeQueryResult> _parseQueryData(
-      PullRequest pr, GithubService gitHub, GraphQLClient graphQLClient) async {
+      PullRequest pr, GithubService gitHub, GraphQLClient graphQLClient, String? ackId) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
@@ -335,6 +340,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       isConflicting: isConflicting,
       unknownMergeableState: unknownMergeableState,
       labels: labelNames,
+      ackId: ackId,
     );
   }
 
@@ -474,6 +480,7 @@ class _AutoMergeQueryResult {
     required this.unknownMergeableState,
     required this.labels,
     required this.slug,
+    required this.ackId,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -514,6 +521,9 @@ class _AutoMergeQueryResult {
 
   /// The slug of the repository
   final RepositorySlug slug;
+
+  /// The pub/sub ackId.
+  final String? ackId;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>

@@ -164,7 +164,7 @@ class Config {
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
-        'dependabot',
+        'dependabot[bot]',
       };
 
   /// The label which shows the overrideTreeStatus.

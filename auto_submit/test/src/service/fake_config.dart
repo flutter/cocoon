@@ -53,7 +53,7 @@ class FakeConfig extends Config {
       const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
-        'dependabot',
+        'dependabot[bot]',
       };
 
   @override
