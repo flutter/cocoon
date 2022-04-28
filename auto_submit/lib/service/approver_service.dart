@@ -12,7 +12,7 @@ class ApproverService {
 
   final Config config;
 
-  approve(PullRequest pullRequest) async {
+  Future<void> approve(PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
 
     if (!config.rollerAccounts.contains(author)) {
