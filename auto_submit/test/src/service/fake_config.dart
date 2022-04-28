@@ -40,6 +40,9 @@ class FakeConfig extends Config {
   Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
 
   @override
+  Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async => githubClient!;
+
+  @override
   Future<GithubService> createGithubService(RepositorySlug slug) async => githubService ?? FakeGithubService();
 
   @override
@@ -62,5 +65,10 @@ class FakeConfig extends Config {
   @override
   Future<String> getWebhookKey() async {
     return webhookKey ?? 'not_a_real_key';
+  }
+
+  @override
+  Future<String> getFlutterGitHubBotToken() async {
+    return 'not_a_real_token';
   }
 }
