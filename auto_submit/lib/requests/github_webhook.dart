@@ -20,7 +20,7 @@ import '../requests/exceptions.dart';
 /// On events where an 'autosubmit' label was added to a pull request,
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
-  GithubWebhook({
+  const GithubWebhook({
     required Config config,
     this.pubsub = const PubSub(),
   }) : super(config: config);
@@ -48,11 +48,11 @@ class GithubWebhook extends RequestHandler {
     final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
-    if (!body.containsKey('pull_request') || !body['pull_request'].containsKey('labels')) {
+    if (!body.containsKey('pull_request') || !((body['pull_request'] as Map<String, dynamic>).containsKey('labels'))) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
-    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request']);
+    final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
 
     if (hasAutosubmit) {

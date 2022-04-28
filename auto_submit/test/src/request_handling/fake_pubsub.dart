@@ -26,7 +26,7 @@ class FakePubSub extends PubSub {
     if (messagesQueue.isNotEmpty) {
       int i = 0;
       while (i < min(100, messagesQueue.length)) {
-        receivedMessages.add(ReceivedMessage(message: PubsubMessage(data: messagesQueue[i]), ackId: '1'));
+        receivedMessages.add(ReceivedMessage(message: PubsubMessage(data: messagesQueue[i] as String), ackId: '1'));
         i++;
       }
       return PullResponse(receivedMessages: receivedMessages);
