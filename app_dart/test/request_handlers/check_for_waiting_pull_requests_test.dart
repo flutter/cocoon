@@ -138,7 +138,7 @@ void main() {
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String? branch;
-    String? totSha;
+    String totSha;
     GitHubComparison? githubComparison;
 
     setUp(() {
@@ -163,13 +163,14 @@ void main() {
           });
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       branch = null;
-      totSha = null;
+      totSha = 'abc';
+      cocoonRepoPRs.clear();
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
-      githubComparison = null;
+      githubComparison = GitHubComparison('test', 'test', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
       when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'flutter'), 'HEAD~'))
@@ -180,11 +181,19 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
       });
-      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), 'abc', 'deadbeef'))
+      when(mockRepositoriesService.getCommit(RepositorySlug('flutter', 'cocoon'), 'HEAD~'))
+          .thenAnswer((Invocation invocation) {
+        return Future<RepositoryCommit>.value(RepositoryCommit(sha: totSha));
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'flutter'), totSha, 'deadbeef'))
           .thenAnswer((Invocation invocation) {
         return Future<GitHubComparison>.value(githubComparison);
       });
-      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), 'abc', 'deadbeef'))
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'engine'), totSha, 'deadbeef'))
+          .thenAnswer((Invocation invocation) {
+        return Future<GitHubComparison>.value(githubComparison);
+      });
+      when(mockRepositoriesService.compareCommits(RepositorySlug('flutter', 'cocoon'), totSha, 'deadbeef'))
           .thenAnswer((Invocation invocation) {
         return Future<GitHubComparison>.value(githubComparison);
       });
@@ -475,7 +484,6 @@ void main() {
     });
 
     test('Merge a clean revert PR with in progress tests', () async {
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
@@ -492,6 +500,39 @@ void main() {
         ],
         lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
         labels: waitForTreeGreenlabels,
+      );
+      flutterRepoPRs.add(prRequested);
+
+      await tester.get(handler);
+
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
+    test('Merge a clean revert PR ignoring latency', () async {
+      githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[]);
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'COMPLETED', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      branch = 'pull/0';
+
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxCompletedRunning,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+        lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
+        labels: waitForTreeGreenlabels,
+        dateTime: DateTime.now().add(const Duration(minutes: -10)),
       );
       flutterRepoPRs.add(prRequested);
 
@@ -539,7 +580,6 @@ void main() {
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -576,7 +616,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested =
@@ -610,7 +649,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -679,13 +717,13 @@ This pull request is not suitable for automatic merging in its current state.
         ],
         labels: waitForTreeGreenlabels,
       );
-      flutterRepoPRs.add(prRequested);
+      cocoonRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
           document: mergePullRequestMutation,
-          variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
+          variables: getMergePullRequestVariables(cocoonRepoPRs.first.id),
         ),
       ]);
     });
@@ -695,7 +733,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -731,7 +768,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -791,7 +827,6 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge PR with failed tests', () async {
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
@@ -830,7 +865,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
@@ -913,7 +947,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       flutterRepoPRs.add(PullRequestHelper(labels: waitForTreeGreenlabels));
       flutterRepoPRs.add(PullRequestHelper(
@@ -992,7 +1025,6 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Unlabels red PRs', () async {
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
@@ -1059,7 +1091,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
@@ -1129,7 +1160,6 @@ This pull request is not suitable for automatic merging in its current state.
       statuses = <dynamic>[
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
-      totSha = 'abc';
       githubComparison = GitHubComparison('abc', 'def', 0, 0, 0, <CommitFile>[CommitFile(name: 'test')]);
       final PullRequestHelper prOneBadReview = PullRequestHelper(
         reviews: const <PullRequestReviewHelper>[
