@@ -9,6 +9,7 @@ export 'mocks.mocks.dart';
 
 @GenerateMocks(<Type>[
   GitHub,
+  PullRequestsService,
   RepositoriesService,
 ])
 void main() {}

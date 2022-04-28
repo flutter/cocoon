@@ -28,7 +28,8 @@ class Config {
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
-  static const String webhookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
+  static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
+  static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -43,6 +44,11 @@ class Config {
 
   Future<GitHub> createGithubClient(RepositorySlug slug) async {
     String token = await generateGithubToken(slug);
+    return GitHub(auth: Authentication.withToken(token));
+  }
+
+  Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async {
+    final String token = await getFlutterGitHubBotToken();
     return GitHub(auth: Authentication.withToken(token));
   }
 
@@ -158,6 +164,9 @@ class Config {
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
+        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+        // both as we use graphQL to merge the PR and REST API to approve the PR.
+        'dependabot[bot]',
         'dependabot',
       };
 
@@ -169,8 +178,15 @@ class Config {
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
-    final Uint8List? cacheValue = await cache[webhookKey].get(
-      () => _getValueFromSecretManager(webhookKey),
+    final Uint8List? cacheValue = await cache[kWebHookKey].get(
+      () => _getValueFromSecretManager(kWebHookKey),
+    ) as Uint8List;
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<String> getFlutterGitHubBotToken() async {
+    final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
+      () => _getValueFromSecretManager(kFlutterGitHubBotKey),
     ) as Uint8List;
     return String.fromCharCodes(cacheValue!);
   }

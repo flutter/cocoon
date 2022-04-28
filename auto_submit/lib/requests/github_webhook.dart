@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
 
 import '../request_handling/pubsub.dart';
+import '../service/approver_service.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
@@ -57,6 +58,8 @@ class GithubWebhook extends RequestHandler {
 
     if (hasAutosubmit) {
       log.info('Found pull request with auto submit label.');
+      ApproverService approver = ApproverService(config);
+      approver.approve(pullRequest);
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
 
