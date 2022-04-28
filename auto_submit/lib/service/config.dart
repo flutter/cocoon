@@ -34,7 +34,7 @@ class Config {
   final HttpProvider httpProvider;
   final SecretManager secretManager;
 
-  Cache get cache => Cache(cacheProvider).withPrefix('config');
+  Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGithubClient(slug);
@@ -53,7 +53,7 @@ class Config {
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
-    );
+    ) as Uint8List;
     return String.fromCharCodes(cacheValue!);
   }
 
@@ -71,7 +71,7 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    final List<Map<String, dynamic>> list = json.decode(response.body).toList() as List<Map<String, dynamic>>;
     late String installationId;
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == slug.owner) {
@@ -171,7 +171,7 @@ class Config {
   Future<String> getWebhookKey() async {
     final Uint8List? cacheValue = await cache[webhookKey].get(
       () => _getValueFromSecretManager(webhookKey),
-    );
+    ) as Uint8List;
     return String.fromCharCodes(cacheValue!);
   }
 

@@ -26,9 +26,9 @@ abstract class RequestHandler {
     try {
       switch (request.method) {
         case 'GET':
-          return await get();
+          return await get() as Response;
         case 'POST':
-          return await post(request);
+          return await post(request) as Response;
         default:
           throw MethodNotAllowed(request.method);
       }

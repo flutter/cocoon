@@ -26,7 +26,7 @@ Future<void> main() async {
       cacheProvider: cache,
       secretManager: CloudSecretManager(),
     );
-    final CronAuthProvider authProvider = CronAuthProvider();
+    const CronAuthProvider authProvider = CronAuthProvider();
 
     final Router router = Router()
       ..post(

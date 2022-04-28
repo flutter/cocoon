@@ -33,7 +33,7 @@ const int _kBehindToT = 10;
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
 class CheckPullRequest extends AuthenticatedRequestHandler {
-  CheckPullRequest({
+  const CheckPullRequest({
     required Config config,
     required CronAuthProvider cronAuthProvider,
     this.pubsub = const PubSub(),

@@ -1,30 +1,52 @@
-# This file configures the static analysis results for your project (errors,
-# warnings, and lints).
+# Specify analysis options.
 #
-# This enables the 'recommended' set of lints from `package:lints`.
-# This set helps identify many issues that may lead to problems when running
-# or consuming Dart code, and enforces writing Dart using a single, idiomatic
-# style and format.
+# Until there are meta linter rules, each desired lint must be explicitly enabled.
+# See: https://github.com/dart-lang/linter/issues/288
 #
-# If you want a smaller set of lints you can change this to specify
-# 'package:lints/core.yaml'. These are just the most critical lints
-# (the recommended set includes the core lints).
-# The core lints are also what is used by pub.dev for scoring packages.
+# For a list of lints, see: http://dart-lang.github.io/linter/lints/
+# See the configuration guide for more
+# https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
+#
+# There are other similar analysis options files in the flutter repos,
+# which should be kept in sync with this file:
+#
+#   - analysis_options.yaml (this file)
+#   - packages/flutter/lib/analysis_options_user.yaml
+#   - https://github.com/flutter/plugins/blob/master/analysis_options.yaml
+#   - https://github.com/flutter/engine/blob/master/analysis_options.yaml
+#
+# This file contains the analysis options used by Flutter tools, such as IntelliJ,
+# Android Studio, and the `flutter analyze` command.
 
-include: package:lints/recommended.yaml
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  errors:
+    # treat missing required parameters as a warning (not a hint)
+    missing_required_param: warning
+    # treat missing returns as a warning (not a hint)
+    missing_return: warning
+    # allow having TODOs in the code
+    todo: ignore
+    # Ignore analyzer hints for updating pubspecs when using Future or
+    # Stream and not importing dart:async
+    # Please see https://github.com/flutter/flutter/pull/24528 for details.
+    sdk_version_async_exported_from_core: ignore
+    implicit_dynamic_parameter: info
+  exclude:
+    - ".dart_tool/**"
+    - "**/*.g.dart"
+    - "**/*.pb.dart"
+    - "**/*.pbjson.dart"
+    - "**/*.pbenum.dart"
+    - "test/src/utilities/mocks.mocks.dart"
 
-# Uncomment the following section to specify additional rules.
+include: package:flutter_lints/flutter.yaml
 
-# linter:
-#   rules:
-#     - camel_case_types
-
-# analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
-
-# For more information about the core and recommended set of lints, see
-# https://dart.dev/go/core-lints
-
-# For additional information about configuring this file, see
-# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    # a few rules listed below are the ones we would like to exclude from flutter_lint package, for app_dart
+    # reasons for exclusions are provided in the comments to the right
+    avoid_print: false # we have necessary print calls in the code
+    constant_identifier_names: false # we have all capitalized enums in check_for_waiting_pull_requests_test.dart
