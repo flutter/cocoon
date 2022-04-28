@@ -100,7 +100,7 @@ changes to flutter/recipes pass on this target before landing.
 **dependencies**: JSON list of objects with "dependency" and optionally "version".
 The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
 Dependencies generate a corresponding swarming cache that can be used in the
-recipe code.
+recipe code. The path of the cache will be the name of the dependency.
 
 Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
 
