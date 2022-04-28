@@ -29,7 +29,7 @@ class Config {
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
-  static const String kFlutterGitHubBotKey = 'FLUTTER_GITHUB_TOKEN';
+  static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
