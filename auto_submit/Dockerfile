@@ -4,7 +4,7 @@
 
 # Use Google's official Dart image.
 # https://hub.docker.com/r/google/dart-runtime/
-FROM google/dart-runtime@sha256:20efd786c6acd80aac80da76d26fed0a5a96523ca6f1bd0d6ff43ea394f746ca
+FROM google/dart-runtime:dev:@sha256:401b118e8fe9b791129d156f0918c740d441e94a395c8b37167315a4318ace6f
 
 # ONBUILD instructions for COPY and pub get is defined in the google/dart-runtime image,
 # allowing you to keep this file very simple, see:
