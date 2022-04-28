@@ -146,7 +146,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
           repoPullRequestsMap[slug.fullName] = <_AutoMergeQueryResult>{};
         }
         repoPullRequestsMap[slug.fullName]!.add(queryResult);
-        //await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
         await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
