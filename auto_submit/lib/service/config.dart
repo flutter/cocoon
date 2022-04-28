@@ -164,7 +164,10 @@ class Config {
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
+        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+        // both as we use graphQL to merge the PR and REST API to approve the PR.
         'dependabot[bot]',
+        'dependabot',
       };
 
   /// The label which shows the overrideTreeStatus.
