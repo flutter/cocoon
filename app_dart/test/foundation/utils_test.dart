@@ -122,7 +122,7 @@ void main() {
       test('falls back to git on borg when given sha', () async {
         branchHttpClient = MockClient((http.Request request) async {
           if (request.url.toString() ==
-              'https://flutter.googlesource.com/mirrors/cocoon/+/refs/heads/master/.ci.yaml?format=text') {
+              'https://flutter.googlesource.com/mirrors/cocoon/+/refs/heads/main/.ci.yaml?format=text') {
             return http.Response(base64Encode(branchRegExp.codeUnits), HttpStatus.ok);
           }
           // Mock a GitHub outage
@@ -133,6 +133,7 @@ void main() {
         final String branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           '.ci.yaml',
+          ref: 'main',
           httpClientProvider: () => branchHttpClient,
           retryOptions: const RetryOptions(
             maxAttempts: 1,
