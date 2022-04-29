@@ -115,6 +115,7 @@ Future<Uint8List> getBranches(
       RepositorySlug('flutter', 'cocoon'),
       'app_dart/dev/branches.txt',
       httpClientProvider: httpClientProvider,
+      ref: Config.defaultBranch(Config.cocoonSlug),
       retryOptions: retryOptions,
     );
   } on HttpException {
