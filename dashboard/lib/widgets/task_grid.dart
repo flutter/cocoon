@@ -223,7 +223,7 @@ class _TaskGridState extends State<TaskGrid> {
         }
         if (commitCount <= 25) {
           String weightStatus = task.status;
-          if (task.isTestFlaky) {
+          if (task.isTestFlaky || task.isFlaky) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.attempts > 1) {
