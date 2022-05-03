@@ -47,8 +47,7 @@ void main() {
       auth = FakeCronAuthProvider();
       expectedOptions = <QueryOptions>[];
 
-      githubGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
@@ -65,7 +64,7 @@ void main() {
       flutterOption = QueryOptions(
         document: pullRequestWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
-        variables: <String, dynamic>{
+        variables: const <String, dynamic>{
           'sOwner': 'flutter',
           'sName': 'flutter',
           'sPrNumber': 0,
@@ -74,7 +73,7 @@ void main() {
       cocoonOption = QueryOptions(
         document: pullRequestWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
-        variables: <String, dynamic>{
+        variables: const <String, dynamic>{
           'sOwner': 'flutter',
           'sName': 'cocoon',
           'sPrNumber': 1,
@@ -597,13 +596,12 @@ class PullRequestHelper {
 }
 
 QueryResult createQueryResult(PullRequestHelper pullRequest) {
-  return QueryResult(
+  return createFakeQueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
         'pullRequest': pullRequest.toEntry().cast<String, dynamic>(),
       },
     },
-    source: QueryResultSource.network,
   );
 }
 
