@@ -19,8 +19,17 @@ class ApproverService {
       log.info('Auto-review ignored for $author');
       return;
     }
+
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GitHub botClient = await config.createFlutterGitHubBotClient(slug);
+
+    Stream<PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
+    await for (PullRequestReview review in reviews) {
+      if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
+        // Already approved.
+        return;
+      }
+    }
 
     final CreatePullRequestReview review =
         CreatePullRequestReview(slug.owner, slug.name, pullRequest.number!, 'APPROVE');
