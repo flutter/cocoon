@@ -21,15 +21,15 @@ class FakeGraphQLClient implements GraphQLClient {
   final List<MutationOptions> mutations = <MutationOptions>[];
 
   @override
-  Future<QueryResult<TParsed>> mutate<TParsed>(MutationOptions options) async {
+  Future<QueryResult<T>> mutate<T>(MutationOptions options) async {
     mutations.add(options);
-    return mutateResultForOptions(options) as QueryResult<TParsed>;
+    return mutateResultForOptions(options) as QueryResult<T>;
   }
 
   @override
-  Future<QueryResult<TParsed>> query<TParsed>(QueryOptions options) async {
+  Future<QueryResult<T>> query<T>(QueryOptions options) async {
     queries.add(options);
-    return queryResultForOptions(options) as QueryResult<TParsed>;
+    return queryResultForOptions(options) as QueryResult<T>;
   }
 
   void verifyQueries(List<QueryOptions> expected) {
@@ -90,23 +90,23 @@ class FakeGraphQLClient implements GraphQLClient {
   }
 
   @override
-  Future<QueryResult<TParsed>> fetchMore<TParsed>(FetchMoreOptions fetchMoreOptions,
-      {required QueryOptions<TParsed> originalOptions, required QueryResult<TParsed> previousResult}) {
+  Future<QueryResult<T>> fetchMore<T>(FetchMoreOptions fetchMoreOptions,
+      {required QueryOptions<T> originalOptions, required QueryResult<T> previousResult}) {
     throw UnimplementedError();
   }
 
   @override
-  Stream<QueryResult<TParsed>> subscribe<TParsed>(SubscriptionOptions<TParsed> options) {
+  Stream<QueryResult<T>> subscribe<T>(SubscriptionOptions<T> options) {
     throw UnimplementedError();
   }
 
   @override
-  ObservableQuery<TParsed> watchMutation<TParsed>(WatchQueryOptions<TParsed> options) {
+  ObservableQuery<T> watchMutation<T>(WatchQueryOptions<T> options) {
     throw UnimplementedError();
   }
 
   @override
-  ObservableQuery<TParsed> watchQuery<TParsed>(WatchQueryOptions<TParsed> options) {
+  ObservableQuery<T> watchQuery<T>(WatchQueryOptions<T> options) {
     throw UnimplementedError();
   }
 }
