@@ -78,8 +78,7 @@ void main() {
           });
       flutterRepoPRs.clear();
       statuses.clear();
-      cirrusGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createCirrusQueryResult(statuses, branch);
       };
@@ -95,15 +94,17 @@ void main() {
     test('Continue with other repos if one fails', () async {
       flutterRepoPRs.add(PullRequestHelper());
 
-      githubGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       int errorIndex = 0;
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         if (errorIndex == 0) {
           errorIndex++;
-          return QueryResult(
-            exception: OperationException(graphqlErrors: <GraphQLError>[const GraphQLError(message: 'error')]),
-            source: QueryResultSource.network,
+          return createFakeQueryResult(
+            exception: OperationException(
+              graphqlErrors: <GraphQLError>[
+                const GraphQLError(message: 'error'),
+              ],
+            ),
           );
         }
         return createQueryResult(flutterRepoPRs);
@@ -198,14 +199,12 @@ void main() {
         return Future<GitHubComparison>.value(githubComparison);
       });
 
-      cirrusGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createCirrusQueryResult(statuses, branch);
       };
 
-      githubGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult(source: QueryResultSource.network);
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
 
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
@@ -308,10 +307,7 @@ void main() {
         const GraphQLError(message: 'message'),
       ];
       final OperationException exception = OperationException(graphqlErrors: errors);
-      githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(
-            exception: exception,
-            source: QueryResultSource.network,
-          );
+      githubGraphQLClient.mutateResultForOptions = (_) => createFakeQueryResult(exception: exception);
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await tester.get(handler);
@@ -1409,7 +1405,7 @@ class PullRequestHelper {
 }
 
 QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
-  return QueryResult(
+  return createFakeQueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
         'pullRequests': <String, dynamic>{
@@ -1421,15 +1417,14 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
         },
       },
     },
-    source: QueryResultSource.network,
   );
 }
 
 QueryResult createCirrusQueryResult(List<dynamic> statuses, String? branch) {
   if (statuses.isEmpty) {
-    return QueryResult(source: QueryResultSource.network);
+    return createFakeQueryResult();
   }
-  return QueryResult(
+  return createFakeQueryResult(
     data: <String, dynamic>{
       'searchBuilds': <dynamic>[
         <String, dynamic>{
@@ -1445,7 +1440,6 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses, String? branch) {
         }
       ],
     },
-    source: QueryResultSource.network,
   );
 }
 

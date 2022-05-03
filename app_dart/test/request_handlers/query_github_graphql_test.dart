@@ -52,9 +52,8 @@ void main() {
     });
 
     test('Successful query', () async {
-      graphqlClient.queryResultForOptions = (_) => QueryResult(
+      graphqlClient.queryResultForOptions = (_) => createFakeQueryResult(
             data: <String, dynamic>{'result': true},
-            source: QueryResultSource.network,
           );
       final Body body = await tester.post(handler);
       final Map<String, dynamic> result = await utf8.decoder
@@ -65,9 +64,8 @@ void main() {
     });
 
     test('Query with errors', () async {
-      graphqlClient.queryResultForOptions = (_) => QueryResult(
+      graphqlClient.queryResultForOptions = (_) => createFakeQueryResult(
             exception: OperationException(),
-            source: QueryResultSource.network,
           );
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
