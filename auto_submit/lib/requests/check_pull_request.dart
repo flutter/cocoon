@@ -145,9 +145,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   Future<Response> _processMessage(
       PullRequest pullRequest, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap, String ackId) async {
-    //final String messageData = receivedMessage.message!.data!;
-    //final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-    //final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
