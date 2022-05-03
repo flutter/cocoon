@@ -7,6 +7,7 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../requests/check_pull_request_test.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../utilities/mocks.dart';
@@ -33,11 +34,20 @@ void main() {
   });
 
   test('Verify approve', () async {
+    when(pullRequests.listReviews(any, any)).thenAnswer((_) => const Stream<PullRequestReview>.empty());
     PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
     await service.approve(pr);
     final List<dynamic> reviews = verify(pullRequests.createReview(any, captureAny)).captured;
     expect(reviews.length, 1);
     final CreatePullRequestReview review = reviews.single as CreatePullRequestReview;
     expect(review.event, 'APPROVE');
+  });
+
+  test('Already approved', () async {
+    PullRequestReview review = PullRequestReview(id: 123, user: User(login: 'fluttergithubbot'), state: 'APPROVED');
+    when(pullRequests.listReviews(any, any)).thenAnswer((_) => Stream<PullRequestReview>.value(review));
+    PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
+    await service.approve(pr);
+    verifyNever(pullRequests.createReview(any, captureAny));
   });
 }
