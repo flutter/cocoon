@@ -6,7 +6,6 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:github/github.dart';
-import 'package:gql/ast.dart';
 
 import 'package:graphql/client.dart';
 import 'package:logging/logging.dart';

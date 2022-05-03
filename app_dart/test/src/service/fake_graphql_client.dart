@@ -4,7 +4,6 @@
 
 import 'package:gql/ast.dart';
 import 'package:graphql/client.dart';
-import 'package:graphql/src/core/result_parser.dart';
 import 'package:test/test.dart';
 
 class FakeGraphQLClient implements GraphQLClient {
