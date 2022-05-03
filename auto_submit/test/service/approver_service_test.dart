@@ -7,7 +7,6 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../requests/check_pull_request_test.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../utilities/mocks.dart';
