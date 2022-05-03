@@ -76,11 +76,12 @@ PullRequest generatePullRequest(
     String? login,
     String? authorAssociation,
     String? author,
-    int? prNumber}) {
+    int? prNumber,
+    String? state}) {
   return PullRequest.fromJson(json.decode('''{
       "id": 1,
       "number": ${prNumber ?? 1347},
-      "state": "open",
+      "state": "${state ?? "open"}",
       "title": "Amazing new feature",
       "user": {
         "login": "${author ?? "octocat"}",

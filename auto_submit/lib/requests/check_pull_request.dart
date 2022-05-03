@@ -46,6 +46,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   @override
   Future<Response> get() async {
     final List<Response> responses = <Response>[];
+    final Set<int> processingLog = <int>{};
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
@@ -56,16 +57,38 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
     final Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap = <String, Set<_AutoMergeQueryResult>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message, repoPullRequestsMap));
+      final String messageData = message.message!.data!;
+      final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      if (processingLog.contains(pullRequest.number)) {
+        // Ack duplicate.
+        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+        continue;
+      } else {
+        processingLog.add(pullRequest.number!);
+      }
+      if (!await shouldProcess(pullRequest)) {
+        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+        continue;
+      }
+      futures.add(_processMessage(pullRequest, repoPullRequestsMap, message.ackId!));
     }
     responses.addAll(await Future.wait(futures));
-
     await checkPullRequests(repoPullRequestsMap);
     final StringBuffer responseMessages = StringBuffer();
     for (Response response in responses) {
       responseMessages.write(await response.readAsString());
     }
     return Response.ok(responseMessages.toString());
+  }
+
+  /// Checks if a pullRequest is still open before trying to process it.
+  Future<bool> shouldProcess(PullRequest pullRequest) async {
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
+    GitHub gitHub = await config.createGithubClient(pullRequest.base!.repo!.slug());
+    PullRequest currentPullRequest = await gitHub.pullRequests.get(slug, pullRequest.number!);
+    // Accepted states open, closed, or all.
+    return currentPullRequest.state! == 'open';
   }
 
   /// Check and merge the pull requests to each repo this cycle.
@@ -121,10 +144,10 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<Response> _processMessage(
-      pub.ReceivedMessage receivedMessage, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap) async {
-    final String messageData = receivedMessage.message!.data!;
-    final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-    final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      PullRequest pullRequest, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap, String ackId) async {
+    //final String messageData = receivedMessage.message!.data!;
+    //final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+    //final PullRequest pullRequest = PullRequest.fromJson(rawBody);
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -137,7 +160,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       pullRequest,
       gitHub,
       graphQLClient,
-      receivedMessage.ackId!,
+      ackId,
     );
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
@@ -148,7 +171,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         repoPullRequestsMap[slug.fullName]!.add(queryResult);
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         log.info('Acknowledged the pubsub.');
         return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
@@ -156,7 +179,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
       log.info('Removed the label for commit: ${queryResult.sha}');
-      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('Acknowledged the pubsub for commit: ${queryResult.sha}');
       return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {

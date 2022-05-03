@@ -8,10 +8,12 @@ import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:mockito/mockito.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:graphql/client.dart' hide Request, Response;
 
+import '../utilities/mocks.dart';
 import './github_webhook_test_data.dart';
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
@@ -30,6 +32,8 @@ void main() {
     late FakeCronAuthProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
     final FakeGithubService githubService = FakeGithubService();
+    late MockPullRequestsService pullRequests;
+    final MockGitHub gitHub = MockGitHub();
     final FakePubSub pubsub = FakePubSub();
     late PullRequestHelper flutterRequest;
     late PullRequestHelper cocoonRequest;
@@ -80,26 +84,69 @@ void main() {
           'sPrNumber': 1,
         },
       );
-    });
-
-    void _verifyQueries(List<QueryOptions> expectedOptions) {
-      githubGraphQLClient.verifyQueries(expectedOptions);
-    }
-
-    test('Merges PR with successful status and checks', () async {
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
-      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
-      for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
-      }
 
       githubService.checkRunsData = checkRunsMock;
       githubService.compareTwoCommitsData = compareTwoCommitsMock;
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.commitData = commitMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
+      pullRequests = MockPullRequestsService();
+      when(gitHub.pullRequests).thenReturn(pullRequests);
+      when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
+    });
+
+    void _verifyQueries(List<QueryOptions> expectedOptions) {
+      githubGraphQLClient.verifyQueries(expectedOptions);
+    }
+
+    test('Multiple identical messages are processed once', () async {
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo);
+      for (int i = 0; i < 3; i++) {
+        pubsub.publish('auto-submit-queue-sub', pullRequest1);
+      }
+
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      await checkPullRequest.get();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(pullRequest1.number!.toString(), pullRequest1.number!.toString()),
+          ),
+        ],
+      );
+      expect(0, pubsub.messagesQueue.length);
+    });
+
+    test('Closed PRs are not processed', () async {
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo, state: 'close');
+      when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 0, state: 'close'));
+      for (int i = 0; i < 3; i++) {
+        pubsub.publish('auto-submit-queue-sub', pullRequest1);
+      }
+
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      await checkPullRequest.get();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[],
+      );
+      expect(0, pubsub.messagesQueue.length);
+    });
+
+    test('Merges PR with successful status and checks', () async {
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (PullRequest pr in pullRequests) {
+        pubsub.publish(testTopic, pr);
+      }
+
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
@@ -134,12 +181,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: rollorAuthor);
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      githubService.commitData = commitMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -174,12 +215,6 @@ void main() {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, labelName: labelName);
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      githubService.commitData = commitMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -209,12 +244,6 @@ void main() {
     test('Merges a clean revert PR with in progress tests', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
       pubsub.publish(testTopic, pullRequest);
-      githubService.checkRunsData = inProgressCheckRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareToTCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -246,12 +275,6 @@ void main() {
       PullRequest pullRequest = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      githubService.commitData = commitMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       cocoonRequest = PullRequestHelper(
@@ -283,11 +306,6 @@ void main() {
         pubsub.publish(testTopic, pr);
       }
       githubService.checkRunsData = failedCheckRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
@@ -308,12 +326,6 @@ void main() {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -334,12 +346,6 @@ void main() {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -362,11 +368,6 @@ void main() {
       pubsub.publish(testTopic, pullRequest);
 
       githubService.checkRunsData = emptyCheckRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -390,11 +391,6 @@ void main() {
       }
 
       githubService.checkRunsData = inProgressCheckRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
@@ -421,12 +417,6 @@ void main() {
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
-      githubService.checkRunsData = checkRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
@@ -449,12 +439,6 @@ void main() {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
       pubsub.publish(testTopic, pullRequest);
 
-      githubService.checkRunsData = checkRunsMock;
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = compareTwoCommitsMock;
-      githubService.successMergeData = successMergeMock;
-      githubService.createCommentData = createCommentMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
