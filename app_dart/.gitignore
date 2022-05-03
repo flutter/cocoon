@@ -1,12 +1,6 @@
-key*.json
-
-# CIPD and Dart-SDK binaries
-.cipd/
-dart-sdk/
-
-# Build outputs
+# Files and directories created by pub.
 .dart_tool/
-build/
-.ssh/
+.packages
 
-!pubspec.lock
+# Conventional directory for build output.
+build/

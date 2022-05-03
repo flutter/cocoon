@@ -13,7 +13,7 @@ void main() {
     late CronAuthProvider auth;
 
     setUp(() {
-      auth = CronAuthProvider();
+      auth = const CronAuthProvider();
     });
 
     test('throws Unauthenticated with no auth headers', () async {

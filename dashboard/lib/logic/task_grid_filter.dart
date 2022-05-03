@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-
+import 'package:collection/collection.dart';
 import '../logic/qualified_task.dart';
 import '../model/commit_status.pb.dart';
 import '../widgets/filter_property_sheet.dart';
@@ -50,12 +50,13 @@ class TaskGridFilter extends FilterPropertySource {
   final RegExpFilterProperty _hashProperty = RegExpFilterProperty(fieldName: 'hashFilter', label: 'Commit Hash');
   final BoolFilterProperty _macProperty = BoolFilterProperty(fieldName: 'showMac', label: 'Mac');
   final BoolFilterProperty _windowsPorperty = BoolFilterProperty(fieldName: 'showWindows', label: 'Windows');
-  final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showiOS', label: 'ios');
+  final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showiOS', label: 'iOS');
   final BoolFilterProperty _linuxPorperty = BoolFilterProperty(fieldName: 'showLinux', label: 'Linux');
   final BoolFilterProperty _androidProperty = BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   LinkedHashMap<String, ValueFilterProperty<dynamic>>? _allPropertiesMap;
+
   LinkedHashMap<String, ValueFilterProperty<dynamic>> get _allProperties =>
       (_allPropertiesMap ??= (<String, ValueFilterProperty<dynamic>>{}
         ..[_taskProperty.fieldName] = _taskProperty
@@ -71,21 +72,25 @@ class TaskGridFilter extends FilterPropertySource {
   /// The [taskFilter] property is a regular expression that must match the name of the
   /// task in the grid. This property will filter out columns on the build dashboard.
   RegExp? get taskFilter => _taskProperty.regExp;
+
   set taskFilter(RegExp? regExp) => _taskProperty.regExp = regExp;
 
   /// The [authorFilter] property is a regular expression that must match the name of the
   /// author of the task's commit. This property will filter out rows on the build dashboard.
   RegExp? get authorFilter => _authorProperty.regExp;
+
   set authorFilter(RegExp? regExp) => _authorProperty.regExp = regExp;
 
   /// The [messageFilter] property is a regular expression that must match the commit message
   /// of the task's commit. This property will filter out rows on the build dashboard.
   RegExp? get messageFilter => _messageProperty.regExp;
+
   set messageFilter(RegExp? regExp) => _messageProperty.regExp = regExp;
 
   /// The [hashFilter] property is a regular expression that must match the hash of the
   /// task's commit. This property will filter out rows on the build dashboard.
   RegExp? get hashFilter => _hashProperty.regExp;
+
   set hashFilter(RegExp? regExp) => _hashProperty.regExp = regExp;
 
   /// The [showWindows] property is a boolean
@@ -93,6 +98,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// it indicates whether to display tasks produced by a Windows stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showWindows => _windowsPorperty.value;
+
   set showWindows(bool? value) => _windowsPorperty.value = value;
 
   /// The [showMac] property is a boolean
@@ -100,6 +106,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// it indicates whether to display tasks produced by a Mac stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showMac => _macProperty.value;
+
   set showMac(bool? value) => _macProperty.value = value;
 
   /// The [showiOS] property is a boolean
@@ -107,6 +114,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// it indicates whether to display tasks produced by an iOS stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showiOS => _iosProperty.value;
+
   set showiOS(bool? value) => _iosProperty.value = value;
 
   /// The [showLinux] property is a boolean
@@ -114,6 +122,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// it indicates whether to display tasks produced by a Linux stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showLinux => _linuxPorperty.value;
+
   set showLinux(bool? value) => _linuxPorperty.value = value;
 
   /// The [showAndroid] property is a boolean
@@ -121,6 +130,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// it indicates whether to display tasks produced by an Android stage in the devicelab.
   /// This property will filter out columns on the build dashboard.
   bool? get showAndroid => _androidProperty.value;
+
   set showAndroid(bool? value) => _androidProperty.value = value;
 
   /// Check the values in the [CommitStatus] for compatibility with the properties of this
@@ -144,21 +154,18 @@ class TaskGridFilter extends FilterPropertySource {
     if (!_taskProperty.matches(qualifiedTask.task!)) {
       return false;
     }
-    const Map<String, String> showOSs = {
-      'showMac': 'mac',
-      'showWindows': 'windows',
-      'showiOS': 'ios',
-      'showLinux': 'linux',
-      'showAndroid': 'android',
-    };
-    for (MapEntry<String, String> os in showOSs.entries) {
-      if (!_allProperties[os.key]?.value && qualifiedTask.task!.toLowerCase().contains(os.value)) {
-        return false;
-      }
-    }
 
-    // Unrecognized stages always pass.
-    return true;
+    LinkedHashMap<String, bool> orderedOSFilter = LinkedHashMap<String, bool>.of({
+      'ios': _allProperties['showiOS']?.value ?? false,
+      'android': _allProperties['showAndroid']?.value ?? false,
+      'mac': _allProperties['showMac']?.value ?? false,
+      'windows': _allProperties['showWindows']?.value ?? false,
+      'linux': _allProperties['showLinux']?.value ?? false,
+    });
+    return orderedOSFilter.entries
+            .firstWhereOrNull((MapEntry<String, bool> os) => qualifiedTask.task!.toLowerCase().contains(os.key))
+            ?.value ??
+        true; // Unrecognized stages always pass.
   }
 
   /// Convert the filter into a String map (with or without default values populated) that

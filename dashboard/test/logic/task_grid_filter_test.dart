@@ -165,6 +165,36 @@ void main() {
     });
   }
 
+  test('matches ios and android filters logic', () {
+    final TaskGridFilter iosMacFilter = TaskGridFilter.fromMap(<String, String>{'showMac': 'false', 'showiOS': 'true'});
+    final TaskGridFilter macIosFilter = TaskGridFilter.fromMap(<String, String>{'showMac': 'true', 'showiOS': 'false'});
+    final TaskGridFilter macIosBothTrueFilter =
+        TaskGridFilter.fromMap(<String, String>{'showMac': 'true', 'showiOS': 'true'});
+
+    final TaskGridFilter androidLinuxFilter =
+        TaskGridFilter.fromMap(<String, String>{'showLinux': 'false', 'showAndroid': 'true'});
+    final TaskGridFilter linuxAndroidFilter =
+        TaskGridFilter.fromMap(<String, String>{'showLinux': 'true', 'showAndroid': 'false'});
+    final TaskGridFilter linuxAndroidBothTrueFilter =
+        TaskGridFilter.fromMap(<String, String>{'showLinux': 'true', 'showAndroid': 'true'});
+    final TaskGridFilter androidFalseFilter = TaskGridFilter.fromMap(<String, String>{'showAndroid': 'false'});
+
+    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), true);
+    expect(iosMacFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), false);
+    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), false);
+    expect(macIosFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), true);
+    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac_ios')), true);
+    expect(macIosBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Mac')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), false);
+    expect(linuxAndroidFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux')), true);
+    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
+    expect(linuxAndroidBothTrueFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android')), true);
+    expect(androidLinuxFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Windows_android')), true);
+    expect(androidFalseFilter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Anything_android')), false);
+  });
+
   test('matches author name simple substring', () {
     final List<TaskGridFilter> filters = <TaskGridFilter>[
       TaskGridFilter.fromMap(<String, String>{'authorFilter': 'foo'}),

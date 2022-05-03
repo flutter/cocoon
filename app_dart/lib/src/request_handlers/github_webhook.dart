@@ -190,7 +190,9 @@ class GithubWebhook extends RequestHandler<Body> {
     final PullRequest pr = pullRequestEvent.pullRequest!;
     final RepositorySlug slug = pullRequestEvent.repository!.slug();
 
-    if (pr.head?.ref == null && pr.head!.ref!.contains(Config.defaultBranch(slug))) {
+    final String defaultBranch = Config.defaultBranch(slug);
+    final String? branch = pr.base?.ref;
+    if (branch == null || branch.contains(defaultBranch)) {
       // This isn't a release branch PR
       return;
     }
