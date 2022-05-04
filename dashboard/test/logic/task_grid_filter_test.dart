@@ -12,12 +12,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   void testDefault(TaskGridFilter filter) {
-    expect(filter.toMap(includeDefaults: false).length, 0);
+    expect(filter.toMap(includeDefaults: false).length, 1);
     expect(filter.taskFilter, null);
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
     expect(filter.showiOS, true);
+    expect(filter.showStaging, false);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
@@ -56,6 +57,7 @@ void main() {
         TaskGridFilter()..messageFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'showMac': 'false'}), TaskGridFilter()..showMac = false);
+    expect(TaskGridFilter.fromMap(<String, String>{'showStaging': 'false'}), TaskGridFilter()..showStaging = false);
   });
 
   test('cross check on inequality', () {
@@ -79,6 +81,43 @@ void main() {
           expect(nonDefaultFilters[i], isNot(equals(nonDefaultFilters[j])));
         }
       }
+    }
+  });
+
+  test('staging filter show all tasks', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter()..showStaging = true,
+    ];
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'staging_build_mac task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android task')), true);
+    }
+  });
+
+  test('staging filter staging tasks', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter()..showStaging = false,
+    ];
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'staging_build_mac task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android task')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android task')), true);
+    }
+  });
+
+  test('staging filter name matches', () {
+    final List<TaskGridFilter> filters = <TaskGridFilter>[
+      TaskGridFilter()..showStaging = false,
+    ];
+    for (final TaskGridFilter filter in filters) {
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_mac task')), false);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android staging_build')), true);
+      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android_staging_build_linux task')),
+          true);
     }
   });
 
