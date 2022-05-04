@@ -121,26 +121,4 @@ void main() {
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusNew);
   });
-
-  test('fallback to build parameters if task_key is not present', () async {
-    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
-    final Task task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      parent: commit,
-      status: Task.statusInProgress,
-    );
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-    tester.message = createBuildbucketPushMessage(
-      'COMPLETED',
-      builderName: 'Linux A',
-      result: 'FAILURE',
-      userData: '{\\"task_key\\":\\"null\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
-    );
-
-    expect(task.status, Task.statusInProgress);
-    expect(await tester.post(handler), Body.empty);
-    expect(task.status, Task.statusNew);
-  });
 }
