@@ -226,7 +226,7 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get flutterGoldPending => 'Pending.';
+  String get flutterGoldPending => 'Waiting for all other checks to be successful before querying Gold.';
 
   String get flutterGoldSuccess => 'All golden file tests have passed.';
 
