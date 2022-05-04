@@ -1,0 +1,27 @@
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:async';
+
+import 'package:shelf/shelf.dart';
+
+import '../service/config.dart';
+import '../server/request_handler.dart';
+
+/// Handler for readiness checks.
+class ReadinessCheck extends RequestHandler {
+  const ReadinessCheck({
+    required Config config,
+  }) : super(config: config);
+
+  @override
+  Future<Response> get() async {
+    return Response.ok('OK');
+  }
+
+  @override
+  Future<Response> run(Request request) async {
+    return await super.run(request);
+  }
+}

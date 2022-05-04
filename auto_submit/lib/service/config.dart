@@ -77,7 +77,7 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final List<Map<String, dynamic>> list = json.decode(response.body).toList() as List<Map<String, dynamic>>;
+    final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
     late String installationId;
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == slug.owner) {
@@ -136,7 +136,6 @@ class Config {
     sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
     sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
     final String privateKey = sb.toString();
-
     final JWTBuilder builder = JWTBuilder();
     final DateTime now = DateTime.now();
     builder
