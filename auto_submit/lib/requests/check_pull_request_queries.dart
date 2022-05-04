@@ -9,6 +9,9 @@ final DocumentNode pullRequestWithReviewsQuery = lang.parseString(r'''
 query LabeledPullRequcodeestWithReviews($sOwner: String!, $sName: String!, $sPrNumber: Int!) {
   repository(owner: $sOwner, name: $sName) { 
     pullRequest(number: $sPrNumber) {
+      author {
+        login
+      }
       authorAssociation
       id
       title

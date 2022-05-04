@@ -41,7 +41,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
-    for (RepositorySlug slug in Config.supportedRepos) {
+    for (RepositorySlug slug in config.supportedRepos) {
       try {
         log.info('Checking PRs for $slug');
         await _checkPRs(slug, client);
@@ -102,7 +102,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       return true;
     }
     // If the PR is a revert of the tot commit, merge without waiting for checks passing.
-    return await isTOTRevert(queryResult.sha, slug);
+    return queryResult.isTOTRevert;
   }
 
   /// Check if the `commitSha` is a clean revert of TOT commit.
@@ -123,7 +123,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         await github.repositories.compareCommits(slug, secondTotCommit.sha!, headSha);
     final bool filesIsEmpty = githubComparison.files!.isEmpty;
     if (filesIsEmpty) {
-      log.info('This is a TOT revert. Merge ignoring tests statuses.');
+      log.info('This is a TOT revert.');
     }
     return filesIsEmpty;
   }
@@ -232,14 +232,20 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           .map<String>((Map<String, dynamic> labelMap) => labelMap['name'] as String)
           .toList();
 
+      final String repoFullName = pullRequest['baseRepository']['nameWithOwner'] as String;
+      final RepositorySlug slug = RepositorySlug.full(repoFullName);
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+      final String sha = commit['oid'] as String;
       final int number = pullRequest['number'] as int;
+
+      final bool isCommitTOTRevert = await isTOTRevert(sha, slug);
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
+      // Ignore latency check for TOT revert.
       final DateTime utcDate =
           DateTime.parse(commit['pushedDate'] as String? ?? (commit['committedDate'] as String?)!).toUtc();
       final Duration injectedDuration = _kInjectedLatencies[name] ?? const Duration(hours: 1);
-      if (utcDate.add(injectedDuration).isAfter(DateTime.now().toUtc())) {
+      if (!isCommitTOTRevert && utcDate.add(injectedDuration).isAfter(DateTime.now().toUtc())) {
         log.info(
             'Skipping PR#$number because it needs to land after ${utcDate.add(injectedDuration)} and current time is ${DateTime.now().toUtc()}');
         continue;
@@ -247,8 +253,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String? author = pullRequest['author']['login'] as String?;
       final String authorAssociation = pullRequest['authorAssociation'] as String;
       final String id = pullRequest['id'] as String;
-      final String repoFullName = pullRequest['baseRepository']['nameWithOwner'] as String;
-      final RepositorySlug slug = RepositorySlug.full(repoFullName);
       final String title = pullRequest['title'] as String;
 
       final Set<String?> changeRequestAuthors = <String?>{};
@@ -260,7 +264,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
             changeRequestAuthors,
           );
 
-      final String sha = commit['oid'] as String;
       List<Map<String, dynamic>>? statuses;
       if (commit['status'] != null &&
           commit['status']['contexts'] != null &&
@@ -298,7 +301,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           emptyChecks: checkRuns.isEmpty,
           isConflicting: isConflicting,
           unknownMergeableState: unknownMergeableState,
-          labels: labels);
+          labels: labels,
+          isTOTRevert: isCommitTOTRevert);
       log.info('Automerge result: $result');
 
       list.add(result);
@@ -474,6 +478,7 @@ class _AutoMergeQueryResult {
     required this.isConflicting,
     required this.unknownMergeableState,
     required this.labels,
+    required this.isTOTRevert,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -514,6 +519,9 @@ class _AutoMergeQueryResult {
 
   /// List of labels associated with the PR.
   final List<String> labels;
+
+  /// Whether this is a TOT revert.
+  final bool isTOTRevert;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>

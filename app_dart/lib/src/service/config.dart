@@ -46,14 +46,13 @@ class Config {
   /// This adds support for the `waiting for tree to go green label` to the repo.
   ///
   /// Relies on the GitHub Checks API being enabled for this repo.
-  static Set<RepositorySlug> supportedRepos = <RepositorySlug>{
-    cocoonSlug,
-    engineSlug,
-    flutterSlug,
-    packagesSlug,
-    pluginsSlug,
-    impellerSlug,
-  };
+  Set<RepositorySlug> get supportedRepos => <RepositorySlug>{
+        cocoonSlug,
+        engineSlug,
+        flutterSlug,
+        packagesSlug,
+        pluginsSlug,
+      };
 
   /// List of Cirrus supported repos.
   static Set<String> cirrusSupportedRepos = <String>{'engine', 'plugins', 'packages', 'flutter'};
@@ -72,7 +71,6 @@ class Config {
       engineSlug: 'main',
       pluginsSlug: 'main',
       packagesSlug: 'main',
-      impellerSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
@@ -307,7 +305,6 @@ class Config {
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
   static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
   static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
-  static RepositorySlug get impellerSlug => RepositorySlug('flutter', 'impeller');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 

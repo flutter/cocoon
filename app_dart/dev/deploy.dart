@@ -147,7 +147,6 @@ Future<void> main(List<String> arguments) async {
   }
 
   await shellCommand(<String>['$cloudbuildDirectory/dashboard_build.sh']);
-  await shellCommand(<String>['$cloudbuildDirectory/repo_dash_build.sh']);
 
   if (!await _deployToAppEngine()) {
     stderr.writeln('Failed to deploy to AppEngine');

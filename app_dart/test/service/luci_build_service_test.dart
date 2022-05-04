@@ -390,6 +390,9 @@ void main() {
         'exe_cipd_version': 'refs/heads/master',
         'os': 'debian-10.12',
       });
+      expect(scheduleBuild.exe, <String, String>{
+        'cipdVersion': 'refs/heads/master',
+      });
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
           'debian-10.12');

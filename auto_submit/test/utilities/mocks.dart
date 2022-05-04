@@ -7,5 +7,9 @@ import 'package:mockito/annotations.dart';
 
 export 'mocks.mocks.dart';
 
-@GenerateMocks(<Type>[GitHub, RepositoriesService])
+@GenerateMocks(<Type>[
+  GitHub,
+  PullRequestsService,
+  RepositoriesService,
+])
 void main() {}

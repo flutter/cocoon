@@ -523,7 +523,10 @@ void main() {
       request.body = generatePullRequestEvent(
         'opened',
         issueNumber,
+        // Base is where the PR will merge into
         'flutter-2.13-candidate.0',
+        // Head is the branch from the fork
+        headRef: 'master',
         login: 'dart-flutter-releaser',
       );
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
@@ -542,6 +545,33 @@ void main() {
       expect(reviews.length, 1);
       final CreatePullRequestReview review = reviews.single as CreatePullRequestReview;
       expect(review.event, 'APPROVE');
+    });
+
+    test('fake release PRs are not approved', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        // Base is where the PR will merge into
+        'master',
+        // Head is the branch from the fork
+        headRef: 'flutter-2.13-candidate.0',
+        login: 'dart-flutter-releaser',
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber))
+          .thenAnswer((_) => const Stream<PullRequestFile>.empty());
+      when(pullRequestsService.createReview(Config.flutterSlug, any))
+          .thenAnswer((_) async => PullRequestReview(id: 123, user: User()));
+
+      await tester.post(webhook);
+
+      verifyNever(pullRequestsService.createReview(Config.flutterSlug, captureAny));
     });
 
     test('release PRs are not approved for outsider PRs', () async {

@@ -76,11 +76,12 @@ PullRequest generatePullRequest(
     String? login,
     String? authorAssociation,
     String? author,
-    int? prNumber}) {
+    int? prNumber,
+    String? state}) {
   return PullRequest.fromJson(json.decode('''{
       "id": 1,
       "number": ${prNumber ?? 1347},
-      "state": "open",
+      "state": "${state ?? "open"}",
       "title": "Amazing new feature",
       "user": {
         "login": "${author ?? "octocat"}",
@@ -134,10 +135,10 @@ PullRequest generatePullRequest(
       "author_association": "${authorAssociation ?? "OWNER"}",
       "mergeable": true,
       "mergeable_state": "clean"
-  }'''));
+  }''') as Map<String, dynamic>);
 }
 
-final String reviewsMock = '''[
+const String reviewsMock = '''[
   {
     "id": 80,
     "user": {
@@ -163,7 +164,7 @@ String unApprovedReviewsMock = '''[
   }
 ]''';
 
-final String checkRunsMock = '''{
+const String checkRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -182,7 +183,7 @@ final String checkRunsMock = '''{
   ]
 }''';
 
-final String failedCheckRunsMock = '''{
+const String failedCheckRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -220,10 +221,10 @@ String inProgressCheckRunsMock = '''{
   ]
 }''';
 
-final String emptyCheckRunsMock = '''{"check_runs": [{}]}''';
+const String emptyCheckRunsMock = '''{"check_runs": [{}]}''';
 
 // repositoryStatusesMock is from the official Github API: https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
-final String repositoryStatusesMock = '''{
+const String repositoryStatusesMock = '''{
   "state": "success",
   "statuses": [
     {
@@ -269,10 +270,10 @@ String failedNonAuthorsStatusesMock = '''{
   ]
 }''';
 
-final String emptyStatusesMock = '''{"statuses": [{}]}''';
+const String emptyStatusesMock = '''{"statuses": [{}]}''';
 
 // commitMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#get-a-commit
-final String commitMock = '''{
+const String commitMock = '''{
   "sha": "HEAD~",
   "commit": {
     "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
@@ -280,7 +281,7 @@ final String commitMock = '''{
   }
 }''';
 
-final String shouldRebaseMock = '''{
+const String shouldRebaseMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "status": "behind",
   "ahead_by": 1,
@@ -297,7 +298,7 @@ final String shouldRebaseMock = '''{
 }''';
 
 // compareTwoCommitsMock is from the official Github API: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-final String compareTwoCommitsMock = '''{
+const String compareTwoCommitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "status": "behind",
   "ahead_by": 1,
@@ -313,7 +314,7 @@ final String compareTwoCommitsMock = '''{
   ]
 }''';
 
-final String compareToTCommitsMock = '''{
+const String compareToTCommitsMock = '''{
   "url": "https://api.github.com/repos/octocat/Hello-World/compare/master...topic",
   "status": "behind",
   "ahead_by": 1,
@@ -323,14 +324,14 @@ final String compareToTCommitsMock = '''{
 }''';
 
 // successMergeMock is from the offcial github API: https://docs.github.com/en/rest/reference/pulls#merge-a-pull-request.
-final String successMergeMock = '''
+const String successMergeMock = '''
 {
   "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
   "merged": true
 }''';
 
 // createCommentMock is from the offcial github API: https://docs.github.com/en/rest/reference/pulls#create-a-review-comment-for-a-pull-request.
-final String createCommentMock = '''
+const String createCommentMock = '''
 {
   "id": 10,
   "position": 1,
@@ -342,7 +343,7 @@ final String createCommentMock = '''
   "body": "Great stuff!"
 }''';
 
-final String pullRequestMergeMock = '''
+const String pullRequestMergeMock = '''
 {
   "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
   "merged": true

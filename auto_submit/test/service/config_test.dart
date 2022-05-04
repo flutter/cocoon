@@ -43,7 +43,8 @@ void main() {
     test('verify github App Installation Id ', () async {
       final Uri githubInstallationUri = Uri.https('api.github.com', 'app/installations');
       final http.Response response = await mockClient.get(githubInstallationUri);
-      final list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+      final List<dynamic> list =
+          (json.decode(response.body).map((dynamic data) => (data) as Map<String, dynamic>)).toList() as List<dynamic>;
       expect(list[0]['id'].toString(), '24369313');
       expect(list[1]['id'].toString(), '23587612');
     });
@@ -51,7 +52,7 @@ void main() {
     test('generateGithubToken pulls from cache', () async {
       const String configValue = 'githubToken';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
-      Cache cache = Cache(cacheProvider).withPrefix('config');
+      Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         cachedValue,
         const Duration(minutes: 1),
@@ -66,7 +67,7 @@ void main() {
       final Uint8List flutterValue = Uint8List.fromList(flutterToken.codeUnits);
       const String testToken = 'testToken';
       final Uint8List testValue = Uint8List.fromList(testToken.codeUnits);
-      Cache cache = Cache(cacheProvider).withPrefix('config');
+      Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         flutterValue,
         const Duration(minutes: 1),

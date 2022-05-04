@@ -28,13 +28,14 @@ class Config {
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
-  static const String webhookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
+  static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
+  static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
   final SecretManager secretManager;
 
-  Cache get cache => Cache(cacheProvider).withPrefix('config');
+  Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGithubClient(slug);
@@ -46,6 +47,11 @@ class Config {
     return GitHub(auth: Authentication.withToken(token));
   }
 
+  Future<GitHub> createFlutterGitHubBotClient(RepositorySlug slug) async {
+    final String token = await getFlutterGitHubBotToken();
+    return GitHub(auth: Authentication.withToken(token));
+  }
+
   Future<String> generateGithubToken(RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
     final Uint8List? cacheValue = await cache['githubToken-${slug.owner}'].get(
@@ -53,7 +59,7 @@ class Config {
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
-    );
+    ) as Uint8List;
     return String.fromCharCodes(cacheValue!);
   }
 
@@ -71,7 +77,7 @@ class Config {
       githubInstallationUri,
       headers: headers,
     );
-    final List<dynamic> list = json.decode(response.body).map((data) => (data) as Map<String, dynamic>).toList();
+    final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
     late String installationId;
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == slug.owner) {
@@ -130,7 +136,6 @@ class Config {
     sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
     sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
     final String privateKey = sb.toString();
-
     final JWTBuilder builder = JWTBuilder();
     final DateTime now = DateTime.now();
     builder
@@ -158,6 +163,9 @@ class Config {
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
+        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+        // both as we use graphQL to merge the PR and REST API to approve the PR.
+        'dependabot[bot]',
         'dependabot',
       };
 
@@ -169,9 +177,16 @@ class Config {
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
-    final Uint8List? cacheValue = await cache[webhookKey].get(
-      () => _getValueFromSecretManager(webhookKey),
-    );
+    final Uint8List? cacheValue = await cache[kWebHookKey].get(
+      () => _getValueFromSecretManager(kWebHookKey),
+    ) as Uint8List;
+    return String.fromCharCodes(cacheValue!);
+  }
+
+  Future<String> getFlutterGitHubBotToken() async {
+    final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
+      () => _getValueFromSecretManager(kFlutterGitHubBotKey),
+    ) as Uint8List;
     return String.fromCharCodes(cacheValue!);
   }
 
