@@ -75,7 +75,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       queryParameters.addAll(widget.queryParameters!);
     }
     if (_filter != null) {
-      queryParameters.addAll(_filter!.toMap(includeDefaults: false));
+      queryParameters.addAll(_filter!.toMap(includeDefaults: true));
     }
     queryParameters['repo'] = repo!;
     queryParameters['branch'] = branch!;
