@@ -53,6 +53,8 @@ class TaskGridFilter extends FilterPropertySource {
   final BoolFilterProperty _iosProperty = BoolFilterProperty(fieldName: 'showiOS', label: 'iOS');
   final BoolFilterProperty _linuxPorperty = BoolFilterProperty(fieldName: 'showLinux', label: 'Linux');
   final BoolFilterProperty _androidProperty = BoolFilterProperty(fieldName: 'showAndroid', label: 'Android');
+  final BoolFilterProperty _stagingProperty =
+      BoolFilterProperty(fieldName: 'showStaging', label: 'Staging', value: false);
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   LinkedHashMap<String, ValueFilterProperty<dynamic>>? _allPropertiesMap;
@@ -67,7 +69,8 @@ class TaskGridFilter extends FilterPropertySource {
         ..[_windowsPorperty.fieldName] = _windowsPorperty
         ..[_iosProperty.fieldName] = _iosProperty
         ..[_linuxPorperty.fieldName] = _linuxPorperty
-        ..[_androidProperty.fieldName] = _androidProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
+        ..[_androidProperty.fieldName] = _androidProperty
+        ..[_stagingProperty.fieldName] = _stagingProperty) as LinkedHashMap<String, ValueFilterProperty<dynamic>>?)!;
 
   /// The [taskFilter] property is a regular expression that must match the name of the
   /// task in the grid. This property will filter out columns on the build dashboard.
@@ -133,6 +136,15 @@ class TaskGridFilter extends FilterPropertySource {
 
   set showAndroid(bool? value) => _androidProperty.value = value;
 
+  /// The [showStaging] property is a boolean
+  ///
+  /// it indicates whether to display staging tasks (tasks with name prefixed
+  /// with linux_staging_build).
+  /// This property will filter out columns on the build dashboard.
+  bool? get showStaging => _stagingProperty.value;
+
+  set showStaging(bool? value) => _stagingProperty.value = value;
+
   /// Check the values in the [CommitStatus] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
   bool matchesCommit(CommitStatus commitStatus) {
@@ -152,6 +164,10 @@ class TaskGridFilter extends FilterPropertySource {
   /// properties of this filter and return [true] iff the commit column should be displayed.
   bool matchesTask(QualifiedTask qualifiedTask) {
     if (!_taskProperty.matches(qualifiedTask.task!)) {
+      return false;
+    }
+
+    if ((!_allProperties['showStaging']?.value) && qualifiedTask.task!.toLowerCase().startsWith('staging_build_')) {
       return false;
     }
 
@@ -198,6 +214,7 @@ class TaskGridFilter extends FilterPropertySource {
           label: 'Stages',
           members: <BoolFilterProperty>[
             _androidProperty,
+            _stagingProperty,
             _iosProperty,
             _linuxPorperty,
             _macProperty,
