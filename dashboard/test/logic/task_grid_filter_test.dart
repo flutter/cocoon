@@ -12,12 +12,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   void testDefault(TaskGridFilter filter) {
-    expect(filter.toMap(includeDefaults: false).length, 0);
+    expect(filter.toMap(includeDefaults: false).length, 1);
     expect(filter.taskFilter, null);
     expect(filter.authorFilter, null);
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
     expect(filter.showiOS, true);
+    expect(filter.showStaging, false);
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')), true);
