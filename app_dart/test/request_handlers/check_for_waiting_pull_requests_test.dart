@@ -74,7 +74,6 @@ void main() {
             Config.flutterSlug,
             Config.packagesSlug,
             Config.pluginsSlug,
-            Config.impellerSlug,
           });
       flutterRepoPRs.clear();
       statuses.clear();
@@ -160,7 +159,6 @@ void main() {
             Config.flutterSlug,
             Config.packagesSlug,
             Config.pluginsSlug,
-            Config.impellerSlug,
           });
       config.overrideTreeStatusLabelValue = 'warning: land on red to fix tree breakage';
       branch = null;
@@ -281,15 +279,6 @@ void main() {
             variables: <String, dynamic>{
               'sOwner': 'flutter',
               'sName': 'plugins',
-              'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
-            },
-          ),
-          QueryOptions(
-            document: labeledPullRequestsWithReviewsQuery,
-            fetchPolicy: FetchPolicy.noCache,
-            variables: <String, dynamic>{
-              'sOwner': 'flutter',
-              'sName': 'impeller',
               'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
             },
           ),
