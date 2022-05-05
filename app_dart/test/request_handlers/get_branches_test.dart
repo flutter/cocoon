@@ -4,11 +4,17 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/request_handlers/get_branches.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/datastore/fake_datastore.dart';
+import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
@@ -16,25 +22,69 @@ void main() {
     late FakeConfig config;
     late RequestHandlerTester tester;
     late GetBranches handler;
+    late FakeHttpRequest request;
+    late FakeDatastoreDB db;
+    FakeClientContext clientContext;
+    FakeKeyHelper keyHelper;
+
+    Future<T?> decodeHandlerBody<T>() async {
+      final Body body = await tester.get(handler);
+      return await utf8.decoder.bind(body.serialize() as Stream<List<int>>).transform(json.decoder).single as T?;
+    }
 
     setUp(() {
-      config = FakeConfig();
-      tester = RequestHandlerTester();
+      db = FakeDatastoreDB();
+      clientContext = FakeClientContext();
+      request = FakeHttpRequest(
+        queryParametersValue: <String, dynamic>{
+          GetBranches.kUpdateBranchParam: 'true',
+        },
+      );
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      tester = RequestHandlerTester(request: request);
+      config = FakeConfig(
+        dbValue: db,
+        keyHelperValue: keyHelper,
+      );
       handler = GetBranches(
         config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
+
+      const String id = 'flutter/flutter/branch-created-old';
+      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
+      final Branch currentBranch = Branch(
+        key: branchKey,
+        lastActivity: lastActivity,
+      );
+      db.values[currentBranch.key] = currentBranch;
     });
 
-    test('returns branches matching regExps', () async {
-      config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
+    test('should not retrieve branches older than a week', () async {
+      expect(db.values.values.whereType<Branch>().length, 1);
 
-      final Body body = await tester.get(handler);
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind(body.serialize() as Stream<List<int>>)
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
+      final List<dynamic> result = (await decodeHandlerBody())!;
+      expect(result, isEmpty);
+    });
 
-      expect(result['Branches'], <String>['flutter-1.1-candidate.1', 'master']);
+    test('should retrieve branches with commit acitivities in the past week', () async {
+      expect(db.values.values.whereType<Branch>().length, 1);
+
+      const String id = 'flutter/flutter/branch-created-now';
+      int lastActivity = DateTime.now().millisecondsSinceEpoch;
+      final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
+      final Branch currentBranch = Branch(
+        key: branchKey,
+        lastActivity: lastActivity,
+      );
+      db.values[currentBranch.key] = currentBranch;
+
+      expect(db.values.values.whereType<Branch>().length, 2);
+
+      final List<dynamic> result = (await decodeHandlerBody())!;
+      expect((result.single)['branch']['branch'], 'branch-created-now');
+      expect((result.single)['id'].runtimeType, String);
     });
   });
 }

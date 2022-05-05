@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -41,7 +42,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   bool? isTreeBuilding;
 
   @override
-  Duration? get refreshRate => null;
+  Duration? get refreshRate => const Duration(seconds: 30);
 
   @override
   Future<bool> refreshGitHubCommits() async => false;
@@ -67,7 +68,18 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Future<void>? fetchMoreCommitStatuses() => null;
 
   @override
-  List<String> get branches => <String>['master'];
+  List<Branch> get branches {
+    List<Branch> fakeBranches = <Branch>[];
+    for (String repo in ['flutter', 'engine', 'cocoon']) {
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = defaultBranches[repo]!);
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = '$repo-release');
+    }
+    return fakeBranches;
+  }
 
   @override
   String get currentBranch => _currentBranch;

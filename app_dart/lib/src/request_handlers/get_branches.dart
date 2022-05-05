@@ -4,24 +4,60 @@
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
+import 'package:cocoon_service/src/model/appengine/branch.dart';
+import 'package:process_runner/process_runner.dart';
 
-import '../request_handling/body.dart';
-import '../request_handling/request_handler.dart';
-import '../service/config.dart';
+import '../../cocoon_service.dart';
+import '../service/datastore.dart';
 
-/// Returns  repo [config.flutterSlug] branches that match pre-defined
-/// branch regular expressions.
-@immutable
+/// Return currently active branches across all repos.
+///
+/// Returns all branches with associated key, branch name and repository name, for branches with recent commit acitivies
+/// within the past [GetBranches.kActiveBranchActivityPeriod] days.
+///
+/// GET: /api/public/get-branches
+///
+///
+/// Response: Status 200 OK
+///[
+///      {
+///         "key":ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtb2xkDKIBCVtkZWZhdWx0XQ,
+///         "branch":{
+///            "branch":"branch-created-old",
+///            "repository":"flutter/flutter"
+///         }
+///      }
+///     {
+///        "key":ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtbm93DKIBCVtkZWZhdWx0XQ,
+///        "branch":{
+///           "branch":"branch-created-now",
+///           "repository":"flutter/flutter"
+///        }
+///     }
+///]
+
 class GetBranches extends RequestHandler<Body> {
-  const GetBranches(
-    Config config,
-  ) : super(config: config);
+  GetBranches(
+    Config config, {
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    this.processRunner,
+  }) : super(config: config);
+
+  final DatastoreServiceProvider datastoreProvider;
+  ProcessRunner? processRunner;
+
+  static const String kUpdateBranchParam = 'update';
+  static const Duration kActiveBranchActivity = Duration(days: 60);
 
   @override
   Future<Body> get() async {
-    final List<String> branches = await config.flutterBranches;
+    final DatastoreService datastore = datastoreProvider(config.db);
 
-    return Body.forJson(<String, List<String>>{'Branches': branches});
+    final List<Branch> branches = await datastore
+        .queryBranches()
+        .where((Branch b) =>
+            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds)
+        .toList();
+    return Body.forJson(branches);
   }
 }

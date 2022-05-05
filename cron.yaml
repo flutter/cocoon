@@ -63,7 +63,12 @@ cron:
   url: /api/check_flaky_builders
   schedule: every wednesday 16:00
 
+- description: update branches to reflect most recent commit activity
+  url: '/api/update-branches' 
+  schedule: every wednesday 19:00
+
 - description: check pull request in auto submit bot
   url: /check-pull-request
   target: auto-submit
   schedule: every 2 minutes
+

@@ -7,11 +7,12 @@ import 'dart:math';
 
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' show RepositorySlug, PullRequest;
 import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
+import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
@@ -98,6 +99,11 @@ class DatastoreService {
       ..filter('branch =', branch)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
+    return query.run();
+  }
+
+  Stream<Branch> queryBranches() {
+    final Query<Branch> query = db.query<Branch>();
     return query.run();
   }
 

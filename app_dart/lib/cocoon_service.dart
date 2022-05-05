@@ -27,6 +27,7 @@ export 'src/request_handlers/reset_prod_task.dart';
 export 'src/request_handlers/reset_try_task.dart';
 export 'src/request_handlers/scheduler/batch_backfiller.dart';
 export 'src/request_handlers/scheduler/request_subscription.dart';
+export 'src/request_handlers/update_branches.dart';
 export 'src/request_handlers/update_existing_flaky_issues.dart';
 export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handlers/vacuum_github_commits.dart';

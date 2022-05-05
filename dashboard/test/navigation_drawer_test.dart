@@ -13,10 +13,13 @@ import 'utils/fake_url_launcher.dart';
 import 'utils/wrapper.dart';
 
 void main() {
+  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
   group('NavigationDrawer', () {
     late FakeUrlLauncher urlLauncher;
 
     setUp(() {
+      binding.window.devicePixelRatioTestValue = 1.0;
+      binding.window.physicalSizeTestValue = const Size(1080, 2280);
       urlLauncher = FakeUrlLauncher();
       UrlLauncherPlatform.instance = urlLauncher;
     });

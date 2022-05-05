@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../logic/brooks.dart';
 import '../model/build_status_response.pb.dart';
@@ -32,8 +33,12 @@ class BuildState extends ChangeNotifier {
   GoogleSignInService authService;
 
   /// Recent branches for flutter related to releases.
-  List<String> get branches => _branches;
-  List<String> _branches = <String>['master'];
+  List<Branch> get branches => _branches;
+  List<Branch> _branches = <Branch>[
+    Branch()
+      ..branch = 'master'
+      ..repository = 'flutter',
+  ];
 
   /// The active flutter branches to show data from.
   String get currentBranch => _currentBranch;
@@ -128,7 +133,7 @@ class BuildState extends ChangeNotifier {
 
   /// Request the latest [branches] from [CocoonService].
   Future<void> _fetchBranches() async {
-    final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
+    final CocoonResponse<List<Branch>> response = await cocoonService.fetchFlutterBranches();
 
     if (response.error != null) {
       _errors.send('$errorMessageFetchingBranches: ${response.error}');

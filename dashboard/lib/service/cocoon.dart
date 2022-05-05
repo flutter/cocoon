@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../model/build_status_response.pb.dart';
 import '../model/commit_status.pb.dart';
@@ -44,7 +45,7 @@ abstract class CocoonService {
   });
 
   /// Get the current list of version branches in flutter/flutter.
-  Future<CocoonResponse<List<String>>> fetchFlutterBranches();
+  Future<CocoonResponse<List<Branch>>> fetchFlutterBranches();
 
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<String>>> fetchRepos();

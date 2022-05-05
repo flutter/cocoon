@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -50,7 +51,7 @@ void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
     final MockCocoonService fakeCocoonService = MockCocoonService();
     throwOnMissingStub(fakeCocoonService);
-    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+    when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
     when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
     when(fakeCocoonService.fetchCommitStatuses(
       branch: anyNamed('branch'),
@@ -425,6 +426,41 @@ void main() {
 
     await tester.pumpWidget(Container());
     buildState.dispose();
+  });
+
+  testWidgets('ensure smooth transition between invalid states', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'flutter',
+      'branch': 'flutter-release',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: controlledBuildDashboardPage,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(dropdownButtonType), findsNWidgets(2));
+    // simulate a url request, which retriggers a rebuild of the widget
+    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'engine',
+    });
+    expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value,
+        equals('flutter-release')); //invalid state: engine + flutter-release
+    await tester.pump(); //an invalid state will generate delayed network responses
+
+    //if a delayed network request come in, from a previous invalid state: cocoon + engine - release, no exceptions should be raised
+    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
+      'repo': 'cocoon',
+      'branch': 'engine-release',
+    });
   });
 
   testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {

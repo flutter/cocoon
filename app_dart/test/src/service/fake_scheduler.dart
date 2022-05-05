@@ -49,8 +49,6 @@ class FakeScheduler extends Scheduler {
   }
 }
 
-// FOR REVIEW:
-// Since CiYaml constructor automatically triggers check, we ahve to provide at least one target
 final CiYaml emptyConfig = CiYaml(
   branch: 'master',
   slug: RepositorySlug('flutter', 'flutter'),

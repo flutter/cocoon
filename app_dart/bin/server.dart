@@ -124,6 +124,7 @@ Future<void> main() async {
         config,
         authProvider,
       ),
+      '/api/update-branches': UpdateBranches(config),
 
       /// Updates task related details.
       ///
@@ -224,20 +225,6 @@ Future<void> main() async {
 
       '/api/public/get-green-commits': GetGreenCommits(config),
 
-      /// Get supported branches for the framework repo.
-      ///
-      /// Get list of supported branches to run infrastructure
-      /// tasks on the framework repo.
-      ///
-      /// GET: /api/public/get-branches
-      ///
-      /// Response: Status 200 OK
-      /// {Branches: [
-      ///   "flutter-1.26-candidate.17",
-      ///   "flutter-2.2-candidate.10",
-      ///   "master"
-      ///   ]
-      /// }
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,

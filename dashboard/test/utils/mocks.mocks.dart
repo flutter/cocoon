@@ -5,17 +5,18 @@
 import 'dart:async' as _i8;
 import 'dart:convert' as _i9;
 import 'dart:typed_data' as _i10;
-import 'dart:ui' as _i16;
+import 'dart:ui' as _i17;
 
 import 'package:flutter_dashboard/logic/brooks.dart' as _i6;
+import 'package:flutter_dashboard/model/branch.pb.dart' as _i14;
 import 'package:flutter_dashboard/model/build_status_response.pb.dart' as _i13;
 import 'package:flutter_dashboard/model/commit_status.pb.dart' as _i12;
-import 'package:flutter_dashboard/model/task.pb.dart' as _i14;
+import 'package:flutter_dashboard/model/task.pb.dart' as _i15;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i4;
 import 'package:flutter_dashboard/service/google_authentication.dart' as _i5;
-import 'package:flutter_dashboard/state/build.dart' as _i15;
-import 'package:google_sign_in/google_sign_in.dart' as _i17;
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart' as _i18;
+import 'package:flutter_dashboard/state/build.dart' as _i16;
+import 'package:google_sign_in/google_sign_in.dart' as _i18;
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart' as _i19;
 import 'package:http/src/base_request.dart' as _i11;
 import 'package:http/src/client.dart' as _i7;
 import 'package:http/src/response.dart' as _i2;
@@ -116,16 +117,16 @@ class MockCocoonService extends _i1.Mock implements _i4.CocoonService {
                   _FakeCocoonResponse_2<_i13.BuildStatusResponse>()))
           as _i8.Future<_i4.CocoonResponse<_i13.BuildStatusResponse>>);
   @override
-  _i8.Future<_i4.CocoonResponse<List<String>>> fetchFlutterBranches() =>
-      (super.noSuchMethod(Invocation.method(#fetchFlutterBranches, []),
-              returnValue: Future<_i4.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>()))
-          as _i8.Future<_i4.CocoonResponse<List<String>>>);
+  _i8.Future<_i4.CocoonResponse<List<_i14.Branch>>> fetchFlutterBranches() => (super.noSuchMethod(
+          Invocation.method(#fetchFlutterBranches, []),
+          returnValue: Future<_i4.CocoonResponse<List<_i14.Branch>>>.value(_FakeCocoonResponse_2<List<_i14.Branch>>()))
+      as _i8.Future<_i4.CocoonResponse<List<_i14.Branch>>>);
   @override
   _i8.Future<_i4.CocoonResponse<List<String>>> fetchRepos() => (super.noSuchMethod(Invocation.method(#fetchRepos, []),
           returnValue: Future<_i4.CocoonResponse<List<String>>>.value(_FakeCocoonResponse_2<List<String>>()))
       as _i8.Future<_i4.CocoonResponse<List<String>>>);
   @override
-  _i8.Future<_i4.CocoonResponse<bool>> rerunTask(_i14.Task? task, String? idToken, String? repo) =>
+  _i8.Future<_i4.CocoonResponse<bool>> rerunTask(_i15.Task? task, String? idToken, String? repo) =>
       (super.noSuchMethod(Invocation.method(#rerunTask, [task, idToken, repo]),
               returnValue: Future<_i4.CocoonResponse<bool>>.value(_FakeCocoonResponse_2<bool>()))
           as _i8.Future<_i4.CocoonResponse<bool>>);
@@ -140,7 +141,7 @@ class MockCocoonService extends _i1.Mock implements _i4.CocoonService {
 /// A class which mocks [BuildState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBuildState extends _i1.Mock implements _i15.BuildState {
+class MockBuildState extends _i1.Mock implements _i16.BuildState {
   MockBuildState() {
     _i1.throwOnMissingStub(this);
   }
@@ -159,8 +160,8 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   set refreshTimer(_i8.Timer? _refreshTimer) =>
       super.noSuchMethod(Invocation.setter(#refreshTimer, _refreshTimer), returnValueForMissingStub: null);
   @override
-  List<String> get branches =>
-      (super.noSuchMethod(Invocation.getter(#branches), returnValue: <String>[]) as List<String>);
+  List<_i14.Branch> get branches =>
+      (super.noSuchMethod(Invocation.getter(#branches), returnValue: <_i14.Branch>[]) as List<_i14.Branch>);
   @override
   String get currentBranch => (super.noSuchMethod(Invocation.getter(#currentBranch), returnValue: '') as String);
   @override
@@ -181,10 +182,10 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
   @override
   bool get hasListeners => (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false) as bool);
   @override
-  void addListener(_i16.VoidCallback? listener) =>
+  void addListener(_i17.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#addListener, [listener]), returnValueForMissingStub: null);
   @override
-  void removeListener(_i16.VoidCallback? listener) =>
+  void removeListener(_i17.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#removeListener, [listener]), returnValueForMissingStub: null);
   @override
   void updateCurrentRepoBranch(String? repo, String? branch) =>
@@ -197,7 +198,7 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
       (super.noSuchMethod(Invocation.method(#refreshGitHubCommits, []), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
-  _i8.Future<bool> rerunTask(_i14.Task? task) =>
+  _i8.Future<bool> rerunTask(_i15.Task? task) =>
       (super.noSuchMethod(Invocation.method(#rerunTask, [task]), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
@@ -212,42 +213,42 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
 /// A class which mocks [GoogleSignIn].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGoogleSignIn extends _i1.Mock implements _i17.GoogleSignIn {
+class MockGoogleSignIn extends _i1.Mock implements _i18.GoogleSignIn {
   MockGoogleSignIn() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i18.SignInOption get signInOption =>
-      (super.noSuchMethod(Invocation.getter(#signInOption), returnValue: _i18.SignInOption.standard)
-          as _i18.SignInOption);
+  _i19.SignInOption get signInOption =>
+      (super.noSuchMethod(Invocation.getter(#signInOption), returnValue: _i19.SignInOption.standard)
+          as _i19.SignInOption);
   @override
   List<String> get scopes => (super.noSuchMethod(Invocation.getter(#scopes), returnValue: <String>[]) as List<String>);
   @override
-  _i8.Stream<_i17.GoogleSignInAccount?> get onCurrentUserChanged =>
+  _i8.Stream<_i18.GoogleSignInAccount?> get onCurrentUserChanged =>
       (super.noSuchMethod(Invocation.getter(#onCurrentUserChanged),
-          returnValue: Stream<_i17.GoogleSignInAccount?>.empty()) as _i8.Stream<_i17.GoogleSignInAccount?>);
+          returnValue: Stream<_i18.GoogleSignInAccount?>.empty()) as _i8.Stream<_i18.GoogleSignInAccount?>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> signInSilently({bool? suppressErrors = true, bool? reAuthenticate = false}) =>
+  _i8.Future<_i18.GoogleSignInAccount?> signInSilently({bool? suppressErrors = true, bool? reAuthenticate = false}) =>
       (super.noSuchMethod(
           Invocation.method(#signInSilently, [], {#suppressErrors: suppressErrors, #reAuthenticate: reAuthenticate}),
-          returnValue: Future<_i17.GoogleSignInAccount?>.value()) as _i8.Future<_i17.GoogleSignInAccount?>);
+          returnValue: Future<_i18.GoogleSignInAccount?>.value()) as _i8.Future<_i18.GoogleSignInAccount?>);
   @override
   _i8.Future<bool> isSignedIn() =>
       (super.noSuchMethod(Invocation.method(#isSignedIn, []), returnValue: Future<bool>.value(false))
           as _i8.Future<bool>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> signIn() =>
-      (super.noSuchMethod(Invocation.method(#signIn, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
-          as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i18.GoogleSignInAccount?> signIn() =>
+      (super.noSuchMethod(Invocation.method(#signIn, []), returnValue: Future<_i18.GoogleSignInAccount?>.value())
+          as _i8.Future<_i18.GoogleSignInAccount?>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> signOut() =>
-      (super.noSuchMethod(Invocation.method(#signOut, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
-          as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i18.GoogleSignInAccount?> signOut() =>
+      (super.noSuchMethod(Invocation.method(#signOut, []), returnValue: Future<_i18.GoogleSignInAccount?>.value())
+          as _i8.Future<_i18.GoogleSignInAccount?>);
   @override
-  _i8.Future<_i17.GoogleSignInAccount?> disconnect() =>
-      (super.noSuchMethod(Invocation.method(#disconnect, []), returnValue: Future<_i17.GoogleSignInAccount?>.value())
-          as _i8.Future<_i17.GoogleSignInAccount?>);
+  _i8.Future<_i18.GoogleSignInAccount?> disconnect() =>
+      (super.noSuchMethod(Invocation.method(#disconnect, []), returnValue: Future<_i18.GoogleSignInAccount?>.value())
+          as _i8.Future<_i18.GoogleSignInAccount?>);
   @override
   _i8.Future<bool> requestScopes(List<String>? scopes) =>
       (super.noSuchMethod(Invocation.method(#requestScopes, [scopes]), returnValue: Future<bool>.value(false))
@@ -265,7 +266,7 @@ class MockGoogleSignInService extends _i1.Mock implements _i5.GoogleSignInServic
   }
 
   @override
-  set user(_i17.GoogleSignInAccount? _user) =>
+  set user(_i18.GoogleSignInAccount? _user) =>
       super.noSuchMethod(Invocation.setter(#user, _user), returnValueForMissingStub: null);
   @override
   _i8.Future<bool> get isAuthenticated =>
@@ -283,10 +284,10 @@ class MockGoogleSignInService extends _i1.Mock implements _i5.GoogleSignInServic
   _i8.Future<void> signOut() => (super.noSuchMethod(Invocation.method(#signOut, []),
       returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i8.Future<void>);
   @override
-  void addListener(_i16.VoidCallback? listener) =>
+  void addListener(_i17.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#addListener, [listener]), returnValueForMissingStub: null);
   @override
-  void removeListener(_i16.VoidCallback? listener) =>
+  void removeListener(_i17.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#removeListener, [listener]), returnValueForMissingStub: null);
   @override
   void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);

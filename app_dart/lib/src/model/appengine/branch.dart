@@ -7,7 +7,7 @@ import 'package:github/github.dart';
 
 @Kind(name: 'Branch', idType: IdType.String)
 class Branch extends Model<String> {
-  Branch({Key<String>? key, this.lastActivity}) {
+  Branch({Key<String>? key, this.lastActivity, this.channel}) {
     parentKey = key?.parent;
     id = key?.id;
   }
@@ -40,5 +40,15 @@ class Branch extends Model<String> {
       ..write(', lastActivity: $lastActivity')
       ..write(')');
     return buf.toString();
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'branch': <String, dynamic>{
+        'branch': branch,
+        'repository': repository,
+      },
+    };
   }
 }

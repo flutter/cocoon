@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
 
 import 'logic/task_grid_filter.dart';
@@ -69,7 +70,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   /// Convert the fields from this class into a URL.
   ///
   /// This enables bookmarking state specific values, like [repo].
-  void _updateNavigation(BuildContext context) {
+  void _updateNavigation(BuildContext context, BuildState buildState) {
     final Map<String, String> queryParameters = <String, String>{};
     if (widget.queryParameters != null) {
       queryParameters.addAll(widget.queryParameters!);
@@ -78,7 +79,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       queryParameters.addAll(_filter!.toMap(includeDefaults: true));
     }
     queryParameters['repo'] = repo!;
+
     queryParameters['branch'] = branch!;
+
     final Uri uri = Uri(
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
@@ -134,7 +137,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                       ),
                       TextButton(
                         child: const Text('Apply'),
-                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context),
+                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context, _buildState),
                       ),
                       TextButton(
                         child: const Text('Cancel'),
@@ -183,7 +186,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedRepo) {
           repo = selectedRepo;
-          _updateNavigation(context);
+          _updateNavigation(context, _buildState);
         },
         items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
@@ -218,17 +221,28 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedBranch) {
           branch = selectedBranch;
-          _updateNavigation(context);
+          _updateNavigation(context, _buildState);
         },
-        items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
+        items: [
+          DropdownMenuItem<String>(
+            value: _buildState.currentBranch,
             child: Padding(
               padding: const EdgeInsets.only(top: 9.0),
-              child: Center(child: Text(value, style: theme.primaryTextTheme.bodyText1)),
+              child: Center(child: Text(_buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
             ),
-          );
-        }).toList(),
+          ),
+          ..._buildState.branches
+              .where((Branch b) => b.repository == _buildState.currentRepo && b.branch != _buildState.currentBranch)
+              .map<DropdownMenuItem<String>>((Branch b) {
+            return DropdownMenuItem<String>(
+              value: b.branch,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 9.0),
+                child: Center(child: Text(b.branch, style: theme.primaryTextTheme.bodyText1)),
+              ),
+            );
+          })
+        ],
       ),
       const Padding(padding: EdgeInsets.symmetric(horizontal: 4)),
     ];
