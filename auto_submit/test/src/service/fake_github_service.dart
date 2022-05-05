@@ -61,23 +61,25 @@ class FakeGithubService implements GithubService {
     String ref,
   ) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
-    final List<dynamic> checkRunsBody = rawBody["check_runs"]!;
+    final List<dynamic> checkRunsBody = rawBody["check_runs"]! as List<dynamic>;
     List<CheckRun> checkRuns = <CheckRun>[];
-    if (checkRunsBody[0].isNotEmpty) {
-      checkRuns.addAll(checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun)).toList());
+    if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
+      checkRuns.addAll(
+          checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList());
     }
     return checkRuns;
   }
 
   @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
-    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!));
+    final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
     return commit;
   }
 
   @override
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    final GitHubComparison githubComparison = GitHubComparison.fromJson(jsonDecode(compareTwoCommitsMock!));
+    final GitHubComparison githubComparison =
+        GitHubComparison.fromJson(jsonDecode(compareTwoCommitsMock!) as Map<String, dynamic>);
     return githubComparison;
   }
 
@@ -88,7 +90,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
-    final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!));
+    final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
     return issueComment;
   }
 

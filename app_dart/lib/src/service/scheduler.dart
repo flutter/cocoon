@@ -141,8 +141,8 @@ class Scheduler {
         toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
       }
     }
+    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
-    // Datastore must be written to generate task keys
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
@@ -153,8 +153,6 @@ class Scheduler {
     } catch (error) {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
-
-    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
     await _uploadToBigQuery(commit);
   }

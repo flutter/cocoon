@@ -97,22 +97,10 @@ following are a list of keys that are reserved for special use.
 **add_recipes_cq**: String boolean whether to add this target to flutter/recipes CQ. This ensures
 changes to flutter/recipes pass on this target before landing.
 
-**caches**: JSON representation of swarming caches the bot running the target should have.
-Name is what flutter/recipes will refer to it as, and path is where it will be stored on the bot.
-
-Path should be versioned to ensure bots do not incorrectly reuse the version. Paths originally not versioned
-are legacy from when Flutter originally migrated to LUCI, and have not been updated since.
-
-Example
-```yaml
-caches: >-
-  [
-    {"name": "openjdk", "path": "java11"}
-  ]
-```
-
 **dependencies**: JSON list of objects with "dependency" and optionally "version".
-The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py)
+The list of supported deps is in [flutter_deps recipe_module](https://cs.opensource.google/flutter/recipes/+/master:recipe_modules/flutter_deps/api.py).
+Dependencies generate a corresponding swarming cache that can be used in the
+recipe code. The path of the cache will be the name of the dependency.
 
 Versions can be located in [CIPD](https://chrome-infra-packages.appspot.com/)
 
@@ -150,12 +138,6 @@ tags: >
           dependencies: >-
           [
               {"dependency": "open_jdk", "version": "11"}
-          ]
-          # Some dependencies are large, and stored in a cache for reuse
-          # between runs. Ensure any paths are versioned correctly.
-          caches: >-
-          [
-              {"name": "openjdk", "path": "java11"}
           ]
         timeout: 60
         scheduler: luci

@@ -66,9 +66,7 @@ void main() {
         maxAttempts: 2,
       );
 
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult(
-            source: QueryResultSource.network,
-          );
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         if (options.variables['sRepoName'] == slug.name) {
           return createGithubQueryResult(checkRuns);
@@ -1371,7 +1369,7 @@ void main() {
 }
 
 QueryResult createGithubQueryResult(List<dynamic> statuses) {
-  return QueryResult(
+  return createFakeQueryResult(
     data: <String, dynamic>{
       'repository': <String, dynamic>{
         'pullRequest': <String, dynamic>{
@@ -1393,7 +1391,6 @@ QueryResult createGithubQueryResult(List<dynamic> statuses) {
         },
       },
     },
-    source: QueryResultSource.network,
   );
 }
 

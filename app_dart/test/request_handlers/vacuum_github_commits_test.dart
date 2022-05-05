@@ -83,7 +83,6 @@ void main() {
           Config.flutterSlug,
           Config.packagesSlug,
           Config.pluginsSlug,
-          Config.impellerSlug,
         },
       );
 

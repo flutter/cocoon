@@ -50,45 +50,53 @@ class _FakeResponse_14 extends _i1.Fake implements _i2.Response {}
 
 class _FakeGitHub_15 extends _i1.Fake implements _i3.GitHub {}
 
-class _FakeRepository_16 extends _i1.Fake implements _i3.Repository {}
+class _FakePullRequest_16 extends _i1.Fake implements _i3.PullRequest {}
 
-class _FakeLicenseDetails_17 extends _i1.Fake implements _i3.LicenseDetails {}
+class _FakePullRequestMerge_17 extends _i1.Fake implements _i3.PullRequestMerge {}
 
-class _FakeLanguageBreakdown_18 extends _i1.Fake implements _i3.LanguageBreakdown {}
+class _FakePullRequestComment_18 extends _i1.Fake implements _i3.PullRequestComment {}
 
-class _FakeBranch_19 extends _i1.Fake implements _i3.Branch {}
+class _FakePullRequestReview_19 extends _i1.Fake implements _i3.PullRequestReview {}
 
-class _FakeCommitComment_20 extends _i1.Fake implements _i3.CommitComment {}
+class _FakeRepository_20 extends _i1.Fake implements _i3.Repository {}
 
-class _FakeRepositoryCommit_21 extends _i1.Fake implements _i3.RepositoryCommit {}
+class _FakeLicenseDetails_21 extends _i1.Fake implements _i3.LicenseDetails {}
 
-class _FakeGitHubComparison_22 extends _i1.Fake implements _i3.GitHubComparison {}
+class _FakeLanguageBreakdown_22 extends _i1.Fake implements _i3.LanguageBreakdown {}
 
-class _FakeGitHubFile_23 extends _i1.Fake implements _i3.GitHubFile {}
+class _FakeBranch_23 extends _i1.Fake implements _i3.Branch {}
 
-class _FakeRepositoryContents_24 extends _i1.Fake implements _i3.RepositoryContents {}
+class _FakeCommitComment_24 extends _i1.Fake implements _i3.CommitComment {}
 
-class _FakeContentCreation_25 extends _i1.Fake implements _i3.ContentCreation {}
+class _FakeRepositoryCommit_25 extends _i1.Fake implements _i3.RepositoryCommit {}
 
-class _FakeHook_26 extends _i1.Fake implements _i3.Hook {}
+class _FakeGitHubComparison_26 extends _i1.Fake implements _i3.GitHubComparison {}
 
-class _FakePublicKey_27 extends _i1.Fake implements _i3.PublicKey {}
+class _FakeGitHubFile_27 extends _i1.Fake implements _i3.GitHubFile {}
 
-class _FakeRepositoryPages_28 extends _i1.Fake implements _i3.RepositoryPages {}
+class _FakeRepositoryContents_28 extends _i1.Fake implements _i3.RepositoryContents {}
 
-class _FakePageBuild_29 extends _i1.Fake implements _i3.PageBuild {}
+class _FakeContentCreation_29 extends _i1.Fake implements _i3.ContentCreation {}
 
-class _FakeRelease_30 extends _i1.Fake implements _i3.Release {}
+class _FakeHook_30 extends _i1.Fake implements _i3.Hook {}
 
-class _FakeReleaseAsset_31 extends _i1.Fake implements _i3.ReleaseAsset {}
+class _FakePublicKey_31 extends _i1.Fake implements _i3.PublicKey {}
 
-class _FakeContributorParticipation_32 extends _i1.Fake implements _i3.ContributorParticipation {}
+class _FakeRepositoryPages_32 extends _i1.Fake implements _i3.RepositoryPages {}
 
-class _FakeRepositoryStatus_33 extends _i1.Fake implements _i3.RepositoryStatus {}
+class _FakePageBuild_33 extends _i1.Fake implements _i3.PageBuild {}
 
-class _FakeCombinedRepositoryStatus_34 extends _i1.Fake implements _i3.CombinedRepositoryStatus {}
+class _FakeRelease_34 extends _i1.Fake implements _i3.Release {}
 
-class _FakeReleaseNotes_35 extends _i1.Fake implements _i3.ReleaseNotes {}
+class _FakeReleaseAsset_35 extends _i1.Fake implements _i3.ReleaseAsset {}
+
+class _FakeContributorParticipation_36 extends _i1.Fake implements _i3.ContributorParticipation {}
+
+class _FakeRepositoryStatus_37 extends _i1.Fake implements _i3.RepositoryStatus {}
+
+class _FakeCombinedRepositoryStatus_38 extends _i1.Fake implements _i3.CombinedRepositoryStatus {}
+
+class _FakeReleaseNotes_39 extends _i1.Fake implements _i3.ReleaseNotes {}
 
 /// A class which mocks [GitHub].
 ///
@@ -286,6 +294,85 @@ class MockGitHub extends _i1.Mock implements _i3.GitHub {
   void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);
 }
 
+/// A class which mocks [PullRequestsService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockPullRequestsService extends _i1.Mock implements _i3.PullRequestsService {
+  MockPullRequestsService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.GitHub get github =>
+      (super.noSuchMethod(Invocation.getter(#github), returnValue: _FakeGitHub_15()) as _i3.GitHub);
+  @override
+  _i4.Stream<_i3.PullRequest> list(_i3.RepositorySlug? slug,
+          {int? pages,
+          String? base,
+          String? direction = r'desc',
+          String? head,
+          String? sort = r'created',
+          String? state = r'open'}) =>
+      (super.noSuchMethod(
+          Invocation.method(#list, [slug],
+              {#pages: pages, #base: base, #direction: direction, #head: head, #sort: sort, #state: state}),
+          returnValue: Stream<_i3.PullRequest>.empty()) as _i4.Stream<_i3.PullRequest>);
+  @override
+  _i4.Future<_i3.PullRequest> get(_i3.RepositorySlug? slug, int? number) =>
+      (super.noSuchMethod(Invocation.method(#get, [slug, number]),
+          returnValue: Future<_i3.PullRequest>.value(_FakePullRequest_16())) as _i4.Future<_i3.PullRequest>);
+  @override
+  _i4.Future<_i3.PullRequest> create(_i3.RepositorySlug? slug, _i3.CreatePullRequest? request) =>
+      (super.noSuchMethod(Invocation.method(#create, [slug, request]),
+          returnValue: Future<_i3.PullRequest>.value(_FakePullRequest_16())) as _i4.Future<_i3.PullRequest>);
+  @override
+  _i4.Future<_i3.PullRequest> edit(_i3.RepositorySlug? slug, int? number,
+          {String? title, String? body, String? state, String? base}) =>
+      (super.noSuchMethod(
+          Invocation.method(#edit, [slug, number], {#title: title, #body: body, #state: state, #base: base}),
+          returnValue: Future<_i3.PullRequest>.value(_FakePullRequest_16())) as _i4.Future<_i3.PullRequest>);
+  @override
+  _i4.Stream<_i3.RepositoryCommit> listCommits(_i3.RepositorySlug? slug, int? number) =>
+      (super.noSuchMethod(Invocation.method(#listCommits, [slug, number]),
+          returnValue: Stream<_i3.RepositoryCommit>.empty()) as _i4.Stream<_i3.RepositoryCommit>);
+  @override
+  _i4.Stream<_i3.PullRequestFile> listFiles(_i3.RepositorySlug? slug, int? number) => (super
+          .noSuchMethod(Invocation.method(#listFiles, [slug, number]), returnValue: Stream<_i3.PullRequestFile>.empty())
+      as _i4.Stream<_i3.PullRequestFile>);
+  @override
+  _i4.Stream<_i3.PullRequestReview> listReviews(_i3.RepositorySlug? slug, int? number) =>
+      (super.noSuchMethod(Invocation.method(#listReviews, [slug, number]),
+          returnValue: Stream<_i3.PullRequestReview>.empty()) as _i4.Stream<_i3.PullRequestReview>);
+  @override
+  _i4.Future<bool> isMerged(_i3.RepositorySlug? slug, int? number) =>
+      (super.noSuchMethod(Invocation.method(#isMerged, [slug, number]), returnValue: Future<bool>.value(false))
+          as _i4.Future<bool>);
+  @override
+  _i4.Future<_i3.PullRequestMerge> merge(_i3.RepositorySlug? slug, int? number, {String? message}) =>
+      (super.noSuchMethod(Invocation.method(#merge, [slug, number], {#message: message}),
+              returnValue: Future<_i3.PullRequestMerge>.value(_FakePullRequestMerge_17()))
+          as _i4.Future<_i3.PullRequestMerge>);
+  @override
+  _i4.Stream<_i3.PullRequestComment> listCommentsByPullRequest(_i3.RepositorySlug? slug, int? number) =>
+      (super.noSuchMethod(Invocation.method(#listCommentsByPullRequest, [slug, number]),
+          returnValue: Stream<_i3.PullRequestComment>.empty()) as _i4.Stream<_i3.PullRequestComment>);
+  @override
+  _i4.Stream<_i3.PullRequestComment> listComments(_i3.RepositorySlug? slug) =>
+      (super.noSuchMethod(Invocation.method(#listComments, [slug]), returnValue: Stream<_i3.PullRequestComment>.empty())
+          as _i4.Stream<_i3.PullRequestComment>);
+  @override
+  _i4.Future<_i3.PullRequestComment> createComment(
+          _i3.RepositorySlug? slug, int? number, _i3.CreatePullRequestComment? comment) =>
+      (super.noSuchMethod(Invocation.method(#createComment, [slug, number, comment]),
+              returnValue: Future<_i3.PullRequestComment>.value(_FakePullRequestComment_18()))
+          as _i4.Future<_i3.PullRequestComment>);
+  @override
+  _i4.Future<_i3.PullRequestReview> createReview(_i3.RepositorySlug? slug, _i3.CreatePullRequestReview? review) =>
+      (super.noSuchMethod(Invocation.method(#createReview, [slug, review]),
+              returnValue: Future<_i3.PullRequestReview>.value(_FakePullRequestReview_19()))
+          as _i4.Future<_i3.PullRequestReview>);
+}
+
 /// A class which mocks [RepositoriesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -319,15 +406,15 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.Repository> createRepository(_i3.CreateRepository? repository, {String? org}) =>
       (super.noSuchMethod(Invocation.method(#createRepository, [repository], {#org: org}),
-          returnValue: Future<_i3.Repository>.value(_FakeRepository_16())) as _i4.Future<_i3.Repository>);
+          returnValue: Future<_i3.Repository>.value(_FakeRepository_20())) as _i4.Future<_i3.Repository>);
   @override
   _i4.Future<_i3.LicenseDetails> getLicense(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#getLicense, [slug]),
-          returnValue: Future<_i3.LicenseDetails>.value(_FakeLicenseDetails_17())) as _i4.Future<_i3.LicenseDetails>);
+          returnValue: Future<_i3.LicenseDetails>.value(_FakeLicenseDetails_21())) as _i4.Future<_i3.LicenseDetails>);
   @override
   _i4.Future<_i3.Repository> getRepository(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#getRepository, [slug]),
-          returnValue: Future<_i3.Repository>.value(_FakeRepository_16())) as _i4.Future<_i3.Repository>);
+          returnValue: Future<_i3.Repository>.value(_FakeRepository_20())) as _i4.Future<_i3.Repository>);
   @override
   _i4.Stream<_i3.Repository> getRepositories(List<_i3.RepositorySlug>? slugs) =>
       (super.noSuchMethod(Invocation.method(#getRepositories, [slugs]), returnValue: Stream<_i3.Repository>.empty())
@@ -353,7 +440,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
             #hasWiki: hasWiki,
             #hasDownloads: hasDownloads
           }),
-          returnValue: Future<_i3.Repository>.value(_FakeRepository_16())) as _i4.Future<_i3.Repository>);
+          returnValue: Future<_i3.Repository>.value(_FakeRepository_20())) as _i4.Future<_i3.Repository>);
   @override
   _i4.Future<bool> deleteRepository(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#deleteRepository, [slug]), returnValue: Future<bool>.value(false))
@@ -369,7 +456,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.LanguageBreakdown> listLanguages(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#listLanguages, [slug]),
-              returnValue: Future<_i3.LanguageBreakdown>.value(_FakeLanguageBreakdown_18()))
+              returnValue: Future<_i3.LanguageBreakdown>.value(_FakeLanguageBreakdown_22()))
           as _i4.Future<_i3.LanguageBreakdown>);
   @override
   _i4.Stream<_i3.Tag> listTags(_i3.RepositorySlug? slug, {int? page = 1, int? pages, int? perPage = 30}) =>
@@ -382,7 +469,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.Branch> getBranch(_i3.RepositorySlug? slug, String? branch) =>
       (super.noSuchMethod(Invocation.method(#getBranch, [slug, branch]),
-          returnValue: Future<_i3.Branch>.value(_FakeBranch_19())) as _i4.Future<_i3.Branch>);
+          returnValue: Future<_i3.Branch>.value(_FakeBranch_23())) as _i4.Future<_i3.Branch>);
   @override
   _i4.Stream<_i3.Collaborator> listCollaborators(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#listCollaborators, [slug]), returnValue: Stream<_i3.Collaborator>.empty())
@@ -413,15 +500,15 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
       (super.noSuchMethod(
           Invocation.method(
               #createCommitComment, [slug, commit], {#body: body, #path: path, #position: position, #line: line}),
-          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_20())) as _i4.Future<_i3.CommitComment>);
+          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_24())) as _i4.Future<_i3.CommitComment>);
   @override
   _i4.Future<_i3.CommitComment> getCommitComment(_i3.RepositorySlug? slug, {int? id}) =>
       (super.noSuchMethod(Invocation.method(#getCommitComment, [slug], {#id: id}),
-          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_20())) as _i4.Future<_i3.CommitComment>);
+          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_24())) as _i4.Future<_i3.CommitComment>);
   @override
   _i4.Future<_i3.CommitComment> updateCommitComment(_i3.RepositorySlug? slug, {int? id, String? body}) =>
       (super.noSuchMethod(Invocation.method(#updateCommitComment, [slug], {#id: id, #body: body}),
-          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_20())) as _i4.Future<_i3.CommitComment>);
+          returnValue: Future<_i3.CommitComment>.value(_FakeCommitComment_24())) as _i4.Future<_i3.CommitComment>);
   @override
   _i4.Future<bool> deleteCommitComment(_i3.RepositorySlug? slug, {int? id}) =>
       (super.noSuchMethod(Invocation.method(#deleteCommitComment, [slug], {#id: id}),
@@ -433,7 +520,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.RepositoryCommit> getCommit(_i3.RepositorySlug? slug, String? sha) => (super.noSuchMethod(
       Invocation.method(#getCommit, [slug, sha]),
-      returnValue: Future<_i3.RepositoryCommit>.value(_FakeRepositoryCommit_21())) as _i4.Future<_i3.RepositoryCommit>);
+      returnValue: Future<_i3.RepositoryCommit>.value(_FakeRepositoryCommit_25())) as _i4.Future<_i3.RepositoryCommit>);
   @override
   _i4.Future<String> getCommitDiff(_i3.RepositorySlug? slug, String? sha) =>
       (super.noSuchMethod(Invocation.method(#getCommitDiff, [slug, sha]), returnValue: Future<String>.value(''))
@@ -441,32 +528,32 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.GitHubComparison> compareCommits(_i3.RepositorySlug? slug, String? refBase, String? refHead) =>
       (super.noSuchMethod(Invocation.method(#compareCommits, [slug, refBase, refHead]),
-              returnValue: Future<_i3.GitHubComparison>.value(_FakeGitHubComparison_22()))
+              returnValue: Future<_i3.GitHubComparison>.value(_FakeGitHubComparison_26()))
           as _i4.Future<_i3.GitHubComparison>);
   @override
   _i4.Future<_i3.GitHubFile> getReadme(_i3.RepositorySlug? slug, {String? ref}) =>
       (super.noSuchMethod(Invocation.method(#getReadme, [slug], {#ref: ref}),
-          returnValue: Future<_i3.GitHubFile>.value(_FakeGitHubFile_23())) as _i4.Future<_i3.GitHubFile>);
+          returnValue: Future<_i3.GitHubFile>.value(_FakeGitHubFile_27())) as _i4.Future<_i3.GitHubFile>);
   @override
   _i4.Future<_i3.RepositoryContents> getContents(_i3.RepositorySlug? slug, String? path, {String? ref}) =>
       (super.noSuchMethod(Invocation.method(#getContents, [slug, path], {#ref: ref}),
-              returnValue: Future<_i3.RepositoryContents>.value(_FakeRepositoryContents_24()))
+              returnValue: Future<_i3.RepositoryContents>.value(_FakeRepositoryContents_28()))
           as _i4.Future<_i3.RepositoryContents>);
   @override
   _i4.Future<_i3.ContentCreation> createFile(_i3.RepositorySlug? slug, _i3.CreateFile? file) => (super.noSuchMethod(
       Invocation.method(#createFile, [slug, file]),
-      returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_25())) as _i4.Future<_i3.ContentCreation>);
+      returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_29())) as _i4.Future<_i3.ContentCreation>);
   @override
   _i4.Future<_i3.ContentCreation> updateFile(
           _i3.RepositorySlug? slug, String? path, String? message, String? content, String? sha, {String? branch}) =>
       (super.noSuchMethod(Invocation.method(#updateFile, [slug, path, message, content, sha], {#branch: branch}),
-              returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_25()))
+              returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_29()))
           as _i4.Future<_i3.ContentCreation>);
   @override
   _i4.Future<_i3.ContentCreation> deleteFile(
           _i3.RepositorySlug? slug, String? path, String? message, String? sha, String? branch) =>
       (super.noSuchMethod(Invocation.method(#deleteFile, [slug, path, message, sha, branch]),
-              returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_25()))
+              returnValue: Future<_i3.ContentCreation>.value(_FakeContentCreation_29()))
           as _i4.Future<_i3.ContentCreation>);
   @override
   _i4.Future<String?> getArchiveLink(_i3.RepositorySlug? slug, String? ref, {String? format = r'tarball'}) =>
@@ -479,19 +566,19 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.Repository> createFork(_i3.RepositorySlug? slug, [_i3.CreateFork? fork]) =>
       (super.noSuchMethod(Invocation.method(#createFork, [slug, fork]),
-          returnValue: Future<_i3.Repository>.value(_FakeRepository_16())) as _i4.Future<_i3.Repository>);
+          returnValue: Future<_i3.Repository>.value(_FakeRepository_20())) as _i4.Future<_i3.Repository>);
   @override
   _i4.Stream<_i3.Hook> listHooks(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#listHooks, [slug]), returnValue: Stream<_i3.Hook>.empty())
           as _i4.Stream<_i3.Hook>);
   @override
   _i4.Future<_i3.Hook> getHook(_i3.RepositorySlug? slug, int? id) =>
-      (super.noSuchMethod(Invocation.method(#getHook, [slug, id]), returnValue: Future<_i3.Hook>.value(_FakeHook_26()))
+      (super.noSuchMethod(Invocation.method(#getHook, [slug, id]), returnValue: Future<_i3.Hook>.value(_FakeHook_30()))
           as _i4.Future<_i3.Hook>);
   @override
   _i4.Future<_i3.Hook> createHook(_i3.RepositorySlug? slug, _i3.CreateHook? hook) =>
       (super.noSuchMethod(Invocation.method(#createHook, [slug, hook]),
-          returnValue: Future<_i3.Hook>.value(_FakeHook_26())) as _i4.Future<_i3.Hook>);
+          returnValue: Future<_i3.Hook>.value(_FakeHook_30())) as _i4.Future<_i3.Hook>);
   @override
   _i4.Future<_i3.Hook> editHook(_i3.RepositorySlug? slug, _i3.Hook? hookToEdit,
           {String? configUrl,
@@ -516,7 +603,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
             #removeEvents: removeEvents,
             #active: active
           }),
-          returnValue: Future<_i3.Hook>.value(_FakeHook_26())) as _i4.Future<_i3.Hook>);
+          returnValue: Future<_i3.Hook>.value(_FakeHook_30())) as _i4.Future<_i3.Hook>);
   @override
   _i4.Future<bool> testPushHook(_i3.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(Invocation.method(#testPushHook, [slug, id]), returnValue: Future<bool>.value(false))
@@ -536,11 +623,11 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.PublicKey> getDeployKey(_i3.RepositorySlug? slug, {int? id}) =>
       (super.noSuchMethod(Invocation.method(#getDeployKey, [slug], {#id: id}),
-          returnValue: Future<_i3.PublicKey>.value(_FakePublicKey_27())) as _i4.Future<_i3.PublicKey>);
+          returnValue: Future<_i3.PublicKey>.value(_FakePublicKey_31())) as _i4.Future<_i3.PublicKey>);
   @override
   _i4.Future<_i3.PublicKey> createDeployKey(_i3.RepositorySlug? slug, _i3.CreatePublicKey? key) =>
       (super.noSuchMethod(Invocation.method(#createDeployKey, [slug, key]),
-          returnValue: Future<_i3.PublicKey>.value(_FakePublicKey_27())) as _i4.Future<_i3.PublicKey>);
+          returnValue: Future<_i3.PublicKey>.value(_FakePublicKey_31())) as _i4.Future<_i3.PublicKey>);
   @override
   _i4.Future<bool> deleteDeployKey({_i3.RepositorySlug? slug, _i3.PublicKey? key}) =>
       (super.noSuchMethod(Invocation.method(#deleteDeployKey, [], {#slug: slug, #key: key}),
@@ -548,11 +635,11 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.RepositoryCommit> merge(_i3.RepositorySlug? slug, _i3.CreateMerge? merge) => (super.noSuchMethod(
       Invocation.method(#merge, [slug, merge]),
-      returnValue: Future<_i3.RepositoryCommit>.value(_FakeRepositoryCommit_21())) as _i4.Future<_i3.RepositoryCommit>);
+      returnValue: Future<_i3.RepositoryCommit>.value(_FakeRepositoryCommit_25())) as _i4.Future<_i3.RepositoryCommit>);
   @override
   _i4.Future<_i3.RepositoryPages> getPagesInfo(_i3.RepositorySlug? slug) => (super.noSuchMethod(
       Invocation.method(#getPagesInfo, [slug]),
-      returnValue: Future<_i3.RepositoryPages>.value(_FakeRepositoryPages_28())) as _i4.Future<_i3.RepositoryPages>);
+      returnValue: Future<_i3.RepositoryPages>.value(_FakeRepositoryPages_32())) as _i4.Future<_i3.RepositoryPages>);
   @override
   _i4.Stream<_i3.PageBuild> listPagesBuilds(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#listPagesBuilds, [slug]), returnValue: Stream<_i3.PageBuild>.empty())
@@ -560,7 +647,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.PageBuild> getLatestPagesBuild(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#getLatestPagesBuild, [slug]),
-          returnValue: Future<_i3.PageBuild>.value(_FakePageBuild_29())) as _i4.Future<_i3.PageBuild>);
+          returnValue: Future<_i3.PageBuild>.value(_FakePageBuild_33())) as _i4.Future<_i3.PageBuild>);
   @override
   _i4.Stream<_i3.Release> listReleases(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#listReleases, [slug]), returnValue: Stream<_i3.Release>.empty())
@@ -568,20 +655,20 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.Release> getLatestRelease(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#getLatestRelease, [slug]),
-          returnValue: Future<_i3.Release>.value(_FakeRelease_30())) as _i4.Future<_i3.Release>);
+          returnValue: Future<_i3.Release>.value(_FakeRelease_34())) as _i4.Future<_i3.Release>);
   @override
   _i4.Future<_i3.Release> getReleaseById(_i3.RepositorySlug? slug, int? id) =>
       (super.noSuchMethod(Invocation.method(#getReleaseById, [slug, id]),
-          returnValue: Future<_i3.Release>.value(_FakeRelease_30())) as _i4.Future<_i3.Release>);
+          returnValue: Future<_i3.Release>.value(_FakeRelease_34())) as _i4.Future<_i3.Release>);
   @override
   _i4.Future<_i3.Release> getReleaseByTagName(_i3.RepositorySlug? slug, String? tagName) =>
       (super.noSuchMethod(Invocation.method(#getReleaseByTagName, [slug, tagName]),
-          returnValue: Future<_i3.Release>.value(_FakeRelease_30())) as _i4.Future<_i3.Release>);
+          returnValue: Future<_i3.Release>.value(_FakeRelease_34())) as _i4.Future<_i3.Release>);
   @override
   _i4.Future<_i3.Release> createRelease(_i3.RepositorySlug? slug, _i3.CreateRelease? createRelease,
           {bool? getIfExists = true}) =>
       (super.noSuchMethod(Invocation.method(#createRelease, [slug, createRelease], {#getIfExists: getIfExists}),
-          returnValue: Future<_i3.Release>.value(_FakeRelease_30())) as _i4.Future<_i3.Release>);
+          returnValue: Future<_i3.Release>.value(_FakeRelease_34())) as _i4.Future<_i3.Release>);
   @override
   _i4.Future<_i3.Release> editRelease(_i3.RepositorySlug? slug, _i3.Release? releaseToEdit,
           {String? tagName, String? targetCommitish, String? name, String? body, bool? draft, bool? preRelease}) =>
@@ -597,7 +684,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
             #draft: draft,
             #preRelease: preRelease
           }),
-          returnValue: Future<_i3.Release>.value(_FakeRelease_30())) as _i4.Future<_i3.Release>);
+          returnValue: Future<_i3.Release>.value(_FakeRelease_34())) as _i4.Future<_i3.Release>);
   @override
   _i4.Future<bool> deleteRelease(_i3.RepositorySlug? slug, _i3.Release? release) =>
       (super.noSuchMethod(Invocation.method(#deleteRelease, [slug, release]), returnValue: Future<bool>.value(false))
@@ -609,12 +696,12 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.ReleaseAsset> getReleaseAsset(_i3.RepositorySlug? slug, _i3.Release? release, {int? assetId}) =>
       (super.noSuchMethod(Invocation.method(#getReleaseAsset, [slug, release], {#assetId: assetId}),
-          returnValue: Future<_i3.ReleaseAsset>.value(_FakeReleaseAsset_31())) as _i4.Future<_i3.ReleaseAsset>);
+          returnValue: Future<_i3.ReleaseAsset>.value(_FakeReleaseAsset_35())) as _i4.Future<_i3.ReleaseAsset>);
   @override
   _i4.Future<_i3.ReleaseAsset> editReleaseAsset(_i3.RepositorySlug? slug, _i3.ReleaseAsset? assetToEdit,
           {String? name, String? label}) =>
       (super.noSuchMethod(Invocation.method(#editReleaseAsset, [slug, assetToEdit], {#name: name, #label: label}),
-          returnValue: Future<_i3.ReleaseAsset>.value(_FakeReleaseAsset_31())) as _i4.Future<_i3.ReleaseAsset>);
+          returnValue: Future<_i3.ReleaseAsset>.value(_FakeReleaseAsset_35())) as _i4.Future<_i3.ReleaseAsset>);
   @override
   _i4.Future<bool> deleteReleaseAsset(_i3.RepositorySlug? slug, _i3.ReleaseAsset? asset) =>
       (super.noSuchMethod(Invocation.method(#deleteReleaseAsset, [slug, asset]), returnValue: Future<bool>.value(false))
@@ -641,7 +728,7 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.ContributorParticipation> getParticipation(_i3.RepositorySlug? slug) =>
       (super.noSuchMethod(Invocation.method(#getParticipation, [slug]),
-              returnValue: Future<_i3.ContributorParticipation>.value(_FakeContributorParticipation_32()))
+              returnValue: Future<_i3.ContributorParticipation>.value(_FakeContributorParticipation_36()))
           as _i4.Future<_i3.ContributorParticipation>);
   @override
   _i4.Stream<_i3.PunchcardEntry> listPunchcard(_i3.RepositorySlug? slug) =>
@@ -654,15 +741,15 @@ class MockRepositoriesService extends _i1.Mock implements _i3.RepositoriesServic
   @override
   _i4.Future<_i3.RepositoryStatus> createStatus(_i3.RepositorySlug? slug, String? ref, _i3.CreateStatus? request) =>
       (super.noSuchMethod(Invocation.method(#createStatus, [slug, ref, request]),
-              returnValue: Future<_i3.RepositoryStatus>.value(_FakeRepositoryStatus_33()))
+              returnValue: Future<_i3.RepositoryStatus>.value(_FakeRepositoryStatus_37()))
           as _i4.Future<_i3.RepositoryStatus>);
   @override
   _i4.Future<_i3.CombinedRepositoryStatus> getCombinedStatus(_i3.RepositorySlug? slug, String? ref) =>
       (super.noSuchMethod(Invocation.method(#getCombinedStatus, [slug, ref]),
-              returnValue: Future<_i3.CombinedRepositoryStatus>.value(_FakeCombinedRepositoryStatus_34()))
+              returnValue: Future<_i3.CombinedRepositoryStatus>.value(_FakeCombinedRepositoryStatus_38()))
           as _i4.Future<_i3.CombinedRepositoryStatus>);
   @override
   _i4.Future<_i3.ReleaseNotes> generateReleaseNotes(_i3.CreateReleaseNotes? crn) =>
       (super.noSuchMethod(Invocation.method(#generateReleaseNotes, [crn]),
-          returnValue: Future<_i3.ReleaseNotes>.value(_FakeReleaseNotes_35())) as _i4.Future<_i3.ReleaseNotes>);
+          returnValue: Future<_i3.ReleaseNotes>.value(_FakeReleaseNotes_39())) as _i4.Future<_i3.ReleaseNotes>);
 }

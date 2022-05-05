@@ -50,7 +50,6 @@ class Config {
         cocoonSlug,
         engineSlug,
         flutterSlug,
-        impellerSlug,
         packagesSlug,
         pluginsSlug,
       };
@@ -72,7 +71,6 @@ class Config {
       engineSlug: 'main',
       pluginsSlug: 'main',
       packagesSlug: 'main',
-      impellerSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
@@ -228,7 +226,7 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get flutterGoldPending => 'Pending.';
+  String get flutterGoldPending => 'Waiting for all other checks to be successful before querying Gold.';
 
   String get flutterGoldSuccess => 'All golden file tests have passed.';
 
@@ -307,7 +305,6 @@ class Config {
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
   static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
   static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
-  static RepositorySlug get impellerSlug => RepositorySlug('flutter', 'impeller');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 

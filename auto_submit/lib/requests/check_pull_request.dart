@@ -33,7 +33,7 @@ const int _kBehindToT = 10;
 /// For pull requests where an 'autosubmit' label was added in pubsub,
 /// check if the pull request is mergable.
 class CheckPullRequest extends AuthenticatedRequestHandler {
-  CheckPullRequest({
+  const CheckPullRequest({
     required Config config,
     required CronAuthProvider cronAuthProvider,
     this.pubsub = const PubSub(),
@@ -46,6 +46,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   @override
   Future<Response> get() async {
     final List<Response> responses = <Response>[];
+    final Set<int> processingLog = <int>{};
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
@@ -56,16 +57,38 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     //The repoPullRequestsMap stores the repo name and the set of PRs ready to merge to this repo
     final Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap = <String, Set<_AutoMergeQueryResult>>{};
     for (pub.ReceivedMessage message in receivedMessages) {
-      futures.add(_processMessage(message, repoPullRequestsMap));
+      final String messageData = message.message!.data!;
+      final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+      final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      if (processingLog.contains(pullRequest.number)) {
+        // Ack duplicate.
+        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+        continue;
+      } else {
+        processingLog.add(pullRequest.number!);
+      }
+      if (!await shouldProcess(pullRequest)) {
+        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+        continue;
+      }
+      futures.add(_processMessage(pullRequest, repoPullRequestsMap, message.ackId!));
     }
     responses.addAll(await Future.wait(futures));
-
     await checkPullRequests(repoPullRequestsMap);
     final StringBuffer responseMessages = StringBuffer();
     for (Response response in responses) {
       responseMessages.write(await response.readAsString());
     }
     return Response.ok(responseMessages.toString());
+  }
+
+  /// Checks if a pullRequest is still open before trying to process it.
+  Future<bool> shouldProcess(PullRequest pullRequest) async {
+    RepositorySlug slug = pullRequest.base!.repo!.slug();
+    GitHub gitHub = await config.createGithubClient(pullRequest.base!.repo!.slug());
+    PullRequest currentPullRequest = await gitHub.pullRequests.get(slug, pullRequest.number!);
+    // Accepted states open, closed, or all.
+    return currentPullRequest.state! == 'open';
   }
 
   /// Check and merge the pull requests to each repo this cycle.
@@ -84,11 +107,11 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
               queryResult.graphQLId, queryResult.sha!, queryResult.number!, queryResult.title, queryResult.slug);
           if (mergeResult) {
             responses.add(<int, String>{queryResult.number!: 'merged'});
+            await pubsub.acknowledge('auto-submit-queue-sub', queryResult.ackId!);
           } else {
             responses.add(<int, String>{queryResult.number!: 'unmerged'});
           }
         } else {
-          await pubsub.publish('auto-submit-queue', repoPullRequestsMap[repoName]!.elementAt(index));
           responses.add(<int, String>{queryResult.number!: 'queued'});
         }
       }
@@ -121,10 +144,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   }
 
   Future<Response> _processMessage(
-      pub.ReceivedMessage receivedMessage, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap) async {
-    final String messageData = receivedMessage.message!.data!;
-    final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-    final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      PullRequest pullRequest, Map<String, Set<_AutoMergeQueryResult>> repoPullRequestsMap, String ackId) async {
     log.info('Got the Pull Request ${pullRequest.number} from pubsub.');
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -133,7 +153,12 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
     await autoMergeBranch(pullRequest, gitHub);
 
-    final _AutoMergeQueryResult queryResult = await _parseQueryData(pullRequest, gitHub, graphQLClient);
+    final _AutoMergeQueryResult queryResult = await _parseQueryData(
+      pullRequest,
+      gitHub,
+      graphQLClient,
+      ackId,
+    );
     if (await shouldMergePullRequest(queryResult, slug, gitHub)) {
       final bool hasAutosubmitLabel = queryResult.labels.any((label) => label == config.autosubmitLabel);
       if (hasAutosubmitLabel) {
@@ -141,10 +166,9 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
           repoPullRequestsMap[slug.fullName] = <_AutoMergeQueryResult>{};
         }
         repoPullRequestsMap[slug.fullName]!.add(queryResult);
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
         return Response.ok('Should merge the pull request ${queryResult.number} in ${slug.fullName} repository.');
       } else {
-        await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         log.info('Acknowledged the pubsub.');
         return Response.ok('Does not merge the pull request ${queryResult.number} for no autosubmit label any more.');
       }
@@ -152,7 +176,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('Removing label for commit: ${queryResult.sha}');
       await _removeLabel(queryResult, gitHub, slug, config.autosubmitLabel);
       log.info('Removed the label for commit: ${queryResult.sha}');
-      await pubsub.acknowledge('auto-submit-queue-sub', receivedMessage.ackId!);
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('Acknowledged the pubsub for commit: ${queryResult.sha}');
       return Response.ok('Remove the autosubmit label for commit: ${queryResult.sha}.');
     } else {
@@ -256,7 +280,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   ///
   /// This method will not return null, but may return an empty list.
   Future<_AutoMergeQueryResult> _parseQueryData(
-      PullRequest pr, GithubService gitHub, GraphQLClient graphQLClient) async {
+      PullRequest pr, GithubService gitHub, GraphQLClient graphQLClient, String? ackId) async {
     // This is used to remove the bot label as it requires manual intervention.
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
@@ -335,6 +359,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       isConflicting: isConflicting,
       unknownMergeableState: unknownMergeableState,
       labels: labelNames,
+      ackId: ackId,
     );
   }
 
@@ -474,6 +499,7 @@ class _AutoMergeQueryResult {
     required this.unknownMergeableState,
     required this.labels,
     required this.slug,
+    required this.ackId,
   });
 
   /// The GitHub GraphQL ID of this pull request.
@@ -514,6 +540,9 @@ class _AutoMergeQueryResult {
 
   /// The slug of the repository
   final RepositorySlug slug;
+
+  /// The pub/sub ackId.
+  final String? ackId;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
