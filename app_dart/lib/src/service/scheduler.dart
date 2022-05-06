@@ -128,7 +128,22 @@ class Scheduler {
 
     final CiYaml ciYaml = await getCiYaml(commit);
     final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
-    final List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+    List<Task> tasks = targetsToTask(commit, initialTargets).toList();
+
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: <Commit>[commit]);
+        transaction.queueMutations(inserts: tasks);
+        await transaction.commit();
+        log.fine('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
+      });
+    } catch (error) {
+      log.severe('Failed to add commit ${commit.sha!}: $error');
+    }
+
+    // Update Tasks to get the generated key
+    // TODO: This is failing, need to cast Stream FullTask to task for this commit
+    tasks = await datastore.queryRecentTasks(slug: commit.slug).toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
@@ -141,18 +156,8 @@ class Scheduler {
         toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
       }
     }
-    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
-    try {
-      await datastore.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: <Commit>[commit]);
-        transaction.queueMutations(inserts: tasks);
-        await transaction.commit();
-        log.fine('Committed ${tasks.length} new tasks for commit ${commit.sha!}');
-      });
-    } catch (error) {
-      log.severe('Failed to add commit ${commit.sha!}: $error');
-    }
+    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
 
     await _uploadToBigQuery(commit);
   }
