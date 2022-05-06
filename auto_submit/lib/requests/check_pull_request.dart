@@ -127,17 +127,21 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     RepositorySlug slug,
   ) async {
     final GraphQLClient client = await config.createGitHubGraphQLClient(slug);
-    final QueryResult result = await client.mutate(MutationOptions(
-      document: mergePullRequestMutation,
-      variables: <String, dynamic>{
-        'id': id,
-        'oid': sha,
-        'title': '$title (#$number)',
-      },
-    ));
-
-    if (result.hasException) {
-      log.severe('Failed to merge pr#: $number with ${result.exception.toString()}');
+    try {
+      final QueryResult result = await client.mutate(MutationOptions(
+        document: mergePullRequestMutation,
+        variables: <String, dynamic>{
+          'id': id,
+          'oid': sha,
+          'title': '$title (#$number)',
+        },
+      ));
+      if (result.hasException) {
+        log.severe('Failed to merge pr#: $number with ${result.exception.toString()}');
+        return false;
+      }
+    } catch (e) {
+      log.severe('_processMerge error in $slug: $e');
       return false;
     }
     return true;
