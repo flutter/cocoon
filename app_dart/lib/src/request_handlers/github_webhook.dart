@@ -203,7 +203,7 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
 
-    final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
+    final GitHub gitHubClient = config.createGitHubClientWithToken(await config.githubOAuthToken);
     final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
     await gitHubClient.pullRequests.createReview(slug, review);
   }
