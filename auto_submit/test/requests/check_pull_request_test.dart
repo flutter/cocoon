@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 // ignore_for_file: constant_identifier_names
-
+import 'package:auto_submit/service/log.dart';
+import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:github/github.dart';
@@ -135,6 +136,43 @@ void main() {
         <MutationOptions>[],
       );
       expect(0, pubsub.messagesQueue.length);
+    });
+
+    test('Merge exception is handled correctly', () async {
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      int errorIndex = 0;
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (PullRequest pr in pullRequests) {
+        pubsub.publish(testTopic, pr);
+      }
+
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+      );
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
+      githubGraphQLClient.mutateResultForOptions = (_) {
+        if (errorIndex == 0) {
+          errorIndex++;
+          throw const GraphQLError(message: 'error');
+        }
+        return createQueryResult(cocoonRequest);
+      };
+      final List<LogRecord> records = <LogRecord>[];
+      log.onRecord.listen((LogRecord record) => records.add(record));
+      final Response response = await checkPullRequest.get();
+      expect(pubsub.messagesQueue.length, 1);
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write(
+            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+      }
+      expect(await response.readAsString(), responseMessages.toString());
+      final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
+      expect(errorLogs.length, 1);
+      expect(errorLogs[0].message.contains('_processMerge'), true);
     });
 
     test('Merges PR with successful status and checks', () async {
