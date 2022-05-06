@@ -27,7 +27,7 @@ dependencies:
   http: ^0.13.3
   json_annotation: ^4.5.0
   mime: ^1.0.2
-  neat_cache: ^2.0.1
+  neat_cache: ^2.0.2
   process_runner: ^4.1.2
   protobuf: ^2.0.0
   truncate: ^3.0.1
