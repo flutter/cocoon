@@ -25,6 +25,14 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android android_semantics_integration_test
+    ignore_flakiness: true
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -55,6 +63,14 @@ targets:
   - name: Mac_android android_semantics_integration_test
     builder: Mac_android android_semantics_integration_test
     bringup: true
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android android_semantics_integration_test
+    ignore_flakiness: true
     presubmit: false
     scheduler: luci
     properties:
@@ -124,6 +140,18 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
+  ),
+  // This builder is flakey, but it should be
+  // ignored because it has ignore_flakiness set.
+  BuilderStatistic(
+    name: 'Mac_android ignore_myflakiness',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -174,6 +202,14 @@ targets:
   - name: Mac_android android_semantics_integration_test
     bringup: true # Flaky $expectedSemanticsIntegrationTestNewIssueURL
     builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android android_semantics_integration_test
+    ignore_flakiness: true
     presubmit: false
     scheduler: luci
     properties:

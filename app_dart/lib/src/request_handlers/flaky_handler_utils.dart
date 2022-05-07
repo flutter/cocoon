@@ -28,6 +28,7 @@ const String kP6Label = 'P6';
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlTargetsKey = 'targets';
 const String kCiYamlTargetNameKey = 'name';
+const String kCiYamlTargetIgnoreFlakiness = 'ignore_flakiness';
 const String kCiYamlTargetIsFlakyKey = 'bringup';
 const String kCiYamlPropertiesKey = 'properties';
 const String kCiYamlTargetTagsKey = 'tags';
@@ -60,12 +61,14 @@ class IssueBuilder {
     required this.ownership,
     required this.threshold,
     this.bringup = false,
+    this.ignore_flakiness = false,
   });
 
   final BuilderStatistic statistic;
   final TestOwnership ownership;
   final double threshold;
   final bool bringup;
+  final bool ignore_flakiness;
 
   Bucket get buildBucket {
     return bringup ? Bucket.staging : Bucket.prod;
@@ -277,12 +280,14 @@ Future<Issue> fileFlakyIssue({
   required RepositorySlug slug,
   double threshold = kDefaultFlakyRatioThreshold,
   bool bringup = false,
+  bool ignore_flakiness = false,
 }) async {
   final IssueBuilder issueBuilder = IssueBuilder(
       statistic: builderDetail.statistic,
       ownership: builderDetail.ownership,
       threshold: kDefaultFlakyRatioThreshold,
-      bringup: bringup);
+      bringup: bringup,
+      ignore_flakiness: ignore_flakiness);
   return await gitHub.createIssue(
     slug,
     title: issueBuilder.issueTitle,

@@ -28,6 +28,13 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    ignore_flakiness: true
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     scheduler: luci
     properties:
@@ -56,6 +63,13 @@ targets:
   - name: Mac_android android_semantics_integration_test
     presubmit: false
     bringup: true
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    ignore_flakiness: true
+    presubmit: false
     scheduler: luci
     properties:
       tags: >
@@ -205,6 +219,13 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    ignore_flakiness: true
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     scheduler: luci
     properties:
@@ -241,6 +262,18 @@ This test can be marked as unflaky.
 final List<BuilderStatistic> stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
   BuilderStatistic(
     name: 'Mac_android android_semantics_integration_test',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 10,
+  ),
+  // This builder is flakey, but it should be
+  // ignored because it has ignore_flakiness set.
+  BuilderStatistic(
+    name: 'Mac_android ignore_myflakiness',
     flakyRate: 0.5,
     flakyBuilds: <String>['103', '102', '101'],
     succeededBuilds: <String>['203', '202', '201', '200', '199', '198', '197'],
