@@ -26,7 +26,8 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
-    builder: Mac_android android_semantics_integration_test
+    bringup: true
+    builder: Mac_android ignore_myflakiness
     ignore_flakiness: true
     presubmit: false
     scheduler: luci
@@ -69,7 +70,8 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
-    builder: Mac_android android_semantics_integration_test
+    bringup: true
+    builder: Mac_android ignore_myflakiness
     ignore_flakiness: true
     presubmit: false
     scheduler: luci
@@ -208,7 +210,8 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
-    builder: Mac_android android_semantics_integration_test
+    bringup: true
+    builder: Mac_android ignore_myflakiness
     ignore_flakiness: true
     presubmit: false
     scheduler: luci

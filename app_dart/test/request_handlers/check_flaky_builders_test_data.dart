@@ -29,6 +29,7 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
+    bringup: true
     ignore_flakiness: true
     presubmit: false
     scheduler: luci
@@ -68,6 +69,7 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
+    bringup: true
     ignore_flakiness: true
     presubmit: false
     scheduler: luci
@@ -220,6 +222,7 @@ targets:
       tags: >
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
+    bringup: true
     ignore_flakiness: true
     presubmit: false
     scheduler: luci
