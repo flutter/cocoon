@@ -12,26 +12,27 @@ platform_properties:
   linux:
     properties:
       os: Linux
+      bot_type: "regular"
   mac:
     properties:
       os: Mac-10.15
+      bot_type: "regular"
   windows:
     properties:
       os: Windows
+      bot_type: "regular"
 
 targets:
   - name: Linux Cocoon
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
-      bot_type: "regular"
 
   - name: Linux device_doctor
     postsubmit: false
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      bot_type: "regular"
     runIf:
       - device_doctor/**
 
@@ -40,7 +41,6 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      bot_type: "regular"
     runIf:
       - device_doctor/**
 
@@ -49,7 +49,6 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      bot_type: "regular"
     runIf:
       - device_doctor/**
 
@@ -57,4 +56,3 @@ targets:
     recipe: infra/ci_yaml
     properties:
       add_recipes_cq: "true"
-      bot_type: "regular"
