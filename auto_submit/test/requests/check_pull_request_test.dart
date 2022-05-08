@@ -353,7 +353,8 @@ void main() {
       _verifyQueries(expectedOptions);
       final StringBuffer responseMessages = StringBuffer();
       for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write('Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+        responseMessages.write(
+            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       }
       expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
