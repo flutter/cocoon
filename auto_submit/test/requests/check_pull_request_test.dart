@@ -173,6 +173,7 @@ void main() {
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, 1);
       expect(errorLogs[0].message.contains('_processMerge'), true);
+      pubsub.messagesQueue.clear();
     });
 
     test('Merges PR with successful status and checks', () async {
