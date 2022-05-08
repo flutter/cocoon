@@ -335,6 +335,30 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
+    test('Merges PR with neutral status checkrun', () async {
+      PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
+      for (PullRequest pr in pullRequests) {
+        pubsub.publish(testTopic, pr);
+      }
+      githubService.checkRunsData = neutralCheckRunsMock;
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
+
+      final Response response = await checkPullRequest.get();
+      expectedOptions.add(flutterOption);
+      expectedOptions.add(cocoonOption);
+      _verifyQueries(expectedOptions);
+      final StringBuffer responseMessages = StringBuffer();
+      for (PullRequest pullRequest in pullRequests) {
+        responseMessages.write('Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
+      }
+      expect(await response.readAsString(), responseMessages.toString());
+      assert(pubsub.messagesQueue.isEmpty);
+    });
+
     test('Removes the label for the PR with failed tests', () async {
       PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);

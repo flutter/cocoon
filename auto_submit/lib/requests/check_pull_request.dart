@@ -423,7 +423,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     log.info('Validating name: $name, checks: $checkRuns');
     for (CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
-      if (checkRun.conclusion == CheckRunConclusion.success) {
+      if ([CheckRunConclusion.success, CheckRunConclusion.neutral].contains(checkRun.conclusion)) {
         continue;
       } else if (checkRun.status == CheckRunStatus.completed) {
         failures.add(_FailureDetail(name!, checkRun.detailsUrl as String));
