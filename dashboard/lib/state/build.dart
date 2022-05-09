@@ -91,6 +91,9 @@ class BuildState extends ChangeNotifier {
   static const String errorMessageFetchingBranches =
       'An error occurred fetching branches from flutter/flutter on Cocoon.';
 
+  @visibleForTesting
+  static const String errorMessageFetchingRepos = 'An error occurred fetching repos from flutter/flutter on Cocoon.';
+
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
   final Duration? refreshRate = const Duration(seconds: 30);
@@ -147,7 +150,7 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchRepos() async {
     final CocoonResponse<List<String>> response = await cocoonService.fetchRepos();
     if (response.error != null) {
-      _errors.send('$errorMessageFetchingBranches: ${response.error}');
+      _errors.send('$errorMessageFetchingRepos: ${response.error}');
     } else {
       _repos = response.data!;
       notifyListeners();

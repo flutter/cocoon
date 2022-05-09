@@ -125,10 +125,10 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final List<dynamic> jsonResponse = jsonDecode(response.body);
 
       final List<Branch> branches = <Branch>[];
-      for (final Map<String, dynamic> jsonBranch in jsonResponse['Branches']) {
+      for (final Map<String, dynamic> jsonBranch in jsonResponse) {
         final Map<String, dynamic> branchInfo = jsonBranch['branch'];
         branches.add(Branch()
           ..branch = branchInfo['branch']
