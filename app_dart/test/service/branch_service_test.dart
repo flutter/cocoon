@@ -28,6 +28,15 @@ void main() {
   });
 
   group('branch service test', () {
+    test('should not add branch if it is created in a fork', () async {
+      expect(db.values.values.whereType<Branch>().length, 0);
+      final String request = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon', forked: true);
+      branchService = BranchService(datastoreService, rawRequest: request);
+      await branchService.handleCreateRequest();
+
+      expect(db.values.values.whereType<Branch>().length, 0);
+    });
+
     test('should add branch to db if db is empty', () async {
       expect(db.values.values.whereType<Branch>().length, 0);
       final String request = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
