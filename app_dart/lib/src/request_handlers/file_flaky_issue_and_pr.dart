@@ -47,7 +47,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      final BuilderType type = getTypeForBuilder(statistic.name, ci!);
+      final BuilderType type = getTypeForBuilder(statistic.name, ci);
       await _fileIssueAndPR(
         gitHub,
         slug,
