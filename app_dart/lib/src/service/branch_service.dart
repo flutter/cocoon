@@ -35,8 +35,12 @@ class BranchService {
       return;
     }
     final String? branch = createEvent.ref;
-    final String? repository = createEvent.repository!.slug().fullName;
+    final String repository = createEvent.repository!.slug().fullName;
     final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
+
+    if (repository.split('/')[0] != 'flutter') {
+      return;
+    }
 
     final String id = '$repository/$branch';
     final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
