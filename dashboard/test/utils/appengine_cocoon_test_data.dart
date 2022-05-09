@@ -57,8 +57,7 @@ const String luciJsonGetStatsResponse = '''
   }
 ''';
 
-const String jsonGetBranchesResponse = '''{
-   "Branches":[
+const String jsonGetBranchesResponse = '''[
       {
          "id":"ahFmbHV0dGVyLWRhc2hib2FyZHIuCxIGQnJhbmNoIiJmbHV0dGVyL2ZsdXR0ZXIvYnJhbmNoLWNyZWF0ZWQtb2xkDKIBCVtkZWZhdWx0XQ",
          "branch":{
@@ -73,8 +72,8 @@ const String jsonGetBranchesResponse = '''{
            "repository":"flutter/engine"
         }
      }
-   ]
-}''';
+]
+''';
 
 const String jsonGetReposResponse = '''
   [
