@@ -30,7 +30,7 @@ void main() {
   group('branch service test', () {
     test('should not add branch if it is created in a fork', () async {
       expect(db.values.values.whereType<Branch>().length, 0);
-      final String request = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon');
+      final String request = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon', forked: true);
       branchService = BranchService(datastoreService, rawRequest: request);
       await branchService.handleCreateRequest();
 

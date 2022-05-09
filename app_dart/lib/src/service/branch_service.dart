@@ -37,8 +37,9 @@ class BranchService {
     final String? branch = createEvent.ref;
     final String repository = createEvent.repository!.slug().fullName;
     final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
+    final bool forked = createEvent.repository!.isFork;
 
-    if (repository.split('/')[0] != 'flutter') {
+    if (forked) {
       return;
     }
 

@@ -841,7 +841,7 @@ String generateCheckRunEvent({
   return body;
 }
 
-String generateCreateBranchEvent(String branchName, String repository) => '''
+String generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) => '''
 {
   "ref": "$branchName",
   "ref_type": "branch",
@@ -876,7 +876,7 @@ String generateCreateBranchEvent(String branchName, String repository) => '''
     },
     "html_url": "https://github.com/$repository",
     "description": null,
-    "fork": false,
+    "fork": $forked,
     "url": "https://api.github.com/repos/$repository",
     "forks_url": "https://api.github.com/repos/$repository/forks",
     "keys_url": "https://api.github.com/repos/$repository/keys{/key_id}",
