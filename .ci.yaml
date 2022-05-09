@@ -12,15 +12,15 @@ platform_properties:
   linux:
     properties:
       os: Linux
-      bot_type: "regular"
+      signing_certs: "none"
   mac:
     properties:
       os: Mac-10.15
-      bot_type: "regular"
+      signing_certs: "none"
   windows:
     properties:
       os: Windows
-      bot_type: "regular"
+      signing_certs: "none"
 
 targets:
   - name: Linux Cocoon
