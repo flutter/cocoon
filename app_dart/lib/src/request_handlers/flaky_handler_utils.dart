@@ -283,11 +283,12 @@ Future<Issue> fileFlakyIssue({
   bool ignore_flakiness = false,
 }) async {
   final IssueBuilder issueBuilder = IssueBuilder(
-      statistic: builderDetail.statistic,
-      ownership: builderDetail.ownership,
-      threshold: kDefaultFlakyRatioThreshold,
-      bringup: bringup,
-      ignore_flakiness: ignore_flakiness);
+    statistic: builderDetail.statistic,
+    ownership: builderDetail.ownership,
+    threshold: kDefaultFlakyRatioThreshold,
+    bringup: bringup,
+    ignore_flakiness: ignore_flakiness,
+  );
   return await gitHub.createIssue(
     slug,
     title: issueBuilder.issueTitle,
