@@ -140,7 +140,9 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
       orElse: () => null,
     ) as YamlMap?;
-    return target != null && target[kCiYamlTargetIgnoreFlakiness] == true;
+    bool ignoreFlakiness = target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] != null &&
+        target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] == 'true';
+    return target != null && ignoreFlakiness;
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {

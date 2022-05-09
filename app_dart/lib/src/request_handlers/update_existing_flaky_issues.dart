@@ -44,11 +44,6 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
     ).config;
-    final YamlList targets = ci![kCiYamlTargetsKey] as YamlList;
-    final List<YamlMap?> ignoreFlakyTargets = targets
-        .where((dynamic target) => target[kCiYamlTargetIgnoreFlakiness] == true)
-        .map<YamlMap?>((dynamic target) => target as YamlMap?)
-        .toList();
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
     final List<BuilderStatistic> stagingBuilderStatisticList =
@@ -61,7 +56,6 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
-      ignoreFlakyTargets: ignoreFlakyTargets,
     );
     return Body.forJson(const <String, dynamic>{
       'Status': 'success',
@@ -109,11 +103,15 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
-    required List<YamlMap?> ignoreFlakyTargets,
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
+    final Map<String, bool> ignoreFlakyMap = <String, bool>{};
     for (pb.Target target in schedulerConfig.targets) {
       builderFlakyMap[target.name] = target.bringup;
+      if (target.properties.containsKey(kCiYamlTargetIgnoreFlakiness) &&
+          target.properties[kCiYamlTargetIgnoreFlakiness] == 'true') {
+        ignoreFlakyMap[target.name] = true;
+      }
     }
     // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.
     //
@@ -124,7 +122,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       // ignore: iterable_contains_unrelated_type
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap.containsKey(statistic.name) &&
-          !ignoreFlakyTargets.contains(statistic.name)) {
+          // ignore: iterable_contains_unrelated_type
+          !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: Bucket.prod, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
@@ -134,7 +133,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       if (nameToExistingIssue.containsKey(statistic.name) &&
           builderFlakyMap[statistic.name] == true &&
           // ignore: iterable_contains_unrelated_type
-          !ignoreFlakyTargets.contains(statistic.name)) {
+          !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: Bucket.staging, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }

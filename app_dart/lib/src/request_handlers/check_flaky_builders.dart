@@ -121,7 +121,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final YamlMap? flakyTarget in flakyTargets) {
       final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
-      if (flakyTarget[kCiYamlTargetIgnoreFlakiness] != null && flakyTarget[kCiYamlTargetIgnoreFlakiness] == true) {
+      if (flakyTarget[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] != null &&
+          flakyTarget[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] == 'true') {
         continue;
       }
       if (ignoredBuilders.contains(builder)) {

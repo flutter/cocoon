@@ -30,10 +30,10 @@ targets:
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
     bringup: true
-    ignore_flakiness: true
     presubmit: false
     scheduler: luci
     properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze
@@ -70,10 +70,10 @@ targets:
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
     bringup: true
-    ignore_flakiness: true
     presubmit: false
     scheduler: luci
     properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze
@@ -223,10 +223,10 @@ targets:
         ["devicelab"]
   - name: Mac_android ignore_myflakiness
     bringup: true
-    ignore_flakiness: true
     presubmit: false
     scheduler: luci
     properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze

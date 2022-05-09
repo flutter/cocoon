@@ -224,11 +224,11 @@ targets:
         ["devicelab"]
 
   - name: Mac_android ignore_myflakiness
-    ignore_flakiness: true
     builder: Mac_android android_semantics_integration_test
     presubmit: false
     scheduler: luci
     properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
 
