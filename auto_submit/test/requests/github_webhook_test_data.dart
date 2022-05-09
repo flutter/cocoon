@@ -202,6 +202,25 @@ const String failedCheckRunsMock = '''{
   ]
 }''';
 
+const String neutralCheckRunsMock = '''{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "neutral",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "neutral_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
 String inProgressCheckRunsMock = '''{
   "total_count": 1,
   "check_runs": [

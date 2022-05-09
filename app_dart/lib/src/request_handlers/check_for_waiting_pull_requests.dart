@@ -365,7 +365,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     log.info('Validating name: $name, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String? name = checkRun['name'] as String?;
-      if (checkRun['conclusion'] == 'SUCCESS') {
+      if (checkRun['conclusion'] == 'SUCCESS' ||
+          (checkRun['status'] == 'COMPLETED' && checkRun['conclusion'] == 'NEUTRAL')) {
         continue;
       } else if (checkRun['status'] == 'COMPLETED') {
         log.info('Failure in status: ${checkRun['detailsUrl'] as String}');
