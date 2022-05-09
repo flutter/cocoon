@@ -533,6 +533,33 @@ void main() {
       ]);
     });
 
+    test('Merges PR with check that was neutral', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedNeutral,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+        labels: waitForTreeGreenlabels,
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
+          'id': flutterRepoPRs.first.id,
+          'oid': oid,
+          'title': 'some_title (#0)',
+        }),
+      ]);
+    });
+
     test('Merges PR with check that is successful but still considered running', () async {
       // Ensure there is at least one cirrus status.
       statuses = <dynamic>[
