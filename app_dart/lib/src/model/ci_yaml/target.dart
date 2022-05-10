@@ -38,6 +38,8 @@ class Target {
   /// Dimension list defined in .ci.yaml.
   static List<String> dimensionList = <String>['os', 'device_os', 'device_type', 'mac_model', 'cores', 'cpu'];
 
+  static String kIgnoreFlakiness = 'ignore_flakiness';
+
   /// Gets dimensions for this [pb.Target].
   ///
   /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
@@ -186,6 +188,18 @@ class Target {
   /// Get the associated LUCI bucket to run this [Target] in.
   String getBucket() {
     return value.bringup ? 'staging' : 'prod';
+  }
+
+  /// Returns value of ignore_flakiness property.
+  ///
+  /// Returns the value of ignore_flakiness property if
+  /// it has been specified, else default returns false.
+  bool ignoreFlakiness() {
+    final Map<String, Object> properties = getProperties();
+    if (properties.containsKey(kIgnoreFlakiness)) {
+      return properties[kIgnoreFlakiness] as bool;
+    }
+    return false;
   }
 }
 

@@ -21,6 +21,68 @@ void main() {
         });
       });
 
+      test('properties with ignore_flakiness true', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'xcode': 'abc',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+            'ignore_flakiness': 'true',
+          },
+        );
+        expect(target.ignoreFlakiness(), true);
+      });
+
+      test('properties with ignore_flakiness not present', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'xcode': 'abc',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+          },
+        );
+        expect(target.ignoreFlakiness(), false);
+      });
+
+      test('properties with ignore_flakiness in platform properties', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'ignore_flakiness': 'true',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+          },
+        );
+        expect(target.ignoreFlakiness(), true);
+      });
+
+      test('properties with ignore_flakiness overrides platform properties', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'ignore_flakiness': 'true',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+            'ignore_flakiness': 'false',
+          },
+        );
+        expect(target.ignoreFlakiness(), false);
+      });
+
       test('properties with xcode overrides platform properties', () {
         final Target target = generateTarget(
           1,
