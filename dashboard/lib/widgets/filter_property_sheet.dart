@@ -138,9 +138,11 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
 class BoolFilterProperty extends ValueFilterProperty<bool?> {
   BoolFilterProperty({required String fieldName, String? label, bool value = true})
       : _value = value,
+        _defaultValue = value,
         super(fieldName: fieldName, label: label);
 
   bool? _value;
+  final bool? _defaultValue;
 
   @override
   bool? get value => _value;
@@ -166,10 +168,10 @@ class BoolFilterProperty extends ValueFilterProperty<bool?> {
   }
 
   @override
-  bool get isDefault => _value == true;
+  bool get isDefault => value == _defaultValue;
 
   @override
-  void reset() => value = true;
+  void reset() => value = _defaultValue;
 }
 
 /// A class used to enclose a group of other [BoolFilterProperty] properties to be
