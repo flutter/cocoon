@@ -25,6 +25,15 @@ targets:
     properties:
       tags: >
         ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    bringup: true
+    builder: Mac_android ignore_myflakiness
+    presubmit: false
+    scheduler: luci
+    properties:
+      ignore_flakiness: "true"
+      tags: >
+        ["devicelab"]
   - name: Linux analyze
     builder: Linux analyze
     scheduler: luci
@@ -58,6 +67,15 @@ targets:
     presubmit: false
     scheduler: luci
     properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    bringup: true
+    builder: Mac_android ignore_myflakiness
+    presubmit: false
+    scheduler: luci
+    properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze
@@ -124,6 +142,18 @@ final List<BuilderStatistic> semanticsIntegrationTestResponse = <BuilderStatisti
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 6,
+  ),
+  // This builder is flakey, but it should be
+  // ignored because it has ignore_flakiness set.
+  BuilderStatistic(
+    name: 'Mac_android ignore_myflakiness',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 6,
   )
 ];
 
@@ -177,6 +207,15 @@ targets:
     presubmit: false
     scheduler: luci
     properties:
+      tags: >
+        ["devicelab"]
+  - name: Mac_android ignore_myflakiness
+    bringup: true
+    builder: Mac_android ignore_myflakiness
+    presubmit: false
+    scheduler: luci
+    properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
   - name: Linux analyze

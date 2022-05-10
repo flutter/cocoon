@@ -28,6 +28,7 @@ const String kP6Label = 'P6';
 const String kBigQueryProjectId = 'flutter-dashboard';
 const String kCiYamlTargetsKey = 'targets';
 const String kCiYamlTargetNameKey = 'name';
+const String kCiYamlTargetIgnoreFlakiness = 'ignore_flakiness';
 const String kCiYamlTargetIsFlakyKey = 'bringup';
 const String kCiYamlPropertiesKey = 'properties';
 const String kCiYamlTargetTagsKey = 'tags';
@@ -279,10 +280,11 @@ Future<Issue> fileFlakyIssue({
   bool bringup = false,
 }) async {
   final IssueBuilder issueBuilder = IssueBuilder(
-      statistic: builderDetail.statistic,
-      ownership: builderDetail.ownership,
-      threshold: kDefaultFlakyRatioThreshold,
-      bringup: bringup);
+    statistic: builderDetail.statistic,
+    ownership: builderDetail.ownership,
+    threshold: kDefaultFlakyRatioThreshold,
+    bringup: bringup,
+  );
   return await gitHub.createIssue(
     slug,
     title: issueBuilder.issueTitle,

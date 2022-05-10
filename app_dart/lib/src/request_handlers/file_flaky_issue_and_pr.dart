@@ -40,10 +40,14 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
+      // Skip if ignore_flakiness is specified.
+      if (_getIgnoreFlakiness(statistic.name, ci!)) {
+        continue;
+      }
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      final BuilderType type = getTypeForBuilder(statistic.name, ci!);
+      final BuilderType type = getTypeForBuilder(statistic.name, ci);
       await _fileIssueAndPR(
         gitHub,
         slug,
@@ -128,6 +132,17 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       orElse: () => null,
     ) as YamlMap?;
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
+  }
+
+  bool _getIgnoreFlakiness(String builderName, YamlMap ci) {
+    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
+    final YamlMap? target = targets.firstWhere(
+      (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
+      orElse: () => null,
+    ) as YamlMap?;
+    bool ignoreFlakiness = target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] != null &&
+        target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] == 'true';
+    return target != null && ignoreFlakiness;
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {

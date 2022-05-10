@@ -102,6 +102,18 @@ final List<BuilderStatistic> semanticsIntegrationTestResponseNotEnoughData = <Bu
     flakyBuildOfRecentCommit: '103',
     flakyNumber: 3,
     totalNumber: 7,
+  ),
+  // This builder is flakey, but it should be
+  // ignored because it has ignore_flakiness set.
+  BuilderStatistic(
+    name: 'Mac_android ignore_myflakiness',
+    flakyRate: 0.5,
+    flakyBuilds: <String>['103', '102', '101'],
+    succeededBuilds: <String>['203', '202', '201', '200'],
+    recentCommit: 'abc',
+    flakyBuildOfRecentCommit: '103',
+    flakyNumber: 3,
+    totalNumber: 7,
   )
 ];
 
@@ -208,6 +220,15 @@ targets:
     presubmit: false
     scheduler: luci
     properties:
+      tags: >
+        ["devicelab"]
+
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      ignore_flakiness: "true"
       tags: >
         ["devicelab"]
 

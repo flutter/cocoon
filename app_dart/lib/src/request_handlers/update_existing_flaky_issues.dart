@@ -44,7 +44,6 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
     ).config;
-
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
     final List<BuilderStatistic> stagingBuilderStatisticList =
@@ -106,8 +105,13 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required Map<String?, Issue> nameToExistingIssue,
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
+    final Map<String, bool> ignoreFlakyMap = <String, bool>{};
     for (pb.Target target in schedulerConfig.targets) {
       builderFlakyMap[target.name] = target.bringup;
+      if (target.properties.containsKey(kCiYamlTargetIgnoreFlakiness) &&
+          target.properties[kCiYamlTargetIgnoreFlakiness] == 'true') {
+        ignoreFlakyMap[target.name] = true;
+      }
     }
     // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.
     //
@@ -115,14 +119,21 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     // is newly identified as flaky, there is a gap between the builder is marked as `bringup: true` and the flaky bug is filed.
     // For this case, there will be builds still running in `prod` pool, and we need to append `prod` stats as well.
     for (final BuilderStatistic statistic in prodBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) && builderFlakyMap.containsKey(statistic.name)) {
+      // ignore: iterable_contains_unrelated_type
+      if (nameToExistingIssue.containsKey(statistic.name) &&
+          builderFlakyMap.containsKey(statistic.name) &&
+          // ignore: iterable_contains_unrelated_type
+          !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: Bucket.prod, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
     }
     // For all staging builder stats, updates any existing flaky bug.
     for (final BuilderStatistic statistic in stagingBuilderStatisticList) {
-      if (nameToExistingIssue.containsKey(statistic.name) && builderFlakyMap[statistic.name] == true) {
+      if (nameToExistingIssue.containsKey(statistic.name) &&
+          builderFlakyMap[statistic.name] == true &&
+          // ignore: iterable_contains_unrelated_type
+          !ignoreFlakyMap.containsKey(statistic.name)) {
         await _addCommentToExistingIssue(gitHub, slug,
             bucket: Bucket.staging, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
       }
