@@ -168,14 +168,10 @@ class BoolFilterProperty extends ValueFilterProperty<bool?> {
   }
 
   @override
-  bool get isDefault {
-    return value == _defaultValue;
-  }
+  bool get isDefault => value == _defaultValue;
 
   @override
-  void reset() {
-    value = _defaultValue;
-  }
+  void reset() => value = _defaultValue;
 }
 
 /// A class used to enclose a group of other [BoolFilterProperty] properties to be
