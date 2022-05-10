@@ -106,11 +106,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
     final Map<String, bool> ignoreFlakyMap = <String, bool>{};
-    for (pb.Target target in schedulerConfig.targets) {
-      builderFlakyMap[target.name] = target.bringup;
-      if (target.properties.containsKey(kCiYamlTargetIgnoreFlakiness) &&
-          target.properties[kCiYamlTargetIgnoreFlakiness] == 'true') {
-        ignoreFlakyMap[target.name] = true;
+    for (Target target in schedulerConfig.targets as List<Target>) {
+      builderFlakyMap[target.value.name] = target.value.bringup;
+      if (target.ignoreFlakiness()) {
+        ignoreFlakyMap[target.value.name] = true;
       }
     }
     // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.
