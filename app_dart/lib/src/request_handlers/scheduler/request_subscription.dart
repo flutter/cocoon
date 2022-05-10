@@ -57,16 +57,25 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
       throw BadRequestException(e.toString());
     }
 
-    await retryOptions.retry(
-      () async {
-        final List<Request> requestsToRetry = await _sendBatchRequest(request);
-        request = BatchRequest(requests: requestsToRetry);
-        if (requestsToRetry.isNotEmpty) {
-          throw const InternalServerError('Failed to schedule builds');
-        }
-      },
-      retryIf: (Exception e) => e is InternalServerError,
-    );
+    /// Retry scheduling builds upto 3 times.
+    ///
+    /// Log error message when still failing after retry. Avoid endless rescheduling
+    /// by acking the pub/sub message without throwing an exception.
+    try {
+      await retryOptions.retry(
+        () async {
+          final List<Request> requestsToRetry = await _sendBatchRequest(request);
+          request = BatchRequest(requests: requestsToRetry);
+          if (requestsToRetry.isNotEmpty) {
+            throw const InternalServerError('Failed to schedule builds.');
+          }
+        },
+        retryIf: (Exception e) => e is InternalServerError,
+      );
+    } catch (e) {
+      log.warning('Failed to schedule builds.');
+      return Body.forString('Failed to schedule builds.');
+    }
 
     return Body.empty;
   }
