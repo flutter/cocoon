@@ -136,12 +136,13 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
 
 /// A class used to represent a boolean property in the filter object.
 class BoolFilterProperty extends ValueFilterProperty<bool?> {
-  BoolFilterProperty({required String fieldName, String? label, bool value = true })
-      : _value = value, _defaultValue = value,
+  BoolFilterProperty({required String fieldName, String? label, bool value = true})
+      : _value = value,
+        _defaultValue = value,
         super(fieldName: fieldName, label: label);
 
   bool? _value;
-  bool? _defaultValue;
+  final bool? _defaultValue;
 
   @override
   bool? get value => _value;
