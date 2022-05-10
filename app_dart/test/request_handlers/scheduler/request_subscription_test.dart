@@ -87,4 +87,23 @@ void main() {
     expect(body, Body.empty);
     expect(verify(buildBucketClient.batch(any)).callCount, 2);
   });
+
+  test('acking message and loging error when no response comes back after retry limit', () async {
+    when(buildBucketClient.batch(any)).thenAnswer((_) async {
+      return const BatchResponse();
+    });
+    const BatchRequest request = BatchRequest(requests: <Request>[
+      Request(
+        scheduleBuild: ScheduleBuildRequest(
+          builderId: BuilderId(
+            builder: 'Linux A',
+          ),
+        ),
+      ),
+    ]);
+    tester.message = push_message.PushMessage(data: base64Encode(utf8.encode(jsonEncode(request))));
+    final Body body = await tester.post(handler);
+    expect(body, isNotNull);
+    expect(verify(buildBucketClient.batch(any)).callCount, 3);
+  });
 }
