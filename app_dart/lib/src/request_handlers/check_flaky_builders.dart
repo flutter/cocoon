@@ -163,13 +163,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   }
 
   bool _getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
-    final Target target;
-    try {
-      target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    } on StateError {
-      // Did not find a single target matching builderName
-      return false;
-    }
+    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
     return target.ignoreFlakiness();
   }
 

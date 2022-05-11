@@ -9,7 +9,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-import '../model/appengine/commit.dart';
+import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -18,7 +18,6 @@ import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
-import '../service/scheduler.dart';
 
 /// A handler that queries build statistics from luci and file issues and pull
 /// requests for tests that have high flaky ratios.
@@ -27,10 +26,9 @@ import '../service/scheduler.dart';
 /// the standard when compares the flaky ratios.
 @immutable
 class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
-  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider, {required this.scheduler})
+  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider)
       : super(config: config, authenticationProvider: authenticationProvider);
 
-  final Scheduler scheduler;
   static const String kThresholdKey = 'threshold';
 
   @override
@@ -40,8 +38,12 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final Commit totCommit = await scheduler.generateTotCommit(slug: slug, branch: Config.defaultBranch(slug));
-    final CiYaml ciYaml = await scheduler.getCiYaml(totCommit);
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final CiYaml ciYaml = CiYaml(
+      slug: slug,
+      branch: Config.defaultBranch(slug),
+      config: unCheckedSchedulerConfig,
+    );
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
@@ -141,13 +143,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
-    final Target target;
-    try {
-      target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    } on StateError {
-      // Did not find a single target matching builderName
-      return false;
-    }
+    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
     return target.ignoreFlakiness();
   }
 
