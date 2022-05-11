@@ -124,7 +124,6 @@ void main() {
       handler = FileFlakyIssueAndPR(
         config,
         auth,
-        scheduler: scheduler,
       );
     });
 
