@@ -13,6 +13,22 @@ import '../../src/utilities/entity_generators.dart';
 void main() {
   group('Target', () {
     group('properties', () {
+      test('properties with ignore_flakiness true', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'xcode': 'abc',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+            'ignore_flakiness': 'true',
+          },
+        );
+        expect(target.ignoreFlakiness(), true);
+      });
+
       test('default properties', () {
         final Target target = generateTarget(1);
         expect(target.getProperties(), <String, Object>{
@@ -243,6 +259,7 @@ void main() {
       test('platform dimensions and target dimensions are combined', () {
         final Target target = generateTarget(
           1,
+          platform: 'Mac_ios',
           platformDimensions: <String, String>{
             'signing_cert': 'none',
           },
@@ -261,6 +278,7 @@ void main() {
       test('properties are evaluated as string', () {
         final Target target = generateTarget(
           1,
+          platform: 'Mac_ios',
           platformDimensions: <String, String>{
             'signing_cert': 'none',
           },
