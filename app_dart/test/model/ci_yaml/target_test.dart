@@ -271,6 +271,9 @@ void main() {
       test('platform dimensions and target dimensions are combined', () {
         final Target target = generateTarget(
           1,
+          platformDimensions: <String, String>{
+            'signing_cert': 'none',
+          },
           dimensions: <String, String>{
             'cpu': 'x64',
           },
