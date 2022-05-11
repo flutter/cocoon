@@ -39,11 +39,11 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final pb.SchedulerConfig schedulerConfig = CiYaml(
+    final CiYaml ciYaml = CiYaml(
       slug: slug,
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
-    ).config;
+    );
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
     final List<BuilderStatistic> stagingBuilderStatisticList =
@@ -52,7 +52,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
-      schedulerConfig,
+      ciYaml,
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
@@ -99,14 +99,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   Future<void> _updateExistingFlakyIssue(
     GithubService gitHub,
     RepositorySlug slug,
-    pb.SchedulerConfig schedulerConfig, {
+    CiYaml ciYaml, {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
   }) async {
     final Map<String, bool> builderFlakyMap = <String, bool>{};
     final Map<String, bool> ignoreFlakyMap = <String, bool>{};
-    for (Target target in schedulerConfig.targets as List<Target>) {
+    for (Target target in ciYaml.postsubmitTargets) {
       builderFlakyMap[target.value.name] = target.value.bringup;
       if (target.ignoreFlakiness()) {
         ignoreFlakyMap[target.value.name] = true;
