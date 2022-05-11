@@ -8,9 +8,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -19,9 +16,6 @@ updates:
     directory: "/test_utilities"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -30,9 +24,6 @@ updates:
     directory: "/licenses"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -41,9 +32,6 @@ updates:
     directory: "/device_doctor"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -52,9 +40,6 @@ updates:
     directory: "/dashboard"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -63,9 +48,6 @@ updates:
     directory: "/app_dart"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
@@ -74,9 +56,6 @@ updates:
     directory: "/auto_submit"
     schedule:
       interval: "daily"
-    reviewers:
-      - "keyonghan"
-      - "caseyhillers"
     labels:
       - "team"
       - "team: infra"
