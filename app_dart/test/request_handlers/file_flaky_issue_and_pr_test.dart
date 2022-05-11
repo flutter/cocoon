@@ -17,6 +17,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 import 'file_flaky_issue_and_pr_test_data.dart';
@@ -35,6 +36,7 @@ void main() {
     late FakeConfig config;
     late FakeClientContext clientContext;
     late FakeAuthenticationProvider auth;
+    late FakeScheduler scheduler;
     late MockBigqueryService mockBigqueryService;
     late MockGitHub mockGitHubClient;
     late MockRepositoriesService mockRepositoriesService;
@@ -116,11 +118,13 @@ void main() {
         bigqueryService: mockBigqueryService,
         githubClient: mockGitHubClient,
       );
+      scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester(request: request);
 
       handler = FileFlakyIssueAndPR(
         config,
         auth,
+        scheduler: scheduler,
       );
     });
 

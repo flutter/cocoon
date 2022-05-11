@@ -9,7 +9,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-import '../../protos.dart' as pb;
+import '../model/appengine/commit.dart';
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -18,6 +18,7 @@ import '../service/bigquery.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
+import '../service/scheduler.dart';
 
 /// A handler that queries build statistics from luci and file issues and pull
 /// requests for tests that have high flaky ratios.
@@ -26,9 +27,10 @@ import 'flaky_handler_utils.dart';
 /// the standard when compares the flaky ratios.
 @immutable
 class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
-  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider)
+  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider, {required this.scheduler})
       : super(config: config, authenticationProvider: authenticationProvider);
 
+  final Scheduler scheduler;
   static const String kThresholdKey = 'threshold';
 
   @override
@@ -38,12 +40,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
-      slug: slug,
-      branch: Config.defaultBranch(slug),
-      config: unCheckedSchedulerConfig,
-    );
+    final Commit totCommit = await scheduler.generateTotCommit(slug: slug, branch: Config.defaultBranch(slug));
+    final CiYaml ciYaml = await scheduler.getCiYaml(totCommit);
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);

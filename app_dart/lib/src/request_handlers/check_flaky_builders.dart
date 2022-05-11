@@ -112,7 +112,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   }
 
   /// Gets the builders that match conditions:
-  /// 1. There is no [kCiYamlTargetIgnoreFlakiness] specified.
+  /// 1. The builder's ignoreFlakiness is false.
   /// 2. The builder is flaky
   /// 3. The builder is not in [ignoredBuilders].
   /// 4. The flaky issue of the builder is closed if there is one.
@@ -131,8 +131,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final YamlMap? flakyTarget in flakyTargets) {
       final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
-      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builder);
-      if (target.ignoreFlakiness()) {
+      if (_getIgnoreFlakiness(builder, ciYaml)) {
         continue;
       }
       if (ignoredBuilders.contains(builder)) {
@@ -161,6 +160,17 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       }
     }
     return result;
+  }
+
+  bool _getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
+    final Target target;
+    try {
+      target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
+    } on StateError {
+      // Did not find a single target matching builderName
+      return false;
+    }
+    return target.ignoreFlakiness();
   }
 
   Future<void> _deflakyPullRequest(
