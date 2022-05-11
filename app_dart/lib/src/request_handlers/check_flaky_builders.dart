@@ -4,10 +4,12 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -51,7 +53,15 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
-    final List<_BuilderInfo> eligibleBuilders = await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent);
+    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final CiYaml ciYaml = CiYaml(
+      slug: slug,
+      branch: Config.defaultBranch(slug),
+      config: unCheckedSchedulerConfig,
+    );
+    final List<_BuilderInfo> eligibleBuilders =
+        await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent, ciYaml: ciYaml);
     final List<BuilderStatistic> stagingBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
@@ -108,7 +118,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   /// 4. The flaky issue of the builder is closed if there is one.
   /// 5. Does not have any existing pr against the builder.
   Future<List<_BuilderInfo>> _getEligibleFlakyBuilders(GithubService gitHub, RepositorySlug slug,
-      {required String content}) async {
+      {required String content, required CiYaml ciYaml}) async {
     final YamlMap ci = loadYaml(content) as YamlMap;
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final List<YamlMap?> flakyTargets = targets
@@ -121,8 +131,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final YamlMap? flakyTarget in flakyTargets) {
       final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
-      if (flakyTarget[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] != null &&
-          flakyTarget[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] == 'true') {
+      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builder);
+      if (target.ignoreFlakiness()) {
         continue;
       }
       if (ignoredBuilders.contains(builder)) {

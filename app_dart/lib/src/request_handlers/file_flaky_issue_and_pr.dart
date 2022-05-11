@@ -4,10 +4,12 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -36,18 +38,24 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
     final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final CiYaml ciYaml = CiYaml(
+      slug: slug,
+      branch: Config.defaultBranch(slug),
+      config: unCheckedSchedulerConfig,
+    );
     final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
       // Skip if ignore_flakiness is specified.
-      if (_getIgnoreFlakiness(statistic.name, ci!)) {
+      if (_getIgnoreFlakiness(statistic.name, ciYaml)) {
         continue;
       }
       if (statistic.flakyRate < _threshold) {
         continue;
       }
-      final BuilderType type = getTypeForBuilder(statistic.name, ci);
+      final BuilderType type = getTypeForBuilder(statistic.name, ci!);
       await _fileIssueAndPR(
         gitHub,
         slug,
@@ -134,15 +142,15 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
-  bool _getIgnoreFlakiness(String builderName, YamlMap ci) {
-    final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-    final YamlMap? target = targets.firstWhere(
-      (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
-      orElse: () => null,
-    ) as YamlMap?;
-    bool ignoreFlakiness = target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] != null &&
-        target?[kCiYamlPropertiesKey][kCiYamlTargetIgnoreFlakiness] == 'true';
-    return target != null && ignoreFlakiness;
+  bool _getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
+    final Target target;
+    try {
+      target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
+    } on StateError {
+      // Did not find a single target matching builderName
+      return false;
+    }
+    return target.ignoreFlakiness();
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
