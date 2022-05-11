@@ -20,6 +20,7 @@ message SchedulerConfig {
     message Properties {
         // Generic key, value that can be passed anywhere.
         map<string, string> properties = 1;
+        map<string, string> dimensions = 2;
     }
 }
 
@@ -59,6 +60,8 @@ message Target {
     reserved 14; // tags
     // Properties to configure infrastructure tooling for only postsubmit runs.
     map<string, string> postsubmit_properties = 15;
+    // Dimensions to configure build scheduling.
+    map<string, string> dimensions = 16;
 }
 
 // Schedulers supported in SchedulerConfig.

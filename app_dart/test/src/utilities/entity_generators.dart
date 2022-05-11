@@ -60,13 +60,20 @@ Target generateTarget(
   pb.SchedulerConfig? schedulerConfig,
   String platform = 'Linux',
   Map<String, String>? platformProperties,
+  Map<String, String>? platformDimensions,
   Map<String, String>? properties,
+  Map<String, String>? dimensions,
   List<String>? runIf,
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
 }) {
   final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
-  if (platformProperties != null) {
+  if (platformProperties != null && platformDimensions != null) {
+    config.platformProperties[platform.toLowerCase()] =
+        pb.SchedulerConfig_Properties(properties: platformProperties, dimensions: platformDimensions);
+  } else if (platformDimensions != null) {
+    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_Properties(dimensions: platformDimensions);
+  } else if (platformProperties != null) {
     config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_Properties(properties: platformProperties);
   }
   return Target(
@@ -75,6 +82,7 @@ Target generateTarget(
     value: pb.Target(
       name: '$platform $i',
       properties: properties,
+      dimensions: dimensions,
       runIf: runIf ?? <String>[],
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),

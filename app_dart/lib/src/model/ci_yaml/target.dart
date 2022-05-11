@@ -40,12 +40,30 @@ class Target {
 
   static String kIgnoreFlakiness = 'ignore_flakiness';
 
-  /// Gets dimensions for this [pb.Target].
+  /// Gets assembled dimensions for this [pb.Target].
   ///
   /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
+  ///
+  /// Target dimensions are prioritized in:
+  ///   1. [schedulerConfig.platformDimensions]
+  ///   2. [pb.Target.properties]
   List<RequestedDimension> getDimensions() {
-    final Map<String, Object> properties = getProperties();
     final List<RequestedDimension> dimensions = <RequestedDimension>[];
+
+    final Map<String, Object> platformDimensions = _getPlatformDimensions();
+    for (String key in platformDimensions.keys) {
+      String value = platformDimensions[key].toString();
+      dimensions.add(RequestedDimension(key: key, value: value));
+    }
+
+    final Map<String, Object> targetDimensions = _getTargetDimensions();
+    for (String key in targetDimensions.keys) {
+      String value = targetDimensions[key].toString();
+      dimensions.add(RequestedDimension(key: key, value: value));
+    }
+
+    final Map<String, Object> properties = getProperties();
+
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
         String value = properties[dimension].toString();
@@ -127,6 +145,15 @@ class Target {
     return mergedProperties;
   }
 
+  Map<String, Object> _getTargetDimensions() {
+    final Map<String, Object> dimensions = <String, Object>{};
+    for (String key in value.dimensions.keys) {
+      dimensions[key] = _parseProperty(key, value.dimensions[key]!);
+    }
+
+    return dimensions;
+  }
+
   Map<String, Object> _getTargetProperties() {
     final Map<String, Object> properties = <String, Object>{};
     for (String key in value.properties.keys) {
@@ -148,6 +175,20 @@ class Target {
     }
 
     return properties;
+  }
+
+  Map<String, Object> _getPlatformDimensions() {
+    if (!schedulerConfig.platformProperties.containsKey(getPlatform())) {
+      return <String, Object>{};
+    }
+
+    final Map<String, String> platformDimensions = schedulerConfig.platformProperties[getPlatform()]!.dimensions;
+    final Map<String, Object> dimensions = <String, Object>{};
+    for (String key in platformDimensions.keys) {
+      dimensions[key] = _parseProperty(key, platformDimensions[key]!);
+    }
+
+    return dimensions;
   }
 
   /// Converts property strings to their correct type.

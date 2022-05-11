@@ -24,15 +24,25 @@ class SchedulerConfig_Properties extends $pb.GeneratedMessage {
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
+    ..m<$core.String, $core.String>(
+        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dimensions',
+        entryClassName: 'SchedulerConfig.Properties.DimensionsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
     ..hasRequiredFields = false;
 
   SchedulerConfig_Properties._() : super();
   factory SchedulerConfig_Properties({
     $core.Map<$core.String, $core.String>? properties,
+    $core.Map<$core.String, $core.String>? dimensions,
   }) {
     final _result = create();
     if (properties != null) {
       _result.properties.addAll(properties);
+    }
+    if (dimensions != null) {
+      _result.dimensions.addAll(dimensions);
     }
     return _result;
   }
@@ -64,6 +74,9 @@ class SchedulerConfig_Properties extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get properties => $_getMap(0);
+
+  @$pb.TagNumber(2)
+  $core.Map<$core.String, $core.String> get dimensions => $_getMap(1);
 }
 
 class SchedulerConfig extends $pb.GeneratedMessage {
@@ -169,6 +182,18 @@ class Target extends $pb.GeneratedMessage {
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
+    ..m<$core.String, $core.String>(
+        15, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmitProperties',
+        entryClassName: 'Target.PostsubmitPropertiesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
+    ..m<$core.String, $core.String>(
+        16, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dimensions',
+        entryClassName: 'Target.DimensionsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -186,6 +211,8 @@ class Target extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? runIf,
     $core.Iterable<$core.String>? enabledBranches,
     $core.String? recipe,
+    $core.Map<$core.String, $core.String>? postsubmitProperties,
+    $core.Map<$core.String, $core.String>? dimensions,
   }) {
     final _result = create();
     if (name != null) {
@@ -227,6 +254,12 @@ class Target extends $pb.GeneratedMessage {
     }
     if (recipe != null) {
       _result.recipe = recipe;
+    }
+    if (postsubmitProperties != null) {
+      _result.postsubmitProperties.addAll(postsubmitProperties);
+    }
+    if (dimensions != null) {
+      _result.dimensions.addAll(dimensions);
     }
     return _result;
   }
@@ -375,4 +408,10 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasRecipe() => $_has(12);
   @$pb.TagNumber(13)
   void clearRecipe() => clearField(13);
+
+  @$pb.TagNumber(15)
+  $core.Map<$core.String, $core.String> get postsubmitProperties => $_getMap(13);
+
+  @$pb.TagNumber(16)
+  $core.Map<$core.String, $core.String> get dimensions => $_getMap(14);
 }

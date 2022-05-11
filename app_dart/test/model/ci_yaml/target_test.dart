@@ -254,6 +254,34 @@ void main() {
         final Target target = generateTarget(1, properties: <String, String>{"cores": "32"});
         expect(target.getDimensions().length, 1);
       });
+
+      test('platform dimensions are added in target dimensions', () {
+        final Target target = generateTarget(
+          1,
+          platformDimensions: <String, String>{
+            'signing_cert': 'none',
+          },
+        );
+        final List<RequestedDimension> dimensions = target.getDimensions();
+        expect(dimensions.length, 1);
+        expect(dimensions[0].key, 'signing_cert');
+        expect(dimensions[0].value, 'none');
+      });
+
+      test('platform dimensions and target dimensions are combined', () {
+        final Target target = generateTarget(
+          1,
+          dimensions: <String, String>{
+            'cpu': 'x64',
+          },
+        );
+        final List<RequestedDimension> dimensions = target.getDimensions();
+        expect(dimensions.length, 2);
+        expect(dimensions[0].key, 'signing_cert');
+        expect(dimensions[0].value, 'none');
+        expect(dimensions[1].key, 'cpu');
+        expect(dimensions[1].value, 'x64');
+      });
     });
 
     group('scheduler policy', () {
