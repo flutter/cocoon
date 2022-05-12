@@ -72,9 +72,11 @@ Target generateTarget(
     config.platformProperties[platform.toLowerCase()] =
         pb.SchedulerConfig_PropertiesOrDimensions(properties: platformProperties, dimensions: platformDimensions);
   } else if (platformDimensions != null) {
-    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_PropertiesOrDimensions(dimensions: platformDimensions);
+    config.platformProperties[platform.toLowerCase()] =
+        pb.SchedulerConfig_PropertiesOrDimensions(dimensions: platformDimensions);
   } else if (platformProperties != null) {
-    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_PropertiesOrDimensions(properties: platformProperties);
+    config.platformProperties[platform.toLowerCase()] =
+        pb.SchedulerConfig_PropertiesOrDimensions(properties: platformProperties);
   }
   return Target(
     schedulerConfig: config,
