@@ -64,6 +64,8 @@ class Target {
 
     final Map<String, Object> properties = getProperties();
 
+    // TODO(xilaizhang): remove this logic after dimensions such as 'cpu' in ci.yaml files
+    // have been migrated from under properties to under dependencies
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
         String value = properties[dimension].toString();

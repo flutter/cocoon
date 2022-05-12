@@ -15,9 +15,9 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
     // Universal platform args passed to LUCI builders.
     // Keys are the platform and values are the properties.
-    map<string, Properties> platform_properties = 3;
-    // Next ID: 2
-    message Properties {
+    map<string, PropertiesOrDimensions> platform_properties = 3;
+    // Next ID: 3
+    message PropertiesOrDimensions {
         // Generic key, value that can be passed anywhere.
         map<string, string> properties = 1;
         map<string, string> dimensions = 2;

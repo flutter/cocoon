@@ -70,11 +70,11 @@ Target generateTarget(
   final pb.SchedulerConfig config = schedulerConfig ?? exampleConfig.config;
   if (platformProperties != null && platformDimensions != null) {
     config.platformProperties[platform.toLowerCase()] =
-        pb.SchedulerConfig_Properties(properties: platformProperties, dimensions: platformDimensions);
+        pb.SchedulerConfig_PropertiesOrDimensions(properties: platformProperties, dimensions: platformDimensions);
   } else if (platformDimensions != null) {
-    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_Properties(dimensions: platformDimensions);
+    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_PropertiesOrDimensions(dimensions: platformDimensions);
   } else if (platformProperties != null) {
-    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_Properties(properties: platformProperties);
+    config.platformProperties[platform.toLowerCase()] = pb.SchedulerConfig_PropertiesOrDimensions(properties: platformProperties);
   }
   return Target(
     schedulerConfig: config,
