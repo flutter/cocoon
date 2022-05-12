@@ -18,14 +18,15 @@ message SchedulerConfig {
     map<string, PlatformProperties> platform_properties = 3;
     // Next ID: 3
     message PlatformProperties {
-        // Generic key, value that can be passed anywhere.
+        // Generic key, value pairs to set platform-wise properties
         map<string, string> properties = 1;
+        // Generic key, value pairs to set platform-wise dimensions
         map<string, string> dimensions = 2;
     }
 }
 
 // A unit of work for infrastructure to run.
-// Next ID: 15
+// Next ID: 17
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -60,7 +61,7 @@ message Target {
     reserved 14; // tags
     // Properties to configure infrastructure tooling for only postsubmit runs.
     map<string, string> postsubmit_properties = 15;
-    // Dimensions to configure build scheduling.
+    // Dimensions to configure swarming dimensions of LUCI builds.
     map<string, string> dimensions = 16;
 }
 
