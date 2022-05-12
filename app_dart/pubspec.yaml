@@ -17,7 +17,7 @@ dependencies:
   crypto: ^3.0.2
   dbcrypt: ^2.0.0
   file: ^6.1.2
-  fixnum: ^1.0.0
+  fixnum: ^1.0.1
   gcloud: ^0.8.4
   github: ^9.2.0
   googleapis: ^7.0.0
