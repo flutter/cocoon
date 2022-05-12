@@ -14,10 +14,10 @@ message SchedulerConfig {
     // Git branches to run these targets against.
     repeated string enabled_branches = 2;
     // Universal platform args passed to LUCI builders.
-    // Keys are the platform and values are the properties.
-    map<string, PropertiesOrDimensions> platform_properties = 3;
+    // Keys are the platforms and values are the PlatformProperties (properties, dimensions etc.).
+    map<string, PlatformProperties> platform_properties = 3;
     // Next ID: 3
-    message PropertiesOrDimensions {
+    message PlatformProperties {
         // Generic key, value that can be passed anywhere.
         map<string, string> properties = 1;
         map<string, string> dimensions = 2;

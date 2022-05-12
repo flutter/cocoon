@@ -37,7 +37,7 @@ const SchedulerConfig$json = {
       '10': 'platformProperties'
     },
   ],
-  '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PropertiesOrDimensions$json],
+  '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PlatformProperties$json],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -45,21 +45,21 @@ const SchedulerConfig_PlatformPropertiesEntry$json = {
   '1': 'PlatformPropertiesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.PropertiesOrDimensions', '10': 'value'},
+    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties', '10': 'value'},
   ],
   '7': {'7': true},
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
-const SchedulerConfig_PropertiesOrDimensions$json = {
-  '1': 'PropertiesOrDimensions',
+const SchedulerConfig_PlatformProperties$json = {
+  '1': 'PlatformProperties',
   '2': [
     {
       '1': 'properties',
       '3': 1,
       '4': 3,
       '5': 11,
-      '6': '.scheduler.SchedulerConfig.PropertiesOrDimensions.PropertiesEntry',
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry',
       '10': 'properties'
     },
     {
@@ -67,18 +67,18 @@ const SchedulerConfig_PropertiesOrDimensions$json = {
       '3': 2,
       '4': 3,
       '5': 11,
-      '6': '.scheduler.SchedulerConfig.PropertiesOrDimensions.DimensionsEntry',
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry',
       '10': 'dimensions'
     },
   ],
   '3': [
-    SchedulerConfig_PropertiesOrDimensions_PropertiesEntry$json,
-    SchedulerConfig_PropertiesOrDimensions_DimensionsEntry$json
+    SchedulerConfig_PlatformProperties_PropertiesEntry$json,
+    SchedulerConfig_PlatformProperties_DimensionsEntry$json
   ],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
-const SchedulerConfig_PropertiesOrDimensions_PropertiesEntry$json = {
+const SchedulerConfig_PlatformProperties_PropertiesEntry$json = {
   '1': 'PropertiesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
@@ -88,7 +88,7 @@ const SchedulerConfig_PropertiesOrDimensions_PropertiesEntry$json = {
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
-const SchedulerConfig_PropertiesOrDimensions_DimensionsEntry$json = {
+const SchedulerConfig_PlatformProperties_DimensionsEntry$json = {
   '1': 'DimensionsEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
@@ -99,7 +99,7 @@ const SchedulerConfig_PropertiesOrDimensions_DimensionsEntry$json = {
 
 /// Descriptor for `SchedulerConfig`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List schedulerConfigDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3BsYXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMaeAoXUGxhdGZvcm1Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSRwoFdmFsdWUYAiABKAsyMS5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlByb3BlcnRpZXNPckRpbWVuc2lvbnNSBXZhbHVlOgI4ARrcAgoWUHJvcGVydGllc09yRGltZW5zaW9ucxJhCgpwcm9wZXJ0aWVzGAEgAygLMkEuc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5Qcm9wZXJ0aWVzT3JEaW1lbnNpb25zLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxJhCgpkaW1lbnNpb25zGAIgAygLMkEuc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5Qcm9wZXJ0aWVzT3JEaW1lbnNpb25zLkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ARo9Cg9EaW1lbnNpb25zRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
+    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3BsYXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMadAoXUGxhdGZvcm1Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSQwoFdmFsdWUYAiABKAsyLS5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc1IFdmFsdWU6AjgBGtACChJQbGF0Zm9ybVByb3BlcnRpZXMSXQoKcHJvcGVydGllcxgBIAMoCzI9LnNjaGVkdWxlci5TY2hlZHVsZXJDb25maWcuUGxhdGZvcm1Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxJdCgpkaW1lbnNpb25zGAIgAygLMj0uc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5QbGF0Zm9ybVByb3BlcnRpZXMuRGltZW5zaW9uc0VudHJ5UgpkaW1lbnNpb25zGj0KD1Byb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
 @$core.Deprecated('Use targetDescriptor instead')
 const Target$json = {
   '1': 'Target',

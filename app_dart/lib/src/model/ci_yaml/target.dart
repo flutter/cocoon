@@ -48,31 +48,31 @@ class Target {
   ///   1. [schedulerConfig.platformDimensions]
   ///   2. [pb.Target.properties]
   List<RequestedDimension> getDimensions() {
-    final List<RequestedDimension> dimensions = <RequestedDimension>[];
+    final Map<String, RequestedDimension> dimensionsMap = <String, RequestedDimension>{};
 
     final Map<String, Object> platformDimensions = _getPlatformDimensions();
     for (String key in platformDimensions.keys) {
       String value = platformDimensions[key].toString();
-      dimensions.add(RequestedDimension(key: key, value: value));
+      dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
     final Map<String, Object> targetDimensions = _getTargetDimensions();
     for (String key in targetDimensions.keys) {
       String value = targetDimensions[key].toString();
-      dimensions.add(RequestedDimension(key: key, value: value));
+      dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
     final Map<String, Object> properties = getProperties();
 
-    // TODO(xilaizhang): remove this logic after dimensions such as 'cpu' in ci.yaml files
-    // have been migrated from under properties to under dependencies
+    // TODO(xilaizhang): https://github.com/flutter/flutter/issues/103557
+    // remove this logic after dimensions are supported in ci.yaml files
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
         String value = properties[dimension].toString();
-        dimensions.add(RequestedDimension(key: dimension, value: value));
+        dimensionsMap[dimension] = RequestedDimension(key: dimension, value: value);
       }
     }
-    return dimensions;
+    return dimensionsMap.values.toList();
   }
 
   /// [SchedulerPolicy] this target follows.

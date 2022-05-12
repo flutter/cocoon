@@ -275,6 +275,21 @@ void main() {
         expect(dimensions[2].value, 'x64');
       });
 
+      test('target specific dimensions overrides platform dimensions', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformDimensions: <String, String>{
+            'signing_cert': 'none',
+          },
+          dimensions: <String, String>{'signing_cert': 'mac'},
+        );
+        final List<RequestedDimension> dimensions = target.getDimensions();
+        expect(dimensions.length, 1);
+        expect(dimensions[0].key, 'signing_cert');
+        expect(dimensions[0].value, 'mac');
+      });
+
       test('properties are evaluated as string', () {
         final Target target = generateTarget(
           1,
