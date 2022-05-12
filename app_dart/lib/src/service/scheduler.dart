@@ -142,8 +142,11 @@ class Scheduler {
     }
 
     // Update Tasks to get the generated key
-    // TODO: This is failing, need to cast Stream FullTask to task for this commit
-    tasks = await datastore.queryRecentTasks(slug: commit.slug).toList();
+    tasks = await datastore
+        .queryRecentTasks(slug: commit.slug)
+        .where((FullTask fullTask) => fullTask.commit.key == commit.key)
+        .map((FullTask fullTask) => fullTask.task)
+        .toList();
 
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
