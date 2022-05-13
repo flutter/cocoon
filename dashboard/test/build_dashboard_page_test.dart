@@ -102,6 +102,24 @@ void main() {
     expect(find.byIcon(Icons.settings), findsOneWidget);
   });
 
+  testWidgets('shows file a bug button', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.bug_report), findsOneWidget);
+  });
+
   testWidgets('shows key button & legend', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
