@@ -69,7 +69,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
         continue;
       } else {
-        approver.approve(pullRequest);
+        await approver.approve(pullRequest);
         processingLog.add(pullRequest.number!);
       }
       if (!await shouldProcess(pullRequest)) {
