@@ -14,7 +14,7 @@ platform_properties:
       os: Linux
   mac:
     properties:
-      os: Mac-10.15
+      os: Mac-12
   windows:
     properties:
       os: Windows
@@ -32,6 +32,7 @@ targets:
       add_recipes_cq: "true"
     runIf:
       - device_doctor/**
+      - .ci.yaml
 
   - name: Mac device_doctor
     postsubmit: false
@@ -40,6 +41,7 @@ targets:
       add_recipes_cq: "true"
     runIf:
       - device_doctor/**
+      - .ci.yaml
 
   - name: Windows device_doctor
     postsubmit: false
@@ -48,6 +50,7 @@ targets:
       add_recipes_cq: "true"
     runIf:
       - device_doctor/**
+      - .ci.yaml
 
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
