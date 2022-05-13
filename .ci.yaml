@@ -15,6 +15,7 @@ platform_properties:
   mac:
     properties:
       os: Mac-12
+      cpu: x86
   windows:
     properties:
       os: Windows
