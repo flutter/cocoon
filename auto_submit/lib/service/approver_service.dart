@@ -7,10 +7,19 @@ import 'package:github/github.dart';
 
 import '../service/config.dart';
 
+/// Function signature for a [ApproverService] provider.
+typedef ApproverServiceProvider = ApproverService Function(Config config);
+
+/// Provides github PR approval services.
 class ApproverService {
-  ApproverService(this.config);
+  const ApproverService(this.config);
 
   final Config config;
+
+  /// Creates and returns a [ApproverService] using [config].
+  static ApproverService defaultProvider(Config config) {
+    return ApproverService(config);
+  }
 
   Future<void> approve(PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
