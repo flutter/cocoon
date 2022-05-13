@@ -14,7 +14,7 @@ platform_properties:
       os: Linux
   mac:
     properties:
-      os: Mac-10.15
+      os: Mac-12
   windows:
     properties:
       os: Windows
