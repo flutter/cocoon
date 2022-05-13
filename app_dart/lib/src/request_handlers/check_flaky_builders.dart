@@ -53,7 +53,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
-    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
+    final YamlMap? ci = loadYaml(ciContent) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
     final CiYaml ciYaml = CiYaml(
       slug: slug,
@@ -164,7 +164,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
 
   bool _getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    return target.ignoreFlakiness();
+    return target.getIgnoreFlakiness();
   }
 
   Future<void> _deflakyPullRequest(

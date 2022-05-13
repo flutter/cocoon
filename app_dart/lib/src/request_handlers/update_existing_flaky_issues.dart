@@ -108,7 +108,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final Map<String, bool> ignoreFlakyMap = <String, bool>{};
     for (Target target in ciYaml.postsubmitTargets) {
       builderFlakyMap[target.value.name] = target.value.bringup;
-      if (target.ignoreFlakiness()) {
+      if (target.getIgnoreFlakiness()) {
         ignoreFlakyMap[target.value.name] = true;
       }
     }

@@ -144,7 +144,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
 
   bool _getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    return target.ignoreFlakiness();
+    return target.getIgnoreFlakiness();
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
