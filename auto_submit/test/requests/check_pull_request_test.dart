@@ -4,6 +4,7 @@
 
 // ignore_for_file: constant_identifier_names
 import 'package:auto_submit/service/config.dart';
+
 import 'package:auto_submit/service/log.dart';
 import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
