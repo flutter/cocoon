@@ -318,12 +318,12 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       statuses.addAll(commit.status!.contexts!);
     }
 
-    final List<auto_submit.ReviewNode> reviews = pullRequest!.reviews!.nodes!;
+    final List<auto_submit.ReviewNode> reviews = pullRequest.reviews!.nodes!;
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String? sha = commit.oid;
-    final String? author = pullRequest!.author!.login;
+    final String? author = pullRequest.author!.login;
 
     // List of labels associated with the pull request.
     final List<String> labelNames =
