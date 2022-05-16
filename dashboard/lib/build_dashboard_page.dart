@@ -347,7 +347,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       animation: _buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: CocoonAppBar(
-          title: Text(_getStatusTitle(_buildState)),
+          title: Tooltip(
+            message: _getStatusTitle(_buildState),
+            child: Text(
+              _getStatusTitle(_buildState),
+            ),
+          ),
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             if (!_smallScreen) ..._slugSelection(context, _buildState),
