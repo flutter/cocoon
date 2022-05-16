@@ -208,7 +208,9 @@ class IosDevice implements Device {
       if (noRebootList.contains(deviceId)) {
         return true;
       }
-      await eval('idevicediagnostics', <String>['restart'], processManager: processManager);
+      final String fullPathIdevicediagnostics =
+          await getMacBinaryPath('idevicediagnostics', processManager: processManager);
+      await eval(fullPathIdevicediagnostics, <String>['restart'], processManager: processManager);
     } on BuildFailedError catch (error) {
       logger.severe('device restart fails: $error');
       stderr.write('device restart fails: $error');
