@@ -320,25 +320,36 @@ void main() {
     Process whichProcess;
     String output;
     String ideviceinstallerPath;
+    String idevicediagnosticsPath;
 
     setUp(() {
       processManager = MockProcessManager();
     });
     test('device restart - success', () async {
+      idevicediagnosticsPath = '/abc/def/idevicediagnostics';
+      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(idevicediagnosticsPath)]);
+      when(processManager
+              .start(<String>['which', 'idevicediagnostics'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
       process = FakeProcess(0);
       device = IosDevice(deviceId: 'abc');
       when(processManager
-              .start(<Object>['idevicediagnostics', 'restart'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<Object>[idevicediagnosticsPath, 'restart'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       final bool result = await device.restart_device(processManager: processManager);
       expect(result, isTrue);
     });
 
     test('device restart - failure', () async {
+      idevicediagnosticsPath = '/abc/def/idevicediagnostics';
+      whichProcess = FakeProcess(0, out: <List<int>>[utf8.encode(idevicediagnosticsPath)]);
+      when(processManager
+              .start(<String>['which', 'idevicediagnostics'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(whichProcess));
       process = FakeProcess(1);
       device = IosDevice(deviceId: 'abc');
       when(processManager
-              .start(<Object>['idevicediagnostics', 'restart'], workingDirectory: anyNamed('workingDirectory')))
+              .start(<Object>[idevicediagnosticsPath, 'restart'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       final bool result = await device.restart_device(processManager: processManager);
       expect(result, isFalse);
