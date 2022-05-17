@@ -106,7 +106,7 @@ class LuciBuildService {
             ),
             tags: tags,
           ),
-          fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status',
+          fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
         ),
       ),
     ]));
@@ -396,7 +396,16 @@ class LuciBuildService {
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
-
+    log.info('input ${build.input!} properties ${build.input!.properties!}');
+    Map<String, dynamic> properties = <String, dynamic>{};
+    properties.addAll(build.input!.properties!);
+    properties.addEntries(
+      <String, dynamic>{
+        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
+        'git_ref': 'refs/pull/$prNumber/head',
+        'exe_cipd_version': cipdVersion,
+      }.entries,
+    );
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
@@ -412,11 +421,7 @@ class LuciBuildService {
         'user_agent': const <String>['flutter-cocoon'],
         'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
       },
-      properties: <String, String>{
-        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/$prNumber/head',
-        'exe_cipd_version': cipdVersion,
-      },
+      properties: properties,
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
         userData: base64Encode(json.encode(userData).codeUnits),
