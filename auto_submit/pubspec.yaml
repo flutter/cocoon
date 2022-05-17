@@ -31,7 +31,7 @@ dev_dependencies:
   json_serializable: ^6.1.6
   linter: ^1.22.0
   lints: ^1.0.0
-  mockito: ^5.0.14
+  mockito: ^5.2.0
   test: ^1.21.1
   
 builders:
