@@ -37,9 +37,9 @@ found in the LICENSE file. -->
   }(window,document,'script'));
 
   function checkTreeStatus(){
-    let link = document.querySelector("link[rel~='icon']");
+    const link = document.querySelector("link[rel~='icon']");
     let icon = 'favicon.png';
-    if(window.location.href.indexOf('/build') > 0) {
+    if (window.location.href.indexOf('/build') > 0) {
       glass = document.body.getElementsByTagName('flt-glass-pane')[0]
       if (glass.getInnerHTML().indexOf('Tree is Closed') > 0) {
         icon = 'favicon-failure.png';
