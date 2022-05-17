@@ -41,16 +41,20 @@ class FakeBuildBucketClient extends BuildBucketClient {
       : const SearchBuildsResponse(
           builds: <Build>[
             Build(
-                id: '123',
-                builderId: BuilderId(
-                  builder: 'builder_abc',
-                  bucket: 'try',
-                  project: 'flutter',
-                ),
-                tags: <String, List<String>>{
-                  'buildset': <String>['pr/git/12345', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'],
-                  'cipd_version': <String>['refs/heads/main']
-                }),
+              id: '123',
+              builderId: BuilderId(
+                builder: 'builder_abc',
+                bucket: 'try',
+                project: 'flutter',
+              ),
+              tags: <String, List<String>>{
+                'buildset': <String>['pr/git/12345', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'],
+                'cipd_version': <String>['refs/heads/main']
+              },
+              input: Input(
+                properties: <String, dynamic>{'bringup': 'true'},
+              ),
+            ),
           ],
         );
 
