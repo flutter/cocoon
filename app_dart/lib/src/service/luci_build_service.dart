@@ -397,7 +397,8 @@ class LuciBuildService {
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
     log.info('input ${build.input!} properties ${build.input!.properties!}');
-    Map<String, dynamic> properties = build.input!.properties!;
+    Map<String, dynamic> properties = <String, dynamic>{};
+    properties.addAll(build.input!.properties!);
     properties.addEntries(
       <String, dynamic>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
