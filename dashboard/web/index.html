@@ -37,18 +37,15 @@ found in the LICENSE file. -->
   }(window,document,'script'));
 
   function checkTreeStatus(){
-    var link = document.querySelector("link[rel~='icon']");
+    let link = document.querySelector("link[rel~='icon']");
+    let icon = 'favicon.png';
     if(window.location.href.indexOf('/build') > 0) {
       glass = document.body.getElementsByTagName('flt-glass-pane')[0]
-
-      if (glass.getInnerHTML().indexOf('Tree is Open') > 0) {
-        link.href = 'favicon-success.ico';
-      } else {
-        link.href = 'favicon-failure.ico';
+      if (glass.getInnerHTML().indexOf('Tree is Closed') > 0) {
+        icon = 'favicon-failure.png';
       }
-    } else {
-      link.href = 'favicon.png';
     }
+    link.href = icon;
     setTimeout(checkTreeStatus, 2000);
   }
   setTimeout(checkTreeStatus, 5000);
