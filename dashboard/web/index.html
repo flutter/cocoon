@@ -24,17 +24,30 @@ found in the LICENSE file. -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 </head>
 <body>
-  <script src="main.dart.js" type="application/javascript"></script>
-  <script>
-    window.flutterConfiguration = {
-      canvasKitBaseUrl: "/canvaskit/"
-    };
-    (function(w,d,s,g,js,fjs){
-      g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
-      js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
-      js.src='https://apis.google.com/js/platform.js';
-      fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
-    }(window,document,'script'));
-    </script>
+<script src="main.dart.js" type="application/javascript"></script>
+<script>
+  window.flutterConfiguration = {
+    canvasKitBaseUrl: "/canvaskit/"
+  };
+  (function(w,d,s,g,js,fjs){
+    g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
+    js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+    js.src='https://apis.google.com/js/platform.js';
+    fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
+  }(window,document,'script'));
+
+  function checkTreeStatus(){
+    const link = document.querySelector("link[rel~='icon']");
+    let icon = 'favicon.png';
+    if (window.location.href.indexOf('/build') > 0) {
+      glass = document.body.getElementsByTagName('flt-glass-pane')[0]
+      if (glass.getInnerHTML().indexOf('Tree is Closed') > 0) {
+        icon = 'favicon-failure.png';
+      }
+    }
+    link.href = icon;
+  }
+  setInterval(checkTreeStatus, 2000);
+</script>
 </body>
 </html>
