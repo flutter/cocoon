@@ -19,6 +19,7 @@ import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/log.dart';
 import '../server/authenticated_request_handler.dart';
+import '../model/auto_submit_query_result.dart' as auto_submit;
 
 /// Maximum number of pull requests to merge on each check on each repo.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -302,29 +303,27 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       prNumber!,
       graphQLClient,
     );
-    final Map<String, dynamic>? repository = data['repository'] as Map<String, dynamic>?;
-    if (repository == null || repository.isEmpty) {
+
+    auto_submit.QueryResult queryResult = auto_submit.QueryResult.fromJson(data);
+    if (queryResult.repository == null) {
       throw StateError('Query did not return a repository.');
     }
-    final Map<String, dynamic> pullRequest = repository['pullRequest'] as Map<String, dynamic>;
-    final String authorAssociation = pullRequest['authorAssociation'] as String;
-    log.info('The author association is $authorAssociation');
+    final auto_submit.PullRequest pullRequest = queryResult.repository!.pullRequest!;
+    final String authorAssociation = pullRequest.authorAssociation!;
 
-    final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
-    List<Map<String, dynamic>> statuses = <Map<String, dynamic>>[];
-    if (commit['status'] != null &&
-        commit['status']['contexts'] != null &&
-        (commit['status']['contexts'] as List<dynamic>).isNotEmpty) {
-      statuses.addAll((commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>());
+    log.info('The author association is ${pullRequest.authorAssociation!}');
+    auto_submit.Commit commit = pullRequest.commits!.nodes!.single.commit!;
+    List<auto_submit.ContextNode> statuses = <auto_submit.ContextNode>[];
+    if (commit.status!.contexts!.isNotEmpty) {
+      statuses.addAll(commit.status!.contexts!);
     }
 
-    final List<Map<String, dynamic>> reviews =
-        (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final List<auto_submit.ReviewNode> reviews = pullRequest.reviews!.nodes!;
 
     final Set<String?> changeRequestAuthors = <String?>{};
     final Set<_FailureDetail> failures = <_FailureDetail>{};
-    final String? sha = commit['oid'] as String?;
-    final String? author = pullRequest['author']['login'] as String?;
+    final String? sha = commit.oid;
+    final String? author = pullRequest.author!.login;
 
     // List of labels associated with the pull request.
     final List<String> labelNames =
@@ -350,9 +349,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       slug.name,
       labelNames,
     );
-
-    final String id = pullRequest['id'] as String;
-    final String title = pullRequest['title'] as String;
+    final String id = pullRequest.id!;
+    final String title = pullRequest.title!;
 
     return _AutoMergeQueryResult(
       slug: slug,
@@ -378,7 +376,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   Future<bool> _checkStatuses(
     RepositorySlug slug,
     Set<_FailureDetail> failures,
-    List<Map<String, dynamic>> statuses,
+    List<auto_submit.ContextNode> statuses,
     List<CheckRun> checkRuns,
     String name,
     List<String> labels,
@@ -399,8 +397,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String treeStatusName = 'luci-${slug.name}';
 
       // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
-      for (Map<String, dynamic> status in statuses) {
-        if (status['context'] == treeStatusName) {
+      for (auto_submit.ContextNode status in statuses) {
+        if (status.context == treeStatusName) {
           treeStatusExists = true;
         }
       }
@@ -412,15 +410,15 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: $name, status: $statuses');
-    for (Map<String, dynamic> status in statuses) {
-      final String? name = status['context'] as String?;
-      if (status['state'] != 'SUCCESS') {
+    for (auto_submit.ContextNode status in statuses) {
+      final String? name = status.context;
+      if (status.state != 'SUCCESS') {
         if (notInAuthorsControl.contains(name) && labels.contains(overrideTreeStatusLabel)) {
           continue;
         }
         allSuccess = false;
-        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
-          failures.add(_FailureDetail(name!, status['targetUrl'] as String));
+        if (status.state == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+          failures.add(_FailureDetail(name!, status.targetUrl!));
         }
       }
     }
@@ -463,7 +461,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 bool _checkApproval(
   String? author,
   String? authorAssociation,
-  List<Map<String, dynamic>> reviewNodes,
+  List<auto_submit.ReviewNode> reviewNodes,
   Set<String?> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors.isEmpty);
@@ -473,14 +471,14 @@ bool _checkApproval(
     approvers.add(author);
   }
 
-  for (Map<String, dynamic> review in reviewNodes) {
+  for (auto_submit.ReviewNode review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (!allowedReviewers.contains(review['authorAssociation'])) {
+    if (!allowedReviewers.contains(review.authorAssociation)) {
       continue;
     }
     // Reviews come back in order of creation.
-    final String? state = review['state'] as String?;
-    final String? authorLogin = review['author']['login'] as String?;
+    final String? state = review.state;
+    final String? authorLogin = review.author!.login;
     if (state == 'APPROVED') {
       approvers.add(authorLogin);
       changeRequestAuthors.remove(authorLogin);
