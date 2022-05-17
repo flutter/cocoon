@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
@@ -36,10 +37,12 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   const CheckPullRequest({
     required Config config,
     required CronAuthProvider cronAuthProvider,
+    this.approverProvider = ApproverService.defaultProvider,
     this.pubsub = const PubSub(),
   }) : super(config: config, cronAuthProvider: cronAuthProvider);
 
   final PubSub pubsub;
+  final ApproverServiceProvider approverProvider;
 
   static const int kPullMesssageBatchSize = 100;
 
@@ -48,6 +51,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final List<Response> responses = <Response>[];
     final Set<int> processingLog = <int>{};
     final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
+    final ApproverService approver = approverProvider(config);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
       log.info('There are no requests in the queue');
@@ -65,6 +69,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
         continue;
       } else {
+        await approver.approve(pullRequest);
         processingLog.add(pullRequest.number!);
       }
       if (!await shouldProcess(pullRequest)) {
