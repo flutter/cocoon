@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -131,7 +132,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final YamlMap? flakyTarget in flakyTargets) {
       final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
-      if (_getIgnoreFlakiness(builder, ciYaml)) {
+      if (getIgnoreFlakiness(builder, ciYaml)) {
         continue;
       }
       if (ignoredBuilders.contains(builder)) {
@@ -162,9 +163,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     return result;
   }
 
-  bool _getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
-    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    return target.getIgnoreFlakiness();
+  @visibleForTesting
+  static bool getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
+    final Target? target =
+        ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
+    return target == null ? false : target.getIgnoreFlakiness();
   }
 
   Future<void> _deflakyPullRequest(
