@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -26,6 +27,8 @@ const String kCurrentMasterSHA = 'b6156fc8d1c6e992fe4ea0b9128f9aef10443bdb';
 const String kCurrentUserName = 'Name';
 const String kCurrentUserLogin = 'login';
 const String kCurrentUserEmail = 'login@email.com';
+
+class MockYaml extends Mock implements CiYaml {}
 
 void main() {
   group('Deflake', () {
@@ -627,6 +630,13 @@ void main() {
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
+    });
+
+    test('handle non-existing buildname in getIgnoreFlakiness', () async {
+      MockYaml mockYaml = MockYaml();
+      when(MockYaml().postsubmitTargets).thenReturn(<Target>[]);
+
+      CheckFlakyBuilders.getIgnoreFlakiness('NON_EXIST', mockYaml);
     });
   });
 }
