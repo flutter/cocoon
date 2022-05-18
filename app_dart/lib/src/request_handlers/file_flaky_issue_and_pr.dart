@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -143,8 +144,9 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   }
 
   bool _getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
-    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == builderName);
-    return target.getIgnoreFlakiness();
+    final Target? target =
+        ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
+    return target == null ? false : target.getIgnoreFlakiness();
   }
 
   String _marksBuildFlakyInContent(String content, String builder, String issueUrl) {
