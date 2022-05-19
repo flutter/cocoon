@@ -50,7 +50,7 @@ void main() {
             'ignore_flakiness': 'true',
           },
         );
-        expect(target.ignoreFlakiness(), true);
+        expect(target.getIgnoreFlakiness(), true);
       });
 
       test('properties with ignore_flakiness not present', () {
@@ -65,7 +65,7 @@ void main() {
             'xcode': '12abc',
           },
         );
-        expect(target.ignoreFlakiness(), false);
+        expect(target.getIgnoreFlakiness(), false);
       });
 
       test('properties with ignore_flakiness in platform properties', () {
@@ -80,7 +80,7 @@ void main() {
             'xcode': '12abc',
           },
         );
-        expect(target.ignoreFlakiness(), true);
+        expect(target.getIgnoreFlakiness(), true);
       });
 
       test('properties with ignore_flakiness overrides platform properties', () {
@@ -96,7 +96,7 @@ void main() {
             'ignore_flakiness': 'false',
           },
         );
-        expect(target.ignoreFlakiness(), false);
+        expect(target.getIgnoreFlakiness(), false);
       });
 
       test('properties with xcode overrides platform properties', () {

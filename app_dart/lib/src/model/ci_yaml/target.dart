@@ -238,7 +238,7 @@ class Target {
   ///
   /// Returns the value of ignore_flakiness property if
   /// it has been specified, else default returns false.
-  bool ignoreFlakiness() {
+  bool getIgnoreFlakiness() {
     final Map<String, Object> properties = getProperties();
     if (properties.containsKey(kIgnoreFlakiness)) {
       return properties[kIgnoreFlakiness] as bool;

@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 // ignore_for_file: constant_identifier_names
+import 'package:auto_submit/service/config.dart';
+
 import 'package:auto_submit/service/log.dart';
 import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
@@ -219,7 +221,12 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: rollorAuthor);
       pubsub.publish(testTopic, pullRequest);
 
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      checkPullRequest = CheckPullRequest(
+        config: config,
+        pubsub: pubsub,
+        cronAuthProvider: auth,
+        approverProvider: (Config config) => MockApproverService(),
+      );
 
       flutterRequest = PullRequestHelper(
         prNumber: 0,
