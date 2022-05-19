@@ -13,7 +13,9 @@ import 'package:collection/src/equality.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
+import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
@@ -633,10 +635,14 @@ void main() {
     });
 
     test('getIgnoreFlakiness handles non-existing builderame', () async {
-      MockYaml mockYaml = MockYaml();
-      List<Target> t = <Target>[];
-      when(mockYaml.postsubmitTargets).thenReturn(t);
-      CheckFlakyBuilders.getIgnoreFlakiness('Non_existing', mockYaml);
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      CheckFlakyBuilders.getIgnoreFlakiness('Non_existing', ciYaml);
     });
   });
 }
