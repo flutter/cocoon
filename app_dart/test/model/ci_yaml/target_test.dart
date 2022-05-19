@@ -287,6 +287,19 @@ void main() {
         expect(dimensions[0].value, 'x64');
       });
 
+      test('target specific dimensions overrides legacy platform properties', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Windows',
+          dimensions: <String, String>{'cpu': 'x64'},
+          platformProperties: <String, String>{'cpu': 'x32'},
+        );
+        final List<RequestedDimension> dimensions = target.getDimensions();
+        expect(dimensions.length, 1);
+        expect(dimensions[0].key, 'cpu');
+        expect(dimensions[0].value, 'x64');
+      });
+
       test('properties are evaluated as string', () {
         final Target target = generateTarget(
           1,
