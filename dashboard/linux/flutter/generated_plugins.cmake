@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  icon_plugin
   url_launcher_linux
 )
 

@@ -35,19 +35,6 @@ found in the LICENSE file. -->
     js.src='https://apis.google.com/js/platform.js';
     fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
   }(window,document,'script'));
-
-  function checkTreeStatus(){
-    const link = document.querySelector("link[rel~='icon']");
-    let icon = 'favicon.png';
-    if (window.location.href.indexOf('/build') > 0) {
-      glass = document.body.getElementsByTagName('flt-glass-pane')[0]
-      if (glass.getInnerHTML().indexOf('Tree is Closed') > 0) {
-        icon = 'favicon-failure.png';
-      }
-    }
-    link.href = icon;
-  }
-  setInterval(checkTreeStatus, 2000);
 </script>
 </body>
 </html>
