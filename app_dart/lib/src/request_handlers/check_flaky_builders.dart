@@ -29,6 +29,7 @@ import 'flaky_handler_utils.dart';
 /// 3. Does not have any existing pr against the target.
 /// 4. The builder has been passing for most recent [kRecordNumber] consecutive
 ///    runs.
+/// 5. The builder is not marked with ignore_flakiness.
 ///
 /// If all the conditions are true, this handler will file a pull request to
 /// make the builder unflaky.
