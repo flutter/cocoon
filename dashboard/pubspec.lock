@@ -188,6 +188,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_app_icons:
+    dependency: "direct main"
+    description:
+      name: flutter_app_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -268,13 +275,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  icon_plugin:
-    dependency: "direct main"
-    description:
-      name: icon_plugin
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.2"
   io:
     dependency: transitive
     description:

@@ -16,7 +16,7 @@ import 'widgets/error_brook_watcher.dart';
 import 'widgets/filter_property_sheet.dart';
 import 'widgets/task_box.dart';
 import 'widgets/task_grid.dart';
-import 'package:icon_plugin/icon_plugin.dart';
+import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
@@ -41,7 +41,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter? _settingsBasis;
   bool _smallScreen = false;
   double screenWidthThreshold = 600;
-  final _iconPlugin = IconPlugin();
+  final _flutterAppIconsPlugin = FlutterAppIcons();
 
   /// Current Flutter repository to view.
   String? repo;
@@ -72,7 +72,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   void dispose() {
-    _iconPlugin.setIcon(icon: 'favicon.png');
+    _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
     super.dispose();
   }
 
@@ -323,10 +323,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       return 'Loading...';
     }
     if (buildState.isTreeBuilding!) {
-      _iconPlugin.setIcon(icon: 'favicon.png');
+      _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
       return 'Tree is Open';
     } else {
-      _iconPlugin.setIcon(icon: 'favicon-failure.png');
+      _flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
       if (buildState.failingTasks.isNotEmpty) {
         return 'Tree is Closed (failing: ${buildState.failingTasks.join(', ')})';
       } else {
