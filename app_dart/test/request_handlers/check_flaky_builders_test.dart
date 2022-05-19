@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -12,6 +13,8 @@ import 'package:collection/src/equality.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
+import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -26,6 +29,8 @@ const String kCurrentMasterSHA = 'b6156fc8d1c6e992fe4ea0b9128f9aef10443bdb';
 const String kCurrentUserName = 'Name';
 const String kCurrentUserLogin = 'login';
 const String kCurrentUserEmail = 'login@email.com';
+
+class MockYaml extends Mock implements CiYaml {}
 
 void main() {
   group('Deflake', () {
@@ -627,6 +632,17 @@ void main() {
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
+    });
+
+    test('getIgnoreFlakiness handles non-existing builderame', () async {
+      final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+      );
+      CheckFlakyBuilders.getIgnoreFlakiness('Non_existing', ciYaml);
     });
   });
 }
