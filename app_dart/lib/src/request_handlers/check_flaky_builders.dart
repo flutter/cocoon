@@ -132,7 +132,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     for (final YamlMap? flakyTarget in flakyTargets) {
       final String? builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
-      if (_getIgnoreFlakiness(builder, ciYaml)) {
+      if (getIgnoreFlakiness(builder, ciYaml)) {
         continue;
       }
       if (ignoredBuilders.contains(builder)) {
@@ -163,7 +163,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     return result;
   }
 
-  bool _getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
+  @visibleForTesting
+  static bool getIgnoreFlakiness(String? builderName, CiYaml ciYaml) {
     final Target? target =
         ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
     return target == null ? false : target.getIgnoreFlakiness();

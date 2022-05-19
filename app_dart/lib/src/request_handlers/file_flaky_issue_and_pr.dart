@@ -50,7 +50,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
       // Skip if ignore_flakiness is specified.
-      if (_getIgnoreFlakiness(statistic.name, ciYaml)) {
+      if (getIgnoreFlakiness(statistic.name, ciYaml)) {
         continue;
       }
       if (statistic.flakyRate < _threshold) {
@@ -143,7 +143,8 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     return target != null && target[kCiYamlTargetIsFlakyKey] == true;
   }
 
-  bool _getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
+  @visibleForTesting
+  static bool getIgnoreFlakiness(String builderName, CiYaml ciYaml) {
     final Target? target =
         ciYaml.postsubmitTargets.singleWhereOrNull((Target target) => target.value.name == builderName);
     return target == null ? false : target.getIgnoreFlakiness();
