@@ -45,8 +45,9 @@ class Target {
   /// Swarming dimension doc: https://chromium.googlesource.com/infra/luci/luci-go/+/HEAD/lucicfg/doc/README.md#swarming.dimension
   ///
   /// Target dimensions are prioritized in:
-  ///   1. [schedulerConfig.platformDimensions]
-  ///   2. [pb.Target.properties]
+  ///   1. [pb.Target.dimensions]
+  ///   1. [pb.Target.properties]
+  ///   2. [schedulerConfig.platformDimensions]
   List<RequestedDimension> getDimensions() {
     final Map<String, RequestedDimension> dimensionsMap = <String, RequestedDimension>{};
 
@@ -56,14 +57,7 @@ class Target {
       dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
-    final Map<String, Object> targetDimensions = _getTargetDimensions();
-    for (String key in targetDimensions.keys) {
-      String value = targetDimensions[key].toString();
-      dimensionsMap[key] = RequestedDimension(key: key, value: value);
-    }
-
     final Map<String, Object> properties = getProperties();
-
     // TODO(xilaizhang): https://github.com/flutter/flutter/issues/103557
     // remove this logic after dimensions are supported in ci.yaml files
     for (String dimension in dimensionList) {
@@ -72,6 +66,13 @@ class Target {
         dimensionsMap[dimension] = RequestedDimension(key: dimension, value: value);
       }
     }
+
+    final Map<String, Object> targetDimensions = _getTargetDimensions();
+    for (String key in targetDimensions.keys) {
+      String value = targetDimensions[key].toString();
+      dimensionsMap[key] = RequestedDimension(key: key, value: value);
+    }
+
     return dimensionsMap.values.toList();
   }
 

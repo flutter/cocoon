@@ -18,9 +18,10 @@ message SchedulerConfig {
     map<string, PlatformProperties> platform_properties = 3;
     // Next ID: 3
     message PlatformProperties {
-        // Generic key, value pairs to set platform-wise properties
+        // Generic key, value pairs to set platform-wide properties
         map<string, string> properties = 1;
-        // Generic key, value pairs to set platform-wise dimensions
+        // Generic key, value pairs to set platform-wide dimensions
+        // Doc for dimension and properties: https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/appengine/swarming/doc/User-Guide.md
         map<string, string> dimensions = 2;
     }
 }
