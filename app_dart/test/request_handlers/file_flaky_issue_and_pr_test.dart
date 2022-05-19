@@ -536,6 +536,6 @@ void main() {
       branch: Config.defaultBranch(Config.flutterSlug),
       config: unCheckedSchedulerConfig,
     );
-    CheckFlakyBuilders.getIgnoreFlakiness('Non_existing', ciYaml);
+    FileFlakyIssueAndPR.getIgnoreFlakiness('Non_existing', ciYaml);
   });
 }
