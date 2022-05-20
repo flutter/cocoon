@@ -37,7 +37,7 @@ const SchedulerConfig$json = {
       '10': 'platformProperties'
     },
   ],
-  '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_Properties$json],
+  '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PlatformProperties$json],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -45,30 +45,51 @@ const SchedulerConfig_PlatformPropertiesEntry$json = {
   '1': 'PlatformPropertiesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.Properties', '10': 'value'},
+    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties', '10': 'value'},
   ],
   '7': {'7': true},
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
-const SchedulerConfig_Properties$json = {
-  '1': 'Properties',
+const SchedulerConfig_PlatformProperties$json = {
+  '1': 'PlatformProperties',
   '2': [
     {
       '1': 'properties',
       '3': 1,
       '4': 3,
       '5': 11,
-      '6': '.scheduler.SchedulerConfig.Properties.PropertiesEntry',
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry',
       '10': 'properties'
     },
+    {
+      '1': 'dimensions',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry',
+      '10': 'dimensions'
+    },
   ],
-  '3': [SchedulerConfig_Properties_PropertiesEntry$json],
+  '3': [
+    SchedulerConfig_PlatformProperties_PropertiesEntry$json,
+    SchedulerConfig_PlatformProperties_DimensionsEntry$json
+  ],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
-const SchedulerConfig_Properties_PropertiesEntry$json = {
+const SchedulerConfig_PlatformProperties_PropertiesEntry$json = {
   '1': 'PropertiesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+@$core.Deprecated('Use schedulerConfigDescriptor instead')
+const SchedulerConfig_PlatformProperties_DimensionsEntry$json = {
+  '1': 'DimensionsEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
     {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
@@ -78,7 +99,7 @@ const SchedulerConfig_Properties_PropertiesEntry$json = {
 
 /// Descriptor for `SchedulerConfig`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List schedulerConfigDescriptor = $convert.base64Decode(
-    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3BsYXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMabAoXUGxhdGZvcm1Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSOwoFdmFsdWUYAiABKAsyJS5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlByb3BlcnRpZXNSBXZhbHVlOgI4ARqiAQoKUHJvcGVydGllcxJVCgpwcm9wZXJ0aWVzGAEgAygLMjUuc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');
+    'Cg9TY2hlZHVsZXJDb25maWcSKwoHdGFyZ2V0cxgBIAMoCzIRLnNjaGVkdWxlci5UYXJnZXRSB3RhcmdldHMSKQoQZW5hYmxlZF9icmFuY2hlcxgCIAMoCVIPZW5hYmxlZEJyYW5jaGVzEmMKE3BsYXRmb3JtX3Byb3BlcnRpZXMYAyADKAsyMi5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc0VudHJ5UhJwbGF0Zm9ybVByb3BlcnRpZXMadAoXUGxhdGZvcm1Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSQwoFdmFsdWUYAiABKAsyLS5zY2hlZHVsZXIuU2NoZWR1bGVyQ29uZmlnLlBsYXRmb3JtUHJvcGVydGllc1IFdmFsdWU6AjgBGtACChJQbGF0Zm9ybVByb3BlcnRpZXMSXQoKcHJvcGVydGllcxgBIAMoCzI9LnNjaGVkdWxlci5TY2hlZHVsZXJDb25maWcuUGxhdGZvcm1Qcm9wZXJ0aWVzLlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxJdCgpkaW1lbnNpb25zGAIgAygLMj0uc2NoZWR1bGVyLlNjaGVkdWxlckNvbmZpZy5QbGF0Zm9ybVByb3BlcnRpZXMuRGltZW5zaW9uc0VudHJ5UgpkaW1lbnNpb25zGj0KD1Byb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
 @$core.Deprecated('Use targetDescriptor instead')
 const Target$json = {
   '1': 'Target',
@@ -103,8 +124,17 @@ const Target$json = {
     {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
     {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
     {'1': 'recipe', '3': 13, '4': 1, '5': 9, '10': 'recipe'},
+    {
+      '1': 'postsubmit_properties',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target.PostsubmitPropertiesEntry',
+      '10': 'postsubmitProperties'
+    },
+    {'1': 'dimensions', '3': 16, '4': 3, '5': 11, '6': '.scheduler.Target.DimensionsEntry', '10': 'dimensions'},
   ],
-  '3': [Target_PropertiesEntry$json],
+  '3': [Target_PropertiesEntry$json, Target_PostsubmitPropertiesEntry$json, Target_DimensionsEntry$json],
   '9': [
     {'1': 14, '2': 15},
   ],
@@ -120,6 +150,26 @@ const Target_PropertiesEntry$json = {
   '7': {'7': true},
 };
 
+@$core.Deprecated('Use targetDescriptor instead')
+const Target_PostsubmitPropertiesEntry$json = {
+  '1': 'PostsubmitPropertiesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+@$core.Deprecated('Use targetDescriptor instead')
+const Target_DimensionsEntry$json = {
+  '1': 'DimensionsEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
 /// Descriptor for `Target`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
-    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCgpwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnByb3BlcnRpZXMSHAoHYnVpbGRlchgHIAEoCUICGAFSB2J1aWxkZXISQAoJc2NoZWR1bGVyGAggASgOMhouc2NoZWR1bGVyLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJlc3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZVIKcG9zdHN1Ym1pdBIVCgZydW5faWYYCyADKAlSBXJ1bklmEikKEGVuYWJsZWRfYnJhbmNoZXMYDCADKAlSD2VuYWJsZWRCcmFuY2hlcxIWCgZyZWNpcGUYDSABKAlSBnJlY2lwZRo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AUoECA4QDw==');
+    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBJBCgpwcm9wZXJ0aWVzGAYgAygLMiEuc2NoZWR1bGVyLlRhcmdldC5Qcm9wZXJ0aWVzRW50cnlSCnByb3BlcnRpZXMSHAoHYnVpbGRlchgHIAEoCUICGAFSB2J1aWxkZXISQAoJc2NoZWR1bGVyGAggASgOMhouc2NoZWR1bGVyLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJlc3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZVIKcG9zdHN1Ym1pdBIVCgZydW5faWYYCyADKAlSBXJ1bklmEikKEGVuYWJsZWRfYnJhbmNoZXMYDCADKAlSD2VuYWJsZWRCcmFuY2hlcxIWCgZyZWNpcGUYDSABKAlSBnJlY2lwZRJgChVwb3N0c3VibWl0X3Byb3BlcnRpZXMYDyADKAsyKy5zY2hlZHVsZXIuVGFyZ2V0LlBvc3RzdWJtaXRQcm9wZXJ0aWVzRW50cnlSFHBvc3RzdWJtaXRQcm9wZXJ0aWVzEkEKCmRpbWVuc2lvbnMYECADKAsyIS5zY2hlZHVsZXIuVGFyZ2V0LkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ARpHChlQb3N0c3VibWl0UHJvcGVydGllc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaPQoPRGltZW5zaW9uc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAFKBAgOEA8=');
