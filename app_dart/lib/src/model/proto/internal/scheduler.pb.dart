@@ -13,57 +13,71 @@ import 'scheduler.pbenum.dart';
 
 export 'scheduler.pbenum.dart';
 
-class SchedulerConfig_Properties extends $pb.GeneratedMessage {
+class SchedulerConfig_PlatformProperties extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig.Properties',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig.PlatformProperties',
       package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..m<$core.String, $core.String>(
         1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
-        entryClassName: 'SchedulerConfig.Properties.PropertiesEntry',
+        entryClassName: 'SchedulerConfig.PlatformProperties.PropertiesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
+    ..m<$core.String, $core.String>(
+        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dimensions',
+        entryClassName: 'SchedulerConfig.PlatformProperties.DimensionsEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
     ..hasRequiredFields = false;
 
-  SchedulerConfig_Properties._() : super();
-  factory SchedulerConfig_Properties({
+  SchedulerConfig_PlatformProperties._() : super();
+  factory SchedulerConfig_PlatformProperties({
     $core.Map<$core.String, $core.String>? properties,
+    $core.Map<$core.String, $core.String>? dimensions,
   }) {
     final _result = create();
     if (properties != null) {
       _result.properties.addAll(properties);
     }
+    if (dimensions != null) {
+      _result.dimensions.addAll(dimensions);
+    }
     return _result;
   }
-  factory SchedulerConfig_Properties.fromBuffer($core.List<$core.int> i,
+  factory SchedulerConfig_PlatformProperties.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory SchedulerConfig_Properties.fromJson($core.String i,
+  factory SchedulerConfig_PlatformProperties.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  SchedulerConfig_Properties clone() => SchedulerConfig_Properties()..mergeFromMessage(this);
+  SchedulerConfig_PlatformProperties clone() => SchedulerConfig_PlatformProperties()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  SchedulerConfig_Properties copyWith(void Function(SchedulerConfig_Properties) updates) =>
-      super.copyWith((message) => updates(message as SchedulerConfig_Properties))
-          as SchedulerConfig_Properties; // ignore: deprecated_member_use
+  SchedulerConfig_PlatformProperties copyWith(void Function(SchedulerConfig_PlatformProperties) updates) =>
+      super.copyWith((message) => updates(message as SchedulerConfig_PlatformProperties))
+          as SchedulerConfig_PlatformProperties; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig_Properties create() => SchedulerConfig_Properties._();
-  SchedulerConfig_Properties createEmptyInstance() => create();
-  static $pb.PbList<SchedulerConfig_Properties> createRepeated() => $pb.PbList<SchedulerConfig_Properties>();
+  static SchedulerConfig_PlatformProperties create() => SchedulerConfig_PlatformProperties._();
+  SchedulerConfig_PlatformProperties createEmptyInstance() => create();
+  static $pb.PbList<SchedulerConfig_PlatformProperties> createRepeated() =>
+      $pb.PbList<SchedulerConfig_PlatformProperties>();
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig_Properties getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig_Properties>(create);
-  static SchedulerConfig_Properties? _defaultInstance;
+  static SchedulerConfig_PlatformProperties getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig_PlatformProperties>(create);
+  static SchedulerConfig_PlatformProperties? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get properties => $_getMap(0);
+
+  @$pb.TagNumber(2)
+  $core.Map<$core.String, $core.String> get dimensions => $_getMap(1);
 }
 
 class SchedulerConfig extends $pb.GeneratedMessage {
@@ -74,12 +88,12 @@ class SchedulerConfig extends $pb.GeneratedMessage {
     ..pc<Target>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'targets', $pb.PbFieldType.PM,
         subBuilder: Target.create)
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
-    ..m<$core.String, SchedulerConfig_Properties>(
+    ..m<$core.String, SchedulerConfig_PlatformProperties>(
         3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'platformProperties',
         entryClassName: 'SchedulerConfig.PlatformPropertiesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OM,
-        valueCreator: SchedulerConfig_Properties.create,
+        valueCreator: SchedulerConfig_PlatformProperties.create,
         packageName: const $pb.PackageName('scheduler'))
     ..hasRequiredFields = false;
 
@@ -87,7 +101,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   factory SchedulerConfig({
     $core.Iterable<Target>? targets,
     $core.Iterable<$core.String>? enabledBranches,
-    $core.Map<$core.String, SchedulerConfig_Properties>? platformProperties,
+    $core.Map<$core.String, SchedulerConfig_PlatformProperties>? platformProperties,
   }) {
     final _result = create();
     if (targets != null) {
@@ -133,7 +147,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
   $core.List<$core.String> get enabledBranches => $_getList(1);
 
   @$pb.TagNumber(3)
-  $core.Map<$core.String, SchedulerConfig_Properties> get platformProperties => $_getMap(2);
+  $core.Map<$core.String, SchedulerConfig_PlatformProperties> get platformProperties => $_getMap(2);
 }
 
 class Target extends $pb.GeneratedMessage {
@@ -169,6 +183,18 @@ class Target extends $pb.GeneratedMessage {
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..aOS(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
+    ..m<$core.String, $core.String>(
+        15, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmitProperties',
+        entryClassName: 'Target.PostsubmitPropertiesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
+    ..m<$core.String, $core.String>(
+        16, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dimensions',
+        entryClassName: 'Target.DimensionsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('scheduler'))
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -186,6 +212,8 @@ class Target extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? runIf,
     $core.Iterable<$core.String>? enabledBranches,
     $core.String? recipe,
+    $core.Map<$core.String, $core.String>? postsubmitProperties,
+    $core.Map<$core.String, $core.String>? dimensions,
   }) {
     final _result = create();
     if (name != null) {
@@ -227,6 +255,12 @@ class Target extends $pb.GeneratedMessage {
     }
     if (recipe != null) {
       _result.recipe = recipe;
+    }
+    if (postsubmitProperties != null) {
+      _result.postsubmitProperties.addAll(postsubmitProperties);
+    }
+    if (dimensions != null) {
+      _result.dimensions.addAll(dimensions);
     }
     return _result;
   }
@@ -375,4 +409,10 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasRecipe() => $_has(12);
   @$pb.TagNumber(13)
   void clearRecipe() => clearField(13);
+
+  @$pb.TagNumber(15)
+  $core.Map<$core.String, $core.String> get postsubmitProperties => $_getMap(13);
+
+  @$pb.TagNumber(16)
+  $core.Map<$core.String, $core.String> get dimensions => $_getMap(14);
 }
