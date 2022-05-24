@@ -64,7 +64,15 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     for (pub.ReceivedMessage message in receivedMessages) {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
+
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      final RepositorySlug slug = pullRequest.base!.repo!.slug();
+
+      /// Only process mesages coming from flutter org.
+      if (slug.owner != 'flutter') {
+        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+      }
+
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
@@ -295,7 +303,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final bool isConflicting = pr.mergeable == false;
     // This is used to skip landing until we are sure the PR is mergeable.
     final bool unknownMergeableState = pr.mergeableState == 'UNKNOWN';
-
     final RepositorySlug slug = pr.base!.repo!.slug();
     final int? prNumber = pr.number;
     final Map<String, dynamic> data = await _queryGraphQL(
@@ -303,18 +310,17 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       prNumber!,
       graphQLClient,
     );
-
     auto_submit.QueryResult queryResult = auto_submit.QueryResult.fromJson(data);
     if (queryResult.repository == null) {
       throw StateError('Query did not return a repository.');
     }
     final auto_submit.PullRequest pullRequest = queryResult.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
-
     log.info('The author association is ${pullRequest.authorAssociation!}');
     auto_submit.Commit commit = pullRequest.commits!.nodes!.single.commit!;
     List<auto_submit.ContextNode> statuses = <auto_submit.ContextNode>[];
-    if (commit.status!.contexts!.isNotEmpty) {
+    // The status list can be empty.
+    if (commit.status != null && commit.status!.contexts!.isNotEmpty) {
       statuses.addAll(commit.status!.contexts!);
     }
 
@@ -324,7 +330,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final Set<_FailureDetail> failures = <_FailureDetail>{};
     final String? sha = commit.oid;
     final String? author = pullRequest.author!.login;
-
     // List of labels associated with the pull request.
     final List<String> labelNames =
         (pr.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
@@ -351,7 +356,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     );
     final String id = pullRequest.id!;
     final String title = pullRequest.title!;
-
     return _AutoMergeQueryResult(
       slug: slug,
       graphQLId: id,
