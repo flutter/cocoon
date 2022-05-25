@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:github/github.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
@@ -172,7 +174,8 @@ class CiYaml {
               exceptions.add('ERROR: ${target.name} cannot depend on itself');
             } else if (targetGraph.containsKey(target.dependencies.first)) {
               // look for a pinned version.
-              if (_hasPinnedVersion(dependency: target.dependencies.first)) {
+              if (PinnedVersionValidator.hasPinnedVersion(
+                  dependency: target.dependencies.first)) {
                 targetGraph[target.dependencies.first]!.add(target);
               } else {
                 exceptions.add(
@@ -189,43 +192,36 @@ class CiYaml {
     _checkExceptions(exceptions);
   }
 
-  /// Checks a dependency string for a pinned version.
-  /// If a version is found then it must not be defined as empty or 'latest.'
-  bool _hasPinnedVersion({required String dependency}) {
-    final List<String> exceptions = <String>[];
-    // remove all white space so we don't need to account for it in the regex.
-    dependency.replaceAll(RegExp(r"\s+\b|\b\s|\s|\b"), "");
-    // need to confirm if the string has enclosing single quotes. use (")? for optional quotes
-    final versionRegex = RegExp(r'^{"dependency":".+?","version":"(.*)"}$');
-    final match = versionRegex.firstMatch(dependency);
-
-    if (match == null) {
-      return false;
-    } else {
-      final groupsFound = match.groupCount;
-      if (groupsFound != 2) {
-        return false;
-      }
-
-      // we found a version supplied but we need to check it for empty and latest
-      final versionFound = match.group(1);
-      if (versionFound == null) {
-        return false;
-      }
-
-      if (versionFound.isEmpty || versionFound.toLowerCase() == 'latest') {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
       final String fullException =
           exceptions.reduce((String exception, _) => exception + '\n');
       throw FormatException(fullException);
     }
+  }
+}
+
+/// Class to expose the PinnedVersion method for testing.
+class PinnedVersionValidator {
+  /// Dependency is guaranteed to be non empty as it must be found before this
+  /// method is called.
+  ///
+  /// Checks a dependency string for a pinned version.
+  /// If a version is found then it must not be empty or 'latest.'
+  static bool hasPinnedVersion({required String dependency}) {
+    dynamic decoded = json.decode(dependency);
+
+    String version;
+    if (decoded['version'] != null) {
+      version = decoded['version'] as String;
+    } else {
+      return false;
+    }
+
+    if (version.isEmpty || version.toLowerCase() == 'latest') {
+      return false;
+    }
+
+    return true;
   }
 }
