@@ -34,19 +34,21 @@ class CiYaml {
 
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
-    final Iterable<Target> presubmitTargets =
-        _targets.where((Target target) => target.value.presubmit && !target.value.bringup);
+    final Iterable<Target> presubmitTargets = _targets.where(
+        (Target target) => target.value.presubmit && !target.value.bringup);
 
     final List<Target> enabledTargets = _filterEnabledTargets(presubmitTargets);
     if (enabledTargets.isEmpty) {
-      throw Exception('$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
+      throw Exception(
+          '$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.');
     }
     return enabledTargets;
   }
 
   /// Gets all [Target] that run on postsubmit for this config.
   List<Target> get postsubmitTargets {
-    final Iterable<Target> postsubmitTargets = _targets.where((Target target) => target.value.postsubmit);
+    final Iterable<Target> postsubmitTargets =
+        _targets.where((Target target) => target.value.postsubmit);
 
     return _filterEnabledTargets(postsubmitTargets);
   }
@@ -57,14 +59,17 @@ class CiYaml {
   /// This shouldn't be confused for targets that have the property named dependency, which is used by the
   /// flutter_deps recipe module on LUCI.
   List<Target> getInitialTargets(List<Target> targets) {
-    return targets.where((Target target) => target.value.dependencies.isEmpty).toList();
+    return targets
+        .where((Target target) => target.value.dependencies.isEmpty)
+        .toList();
   }
 
-  Iterable<Target> get _targets => config.targets.map((pb.Target target) => Target(
-        schedulerConfig: config,
-        value: target,
-        slug: slug,
-      ));
+  Iterable<Target> get _targets =>
+      config.targets.map((pb.Target target) => Target(
+            schedulerConfig: config,
+            value: target,
+            slug: slug,
+          ));
 
   /// Filter [targets] to only those that are expected to run for [branch].
   ///
@@ -75,16 +80,17 @@ class CiYaml {
     final List<Target> filteredTargets = <Target>[];
 
     // 1. Add targets with local definition
-    final Iterable<Target> overrideBranchTargets =
-        targets.where((Target target) => target.value.enabledBranches.isNotEmpty);
-    final Iterable<Target> enabledTargets = overrideBranchTargets
-        .where((Target target) => enabledBranchesMatchesCurrentBranch(target.value.enabledBranches, branch));
+    final Iterable<Target> overrideBranchTargets = targets
+        .where((Target target) => target.value.enabledBranches.isNotEmpty);
+    final Iterable<Target> enabledTargets = overrideBranchTargets.where(
+        (Target target) => enabledBranchesMatchesCurrentBranch(
+            target.value.enabledBranches, branch));
     filteredTargets.addAll(enabledTargets);
 
     // 2. Add targets with global definition (this is the majority of targets)
     if (enabledBranchesMatchesCurrentBranch(config.enabledBranches, branch)) {
-      final Iterable<Target> defaultBranchTargets =
-          targets.where((Target target) => target.value.enabledBranches.isEmpty);
+      final Iterable<Target> defaultBranchTargets = targets
+          .where((Target target) => target.value.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
     }
 
@@ -92,7 +98,8 @@ class CiYaml {
   }
 
   /// Whether any of the possible [RegExp] in [enabledBranches] match [branch].
-  static bool enabledBranchesMatchesCurrentBranch(List<String> enabledBranches, String branch) {
+  static bool enabledBranchesMatchesCurrentBranch(
+      List<String> enabledBranches, String branch) {
     final List<String> regexes = <String>[];
     for (String enabledBranch in enabledBranches) {
       // Prefix with start of line and suffix with end of line
@@ -118,16 +125,20 @@ class CiYaml {
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
-  void _validate(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totSchedulerConfig}) {
+  void _validate(pb.SchedulerConfig schedulerConfig,
+      {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
-      throw const FormatException('Scheduler config must have at least 1 target');
+      throw const FormatException(
+          'Scheduler config must have at least 1 target');
     }
 
     if (schedulerConfig.enabledBranches.isEmpty) {
-      throw const FormatException('Scheduler config must have at least 1 enabled branch');
+      throw const FormatException(
+          'Scheduler config must have at least 1 enabled branch');
     }
 
-    final Map<String, List<pb.Target>> targetGraph = <String, List<pb.Target>>{};
+    final Map<String, List<pb.Target>> targetGraph =
+        <String, List<pb.Target>>{};
     final List<String> exceptions = <String>[];
     final Set<String> totTargets = <String>{};
     if (totSchedulerConfig != null) {
@@ -143,7 +154,9 @@ class CiYaml {
       } else {
         // a new build without "bringup: true"
         // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
-        if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
+        if (totTargets.isNotEmpty &&
+            !totTargets.contains(target.name) &&
+            target.bringup != true) {
           exceptions.add(
               'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`');
           continue;
@@ -152,15 +165,22 @@ class CiYaml {
         // Add edges
         if (target.dependencies.isNotEmpty) {
           if (target.dependencies.length != 1) {
-            exceptions
-                .add('ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
+            exceptions.add(
+                'ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
           } else {
             if (target.dependencies.first == target.name) {
               exceptions.add('ERROR: ${target.name} cannot depend on itself');
             } else if (targetGraph.containsKey(target.dependencies.first)) {
-              targetGraph[target.dependencies.first]!.add(target);
+              // look for a pinned version.
+              if (_hasPinnedVersion(dependency: target.dependencies.first)) {
+                targetGraph[target.dependencies.first]!.add(target);
+              } else {
+                exceptions.add(
+                    'ERROR: could not determine version for dependency ${target.dependencies.first}');
+              }
             } else {
-              exceptions.add('ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
+              exceptions.add(
+                  'ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
             }
           }
         }
@@ -169,9 +189,42 @@ class CiYaml {
     _checkExceptions(exceptions);
   }
 
+  /// Checks a dependency string for a pinned version.
+  /// If a version is found then it must not be defined as empty or 'latest.'
+  bool _hasPinnedVersion({required String dependency}) {
+    final List<String> exceptions = <String>[];
+    // remove all white space so we don't need to account for it in the regex.
+    dependency.replaceAll(RegExp(r"\s+\b|\b\s|\s|\b"), "");
+    // need to confirm if the string has enclosing single quotes. use (")? for optional quotes
+    final versionRegex = RegExp(r'^{"dependency":".+?","version":"(.*)"}$');
+    final match = versionRegex.firstMatch(dependency);
+
+    if (match == null) {
+      return false;
+    } else {
+      final groupsFound = match.groupCount;
+      if (groupsFound != 2) {
+        return false;
+      }
+
+      // we found a version supplied but we need to check it for empty and latest
+      final versionFound = match.group(1);
+      if (versionFound == null) {
+        return false;
+      }
+
+      if (versionFound.isEmpty || versionFound.toLowerCase() == 'latest') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
-      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      final String fullException =
+          exceptions.reduce((String exception, _) => exception + '\n');
       throw FormatException(fullException);
     }
   }
