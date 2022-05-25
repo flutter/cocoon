@@ -42,6 +42,9 @@ void main() {
     validatePinnedVersion(
         '{"dependency": "android_sdk", "version": "version:31v8"}', true);
     validatePinnedVersion(
+        '{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}',
+        true);
+    validatePinnedVersion(
         '{"dependency": "android_sdk", "version": ""}', false);
     validatePinnedVersion('{"dependency": "android_sdk"}', false);
   });
