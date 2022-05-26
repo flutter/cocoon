@@ -26,17 +26,17 @@ void main() {
   group('validate PinnedVersion operation.', () {
     void validatePinnedVersion(String input, bool expected) {
       test("$input -> $expected", () {
-        PinnedVersionValidator.hasPinnedVersion(dependency: input);
+        DependencyValidator.hasVersion(dependencyJsonString: input);
       });
     }
 
-    validatePinnedVersion('{"dependency": "chrome_and_driver", "version": "version:96.2"}', true);
-    validatePinnedVersion('{"dependency": "open_jdk", "version": "11"}', true);
-    validatePinnedVersion('{"dependency": "android_sdk", "version": "version:31v8"}', true);
+    validatePinnedVersion('[{"dependency": "chrome_and_driver", "version": "version:96.2"}]', true);
+    validatePinnedVersion('[{"dependency": "open_jdk", "version": "11"}]', true);
+    validatePinnedVersion('[{"dependency": "android_sdk", "version": "version:31v8"}]', true);
     validatePinnedVersion(
-        '{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}',true);
-    validatePinnedVersion('{"dependency": "android_sdk", "version": ""}', false);
-    validatePinnedVersion('{"dependency": "android_sdk"}', false);
+        '[{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}]',true);
+    validatePinnedVersion('[{"dependency": "android_sdk", "version": ""}]', false);
+    validatePinnedVersion('[{"dependency": "android_sdk"}]', false);
   });
 }
 

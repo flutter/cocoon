@@ -160,19 +160,18 @@ class CiYaml {
             if (target.dependencies.first == target.name) {
               exceptions.add('ERROR: ${target.name} cannot depend on itself');
             } else if (targetGraph.containsKey(target.dependencies.first)) {
-              // look for a pinned version.
-              if (PinnedVersionValidator.hasPinnedVersion(
-                  dependency: target.dependencies.first)) {
-                targetGraph[target.dependencies.first]!.add(target);
-              } else {
-                exceptions.add(
-                    'ERROR: could not determine version for dependency ${target.dependencies.first}');
-              }
+              targetGraph[target.dependencies.first]!.add(target);
             } else {
               exceptions.add('ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist');
             }
           }
         }
+      }
+
+      // check the dependencies for target if it is viable to be added
+      final String? dependencyJson = target.properties['dependencies'];
+      if (dependencyJson != null) {
+        DependencyValidator.hasVersion(dependencyJsonString: dependencyJson);
       }
     }
     _checkExceptions(exceptions);
@@ -187,26 +186,32 @@ class CiYaml {
 }
 
 /// Class to expose the PinnedVersion method for testing.
-class PinnedVersionValidator {
+class DependencyValidator {
   /// Dependency is guaranteed to be non empty as it must be found before this
   /// method is called.
   ///
   /// Checks a dependency string for a pinned version.
   /// If a version is found then it must not be empty or 'latest.'
-  static bool hasPinnedVersion({required String dependency}) {
-    dynamic decoded = json.decode(dependency);
+  static void hasVersion({required String dependencyJsonString}) {
+    final List<String> exceptions = <String>[];
+    // decoded will contain a list of maps
+    dynamic decoded = json.decode(dependencyJsonString);
 
-    String version;
-    if (decoded['version'] != null) {
-      version = decoded['version'] as String;
-    } else {
-      return false;
+    for (Map<String, dynamic> depMap in decoded) {
+    
+      if (!depMap.containsKey('version')) {
+        exceptions.add('ERROR: dependency ${depMap['dependency']} must have a version.');
+      } else {
+        String version = depMap['version'] as String;
+        if (version.isEmpty || version == 'latest') {
+          exceptions.add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
+        }
+      }
     }
 
-    if (version.isEmpty || version.toLowerCase() == 'latest') {
-      return false;
-    }
-
-    return true;
+    // if (exceptions.isNotEmpty) {
+    //   final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+    //   throw FormatException(fullException);
+    // }
   }
 }
