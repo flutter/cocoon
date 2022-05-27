@@ -168,7 +168,8 @@ class CiYaml {
         }
       }
 
-      // check the dependencies for target if it is viable to be added
+      /// Check the dependencies for the current target if it is viable and to 
+      /// be added to graph.
       final String? dependencyJson = target.properties['dependencies'];
       if (dependencyJson != null) {
         DependencyValidator.hasVersion(dependencyJsonString: dependencyJson);
@@ -185,16 +186,17 @@ class CiYaml {
   }
 }
 
-/// Class to expose the PinnedVersion method for testing.
+/// Class to verify the version of the dependencies in the ci.yaml config file 
+/// for each target we are going to execute.
 class DependencyValidator {
-  /// Dependency is guaranteed to be non empty as it must be found before this
-  /// method is called.
+  /// dependencyJsonString is guaranteed to be non empty as it must be found 
+  /// before this method is called.
   ///
   /// Checks a dependency string for a pinned version.
   /// If a version is found then it must not be empty or 'latest.'
   static void hasVersion({required String dependencyJsonString}) {
     final List<String> exceptions = <String>[];
-    // decoded will contain a list of maps
+    /// Decoded will contain a list of maps for the dependencies found.
     dynamic decoded = json.decode(dependencyJsonString);
 
     for (Map<String, dynamic> depMap in decoded) {
@@ -204,14 +206,15 @@ class DependencyValidator {
       } else {
         String version = depMap['version'] as String;
         if (version.isEmpty || version == 'latest') {
-          exceptions.add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
+          exceptions.add(
+            'ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
         }
       }
     }
 
-    // if (exceptions.isNotEmpty) {
-    //   final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
-    //   throw FormatException(fullException);
-    // }
+    if (exceptions.isNotEmpty) {
+      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      throw FormatException(fullException);
+    }
   }
 }
