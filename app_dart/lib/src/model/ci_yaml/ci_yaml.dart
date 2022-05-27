@@ -168,7 +168,7 @@ class CiYaml {
         }
       }
 
-      /// Check the dependencies for the current target if it is viable and to 
+      /// Check the dependencies for the current target if it is viable and to
       /// be added to graph.
       final String? dependencyJson = target.properties['dependencies'];
       if (dependencyJson != null) {
@@ -186,28 +186,28 @@ class CiYaml {
   }
 }
 
-/// Class to verify the version of the dependencies in the ci.yaml config file 
+/// Class to verify the version of the dependencies in the ci.yaml config file
 /// for each target we are going to execute.
 class DependencyValidator {
-  /// dependencyJsonString is guaranteed to be non empty as it must be found 
+  /// dependencyJsonString is guaranteed to be non empty as it must be found
   /// before this method is called.
   ///
   /// Checks a dependency string for a pinned version.
   /// If a version is found then it must not be empty or 'latest.'
   static void hasVersion({required String dependencyJsonString}) {
     final List<String> exceptions = <String>[];
+
     /// Decoded will contain a list of maps for the dependencies found.
     dynamic decoded = json.decode(dependencyJsonString);
 
     for (Map<String, dynamic> depMap in decoded) {
-    
       if (!depMap.containsKey('version')) {
         exceptions.add('ERROR: dependency ${depMap['dependency']} must have a version.');
       } else {
         String version = depMap['version'] as String;
         if (version.isEmpty || version == 'latest') {
-          exceptions.add(
-            'ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
+          exceptions
+              .add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');
         }
       }
     }
