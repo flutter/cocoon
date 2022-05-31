@@ -130,14 +130,14 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     Map<String, String> properties = <String, String>{};
     if (devices.isEmpty) {
       writeToFile(json.encode(properties), _outputFilePath!);
-      logger.info('No device is available.');
+      stdout.writeln('No devices available.');
       return properties;
     }
     properties = await getDeviceProperties(devices[0], processManager: processManager);
     final String propertiesJson = json.encode(properties);
 
     writeToFile(propertiesJson, _outputFilePath!);
-    logger.info('Properties for deviceID ${devices[0].deviceId}: $propertiesJson');
+    stdout.writeln('Properties for deviceID ${devices[0].deviceId}: $propertiesJson');
     return properties;
   }
 

@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
@@ -29,7 +28,6 @@ const String kScreenRotationCheckKey = 'screen_rotation';
 const String kBatteryLevelCheckKey = 'battery_level';
 const String kBatteryTemperatureCheckKey = 'battery_temperature';
 const String kM1BrewBinPath = '/opt/homebrew/bin';
-final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
   throw BuildFailedError(message);
@@ -79,8 +77,6 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String>? env,
     bool silent = false,
     ProcessManager? processManager = const LocalProcessManager()}) async {
-  String command = '$executable ${arguments.join(" ")}';
-  if (!silent) logger.info('Executing: $command');
   late Process proc;
   try {
     proc = await processManager!

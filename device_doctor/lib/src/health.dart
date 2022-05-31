@@ -42,7 +42,6 @@ Future<HealthCheckResult> closeIosDialog({
       command.add("PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
     }
     Process proc = await pm.start(command, workingDirectory: dialogDir.path);
-    logger.info('Executing: $command');
     int exitCode = await proc.exitCode;
     if (exitCode != 0) {
       fail('Command "$command" failed with exit code $exitCode.');
