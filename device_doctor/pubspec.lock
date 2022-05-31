@@ -219,7 +219,7 @@ packages:
     source: hosted
     version: "4.4.0"
   logging:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: logging
       url: "https://pub.dartlang.org"
