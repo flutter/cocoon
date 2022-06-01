@@ -347,7 +347,7 @@ class _Coordinate implements Comparable<_Coordinate> {
   }
 
   @override
-  int get hashCode => hashValues(x, y);
+  int get hashCode => Object.hash(x, y);
 
   @override
   String toString() => '($x,$y)';
