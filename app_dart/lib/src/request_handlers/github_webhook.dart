@@ -85,7 +85,7 @@ class GithubWebhook extends RequestHandler<Body> {
           }
           break;
         case 'create':
-          branchService ??= BranchService(datastore, rawRequest: stringRequest);
+          branchService = BranchService(datastore, rawRequest: stringRequest);
           await branchService!.handleCreateRequest();
           break;
       }

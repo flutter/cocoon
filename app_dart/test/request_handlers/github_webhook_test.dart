@@ -2332,7 +2332,8 @@ void foo() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       await tester.post(webhook);
 
-      verify(branchService.handleCreateRequest()).called(1);
+      expect(webhook.branchService, isNotNull);
+      expect(webhook.branchService!.rawRequest, request.body);
     });
   });
 
