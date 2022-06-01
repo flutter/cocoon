@@ -11,16 +11,21 @@ MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 # Installs salt minion.
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
 function install_salt() {
-  if [[ "$(uname)" == 'Linux' ]]; then
+  if [[ "$(uname)" == 'Darwin' ]]; then
+    curl https://repo.saltproject.io/osx/salt-3002.7-py3-x86_64.pkg -o /tmp/salt.pkg
+    sudo installer -pkg /tmp/salt.pkg -target /
+  elif [[ "$(lsb_release -is)" == 'Debian' ]]; then
     wget -O - https://repo.saltproject.io/py3/debian/10/amd64/3002/SALTSTACK-GPG-KEY.pub | sudo apt-key add -
     echo 'deb http://repo.saltproject.io/py3/debian/10/amd64/3002 buster main' | sudo tee /etc/apt/sources.list.d/saltstack.list
     # Also provision debian backports for m2crypto
     echo 'deb http://deb.debian.org/debian buster-backports main' | sudo tee /etc/apt/sources.list.d/backports.list
     sudo apt update
     sudo apt install salt-minion
-  elif [[ "$(uname)" == 'Darwin' ]]; then
-    curl https://repo.saltproject.io/osx/salt-3002.7-py3-x86_64.pkg -o /tmp/salt.pkg
-    sudo installer -pkg /tmp/salt.pkg -target /
+  elif [[ "$(lsb_release -is)" == 'Ubuntu' ]]; then
+    sudo curl -fsSL -o /usr/share/keyrings/salt-archive-keyring.gpg https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
+    echo 'deb [signed-by=/usr/share/keyrings/salt-archive-keyring.gpg arch=amd64] https://repo.saltproject.io/py3/ubuntu/18.04/amd64/3002 bionic main' | sudo tee /etc/apt/sources.list.d/salt.list
+    sudo apt update
+    sudo apt install salt-minion
   fi
 }
 
@@ -51,7 +56,7 @@ function reboot_salt() {
 }
 
 function verify_provision() {
-  if sudo /opt/salt/bin/salt-minion --version; then
+  if sudo PATH="$PATH:/opt/salt/bin:/usr/bin" salt-minion --version; then
     echo 'Succeed!'
   else
     echo 'Failed!'
