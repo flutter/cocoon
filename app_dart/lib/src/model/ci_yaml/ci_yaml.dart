@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 
 import '../proto/internal/scheduler.pb.dart' as pb;
@@ -22,7 +23,7 @@ class CiYaml {
     required this.config,
     CiYaml? totConfig,
   }) {
-    _validate(config, totSchedulerConfig: totConfig?.config);
+    _validate(config, branch, totSchedulerConfig: totConfig?.config);
   }
 
   /// The underlying protobuf that contains the raw data from .ci.yaml.
@@ -120,7 +121,7 @@ class CiYaml {
   ///   5. [pb.Target] should not depend on self
   ///   6. [pb.Target] cannot have more than 1 dependency
   ///   7. [pb.Target] should depend on target that already exist in depedency graph, and already recorded in map [targetGraph]
-  void _validate(pb.SchedulerConfig schedulerConfig, {pb.SchedulerConfig? totSchedulerConfig}) {
+  void _validate(pb.SchedulerConfig schedulerConfig, String branch, {pb.SchedulerConfig? totSchedulerConfig}) {
     if (schedulerConfig.targets.isEmpty) {
       throw const FormatException('Scheduler config must have at least 1 target');
     }
@@ -169,10 +170,13 @@ class CiYaml {
       }
 
       /// Check the dependencies for the current target if it is viable and to
-      /// be added to graph.
-      final String? dependencyJson = target.properties['dependencies'];
-      if (dependencyJson != null) {
-        DependencyValidator.hasVersion(dependencyJsonString: dependencyJson);
+      /// be added to graph. Temporarily this is only being done on non-release
+      /// branches.
+      if (branch == Config.defaultBranch(slug)) {
+        final String? dependencyJson = target.properties['dependencies'];
+        if (dependencyJson != null) {
+          DependencyValidator.hasVersion(dependencyJsonString: dependencyJson);
+        }
       }
     }
     _checkExceptions(exceptions);
