@@ -5,6 +5,7 @@
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart';
 import 'package:mockito/annotations.dart';
+import 'package:http/http.dart' as http;
 
 export 'mocks.mocks.dart';
 
@@ -13,5 +14,7 @@ export 'mocks.mocks.dart';
   GitHub,
   PullRequestsService,
   RepositoriesService,
+  GitHubComparison,
+  http.Response,
 ])
 void main() {}
