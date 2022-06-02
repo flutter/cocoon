@@ -18,7 +18,6 @@ import 'package:graphql/client.dart' hide Request, Response;
 
 import '../utilities/mocks.dart';
 import './github_webhook_test_data.dart';
-import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_config.dart';

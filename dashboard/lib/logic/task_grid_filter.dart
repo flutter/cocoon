@@ -234,7 +234,7 @@ class TaskGridFilter extends FilterPropertySource {
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   @override
-  int get hashCode => hashList(_allProperties.values.map((ValueFilterProperty<dynamic> e) => e.value));
+  int get hashCode => Object.hashAll(_allProperties.values.map((ValueFilterProperty<dynamic> e) => e.value));
 
   @override
   bool operator ==(Object other) {

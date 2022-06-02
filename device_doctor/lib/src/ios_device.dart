@@ -212,7 +212,6 @@ class IosDevice implements Device {
           await getMacBinaryPath('idevicediagnostics', processManager: processManager);
       await eval(fullPathIdevicediagnostics, <String>['restart'], processManager: processManager);
     } on BuildFailedError catch (error) {
-      logger.severe('device restart fails: $error');
       stderr.write('device restart fails: $error');
       return false;
     }
@@ -232,7 +231,6 @@ class IosDevice implements Device {
     try {
       result = await eval(fullPathIdeviceInstaller, <String>['-l'], processManager: processManager);
     } on BuildFailedError catch (error) {
-      logger.severe('list applications fails: $error');
       stderr.write('list applications fails: $error');
       return false;
     }
@@ -248,7 +246,6 @@ class IosDevice implements Device {
         await eval(fullPathIdeviceInstaller, <String>['-U', bundleIdentifier], processManager: processManager);
       }
     } on BuildFailedError catch (error) {
-      logger.severe('uninstall applications fails: $error');
       stderr.write('uninstall applications fails: $error');
       return false;
     }

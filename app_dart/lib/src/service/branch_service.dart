@@ -26,11 +26,13 @@ class BranchService {
 
   /// Parse a create github webhook event, and add it to datastore.
   Future<void> handleCreateRequest() async {
+    log.info('raw request passed in was $rawRequest');
     final CreateEvent? createEvent = await _getCreateRequestEvent(rawRequest!);
     if (createEvent == null) {
       log.info('create branch event was rejected because could not parse the json webhook request');
       throw const BadRequestException('Expected create request event.');
     }
+    log.info('the branch parsed from string request is ${createEvent.ref}');
 
     final String? refType = createEvent.refType;
     if (refType == 'tag') {
