@@ -25,7 +25,7 @@ function install_salt() {
     sudo curl -fsSL -o /usr/share/keyrings/salt-archive-keyring.gpg https://repo.saltproject.io/py3/ubuntu/20.04/amd64/latest/salt-archive-keyring.gpg
     echo 'deb [signed-by=/usr/share/keyrings/salt-archive-keyring.gpg arch=amd64] https://repo.saltproject.io/py3/ubuntu/18.04/amd64/3002 bionic main' | sudo tee /etc/apt/sources.list.d/salt.list
     sudo apt update
-    sudo apt install salt-minion
+    sudo apt install salt-minion openssh-server git vim wget curl libssl-dev swig
   fi
 }
 
