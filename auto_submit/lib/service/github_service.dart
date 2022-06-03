@@ -58,6 +58,7 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
+  /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
   Future<void> autoMergeBranch(PullRequest pullRequest) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final int prNumber = pullRequest.number!;

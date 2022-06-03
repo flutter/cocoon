@@ -236,8 +236,6 @@ void main() {
           ),
         ],
       );
-      /*expect(await response.readAsString(),
-          'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');*/
       assert(pubsub.messagesQueue.isEmpty);
     });
 

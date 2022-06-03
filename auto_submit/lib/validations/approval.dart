@@ -1,3 +1,7 @@
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
@@ -5,12 +9,16 @@ import 'package:github/github.dart' as github;
 import '../service/config.dart';
 import '../service/log.dart';
 
+/// Validates that a PR has been approved in accordance with the code review
+/// guidelines.
 class Approval extends Validation {
   Approval({
     required Config config,
   }) : super(config: config);
 
   @override
+
+  /// Implements the code review approval logic.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
@@ -54,7 +62,7 @@ class Approval extends Validation {
     List<ReviewNode> reviewNodes,
   ) {
     final Set<String?> changeRequestAuthors = <String?>{};
-    const Set<String> allowedReviewers = <String>{'MEMBER', 'OWNER'};
+    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
     final Set<String?> approvers = <String?>{};
     if (allowedReviewers.contains(authorAssociation)) {
       approvers.add(author);
@@ -67,10 +75,10 @@ class Approval extends Validation {
       // Reviews come back in order of creation.
       final String? state = review.state;
       final String? authorLogin = review.author!.login;
-      if (state == 'APPROVED') {
+      if (state == APPROVED_STATE) {
         approvers.add(authorLogin);
         changeRequestAuthors.remove(authorLogin);
-      } else if (state == 'CHANGES_REQUESTED') {
+      } else if (state == CHANGES_REQUESTED_STATE) {
         changeRequestAuthors.add(authorLogin);
       }
     }

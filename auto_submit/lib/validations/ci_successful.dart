@@ -1,3 +1,7 @@
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
@@ -6,12 +10,15 @@ import 'package:github/github.dart' as github;
 import '../service/config.dart';
 import '../service/log.dart';
 
+/// Validates all the CI build/tests ran and were successful.
 class CiSuccessful extends Validation {
   CiSuccessful({
     required Config config,
   }) : super(config: config);
 
   @override
+
+  /// Implements the CI build/tests validations.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     bool allSuccess = true;
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
@@ -56,12 +63,12 @@ class CiSuccessful extends Validation {
     log.info('Validating name: ${slug.name}, status: $statuses');
     for (ContextNode status in statuses) {
       final String? name = status.context;
-      if (status.state != 'SUCCESS') {
+      if (status.state != STATUS_SUCCESS) {
         if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
           continue;
         }
         allSuccess = false;
-        if (status.state == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(FailureDetail(name!, status.targetUrl!));
         }
       }
