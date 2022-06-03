@@ -31,13 +31,13 @@ class CiSuccessful extends Validation {
       'luci-engine', // engine repo
       'submit-queue', // plugins repo
     };
-
     List<ContextNode> statuses = <ContextNode>[];
     Commit commit = pullRequest.commits!.nodes!.single.commit!;
-    if (commit.status!.contexts!.isNotEmpty) {
+    // Recently most of the repositories have migrated away of using the status
+    // APIs and for those repos commit.status is null.
+    if (commit.status != null && commit.status!.contexts!.isNotEmpty) {
       statuses.addAll(commit.status!.contexts!);
     }
-
     // Ensure repos with tree statuses have it set
     if (Config.reposWithTreeStatus.contains(slug)) {
       bool treeStatusExists = false;
@@ -54,7 +54,6 @@ class CiSuccessful extends Validation {
         failures.add(FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
       }
     }
-
     // List of labels associated with the pull request.
     final List<String> labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
@@ -73,7 +72,6 @@ class CiSuccessful extends Validation {
         }
       }
     }
-
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
     List<github.CheckRun> checkRuns = <github.CheckRun>[];
@@ -92,7 +90,6 @@ class CiSuccessful extends Validation {
       }
       allSuccess = false;
     }
-
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
     }
