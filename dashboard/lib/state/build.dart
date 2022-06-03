@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_icons/flutter_app_icons.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 
 import '../logic/brooks.dart';
@@ -180,6 +181,7 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
+        final _flutterAppIconsPlugin = FlutterAppIcons();
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
         final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
           branch: currentBranch,
@@ -196,6 +198,11 @@ class BuildState extends ChangeNotifier {
         } else {
           _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data!.failingTasks;
+          if (_isTreeBuilding == false) {
+            _flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
+          } else {
+            _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
+          }
           notifyListeners();
         }
       }(),
