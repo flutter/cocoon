@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
+import 'package:shelf/src/response.dart';
 
 import '../../utilities/mocks.dart';
 
@@ -97,5 +98,11 @@ class FakeGithubService implements GithubService {
   @override
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
     return true;
+  }
+
+  @override
+  Future<Response> autoMergeBranch(PullRequest pullRequest) {
+    // TODO: implement autoMergeBranch
+    throw UnimplementedError();
   }
 }
