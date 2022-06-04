@@ -14,6 +14,7 @@ const String helpFlag = 'help';
 
 const String kCommit = 'commit';
 const String kVerify = 'verify';
+const String kProduction = 'production';
 const String kSignatures = 'signatures';
 const String kRevision = 'revision';
 const String kUpstream = 'upstream';
@@ -25,72 +26,18 @@ const String kCodesignAppStoreId = 'codesign-appstore-id';
 const String kCodesignTeamId = 'codesign-team-id';
 const String kCodesignFilepath = 'filepath';
 
-/// Binaries that are expected to be codesigned and have entitlements.
-List<String> binariesWithEntitlements = <String>[
-    'artifacts/engine/android-arm-profile/darwin-x64/gen_snapshot',
-    'artifacts/engine/android-arm-release/darwin-x64/gen_snapshot',
-    'artifacts/engine/android-arm64-profile/darwin-x64/gen_snapshot',
-    'artifacts/engine/android-arm64-release/darwin-x64/gen_snapshot',
-    'artifacts/engine/android-x64-profile/darwin-x64/gen_snapshot',
-    'artifacts/engine/android-x64-release/darwin-x64/gen_snapshot',
-    'artifacts/engine/darwin-x64-profile/gen_snapshot',
-    'artifacts/engine/darwin-x64-profile/gen_snapshot_arm64',
-    'artifacts/engine/darwin-x64-profile/gen_snapshot_x64',
-    'artifacts/engine/darwin-x64-release/gen_snapshot',
-    'artifacts/engine/darwin-x64-release/gen_snapshot_arm64',
-    'artifacts/engine/darwin-x64-release/gen_snapshot_x64',
-    'artifacts/engine/darwin-x64/flutter_tester',
-    'artifacts/engine/darwin-x64/gen_snapshot',
-    'artifacts/engine/darwin-x64/impellerc',
-    'artifacts/engine/darwin-x64/libtessellator.dylib',
-    'artifacts/engine/darwin-x64/gen_snapshot_arm64',
-    'artifacts/engine/darwin-x64/gen_snapshot_x64',
-    'artifacts/engine/ios-profile/gen_snapshot_arm64',
-    'artifacts/engine/ios-release/gen_snapshot_arm64',
-    'artifacts/engine/ios/gen_snapshot_arm64',
-    'artifacts/libimobiledevice/idevicescreenshot',
-    'artifacts/libimobiledevice/idevicesyslog',
-    'artifacts/libimobiledevice/libimobiledevice-1.0.6.dylib',
-    'artifacts/libplist/libplist-2.0.3.dylib',
-    'artifacts/openssl/libcrypto.1.1.dylib',
-    'artifacts/openssl/libssl.1.1.dylib',
-    'artifacts/usbmuxd/iproxy',
-    'artifacts/usbmuxd/libusbmuxd-2.0.6.dylib',
-    'dart-sdk/bin/dart',
-    'dart-sdk/bin/dartaotruntime',
-    'dart-sdk/bin/utils/gen_snapshot',
-  ];
-
-/// Binaries that are only expected to be codesigned.
-List<String> binariesWithoutEntitlements = [
-    'artifacts/engine/darwin-x64-profile/FlutterMacOS.framework/Versions/A/FlutterMacOS',
-    'artifacts/engine/darwin-x64-release/FlutterMacOS.framework/Versions/A/FlutterMacOS',
-    'artifacts/engine/darwin-x64/FlutterMacOS.framework/Versions/A/FlutterMacOS',
-    'artifacts/engine/darwin-x64/font-subset',
-    'artifacts/engine/darwin-x64/impellerc',
-    'artifacts/engine/darwin-x64/libtessellator.dylib',
-    'artifacts/engine/ios-profile/Flutter.xcframework/ios-arm64/Flutter.framework/Flutter',
-    'artifacts/engine/ios-profile/Flutter.xcframework/ios-arm64_x86_64-simulator/Flutter.framework/Flutter',
-    'artifacts/engine/ios-release/Flutter.xcframework/ios-arm64/Flutter.framework/Flutter',
-    'artifacts/engine/ios-release/Flutter.xcframework/ios-arm64_x86_64-simulator/Flutter.framework/Flutter',
-    'artifacts/engine/ios/Flutter.xcframework/ios-arm64/Flutter.framework/Flutter',
-    'artifacts/engine/ios/Flutter.xcframework/ios-arm64_x86_64-simulator/Flutter.framework/Flutter',
-    'artifacts/ios-deploy/ios-deploy',
-  ];
-
 /// Perform mac code signing based on file path.
 ///
-/// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
-/// and an exception will be thrown.
+/// If `--production` is set to true, code signed artifacts will be uploaded back to google cloud storage.
+/// Otherwise, nothing will be uploaded back for production.
 ///
-/// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
+/// For `--commit`, asks for the engine commit to be code signed.
 ///
-/// For `prepare`, it will prepare the device before running tasks, like kill running processes, etc.
-///
-/// For `properties`, it will return device properties/dimensions, like manufacture, base_buildid, etc.
+/// For `--filepath`, provide the artifacts zip paths to be code signed.
 ///
 /// Usage:
-/// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>
+/// dart run bin/main.dart --commit=a5967ed309ef2beb9625f128571f7060597b5eda 
+/// --production=false --filepath=darwin-x64/FlutterMacOS.framework.zip#ios/artifacts.zip#dart-sdk-darwin-arm64.zip 
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
@@ -105,11 +52,6 @@ Future<void> main(List<String> args) async {
       help:
           'Only verify expected binaries exist and are codesigned with entitlements.',
     )
-    // ..addOption(
-    //   kUpstream,
-    //   defaultsTo: FrameworkRepository.defaultUpstream,
-    //   help: "The git remote URL to use as the Flutter framework's upstream.",
-    // )
     ..addFlag(
       kSignatures,
       defaultsTo: true,
@@ -117,10 +59,6 @@ Future<void> main(List<String> args) async {
           'When off, this command will only verify the existence of binaries, and not their\n'
           'signatures or entitlements. Must be used with --verify flag.',
     )
-    // ..addOption(
-    //   kRevision,
-    //   help: 'The Flutter framework revision to use.',
-    // )
     ..addOption(
       kCodesignCertName,
       help: 'The name of the codesign certificate to be used when codesigning.',
@@ -153,7 +91,10 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kCommit, 
-      help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing');
+      help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing')
+    ..addOption(
+      kProduction, 
+      help: 'whether we are going to upload the artifacts back to GCS for production');
     
 
 
@@ -169,6 +110,7 @@ Future<void> main(List<String> args) async {
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreId, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamId, argResults, platform.environment)!;
   final String codesignFilepath = getValueFromEnvOrArgs(kCodesignFilepath, argResults, platform.environment)!;
+  final bool production = getValueFromEnvOrArgs(kProduction, argResults, platform.environment)! == "true";
 
   if (!platform.isMacOS) {
     throw ConductorException(
@@ -178,8 +120,6 @@ Future<void> main(List<String> args) async {
   }
 
   return CodesignContext(
-    binariesWithEntitlements: binariesWithEntitlements,
-    binariesWithoutEntitlements: binariesWithoutEntitlements,
     codesignCertName: codesignCertName,
     codesignPrimaryBundleId: codesignPrimaryBundleId,
     codesignUserName: codesignUserName,
@@ -188,6 +128,7 @@ Future<void> main(List<String> args) async {
     codesignAppstoreId: codesignAppstoreId,
     codesignTeamId: codesignTeamId,
     codesignFilepath: codesignFilepath,
+    production: production
   ).run();
 
 }

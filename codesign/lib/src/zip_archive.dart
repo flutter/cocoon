@@ -185,8 +185,8 @@ class EmbeddedZip extends ZipArchive {
   });
 
   @override
-  Future<void> visit(FileVisitor visitor, String parent) {
-    return visitor.visitEmbeddedZip(this, parent);
+  Future<void> visit(FileVisitor visitor, String parent, String entitlementParentPath) {
+    return visitor.visitEmbeddedZip(this, parent, entitlementParentPath);
   }
 }
 
@@ -197,7 +197,7 @@ abstract class ArchiveFile {
 
   final String path;
 
-  Future<void> visit(FileVisitor visitor, String parent);
+  Future<void> visit(FileVisitor visitor, String parent, String entitlementParentPath);
 }
 
 class BinaryFile extends ArchiveFile {
@@ -209,7 +209,7 @@ class BinaryFile extends ArchiveFile {
   final bool entitlements;
 
   @override
-  Future<void> visit(FileVisitor visitor, String parent) {
-    return visitor.visitBinaryFile(this, parent);
+  Future<void> visit(FileVisitor visitor, String parent, String entitlementParentPath) {
+    return visitor.visitBinaryFile(this, parent, entitlementParentPath);
   }
 }

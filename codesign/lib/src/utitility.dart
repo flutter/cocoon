@@ -55,3 +55,16 @@ List<String> listFiles(String filePath, ProcessManager processManager) {
   );
   return (result.stdout as String).split('\n').where((String s) => s.isNotEmpty).toList();
 }
+
+Future<bool> isSymlink(String fileOrFolderPath, ProcessManager processManager) async {
+  final ProcessResult result = processManager.runSync(
+    <String>[
+      'ls',
+      '-alhf',
+      fileOrFolderPath,
+    ],
+  );
+  
+  return (result.stdout as String).split('\n').where((String s) => !s.split(' ').contains('->') &&
+  s.trim().isNotEmpty).isEmpty;
+}

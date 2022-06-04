@@ -10,8 +10,6 @@ import 'package:file/file.dart';
 
 class CodesignContext{
   CodesignContext({
-    required binariesWithEntitlements,
-    required binariesWithoutEntitlements,
     required this.codesignCertName,
     required this.codesignPrimaryBundleId,
     required this.codesignUserName,
@@ -20,6 +18,7 @@ class CodesignContext{
     required this.codesignTeamId,
     required this.codesignFilepath,
     required this.commitHash,
+    this.production = false
   });
 
   final String codesignCertName;
@@ -30,6 +29,7 @@ class CodesignContext{
   final String codesignTeamId;
   final String codesignFilepath;
   final String commitHash;
+  final bool production;
 
   final ProcessManager processManager = LocalProcessManager();
   final FileSystem fileSystem = LocalFileSystem();
@@ -75,6 +75,7 @@ class CodesignContext{
       codesignAppstoreId: codesignAppstoreId,
       codesignTeamId: codesignTeamId,
       isNotaryTool: isNotaryTool,
+      production: production,
     );
 
     await codesignVisitor.validateAll(filepaths);

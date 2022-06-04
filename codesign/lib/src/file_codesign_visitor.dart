@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
+import 'dart:io' as io;
 import 'dart:typed_data';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
@@ -15,9 +16,9 @@ import 'package:process/process.dart';
 abstract class FileVisitor {
   const FileVisitor();
 
-  Future<void> visitEmbeddedZip(EmbeddedZip file, String parent);
+  Future<void> visitEmbeddedZip(EmbeddedZip file, String parent, String entitlementParentPath);
   Future<void> visitRemoteZip(RemoteZip file, Directory parent);
-  Future<void> visitBinaryFile(BinaryFile file, String parent);
+  Future<void> visitBinaryFile(BinaryFile file, String parent, String entitlementParentPath);
 }
 
 enum NotaryStatus {
@@ -40,6 +41,7 @@ class FileCodesignVisitor extends FileVisitor {
     required this.codesignTeamId,
     required this.stdio,
     required this.isNotaryTool,
+    this.production = false
   });
 
   /// Temp [Directory] to download/extract files to.
@@ -57,6 +59,9 @@ class FileCodesignVisitor extends FileVisitor {
   final String codesignTeamId;
   final Stdio stdio;
   final bool isNotaryTool;
+  final bool production;
+  Set<String>? fileWithEntitlements;
+  Set<String>? fileWithoutEntitlements;
 
   late final File entitlementsFile = tempDir.childFile('Entitlements.plist')
       ..writeAsStringSync(_entitlementsFileContents);
@@ -114,10 +119,7 @@ class FileCodesignVisitor extends FileVisitor {
 
   Future<void> validateAll(List<String> filepaths) async {
     List<RemoteZip> codesignZipfiles = filepaths.map((String path) => RemoteZip(path: path)).toList();
-    // for(RemoteZip archive in codesignZipfiles){
-    //   final Directory outDir = tempDir.childDirectory('remote_zip_$nextId');
-    //   await archive.visit(this, outDir);
-    // }
+
     final Iterable<Future<void>> futures = codesignZipfiles.map((RemoteZip archive) {
       final Directory outDir = tempDir.childDirectory('remote_zip_$nextId');
       return archive.visit(this, outDir);
@@ -127,19 +129,17 @@ class FileCodesignVisitor extends FileVisitor {
       eagerError: true,
     );
 
-
-    // TODO disabling filehashes for now 
-    //_validateFileHashes();
-    // TODO messaging?
   }
 
   /// Unzip an [EmbeddedZip] and visit its children.
   ///
   /// The [parent] directory is scoped to the parent zip file.
   @override
-  Future<void> visitEmbeddedZip(EmbeddedZip file, String parentPath) async {
+  Future<void> visitEmbeddedZip(EmbeddedZip file, String parentPath, String entitlementParentPath) async {
     print('this embedded file is ${file.path}\n');
-    final File localFile = await _validateFileExists(file, parentPath);
+    String currentFileName = file.path.split('/').last;
+    final File localFile = (await _validateFileExists(file))!;
+    //final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');  //TODO(xilaizhang): make this inside current directory
     final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');
     final package_arch.Archive? archive = await _unzip(localFile, newDir);
     print('unizipped from $localFile to $newDir\n');
@@ -148,8 +148,9 @@ class FileCodesignVisitor extends FileVisitor {
     }
 
     print('newDir is ${newDir.path}\n');
-    String absoluteDirectoryPath = newDir.path;
-    await visitDirectory(absoluteDirectoryPath);
+    String absoluteDirectoryPath = newDir.absolute.path;
+    String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';  //TODO(xilaizhang): check if file with entitlements are indeed signed that way
+    await visitDirectory(absoluteDirectoryPath, currentZipEntitlementPath);
     // final Iterable<Future<void>> childFutures = file.files.map<Future<void>>((ArchiveFile childFile) {
     //   return childFile.visit(this, newDir);
     // });
@@ -163,11 +164,18 @@ class FileCodesignVisitor extends FileVisitor {
       );
     }
 
-    //newDir.deleteSync(recursive: true); // TODO do we need to delete this?
+
   }
 
-  Future<void> visitDirectory(String parentPath) async {
+  /// entitlementParentPath tracks an theorectical file path if every file was unzipped in the current folder
+  /// entitlementParentPath may not be an actual file path
+  Future<void> visitDirectory(String parentPath, String entitlementParentPath) async {
     print('visiting directory $parentPath\n');
+    String directoryName = parentPath.split('/').last;
+    if(!directoryName.contains('embedded_zip') && (await isSymlink(parentPath, processManager))){
+      print('this is a symlink folder\n');
+      return;
+    }
     List<String> files = listFiles(parentPath, processManager);
     print('files are $files \n');
     for(String childFile in files){
@@ -175,34 +183,18 @@ class FileCodesignVisitor extends FileVisitor {
       FILETYPE childType = checkFileType(absoluteChildPath, processManager);
       print('childFile is $childFile, child type is $childType');
       if(childType == FILETYPE.BINARY){
-        await BinaryFile(path: absoluteChildPath).visit(this, parentPath);
+        await BinaryFile(path: absoluteChildPath).visit(this, parentPath, entitlementParentPath);
       }
       else if(childType == FILETYPE.ZIP){
-        await EmbeddedZip(path: absoluteChildPath).visit(this, parentPath);
+        await EmbeddedZip(path: absoluteChildPath).visit(this, parentPath, entitlementParentPath);
       }
       else if(childType == FILETYPE.FOLDER){
-        await visitDirectory(absoluteChildPath);
+        // only advance entitlement path for directory type
+        await visitDirectory(absoluteChildPath, "$entitlementParentPath/$childFile");
       }else{
         await Future.value(null);
       }
     }
-    // final Iterable<Future<void>> childFutures = files.map<Future<void>>((String childFile) {
-    //   String absoluteChildPath = '$parentPath/$childFile';
-    //   FILETYPE childType = checkFileType(absoluteChildPath, processManager);
-    //   print('childFile is $childFile, child type is $childType');
-    //   if(childType == FILETYPE.BINARY){
-    //     return BinaryFile(path: absoluteChildPath).visit(this, parentPath);
-    //   }
-    //   else if(childType == FILETYPE.ZIP){
-    //     return EmbeddedZip(path: absoluteChildPath).visit(this, parentPath);
-    //   }
-    //   else if(childType == FILETYPE.FOLDER){
-    //     return visitDirectory(absoluteChildPath);
-    //   }else{
-    //     return Future.value(null);
-    //   }
-    // });
-    // await Future.wait(childFutures);
   }
 
   /// Download and unzip a [RemoteZip] file, and visit its children.
@@ -214,8 +206,8 @@ class FileCodesignVisitor extends FileVisitor {
 
     // namespace by index otherwise there will be collisions
     final String localFilePath = '${remoteDownloadIndex}_${fs.path.basename(file.path)}';
-    // download the zip file
 
+    // download the zip file
     final File originalFile = await download(
       file.path,
       remoteDownloadsDir.childFile(localFilePath).path,
@@ -227,14 +219,15 @@ class FileCodesignVisitor extends FileVisitor {
       await _hashActualFiles(archive, parent);
     }
 
+    //extract entitlements file.
+    fileWithEntitlements = await parseEntitlements(parent, true);
+    fileWithoutEntitlements = await parseEntitlements(parent, false);
+    print('parsed entitlements are ');
+    print(fileWithEntitlements);
+
     // recursively visit extracted files
     final String parentPath = fs.path.join(parent.path);
-    await visitDirectory(parentPath);
-
-    // final Iterable<Future<void>> childFutures = file.files.map<Future<void>>((ArchiveFile childFile) {
-    //   return childFile.visit(this, parent);
-    // });
-    // await Future.wait(childFutures);
+    await visitDirectory(parentPath, file.path);
 
     final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
 
@@ -249,43 +242,66 @@ class FileCodesignVisitor extends FileVisitor {
     // notarize
     await notarize(codesignedFile);
 
-    await upload(
-      codesignedFile.path,
-      file.path,
-    );
+    // we will only upload for production
+    if(production){
+      await upload(
+        codesignedFile.path,
+        file.path,
+      );
+    }else{
+      print('\ncode signing simulation has completed, If you intend to upload the artifacts back to'
+      ' google cloud storage, please use the --production=true flage when running code signing script.\n'
+      'thanks for understanding the security concerns!\n');
+    }
+
   }
   /// Codesign a binary file.
   ///
   /// The [parent] directory is scoped to the parent zip file.
   @override
-  Future<void> visitBinaryFile(BinaryFile file, String parent) async {
+  Future<void> visitBinaryFile(BinaryFile file, String parent, String entitlementParentPath) async {
     print('visiting binary file\n');
-    final File localFile = await _validateFileExists(file, parent);
+    if(await isSymlink(file.path, processManager)){
+      return;
+    }
+    final File localFile = (await _validateFileExists(file))!;
 
     final String preSignDigest = sha1.convert(await localFile.readAsBytes()).toString(); // TODO delete
     expectedFileHashes[preSignDigest] = file.path;
     print('arguments passed into code sign are ${localFile.path} and file is ${file.path}');
-    await codesign(localFile, file);
+
+    String currentFileName = file.path.split('/').last;
+    String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
+    await codesign(localFile, file, entitlementCurrentPath);
     print("recovered from visiting file ${localFile.absolute.path}");
 
     final String hexDigest = sha1.convert(await localFile.readAsBytes()).toString();
     codesignedFileHashes[hexDigest] = file.path;
   }
 
-  Future<void> codesign(File file, BinaryFile binaryFile) async {
+  Future<void> codesign(File file, BinaryFile binaryFile, String entitlementCurrentPath) async {
+    if(!fileWithEntitlements!.contains(entitlementCurrentPath) && !fileWithoutEntitlements!.contains(entitlementCurrentPath)){
+        throw Exception(
+          'The system has detected a binary file at $entitlementCurrentPath\n'
+          'but it is not in the entitlements configuartion files your provided \n'
+          'if this is a new engine artifact, please add it to one of the entilements.txt files',
+        );
+    }
+    print('\n signing file at path ${file.absolute.path}');
+    print('\n the virtual entitlement path associated with file is $entitlementCurrentPath');
+    print('\n the decision to sign with entitlement is ${fileWithEntitlements!.contains(entitlementCurrentPath)}');
     final List<String> args = <String>[
         'codesign',
         '-f', // force
         '-s', // use the cert provided by next argument
         codesignCertName,
-        //'\"$codesignCertName\"', //accomodate 'FLUTTER 
         file.absolute.path,
         '--timestamp', // add a secure timestamp
         '--options=runtime', // hardened runtime
-        if (binaryFile.entitlements)
+        if (fileWithEntitlements!.contains(entitlementCurrentPath))
           ...<String>['--entitlements', entitlementsFile.absolute.path],
     ];
-    final ProcessResult result = await processManager.run(args);
+    final io.ProcessResult result = await processManager.run(args);
     if (result.exitCode != 0) {
       throw Exception(
         'Failed to codesign ${file.absolute.path} with args: ${args.join(' ')}\n'
@@ -382,7 +398,7 @@ class FileCodesignVisitor extends FileVisitor {
     }
 
     stdio.printStatus('checking notary status with ${args.join(' ')}');
-    final ProcessResult result = processManager.runSync(args);
+    final io.ProcessResult result = processManager.runSync(args);
     // Note that this tool outputs to STDOUT on Xcode 11, STDERR on earlier
     final String combinedOutput = (result.stdout as String) + (result.stderr as String);
 
@@ -459,7 +475,7 @@ class FileCodesignVisitor extends FileVisitor {
 
       stdio.printStatus('uploading ${args.join(' ')}');
       // altool utilizes file locks, so run this synchronously
-      final ProcessResult result = processManager.runSync(args);
+      final io.ProcessResult result = processManager.runSync(args);
 
       // Note that this tool outputs to STDOUT on Xcode 11, STDERR on earlier
       final String combinedOutput = (result.stdout as String) + (result.stderr as String);
@@ -473,7 +489,7 @@ class FileCodesignVisitor extends FileVisitor {
         print('Failed to upload to the notary service with args: ${args.join(' ')}\n\n${combinedOutput.trim()}\n');
         retryCount -= 1;
         print('Trying again $retryCount more time${retryCount > 1 ? 's' : ''}...');
-        sleep(const Duration(seconds: 1));
+        io.sleep(const Duration(seconds: 1));
         continue;
       }
 
@@ -503,7 +519,7 @@ class FileCodesignVisitor extends FileVisitor {
 
   Future<File> download(String remotePath, String localPath) async {
     final String source = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    final ProcessResult result = await processManager.run(
+    final io.ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', source, localPath],
     );
     if (result.exitCode != 0) {
@@ -514,7 +530,7 @@ class FileCodesignVisitor extends FileVisitor {
 
   Future<void> upload(String localPath, String remotePath) async {
     final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    final ProcessResult result = await processManager.run(
+    final io.ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', localPath, fullRemotePath],
     );
     if (result.exitCode != 0) {
@@ -533,6 +549,7 @@ class FileCodesignVisitor extends FileVisitor {
           outDir.absolute.path,
         ],
       );
+      print('the downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
       return null;
     } else {
       stdio.printError('unzip binary not found on path, falling back to package:archive implementation');
@@ -592,14 +609,40 @@ class FileCodesignVisitor extends FileVisitor {
     }
   }
 
-  Future<File> _validateFileExists(ArchiveFile archiveFile, String parentPath) async {
+  Future<File?> _validateFileExists(ArchiveFile archiveFile, {bool silent = false}) async {
     //final FileSystem fileSystem = parent.fileSystem;
     FileSystem fs = tempDir.fileSystem;
     final String filePath = archiveFile.path;
     final File file = fs.file(filePath);
-    if (!(await file.exists())) {
+    if (!silent && !(await file.exists())) {
       throw Exception('${file.absolute.path} was expected to exist but does not!');
     }
+    if(silent){return null;}
     return file;
+  }
+
+  // return the set of absolute paths, of file with entitlements
+  Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async{
+    final FileSystem fs = tempDir.fileSystem;
+    String entitlementFilePath = entitlements ? fs.path.join(parent.path, 'entitlements.txt') : fs.path.join(parent.path, 'withoutEntitlements.txt') ; // TODO(xilaizhang): switch this back to normal environment
+    if(!(await fs.file(entitlementFilePath).exists())){
+      entitlementFilePath = entitlements ? ('/Users/xilaizhang/Desktop/entitlements.txt') : ('/Users/xilaizhang/Desktop/withoutEntitlements.txt');  //TODO(xilaizhang): this is for testing
+      if(!(await fs.file(entitlementFilePath).exists())){
+        throw Exception("\n entitilements configuration files are not detected \n"
+        "make sure you have provided them along with the engine artifacts \n");
+      }
+    }
+    // TODO(xilaizhang): Previously this would fail in the case of darwin-x64/FlutterMacOS.framework.zip/FlutterMacOS.framework.zip/Versions/A/FlutterMacOS
+    // because unzipping the FlutterMacOS.framework.zip file would produce another FlutterMacOS.framework.zip file
+
+    Set<String> fileWithEntitlements = <String>{};
+    await io.File(entitlementFilePath)
+    .openRead()
+    .transform(utf8.decoder)
+    .transform(LineSplitter()).forEach((String singleFileRelativePath) { 
+      // add the logical path of each file with entitlement
+      fileWithEntitlements.add(singleFileRelativePath);
+    });
+    return fileWithEntitlements;
   }
 }
