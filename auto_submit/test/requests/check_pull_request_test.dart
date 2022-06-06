@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 // ignore_for_file: constant_identifier_names
+import 'package:auto_submit/service/config.dart';
+
 import 'package:auto_submit/service/log.dart';
 import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
@@ -10,13 +12,11 @@ import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
-import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 import 'package:graphql/client.dart' hide Request, Response;
 
 import '../utilities/mocks.dart';
 import './github_webhook_test_data.dart';
-import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_config.dart';
@@ -162,14 +162,8 @@ void main() {
       };
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expect(pubsub.messagesQueue.length, 1);
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write(
-            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, 1);
       expect(errorLogs[0].message.contains('_processMerge'), true);
@@ -189,7 +183,7 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
@@ -205,13 +199,6 @@ void main() {
           ),
         ],
       );
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write(
-            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
-
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -219,7 +206,12 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: rollorAuthor);
       pubsub.publish(testTopic, pullRequest);
 
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      checkPullRequest = CheckPullRequest(
+        config: config,
+        pubsub: pubsub,
+        cronAuthProvider: auth,
+        approverProvider: (Config config) => MockApproverService(),
+      );
 
       flutterRequest = PullRequestHelper(
         prNumber: 0,
@@ -233,7 +225,7 @@ void main() {
         reviews: const <PullRequestReviewHelper>[],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
@@ -244,8 +236,6 @@ void main() {
           ),
         ],
       );
-      expect(await response.readAsString(),
-          'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -263,7 +253,7 @@ void main() {
         ],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
@@ -274,8 +264,6 @@ void main() {
           ),
         ],
       );
-      expect(await response.readAsString(),
-          'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -293,7 +281,7 @@ void main() {
         lastCommitMessage: 'Revert "This is a test PR" This reverts commit abc.',
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
@@ -304,8 +292,6 @@ void main() {
           ),
         ],
       );
-      expect(await response.readAsString(),
-          'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -320,7 +306,7 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
@@ -331,8 +317,6 @@ void main() {
           ),
         ],
       );
-      expect(await response.readAsString(),
-          'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -348,16 +332,10 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write(
-            'Should merge the pull request ${pullRequest.number} in ${pullRequest.base!.repo!.slug().fullName} repository.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -373,15 +351,10 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write('Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -398,10 +371,9 @@ void main() {
         ],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -419,10 +391,9 @@ void main() {
         ],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -438,10 +409,9 @@ void main() {
         lastCommitStatuses: const <StatusHelper>[],
       );
 
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -452,22 +422,14 @@ void main() {
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
       }
-
       githubService.checkRunsData = inProgressCheckRunsMock;
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
-
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write('Does not merge the pull request ${pullRequest.number}.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
@@ -483,27 +445,17 @@ void main() {
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
-
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       _verifyQueries(expectedOptions);
-
-      final StringBuffer responseMessages = StringBuffer();
-      for (PullRequest pullRequest in pullRequests) {
-        responseMessages.write('Does not merge the pull request ${pullRequest.number} '
-            'for no autosubmit label any more.');
-      }
-      expect(await response.readAsString(), responseMessages.toString());
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Self review is disallowed', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
       pubsub.publish(testTopic, pullRequest);
-
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
-
       flutterRequest = PullRequestHelper(
         author: 'some_rando',
         lastCommitHash: oid,
@@ -516,23 +468,10 @@ void main() {
           StatusHelper.flutterBuildSuccess,
         ],
       );
-
-      final Response response = await checkPullRequest.get();
+      await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       _verifyQueries(expectedOptions);
-      expect(await response.readAsString(), 'Remove the autosubmit label for commit: ${pullRequest.head!.sha}.');
       assert(pubsub.messagesQueue.isEmpty);
-    });
-
-    test('Auto Merges the branch if it was behind the ToT by _kBehindToT commits', () async {
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
-
-      githubService.commitData = commitMock;
-      githubService.compareTwoCommitsData = shouldRebaseMock;
-      config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
-      Response response = await checkPullRequest.autoMergeBranch(pullRequest, githubService);
-      expect(await response.readAsString(), 'Successfully updated the pull request ${pullRequest.number} branch.');
     });
   });
 }

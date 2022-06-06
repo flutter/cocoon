@@ -14,17 +14,20 @@ message SchedulerConfig {
     // Git branches to run these targets against.
     repeated string enabled_branches = 2;
     // Universal platform args passed to LUCI builders.
-    // Keys are the platform and values are the properties.
-    map<string, Properties> platform_properties = 3;
-    // Next ID: 2
-    message Properties {
-        // Generic key, value that can be passed anywhere.
+    // Keys are the platforms and values are the PlatformProperties (properties, dimensions etc.).
+    map<string, PlatformProperties> platform_properties = 3;
+    // Next ID: 3
+    message PlatformProperties {
+        // Generic key, value pairs to set platform-wide properties
         map<string, string> properties = 1;
+        // Generic key, value pairs to set platform-wide dimensions
+        // Doc for dimension and properties: https://chromium.googlesource.com/infra/luci/luci-py/+/HEAD/appengine/swarming/doc/User-Guide.md
+        map<string, string> dimensions = 2;
     }
 }
 
 // A unit of work for infrastructure to run.
-// Next ID: 15
+// Next ID: 17
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -59,6 +62,8 @@ message Target {
     reserved 14; // tags
     // Properties to configure infrastructure tooling for only postsubmit runs.
     map<string, string> postsubmit_properties = 15;
+    // Dimensions to configure swarming dimensions of LUCI builds.
+    map<string, string> dimensions = 16;
 }
 
 // Schedulers supported in SchedulerConfig.

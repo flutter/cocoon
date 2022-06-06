@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'logic/task_grid_filter.dart';
 import 'navigation_drawer.dart';
@@ -15,6 +16,7 @@ import 'widgets/error_brook_watcher.dart';
 import 'widgets/filter_property_sheet.dart';
 import 'widgets/task_box.dart';
 import 'widgets/task_grid.dart';
+import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
@@ -39,6 +41,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter? _settingsBasis;
   bool _smallScreen = false;
   double screenWidthThreshold = 600;
+  final _flutterAppIconsPlugin = FlutterAppIcons();
 
   /// Current Flutter repository to view.
   String? repo;
@@ -65,6 +68,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     _filter!.addListener(() {
       setState(() {});
     });
+  }
+
+  @override
+  void dispose() {
+    _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
+    super.dispose();
   }
 
   /// Convert the fields from this class into a URL.
@@ -338,16 +347,35 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
+    const flutterIssueUrl =
+        'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md';
     final BuildState _buildState = Provider.of<BuildState>(context);
     _buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: CocoonAppBar(
-          title: Text(_getStatusTitle(_buildState)),
+          title: Tooltip(
+            message: _getStatusTitle(_buildState),
+            child: Text(
+              _getStatusTitle(_buildState),
+            ),
+          ),
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             if (!_smallScreen) ..._slugSelection(context, _buildState),
+            IconButton(
+              tooltip: 'Report Issue',
+              icon: const Icon(Icons.bug_report),
+              onPressed: () async {
+                const url = 'https://blog.logrocket.com';
+                if (await canLaunch(flutterIssueUrl)) {
+                  await launch(flutterIssueUrl);
+                } else {
+                  throw 'Could not launch $url';
+                }
+              },
+            ),
             PopupMenuButton<String>(
               tooltip: 'Task Status Key',
               child: const Icon(Icons.info_outline),

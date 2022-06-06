@@ -102,6 +102,24 @@ void main() {
     expect(find.byIcon(Icons.settings), findsOneWidget);
   });
 
+  testWidgets('shows file a bug button', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.bug_report), findsOneWidget);
+  });
+
   testWidgets('shows key button & legend', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
@@ -241,7 +259,11 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('Tree is Closed'), findsOneWidget);
+    // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
+    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
+      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
+    });
+    expect(tooltipFinder, findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red);
@@ -266,7 +288,11 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('Tree is Closed'), findsOneWidget);
+    // Verify the "Tree is Closed" message is wrapped in a [Tooltip].
+    final Finder tooltipFinder = find.byWidgetPredicate((Widget widget) {
+      return widget is Tooltip && (widget.message?.contains('Tree is Closed') ?? false);
+    });
+    expect(tooltipFinder, findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red[800]);

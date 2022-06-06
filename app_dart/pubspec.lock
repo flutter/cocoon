@@ -98,7 +98,7 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.10"
+    version: "2.1.11"
   build_runner_core:
     dependency: transitive
     description:
@@ -217,7 +217,7 @@ packages:
       name: fixnum
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -441,7 +441,7 @@ packages:
       name: mockito
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.1.0"
+    version: "5.2.0"
   neat_cache:
     dependency: "direct main"
     description:
@@ -477,13 +477,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.1"
-  pedantic:
-    dependency: "direct dev"
-    description:
-      name: pedantic
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.11.1"
   platform:
     dependency: "direct dev"
     description:

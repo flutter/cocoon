@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -12,6 +13,8 @@ import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
+import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart' as pb;
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -332,31 +335,6 @@ void main() {
       expect(result['Status'], 'success');
     });
 
-    test('Can file issue but not pr for test not found in ci.yaml', () async {
-      // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(unknownTestResponse);
-      });
-      // When creates issue
-      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL));
-      });
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
-
-      // Verify issue is created correctly.
-      final List<dynamic> captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), Config.flutterSlug.toString());
-      expect(captured[1], isA<IssueRequest>());
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
-
-      expect(result['Status'], 'success');
-    });
-
     test('Do not create issue if there is already one', () async {
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId)).thenAnswer((Invocation invocation) {
@@ -548,5 +526,16 @@ void main() {
         '<!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.\r\n{"name": "Mac_android android_semantics_integration_test"}\r\n-->';
     final Map<String, dynamic> metaTags = retrieveMetaTagsFromContent(differentNewline)!;
     expect(metaTags['name'], 'Mac_android android_semantics_integration_test');
+  });
+
+  test('getIgnoreFlakiness handles non-existing builderame', () async {
+    final YamlMap? ci = loadYaml(ciYamlContent) as YamlMap?;
+    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final CiYaml ciYaml = CiYaml(
+      slug: Config.flutterSlug,
+      branch: Config.defaultBranch(Config.flutterSlug),
+      config: unCheckedSchedulerConfig,
+    );
+    expect(FileFlakyIssueAndPR.getIgnoreFlakiness('Non_existing', ciYaml), false);
   });
 }
