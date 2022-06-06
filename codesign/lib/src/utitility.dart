@@ -6,9 +6,7 @@ import 'dart:io';
 
 import 'package:process/process.dart';
 
-enum FILETYPE {
-  FOLDER, ZIP, BINARY, OTHER
-}
+enum FILETYPE { FOLDER, ZIP, BINARY, OTHER }
 
 /// Check mime-type of file at [filePath] to determine if it is binary.
 bool isBinary(String filePath, ProcessManager processManager) {
@@ -34,13 +32,13 @@ FILETYPE checkFileType(String filePath, ProcessManager processManager) {
     ],
   );
   String output = result.stdout as String;
-  if(output.contains('inode/directory')){
+  if (output.contains('inode/directory')) {
     return FILETYPE.FOLDER;
-  }else if(output.contains('application/zip')){
+  } else if (output.contains('application/zip')) {
     return FILETYPE.ZIP;
-  }else if(output.contains('application/x-mach-binary')){
+  } else if (output.contains('application/x-mach-binary')) {
     return FILETYPE.BINARY;
-  }else{
+  } else {
     return FILETYPE.OTHER;
   }
 }
@@ -64,7 +62,9 @@ Future<bool> isSymlink(String fileOrFolderPath, ProcessManager processManager) a
       fileOrFolderPath,
     ],
   );
-  
-  return (result.stdout as String).split('\n').where((String s) => !s.split(' ').contains('->') &&
-  s.trim().isNotEmpty).isEmpty;
+
+  return (result.stdout as String)
+      .split('\n')
+      .where((String s) => !s.split(' ').contains('->') && s.trim().isNotEmpty)
+      .isEmpty;
 }

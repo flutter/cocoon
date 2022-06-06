@@ -11,7 +11,6 @@ import 'package:platform/platform.dart';
 const String filepathFlag = 'filepath';
 const String helpFlag = 'help';
 
-
 const String kCommit = 'commit';
 const String kVerify = 'verify';
 const String kProduction = 'production';
@@ -36,8 +35,8 @@ const String kCodesignFilepath = 'filepath';
 /// For `--filepath`, provide the artifacts zip paths to be code signed.
 ///
 /// Usage:
-/// dart run bin/main.dart --commit=a5967ed309ef2beb9625f128571f7060597b5eda 
-/// --production=false --filepath=darwin-x64/FlutterMacOS.framework.zip#ios/artifacts.zip#dart-sdk-darwin-arm64.zip 
+/// dart run bin/main.dart --commit=a5967ed309ef2beb9625f128571f7060597b5eda
+/// --production=false --filepath=darwin-x64/FlutterMacOS.framework.zip#ios/artifacts.zip#dart-sdk-darwin-arm64.zip
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
@@ -49,26 +48,22 @@ Future<void> main(List<String> args) async {
     })
     ..addFlag(
       kVerify,
-      help:
-          'Only verify expected binaries exist and are codesigned with entitlements.',
+      help: 'Only verify expected binaries exist and are codesigned with entitlements.',
     )
     ..addFlag(
       kSignatures,
       defaultsTo: true,
-      help:
-          'When off, this command will only verify the existence of binaries, and not their\n'
+      help: 'When off, this command will only verify the existence of binaries, and not their\n'
           'signatures or entitlements. Must be used with --verify flag.',
     )
     ..addOption(
       kCodesignCertName,
       help: 'The name of the codesign certificate to be used when codesigning.',
     )
-    ..addOption(
-      kCodesignPrimaryBundleId,
-      help: 'Identifier for the application you are codesigning. This is only used '
-        'for disambiguating codesign jobs in the notary service logging.',
-      defaultsTo: 'dev.flutter.sdk'
-    )
+    ..addOption(kCodesignPrimaryBundleId,
+        help: 'Identifier for the application you are codesigning. This is only used '
+            'for disambiguating codesign jobs in the notary service logging.',
+        defaultsTo: 'dev.flutter.sdk')
     ..addOption(
       kCodesignUserName,
       help: 'Apple developer account email used for authentication with notary service.',
@@ -87,24 +82,21 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kCodesignFilepath,
-      help: 'the # deliminated zip file paths to be codesigned. e.g. darwin-x64/font-subset.zip#darwin-x64-release/gen_snapshot.zip',
+      help:
+          'the # deliminated zip file paths to be codesigned. e.g. darwin-x64/font-subset.zip#darwin-x64-release/gen_snapshot.zip',
     )
-    ..addOption(
-      kCommit, 
-      help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing')
-    ..addOption(
-      kProduction, 
-      help: 'whether we are going to upload the artifacts back to GCS for production');
-    
-
+    ..addOption(kCommit,
+        help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing')
+    ..addOption(kProduction, help: 'whether we are going to upload the artifacts back to GCS for production');
 
   final ArgResults argResults = parser.parse(args);
 
   final Platform platform = LocalPlatform();
 
-  final String commit= getValueFromEnvOrArgs(kCommit, argResults, platform.environment)!;
+  final String commit = getValueFromEnvOrArgs(kCommit, argResults, platform.environment)!;
   final String codesignCertName = getValueFromEnvOrArgs(kCodesignCertName, argResults, platform.environment)!;
-  final String codesignPrimaryBundleId = getValueFromEnvOrArgs(kCodesignPrimaryBundleId, argResults, platform.environment)!;
+  final String codesignPrimaryBundleId =
+      getValueFromEnvOrArgs(kCodesignPrimaryBundleId, argResults, platform.environment)!;
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserName, argResults, platform.environment)!;
   final String appSpecificPassword = getValueFromEnvOrArgs(kAppSpecificPassword, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreId, argResults, platform.environment)!;
@@ -120,18 +112,14 @@ Future<void> main(List<String> args) async {
   }
 
   return CodesignContext(
-    codesignCertName: codesignCertName,
-    codesignPrimaryBundleId: codesignPrimaryBundleId,
-    codesignUserName: codesignUserName,
-    commitHash: commit,
-    appSpecificPassword: appSpecificPassword,
-    codesignAppstoreId: codesignAppstoreId,
-    codesignTeamId: codesignTeamId,
-    codesignFilepath: codesignFilepath,
-    production: production
-  ).run();
-
+          codesignCertName: codesignCertName,
+          codesignPrimaryBundleId: codesignPrimaryBundleId,
+          codesignUserName: codesignUserName,
+          commitHash: commit,
+          appSpecificPassword: appSpecificPassword,
+          codesignAppstoreId: codesignAppstoreId,
+          codesignTeamId: codesignTeamId,
+          codesignFilepath: codesignFilepath,
+          production: production)
+      .run();
 }
-
-
-
