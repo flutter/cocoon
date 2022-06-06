@@ -323,10 +323,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       return 'Loading...';
     }
     if (buildState.isTreeBuilding!) {
-      _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
       return 'Tree is Open';
     } else {
-      _flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
       if (buildState.failingTasks.isNotEmpty) {
         return 'Tree is Closed (failing: ${buildState.failingTasks.join(', ')})';
       } else {
