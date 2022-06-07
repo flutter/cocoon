@@ -130,7 +130,6 @@ class GithubWebhook extends RequestHandler<Body> {
         await _checkForLabelsAndTests(pullRequestEvent);
         break;
       case 'opened':
-      case 'ready_for_review':
       case 'reopened':
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(pullRequestEvent);
@@ -145,6 +144,7 @@ class GithubWebhook extends RequestHandler<Body> {
         await _scheduleIfMergeable(pullRequestEvent);
         break;
       // Ignore the rest of the events.
+      case 'ready_for_review':
       case 'unlabeled':
       case 'assigned':
       case 'locked':
