@@ -57,11 +57,11 @@ cron:
 
 - description: update existing flake issues with latest statistics
   url: /api/update_existing_flaky_issues?threshold=0.02
-  schedule: every wednesday 16:00
+  schedule: every wednesday 16:10
 
 - description: check flaky builders to either deflake the builder or file a new flaky bug
   url: /api/check_flaky_builders
-  schedule: every wednesday 16:00
+  schedule: every wednesday 16:20
 
 - description: update branches to reflect most recent commit activity
   url: '/api/update-branches' 
