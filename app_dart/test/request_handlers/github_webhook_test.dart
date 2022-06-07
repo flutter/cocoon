@@ -2291,21 +2291,21 @@ void foo() {
         });
 
         fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-          const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
+              const BatchResponse(
+                responses: <Response>[
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[],
+                    ),
+                  ),
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[],
+                    ),
+                  ),
+                ],
               ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
-              ),
-            ],
-          ),
-        );
+            );
 
         request.body = generatePullRequestEvent(action, 1, 'master');
 
@@ -2362,25 +2362,25 @@ void foo() {
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
         fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
-          BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(999, name: 'Linux', status: Status.ended),
-                  ],
-                ),
+              BatchResponse(
+                responses: <Response>[
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[
+                        generateBuild(999, name: 'Linux', status: Status.ended),
+                      ],
+                    ),
+                  ),
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[
+                        generateBuild(998, name: 'Linux', status: Status.ended),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(998, name: 'Linux', status: Status.ended),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
+            );
 
         request.body = generatePullRequestEvent('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body!) as Uint8List;
