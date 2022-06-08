@@ -40,6 +40,7 @@ class FileCodesignVisitor extends FileVisitor {
       required this.codesignTeamId,
       required this.stdio,
       required this.isNotaryTool,
+      required this.filepaths,
       this.production = false});
 
   /// Temp [Directory] to download/extract files to.
@@ -58,6 +59,7 @@ class FileCodesignVisitor extends FileVisitor {
   final Stdio stdio;
   final bool isNotaryTool;
   final bool production;
+  final List<String> filepaths;
   Set<String>? fileWithEntitlements;
   Set<String>? fileWithoutEntitlements;
   Set<String> fileConsumed = <String>{};
@@ -100,7 +102,7 @@ class FileCodesignVisitor extends FileVisitor {
     return currentKey;
   }
 
-  Future<void> validateAll(List<String> filepaths) async {
+  Future<void> validateAll() async {
     List<RemoteZip> codesignZipfiles = filepaths.map((String path) => RemoteZip(path: path)).toList();
 
     final Iterable<Future<void>> futures = codesignZipfiles.map((RemoteZip archive) {
@@ -116,7 +118,7 @@ class FileCodesignVisitor extends FileVisitor {
 
     if (!production) {
       print('\ncode signing simulation has completed, If you intend to upload the artifacts back to'
-          ' google cloud storage, please use the --production=true flage when running code signing script.\n'
+          ' google cloud storage, please use the --production=true flag when running code signing script.\n'
           'thanks for understanding the security concerns!\n');
     }
   }
@@ -153,8 +155,7 @@ class FileCodesignVisitor extends FileVisitor {
   /// entitlementParentPath may not be the real absolute file path.
   Future<void> visitDirectory(String parentPath, String entitlementParentPath) async {
     print('visiting directory $parentPath\n');
-    String directoryName = parentPath.split('/').last;
-    if (!directoryName.contains('embedded_zip') && (await isSymlink(parentPath, processManager))) {
+    if (await isSymlink(parentPath, processManager)) {
       print('this is a symlink folder\n');
       return;
     }
@@ -311,7 +312,7 @@ class FileCodesignVisitor extends FileVisitor {
   ///
   Future<void> notarize(File file) async {
     final Completer<void> completer = Completer<void>();
-    final String uuid = _uploadZipToNotary(file);
+    final String uuid = uploadZipToNotary(file);
 
     Future<void> callback(Timer timer) async {
       final bool notaryFinished = checkNotaryJobFinished(uuid);
@@ -409,7 +410,7 @@ class FileCodesignVisitor extends FileVisitor {
   static final RegExp _altoolRequestPattern = RegExp(r'RequestUUID = ([a-z0-9-]+)');
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
-  String _uploadZipToNotary(File localFile, [int retryCount = 3]) {
+  String uploadZipToNotary(File localFile, [int retryCount = 3]) {
     while (retryCount > 0) {
       List<String> args;
       if (isNotaryTool) {
