@@ -42,7 +42,6 @@ class DiagnoseCommand extends Command<bool> {
       for (final XCDevice device in devicesWithErrors) {
         logger.severe('${device.name}: ${device.error}');
       }
-      logger.severe(result.stdout);
       return false;
     }
 
