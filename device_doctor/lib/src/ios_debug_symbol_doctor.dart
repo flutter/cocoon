@@ -61,15 +61,26 @@ class XCDevice {
     required this.name,
   });
 
+  static const String _debugSymbolDescriptionPattern = 'iPhone is busy: Fetching debug symbols for iPhone';
+
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
     Map<String, Object?>? error = map['error'] as Map<String, Object?>?;
-    // TODO check message
+    // We should only specifically pattern match on known fatal errors, and
+    // ignore the rest.
+    bool validError = false;
+    if (error != null) {
+      final String description = error['description'] as String;
+      if (description.contains(_debugSymbolDescriptionPattern)) {
+        validError = true;
+      }
+    }
     return XCDevice._(
-      error: error,
+      error: validError ? error : null,
       name: map['name'] as String,
     );
   }
+
   final Map<String, Object?>? error;
   final String name;
 
