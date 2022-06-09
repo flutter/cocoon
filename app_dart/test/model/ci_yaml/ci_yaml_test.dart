@@ -22,6 +22,32 @@ void main() {
       });
     }
   });
+
+  group('Validate pinned version operation.', () {
+    void validatePinnedVersion(String input) {
+      test("$input -> returns normally", () {
+        DependencyValidator.hasVersion(dependencyJsonString: input);
+      });
+    }
+
+    validatePinnedVersion('[{"dependency": "chrome_and_driver", "version": "version:96.2"}]');
+    validatePinnedVersion('[{"dependency": "open_jdk", "version": "11"}]');
+    validatePinnedVersion('[{"dependency": "android_sdk", "version": "version:31v8"}]');
+    validatePinnedVersion(
+        '[{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}]');
+  });
+
+  group('Validate un-pinned version operation.', () {
+    void validateUnPinnedVersion(String input) {
+      test("$input -> returns normally", () {
+        expect(() => DependencyValidator.hasVersion(dependencyJsonString: input), throwsException);
+      });
+    }
+
+    validateUnPinnedVersion('[{"dependency": "some_sdk", "version": ""}]');
+    validateUnPinnedVersion('[{"dependency": "another_sdk"}]');
+    validateUnPinnedVersion('[{"dependency": "yet_another_sdk", "version": "latest"}]');
+  });
 }
 
 /// Wrapper class for table driven design of [CiYaml.enabledBranchesMatchesCurrentBranch].

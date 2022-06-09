@@ -68,6 +68,14 @@ targets:
   - name: B
     dependencies:
       - A
+    properties:
+      dependencies: >-
+        [
+          {"dependency": "android_sdk", "version": "version:31v8"},
+          {"dependency": "certs", "version": "version:9563bb"},
+          {"dependency": "chrome_and_driver", "version": "version:96.2"},
+          {"dependency": "open_jdk", "version": "11"}
+        ]
   - name: C
     dependencies:
       - B
