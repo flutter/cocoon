@@ -23,7 +23,9 @@ Future<void> main(List<String> args) async {
   final CommandRunner<bool> runner = CommandRunner<bool>(
     'ios-debug-symbol-doctor',
     'Tool for diagnosing and recovering from iOS debug symbols not synched with the host by Xcode',
-  )..addCommand(DiagnoseCommand());
+  )
+    ..addCommand(DiagnoseCommand())
+    ..addCommand(RecoverCommand());
 
   final bool? success = await runner.run(args);
   exit(success == true ? 0 : 1);

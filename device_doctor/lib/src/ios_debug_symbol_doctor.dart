@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:args/command_runner.dart';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:process/process.dart';
 import 'package:logging/logging.dart';
 
@@ -20,11 +22,12 @@ class DiagnoseCommand extends Command<bool> {
   final ProcessManager processManager;
 
   final String name = 'diagnose';
-  final String description = 'Diagnose whether attached iOS devices have errors.';
+  final String description =
+      'Diagnose whether attached iOS devices have errors.';
 
   Future<bool> run() async {
     final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
-    final ProcessResult result = await processManager.run(
+    final io.ProcessResult result = await processManager.run(
       command,
     );
     if (result.exitCode != 0) {
@@ -33,8 +36,10 @@ class DiagnoseCommand extends Command<bool> {
       );
       return false;
     }
-    final Iterable<XCDevice> devices = XCDevice.parseJson(result.stdout as String);
-    final Iterable<XCDevice> devicesWithErrors = devices.where((XCDevice device) => device.hasError);
+    final Iterable<XCDevice> devices =
+        XCDevice.parseJson(result.stdout as String);
+    final Iterable<XCDevice> devicesWithErrors =
+        devices.where((XCDevice device) => device.hasError);
 
     if (devicesWithErrors.isNotEmpty) {
       logger.severe('Found devices with errors!');
@@ -49,7 +54,66 @@ class DiagnoseCommand extends Command<bool> {
   }
 }
 
-class RecoverCommand extends Command<bool> {  }
+class RecoverCommand extends Command<bool> {
+  RecoverCommand({
+    this.processManager = const LocalProcessManager(),
+    Logger? loggerOverride,
+    this.fs = const LocalFileSystem(),
+  }) : logger = loggerOverride ?? Logger.root {
+    argParser.addOption(
+      'cocoon-root',
+      help: 'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
+            'then used to open Xcode.',
+      mandatory: true,
+    );
+  }
+
+  final Logger logger;
+  final ProcessManager processManager;
+  final FileSystem fs;
+
+  final String name = 'recover';
+  final String description =
+      'Open Xcode UI to allow it to sync debug symbols from the iPhone';
+
+  @override
+  Future<bool> run() async {
+    final Directory xcodeDir = await _xcodeDirectory;
+    final io.ProcessResult result = await processManager.run(<String>['open', xcodeDir.absolute.path]);
+    if (result.exitCode != 0) {
+      logger.severe('Failed opening Xcode!');
+      return false;
+    }
+    const Duration timeout = Duration(minutes: 2);
+    logger.info('Waiting for $timeout');
+    await Future.delayed(timeout);
+    // TODO kill Xcode
+    return true;
+  }
+
+  Future<Directory> get _xcodeDirectory async {
+    const List<String> xcodeSelectCommand = <String>[
+      'xcode-select',
+      '--print-path'
+    ];
+    final io.ProcessResult result = await processManager.run(
+      xcodeSelectCommand,
+    );
+    if (result.exitCode != 0) {
+      throw Exception(
+        'The command `${xcodeSelectCommand.join(' ')}` failed, likely because Xcode is not set up '
+        'correctly:\n${result.stderr}',
+      );
+    }
+    // Something like /path/to/Xcode.app/Contents/Developer
+    final Directory activeDeveloperDirectory = fs.directory((result.stdout as String).trim());
+    final Directory xcodeDir = activeDeveloperDirectory.parent.parent;
+    if (!xcodeDir.existsSync()) {
+      throw Exception('Excepted Xcode to be at ${xcodeDir.path}, however that directory does not exist!');
+    }
+    return xcodeDir;
+  }
+}
 
 /// A Device configuration as output by `xcrun xcdevice list`.
 ///
@@ -62,7 +126,8 @@ class XCDevice {
     required this.name,
   });
 
-  static const String _debugSymbolDescriptionPattern = 'iPhone is busy: Fetching debug symbols for iPhone';
+  static const String _debugSymbolDescriptionPattern =
+      'iPhone is busy: Fetching debug symbols for iPhone';
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
