@@ -129,16 +129,16 @@ class FileCodesignVisitor extends FileVisitor {
   Future<void> visitEmbeddedZip(EmbeddedZip file, String parentPath, String entitlementParentPath) async {
     print('this embedded file is ${file.path} and entilementParentPath is $entitlementParentPath\n');
     String currentFileName = file.path.split('/').last;
-    final File localFile = (await _validateFileExists(file))!;
+    final File localFile = (await validateFileExists(file))!;
     final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');
-    final package_arch.Archive? archive = await _unzip(localFile, newDir);
+    final package_arch.Archive? archive = await unzip(localFile, newDir);
 
     String absoluteDirectoryPath = newDir.absolute.path;
     // the virtual file path is advanced by the name of the embedded zip
     String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
     await visitDirectory(absoluteDirectoryPath, currentZipEntitlementPath);
     await localFile.delete();
-    final package_arch.Archive? codesignedArchive = await _zip(newDir, localFile);
+    final package_arch.Archive? codesignedArchive = await zip(newDir, localFile);
     if (codesignedArchive != null && archive != null) {
       _ensureArchivesAreEquivalent(
         archive.files,
@@ -156,12 +156,14 @@ class FileCodesignVisitor extends FileVisitor {
   /// entitlementParentPath may not be the real absolute file path.
   Future<void> visitDirectory(String parentPath, String entitlementParentPath) async {
     stdio.printStatus('visiting directory $parentPath\n');
+    print('visiting directory $parentPath\n');
     if (await utility.isSymlink(parentPath, processManager)) {
       print('this is a symlink folder\n');
       return;
     }
     List<String> files = utility.listFiles(parentPath, processManager);
     stdio.printStatus('files are $files \n');
+    print('files are $files \n');
     for (String childFile in files) {
       String absoluteChildPath = '$parentPath/$childFile';
       FILETYPE childType = utility.checkFileType(absoluteChildPath, processManager);
@@ -195,7 +197,7 @@ class FileCodesignVisitor extends FileVisitor {
       remoteDownloadsDir.childFile(localFilePath).path,
     );
 
-    final package_arch.Archive? archive = await _unzip(originalFile, parent);
+    final package_arch.Archive? archive = await unzip(originalFile, parent);
 
     //extract entitlements file.
     fileWithEntitlements = await parseEntitlements(parent, true);
@@ -209,7 +211,7 @@ class FileCodesignVisitor extends FileVisitor {
 
     final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
 
-    final package_arch.Archive? codesignedArchive = await _zip(parent, codesignedFile);
+    final package_arch.Archive? codesignedArchive = await zip(parent, codesignedFile);
     if (archive != null && codesignedArchive != null) {
       _ensureArchivesAreEquivalent(
         archive.files,
@@ -235,7 +237,7 @@ class FileCodesignVisitor extends FileVisitor {
     if (await utility.isSymlink(file.path, processManager)) {
       return;
     }
-    final File localFile = (await _validateFileExists(file))!;
+    final File localFile = (await validateFileExists(file))!;
 
     String currentFileName = file.path.split('/').last;
     String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
@@ -494,7 +496,7 @@ class FileCodesignVisitor extends FileVisitor {
     }
   }
 
-  Future<package_arch.Archive?> _unzip(File inputZip, Directory outDir) async {
+  Future<package_arch.Archive?> unzip(File inputZip, Directory outDir) async {
     // unzip is faster, commenting it out to pass hash check
     if (processManager.canRun('unzip')) {
       await processManager.run(
@@ -516,7 +518,7 @@ class FileCodesignVisitor extends FileVisitor {
     }
   }
 
-  Future<package_arch.Archive?> _zip(Directory inDir, File outputZip) async {
+  Future<package_arch.Archive?> zip(Directory inDir, File outputZip) async {
     // zip is faster
     if (processManager.canRun('zip')) {
       await processManager.run(
@@ -565,7 +567,7 @@ class FileCodesignVisitor extends FileVisitor {
     return Future.value(null);
   }
 
-  Future<File?> _validateFileExists(ArchiveFile archiveFile, {bool silent = false}) async {
+  Future<File?> validateFileExists(ArchiveFile archiveFile, {bool silent = false}) async {
     FileSystem fs = tempDir.fileSystem;
     final String filePath = archiveFile.path;
     final File file = fs.file(filePath);
