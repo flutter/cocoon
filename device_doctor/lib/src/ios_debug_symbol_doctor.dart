@@ -49,6 +49,8 @@ class DiagnoseCommand extends Command<bool> {
   }
 }
 
+class RecoverCommand extends Command<bool> {  }
+
 /// A Device configuration as output by `xcrun xcdevice list`.
 ///
 /// As more fields are needed, they can be added to this class. It is
