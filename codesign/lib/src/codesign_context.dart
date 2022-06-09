@@ -34,7 +34,7 @@ class CodesignContext {
   FileCodesignVisitor? codesignVisitor;
 
   ProcessManager processManager = LocalProcessManager();
-  final FileSystem fileSystem = LocalFileSystem();
+  FileSystem fileSystem = LocalFileSystem();
   Stdio stdio = VerboseStdio(
     stdout: stdout,
     stderr: stderr,

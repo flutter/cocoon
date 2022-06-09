@@ -60,6 +60,7 @@ class FileCodesignVisitor extends FileVisitor {
   final bool isNotaryTool;
   final bool production;
   final List<String> filepaths;
+  Utility utility = Utility();
   Set<String>? fileWithEntitlements;
   Set<String>? fileWithoutEntitlements;
   Set<String> fileConsumed = <String>{};
@@ -154,16 +155,16 @@ class FileCodesignVisitor extends FileVisitor {
   /// in the current folder. Since we extract zip files to another folder,
   /// entitlementParentPath may not be the real absolute file path.
   Future<void> visitDirectory(String parentPath, String entitlementParentPath) async {
-    print('visiting directory $parentPath\n');
-    if (await isSymlink(parentPath, processManager)) {
+    stdio.printStatus('visiting directory $parentPath\n');
+    if (await utility.isSymlink(parentPath, processManager)) {
       print('this is a symlink folder\n');
       return;
     }
-    List<String> files = listFiles(parentPath, processManager);
-    print('files are $files \n');
+    List<String> files = utility.listFiles(parentPath, processManager);
+    stdio.printStatus('files are $files \n');
     for (String childFile in files) {
       String absoluteChildPath = '$parentPath/$childFile';
-      FILETYPE childType = checkFileType(absoluteChildPath, processManager);
+      FILETYPE childType = utility.checkFileType(absoluteChildPath, processManager);
       print('childFile is $childFile, child type is $childType');
       if (childType == FILETYPE.BINARY) {
         await BinaryFile(path: absoluteChildPath).visit(this, parentPath, entitlementParentPath);
@@ -231,7 +232,7 @@ class FileCodesignVisitor extends FileVisitor {
   /// Visit a binary file.
   @override
   Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) async {
-    if (await isSymlink(file.path, processManager)) {
+    if (await utility.isSymlink(file.path, processManager)) {
       return;
     }
     final File localFile = (await _validateFileExists(file))!;

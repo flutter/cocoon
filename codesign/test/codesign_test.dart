@@ -27,6 +27,78 @@ class FakeCodesignContext extends cs.CodesignContext {
   bool checkXcodeVersion() => true;
 }
 
+class FakeUtility extends cs.Utility {
+
+  FakeUtility({ required this.tempDir, required this.rootDirectory});
+
+  Directory tempDir;
+  String rootDirectory;
+
+  @override
+  bool isBinary(String filePath, ProcessManager processManager) {
+    String fileName = filePath.split('/').last;
+    return fileName == 'binary';
+  }
+
+  @override
+  FILETYPE checkFileType(String filePath, ProcessManager processManager) {
+    String fileType = filePath.split('/').last.split('_').first;
+    switch(fileType){
+      case 'binary':
+        return FILETYPE.BINARY;
+      case 'zip':
+        return FILETYPE.ZIP;
+      case 'folder':
+        return FILETYPE.FOLDER;
+    }
+    return FILETYPE.FOLDER;
+  }
+
+  @override
+  //eg: folder_binary_[folder_zip_binary_[folder_binary]]_[folder_zip_binary]
+  // will be listed as:
+  // [binary, folder_zip_binary_[folder_binary], folder_zip_binary]
+  List<String> listFiles(String filePath, ProcessManager processManager) {
+    String folderName = filePath.split('/').last;
+    if(folderName == 'remote_zip_0'){
+      folderName = rootDirectory;
+    }
+    int level = 0;
+    int index = folderName.indexOf('[');
+    if(index == -1){
+      return folderName.substring(folderName.indexOf('_'))
+      .split('_').where((String s) => s.trim().isNotEmpty).toList();
+    }
+    String flatNames = folderName.substring(7, index);
+    List<String> result = flatNames.split('_').where((String s) => s.trim().isNotEmpty).toList();
+
+    int startIndex = -2;
+    
+    while(index < folderName.length){
+      if(folderName[index] == '['){
+        if(level == 0){
+          startIndex = index + 1;
+        }
+        level += 1;
+      }
+      else if(folderName[index] == ']'){
+        if(level == 1){
+          String childName = folderName.substring(startIndex, index); // substring is [inclusive, exclusive)
+          result.add(childName);
+        }
+        level -= 1;
+      }
+      index += 1;
+    }
+    return result;
+  }
+
+  @override
+  Future<bool> isSymlink(String fileOrFolderPath, ProcessManager processManager) async {
+    return false;
+  }
+}
+
 class FakeCodesignVisitor extends cs.FileCodesignVisitor {
   FakeCodesignVisitor({
     required super.tempDir,
@@ -79,6 +151,16 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
     );
     await completer.future;
   }
+
+  @override
+  Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async {
+    return <String>{};
+  }
+
+  @override
+  Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) async {
+    return;
+  }
 }
 
 void main() {
@@ -88,6 +170,7 @@ void main() {
   late FakeCodesignContext codesignContext;
   late FakeCodesignVisitor codesignVisitor;
   late Directory tempDir;
+  late FakeUtility utility;
   String engineRevision = 'afwe';
   const String revision = 'abcd1234';
 
@@ -112,6 +195,7 @@ void main() {
         codesignFilepath: revision,
         commitHash: revision);
     //initalize fake variables
+    codesignContext.fileSystem = fileSystem;
     codesignContext.processManager = processManager;
     codesignContext.createTempDirectory();
     tempDir = codesignContext.tempDir!;
@@ -134,8 +218,8 @@ void main() {
     codesignContext.codesignVisitor = codesignVisitor;
   }
 
-  group('codesign', () {
-    test('basic simulation: codesign single folder', () async {
+  group('codesign command logic', () {
+    test('sequence of commands triggered', () async {
       createRunner();
       processManager.addCommands(<FakeCommand>[
         FakeCommand(command: <String>[
@@ -195,4 +279,69 @@ void main() {
       expect(stdio.stdout, contains('Codesigned all binaries in ${tempDir.path}'));
     });
   });
+
+
+    test('recursively visit a folder: test 1-1', () async {
+      createRunner();
+      utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_binary_[folder_binary]');
+      codesignVisitor.utility = utility;
+      // structure: folder_binary_[folder_binary]
+      fileSystem.file('remote_zip_0/binary').createSync(recursive: true);
+      fileSystem.file('remote_zip_0/folder_binary/binary').createSync(recursive: true);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(command: <String>[
+          'gsutil',
+          'cp',
+          'gs://flutter_infra_release/flutter/$revision/$revision',
+          '${tempDir.absolute.path}/downloads/0_$revision',
+        ]),
+        FakeCommand(command: <String>[
+          'unzip',
+          '${tempDir.absolute.path}/downloads/0_$revision',
+          '-d',
+          '${tempDir.absolute.path}/remote_zip_0',
+        ]),
+        FakeCommand(command: <String>[
+          'zip',
+          '--symlinks',
+          '--recurse-paths',
+          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '.',
+          '--include',
+          '*'
+        ]),
+        FakeCommand(command: <String>[
+          'xcrun',
+          'notarytool',
+          'submit',
+          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '--apple-id',
+          revision,
+          '--password',
+          revision,
+          '--team-id',
+          revision,
+        ], stdout: 'id: abc12345)'),
+        FakeCommand(command: <String>[
+          'xcrun',
+          'notarytool',
+          'info',
+          'abc12345',
+          '--password',
+          revision,
+          '--apple-id',
+          revision,
+          '--team-id',
+          revision
+        ], stdout: ' status: Accepted'),
+      ]);
+
+      await codesignContext.run();
+      expect(processManager, hasNoRemainingExpectations);
+      expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0'));
+      expect(stdio.stdout, contains('files are [binary, folder_binary]'));
+      expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0/folder_binary'));
+      expect(stdio.stdout, contains('files are [binary]'));
+    });
+
 }
