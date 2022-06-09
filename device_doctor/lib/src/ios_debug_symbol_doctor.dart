@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:process/process.dart';
 import 'package:logging/logging.dart';
@@ -20,8 +23,63 @@ class DiagnoseCommand extends Command<bool> {
   final String description = 'Diagnose whether attached iOS devices have errors.';
 
   Future<bool> run() async {
-    logger.info('Hi!');
-    logger.info('Hi!');
-    throw 'foo';
+    final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
+    final ProcessResult result = await processManager.run(
+      command,
+    );
+    if (result.exitCode != 0) {
+      logger.severe(
+        '$command failed with exit code ${result.exitCode}\n${result.stderr}',
+      );
+      return false;
+    }
+    final Iterable<XCDevice> devices = XCDevice.parseJson(result.stdout as String);
+    final Iterable<XCDevice> devicesWithErrors = devices.where((XCDevice device) => device.hasError);
+
+    if (devicesWithErrors.isNotEmpty) {
+      logger.severe('Found devices with errors!');
+
+      for (final XCDevice device in devicesWithErrors) {
+        logger.severe('${device.name}: ${device.error}');
+      }
+      logger.severe(result.stdout);
+      return false;
+    }
+
+    return true;
+  }
+}
+
+/// A Device configuration as output by `xcrun xcdevice list`.
+///
+/// As more fields are needed, they can be added to this class. It is
+/// recommended to make all fields nullable in case a different version of Xcode
+/// does not implement it.
+class XCDevice {
+  const XCDevice._({
+    required this.error,
+    required this.name,
+  });
+
+  /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
+  factory XCDevice.fromMap(Map<String, Object?> map) {
+    Map<String, Object?>? error = map['error'] as Map<String, Object?>?;
+    // TODO check message
+    return XCDevice._(
+      error: error,
+      name: map['name'] as String,
+    );
+  }
+  final Map<String, Object?>? error;
+  final String name;
+
+  bool get hasError => error != null;
+
+  /// Parse the complete output of `xcrun xcdevice list`.
+  static Iterable<XCDevice> parseJson(String jsonString) {
+    final List<Object?> devices = json.decode(jsonString) as List<Object?>;
+    return devices.map<XCDevice>((Object? obj) {
+      return XCDevice.fromMap(obj as Map<String, Object?>);
+    });
   }
 }
