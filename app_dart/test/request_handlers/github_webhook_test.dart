@@ -273,6 +273,80 @@ void main() {
       )).called(1);
     });
 
+    // We already schedule checks when a draft is opened, don't need to re-test
+    // just because it was marked ready for review
+    test('Does nothing on ready_for_review', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'ready_for_review',
+        issueNumber,
+        kDefaultBranchName,
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      bool batchRequestCalled = false;
+
+      Future<BatchResponse> _getBatchResponse() async {
+        batchRequestCalled = true;
+        fail('Marking a draft ready for review should not trigger new builds');
+      }
+
+      fakeBuildBucketClient.batchResponse = _getBatchResponse;
+
+      await tester.post(webhook);
+
+      expect(batchRequestCalled, isFalse);
+    });
+
+    test('Triggers builds when opening a draft PR', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = generatePullRequestEvent(
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        isDraft: true,
+      );
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      bool batchRequestCalled = false;
+
+      Future<BatchResponse> _getBatchResponse() async {
+        batchRequestCalled = true;
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(999, name: 'Linux', status: Status.ended),
+                ],
+              ),
+            ),
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  generateBuild(998, name: 'Linux', status: Status.ended),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      fakeBuildBucketClient.batchResponse = _getBatchResponse;
+
+      await tester.post(webhook);
+
+      expect(batchRequestCalled, isTrue);
+    });
+
     test('Does nothing against cherry pick PR', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -2051,8 +2125,7 @@ void foo() {
       expect(db.values.values.whereType<Commit>().length, 1);
     });
 
-    test('Does not test pest draft pull requests.', () async {
-      //FOR REVIEW : umm is pest a typo here or maybe some form of pr
+    test('Does not comment about needing tests on draft pull requests.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = generatePullRequestEvent(
@@ -2188,7 +2261,7 @@ void foo() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = _getBatchResponse();
+      fakeBuildBucketClient.batchResponse = _getBatchResponse;
 
       request.body = generatePullRequestEvent('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
@@ -2217,22 +2290,22 @@ void foo() {
           ]);
         });
 
-        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
-          const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
+        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
+              const BatchResponse(
+                responses: <Response>[
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[],
+                    ),
+                  ),
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[],
+                    ),
+                  ),
+                ],
               ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
-              ),
-            ],
-          ),
-        );
+            );
 
         request.body = generatePullRequestEvent(action, 1, 'master');
 
@@ -2288,26 +2361,26 @@ void foo() {
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
-        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
-          BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(999, name: 'Linux', status: Status.ended),
-                  ],
-                ),
+        fakeBuildBucketClient.batchResponse = () => Future<BatchResponse>.value(
+              BatchResponse(
+                responses: <Response>[
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[
+                        generateBuild(999, name: 'Linux', status: Status.ended),
+                      ],
+                    ),
+                  ),
+                  Response(
+                    searchBuilds: SearchBuildsResponse(
+                      builds: <Build>[
+                        generateBuild(998, name: 'Linux', status: Status.ended),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    generateBuild(998, name: 'Linux', status: Status.ended),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
+            );
 
         request.body = generatePullRequestEvent('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body!) as Uint8List;

@@ -22,7 +22,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
 
   Future<Build>? scheduleBuildResponse;
   Future<SearchBuildsResponse>? searchBuildsResponse;
-  Future<BatchResponse>? batchResponse;
+  Future<BatchResponse> Function()? batchResponse;
   Future<Build>? cancelBuildResponse;
   Future<Build>? getBuildResponse;
 
@@ -60,6 +60,9 @@ class FakeBuildBucketClient extends BuildBucketClient {
 
   @override
   Future<BatchResponse> batch(BatchRequest request) async {
+    if (batchResponse != null) {
+      return batchResponse!();
+    }
     final List<Response> responses = <Response>[];
     for (Request request in request.requests!) {
       if (request.cancelBuild != null) {

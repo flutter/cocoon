@@ -252,10 +252,10 @@ targets:
         [
           {"dependency": "android_sdk", "version": "version:29.0"},
           {"dependency": "chrome_and_driver", "version": "version:84"},
-          {"dependency": "open_jdk"},
-          {"dependency": "xcode"},
-          {"dependency": "gems"},
-          {"dependency": "goldctl"}
+          {"dependency": "open_jdk", "version": "11"},
+          {"dependency": "xcode", "version": "13a233"},
+          {"dependency": "gems", "version": "v3.3.14"},
+          {"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}
         ]
       shard: build_tests
       subshard: "1_4"
