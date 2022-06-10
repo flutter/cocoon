@@ -78,7 +78,7 @@ class RecoverCommand extends Command<bool> {
 
   @override
   Future<bool> run() async {
-    final Directory xcodeDir = await _xcodeDirectory;
+    final Directory cocoonRoot = fs.directory(argResults['cocoon-root']);
     final io.ProcessResult result = await processManager.run(<String>['open', xcodeDir.absolute.path]);
     if (result.exitCode != 0) {
       logger.severe('Failed opening Xcode!');
@@ -89,29 +89,6 @@ class RecoverCommand extends Command<bool> {
     await Future.delayed(timeout);
     // TODO kill Xcode
     return true;
-  }
-
-  Future<Directory> get _xcodeDirectory async {
-    const List<String> xcodeSelectCommand = <String>[
-      'xcode-select',
-      '--print-path'
-    ];
-    final io.ProcessResult result = await processManager.run(
-      xcodeSelectCommand,
-    );
-    if (result.exitCode != 0) {
-      throw Exception(
-        'The command `${xcodeSelectCommand.join(' ')}` failed, likely because Xcode is not set up '
-        'correctly:\n${result.stderr}',
-      );
-    }
-    // Something like /path/to/Xcode.app/Contents/Developer
-    final Directory activeDeveloperDirectory = fs.directory((result.stdout as String).trim());
-    final Directory xcodeDir = activeDeveloperDirectory.parent.parent;
-    if (!xcodeDir.existsSync()) {
-      throw Exception('Excepted Xcode to be at ${xcodeDir.path}, however that directory does not exist!');
-    }
-    return xcodeDir;
   }
 }
 
