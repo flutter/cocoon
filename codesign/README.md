@@ -1,0 +1,1 @@
+A standalone tool to codesign Mac engine binaries.
