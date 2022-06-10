@@ -1,1 +1,1 @@
-A standalone app to codesign Mac engine binaries.
+A standalone tool to codesign Mac engine binaries.
