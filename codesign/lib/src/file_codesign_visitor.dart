@@ -202,8 +202,7 @@ class FileCodesignVisitor extends FileVisitor {
     //extract entitlements file.
     fileWithEntitlements = await parseEntitlements(parent, true);
     fileWithoutEntitlements = await parseEntitlements(parent, false);
-    print('parsed entitlements are ');
-    print(fileWithEntitlements);
+    print('parsed entitlements are $fileWithEntitlements \n');
 
     // recursively visit extracted files
     final String parentPath = fs.path.join(parent.path);

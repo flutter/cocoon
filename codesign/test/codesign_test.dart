@@ -1,4 +1,4 @@
-// Copyright 2014 The Flutter Authors. All rights reserved.
+// Copyright 2022 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -28,6 +28,10 @@ class FakeCodesignContext extends cs.CodesignContext {
   bool checkXcodeVersion() => true;
 }
 
+/// A fake utitlity class for test environment.
+/// 
+/// Overrides file check functions and ls functions, to be based on filenames
+/// of input directory.
 class FakeUtility extends cs.Utility {
   FakeUtility({required this.tempDir, required this.rootDirectory});
 
@@ -54,10 +58,29 @@ class FakeUtility extends cs.Utility {
     return FILETYPE.FOLDER;
   }
 
+  /// A helper function to list files of a directory under test environment.
+  ///
+  /// eg: a test directory with the name:
+  /// folder_binary_[folder_zip_binary_[folder_binary]]_[folder_zip_binary]
+  /// represents the structure of:
+  ///
+  ///             folder
+  ///       __ /    |    \__________________
+  ///     /         |                        \
+  ///  binary      folder                   folder               -----level 1
+  ///           ___/ |  \___               ___/ \___
+  ///         /      |       \            /         \
+  ///       zip    binary   folder      zip        binary        -----level 2
+  ///                         |
+  ///                       binary                               -----level 3
+  ///
+  /// Based on file structures embedded in input directory name, [listFiles]
+  /// will list filenames and direcoty names in the current direcotry level,
+  /// while maintaining the file structure.
+  ///
+  /// e.g. on level 1: listFiles will list the directory names as:
+  /// [binary, folder_zip_binary_[folder_binary], folder_zip_binary]
   @override
-  //eg: folder_binary_[folder_zip_binary_[folder_binary]]_[folder_zip_binary]
-  // will be listed as:
-  // [binary, folder_zip_binary_[folder_binary], folder_zip_binary]
   List<String> listFiles(String filePath, ProcessManager processManager) {
     String folderName = filePath.split('/').last;
     if (folderName == 'remote_zip_0') {
@@ -97,51 +120,10 @@ class FakeUtility extends cs.Utility {
   }
 }
 
-class ZipCodesignVisitor extends FakeCodesignVisitor {
-  ZipCodesignVisitor({
-    required super.tempDir,
-    required super.commitHash,
-    required super.processManager,
-    required super.codesignCertName,
-    required super.codesignPrimaryBundleId,
-    required super.codesignUserName,
-    required super.appSpecificPassword,
-    required super.codesignAppstoreId,
-    required super.codesignTeamId,
-    required super.stdio,
-    required super.isNotaryTool,
-    required super.filepaths,
-    super.production = false,
-  });
-
-  MemoryFileSystem? fileSystem;
-
-  //
-  @override
-  Future<package_arch.Archive?> unzip(File inputZip, Directory outDir) async {
-    print('outDir path is ${outDir.path}');
-    fileSystem!.directory(outDir.path).createSync(recursive: true);
-    return null;
-  }
-
-  @override
-  Future<void> visitEmbeddedZip(EmbeddedZip file, String parentPath, String entitlementParentPath) async {
-    print('this embedded file is ${file.path} and entilementParentPath is $entitlementParentPath\n');
-    String currentFileName = file.path.split('/').last;
-    final File localFile = (await validateFileExists(file))!;
-    final Directory newDir = tempDir.childDirectory(currentFileName);
-
-    String absoluteDirectoryPath = newDir.absolute.path;
-    // the virtual file path is advanced by the name of the embedded zip
-    String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
-    await visitDirectory(absoluteDirectoryPath, currentZipEntitlementPath);
-    await localFile.delete();
-  }
-}
-
-/// a fake visitor for testing purpose
+/// A fake file visitor for testing purpose.
 ///
-///
+/// Upload for notarization is overriden, and the timer to check notarization
+/// status is fired instantly.
 class FakeCodesignVisitor extends cs.FileCodesignVisitor {
   FakeCodesignVisitor({
     required super.tempDir,
@@ -156,7 +138,7 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
     required super.stdio,
     required super.isNotaryTool,
     required super.filepaths,
-    super.production = false,
+    super.production,
   });
 
   @override
@@ -171,6 +153,12 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
       futures,
       eagerError: true,
     );
+
+    if (!production) {
+      stdio.printStatus('\ncode signing simulation has completed, If you intend to upload the artifacts back to'
+          ' google cloud storage, please use the --production=true flag when running code signing script.\n'
+          'thanks for understanding the security concerns!\n');
+    }
   }
 
   @override
@@ -187,7 +175,6 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
       }
     }
 
-    // check on results
     Timer.periodic(
       Duration(milliseconds: 1),
       callback,
@@ -209,6 +196,45 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
   }
 }
 
+class ZipCodesignVisitor extends FakeCodesignVisitor {
+  ZipCodesignVisitor({
+    required super.tempDir,
+    required super.commitHash,
+    required super.processManager,
+    required super.codesignCertName,
+    required super.codesignPrimaryBundleId,
+    required super.codesignUserName,
+    required super.appSpecificPassword,
+    required super.codesignAppstoreId,
+    required super.codesignTeamId,
+    required super.stdio,
+    required super.isNotaryTool,
+    required super.filepaths,
+    super.production = false,
+  });
+
+  MemoryFileSystem? fileSystem;
+
+  @override
+  Future<package_arch.Archive?> unzip(File inputZip, Directory outDir) async {
+    fileSystem!.directory(outDir.path).createSync(recursive: true);
+    return null;
+  }
+
+  @override
+  Future<void> visitEmbeddedZip(EmbeddedZip file, String parentPath, String entitlementParentPath) async {
+    String currentFileName = file.path.split('/').last;
+    final File localFile = (await validateFileExists(file))!;
+    final Directory newDir = tempDir.childDirectory(currentFileName);
+
+    String absoluteDirectoryPath = newDir.absolute.path;
+    // the virtual file path is advanced by the name of the embedded zip
+    String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
+    await visitDirectory(absoluteDirectoryPath, currentZipEntitlementPath);
+    await localFile.delete();
+  }
+}
+
 void main() {
   late MemoryFileSystem fileSystem;
   late TestStdio stdio;
@@ -218,7 +244,8 @@ void main() {
   ZipCodesignVisitor? zipCodesignVisitor;
   late Directory tempDir;
   late FakeUtility utility;
-  String engineRevision = 'afwe';
+  String engineRevision = 'fake_engine_revision';
+  String fakeAritifactPath = 'darwin-x64';
   const String revision = 'abcd1234';
 
   void createRunner({String operatingSystem = 'macos', List<FakeCommand>? commands, bool zipVisitor = false}) {
@@ -236,7 +263,7 @@ void main() {
         appSpecificPassword: revision,
         codesignAppstoreId: revision,
         codesignTeamId: revision,
-        codesignFilepath: revision,
+        codesignFilepath: fakeAritifactPath,
         commitHash: revision);
 
     //initalize fake variables
@@ -257,7 +284,7 @@ void main() {
           appSpecificPassword: revision,
           codesignAppstoreId: revision,
           codesignTeamId: revision,
-          filepaths: revision.split('#'),
+          filepaths: fakeAritifactPath.split('#'),
           commitHash: revision,
           isNotaryTool: true);
 
@@ -273,7 +300,7 @@ void main() {
           appSpecificPassword: revision,
           codesignAppstoreId: revision,
           codesignTeamId: revision,
-          filepaths: revision.split('#'),
+          filepaths: fakeAritifactPath.split('#'),
           commitHash: revision,
           isNotaryTool: true);
 
@@ -281,19 +308,19 @@ void main() {
     }
   } // end of create runner
 
-  group('command simulation: ', () {
-    test('sequence of commands triggered', () async {
+  group('check commands and flags: ', () {
+    test('sequence of commands triggered, and check flag protection', () async {
       createRunner();
       processManager.addCommands(<FakeCommand>[
         FakeCommand(command: <String>[
           'gsutil',
           'cp',
-          'gs://flutter_infra_release/flutter/$revision/$revision',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
         ]),
         FakeCommand(command: <String>[
           'unzip',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
           '-d',
           '${tempDir.absolute.path}/remote_zip_0',
         ]),
@@ -306,7 +333,7 @@ void main() {
           'zip',
           '--symlinks',
           '--recurse-paths',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '.',
           '--include',
           '*'
@@ -315,7 +342,7 @@ void main() {
           'xcrun',
           'notarytool',
           'submit',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '--apple-id',
           revision,
           '--password',
@@ -340,10 +367,14 @@ void main() {
       await codesignContext.run();
       expect(processManager, hasNoRemainingExpectations);
       expect(stdio.stdout, contains('Codesigned all binaries in ${tempDir.path}'));
+      expect(
+          stdio.stdout,
+          contains(
+              ' If you intend to upload the artifacts back to google cloud storage, please use the --production=true flag when running code signing script.'));
     });
   });
 
-  group('file system structure validation: ', () {
+  group('file system structure and virtual entitlement paths: ', () {
     test('recursively visit folder-bianry structure: folder_binary_[folder_binary]', () async {
       createRunner();
       utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_binary_[folder_binary]');
@@ -355,12 +386,12 @@ void main() {
         FakeCommand(command: <String>[
           'gsutil',
           'cp',
-          'gs://flutter_infra_release/flutter/$revision/$revision',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
         ]),
         FakeCommand(command: <String>[
           'unzip',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
           '-d',
           '${tempDir.absolute.path}/remote_zip_0',
         ]),
@@ -368,7 +399,7 @@ void main() {
           'zip',
           '--symlinks',
           '--recurse-paths',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '.',
           '--include',
           '*'
@@ -377,7 +408,7 @@ void main() {
           'xcrun',
           'notarytool',
           'submit',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '--apple-id',
           revision,
           '--password',
@@ -427,14 +458,14 @@ void main() {
         FakeCommand(command: <String>[
           'gsutil',
           'cp',
-          'gs://flutter_infra_release/flutter/$revision/$revision',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
         ]),
         FakeCommand(command: <String>[
           'zip',
           '--symlinks',
           '--recurse-paths',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '.',
           '--include',
           '*'
@@ -443,7 +474,7 @@ void main() {
           'xcrun',
           'notarytool',
           'submit',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '--apple-id',
           revision,
           '--password',
@@ -470,16 +501,16 @@ void main() {
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0'));
       expect(stdio.stdout, contains('files are [binary, zip_binary, folder_binary]'));
       //the extracted folder
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/binary'));
+      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $fakeAritifactPath/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/zip_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
       expect(
-          stdio.stdout, contains('the virtual entitlement path associated with file is $revision/zip_binary/binary'));
+          stdio.stdout, contains('the virtual entitlement path associated with file is $fakeAritifactPath/zip_binary/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0/folder_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
       expect(stdio.stdout,
-          contains('the virtual entitlement path associated with file is $revision/folder_binary/binary'));
-      expect(stdio.stdout, contains('successfully notarized ${tempDir.path}/codesigned_zips/0_$revision'));
+          contains('the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary/binary'));
+      expect(stdio.stdout, contains('successfully notarized ${tempDir.path}/codesigned_zips/0_$fakeAritifactPath'));
     });
 
     test('complex, nested and mixed file structure: folder_[zip_[folder_[zip_binary]]]_[folder_[zip_binary]_binary]',
@@ -505,14 +536,14 @@ void main() {
         FakeCommand(command: <String>[
           'gsutil',
           'cp',
-          'gs://flutter_infra_release/flutter/$revision/$revision',
-          '${tempDir.absolute.path}/downloads/0_$revision',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
         ]),
         FakeCommand(command: <String>[
           'zip',
           '--symlinks',
           '--recurse-paths',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '.',
           '--include',
           '*'
@@ -521,7 +552,7 @@ void main() {
           'xcrun',
           'notarytool',
           'submit',
-          '${tempDir.absolute.path}/codesigned_zips/0_$revision',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
           '--apple-id',
           revision,
           '--password',
@@ -548,13 +579,13 @@ void main() {
       expect(
           stdio.stdout,
           contains(
-              'the virtual entitlement path associated with file is $revision/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary/binary'));
+              'the virtual entitlement path associated with file is $fakeAritifactPath/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary/binary'));
       expect(stdio.stdout,
-          contains('the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/binary'));
+          contains('the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/binary'));
       expect(
           stdio.stdout,
           contains(
-              'the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/zip_binary/binary'));
+              'the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/zip_binary/binary'));
     });
   });
 }
