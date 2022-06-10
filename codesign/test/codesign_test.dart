@@ -29,8 +29,7 @@ class FakeCodesignContext extends cs.CodesignContext {
 }
 
 class FakeUtility extends cs.Utility {
-
-  FakeUtility({ required this.tempDir, required this.rootDirectory});
+  FakeUtility({required this.tempDir, required this.rootDirectory});
 
   Directory tempDir;
   String rootDirectory;
@@ -44,7 +43,7 @@ class FakeUtility extends cs.Utility {
   @override
   FILETYPE checkFileType(String filePath, ProcessManager processManager) {
     String fileType = filePath.split('/').last.split('_').first;
-    switch(fileType){
+    switch (fileType) {
       case 'binary':
         return FILETYPE.BINARY;
       case 'zip':
@@ -61,29 +60,27 @@ class FakeUtility extends cs.Utility {
   // [binary, folder_zip_binary_[folder_binary], folder_zip_binary]
   List<String> listFiles(String filePath, ProcessManager processManager) {
     String folderName = filePath.split('/').last;
-    if(folderName == 'remote_zip_0'){
+    if (folderName == 'remote_zip_0') {
       folderName = rootDirectory;
     }
     int level = 0;
     int index = folderName.indexOf('[');
-    if(index == -1){
-      return folderName.substring(folderName.indexOf('_'))
-      .split('_').where((String s) => s.trim().isNotEmpty).toList();
+    if (index == -1) {
+      return folderName.substring(folderName.indexOf('_')).split('_').where((String s) => s.trim().isNotEmpty).toList();
     }
-    String flatNames = folderName.substring(folderName.indexOf('_')+1, index);
+    String flatNames = folderName.substring(folderName.indexOf('_') + 1, index);
     List<String> result = flatNames.split('_').where((String s) => s.trim().isNotEmpty).toList();
 
     int startIndex = -2;
-    
-    while(index < folderName.length){
-      if(folderName[index] == '['){
-        if(level == 0){
+
+    while (index < folderName.length) {
+      if (folderName[index] == '[') {
+        if (level == 0) {
           startIndex = index + 1;
         }
         level += 1;
-      }
-      else if(folderName[index] == ']'){
-        if(level == 1){
+      } else if (folderName[index] == ']') {
+        if (level == 1) {
           String childName = folderName.substring(startIndex, index); // substring is [inclusive, exclusive)
           result.add(childName);
         }
@@ -143,8 +140,8 @@ class ZipCodesignVisitor extends FakeCodesignVisitor {
 }
 
 /// a fake visitor for testing purpose
-/// 
-/// 
+///
+///
 class FakeCodesignVisitor extends cs.FileCodesignVisitor {
   FakeCodesignVisitor({
     required super.tempDir,
@@ -205,7 +202,8 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
 
   @override
   Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) async {
-    stdio.printStatus('the virtual entitlement path associated with file is $entitlementParentPath/${file.path.split('/').last}');
+    stdio.printStatus(
+        'the virtual entitlement path associated with file is $entitlementParentPath/${file.path.split('/').last}');
     print('the virtual entitlement path associated with file is $entitlementParentPath/${file.path.split('/').last}');
     return;
   }
@@ -223,11 +221,7 @@ void main() {
   String engineRevision = 'afwe';
   const String revision = 'abcd1234';
 
-  void createRunner({
-    String operatingSystem = 'macos',
-    List<FakeCommand>? commands,
-    bool zipVisitor = false
-  }) {
+  void createRunner({String operatingSystem = 'macos', List<FakeCommand>? commands, bool zipVisitor = false}) {
     stdio = TestStdio();
     fileSystem = MemoryFileSystem.test();
     // create engine version hash
@@ -244,7 +238,7 @@ void main() {
         codesignTeamId: revision,
         codesignFilepath: revision,
         commitHash: revision);
-    
+
     //initalize fake variables
     codesignContext.fileSystem = fileSystem;
     codesignContext.processManager = processManager;
@@ -252,41 +246,40 @@ void main() {
     tempDir = codesignContext.tempDir!;
     codesignContext.stdio = stdio;
 
-    if(!zipVisitor){
+    if (!zipVisitor) {
       codesignVisitor = FakeCodesignVisitor(
-        codesignCertName: revision,
-        tempDir: codesignContext.tempDir!,
-        processManager: processManager,
-        stdio: stdio,
-        codesignPrimaryBundleId: revision,
-        codesignUserName: revision,
-        appSpecificPassword: revision,
-        codesignAppstoreId: revision,
-        codesignTeamId: revision,
-        filepaths: revision.split('#'),
-        commitHash: revision,
-        isNotaryTool: true);
+          codesignCertName: revision,
+          tempDir: codesignContext.tempDir!,
+          processManager: processManager,
+          stdio: stdio,
+          codesignPrimaryBundleId: revision,
+          codesignUserName: revision,
+          appSpecificPassword: revision,
+          codesignAppstoreId: revision,
+          codesignTeamId: revision,
+          filepaths: revision.split('#'),
+          commitHash: revision,
+          isNotaryTool: true);
 
       codesignContext.codesignVisitor = codesignVisitor;
-    }
-    else{
+    } else {
       zipCodesignVisitor = ZipCodesignVisitor(
-        codesignCertName: revision,
-        tempDir: codesignContext.tempDir!,
-        processManager: processManager,
-        stdio: stdio,
-        codesignPrimaryBundleId: revision,
-        codesignUserName: revision,
-        appSpecificPassword: revision,
-        codesignAppstoreId: revision,
-        codesignTeamId: revision,
-        filepaths: revision.split('#'),
-        commitHash: revision,
-        isNotaryTool: true);
+          codesignCertName: revision,
+          tempDir: codesignContext.tempDir!,
+          processManager: processManager,
+          stdio: stdio,
+          codesignPrimaryBundleId: revision,
+          codesignUserName: revision,
+          appSpecificPassword: revision,
+          codesignAppstoreId: revision,
+          codesignTeamId: revision,
+          filepaths: revision.split('#'),
+          commitHash: revision,
+          isNotaryTool: true);
 
-        codesignContext.codesignVisitor = zipCodesignVisitor;
-      }
-  }// end of create runner
+      codesignContext.codesignVisitor = zipCodesignVisitor;
+    }
+  } // end of create runner
 
   group('command simulation: ', () {
     test('sequence of commands triggered', () async {
@@ -426,7 +419,9 @@ void main() {
       fileSystem.file('${tempDir.path}/remote_zip_0/binary').createSync(recursive: true);
       fileSystem.file('${tempDir.path}/remote_zip_0/zip_binary').createSync(recursive: true);
       fileSystem.file('${tempDir.path}/remote_zip_0/folder_binary/binary').createSync(recursive: true);
-      fileSystem.file('${tempDir.path}/zip_binary/binary').createSync(recursive: true); //solved: mismatch of filesystem and tempdir filesystem
+      fileSystem
+          .file('${tempDir.path}/zip_binary/binary')
+          .createSync(recursive: true); //solved: mismatch of filesystem and tempdir filesystem
 
       processManager.addCommands(<FakeCommand>[
         FakeCommand(command: <String>[
@@ -478,24 +473,30 @@ void main() {
       expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/zip_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/zip_binary/binary'));
+      expect(
+          stdio.stdout, contains('the virtual entitlement path associated with file is $revision/zip_binary/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0/folder_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/folder_binary/binary'));
+      expect(stdio.stdout,
+          contains('the virtual entitlement path associated with file is $revision/folder_binary/binary'));
       expect(stdio.stdout, contains('successfully notarized ${tempDir.path}/codesigned_zips/0_$revision'));
     });
 
-    test('complex, nested and mixed file structure: folder_[zip_[folder_[zip_binary]]]_[folder_[zip_binary]_binary]', () async {
+    test('complex, nested and mixed file structure: folder_[zip_[folder_[zip_binary]]]_[folder_[zip_binary]_binary]',
+        () async {
       createRunner(zipVisitor: true);
 
       zipCodesignVisitor!.fileSystem = fileSystem;
       codesignContext.codesignVisitor = zipCodesignVisitor;
 
-      utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_[zip_[folder_[zip_binary]]]_[folder_binary_[zip_binary]]');
+      utility = FakeUtility(
+          tempDir: tempDir, rootDirectory: 'folder_[zip_[folder_[zip_binary]]]_[folder_binary_[zip_binary]]');
       zipCodesignVisitor!.utility = utility;
       // structure: folder_[zip_[folder_[zip_binary]]]_[folder_[zip_binary]_binary]
       fileSystem.file('${tempDir.path}/remote_zip_0/zip_[folder_[zip_binary]]').createSync(recursive: true);
-      fileSystem.file('${tempDir.path}/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary').createSync(recursive: true);
+      fileSystem
+          .file('${tempDir.path}/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary')
+          .createSync(recursive: true);
       fileSystem.file('${tempDir.path}/zip_binary/binary').createSync(recursive: true);
 
       fileSystem.file('${tempDir.path}/remote_zip_0/folder_binary_[zip_binary]/zip_binary').createSync(recursive: true);
@@ -544,9 +545,16 @@ void main() {
 
       await codesignContext.run();
       expect(processManager, hasNoRemainingExpectations);
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary/binary'));
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/binary'));
-      expect(stdio.stdout, contains('the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/zip_binary/binary'));
+      expect(
+          stdio.stdout,
+          contains(
+              'the virtual entitlement path associated with file is $revision/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary/binary'));
+      expect(stdio.stdout,
+          contains('the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/binary'));
+      expect(
+          stdio.stdout,
+          contains(
+              'the virtual entitlement path associated with file is $revision/folder_binary_[zip_binary]/zip_binary/binary'));
     });
   });
 }

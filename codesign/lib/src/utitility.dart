@@ -8,8 +8,7 @@ import 'package:process/process.dart';
 
 enum FILETYPE { FOLDER, ZIP, BINARY, OTHER }
 
-class Utility{
-
+class Utility {
   /// Check mime-type of file at [filePath] to determine if it is binary.
   bool isBinary(String filePath, ProcessManager processManager) {
     final ProcessResult result = processManager.runSync(
@@ -71,4 +70,3 @@ class Utility{
         .isEmpty;
   }
 }
-
