@@ -95,6 +95,23 @@ class FileCodesignVisitor extends FileVisitor {
 </plist>
 ''';
 
+  static const String fixItInstructions = '''
+Codesign test failed.
+
+We compared binary files in engine artifacts with those listed in 
+entilement.txt and withoutEntitlements.txt, and the binary files do not match. 
+*entitlements.txt is the configuartion file encoded in engine artifact zip, 
+built by BUID.gn and Ninja, to detail the list of entitlement files.
+Either an expected file was not found in *entitlements.txt, or an unexpected 
+file was found in entitlements.txt.
+
+This usually happens either during an engine roll.
+If this is a valid change, then BUILD.gn needs to be changed.
+Specifically, update [entitlements.txt] or
+[withoutEntitlements.txt] lists, depending on if the file should have macOS
+entitlements applied during codesigning.
+''';
+
   /// helper function to generate unique next IDs.
   int _nextId = 0;
   int get nextId {
@@ -251,11 +268,10 @@ class FileCodesignVisitor extends FileVisitor {
   Future<void> codesign(File file, BinaryFile binaryFile, String entitlementCurrentPath) async {
     if (!fileWithEntitlements!.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements!.contains(entitlementCurrentPath)) {
-      throw Exception(
-        'The system has detected a binary file at $entitlementCurrentPath\n'
-        'but it is not in the entitlements configuartion files your provided \n'
-        'if this is a new engine artifact, please add it to one of the entilements.txt files',
-      );
+      print('The system has detected a binary file at $entitlementCurrentPath\n'
+          'but it is not in the entitlements configuartion files your provided \n'
+          'if this is a new engine artifact, please add it to one of the entilements.txt files\n');
+      throw Exception(fixItInstructions);
     }
     print('\n signing file at path ${file.absolute.path}');
     print('\n the virtual entitlement path associated with file is $entitlementCurrentPath');
@@ -561,7 +577,7 @@ class FileCodesignVisitor extends FileVisitor {
       }
     }
     if (diffs > 0) {
-      throw '$diffs diffs found!\n';
+      throw Exception('$diffs diffs found!\n$fixItInstructions');
     }
     return Future.value(null);
   }

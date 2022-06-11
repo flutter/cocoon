@@ -29,7 +29,7 @@ class FakeCodesignContext extends cs.CodesignContext {
 }
 
 /// A fake utitlity class for test environment.
-/// 
+///
 /// Overrides file check functions and ls functions, to be based on filenames
 /// of input directory.
 class FakeUtility extends cs.Utility {
@@ -139,7 +139,12 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
     required super.isNotaryTool,
     required super.filepaths,
     super.production,
+    this.fakeArtifactPath = 'fakeCodesignVisitor_aritifact_path',
+    this.fixitCheckMode = false,
   });
+
+  String fakeArtifactPath;
+  bool fixitCheckMode;
 
   @override
   Future<void> validateAll() async {
@@ -184,11 +189,14 @@ class FakeCodesignVisitor extends cs.FileCodesignVisitor {
 
   @override
   Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async {
-    return <String>{};
+    return <String>{'$fakeArtifactPath/binary'};
   }
 
   @override
   Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) async {
+    if (fixitCheckMode) {
+      await super.visitBinaryFile(file, entitlementParentPath); //for exception testings
+    }
     stdio.printStatus(
         'the virtual entitlement path associated with file is $entitlementParentPath/${file.path.split('/').last}');
     print('the virtual entitlement path associated with file is $entitlementParentPath/${file.path.split('/').last}');
@@ -375,6 +383,102 @@ void main() {
   });
 
   group('file system structure and virtual entitlement paths: ', () {
+    test('should throw fix it exception when file paths do not match', () async {
+      createRunner();
+      utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_[folder_binary]');
+      codesignVisitor!.utility = utility;
+      codesignVisitor!.fakeArtifactPath = fakeAritifactPath;
+      codesignVisitor!.fixitCheckMode = true;
+      // structure: folder_binary_[folder_binary]
+      fileSystem.file('${tempDir.path}/remote_zip_0/folder_binary/binary').createSync(recursive: true);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(command: <String>[
+          'gsutil',
+          'cp',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
+        ]),
+        FakeCommand(command: <String>[
+          'unzip',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
+          '-d',
+          '${tempDir.absolute.path}/remote_zip_0',
+        ]),
+      ]);
+
+      expect(() => codesignContext.run(), throwsA(isA<Exception>()));
+    });
+
+    test('should not throw fix it exception when file names match', () async {
+      createRunner();
+      utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_binary');
+      codesignVisitor!.utility = utility;
+      codesignVisitor!.fakeArtifactPath = fakeAritifactPath;
+      codesignVisitor!.fixitCheckMode = true;
+      // structure: folder_binary_[folder_binary]
+      fileSystem.file('${tempDir.path}/remote_zip_0/binary').createSync(recursive: true);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(command: <String>[
+          'gsutil',
+          'cp',
+          'gs://flutter_infra_release/flutter/$revision/$fakeAritifactPath',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
+        ]),
+        FakeCommand(command: <String>[
+          'unzip',
+          '${tempDir.absolute.path}/downloads/0_$fakeAritifactPath',
+          '-d',
+          '${tempDir.absolute.path}/remote_zip_0',
+        ]),
+        FakeCommand(command: <String>[
+          'codesign',
+          '-f',
+          '-s',
+          'abcd1234',
+          '/.tmp_rand0/conductor_codesignrand0/remote_zip_0/binary',
+          '--timestamp',
+          '--options=runtime',
+          '--entitlements',
+          '/.tmp_rand0/conductor_codesignrand0/Entitlements.plist',
+        ]),
+        FakeCommand(command: <String>[
+          'zip',
+          '--symlinks',
+          '--recurse-paths',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
+          '.',
+          '--include',
+          '*'
+        ]),
+        FakeCommand(command: <String>[
+          'xcrun',
+          'notarytool',
+          'submit',
+          '${tempDir.absolute.path}/codesigned_zips/0_$fakeAritifactPath',
+          '--apple-id',
+          revision,
+          '--password',
+          revision,
+          '--team-id',
+          revision,
+        ], stdout: 'id: abc12345)'),
+        FakeCommand(command: <String>[
+          'xcrun',
+          'notarytool',
+          'info',
+          'abc12345',
+          '--password',
+          revision,
+          '--apple-id',
+          revision,
+          '--team-id',
+          revision
+        ], stdout: ' status: Accepted'),
+      ]);
+
+      expect(() => codesignContext.run(), returnsNormally);
+    });
+
     test('recursively visit folder-bianry structure: folder_binary_[folder_binary]', () async {
       createRunner();
       utility = FakeUtility(tempDir: tempDir, rootDirectory: 'folder_binary_[folder_binary]');
@@ -504,8 +608,8 @@ void main() {
       expect(stdio.stdout, contains('the virtual entitlement path associated with file is $fakeAritifactPath/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/zip_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
-      expect(
-          stdio.stdout, contains('the virtual entitlement path associated with file is $fakeAritifactPath/zip_binary/binary'));
+      expect(stdio.stdout,
+          contains('the virtual entitlement path associated with file is $fakeAritifactPath/zip_binary/binary'));
       expect(stdio.stdout, contains('visiting directory ${tempDir.path}/remote_zip_0/folder_binary'));
       expect(stdio.stdout, contains('files are [binary]'));
       expect(stdio.stdout,
@@ -580,12 +684,16 @@ void main() {
           stdio.stdout,
           contains(
               'the virtual entitlement path associated with file is $fakeAritifactPath/zip_[folder_[zip_binary]]/folder_[zip_binary]/zip_binary/binary'));
-      expect(stdio.stdout,
-          contains('the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/binary'));
       expect(
-          stdio.stdout,
-          contains(
-              'the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/zip_binary/binary'));
+        stdio.stdout,
+        contains(
+            'the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/binary'),
+      );
+      expect(
+        stdio.stdout,
+        contains(
+            'the virtual entitlement path associated with file is $fakeAritifactPath/folder_binary_[zip_binary]/zip_binary/binary'),
+      );
     });
   });
 }
