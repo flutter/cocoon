@@ -60,12 +60,19 @@ class RecoverCommand extends Command<bool> {
     Logger? loggerOverride,
     this.fs = const LocalFileSystem(),
   }) : logger = loggerOverride ?? Logger.root {
-    argParser.addOption(
-      'cocoon-root',
-      help: 'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
+    argParser
+      ..addOption(
+        'cocoon-root',
+        help:
+            'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
             'then used to open Xcode.',
-      mandatory: true,
-    );
+        mandatory: true,
+      )
+      ..addOption(
+        'timeout',
+        help: 'Integer number of seconds to allow Xcode to run before killing it.',
+        defaultsTo: '300',
+      );
   }
 
   final Logger logger;
@@ -76,18 +83,66 @@ class RecoverCommand extends Command<bool> {
   final String description =
       'Open Xcode UI to allow it to sync debug symbols from the iPhone';
 
+  /// Xcode Project workspace file for the build dashboard Flutter app.
+  ///
+  /// Should be located at //cocoon/dashboard/ios/Runner.xcodeproj/project.xcworkspace.
+  Directory get dashboardXcWorkspace {
+    final String cocoonRootPath = argResults!['cocoon-root'];
+    final Directory cocoonRoot = fs.directory(cocoonRootPath);
+    final Directory dashboardXcWorkspace = cocoonRoot
+        .childDirectory('dashboard')
+        .childDirectory('ios')
+        .childDirectory('Runner.xcodeproj')
+        .childDirectory('project.xcworkspace')
+        .absolute;
+    if (!dashboardXcWorkspace.existsSync()) {
+      throw StateError(
+        'You provided the --cocoon-root option with "$cocoonRootPath", and the device doctor tried to '
+        "locate the build dashboard's project.xcworkspace directory at \"${dashboardXcWorkspace.path}\" "
+        'but that path does not exist on disk.',
+      );
+    }
+    return dashboardXcWorkspace;
+  }
+
   @override
   Future<bool> run() async {
-    final Directory cocoonRoot = fs.directory(argResults['cocoon-root']);
-    final io.ProcessResult result = await processManager.run(<String>['open', xcodeDir.absolute.path]);
+    final int? timeoutSeconds = int.tryParse(argResults!['timeout']);
+    if (timeoutSeconds == null) {
+      throw ArgumentError('Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
+    }
+    final Duration timeout = Duration(seconds: timeoutSeconds);
+    logger.info('Launching Xcode...');
+    final Future<io.ProcessResult> xcodeFuture = processManager.run(<String>[
+      'open',
+      '-n', // Opens a new instance of the application even if one is already running
+      '-F', // Opens the application "fresh," without restoring windows
+      '-W', // Wait for the opened application (Xcode) to close
+      dashboardXcWorkspace.path,
+    ]);
+    xcodeFuture.then((io.ProcessResult result) {
+      logger.info('Open closed...');
+      final String stdout = result.stdout.trim();
+      if (stdout.isNotEmpty) {
+        logger.info('stdout from `open`:\n$stdout\n');
+      }
+      final String stderr = result.stderr.trim();
+      if (stderr.isNotEmpty) {
+        logger.info('stderr from `open`:\n$stderr\n');
+      }
+      if (result.exitCode != 0) {
+        throw Exception('Failed opening Xcode!');
+      }
+    });
+    logger.info('Waiting for $timeoutSeconds seconds');
+    await Future.delayed(timeout);
+    logger.info('Waited for $timeoutSeconds seconds, now killing Xcode');
+    final io.ProcessResult result = await processManager.run(<String>['killall', '-9', 'Xcode']);
+
     if (result.exitCode != 0) {
-      logger.severe('Failed opening Xcode!');
+      logger.severe('Failed killing Xcode!');
       return false;
     }
-    const Duration timeout = Duration(minutes: 2);
-    logger.info('Waiting for $timeout');
-    await Future.delayed(timeout);
-    // TODO kill Xcode
     return true;
   }
 }

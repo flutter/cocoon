@@ -2,12 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:io';
+
+import 'package:args/command_runner.dart';
 import 'package:device_doctor/src/ios_debug_symbol_doctor.dart';
+import 'package:fake_async/fake_async.dart';
+import 'package:file/memory.dart';
+import 'package:logging/logging.dart';
+import 'package:mockito/mockito.dart';
 
 import 'package:test/test.dart';
 
+import 'utils.dart';
+
 Future<void> main() async {
-  test('surfaces "Fetching debug symbols" error messages', () {
+  test('XCDevice surfaces "Fetching debug symbols" error messages', () {
     final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithErrors);
     final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
       return device.hasError;
@@ -21,12 +31,77 @@ Future<void> main() async {
     expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
   });
 
-  test('ignores "phone is locked" errors', () {
+  test('XCDevice ignores "phone is locked" errors', () {
     final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithNonFatalErrors);
     final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
       return device.hasError;
     });
     expect(erroredDevices, isEmpty);
+  });
+
+  CommandRunner<bool> _createTestRunner() {
+    return CommandRunner(
+      'ios-debug-symbol-doctor',
+      'for testing',
+    );
+  }
+
+  group('recover sub-command opens Xcode, waits for timeout, then kills Xcode', () {
+    late MockProcessManager processManager;
+    late TestLogger logger;
+    const String cocoonPath = '/path/to/cocoon';
+    const String xcworkspacePath = '$cocoonPath/dashboard/ios/Runner.xcodeproj/project.xcworkspace';
+    late MemoryFileSystem fs;
+
+    setUp(() {
+      processManager = MockProcessManager();
+      logger = TestLogger();
+      fs = MemoryFileSystem();
+      fs.directory(xcworkspacePath).createSync(recursive: true);
+    });
+
+    test('dart ios_debug_symbol_doctor.dart recover opens Xcode, waits, then kills it', () async {
+      when(
+        processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
+      ).thenAnswer((_) async {
+        return ProcessResult(1, 0, '', '');
+      });
+      bool killedXcode = false;
+      when(
+        processManager.run(<String>['killall', '-9', 'Xcode']),
+      ).thenAnswer((_) async {
+        killedXcode = true;
+        return ProcessResult(2, 0, '', '');
+      });
+      final bool result = fakeAsync<bool>((FakeAsync time) {
+
+        final CommandRunner<bool> runner = _createTestRunner();
+        final command = RecoverCommand(
+          processManager: processManager,
+          loggerOverride: logger,
+          fs: fs,
+        );
+        runner.addCommand(command);
+        bool? result;
+        runner
+            .run(<String>['recover', '--cocoon-root=$cocoonPath'])
+            .then((bool? value) => result = value);
+        time.elapse(const Duration(seconds: 299));
+        // We have not yet reached the timeout, so Xcode should still be open
+        expect(result, isNull);
+        expect(killedXcode, isFalse);
+        time.elapse(const Duration(seconds: 2));
+        expect(result, isNotNull);
+        expect(killedXcode, isTrue);
+        return result!;
+      });
+      expect(result, isTrue);
+      expect(logger.logs[Level.INFO], containsAllInOrder(<String>[
+        'Launching Xcode...',
+        'Waiting for 300 seconds',
+        'Waited for 300 seconds, now killing Xcode',
+      ]));
+    });
   });
 }
 
