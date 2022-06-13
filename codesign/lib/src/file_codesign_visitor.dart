@@ -24,20 +24,20 @@ enum NotaryStatus {
 
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor extends FileVisitor {
-  FileCodesignVisitor(
-      {required this.tempDir,
-      required this.commitHash,
-      required this.processManager,
-      required this.codesignCertName,
-      required this.codesignPrimaryBundleId,
-      required this.codesignUserName,
-      required this.appSpecificPassword,
-      required this.codesignAppstoreId,
-      required this.codesignTeamId,
-      required this.stdio,
-      required this.isNotaryTool,
-      required this.filepaths,
-      this.production = false});
+  FileCodesignVisitor({
+    required this.tempDir,
+    required this.commitHash,
+    required this.processManager,
+    required this.codesignCertName,
+    required this.codesignPrimaryBundleId,
+    required this.codesignUserName,
+    required this.appSpecificPassword,
+    required this.codesignAppstoreId,
+    required this.codesignTeamId,
+    required this.stdio,
+    required this.filepaths,
+    this.production = false,
+  });
 
   /// Temp [Directory] to download/extract files to.
   ///
@@ -53,7 +53,6 @@ class FileCodesignVisitor extends FileVisitor {
   final String codesignAppstoreId;
   final String codesignTeamId;
   final Stdio stdio;
-  final bool isNotaryTool;
   final bool production;
   final List<String> filepaths;
   // Utility utility = Utility();

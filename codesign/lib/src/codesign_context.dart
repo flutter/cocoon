@@ -16,7 +16,7 @@ class CodesignContext {
     required this.appSpecificPassword,
     required this.codesignAppstoreId,
     required this.codesignTeamId,
-    required this.codesignFilepath,
+    required this.codesignFilepaths,
     required this.commitHash,
     this.production = false,
   });
@@ -27,7 +27,7 @@ class CodesignContext {
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
-  final String codesignFilepath;
+  final List<String> codesignFilepaths;
   final String commitHash;
   final bool production;
   Directory? tempDir;
@@ -41,33 +41,13 @@ class CodesignContext {
     stdin: stdin,
   );
 
-  bool checkXcodeVersion() {
-    bool isNotaryTool = true;
-    print('checking Xcode version...');
-    final ProcessResult result = processManager.runSync(
-      <String>[
-        'xcodebuild',
-        '-version',
-      ],
-    );
-    final List<String> outArray = (result.stdout as String).split('\n');
-    final int xcodeVersion = int.parse(outArray[0].split(' ')[1].split('.')[0]);
-    if (xcodeVersion <= 12) {
-      isNotaryTool = false;
-    }
-
-    print('based on your xcode major version of $xcodeVersion, the decision to use notarytool is $isNotaryTool');
-    return isNotaryTool;
-  }
-
   void createTempDirectory() {
     tempDir ??= fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
   }
 
   Future<void> run() async {
-    final bool isNotaryTool = checkXcodeVersion();
+    print('production is $production, and its type is ${production.runtimeType}');
     // assume file path is passed in as connected by # sign. e.g. path1#path2#path3
-    List<String> filepaths = codesignFilepath.split('#');
     createTempDirectory();
 
     codesignVisitor ??= FileCodesignVisitor(
@@ -81,12 +61,19 @@ class CodesignContext {
       stdio: stdio,
       codesignAppstoreId: codesignAppstoreId,
       codesignTeamId: codesignTeamId,
-      isNotaryTool: isNotaryTool,
       production: production,
-      filepaths: filepaths,
+      filepaths: codesignFilepaths,
     );
 
-    await codesignVisitor!.validateAll();
-    stdio.printStatus('Codesigned all binaries in ${tempDir!.path}');
+    try {
+      await codesignVisitor!.validateAll();
+      stdio.printStatus('Codesigned all binaries in ${tempDir!.path}');
+    } finally {
+      if (production) {
+        await tempDir?.delete(recursive: true);
+      } else {
+        stdio.printStatus('Codesign test run finished. You can examine files at ${tempDir!.path}');
+      }
+    }
   }
 }

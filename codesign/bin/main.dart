@@ -34,7 +34,9 @@ const String kCodesignFilepath = 'filepath';
 ///
 /// Usage:
 /// dart run bin/main.dart --commit=a5967ed309ef2beb9625f128571f7060597b5eda
-/// --production=false --filepath=darwin-x64/FlutterMacOS.framework.zip#ios/artifacts.zip#dart-sdk-darwin-arm64.zip
+/// --filepath=darwin-x64/FlutterMacOS.framework.zip --filepath=ios/artifacts.zip
+/// --filepath=dart-sdk-darwin-arm64.zip
+/// ( add `--production` if this is intended for production)
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
@@ -68,14 +70,20 @@ Future<void> main(List<String> args) async {
       kCodesignTeamId,
       help: 'Team-id is used by notary service for xcode version 13+.',
     )
-    ..addOption(
+    ..addMultiOption(
       kCodesignFilepath,
       help:
-          'the # deliminated zip file paths to be codesigned. e.g. darwin-x64/font-subset.zip#darwin-x64-release/gen_snapshot.zip',
+          'the zip file paths to be codesigned. e.g. --filepath=darwin-x64/font-subset.zip'
+          ' --filepath=darwin-x64-release/gen_snapshot.zip --filepath=dart-sdk-darwin-arm64.zip',
     )
-    ..addOption(kCommit,
-        help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing')
-    ..addOption(kProduction, help: 'whether we are going to upload the artifacts back to GCS for production');
+    ..addOption(
+      kCommit,
+      help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing',
+    )
+    ..addFlag(
+      kProduction,
+      help: 'whether we are going to upload the artifacts back to GCS for production',
+    );
 
   final ArgResults argResults = parser.parse(args);
 
@@ -89,8 +97,9 @@ Future<void> main(List<String> args) async {
   final String appSpecificPassword = getValueFromEnvOrArgs(kAppSpecificPassword, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreId, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamId, argResults, platform.environment)!;
-  final String codesignFilepath = getValueFromEnvOrArgs(kCodesignFilepath, argResults, platform.environment)!;
-  final bool production = getValueFromEnvOrArgs(kProduction, argResults, platform.environment)! == "true";
+  
+  final List<String> codesignFilepaths = argResults[kCodesignFilepath]!;
+  final bool production = argResults[kProduction] as bool;
 
   if (!platform.isMacOS) {
     throw ConductorException(
@@ -100,14 +109,14 @@ Future<void> main(List<String> args) async {
   }
 
   return CodesignContext(
-          codesignCertName: codesignCertName,
-          codesignPrimaryBundleId: codesignPrimaryBundleId,
-          codesignUserName: codesignUserName,
-          commitHash: commit,
-          appSpecificPassword: appSpecificPassword,
-          codesignAppstoreId: codesignAppstoreId,
-          codesignTeamId: codesignTeamId,
-          codesignFilepath: codesignFilepath,
-          production: production)
-      .run();
+    codesignCertName: codesignCertName,
+    codesignPrimaryBundleId: codesignPrimaryBundleId,
+    codesignUserName: codesignUserName,
+    commitHash: commit,
+    appSpecificPassword: appSpecificPassword,
+    codesignAppstoreId: codesignAppstoreId,
+    codesignTeamId: codesignTeamId,
+    codesignFilepaths: codesignFilepaths,
+    production: production,
+  ).run();
 }
