@@ -49,7 +49,8 @@ class MockProcessManager extends Mock implements ProcessManager {
     covariant Encoding? stdoutEncoding = systemEncoding,
     covariant Encoding? stderrEncoding = systemEncoding,
   }) {
-    return super.noSuchMethod(Invocation.method(#run, [command]), returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')));
+    return super
+        .noSuchMethod(Invocation.method(#run, [command]), returnValue: Future.value(ProcessResult(1, 0, 'abc', 'def')));
   }
 }
 
@@ -92,8 +93,7 @@ class TestLogger implements Logger {
 
   final Map<Level, List<String>> logs = <Level, List<String>>{};
 
-  void log(Level logLevel, Object? message,
-    [Object? error, StackTrace? stackTrace, Zone? zone]) {
+  void log(Level logLevel, Object? message, [Object? error, StackTrace? stackTrace, Zone? zone]) {
     logs[logLevel] ??= <String>[];
     logs[logLevel]!.add(message.toString());
   }
@@ -101,17 +101,14 @@ class TestLogger implements Logger {
   void finest(Object? message, [Object? error, StackTrace? stackTrace]) =>
       log(Level.FINEST, message, error, stackTrace);
 
-  void finer(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      log(Level.FINER, message, error, stackTrace);
+  void finer(Object? message, [Object? error, StackTrace? stackTrace]) => log(Level.FINER, message, error, stackTrace);
 
-  void fine(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      log(Level.FINE, message, error, stackTrace);
+  void fine(Object? message, [Object? error, StackTrace? stackTrace]) => log(Level.FINE, message, error, stackTrace);
 
   void config(Object? message, [Object? error, StackTrace? stackTrace]) =>
       log(Level.CONFIG, message, error, stackTrace);
 
-  void info(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      log(Level.INFO, message, error, stackTrace);
+  void info(Object? message, [Object? error, StackTrace? stackTrace]) => log(Level.INFO, message, error, stackTrace);
 
   void warning(Object? message, [Object? error, StackTrace? stackTrace]) =>
       log(Level.WARNING, message, error, stackTrace);
@@ -119,6 +116,5 @@ class TestLogger implements Logger {
   void severe(Object? message, [Object? error, StackTrace? stackTrace]) =>
       log(Level.SEVERE, message, error, stackTrace);
 
-  void shout(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      log(Level.SHOUT, message, error, stackTrace);
+  void shout(Object? message, [Object? error, StackTrace? stackTrace]) => log(Level.SHOUT, message, error, stackTrace);
 }

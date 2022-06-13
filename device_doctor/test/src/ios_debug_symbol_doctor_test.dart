@@ -74,7 +74,6 @@ Future<void> main() async {
         return ProcessResult(2, 0, '', '');
       });
       final bool result = fakeAsync<bool>((FakeAsync time) {
-
         final CommandRunner<bool> runner = _createTestRunner();
         final command = RecoverCommand(
           processManager: processManager,
@@ -83,9 +82,7 @@ Future<void> main() async {
         );
         runner.addCommand(command);
         bool? result;
-        runner
-            .run(<String>['recover', '--cocoon-root=$cocoonPath'])
-            .then((bool? value) => result = value);
+        runner.run(<String>['recover', '--cocoon-root=$cocoonPath']).then((bool? value) => result = value);
         time.elapse(const Duration(seconds: 299));
         // We have not yet reached the timeout, so Xcode should still be open
         expect(result, isNull);
@@ -96,11 +93,13 @@ Future<void> main() async {
         return result!;
       });
       expect(result, isTrue);
-      expect(logger.logs[Level.INFO], containsAllInOrder(<String>[
-        'Launching Xcode...',
-        'Waiting for 300 seconds',
-        'Waited for 300 seconds, now killing Xcode',
-      ]));
+      expect(
+          logger.logs[Level.INFO],
+          containsAllInOrder(<String>[
+            'Launching Xcode...',
+            'Waiting for 300 seconds',
+            'Waited for 300 seconds, now killing Xcode',
+          ]));
     });
   });
 }

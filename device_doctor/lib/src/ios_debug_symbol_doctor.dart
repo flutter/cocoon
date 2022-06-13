@@ -22,8 +22,7 @@ class DiagnoseCommand extends Command<bool> {
   final ProcessManager processManager;
 
   final String name = 'diagnose';
-  final String description =
-      'Diagnose whether attached iOS devices have errors.';
+  final String description = 'Diagnose whether attached iOS devices have errors.';
 
   Future<bool> run() async {
     final List<String> command = <String>['xcrun', 'xcdevice', 'list'];
@@ -36,10 +35,8 @@ class DiagnoseCommand extends Command<bool> {
       );
       return false;
     }
-    final Iterable<XCDevice> devices =
-        XCDevice.parseJson(result.stdout as String);
-    final Iterable<XCDevice> devicesWithErrors =
-        devices.where((XCDevice device) => device.hasError);
+    final Iterable<XCDevice> devices = XCDevice.parseJson(result.stdout as String);
+    final Iterable<XCDevice> devicesWithErrors = devices.where((XCDevice device) => device.hasError);
 
     if (devicesWithErrors.isNotEmpty) {
       logger.severe('Found devices with errors!');
@@ -63,8 +60,7 @@ class RecoverCommand extends Command<bool> {
     argParser
       ..addOption(
         'cocoon-root',
-        help:
-            'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
+        help: 'Path to the root of the Cocoon repo. This is used to find the Build dashboard macos project, which is '
             'then used to open Xcode.',
         mandatory: true,
       )
@@ -80,8 +76,7 @@ class RecoverCommand extends Command<bool> {
   final FileSystem fs;
 
   final String name = 'recover';
-  final String description =
-      'Open Xcode UI to allow it to sync debug symbols from the iPhone';
+  final String description = 'Open Xcode UI to allow it to sync debug symbols from the iPhone';
 
   /// Xcode Project workspace file for the build dashboard Flutter app.
   ///
@@ -158,8 +153,7 @@ class XCDevice {
     required this.name,
   });
 
-  static const String _debugSymbolDescriptionPattern =
-      'iPhone is busy: Fetching debug symbols for iPhone';
+  static const String _debugSymbolDescriptionPattern = 'iPhone is busy: Fetching debug symbols for iPhone';
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
