@@ -72,8 +72,7 @@ Future<void> main(List<String> args) async {
     )
     ..addMultiOption(
       kCodesignFilepath,
-      help:
-          'the zip file paths to be codesigned. e.g. --filepath=darwin-x64/font-subset.zip'
+      help: 'the zip file paths to be codesigned. e.g. --filepath=darwin-x64/font-subset.zip'
           ' --filepath=darwin-x64-release/gen_snapshot.zip --filepath=dart-sdk-darwin-arm64.zip',
     )
     ..addOption(
@@ -97,7 +96,7 @@ Future<void> main(List<String> args) async {
   final String appSpecificPassword = getValueFromEnvOrArgs(kAppSpecificPassword, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreId, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamId, argResults, platform.environment)!;
-  
+
   final List<String> codesignFilepaths = argResults[kCodesignFilepath]!;
   final bool production = argResults[kProduction] as bool;
 
