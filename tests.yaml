@@ -20,6 +20,11 @@ tasks:
   - task: licenses_check
     script: test_utilities/bin/licenses.sh
 
+  #temporarily move to front in PRs, so that it can report errors earlier
+
+  - task: codesign
+    script: test_utilities/bin/dart_test_runner.sh
+
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
 
@@ -32,5 +37,4 @@ tasks:
   - task: device_doctor
     script: test_utilities/bin/dart_test_runner.sh
 
-  - task: codesign
-    script: test_utilities/bin/dart_test_runner.sh
+

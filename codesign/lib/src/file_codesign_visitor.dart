@@ -3,12 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io' as io;
-import 'dart:typed_data';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
-import 'package:archive/archive_io.dart' as package_arch;
 import 'package:process/process.dart';
 
 /// Interface for classes that interact with files nested inside of [RemoteZip]s.
