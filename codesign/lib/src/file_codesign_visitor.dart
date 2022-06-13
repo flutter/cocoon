@@ -98,7 +98,7 @@ class FileCodesignVisitor extends FileVisitor {
   Future<void> validateAll() async {
     return Future.value(null);
   }
-  
+
   @override
   Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) {
     throw UnimplementedError();

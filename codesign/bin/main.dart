@@ -23,7 +23,7 @@ const String kCodesignFilepath = 'filepath';
 
 /// Perform Mac code signing based on file paths.
 ///
-/// If `--production` is set to true, code signed artifacts will be uploaded 
+/// If `--production` is set to true, code signed artifacts will be uploaded
 /// back to google cloud storage.
 /// Otherwise, nothing will be uploaded back for production. default value is
 /// false.

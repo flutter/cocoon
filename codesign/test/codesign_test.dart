@@ -5,6 +5,4 @@
 import 'package:codesign/codesign.dart';
 import 'package:test/test.dart';
 
-void main() {
-  
-}
+void main() {}
