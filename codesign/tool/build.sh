@@ -4,9 +4,9 @@
 # found in the LICENSE file.
 
 # Fetches corresponding dart sdk from CIPD for different platforms, builds
-# an executable binary of device_doctor to `build` folder.
+# an executable binary of codesign to `build` folder.
 #
-# This currently supports linux and mac.
+# This build script will be triggered on Mac code signing machines. 
 
 set -e
 
