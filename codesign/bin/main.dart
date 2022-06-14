@@ -72,8 +72,9 @@ Future<void> main(List<String> args) async {
     )
     ..addMultiOption(
       kCodesignFilepath,
-      help: 'the zip file paths to be codesigned. e.g. --filepath=darwin-x64/font-subset.zip'
-          ' --filepath=darwin-x64-release/gen_snapshot.zip --filepath=dart-sdk-darwin-arm64.zip',
+      help: 'The zip file paths to be codesigned. Pass this option multiple'
+          'times to codesign multiple zip files',
+      valueHelp: 'darwin-x64/font-subset.zip',
     )
     ..addOption(
       kCommit,

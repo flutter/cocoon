@@ -57,8 +57,8 @@ class FileCodesignVisitor extends FileVisitor {
   final List<String> filepaths;
   // Utility utility = Utility();
   // TODO(xilaizhang): add back utitlity in later splits
-  Set<String>? fileWithEntitlements;
-  Set<String>? fileWithoutEntitlements;
+  Set<String> fileWithEntitlements = <String>{};
+  Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
 
   late final File entitlementsFile = tempDir.childFile('Entitlements.plist')

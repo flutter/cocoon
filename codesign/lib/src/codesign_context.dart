@@ -46,8 +46,6 @@ class CodesignContext {
   }
 
   Future<void> run() async {
-    print('production is $production, and its type is ${production.runtimeType}');
-    // assume file path is passed in as connected by # sign. e.g. path1#path2#path3
     createTempDirectory();
 
     codesignVisitor ??= FileCodesignVisitor(
