@@ -32,7 +32,7 @@ dev_dependencies:
   linter: ^1.23.0
   lints: ^1.0.0
   mockito: ^5.0.14
-  test: ^1.21.1
+  test: ^1.21.2
   
 builders:
   json_serializable: ^3.3.0
