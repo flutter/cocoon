@@ -29,7 +29,7 @@ dependencies:
   mime: ^1.0.2
   neat_cache: ^2.0.2
   process_runner: ^4.1.2
-  protobuf: ^2.0.0
+  protobuf: ^2.1.0
   truncate: ^3.0.1
 
 dev_dependencies:
