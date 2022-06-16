@@ -48,7 +48,8 @@ class Config {
   /// Relies on the GitHub Checks API being enabled for this repo.
   Set<RepositorySlug> get supportedRepos => <RepositorySlug>{
         cocoonSlug,
-        engineSlug,
+        // temporally skip engine merge: https://github.com/flutter/flutter/issues/106138
+        // engineSlug,
         flutterSlug,
         packagesSlug,
         pluginsSlug,
