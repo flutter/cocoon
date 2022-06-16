@@ -92,6 +92,11 @@ class ValidationService {
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
 
+    // temporally skip engine PR submit: https://github.com/flutter/flutter/issues/106138
+    if (slug.name == 'engine'){
+      return;
+    }
+
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
     for (ValidationResult result in results) {
