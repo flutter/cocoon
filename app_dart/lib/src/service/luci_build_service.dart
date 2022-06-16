@@ -451,7 +451,7 @@ class LuciBuildService {
     String? token;
     do {
       final ListBuildersResponse listBuildersResponse = await buildBucketClient
-          .listBuilders(ListBuildersRequest(project: 'flutter', bucket: 'prod', pageToken: token));
+          .listBuilders(ListBuildersRequest(project: project, bucket: bucket, pageToken: token));
       final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       token = listBuildersResponse.nextPageToken;
