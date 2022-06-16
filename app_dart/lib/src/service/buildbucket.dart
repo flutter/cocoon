@@ -24,7 +24,8 @@ class BuildBucketClient {
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
   BuildBucketClient({
-    this.buildBucketUri = kDefaultBuildBucketUri,
+    this.buildBucketBuilderUri = kDefaultBuildBucketBuilderUri,
+    this.buildBucketBuildUri = kDefaultBuildBucketBuildUri,
     this.accessTokenService,
     http.Client? httpClient,
   }) : httpClient = httpClient ?? http.Client();
@@ -32,13 +33,21 @@ class BuildBucketClient {
   /// Garbage to prevent browser/JSON parsing exploits.
   static const String kRpcResponseGarbage = ")]}'";
 
-  /// The default endpoint for BuildBucket requests.
-  static const String kDefaultBuildBucketUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+  /// The default endpoint for BuildBucket build requests.
+  static const String kDefaultBuildBucketBuildUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+
+  /// The default endpoint for BuildBucket builder requests.
+  static const String kDefaultBuildBucketBuilderUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builders';
 
   /// The base URI for build bucket requests.
   ///
-  /// Defaults to [kDefaultBuildBucketUri].
-  final String buildBucketUri;
+  /// Defaults to [kDefaultBuildBucketBuildUri].
+  final String buildBucketBuildUri;
+
+  /// The base URI for build bucket requests.
+  ///
+  /// Defaults to [kDefaultBuildBucketBuilderUri].
+  final String buildBucketBuilderUri;
 
   /// The token provider for OAuth2 requests.
   ///
@@ -52,8 +61,9 @@ class BuildBucketClient {
   Future<T> _postRequest<S extends JsonBody, T>(
     String path,
     S request,
-    T Function(Map<String, dynamic>? rawResponse) responseFromJson,
-  ) async {
+    T Function(Map<String, dynamic>? rawResponse) responseFromJson, {
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
+  }) async {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
@@ -71,20 +81,28 @@ class BuildBucketClient {
   }
 
   /// The RPC request to schedule a build.
-  Future<Build> scheduleBuild(ScheduleBuildRequest request) {
+  Future<Build> scheduleBuild(
+    ScheduleBuildRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) {
     return _postRequest<ScheduleBuildRequest, Build>(
       '/ScheduleBuild',
       request,
       Build.fromJson,
+      buildBucketUri: buildBucketUri,
     );
   }
 
   /// The RPC request to search for builds.
-  Future<SearchBuildsResponse> searchBuilds(SearchBuildsRequest request) {
+  Future<SearchBuildsResponse> searchBuilds(
+    SearchBuildsRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) {
     return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
       '/SearchBuilds',
       request,
       SearchBuildsResponse.fromJson,
+      buildBucketUri: buildBucketUri,
     );
   }
 
@@ -93,11 +111,15 @@ class BuildBucketClient {
   /// The response is guaranteed to contain line-item responses for all
   /// line-item requests that were issued in [request]. If only a subset of
   /// responses were retrieved, a [BatchRequestException] will be thrown.
-  Future<BatchResponse> batch(BatchRequest request) async {
+  Future<BatchResponse> batch(
+    BatchRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) async {
     final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
       BatchResponse.fromJson,
+      buildBucketUri: buildBucketUri,
     );
     if (response.responses!.length != request.requests!.length) {
       throw BatchRequestException('Failed to execute all requests');
@@ -106,20 +128,41 @@ class BuildBucketClient {
   }
 
   /// The RPC request to cancel a build.
-  Future<Build> cancelBuild(CancelBuildRequest request) {
+  Future<Build> cancelBuild(
+    CancelBuildRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) {
     return _postRequest<CancelBuildRequest, Build>(
       '/CancelBuild',
       request,
       Build.fromJson,
+      buildBucketUri: buildBucketUri,
     );
   }
 
   /// The RPC request to get details about a build.
-  Future<Build> getBuild(GetBuildRequest request) {
+  Future<Build> getBuild(
+    GetBuildRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) {
     return _postRequest<GetBuildRequest, Build>(
       '/GetBuild',
       request,
       Build.fromJson,
+      buildBucketUri: buildBucketUri,
+    );
+  }
+
+  /// The RPC request to get a list of builders.
+  Future<ListBuildersResponse> listBuilders(
+    ListBuildersRequest request, {
+    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+  }) {
+    return _postRequest<ListBuildersRequest, ListBuildersResponse>(
+      '/ListBuilders',
+      request,
+      ListBuildersResponse.fromJson,
+      buildBucketUri: buildBucketUri,
     );
   }
 

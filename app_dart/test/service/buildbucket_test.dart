@@ -46,6 +46,7 @@ void main() {
     Future<T> _httpTest<R extends JsonBody, T>(
       R request,
       String response,
+      String urlPrefix,
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
@@ -56,13 +57,12 @@ void main() {
         expect(request.headers['content-type'], 'application/json; charset=utf-8');
         expect(request.headers['accept'], 'application/json');
         expect(request.headers['authorization'], 'Bearer data');
-        if (request.method == 'POST' && request.url.toString() == 'https://localhost/$expectedPath') {
+        if (request.method == 'POST' && request.url.toString() == 'https://localhost/$urlPrefix/$expectedPath') {
           return http.Response(response, HttpStatus.accepted);
         }
         return http.Response('Test exception: A mock response was not returned', HttpStatus.internalServerError);
       });
       final BuildBucketClient client = BuildBucketClient(
-        buildBucketUri: 'https://localhost',
         httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
       );
@@ -76,7 +76,7 @@ void main() {
       });
       httpClient = MockClient((_) async => http.Response('Error', HttpStatus.forbidden));
       final BuildBucketClient client = BuildBucketClient(
-        buildBucketUri: 'https://localhost',
+        buildBucketBuildUri: 'https://localhost',
         httpClient: httpClient,
         accessTokenService: mockAccessTokenProvider,
       );
@@ -107,8 +107,9 @@ void main() {
       final Build build = await _httpTest<ScheduleBuildRequest, Build>(
         request,
         buildJson,
+        'builds',
         'ScheduleBuild',
-        (BuildBucketClient client) => client.scheduleBuild(request),
+        (BuildBucketClient client) => client.scheduleBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
       expect(build.id, '123');
       expect(build.tags!.length, 2);
@@ -127,8 +128,9 @@ void main() {
       final Build build = await _httpTest<CancelBuildRequest, Build>(
         request,
         buildJson,
+        'builds',
         'CancelBuild',
-        (BuildBucketClient client) => client.cancelBuild(request),
+        (BuildBucketClient client) => client.cancelBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(build.id, '123');
@@ -155,8 +157,9 @@ void main() {
       final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
+        'builds',
         'Batch',
-        (BuildBucketClient client) => client.batch(request),
+        (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
       expect(response.responses!.length, 1);
       expect(response.responses!.first.getBuild!.status, Status.success);
@@ -178,8 +181,9 @@ void main() {
       final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
+        'builds',
         'Batch',
-        (BuildBucketClient client) => client.batch(request),
+        (BuildBucketClient client) => client.batch(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(response.responses!.length, 1);
@@ -194,8 +198,9 @@ void main() {
       final Build build = await _httpTest<GetBuildRequest, Build>(
         request,
         buildJson,
+        'builds',
         'GetBuild',
-        (BuildBucketClient client) => client.getBuild(request),
+        (BuildBucketClient client) => client.getBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(build.id, '123');
@@ -214,15 +219,48 @@ void main() {
       final SearchBuildsResponse response = await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
         request,
         searchJson,
+        'builds',
         'SearchBuilds',
-        (BuildBucketClient client) => client.searchBuilds(request),
+        (BuildBucketClient client) => client.searchBuilds(request, buildBucketUri: 'https://localhost/builds'),
       );
 
       expect(response.builds!.length, 1);
       expect(response.builds!.first.number, 9151);
     });
+
+    test('ListBuilders', () async {
+      const ListBuildersRequest request = ListBuildersRequest(project: 'test');
+
+      final ListBuildersResponse listBuildersResponse = await _httpTest<ListBuildersRequest, ListBuildersResponse>(
+        request,
+        builderJson,
+        'builders',
+        'ListBuilders',
+        (BuildBucketClient client) => client.listBuilders(request, buildBucketUri: 'https://localhost/builders'),
+      );
+
+      expect(listBuildersResponse.builders!.length, 2);
+      expect(listBuildersResponse.builders!.map((e) => e.id!.builder!).toList(), <String>['Linux test', 'Mac test']);
+    });
   });
 }
+
+const String builderJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
+  "builders": [{
+    "id": {
+      "project": "flutter",
+      "bucket": "prod",
+      "builder": "Linux test"
+    }
+  }, {
+    "id": {
+      "project": "flutter",
+      "bucket": "prod",
+      "builder": "Mac test"
+    }
+  }]
+}''';
 
 const String searchJson = '''${BuildBucketClient.kRpcResponseGarbage}
 {
