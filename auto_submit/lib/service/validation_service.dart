@@ -93,7 +93,7 @@ class ValidationService {
     final GithubService gitHubService = await config.createGithubService(slug);
 
     // temporally skip engine PR submit: https://github.com/flutter/flutter/issues/106138
-    if (slug.name == 'engine'){
+    if (slug.name == 'engine') {
       return;
     }
 
