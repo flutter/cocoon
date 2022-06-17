@@ -60,3 +60,19 @@ updates:
       - "team"
       - "team: infra"
       - "autosubmit"
+  - package-ecosystem: "docker"
+    directory: "/app_dart"
+    schedule:
+      interval: "daily"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "docker"
+    directory: "/auto_submit"
+    schedule:
+      interval: "daily"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
