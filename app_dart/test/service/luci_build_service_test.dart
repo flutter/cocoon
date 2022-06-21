@@ -452,6 +452,45 @@ void main() {
       expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
           'debian-10.12');
     });
+
+
+    test('Skip non-existing builder', () async {
+      final Commit commit = generateCommit(0);
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(builders: [
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
+        ]);
+      });
+      final Tuple<Target, Task, int> toBeScheduled1 = Tuple<Target, Task, int>(
+        generateTarget(1, properties: <String, String>{
+          'os': 'debian-10.12',
+        }),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
+        generateTarget(2, properties: <String, String>{
+          'os': 'debian-10.12',
+        }),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled1,
+          toBeScheduled2,
+        ],
+      );
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      // Only existing builder: `Linux 2` is scheduled.
+      expect(request.requests?.length, 1);
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 2');
+    });
   });
 
   group('cancelBuilds', () {
