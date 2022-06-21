@@ -114,10 +114,10 @@ void main() {
     config.githubClient = gitHubClient;
     config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
     config.rollerAccountsValue = const <String>{
-        'skia-flutter-autoroll',
-        'engine-flutter-autoroll',
-        'dependabot',
-      };
+      'skia-flutter-autoroll',
+      'engine-flutter-autoroll',
+      'dependabot',
+    };
   });
 
   group('github webhook pull_request event', () {
@@ -753,12 +753,13 @@ void main() {
           ));
         });
       });
-    }); 
+    });
 
     test('Framework does not label PR with no tests label if author is engine-flutter-autoroll', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName, login: 'engine-flutter-autoroll');
+      request.body =
+          generatePullRequestEvent('opened', issueNumber, kDefaultBranchName, login: 'engine-flutter-autoroll');
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -1376,18 +1377,12 @@ void foo() {
         'dependabot',
       };
 
-      inputs.forEach((element) { 
+      inputs.forEach((element) {
         test('Engine does not label PR for no tests if author is $element', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
-          request.body = generatePullRequestEvent(
-            'opened',
-            issueNumber,
-            kDefaultBranchName,
-            repoName: 'engine',
-            repoFullName: 'flutter/engine',
-            login: element
-          );
+          request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName,
+              repoName: 'engine', repoFullName: 'flutter/engine', login: element);
 
           final Uint8List body = utf8.encode(request.body!) as Uint8List;
           final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1433,14 +1428,8 @@ void foo() {
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = generatePullRequestEvent(
-        'opened',
-        issueNumber,
-        kDefaultBranchName,
-        repoName: 'engine',
-        repoFullName: 'flutter/engine',
-        login: 'skia-flutter-autoroll'
-      );
+      request.body = generatePullRequestEvent('opened', issueNumber, kDefaultBranchName,
+          repoName: 'engine', repoFullName: 'flutter/engine', login: 'skia-flutter-autoroll');
 
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1760,7 +1749,7 @@ void foo() {
         'dependabot',
       };
 
-      inputs.forEach((element) { 
+      inputs.forEach((element) {
         test('Plugins does not comment and label if author is $element.', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
