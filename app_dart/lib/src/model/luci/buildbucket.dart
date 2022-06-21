@@ -286,8 +286,6 @@ class BuilderItem extends JsonBody {
 @JsonSerializable(includeIfNull: false)
 class ListBuildersRequest extends JsonBody {
   /// Creates a request object for the ListBuilders RPC.
-  ///
-  /// Both [project] and [bucket] are required.
   const ListBuildersRequest({
     required this.project,
     this.bucket,
