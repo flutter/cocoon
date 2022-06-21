@@ -715,7 +715,7 @@ void main() {
         'dependabot',
       };
 
-      inputs.forEach((element) {
+      for (var element in inputs) {
         test('Framework does not label PR with no tests label if author is $element', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
@@ -752,7 +752,7 @@ void main() {
             argThat(contains(config.missingTestsPullRequestMessageValue)),
           ));
         });
-      });
+      }
     });
 
     test('Framework does not label PR with no tests label if author is engine-flutter-autoroll', () async {
@@ -1377,7 +1377,7 @@ void foo() {
         'dependabot',
       };
 
-      inputs.forEach((element) {
+      for (var element in inputs) {
         test('Engine does not label PR for no tests if author is $element', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1422,7 +1422,7 @@ void foo() {
             <String>['needs tests'],
           ));
         });
-      });
+      }
     });
 
     test('Engine does not label PR for no tests if author is skia-flutter-autoroll', () async {
@@ -1749,7 +1749,7 @@ void foo() {
         'dependabot',
       };
 
-      inputs.forEach((element) {
+      for (var element in inputs) {
         test('Plugins does not comment and label if author is $element.', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1793,7 +1793,7 @@ void foo() {
             <String>['needs tests'],
           ));
         });
-      });
+      }
     });
 
     test('Plugins apply no label or comment if pr is for release branches', () async {
