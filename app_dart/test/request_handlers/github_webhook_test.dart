@@ -710,12 +710,12 @@ void main() {
     });
 
     group("Auto-roller accounts do not label Framework PR with test label or comment.", () {
-      var inputs = {
+      Set<String> inputs = {
         'skia-flutter-autoroll',
         'dependabot',
       };
 
-      for (var element in inputs) {
+      for (String element in inputs) {
         test('Framework does not label PR with no tests label if author is $element', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1372,12 +1372,12 @@ void foo() {
     });
 
     group("Auto-roller accounts do not label Engine PR with test label or comment.", () {
-      var inputs = {
+      Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',
       };
 
-      for (var element in inputs) {
+      for (String element in inputs) {
         test('Engine does not label PR for no tests if author is $element', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
@@ -1743,13 +1743,13 @@ void foo() {
     });
 
     group('Plugins does not comment and label if author is an autoroller account.', () {
-      var inputs = {
+      Set<String> inputs = {
         'engine-flutter-autoroll',
         'skia-flutter-autoroll',
         'dependabot',
       };
 
-      for (var element in inputs) {
+      for (String element in inputs) {
         test('Plugins does not comment and label if author is $element.', () async {
           const int issueNumber = 123;
           request.headers.set('X-GitHub-Event', 'pull_request');
