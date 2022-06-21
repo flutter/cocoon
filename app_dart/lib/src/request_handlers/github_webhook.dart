@@ -262,6 +262,7 @@ class GithubWebhook extends RequestHandler<Body> {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
+      // Check to see if tests were submitted with this PR.
       if (_isATest(filename)) {
         hasTests = true;
       }
@@ -275,6 +276,11 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (labels.isNotEmpty) {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
+    }
+
+    // We do not need to add test labels if this is an auto roller author.
+    if (config.rollerAccounts.contains(pr.user!.login)) {
+      return;
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
@@ -383,9 +389,11 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
+    // Do not apply the test labels for the autoroller accounts.
     if (pr.user!.login == 'skia-flutter-autoroll') {
       return;
     }
+
     final RepositorySlug slug = pr.base!.repo!.slug();
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number!);
     final Set<String> labels = <String>{};
@@ -411,6 +419,11 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (labels.isNotEmpty) {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, labels.toList());
+    }
+
+    // We do not need to add test labels if this is an auto roller author.
+    if (config.rollerAccounts.contains(pr.user!.login)) {
+      return;
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
@@ -464,6 +477,11 @@ class GithubWebhook extends RequestHandler<Body> {
           filename.endsWith('_test.cpp')) {
         hasTests = true;
       }
+    }
+
+    // We do not need to add test labels if this is an auto roller author.
+    if (config.rollerAccounts.contains(pr.user!.login)) {
+      return;
     }
 
     if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
