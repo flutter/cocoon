@@ -453,7 +453,6 @@ void main() {
           'debian-10.12');
     });
 
-
     test('Skip non-existing builder', () async {
       final Commit commit = generateCommit(0);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
