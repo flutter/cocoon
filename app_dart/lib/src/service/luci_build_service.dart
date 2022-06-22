@@ -442,6 +442,23 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
+  /// Get builder list whose config is pre-defined in LUCI.
+  Future<Set<String>> getAvailableBuilderSet({
+    String project = 'flutter',
+    String bucket = 'prod',
+  }) async {
+    Set<String> availableBuilderSet = <String>{};
+    String? token;
+    do {
+      final ListBuildersResponse listBuildersResponse =
+          await buildBucketClient.listBuilders(ListBuildersRequest(project: project, bucket: bucket, pageToken: token));
+      final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
+      availableBuilderSet.addAll(<String>{...availableBuilderList});
+      token = listBuildersResponse.nextPageToken;
+    } while (token != null);
+    return availableBuilderSet;
+  }
+
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
   Future<void> schedulePostsubmitBuilds({
     required Commit commit,
@@ -452,7 +469,13 @@ class LuciBuildService {
       return;
     }
     final List<Request> buildRequests = <Request>[];
+    final Set<String> availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
+    log.info('Available builder list: $availableBuilderSet');
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
+      // Non-existing builder target will be skipped from scheduling.
+      if (!availableBuilderSet.contains(tuple.first.value.name)) {
+        continue;
+      }
       final ScheduleBuildRequest scheduleBuildRequest = _createPostsubmitScheduleBuild(
         commit: commit,
         target: tuple.first,
@@ -486,9 +509,15 @@ class LuciBuildService {
       ],
     });
 
+    final String commitKey = task.parentKey!.id.toString();
+    final String taskKey = task.key.id.toString();
+    log.info('Scheduling builder: ${target.value.name}');
+    log.info('Task commit_key: $commitKey for task name: ${task.name}');
+    log.info('Task task_key: $taskKey for task name: ${task.name}');
+
     final Map<String, String> rawUserData = <String, String>{
-      'commit_key': task.parentKey!.id.toString(),
-      'task_key': task.key.id.toString(),
+      'commit_key': commitKey,
+      'task_key': taskKey,
     };
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.

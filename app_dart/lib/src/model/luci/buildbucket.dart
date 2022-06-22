@@ -207,6 +207,162 @@ class GetBuildRequest extends JsonBody {
   }
 }
 
+/// A request for the GetBuilder RPC.
+@JsonSerializable(includeIfNull: false)
+class GetBuilderRequest extends JsonBody {
+  /// Creates a request for the GetBuild RPC.
+  const GetBuilderRequest({
+    this.builderId,
+  }) : assert(builderId != null);
+
+  /// Creates a [GetBuilderRequest] from JSON.
+  static GetBuilderRequest fromJson(Map<String, dynamic> json) => _$GetBuilderRequestFromJson(json);
+
+  /// The BuildBucket builder ID.
+  final BuilderId? builderId;
+
+  @override
+  Map<String, dynamic> toJson() => _$GetBuilderRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'getBuild(builderId: $builderId)';
+  }
+}
+
+/// Configs of a builder.
+@JsonSerializable(includeIfNull: false)
+class BuilderConfig extends JsonBody {
+  /// Creates a request for the GetBuild RPC.
+  const BuilderConfig({
+    this.name,
+  }) : assert(name != null);
+
+  /// Creates a [GetBuilderRequest] from JSON.
+  static BuilderConfig fromJson(Map<String, dynamic> json) => _$BuilderConfigFromJson(json);
+
+  /// The BuildBucket builder ID.
+  final String? name;
+
+  @override
+  Map<String, dynamic> toJson() => _$BuilderConfigToJson(this);
+
+  @override
+  String toString() {
+    return 'BuilderConfig(name: $name)';
+  }
+}
+
+/// A configured builder.
+///
+/// https://chromium.googlesource.com/infra/luci/luci-go/+/main/buildbucket/proto/builder_common.proto
+@JsonSerializable(includeIfNull: false)
+class BuilderItem extends JsonBody {
+  /// Creates a request for the GetBuild RPC.
+  const BuilderItem({
+    this.id,
+    this.config,
+  });
+
+  /// Creates a [GetBuilderRequest] from JSON.
+  static BuilderItem fromJson(Map<String, dynamic>? json) => _$BuilderItemFromJson(json!);
+
+  /// The BuildBucket builder ID.
+  final BuilderId? id;
+
+  /// The BuildBucket builder config.
+  final BuilderConfig? config;
+
+  @override
+  Map<String, dynamic> toJson() => _$BuilderItemToJson(this);
+
+  @override
+  String toString() {
+    return 'BuilderItem(builderID: $id, builderConfig: $config)';
+  }
+}
+
+/// A requrst for the ListBuilders RPC.
+@JsonSerializable(includeIfNull: false)
+class ListBuildersRequest extends JsonBody {
+  /// Creates a request object for the ListBuilders RPC.
+  const ListBuildersRequest({
+    required this.project,
+    this.bucket,
+    this.pageSize = 1000,
+    this.pageToken,
+  });
+
+  /// Creates a [ListBuildersRequest] from JSON.
+  static ListBuildersRequest fromJson(Map<String, dynamic> json) => _$ListBuildersRequestFromJson(json);
+
+  /// LUCI project, e.g. "flutter".
+  @JsonKey(required: true)
+  final String project;
+
+  /// A bucket in the project, e.g. "prod".
+  ///
+  /// Omit to list all builders or all builders in a project.
+  @JsonKey(required: false)
+  final String? bucket;
+
+  /// The maximum number of builders to return.
+  ///
+  /// The service may return fewer than this value.
+  /// If unspecified, at most 100 builders will be returned.
+  /// The maximum value is 1000; values above 1000 will be coerced to 1000.
+  @JsonKey(required: false)
+  final int? pageSize;
+
+  // A page token, received from a previous `ListBuilders` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListBuilders` MUST
+  // match the call that provided the page token.
+  @JsonKey(required: false)
+  final String? pageToken;
+
+  @override
+  Map<String, dynamic> toJson() => _$ListBuildersRequestToJson(this);
+
+  @override
+  String toString() {
+    return 'listBuilders(project: $project, bucket: $bucket, pageSize: $pageSize, pageToken: $pageToken)';
+  }
+}
+
+/// The response object from a ListBuilders RPC.
+@JsonSerializable(includeIfNull: false)
+class ListBuildersResponse extends JsonBody {
+  /// Creates a new response object from the ListBuilders RPC.
+  ///
+  /// The [nextPageToken] can be used to coninue searching if there are more
+  /// builds available than the [pageSize] of the request (which is always
+  /// capped at 1000). It will be null if no further builders are available.
+  const ListBuildersResponse({
+    this.builders,
+    this.nextPageToken,
+  });
+
+  /// Creates a [ListBuildersResponse] from JSON.
+  static ListBuildersResponse fromJson(Map<String, dynamic>? json) => _$ListBuildersResponseFromJson(json!);
+
+  /// The [Builders]s returned by the search.
+  final List<BuilderItem>? builders;
+
+  /// A token that can be used as the [ListBuildersRequest.pageToken].
+  ///
+  /// This value will only be specified if further results are available;
+  /// otherwise, it will be null.
+  final String? nextPageToken;
+
+  @override
+  Map<String, dynamic> toJson() => _$ListBuildersResponseToJson(this);
+
+  @override
+  String toString() => builders.toString();
+}
+
 /// A request for the CancelBuild RPC.
 @JsonSerializable(includeIfNull: false)
 class CancelBuildRequest extends JsonBody {
