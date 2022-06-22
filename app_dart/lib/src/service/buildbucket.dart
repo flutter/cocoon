@@ -83,7 +83,7 @@ class BuildBucketClient {
   /// The RPC request to schedule a build.
   Future<Build> scheduleBuild(
     ScheduleBuildRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
     return _postRequest<ScheduleBuildRequest, Build>(
       '/ScheduleBuild',
@@ -96,7 +96,7 @@ class BuildBucketClient {
   /// The RPC request to search for builds.
   Future<SearchBuildsResponse> searchBuilds(
     SearchBuildsRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
     return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
       '/SearchBuilds',
@@ -113,7 +113,7 @@ class BuildBucketClient {
   /// responses were retrieved, a [BatchRequestException] will be thrown.
   Future<BatchResponse> batch(
     BatchRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) async {
     final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
@@ -130,7 +130,7 @@ class BuildBucketClient {
   /// The RPC request to cancel a build.
   Future<Build> cancelBuild(
     CancelBuildRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
     return _postRequest<CancelBuildRequest, Build>(
       '/CancelBuild',
@@ -143,7 +143,7 @@ class BuildBucketClient {
   /// The RPC request to get details about a build.
   Future<Build> getBuild(
     GetBuildRequest request, {
-    String buildBucketUri = kDefaultBuildBucketBuilderUri,
+    String buildBucketUri = kDefaultBuildBucketBuildUri,
   }) {
     return _postRequest<GetBuildRequest, Build>(
       '/GetBuild',
