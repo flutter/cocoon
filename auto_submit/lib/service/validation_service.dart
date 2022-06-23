@@ -97,11 +97,15 @@ class ValidationService {
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         await gitHubService.createComment(slug, messagePullRequest.number!, result.message);
+        await gitHubService.removeLabel(slug, messagePullRequest.number!, config.autosubmitLabel);
+        log.info('auto label is removed due to ${result.message}');
         shouldReturn = true;
       }
     }
     if (shouldReturn) {
       pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info(
+          'The pr ${slug.fullName}/${messagePullRequest.number} is not feasible for merge and message is acknowledged.');
       return;
     }
     // If PR has some failures to ignore temporarily do nothing and continue.
