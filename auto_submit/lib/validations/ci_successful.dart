@@ -76,6 +76,12 @@ class CiSuccessful extends Validation {
     final String? sha = commit.oid;
     List<github.CheckRun> checkRuns = <github.CheckRun>[];
     if (messagePullRequest.head != null && sha != null) {
+      // WOOHOO ---- this is where the error is coming from in the check service 
+      // when the conclusion of 'skipped' is used.
+      // when listCheckRunsForRef is run it tries to get the conclusion from the 
+      // json string and it cannot process the skipped state so it throws and 
+      // exception because the state is not known which is why we do not see the 
+      // below log info message!
       checkRuns.addAll(await gitHubService.getCheckRuns(slug, sha));
     }
     log.info('Validating name: ${slug.name}, checks: $checkRuns');
