@@ -9,6 +9,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 const String title = 'some_title';
 
+/// Helper for Github statuses.
 @immutable
 class StatusHelper {
   const StatusHelper(this.name, this.state);
@@ -21,6 +22,7 @@ class StatusHelper {
   final String state;
 }
 
+/// Helper to generate Github pull requests.
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'author1',
@@ -91,6 +93,7 @@ class PullRequestHelper {
   }
 }
 
+/// Generate `QueryResult` model as in auto submit.
 QueryResult createQueryResult(PullRequestHelper pullRequest) {
   return QueryResult.fromJson(<String, dynamic>{
     'repository': <String, dynamic>{
@@ -99,17 +102,20 @@ QueryResult createQueryResult(PullRequestHelper pullRequest) {
   });
 }
 
+/// List of review state from a github pull request.
 enum ReviewState {
   APPROVED,
   CHANGES_REQUESTED,
 }
 
+/// List of member type of a github pull request author/reviewer.
 enum MemberType {
   OWNER,
   MEMBER,
   OTHER,
 }
 
+/// Details of a github pull request review.
 @immutable
 class PullRequestReviewHelper {
   const PullRequestReviewHelper({
