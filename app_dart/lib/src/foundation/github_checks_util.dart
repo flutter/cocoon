@@ -10,6 +10,7 @@ import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
 import '../service/config.dart';
+import '../service/logging.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
 /// mocking during testing because some of the subclasses are private.
@@ -109,7 +110,10 @@ class GithubChecksUtil {
         name,
         output: output,
       );
-    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
+    },
+        retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+        onRetry: (Exception e) =>
+            log.warning('createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name'));
   }
 
   Future<github.CheckRun> _createCheckRun(

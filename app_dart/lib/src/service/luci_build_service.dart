@@ -175,18 +175,22 @@ class LuciBuildService {
     List<String>? branches,
   }) async {
     int? checkRunId;
-    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
+      final String sha = pullRequest.head!.sha!;
       final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
         config,
-        pullRequest.base!.repo!.slug(),
-        pullRequest.head!.sha!,
+        slug,
+        sha,
         builder!,
       );
       userData['check_run_id'] = checkRun.id;
       checkRunId = checkRun.id;
-      userData['commit_sha'] = pullRequest.head!.sha!;
+      userData['commit_sha'] = sha;
       userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
       userData['builder_name'] = builder;
+      log.info(
+          'successfully created check run id: ${checkRun.id} for slug: ${slug.fullName}, sha: $sha, builder: $builder');
     }
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
     log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');
