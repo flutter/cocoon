@@ -94,18 +94,20 @@ class ValidationService {
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
+    final int prNumber = messagePullRequest.number!;
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
-        await gitHubService.createComment(slug, messagePullRequest.number!, result.message);
-        await gitHubService.removeLabel(slug, messagePullRequest.number!, config.autosubmitLabel);
-        log.info('auto label is removed due to ${result.message}');
+        final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
+        await gitHubService.createComment(slug, prNumber, commmentMessage);
+        await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
+        log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
         shouldReturn = true;
       }
     }
     if (shouldReturn) {
-      pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      log.info(
-          'The pr ${slug.fullName}/${messagePullRequest.number} is not feasible for merge and message is acknowledged.');
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknoledged.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
     }
     // If PR has some failures to ignore temporarily do nothing and continue.

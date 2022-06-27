@@ -93,7 +93,14 @@ class CiSuccessful extends Validation {
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
     }
+    final StringBuffer buffer = StringBuffer();
+    if (failures.isNotEmpty) {
+      for (FailureDetail detail in failures) {
+        buffer.writeln('- The status or check suite ${detail.markdownLink} has failed. Please fix the '
+            'issues identified (or deflake) before re-applying this label.');
+      }
+    }
     Action action = labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
-    return ValidationResult(allSuccess, action, '');
+    return ValidationResult(allSuccess, action, buffer.toString());
   }
 }
