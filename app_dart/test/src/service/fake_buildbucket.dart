@@ -18,6 +18,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
     this.batchResponse,
     this.cancelBuildResponse,
     this.getBuildResponse,
+    this.listBuildersResponse,
   }) : super(httpClient: MockClient((_) async => http.Response('', 200)));
 
   Future<Build>? scheduleBuildResponse;
@@ -25,41 +26,53 @@ class FakeBuildBucketClient extends BuildBucketClient {
   Future<BatchResponse> Function()? batchResponse;
   Future<Build>? cancelBuildResponse;
   Future<Build>? getBuildResponse;
+  Future<ListBuildersResponse>? listBuildersResponse;
 
   @override
-  Future<Build> scheduleBuild(ScheduleBuildRequest? request) async => (scheduleBuildResponse != null)
-      ? await scheduleBuildResponse!
-      : Build(
-          id: '123',
-          builderId: request!.builderId,
-          tags: request.tags,
-        );
-
-  @override
-  Future<SearchBuildsResponse> searchBuilds(SearchBuildsRequest? request) async => (searchBuildsResponse != null)
-      ? await searchBuildsResponse!
-      : const SearchBuildsResponse(
-          builds: <Build>[
-            Build(
+  Future<Build> scheduleBuild(
+    ScheduleBuildRequest? request, {
+    String buildBucketUri = 'https://localhost/builds',
+  }) async =>
+      (scheduleBuildResponse != null)
+          ? await scheduleBuildResponse!
+          : Build(
               id: '123',
-              builderId: BuilderId(
-                builder: 'builder_abc',
-                bucket: 'try',
-                project: 'flutter',
-              ),
-              tags: <String, List<String>>{
-                'buildset': <String>['pr/git/12345', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'],
-                'cipd_version': <String>['refs/heads/main']
-              },
-              input: Input(
-                properties: <String, dynamic>{'bringup': 'true'},
-              ),
-            ),
-          ],
-        );
+              builderId: request!.builderId,
+              tags: request.tags,
+            );
 
   @override
-  Future<BatchResponse> batch(BatchRequest request) async {
+  Future<SearchBuildsResponse> searchBuilds(
+    SearchBuildsRequest? request, {
+    String buildBucketUri = 'https://localhost/builds',
+  }) async =>
+      (searchBuildsResponse != null)
+          ? await searchBuildsResponse!
+          : const SearchBuildsResponse(
+              builds: <Build>[
+                Build(
+                  id: '123',
+                  builderId: BuilderId(
+                    builder: 'builder_abc',
+                    bucket: 'try',
+                    project: 'flutter',
+                  ),
+                  tags: <String, List<String>>{
+                    'buildset': <String>['pr/git/12345', 'sha/git/259bcf77bd04e64ef2181caccc43eda57780cd21'],
+                    'cipd_version': <String>['refs/heads/main']
+                  },
+                  input: Input(
+                    properties: <String, dynamic>{'bringup': 'true'},
+                  ),
+                ),
+              ],
+            );
+
+  @override
+  Future<BatchResponse> batch(
+    BatchRequest request, {
+    String buildBucketUri = 'https://localhost/builds',
+  }) async {
     if (batchResponse != null) {
       return batchResponse!();
     }
@@ -79,23 +92,55 @@ class FakeBuildBucketClient extends BuildBucketClient {
   }
 
   @override
-  Future<Build> cancelBuild(CancelBuildRequest? request) async => (cancelBuildResponse != null)
-      ? await cancelBuildResponse!
-      : Build(
-          id: request!.id,
-          builderId: const BuilderId(
-            bucket: 'try',
-            project: 'flutter',
-            builder: 'builder_abc',
-          ),
-          summaryMarkdown: request.summaryMarkdown);
+  Future<Build> cancelBuild(
+    CancelBuildRequest? request, {
+    String buildBucketUri = 'https://localhost/builds',
+  }) async =>
+      (cancelBuildResponse != null)
+          ? await cancelBuildResponse!
+          : Build(
+              id: request!.id,
+              builderId: const BuilderId(
+                bucket: 'try',
+                project: 'flutter',
+                builder: 'builder_abc',
+              ),
+              summaryMarkdown: request.summaryMarkdown);
 
   @override
-  Future<Build> getBuild(GetBuildRequest? request) async => (getBuildResponse != null)
-      ? await getBuildResponse!
-      : Build(
-          id: request!.id!,
-          builderId: request.builderId!,
-          number: request.buildNumber,
-        );
+  Future<Build> getBuild(
+    GetBuildRequest? request, {
+    String buildBucketUri = 'https://localhost/builds',
+  }) async =>
+      (getBuildResponse != null)
+          ? await getBuildResponse!
+          : Build(
+              id: request!.id!,
+              builderId: request.builderId!,
+              number: request.buildNumber,
+            );
+
+  @override
+  Future<ListBuildersResponse> listBuilders(
+    ListBuildersRequest? request, {
+    String buildBucketUri = 'https://localhost/builders',
+  }) async =>
+      (listBuildersResponse != null)
+          ? await listBuildersResponse!
+          : const ListBuildersResponse(builders: <BuilderItem>[
+              BuilderItem(
+                id: BuilderId(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'Linux_android A',
+                ),
+              ),
+              BuilderItem(
+                id: BuilderId(
+                  bucket: 'prod',
+                  project: 'flutter',
+                  builder: 'Linux_android B',
+                ),
+              )
+            ]);
 }

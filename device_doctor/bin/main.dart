@@ -38,7 +38,7 @@ File? _output;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addFlag('$helpFlag', help: 'Prints usage info.', callback: (bool value) {
+    ..addFlag('$helpFlag', help: 'Prints usage info.', abbr: 'h', callback: (bool value) {
       if (value) {
         stdout.write('${parser.usage}\n');
         exit(1);

@@ -118,6 +118,56 @@ void main() {
       expect(builds.first, linuxBuild);
     });
   });
+
+  group('getBuilders', () {
+    setUp(() {
+      githubService = FakeGithubService();
+      config = FakeConfig(githubService: githubService);
+      mockBuildBucketClient = MockBuildBucketClient();
+      pubsub = FakePubSub();
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        gerritService: mockGerritService,
+        pubsub: pubsub,
+      );
+      slug = RepositorySlug('flutter', 'flutter');
+    });
+    test('with one rpc call', () async {
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(builders: [
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
+        ]);
+      });
+      final Set<String> builders = await service.getAvailableBuilderSet();
+      expect(builders.length, 2);
+      expect(builders.contains('test1'), isTrue);
+    });
+
+    test('with more than one rpc calls', () async {
+      int retries = -1;
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        retries++;
+        if (retries == 0) {
+          return const ListBuildersResponse(builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
+          ], nextPageToken: 'token');
+        } else if (retries == 1) {
+          return const ListBuildersResponse(builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test3')),
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test4')),
+          ]);
+        } else {
+          return const ListBuildersResponse(builders: []);
+        }
+      });
+      final Set<String> builders = await service.getAvailableBuilderSet();
+      expect(builders.length, 4);
+      expect(builders, <String>{'test1', 'test2', 'test3', 'test4'});
+    });
+  });
   group('buildsForRepositoryAndPr', () {
     final Build macBuild = generateBuild(999, name: 'Mac', status: Status.started);
     final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.started);
@@ -355,6 +405,11 @@ void main() {
 
     test('schedule postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(builders: [
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+        ]);
+      });
       final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
         generateTarget(1, properties: <String, String>{
           'os': 'debian-10.12',
@@ -396,6 +451,44 @@ void main() {
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
           'debian-10.12');
+    });
+
+    test('Skip non-existing builder', () async {
+      final Commit commit = generateCommit(0);
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(builders: [
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
+        ]);
+      });
+      final Tuple<Target, Task, int> toBeScheduled1 = Tuple<Target, Task, int>(
+        generateTarget(1, properties: <String, String>{
+          'os': 'debian-10.12',
+        }),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
+        generateTarget(2, properties: <String, String>{
+          'os': 'debian-10.12',
+        }),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled1,
+          toBeScheduled2,
+        ],
+      );
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      // Only existing builder: `Linux 2` is scheduled.
+      expect(request.requests?.length, 1);
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 2');
     });
   });
 
