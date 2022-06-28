@@ -19,7 +19,7 @@ class ConductorException implements Exception {
 ///
 /// For example, 'state-file' -> 'STATE_FILE'.
 String fromArgToEnvName(String argName) {
-  return argName.toUpperCase().replaceAll(r'-', r'_');
+  return argName.toUpperCase().replaceAll('-', '_');
 }
 
 /// Either return the value from [env] or fall back to [argResults].

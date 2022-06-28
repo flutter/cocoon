@@ -4,6 +4,5 @@
 
 export 'src/globals.dart';
 export 'src/codesign_context.dart';
-export 'src/zip_archive.dart';
 export 'src/file_codesign_visitor.dart';
 export 'src/stdio.dart';

@@ -11,9 +11,7 @@ import 'package:process/process.dart';
 abstract class FileVisitor {
   const FileVisitor();
 
-  Future<void> visitEmbeddedZip(EmbeddedZip file, String parent, String entitlementParentPath);
-  Future<void> visitRemoteZip(RemoteZip file, Directory parent);
-  Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath);
+  // TODO(xilaizhang): add back the visit interfaces
 }
 
 enum NotaryStatus {
@@ -29,13 +27,11 @@ class FileCodesignVisitor extends FileVisitor {
     required this.commitHash,
     required this.processManager,
     required this.codesignCertName,
-    required this.codesignPrimaryBundleId,
     required this.codesignUserName,
     required this.appSpecificPassword,
     required this.codesignAppstoreId,
     required this.codesignTeamId,
     required this.stdio,
-    required this.filepaths,
     this.production = false,
   });
 
@@ -47,15 +43,13 @@ class FileCodesignVisitor extends FileVisitor {
   final String commitHash;
   final ProcessManager processManager;
   final String codesignCertName;
-  final String codesignPrimaryBundleId;
   final String codesignUserName;
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
   final Stdio stdio;
   final bool production;
-  final List<String> filepaths;
-  // Utility utility = Utility();
+
   // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
@@ -92,20 +86,5 @@ class FileCodesignVisitor extends FileVisitor {
 ''';
   Future<void> validateAll() async {
     return Future.value(null);
-  }
-
-  @override
-  Future<void> visitBinaryFile(BinaryFile file, String entitlementParentPath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> visitEmbeddedZip(EmbeddedZip file, String parent, String entitlementParentPath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> visitRemoteZip(RemoteZip file, Directory parent) {
-    throw UnimplementedError();
   }
 }
