@@ -122,6 +122,109 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
   return val;
 }
 
+GetBuilderRequest _$GetBuilderRequestFromJson(Map<String, dynamic> json) => GetBuilderRequest(
+      builderId: json['builderId'] == null ? null : BuilderId.fromJson(json['builderId'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$GetBuilderRequestToJson(GetBuilderRequest instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('builderId', instance.builderId);
+  return val;
+}
+
+BuilderConfig _$BuilderConfigFromJson(Map<String, dynamic> json) => BuilderConfig(
+      name: json['name'] as String?,
+    );
+
+Map<String, dynamic> _$BuilderConfigToJson(BuilderConfig instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('name', instance.name);
+  return val;
+}
+
+BuilderItem _$BuilderItemFromJson(Map<String, dynamic> json) => BuilderItem(
+      id: json['id'] == null ? null : BuilderId.fromJson(json['id'] as Map<String, dynamic>),
+      config: json['config'] == null ? null : BuilderConfig.fromJson(json['config'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$BuilderItemToJson(BuilderItem instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('id', instance.id);
+  writeNotNull('config', instance.config);
+  return val;
+}
+
+ListBuildersRequest _$ListBuildersRequestFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const ['project'],
+  );
+  return ListBuildersRequest(
+    project: json['project'] as String,
+    bucket: json['bucket'] as String?,
+    pageSize: json['pageSize'] as int? ?? 1000,
+    pageToken: json['pageToken'] as String?,
+  );
+}
+
+Map<String, dynamic> _$ListBuildersRequestToJson(ListBuildersRequest instance) {
+  final val = <String, dynamic>{
+    'project': instance.project,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('bucket', instance.bucket);
+  writeNotNull('pageSize', instance.pageSize);
+  writeNotNull('pageToken', instance.pageToken);
+  return val;
+}
+
+ListBuildersResponse _$ListBuildersResponseFromJson(Map<String, dynamic> json) => ListBuildersResponse(
+      builders:
+          (json['builders'] as List<dynamic>?)?.map((e) => BuilderItem.fromJson(e as Map<String, dynamic>)).toList(),
+      nextPageToken: json['nextPageToken'] as String?,
+    );
+
+Map<String, dynamic> _$ListBuildersResponseToJson(ListBuildersResponse instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('builders', instance.builders);
+  writeNotNull('nextPageToken', instance.nextPageToken);
+  return val;
+}
+
 CancelBuildRequest _$CancelBuildRequestFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,

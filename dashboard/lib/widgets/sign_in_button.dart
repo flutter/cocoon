@@ -60,7 +60,7 @@ class SignInButton extends StatelessWidget {
         }
         return TextButton(
           child: const Text('SIGN IN'),
-          style: TextButton.styleFrom(primary: textButtonForeground),
+          style: TextButton.styleFrom(foregroundColor: textButtonForeground),
           onPressed: authService.signIn,
         );
       },

@@ -13,7 +13,7 @@ import '../../utilities/mocks.dart';
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
   FakeGithubService({
-    GitHub? client,
+    MockGitHub? client,
     String? checkRunsMock,
     String? commitMock,
     String? compareTwoCommitsMock,
@@ -23,7 +23,7 @@ class FakeGithubService implements GithubService {
   }) : github = client ?? MockGitHub();
 
   @override
-  final GitHub github;
+  final MockGitHub github;
 
   String? checkRunsMock;
   String? commitMock;
@@ -31,6 +31,9 @@ class FakeGithubService implements GithubService {
   String? successMergeMock;
   String? createCommentMock;
   String? pullRequestMergeMock;
+
+  IssueComment? issueComment;
+  bool labelRemoved = false;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
@@ -86,13 +89,14 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
-    return true;
+    labelRemoved = true;
+    return labelRemoved;
   }
 
   @override
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
-    final IssueComment issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
-    return issueComment;
+    issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
+    return issueComment!;
   }
 
   @override
