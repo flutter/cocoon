@@ -409,7 +409,8 @@ const String nullStatusCommitRepositoryJson = """
         expect(true, value.result);
         // Remove label.
         expect((value.action == Action.REMOVE_LABEL), isTrue);
-        expect(value.message, isEmpty);
+        expect(value.message, 
+        '- The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n');
       });
     });
 
@@ -477,7 +478,8 @@ const String nullStatusCommitRepositoryJson = """
     });
   });
 
-  group('', () {
+
+  group('Validate empty message is not returned.', () {
     setUp(() {
       githubService = FakeGithubService(client: MockGitHub());
       config = FakeConfig(githubService: githubService);
