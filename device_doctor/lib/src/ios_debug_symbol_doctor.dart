@@ -35,7 +35,9 @@ class DiagnoseCommand extends Command<bool> {
       );
       return false;
     }
-    final Iterable<XCDevice> devices = XCDevice.parseJson(result.stdout as String);
+    final String stdout = result.stdout as String;
+    logger.info(stdout);
+    final Iterable<XCDevice> devices = XCDevice.parseJson(stdout);
     final Iterable<XCDevice> devicesWithErrors = devices.where((XCDevice device) => device.hasError);
 
     if (devicesWithErrors.isNotEmpty) {

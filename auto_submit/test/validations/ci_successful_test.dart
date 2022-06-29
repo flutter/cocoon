@@ -1,7 +1,6 @@
 // Copyright 2022 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
 import 'dart:convert';
 
 import 'package:github/github.dart' as github;
@@ -20,9 +19,9 @@ import '../requests/github_webhook_test_data.dart';
 void main() {
   late CiSuccessful ciSuccessful;
   late FakeConfig config;
-  final FakeGithubService githubService = FakeGithubService();
+  FakeGithubService githubService = FakeGithubService();
   late FakeGraphQLClient githubGraphQLClient;
-  final MockGitHub gitHub = MockGitHub();
+  MockGitHub gitHub = MockGitHub();
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
 
@@ -474,6 +473,33 @@ const String nullStatusCommitRepositoryJson = """
         expect((value.action == Action.IGNORE_TEMPORARILY), isTrue);
         expect(value.message, isEmpty);
       });
+    });
+  });
+
+  group('', () {
+    setUp(() {
+      githubService = FakeGithubService(client: MockGitHub());
+      config = FakeConfig(githubService: githubService);
+      ciSuccessful = CiSuccessful(config: config);
+      slug = github.RepositorySlug('flutter', 'cocoon');
+    });
+
+    test('returns correct message when validation fails', () async {
+      PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+      
+      githubService.checkRunsData = failedCheckRunsMock;
+      final github.PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      QueryResult queryResult = createQueryResult(flutterRequest);
+
+      final ValidationResult validationResult = await ciSuccessful.validate(queryResult, pullRequest);
+
+      expect(validationResult.result, false);
+      expect(validationResult.message,
+          '- The status or check suite [failed_checkrun](https://example.com) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n');
     });
   });
 }

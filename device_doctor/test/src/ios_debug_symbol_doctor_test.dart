@@ -46,7 +46,7 @@ Future<void> main() async {
     );
   }
 
-  group('recover sub-command opens Xcode, waits for timeout, then kills Xcode', () {
+  group('commands', () {
     late MockProcessManager processManager;
     late TestLogger logger;
     const String cocoonPath = '/path/to/cocoon';
@@ -60,7 +60,23 @@ Future<void> main() async {
       fs.directory(xcworkspacePath).createSync(recursive: true);
     });
 
-    test('dart ios_debug_symbol_doctor.dart recover opens Xcode, waits, then kills it', () async {
+    test('diagnose logs output of xcdevice list', () async {
+      when(
+        processManager.run(<String>['xcrun', 'xcdevice', 'list']),
+      ).thenAnswer((_) async {
+        return ProcessResult(0, 0, _jsonWithNonFatalErrors, '');
+      });
+      final CommandRunner<bool> runner = _createTestRunner();
+      final command = DiagnoseCommand(
+        processManager: processManager,
+        loggerOverride: logger,
+      );
+      runner.addCommand(command);
+      await runner.run(<String>['diagnose']);
+      expect(logger.logs[Level.INFO], contains(_jsonWithNonFatalErrors));
+    });
+
+    test('recover opens Xcode, waits, then kills it', () async {
       when(
         processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
       ).thenAnswer((_) async {

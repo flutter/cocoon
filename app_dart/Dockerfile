@@ -4,7 +4,7 @@
 
 
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
-FROM dart:beta@sha256:a3bda73453becc71def3543ee367709bca4322ddf108a61b24a9225fab1953b8
+FROM dart:beta@sha256:5d8397edbed760657d4ce15460df900eb85ac364ec103cbdd2d30099697a61fb
 
 WORKDIR /app
 
