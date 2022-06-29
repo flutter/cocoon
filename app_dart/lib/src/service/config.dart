@@ -55,7 +55,7 @@ class Config {
       };
 
   /// List of Cirrus supported repos.
-  static Set<String> cirrusSupportedRepos = <String>{'engine', 'plugins', 'packages', 'flutter'};
+  static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
