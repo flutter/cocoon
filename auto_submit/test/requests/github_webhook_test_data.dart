@@ -386,18 +386,32 @@ const String repositoryStatusesMock = '''{
   ]
 }''';
 
+const String repositoryStatusesNonLuciFlutterMock = '''{
+  "state": "success",
+  "statuses": [
+    {
+      "state": "success",
+      "context": "infra"
+    },
+    {
+      "state": "success",
+      "context": "config"
+    }
+  ]
+}''';
+
 String failedAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {
       "state": "failure",
       "context": "luci-flutter",
-      "target_url": "https://ci.example.com/1000/output"
+      "targetUrl": "https://ci.example.com/1000/output"
     },
     {
       "state": "failure",
       "context": "luci-engine",
-      "target_url": "https://ci.example.com/2000/output"
+      "targetUrl": "https://ci.example.com/2000/output"
     }
   ]
 }''';
@@ -407,13 +421,13 @@ String failedNonAuthorsStatusesMock = '''{
   "statuses": [
     {
       "state": "failure",
-      "context": "luci-flutter",
-      "target_url": "https://ci.example.com/1000/output"
+      "context": "flutter-engine",
+      "targetUrl": "https://ci.example.com/1000/output"
     },
     {
       "state": "failure",
-      "context": "flutter-cocoon",
-      "target_url": "https://ci.example.com/2000/output"
+      "context": "flutter-infra",
+      "targetUrl": "https://ci.example.com/2000/output"
     }
   ]
 }''';

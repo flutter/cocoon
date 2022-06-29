@@ -80,8 +80,6 @@ class CiSuccessful extends Validation {
       List<ContextNode> statuses, 
       Set<FailureDetail> failures) {
 
-    Set<FailureDetail> failures = <FailureDetail>{};
-
     if (Config.reposWithTreeStatus.contains(slug)) {
       bool treeStatusExists = false;
       final String treeStatusName = 'luci-${slug.name}';
@@ -89,6 +87,7 @@ class CiSuccessful extends Validation {
       /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
       for (ContextNode status in statuses) {
         if (status.context == treeStatusName) {
+          // Does only one tree status need to be set for the condition?
           treeStatusExists = true;
         }
       }
@@ -114,7 +113,9 @@ class CiSuccessful extends Validation {
 
     log.info('Validating name: ${slug.name}, status: $statuses');
     for (ContextNode status in statuses) {
+      // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
+
       if (status.state != STATUS_SUCCESS) {
         if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
           continue;
@@ -142,6 +143,7 @@ class CiSuccessful extends Validation {
     log.info('Validating name: ${slug.name}, checks: $checkRuns');
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
+
       if (checkRun.conclusion == github.CheckRunConclusion.skipped ||
           checkRun.conclusion == github.CheckRunConclusion.success ||
           (checkRun.status == github.CheckRunStatus.completed &&
