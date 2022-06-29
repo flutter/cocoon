@@ -347,7 +347,7 @@ String multipleCheckRunsWithFailureMock = '''{
       }
     }
   ]
-}'''; 
+}''';
 
 const String inprogressAndNotFailedCheckRunMock = '''{
   "total_count": 1,
@@ -367,7 +367,6 @@ const String inprogressAndNotFailedCheckRunMock = '''{
     }
   ]
 }''';
-
 
 const String emptyCheckRunsMock = '''{"check_runs": [{}]}''';
 

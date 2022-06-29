@@ -17,7 +17,6 @@ import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../requests/github_webhook_test_data.dart';
 
-
 void main() {
   late CiSuccessful ciSuccessful;
   late FakeConfig config;
@@ -55,11 +54,10 @@ void main() {
     failures = <FailureDetail>{};
   });
 
-
   group('validateCheckRuns', () {
     test('ValidateCheckRuns no failures for skipped conclusion.', () {
       githubService.checkRunsData = skippedCheckRunsMock;
-      
+
       Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
       checkRunFuture.then((checkRuns) {
@@ -119,14 +117,14 @@ void main() {
       Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug ,checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect((failures.length == 1), isTrue);
       });
     });
 
     test('ValidateCheckRuns allSucces false but no failures recorded.', () {
-      /// This test just checks that a checkRun that has not yet completed and 
+      /// This test just checks that a checkRun that has not yet completed and
       /// does not cause failure is a candidate to be temporarily ignored.
       githubService.checkRunsData = inprogressAndNotFailedCheckRunMock;
 
@@ -144,7 +142,7 @@ void main() {
       Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = false;
       checkRunFuture.then((checkRuns) {
-        expect(ciSuccessful.validateCheckRuns(slug ,checkRuns, failures, allSuccess), isFalse);
+        expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
         expect((failures.length == 1), isTrue);
       });
@@ -258,7 +256,7 @@ void main() {
     });
   });
 
-const String nullStatusCommitRepositoryJson = """
+  const String nullStatusCommitRepositoryJson = """
   {
     "repository": {
       "pullRequest": {
@@ -344,7 +342,6 @@ const String nullStatusCommitRepositoryJson = """
   }
   """;
 
-
   const String nonNullStatusFAILURECommitRepositoryJson = """
   {
     "repository": {
@@ -410,13 +407,14 @@ const String nullStatusCommitRepositoryJson = """
         expect(true, value.result);
         // Remove label.
         expect((value.action == Action.REMOVE_LABEL), isTrue);
-        expect(value.message, 
-        '- The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n');
+        expect(value.message,
+            '- The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n');
       });
     });
 
     test('Commit has statuses to verify, action remove label, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode = jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson) as Map<String, dynamic>;
+      Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson) as Map<String, dynamic>;
       QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
       PullRequest pr = queryResult.repository!.pullRequest!;
@@ -437,7 +435,8 @@ const String nullStatusCommitRepositoryJson = """
     });
 
     test('Commit has statuses to verify, action ignore failure, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode = jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
+      Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
       QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
       PullRequest pr = queryResult.repository!.pullRequest!;
@@ -458,7 +457,8 @@ const String nullStatusCommitRepositoryJson = """
     });
 
     test('Commit has statuses to verify, action failure, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode = jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
+      Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
       QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
       PullRequest pr = queryResult.repository!.pullRequest!;
@@ -479,7 +479,6 @@ const String nullStatusCommitRepositoryJson = """
     });
   });
 
-
   group('Validate empty message is not returned.', () {
     setUp(() {
       githubService = FakeGithubService(client: MockGitHub());
@@ -494,7 +493,7 @@ const String nullStatusCommitRepositoryJson = """
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
       );
-      
+
       githubService.checkRunsData = failedCheckRunsMock;
       final github.PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       QueryResult queryResult = createQueryResult(flutterRequest);
