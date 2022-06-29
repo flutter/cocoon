@@ -9,6 +9,7 @@ import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 
+import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
