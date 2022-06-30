@@ -43,7 +43,7 @@ const String nullStatusCommitRepositoryJson = """
   }
   """;
 
-  const String nonNullStatusSUCCESSCommitRepositoryJson = """
+const String nonNullStatusSUCCESSCommitRepositoryJson = """
   {
     "repository": {
       "pullRequest": {
@@ -90,7 +90,7 @@ const String nullStatusCommitRepositoryJson = """
   }
   """;
 
-  const String nonNullStatusFAILURECommitRepositoryJson = """
+const String nonNullStatusFAILURECommitRepositoryJson = """
   {
     "repository": {
       "pullRequest": {

@@ -94,7 +94,7 @@ void main() {
       githubService.checkRunsData = failedCheckRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
-      
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
@@ -151,7 +151,6 @@ void main() {
     });
   });
 
-
   group('validateStatuses', () {
     test('Validate successful statuses show as successful.', () {
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
@@ -166,7 +165,7 @@ void main() {
     test('Validate statuses that are not successful but do not cause failure.', () {
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
       bool allSuccess = true;
-      
+
       final List<String> labelNames = [];
       labelNames.add('warning: land on red to fix tree breakage');
       labelNames.add('Other label');
@@ -183,7 +182,7 @@ void main() {
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
-      
+
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isEmpty);
@@ -210,14 +209,13 @@ void main() {
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
-      
+
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
   });
-
 
   group('validateTreeStatusIsSet', () {
     test('Validate tree status is set contains slug.', () {
@@ -252,10 +250,10 @@ void main() {
     });
   });
 
-
   group('validate', () {
     test('Commit has a null status, no statuses to verify.', () {
-      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(nullStatusCommitRepositoryJson) as Map<String, dynamic>;
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(nullStatusCommitRepositoryJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
       final PullRequest pr = queryResult.repository!.pullRequest!;
