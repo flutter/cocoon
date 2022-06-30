@@ -873,7 +873,7 @@ void main() {
           )).called(1);
         });
 
-        test('new commit, checks complete, change detected, should comment for autoroller', () async {
+        test('new commit, checks complete, change detected, should not comment for autoroller', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master', login: 'skia-flutter-autoroll');
           prsFromGitHub = <PullRequest>[pr];
@@ -917,7 +917,7 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
           expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
