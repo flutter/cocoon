@@ -158,10 +158,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           assert(!pr.draft!);
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(slug, pr);
-          final String description = getStatusDescription(goldStatus, pr);
+          final String description = _getStatusDescription(goldStatus, pr);
           statusRequest = _createStatus(goldStatus, description, slug, pr.number!);
           log.fine('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (await shouldComment(goldStatus, pr, gitHubClient, slug)) {
+          if (await _shouldComment(goldStatus, pr, gitHubClient, slug)) {
             log.fine('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
@@ -193,7 +193,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   /// Check if a new comment should be posted to GitHub.
   ///
   /// Skips comment for auto roller.
-  Future<bool> shouldComment(
+  Future<bool> _shouldComment(
     String goldStatus,
     PullRequest pr,
     GitHub gitHubClient,
@@ -209,7 +209,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   /// Returns status decription for a PR.
   ///
   /// This skips gold diffs check for autorollers.
-  String getStatusDescription(String goldStatus, PullRequest pr) {
+  String _getStatusDescription(String goldStatus, PullRequest pr) {
     String description = config.flutterGoldSuccess;
     if (pr.user!.login != 'skia-flutter-autoroll' && goldStatus == GithubGoldStatusUpdate.statusRunning) {
       description = config.flutterGoldChanges;
