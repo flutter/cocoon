@@ -151,7 +151,7 @@ const String reviewsMock = '''[
   }
 ]''';
 
-String unApprovedReviewsMock = '''[
+const String unApprovedReviewsMock = '''[
   {
     "id": 81,
     "user": {
@@ -221,7 +221,7 @@ const String neutralCheckRunsMock = '''{
   ]
 }''';
 
-String inProgressCheckRunsMock = '''{
+const String inProgressCheckRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -240,7 +240,7 @@ String inProgressCheckRunsMock = '''{
   ]
 }''';
 
-String skippedCheckRunsMock = '''{
+const String skippedCheckRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -259,7 +259,7 @@ String skippedCheckRunsMock = '''{
   ]
 }''';
 
-String multipleCheckRunsMock = '''{
+const String multipleCheckRunsMock = '''{
   "total_count": 3,
   "check_runs": [
     {
@@ -304,7 +304,7 @@ String multipleCheckRunsMock = '''{
   ]
 }''';
 
-String multipleCheckRunsWithFailureMock = '''{
+const String multipleCheckRunsWithFailureMock = '''{
   "total_count": 3,
   "check_runs": [
     {
@@ -399,7 +399,7 @@ const String repositoryStatusesNonLuciFlutterMock = '''{
   ]
 }''';
 
-String failedAuthorsStatusesMock = '''{
+const String failedAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {
@@ -415,7 +415,7 @@ String failedAuthorsStatusesMock = '''{
   ]
 }''';
 
-String failedNonAuthorsStatusesMock = '''{
+const String failedNonAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {

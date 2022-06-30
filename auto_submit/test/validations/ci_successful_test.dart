@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'ci_successful_test_data.dart';
+
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
@@ -57,9 +59,9 @@ void main() {
   group('validateCheckRuns', () {
     test('ValidateCheckRuns no failures for skipped conclusion.', () {
       githubService.checkRunsData = skippedCheckRunsMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
@@ -68,9 +70,9 @@ void main() {
 
     test('ValidateCheckRuns no failures for successful conclusion.', () {
       githubService.checkRunsData = checkRunsMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
@@ -79,9 +81,9 @@ void main() {
 
     test('ValidateCheckRuns no failure for status completed and neutral conclusion.', () {
       githubService.checkRunsData = neutralCheckRunsMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
@@ -90,21 +92,21 @@ void main() {
 
     test('ValidateCheckRuns failure detected on status completed no neutral conclusion.', () {
       githubService.checkRunsData = failedCheckRunsMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+      
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
-        expect((failures.length == 1), isTrue);
+        expect(failures.length, 1);
       });
     });
 
     test('ValidateCheckRuns succes with multiple successful check runs.', () {
       githubService.checkRunsData = multipleCheckRunsMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
         expect(failures, isEmpty);
@@ -113,13 +115,13 @@ void main() {
 
     test('ValidateCheckRuns failed with multiple check runs.', () {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
-        expect((failures.length == 1), isTrue);
+        expect(failures.length, 1);
       });
     });
 
@@ -127,9 +129,9 @@ void main() {
       /// This test just checks that a checkRun that has not yet completed and
       /// does not cause failure is a candidate to be temporarily ignored.
       githubService.checkRunsData = inprogressAndNotFailedCheckRunMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = true;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isEmpty);
@@ -138,23 +140,22 @@ void main() {
 
     test('ValidateCheckRuns allSuccess false is preserved.', () {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
-
-      Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
+      final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
       bool allSuccess = false;
+
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
         expect(failures, isNotEmpty);
-        expect((failures.length == 1), isTrue);
+        expect(failures.length, 1);
       });
     });
   });
 
+
   group('validateStatuses', () {
     test('Validate successful statuses show as successful.', () {
-      List<ContextNode> contextNodeList = [];
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
       bool allSuccess = true;
-
-      contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
@@ -163,66 +164,65 @@ void main() {
     });
 
     test('Validate statuses that are not successful but do not cause failure.', () {
-      List<ContextNode> contextNodeList = [];
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
       bool allSuccess = true;
-
-      contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
-      List<String> labelNames = [];
+      
+      final List<String> labelNames = [];
       labelNames.add('warning: land on red to fix tree breakage');
       labelNames.add('Other label');
+
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
-    test('Validate failure statuses cause failure with not in authors control.', () {
-      List<ContextNode> contextNodeList = [];
+    test('Validate failure statuses do not cause failure with not in authors control.', () {
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
       bool allSuccess = true;
 
-      List<String> labelNames = [];
+      final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
-      contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
+      
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isEmpty);
     });
 
     test('Validate failure statuses cause failures with not in authors control.', () {
-      List<ContextNode> contextNodeList = [];
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       bool allSuccess = true;
 
-      List<String> labelNames = [];
+      final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
-      contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
+
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
-      expect((failures.length == 2), isTrue);
+      expect(failures.length, 2);
     });
 
     test('Validate failure statuses cause failures and preserves false allSuccess.', () {
-      List<ContextNode> contextNodeList = [];
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       bool allSuccess = false;
 
-      List<String> labelNames = [];
+      final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
-      contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
+      
       _convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
-      expect((failures.length == 2), isTrue);
+      expect(failures.length, 2);
     });
   });
+
 
   group('validateTreeStatusIsSet', () {
     test('Validate tree status is set contains slug.', () {
       slug = github.RepositorySlug('octocat', 'flutter');
-      List<ContextNode> contextNodeList = [];
-
-      contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
@@ -232,9 +232,7 @@ void main() {
 
     test('Validate tree status is set does not contain slug.', () {
       slug = github.RepositorySlug('octocat', 'infra');
-      List<ContextNode> contextNodeList = [];
-
-      contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
@@ -244,164 +242,31 @@ void main() {
 
     test('Validate tree status is set but context does not match slug.', () {
       slug = github.RepositorySlug('flutter', 'flutter');
-      List<ContextNode> contextNodeList = [];
-
-      contextNodeList = _getContextNodeListFromJson(repositoryStatusesNonLuciFlutterMock);
+      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesNonLuciFlutterMock);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
       ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
       expect(failures, isNotEmpty);
-      expect((failures.length == 1), isTrue);
+      expect(failures.length, 1);
     });
   });
 
-  const String nullStatusCommitRepositoryJson = """
-  {
-    "repository": {
-      "pullRequest": {
-        "author": {
-          "login": "author1"
-        },
-        "authorAssociation": "MEMBER",
-        "id": "PR_kwDOA8VHis43rs4_",
-        "title": "[dependabot] Remove human reviewers",
-        "commits": {
-          "nodes":[
-            {
-              "commit": {
-                "abbreviatedOid": "4009ecc",
-                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
-                "committedDate": "2022-05-11T22:35:02Z",
-                "pushedDate": "2022-05-11T22:35:03Z",
-                "status": null
-              }
-            }
-          ]
-        },
-        "reviews": {
-          "nodes": [
-            {
-              "author": {
-                "login": "keyonghan"
-              },
-              "authorAssociation": "MEMBER",
-              "state": "APPROVED"
-            }
-          ]
-        }
-      }
-    }
-  }
-  """;
-
-  const String nonNullStatusSUCCESSCommitRepositoryJson = """
-  {
-    "repository": {
-      "pullRequest": {
-        "author": {
-          "login": "author1"
-        },
-        "authorAssociation": "MEMBER",
-        "id": "PR_kwDOA8VHis43rs4_",
-        "title": "[dependabot] Remove human reviewers",
-        "commits": {
-          "nodes":[
-            {
-              "commit": {
-                "abbreviatedOid": "4009ecc",
-                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
-                "committedDate": "2022-05-11T22:35:02Z",
-                "pushedDate": "2022-05-11T22:35:03Z",
-                "status": {
-                  "contexts":[
-                    {
-                      "context":"luci-flutter",
-                      "state":"SUCCESS",
-                      "targetUrl":"https://ci.example.com/1000/output"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        "reviews": {
-          "nodes": [
-            {
-              "author": {
-                "login": "keyonghan"
-              },
-              "authorAssociation": "MEMBER",
-              "state": "APPROVED"
-            }
-          ]
-        }
-      }
-    }
-  }
-  """;
-
-  const String nonNullStatusFAILURECommitRepositoryJson = """
-  {
-    "repository": {
-      "pullRequest": {
-        "author": {
-          "login": "author1"
-        },
-        "authorAssociation": "MEMBER",
-        "id": "PR_kwDOA8VHis43rs4_",
-        "title": "[dependabot] Remove human reviewers",
-        "commits": {
-          "nodes":[
-            {
-              "commit": {
-                "abbreviatedOid": "4009ecc",
-                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
-                "committedDate": "2022-05-11T22:35:02Z",
-                "pushedDate": "2022-05-11T22:35:03Z",
-                "status": {
-                  "contexts":[
-                    {
-                      "context":"luci-flutter",
-                      "state":"FAILURE",
-                      "targetUrl":"https://ci.example.com/1000/output"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        "reviews": {
-          "nodes": [
-            {
-              "author": {
-                "login": "keyonghan"
-              },
-              "authorAssociation": "MEMBER",
-              "state": "APPROVED"
-            }
-          ]
-        }
-      }
-    }
-  }
-  """;
 
   group('validate', () {
     test('Commit has a null status, no statuses to verify.', () {
-      Map<String, dynamic> queryResultJsonDecode = jsonDecode(nullStatusCommitRepositoryJson) as Map<String, dynamic>;
-      QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(nullStatusCommitRepositoryJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
-      PullRequest pr = queryResult.repository!.pullRequest!;
+      final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
-      Commit commit = pr.commits!.nodes!.single.commit!;
+      final Commit commit = pr.commits!.nodes!.single.commit!;
       expect(commit, isNotNull);
       expect(commit.status, isNull);
 
-      github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
       githubService.checkRunsData = checkRunsMock;
+
       ciSuccessful.validate(queryResult, npr).then((value) {
         // No failure.
         expect(true, value.result);
@@ -413,18 +278,19 @@ void main() {
     });
 
     test('Commit has statuses to verify, action remove label, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode =
+      final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(nonNullStatusSUCCESSCommitRepositoryJson) as Map<String, dynamic>;
-      QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
-      PullRequest pr = queryResult.repository!.pullRequest!;
+      final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
-      Commit commit = pr.commits!.nodes!.single.commit!;
+      final Commit commit = pr.commits!.nodes!.single.commit!;
       expect(commit, isNotNull);
       expect(commit.status, isNotNull);
 
-      github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
       githubService.checkRunsData = checkRunsMock;
+
       ciSuccessful.validate(queryResult, npr).then((value) {
         // No failure.
         expect(value.result, isTrue);
@@ -435,18 +301,19 @@ void main() {
     });
 
     test('Commit has statuses to verify, action ignore failure, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode =
+      final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
-      QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
-      PullRequest pr = queryResult.repository!.pullRequest!;
+      final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
-      Commit commit = pr.commits!.nodes!.single.commit!;
+      final Commit commit = pr.commits!.nodes!.single.commit!;
       expect(commit, isNotNull);
       expect(commit.status, isNotNull);
 
-      github.PullRequest npr = generatePullRequest(labelName: 'warning: land on red to fix tree breakage');
+      final github.PullRequest npr = generatePullRequest(labelName: 'warning: land on red to fix tree breakage');
       githubService.checkRunsData = checkRunsMock;
+
       ciSuccessful.validate(queryResult, npr).then((value) {
         // No failure.
         expect(value.result, isTrue);
@@ -457,18 +324,19 @@ void main() {
     });
 
     test('Commit has statuses to verify, action failure, no message.', () {
-      Map<String, dynamic> queryResultJsonDecode =
+      final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(nonNullStatusFAILURECommitRepositoryJson) as Map<String, dynamic>;
-      QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       expect(queryResult, isNotNull);
-      PullRequest pr = queryResult.repository!.pullRequest!;
+      final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
-      Commit commit = pr.commits!.nodes!.single.commit!;
+      final Commit commit = pr.commits!.nodes!.single.commit!;
       expect(commit, isNotNull);
       expect(commit.status, isNotNull);
 
-      github.PullRequest npr = generatePullRequest();
+      final github.PullRequest npr = generatePullRequest();
       githubService.checkRunsData = checkRunsMock;
+
       ciSuccessful.validate(queryResult, npr).then((value) {
         // No failure.
         expect(false, value.result);

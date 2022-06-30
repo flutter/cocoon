@@ -78,6 +78,7 @@ class CiSuccessful extends Validation {
   }
 
   /// Validate that the tree status exists for all statuses in the supplied list.
+  /// 
   /// If a failure is found it is added to the set of overall failures.
   void validateTreeStatusIsSet(github.RepositorySlug slug, List<ContextNode> statuses, Set<FailureDetail> failures) {
     if (Config.reposWithTreeStatus.contains(slug)) {
@@ -99,7 +100,9 @@ class CiSuccessful extends Validation {
   }
 
   /// Validate the ci build test run statuses to see which have succeeded and
-  /// which have failed. Failures will be added the set of overall failures.
+  /// which have failed. 
+  /// 
+  /// Failures will be added the set of overall failures.
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateStatuses(github.RepositorySlug slug, List<String> labelNames, List<ContextNode> statuses,
       Set<FailureDetail> failures, bool allSuccess) {
@@ -125,6 +128,7 @@ class CiSuccessful extends Validation {
   }
 
   /// Validate the checkRuns to see if all have completed successfully or not.
+  /// 
   /// Failures will be added the set of overall failures.
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
