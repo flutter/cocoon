@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,5 +97,26 @@ void main() {
 
     expect(urlLauncher.launches, isNotEmpty);
     expect(urlLauncher.launches.single, 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}');
+  });
+
+  testWidgets('clicking copy icon in CommitBox adds sha to clipboard', (WidgetTester tester) async {
+    final List<MethodCall> log = <MethodCall>[];
+    SystemChannels.platform.setMockMethodCallHandler((MethodCall methodCall) async {
+      log.add(methodCall);
+    });
+
+    await tester.pumpWidget(basicApp);
+
+    // Open the overlay
+    await tester.tap(find.byType(CommitBox));
+    await tester.pump();
+
+    // Tap the copy button
+    await tester.tap(find.byIcon(Icons.copy));
+    await tester.pump();
+
+    expect((log.last.arguments as Object) as Map<String, dynamic>, <String, String>{
+      'text': expectedCommit.sha,
+    });
   });
 }
