@@ -151,7 +151,7 @@ const String reviewsMock = '''[
   }
 ]''';
 
-String unApprovedReviewsMock = '''[
+const String unApprovedReviewsMock = '''[
   {
     "id": 81,
     "user": {
@@ -221,11 +221,139 @@ const String neutralCheckRunsMock = '''{
   ]
 }''';
 
-String inProgressCheckRunsMock = '''{
+const String inProgressCheckRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
       "id": 3,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "conclusion": "neutral",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "inprogress_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+const String skippedCheckRunsMock = '''{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 6,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "conclusion": "skipped",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "inprogress_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+const String multipleCheckRunsMock = '''{
+  "total_count": 3,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "mighty_readme",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "neutral",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "neutral_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 6,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "conclusion": "skipped",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "inprogress_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+const String multipleCheckRunsWithFailureMock = '''{
+  "total_count": 3,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "mighty_readme",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "failed_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 6,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com",
+      "status": "in_progress",
+      "conclusion": "skipped",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "inprogress_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+const String inprogressAndNotFailedCheckRunMock = '''{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 6,
       "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
       "external_id": "",
       "details_url": "https://example.com",
@@ -257,34 +385,48 @@ const String repositoryStatusesMock = '''{
   ]
 }''';
 
-String failedAuthorsStatusesMock = '''{
-  "state": "failure",
+const String repositoryStatusesNonLuciFlutterMock = '''{
+  "state": "success",
   "statuses": [
     {
-      "state": "failure",
-      "context": "luci-flutter",
-      "target_url": "https://ci.example.com/1000/output"
+      "state": "success",
+      "context": "infra"
     },
     {
-      "state": "failure",
-      "context": "luci-engine",
-      "target_url": "https://ci.example.com/2000/output"
+      "state": "success",
+      "context": "config"
     }
   ]
 }''';
 
-String failedNonAuthorsStatusesMock = '''{
+const String failedAuthorsStatusesMock = '''{
   "state": "failure",
   "statuses": [
     {
       "state": "failure",
       "context": "luci-flutter",
-      "target_url": "https://ci.example.com/1000/output"
+      "targetUrl": "https://ci.example.com/1000/output"
     },
     {
       "state": "failure",
-      "context": "flutter-cocoon",
-      "target_url": "https://ci.example.com/2000/output"
+      "context": "luci-engine",
+      "targetUrl": "https://ci.example.com/2000/output"
+    }
+  ]
+}''';
+
+const String failedNonAuthorsStatusesMock = '''{
+  "state": "failure",
+  "statuses": [
+    {
+      "state": "failure",
+      "context": "flutter-engine",
+      "targetUrl": "https://ci.example.com/1000/output"
+    },
+    {
+      "state": "failure",
+      "context": "flutter-infra",
+      "targetUrl": "https://ci.example.com/2000/output"
     }
   ]
 }''';

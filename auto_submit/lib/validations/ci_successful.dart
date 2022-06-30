@@ -12,6 +12,13 @@ import '../service/log.dart';
 
 /// Validates all the CI build/tests ran and were successful.
 class CiSuccessful extends Validation {
+  /// The status checks that are not related to changes in this PR.
+  static const Set<String> notInAuthorsControl = <String>{
+    'luci-flutter', // flutter repo
+    'luci-engine', // engine repo
+    'submit-queue', // plugins repo
+  };
+
   CiSuccessful({
     required Config config,
   }) : super(config: config);
@@ -25,71 +32,37 @@ class CiSuccessful extends Validation {
     final PullRequest pullRequest = result.repository!.pullRequest!;
     Set<FailureDetail> failures = <FailureDetail>{};
 
-    // The status checks that are not related to changes in this PR.
-    const Set<String> notInAuthorsControl = <String>{
-      'luci-flutter', // flutter repo
-      'luci-engine', // engine repo
-      'submit-queue', // plugins repo
-    };
     List<ContextNode> statuses = <ContextNode>[];
     Commit commit = pullRequest.commits!.nodes!.single.commit!;
+
     // Recently most of the repositories have migrated away of using the status
     // APIs and for those repos commit.status is null.
     if (commit.status != null && commit.status!.contexts!.isNotEmpty) {
       statuses.addAll(commit.status!.contexts!);
     }
-    // Ensure repos with tree statuses have it set
-    if (Config.reposWithTreeStatus.contains(slug)) {
-      bool treeStatusExists = false;
-      final String treeStatusName = 'luci-${slug.name}';
 
-      // Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
-      for (ContextNode status in statuses) {
-        if (status.context == treeStatusName) {
-          treeStatusExists = true;
-        }
-      }
+    /// Validate tree statuses are set.
+    validateTreeStatusIsSet(slug, statuses, failures);
 
-      if (!treeStatusExists) {
-        failures.add(FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
-      }
-    }
     // List of labels associated with the pull request.
     final List<String> labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
-    final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
-    log.info('Validating name: ${slug.name}, status: $statuses');
-    for (ContextNode status in statuses) {
-      final String? name = status.context;
-      if (status.state != STATUS_SUCCESS) {
-        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
-          continue;
-        }
-        allSuccess = false;
-        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
-          failures.add(FailureDetail(name!, status.targetUrl!));
-        }
-      }
-    }
+
+    /// Validate if all statuses have been successful.
+    allSuccess = validateStatuses(slug, labelNames, statuses, failures, allSuccess);
+
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
+
     List<github.CheckRun> checkRuns = <github.CheckRun>[];
     if (messagePullRequest.head != null && sha != null) {
       checkRuns.addAll(await gitHubService.getCheckRuns(slug, sha));
     }
-    log.info('Validating name: ${slug.name}, checks: $checkRuns');
-    for (github.CheckRun checkRun in checkRuns) {
-      final String? name = checkRun.name;
-      if (checkRun.conclusion == github.CheckRunConclusion.success ||
-          (checkRun.status == github.CheckRunStatus.completed &&
-              checkRun.conclusion == github.CheckRunConclusion.neutral)) {
-        continue;
-      } else if (checkRun.status == github.CheckRunStatus.completed) {
-        failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
-      }
-      allSuccess = false;
-    }
+
+    /// Validate if all checkRuns have succeeded.
+    allSuccess = validateCheckRuns(slug, checkRuns, failures, allSuccess);
+
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
     }
@@ -102,5 +75,81 @@ class CiSuccessful extends Validation {
     }
     Action action = labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
+  }
+
+  /// Validate that the tree status exists for all statuses in the supplied list.
+  ///
+  /// If a failure is found it is added to the set of overall failures.
+  void validateTreeStatusIsSet(github.RepositorySlug slug, List<ContextNode> statuses, Set<FailureDetail> failures) {
+    if (Config.reposWithTreeStatus.contains(slug)) {
+      bool treeStatusExists = false;
+      final String treeStatusName = 'luci-${slug.name}';
+
+      /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+      for (ContextNode status in statuses) {
+        if (status.context == treeStatusName) {
+          // Does only one tree status need to be set for the condition?
+          treeStatusExists = true;
+        }
+      }
+
+      if (!treeStatusExists) {
+        failures.add(FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+      }
+    }
+  }
+
+  /// Validate the ci build test run statuses to see which have succeeded and
+  /// which have failed.
+  ///
+  /// Failures will be added the set of overall failures.
+  /// Returns allSuccess unmodified if there were no failures, false otherwise.
+  bool validateStatuses(github.RepositorySlug slug, List<String> labelNames, List<ContextNode> statuses,
+      Set<FailureDetail> failures, bool allSuccess) {
+    final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
+
+    log.info('Validating name: ${slug.name}, status: $statuses');
+    for (ContextNode status in statuses) {
+      // How can name be null but presumed to not be null below when added to failure?
+      final String? name = status.context;
+
+      if (status.state != STATUS_SUCCESS) {
+        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
+          continue;
+        }
+        allSuccess = false;
+        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
+          failures.add(FailureDetail(name!, status.targetUrl!));
+        }
+      }
+    }
+
+    return allSuccess;
+  }
+
+  /// Validate the checkRuns to see if all have completed successfully or not.
+  ///
+  /// Failures will be added the set of overall failures.
+  /// Returns allSuccess unmodified if there were no failures, false otherwise.
+  bool validateCheckRuns(
+      github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
+    log.info('Validating name: ${slug.name}, checks: $checkRuns');
+    for (github.CheckRun checkRun in checkRuns) {
+      final String? name = checkRun.name;
+
+      if (checkRun.conclusion == github.CheckRunConclusion.skipped ||
+          checkRun.conclusion == github.CheckRunConclusion.success ||
+          (checkRun.status == github.CheckRunStatus.completed &&
+              checkRun.conclusion == github.CheckRunConclusion.neutral)) {
+        // checkrun has passed.
+        continue;
+      } else if (checkRun.status == github.CheckRunStatus.completed) {
+        // checkrun has failed.
+        failures.add(FailureDetail(name!, checkRun.detailsUrl as String));
+      }
+      allSuccess = false;
+    }
+
+    return allSuccess;
   }
 }
