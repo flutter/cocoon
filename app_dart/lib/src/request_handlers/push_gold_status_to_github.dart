@@ -158,16 +158,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           assert(!pr.draft!);
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(slug, pr);
-          statusRequest = _createStatus(
-              goldStatus,
-              goldStatus == GithubGoldStatusUpdate.statusRunning
-                  ? config.flutterGoldChanges
-                  : config.flutterGoldSuccess,
-              slug,
-              pr.number!);
+          final String description = getStatusDescription(goldStatus, pr);
+          statusRequest = _createStatus(goldStatus, description, slug, pr.number!);
           log.fine('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
-              !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
+          if (await shouldComment(goldStatus, pr, gitHubClient, slug)) {
             log.fine('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
@@ -194,6 +188,33 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
     await datastore.insert(statusUpdates);
     log.fine('Committed all updates for $slug');
+  }
+
+  /// Check if a new comment should be posted to GitHub.
+  ///
+  /// Skips comment for auto roller.
+  Future<bool> shouldComment(
+    String goldStatus,
+    PullRequest pr,
+    GitHub gitHubClient,
+    RepositorySlug slug,
+  ) async {
+    if (pr.user!.login == 'skia-flutter-autoroll') {
+      return false;
+    }
+    return goldStatus == GithubGoldStatusUpdate.statusRunning &&
+        !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr));
+  }
+
+  /// Returns status decription for a PR.
+  ///
+  /// This skips gold diffs check for autorollers.
+  String getStatusDescription(String goldStatus, PullRequest pr) {
+    String description = config.flutterGoldSuccess;
+    if (pr.user!.login != 'skia-flutter-autoroll' && goldStatus == GithubGoldStatusUpdate.statusRunning) {
+      description = config.flutterGoldChanges;
+    }
+    return description;
   }
 
   /// Returns a GitHub Status for the given state and description.

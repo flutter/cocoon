@@ -172,13 +172,15 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false, DateTime? updated}) {
+      PullRequest newPullRequest(int number, String sha, String baseRef,
+          {bool draft = false, DateTime? updated, String? login}) {
         return PullRequest()
           ..number = number
           ..head = (PullRequestHead()..sha = sha)
           ..base = (PullRequestHead()..ref = baseRef)
           ..draft = draft
-          ..updatedAt = updated ?? DateTime.now();
+          ..updatedAt = updated ?? DateTime.now()
+          ..user = User(login: login);
       }
 
       group('does not update GitHub or Datastore', () {
@@ -869,6 +871,70 @@ void main() {
             pr.number!,
             argThat(contains(config.flutterGoldCommentID(pr))),
           )).called(1);
+        });
+
+        test('new commit, checks complete, change detected, should comment for autoroller', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master', login: 'skia-flutter-autoroll');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(slug, pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config,
+            auth,
+            datastoreProvider: (DatastoreDB db) {
+              return DatastoreService(
+                config.db,
+                5,
+                retryOptions: retryOptions,
+              );
+            },
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(records.where((LogRecord record) => record.level == Level.WARNING), isEmpty);
+          expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
+
+          // Should label and comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ));
         });
 
         test('same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
