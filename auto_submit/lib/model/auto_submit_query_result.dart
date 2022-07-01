@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'auto_submit_query_result.g.dart';
@@ -88,6 +90,9 @@ class ContextNode {
   factory ContextNode.fromJson(Map<String, dynamic> json) => _$ContextNodeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContextNodeToJson(this);
+
+  @override
+  String toString() => jsonEncode(_$ContextNodeToJson(this));
 }
 
 @JsonSerializable()

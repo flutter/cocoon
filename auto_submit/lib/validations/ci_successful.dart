@@ -87,8 +87,7 @@ class CiSuccessful extends Validation {
       bool treeStatusExists = false;
       final String treeStatusName = 'luci-${slug.name}';
 
-      List<String> contextNodeStrings = _contextNodeListToStringList(statuses);
-      log.info('Validating tree status: ${slug.name}, statuses: $contextNodeStrings');
+      log.info('Validating tree status: ${slug.name}, statuses: $statuses');
 
       /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
       for (ContextNode status in statuses) {
@@ -113,8 +112,7 @@ class CiSuccessful extends Validation {
       Set<FailureDetail> failures, bool allSuccess) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
 
-    List<String> contextNodeStrings = _contextNodeListToStringList(statuses);
-    log.info('Validating name: ${slug.name}, statuses: $contextNodeStrings');
+    log.info('Validating name: ${slug.name}, statuses: $statuses');
 
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
@@ -132,18 +130,6 @@ class CiSuccessful extends Validation {
     }
 
     return allSuccess;
-  }
-
-  List<String> _contextNodeListToStringList(List<ContextNode> contextNodeList) {
-    List<String> contextNodeStrings = [];
-    for (int i = 0; i < contextNodeList.length; i++) {
-      contextNodeStrings.add(_contextNodeToString(contextNodeList[i]));
-    }
-    return contextNodeStrings;
-  }
-
-  String _contextNodeToString(ContextNode contextNode) {
-    return json.encode(contextNode.toJson());
   }
 
   /// Validate the checkRuns to see if all have completed successfully or not.
@@ -173,7 +159,7 @@ class CiSuccessful extends Validation {
 
     return allSuccess;
   }
-
+  
   List<String> _checkRunListToStringList(List<github.CheckRun> checkRuns) {
     List<String> checkRunStrings = [];
     for (int i = 0; i < checkRuns.length; i++) {
