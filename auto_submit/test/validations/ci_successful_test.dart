@@ -221,7 +221,7 @@ void main() {
     test('Validate tree status is set contains slug.', () {
       slug = github.RepositorySlug('octocat', 'flutter');
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
-
+      expect(contextNodeList.isEmpty, false);
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
       ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
@@ -231,7 +231,7 @@ void main() {
     test('Validate tree status is set does not contain slug.', () {
       slug = github.RepositorySlug('octocat', 'infra');
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
-
+      expect(contextNodeList.isEmpty, false);
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
       ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);

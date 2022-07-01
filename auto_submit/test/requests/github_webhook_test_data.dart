@@ -371,6 +371,7 @@ const String inprogressAndNotFailedCheckRunMock = '''{
 const String emptyCheckRunsMock = '''{"check_runs": [{}]}''';
 
 // repositoryStatusesMock is from the official Github API: https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+// state can be error, failure, pending, success
 const String repositoryStatusesMock = '''{
   "state": "success",
   "statuses": [

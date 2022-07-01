@@ -66,6 +66,7 @@ class CiSuccessful extends Validation {
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
     }
+
     final StringBuffer buffer = StringBuffer();
     if (failures.isNotEmpty) {
       for (FailureDetail detail in failures) {
@@ -84,6 +85,9 @@ class CiSuccessful extends Validation {
     if (Config.reposWithTreeStatus.contains(slug)) {
       bool treeStatusExists = false;
       final String treeStatusName = 'luci-${slug.name}';
+
+      List<String> contextNodeStrings = _contextNodeListToStringList(statuses);
+      log.info('Validating tree status: ${slug.name}, statuses: $contextNodeStrings');
 
       /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
       for (ContextNode status in statuses) {
@@ -108,7 +112,9 @@ class CiSuccessful extends Validation {
       Set<FailureDetail> failures, bool allSuccess) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
 
-    log.info('Validating name: ${slug.name}, status: $statuses');
+    List<String> contextNodeStrings = _contextNodeListToStringList(statuses);
+    log.info('Validating name: ${slug.name}, statuses: $contextNodeStrings');
+
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
@@ -127,13 +133,29 @@ class CiSuccessful extends Validation {
     return allSuccess;
   }
 
+  List<String> _contextNodeListToStringList(List<ContextNode> contextNodeList) {
+    List<String> contextNodeStrings = [];
+    for (int i = 0; i < contextNodeList.length; i++) {
+      contextNodeStrings.add(_contextNodeToString(contextNodeList[i]));
+    }
+    print(contextNodeStrings);
+    return contextNodeStrings;
+  }
+
+  String _contextNodeToString(ContextNode contextNode) {
+    return '{ContextNode: context=${contextNode.context}, state=${contextNode.state}, targetUrl=${contextNode.targetUrl}}';
+  }
+
   /// Validate the checkRuns to see if all have completed successfully or not.
   ///
   /// Failures will be added the set of overall failures.
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
       github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
-    log.info('Validating name: ${slug.name}, checks: $checkRuns');
+    
+    List<String> checkRunsStringList = _checkRunListToStringList(checkRuns);
+    log.info('Validating name: ${slug.name}, checkRuns: $checkRunsStringList');
+
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
 
@@ -151,5 +173,17 @@ class CiSuccessful extends Validation {
     }
 
     return allSuccess;
+  }
+
+  List<String> _checkRunListToStringList(List<github.CheckRun> checkRuns) {
+    List<String> checkRunStrings = [];
+    for (int i = 0; i < checkRuns.length; i++) {
+      checkRunStrings.add(_checkRunToString(checkRuns[i]));
+    }
+    return checkRunStrings;
+  }
+
+  String _checkRunToString(github.CheckRun checkRun) {
+    return '{CheckRun: id=${checkRun.id}, headSha=${checkRun.headSha}, checkSuiteId=${checkRun.checkSuiteId}, name=${checkRun.name}, status=${checkRun.status}, conclusion=${checkRun.conclusion.value}}';
   }
 }
