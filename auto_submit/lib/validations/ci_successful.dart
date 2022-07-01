@@ -159,7 +159,7 @@ class CiSuccessful extends Validation {
 
     return allSuccess;
   }
-  
+
   List<String> _checkRunListToStringList(List<github.CheckRun> checkRuns) {
     List<String> checkRunStrings = [];
     for (int i = 0; i < checkRuns.length; i++) {
