@@ -6,6 +6,7 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
+import 'dart:convert';
 
 import '../service/config.dart';
 import '../service/log.dart';
@@ -142,7 +143,7 @@ class CiSuccessful extends Validation {
   }
 
   String _contextNodeToString(ContextNode contextNode) {
-    return '{ContextNode: context=${contextNode.context}, state=${contextNode.state}, targetUrl=${contextNode.targetUrl}}';
+    return json.encode(contextNode.toJson());
   }
 
   /// Validate the checkRuns to see if all have completed successfully or not.
@@ -182,6 +183,6 @@ class CiSuccessful extends Validation {
   }
 
   String _checkRunToString(github.CheckRun checkRun) {
-    return '{CheckRun: id=${checkRun.id}, headSha=${checkRun.headSha}, checkSuiteId=${checkRun.checkSuiteId}, name=${checkRun.name}, status=${checkRun.status}, conclusion=${checkRun.conclusion.value}}';
+    return json.encode(checkRun.toJson());
   }
 }
