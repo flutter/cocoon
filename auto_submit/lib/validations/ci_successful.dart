@@ -138,7 +138,6 @@ class CiSuccessful extends Validation {
     for (int i = 0; i < contextNodeList.length; i++) {
       contextNodeStrings.add(_contextNodeToString(contextNodeList[i]));
     }
-    print(contextNodeStrings);
     return contextNodeStrings;
   }
 
