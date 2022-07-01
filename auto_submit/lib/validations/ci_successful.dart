@@ -151,7 +151,6 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
       github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
-    
     List<String> checkRunsStringList = _checkRunListToStringList(checkRuns);
     log.info('Validating name: ${slug.name}, checkRuns: $checkRunsStringList');
 
