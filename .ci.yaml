@@ -31,6 +31,8 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
+      script: "build.sh"
+      cipd_name: "device_doctor"
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -40,6 +42,8 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
+      script: "build.sh"
+      cipd_name: "device_doctor"
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -49,8 +53,21 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
+      script: "build.bat"
+      cipd_name: "device_doctor"
     runIf:
       - device_doctor/**
+      - .ci.yaml
+
+  - name: Mac codesign
+    postsubmit: false
+    recipe: cocoon/codesign
+    properties:
+      add_recipes_cq: "true"
+      script: "build.sh"
+      cipd_name: "codesign"
+    runIf:
+      - codesign/**
       - .ci.yaml
 
   - name: Linux ci_yaml roller
