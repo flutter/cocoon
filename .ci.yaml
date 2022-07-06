@@ -62,7 +62,7 @@ targets:
   - name: Mac codesign
     bringup: true
     postsubmit: false
-    recipe: cocoon/codesign
+    recipe: cocoon/cipd
     properties:
       add_recipes_cq: "true"
       script: codesign/tool/build.sh
