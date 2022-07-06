@@ -273,6 +273,7 @@ class Scheduler {
       pullRequest: pullRequest,
       reason: reason,
     );
+
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       pullRequest.base!.repo!.slug(),
@@ -283,6 +284,7 @@ class Scheduler {
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
+    
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {

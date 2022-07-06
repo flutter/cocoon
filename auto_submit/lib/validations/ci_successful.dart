@@ -86,7 +86,6 @@ class CiSuccessful extends Validation {
     if (Config.reposWithTreeStatus.contains(slug)) {
       bool treeStatusExists = false;
       final String treeStatusName = 'luci-${slug.name}';
-
       log.info('Validating tree status: ${slug.name}, statuses: $statuses');
 
       /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
@@ -111,7 +110,6 @@ class CiSuccessful extends Validation {
   bool validateStatuses(github.RepositorySlug slug, List<String> labelNames, List<ContextNode> statuses,
       Set<FailureDetail> failures, bool allSuccess) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
-
     log.info('Validating name: ${slug.name}, statuses: $statuses');
 
     for (ContextNode status in statuses) {
@@ -138,8 +136,7 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
       github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
-    List<String> checkRunsStringList = _checkRunListToStringList(checkRuns);
-    log.info('Validating name: ${slug.name}, checkRuns: $checkRunsStringList');
+    log.info('Validating name: ${slug.name}, checkRuns: $checkRuns');
 
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
@@ -158,17 +155,5 @@ class CiSuccessful extends Validation {
     }
 
     return allSuccess;
-  }
-
-  List<String> _checkRunListToStringList(List<github.CheckRun> checkRuns) {
-    List<String> checkRunStrings = [];
-    for (int i = 0; i < checkRuns.length; i++) {
-      checkRunStrings.add(_checkRunToString(checkRuns[i]));
-    }
-    return checkRunStrings;
-  }
-
-  String _checkRunToString(github.CheckRun checkRun) {
-    return json.encode(checkRun.toJson());
   }
 }
