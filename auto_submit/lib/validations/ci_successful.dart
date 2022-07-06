@@ -66,6 +66,7 @@ class CiSuccessful extends Validation {
     if (!allSuccess && failures.isEmpty) {
       return ValidationResult(allSuccess, Action.IGNORE_TEMPORARILY, '');
     }
+
     final StringBuffer buffer = StringBuffer();
     if (failures.isNotEmpty) {
       for (FailureDetail detail in failures) {
@@ -84,6 +85,7 @@ class CiSuccessful extends Validation {
     if (Config.reposWithTreeStatus.contains(slug)) {
       bool treeStatusExists = false;
       final String treeStatusName = 'luci-${slug.name}';
+      log.info('Validating tree status: ${slug.name}, statuses: $statuses');
 
       /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
       for (ContextNode status in statuses) {
@@ -107,8 +109,8 @@ class CiSuccessful extends Validation {
   bool validateStatuses(github.RepositorySlug slug, List<String> labelNames, List<ContextNode> statuses,
       Set<FailureDetail> failures, bool allSuccess) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
+    log.info('Validating name: ${slug.name}, statuses: $statuses');
 
-    log.info('Validating name: ${slug.name}, status: $statuses');
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
@@ -133,7 +135,8 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
       github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
-    log.info('Validating name: ${slug.name}, checks: $checkRuns');
+    log.info('Validating name: ${slug.name}, checkRuns: $checkRuns');
+
     for (github.CheckRun checkRun in checkRuns) {
       final String? name = checkRun.name;
 
