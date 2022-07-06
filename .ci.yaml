@@ -31,8 +31,8 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      script: "build.sh"
-      cipd_name: "device_doctor"
+      script: device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/linux-amd64
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -42,8 +42,8 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      script: "build.sh"
-      cipd_name: "device_doctor"
+      script: device_doctor/tool/build.sh
+      cipd_name: flutter/device_doctor/mac-amd64
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -53,8 +53,8 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      script: "build.bat"
-      cipd_name: "device_doctor"
+      script: device_doctor/tool/build.bat
+      cipd_name: flutter/device_doctor/windows-amd64
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -65,8 +65,8 @@ targets:
     recipe: cocoon/codesign
     properties:
       add_recipes_cq: "true"
-      script: "build.sh"
-      cipd_name: "codesign"
+      script: codesign/tool/build.sh
+      cipd_name: flutter/codesign/mac-amd64
     runIf:
       - codesign/**
       - .ci.yaml
