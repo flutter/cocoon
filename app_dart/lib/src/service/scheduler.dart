@@ -284,7 +284,7 @@ class Scheduler {
         summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
       ),
     );
-    
+
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
