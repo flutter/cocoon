@@ -60,6 +60,7 @@ targets:
       - .ci.yaml
 
   - name: Mac codesign
+    bringup: true
     postsubmit: false
     recipe: cocoon/codesign
     properties:
