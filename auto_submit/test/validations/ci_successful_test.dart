@@ -283,9 +283,6 @@ void main() {
       expect(queryResult, isNotNull);
       final PullRequest pr = queryResult.repository!.pullRequest!;
       expect(pr, isNotNull);
-      // final Commit commit = pr.commits!.nodes!.single.commit!;
-      // expect(commit, isNotNull);
-      // expect(commit.status, isNull);
 
       final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
       githubService.checkRunsData = checkRunsMock;
