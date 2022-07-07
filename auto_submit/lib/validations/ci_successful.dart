@@ -121,19 +121,16 @@ class CiSuccessful extends Validation {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: ${slug.name}, statuses: $statuses');
 
-    if (statuses.isNotEmpty) {
-      for (ContextNode status in statuses) {
-        // How can name be null but presumed to not be null below when added to failure?
-        final String? name = status.context;
-
-        if (status.state != STATUS_SUCCESS) {
-          if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
-            continue;
-          }
-          allSuccess = false;
-          if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
-            failures.add(FailureDetail(name!, status.targetUrl!));
-          }
+    for (ContextNode status in statuses) {
+      // How can name be null but presumed to not be null below when added to failure?
+      final String? name = status.context;
+      if (status.state != STATUS_SUCCESS) {
+        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
+          continue;
+        }
+        allSuccess = false;
+        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
+          failures.add(FailureDetail(name!, status.targetUrl!));
         }
       }
     }
