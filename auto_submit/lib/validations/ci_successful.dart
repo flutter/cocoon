@@ -41,6 +41,16 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
+    // We want to check statuses for luci-flutter and luci-engine but do not
+    // want to block on other repos like plugins or packages. If there are no
+    // statuses we want to remove the label but also warn the user and log a
+    // message for us.
+    if (Config.reposWithTreeStatus.contains(slug) && statuses.isEmpty) {
+      log.warning('Statuses were not ready.');
+      return ValidationResult(
+          false, Action.REMOVE_LABEL, 'Try again when the tree status has been applied to this PR.');
+    }
+
     /// Validate tree statuses are set.
     validateTreeStatusIsSet(slug, statuses, failures);
 
@@ -111,17 +121,19 @@ class CiSuccessful extends Validation {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: ${slug.name}, statuses: $statuses');
 
-    for (ContextNode status in statuses) {
-      // How can name be null but presumed to not be null below when added to failure?
-      final String? name = status.context;
+    if (statuses.isNotEmpty) {
+      for (ContextNode status in statuses) {
+        // How can name be null but presumed to not be null below when added to failure?
+        final String? name = status.context;
 
-      if (status.state != STATUS_SUCCESS) {
-        if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
-          continue;
-        }
-        allSuccess = false;
-        if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
-          failures.add(FailureDetail(name!, status.targetUrl!));
+        if (status.state != STATUS_SUCCESS) {
+          if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
+            continue;
+          }
+          allSuccess = false;
+          if (status.state == STATUS_FAILURE && !notInAuthorsControl.contains(name)) {
+            failures.add(FailureDetail(name!, status.targetUrl!));
+          }
         }
       }
     }
