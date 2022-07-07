@@ -53,7 +53,7 @@ targets:
     recipe: cocoon/device_doctor
     properties:
       add_recipes_cq: "true"
-      script: device_doctor/tool/build.bat
+      script: device_doctor\tool\build.bat
       cipd_name: flutter/device_doctor/windows-amd64
     runIf:
       - device_doctor/**
