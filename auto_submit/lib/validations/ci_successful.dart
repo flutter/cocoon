@@ -45,6 +45,7 @@ class CiSuccessful extends Validation {
     // want to block on other repos like plugins or packages. If there are no
     // statuses we want to remove the label but also warn the user and log a
     // message for us.
+    // https://github.com/flutter/flutter/issues/106914
     if (Config.reposWithTreeStatus.contains(slug) && statuses.isEmpty) {
       log.warning('Statuses were not ready.');
       return ValidationResult(
