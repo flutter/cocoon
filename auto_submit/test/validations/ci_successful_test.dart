@@ -249,6 +249,7 @@ void main() {
       ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
       expect(failures, isNotEmpty);
       expect(failures.length, 1);
+      expect(failures.elementAt(0).name.contains('tree status luci-flutter'), isTrue);
     });
   });
 
@@ -268,12 +269,30 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
 
       ciSuccessful.validate(queryResult, npr).then((value) {
-        // No failure.
-        expect(true, value.result);
+        // fails because in this case there is only a single fail status
+        expect(false, value.result);
         // Remove label.
         expect((value.action == Action.REMOVE_LABEL), isTrue);
-        expect(value.message,
-            '- The status or check suite [tree status luci-flutter](https://flutter-dashboard.appspot.com/#/build) has failed. Please fix the issues identified (or deflake) before re-applying this label.\n');
+        expect(value.message, 'Try again when the tree status has been applied to this PR.');
+      });
+    });
+
+    test('Commit has no statuses to verify.', () {
+      final Map<String, dynamic> queryResultJsonDecode = jsonDecode(noStatusInCommitJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      expect(queryResult, isNotNull);
+      final PullRequest pr = queryResult.repository!.pullRequest!;
+      expect(pr, isNotNull);
+
+      final github.PullRequest npr = generatePullRequest(labelName: 'needs tests');
+      githubService.checkRunsData = checkRunsMock;
+
+      ciSuccessful.validate(queryResult, npr).then((value) {
+        // fails because in this case there is only a single fail status
+        expect(false, value.result);
+        // Remove label.
+        expect((value.action == Action.REMOVE_LABEL), isTrue);
+        expect(value.message, 'Try again when the tree status has been applied to this PR.');
       });
     });
 
