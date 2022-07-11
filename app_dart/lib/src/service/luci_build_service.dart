@@ -424,7 +424,8 @@ class LuciBuildService {
         'buildset': <String>['pr/git/$prNumber', 'sha/git/$sha'],
         'user_agent': const <String>['flutter-cocoon'],
         'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
-      },
+        'cipd_version': <String>[cipdVersion],
+      }, 
       properties: properties,
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
