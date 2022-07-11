@@ -14,14 +14,14 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "40.0.0"
+    version: "41.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.0"
+    version: "4.2.0"
   appengine:
     dependency: "direct main"
     description:
@@ -392,7 +392,7 @@ packages:
       name: linter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.25.0"
+    version: "1.26.0"
   lints:
     dependency: "direct dev"
     description:
