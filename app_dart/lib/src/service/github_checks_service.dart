@@ -147,7 +147,7 @@ class GithubChecksService {
     }
   }
 
-  /// Transforms a [ush_message.Status] to a [github.CheckRunStatus].
+  /// Transforms a [push_message.Status] to a [github.CheckRunStatus].
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs
   github.CheckRunStatus statusForResult(push_message.Status? status) {

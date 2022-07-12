@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/gestures.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../model/commit.pb.dart';
@@ -124,9 +126,21 @@ class CommitOverlayContents extends StatelessWidget {
                             child: AnimatedDefaultTextStyle(
                               style: theme.textTheme.subtitle1!,
                               duration: kThemeChangeDuration,
-                              child: Hyperlink(
-                                text: commit.sha.substring(0, 7),
-                                onPressed: _openGithub,
+                              child: Row(
+                                children: <Widget>[
+                                  Hyperlink(
+                                    text: commit.sha.substring(0, 7),
+                                    onPressed: _openGithub,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.copy),
+                                    onPressed: () => unawaited(
+                                      Clipboard.setData(
+                                        ClipboardData(text: commit.sha),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
