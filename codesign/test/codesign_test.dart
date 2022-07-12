@@ -7,33 +7,18 @@ import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import './src/common.dart';
 
-class FakeCodesignContext extends cs.CodesignContext {
-  FakeCodesignContext(
-      {required super.codesignCertName,
-      required super.codesignUserName,
-      required super.appSpecificPassword,
-      required super.codesignAppstoreId,
-      required super.codesignTeamId,
-      required super.commitHash,
-      required super.codesignFilepaths,
-      super.production = false});
-}
-
 /// A fake file visitor for testing purpose.
 ///
 /// Upload for notarization is overriden, and the timer to check notarization
 /// status is fired instantly.
 class FakeCodesignVisitor extends cs.FileCodesignVisitor {
   FakeCodesignVisitor({
-    required super.tempDir,
     required super.commitHash,
-    required super.processManager,
     required super.codesignCertName,
     required super.codesignUserName,
     required super.appSpecificPassword,
     required super.codesignAppstoreId,
     required super.codesignTeamId,
-    required super.stdio,
     required super.codesignFilepaths,
     super.production,
     this.fixitCheckMode = false,
@@ -50,36 +35,26 @@ void main() {
   List<String> fakeFilepaths = ['a.zip', 'b.zip', 'c.zip'];
   FakeProcessManager processManager = FakeProcessManager.list(<FakeCommand>[]);
   late Directory tempDir;
-
-  FakeCodesignContext codesignContext = FakeCodesignContext(
+  late FakeCodesignVisitor codesignVisitor;
+  
+  void createRunner(){
+    tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+    codesignVisitor = FakeCodesignVisitor(
       codesignCertName: randomString,
       codesignUserName: randomString,
       appSpecificPassword: randomString,
       codesignAppstoreId: randomString,
       codesignTeamId: randomString,
       codesignFilepaths: fakeFilepaths,
-      commitHash: randomString);
-
-  codesignContext.fileSystem = fileSystem;
-  codesignContext.tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-  tempDir = codesignContext.tempDir!;
-
-  FakeCodesignVisitor codesignVisitor = FakeCodesignVisitor(
-    codesignCertName: randomString,
-    tempDir: codesignContext.tempDir!,
-    stdio: stdio,
-    processManager: processManager,
-    codesignUserName: randomString,
-    appSpecificPassword: randomString,
-    codesignAppstoreId: randomString,
-    codesignTeamId: randomString,
-    codesignFilepaths: fakeFilepaths,
-    commitHash: randomString,
-  );
-
-  codesignContext.codesignVisitor = codesignVisitor;
+      commitHash: randomString,
+    );
+    codesignVisitor.tempDir = tempDir;
+    codesignVisitor.processManager = processManager;
+    codesignVisitor.stdio = stdio;
+  } 
 
   test('visit directory', () async {
+    createRunner();
     fileSystem.file('${tempDir.path}/remote_zip_0/file_a').createSync(recursive: true);
     fileSystem.file('${tempDir.path}/remote_zip_0/file_b').createSync(recursive: true);
     fileSystem.file('${tempDir.path}/remote_zip_0/file_c').createSync(recursive: true);

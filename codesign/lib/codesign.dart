@@ -3,6 +3,5 @@
 // found in the LICENSE file.
 
 export 'src/globals.dart';
-export 'src/codesign_context.dart';
 export 'src/file_codesign_visitor.dart';
 export 'src/stdio.dart';

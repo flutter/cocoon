@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
+import 'package:file/local.dart';
 import 'dart:io' as io;
 
 /// Interface for classes that interact with files nested inside of [RemoteZip]s.
@@ -24,15 +25,12 @@ enum NotaryStatus {
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor extends FileVisitor {
   FileCodesignVisitor({
-    required this.tempDir,
     required this.commitHash,
-    required this.processManager,
     required this.codesignCertName,
     required this.codesignUserName,
     required this.appSpecificPassword,
     required this.codesignAppstoreId,
     required this.codesignTeamId,
-    required this.stdio,
     required this.codesignFilepaths,
     this.production = false,
   });
@@ -40,16 +38,17 @@ class FileCodesignVisitor extends FileVisitor {
   /// Temp [Directory] to download/extract files to.
   ///
   /// This file will be deleted if [validateAll] completes successfully.
-  final Directory tempDir;
+  Directory? tempDir;
+  FileSystem? fileSystem;
+  Stdio? stdio;
+  ProcessManager? processManager;
 
   final String commitHash;
-  final ProcessManager processManager;
   final String codesignCertName;
   final String codesignUserName;
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
-  final Stdio stdio;
   final bool production;
 
   // TODO(xilaizhang): add back utitlity in later splits
@@ -58,11 +57,9 @@ class FileCodesignVisitor extends FileVisitor {
   Set<String> fileConsumed = <String>{};
   List<String> codesignFilepaths;
 
-  late final File entitlementsFile = tempDir.childFile('Entitlements.plist')
-    ..writeAsStringSync(_entitlementsFileContents);
-
-  late final Directory remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
-  late final Directory codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
+  late final File entitlementsFile; 
+  late final Directory remoteDownloadsDir; 
+  late final Directory codesignedZipsDir;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
@@ -87,12 +84,38 @@ class FileCodesignVisitor extends FileVisitor {
     </dict>
 </plist>
 ''';
+
+  void initialize(){
+    fileSystem ??= LocalFileSystem();
+    tempDir ??= fileSystem!.systemTempDirectory.createTempSync('conductor_codesign');
+    stdio ??= VerboseStdio(
+      stdout: io.stdout,
+      stderr: io.stderr,
+      stdin: io.stdin,
+    );
+    processManager ??= LocalProcessManager();
+    entitlementsFile = tempDir!.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    remoteDownloadsDir = tempDir!.childDirectory('downloads')..createSync();
+    codesignedZipsDir = tempDir!.childDirectory('codesigned_zips')..createSync();
+  }
+
   Future<void> validateAll() async {
-    return Future.value(null);
+    initialize();
+
+    try {
+      await Future.value(null);
+      stdio!.printStatus('Codesigned all binaries in ${tempDir!.path}');
+    } finally {
+      if (production) {
+        await tempDir?.delete(recursive: true);
+      } else {
+        stdio!.printStatus('Codesign test run finished. You can examine files at ${tempDir!.path}');
+      }
+    }
   }
 
   Future<void> visitDirectory(Directory directory, String entitlementParentPath) async {
-    stdio.printStatus('visiting directory ${directory.absolute.path}\n');
+    stdio!.printStatus('visiting directory ${directory.absolute.path}\n');
     final List<FileSystemEntity> entities = await directory.list().toList();
     String childnames = "";
     for (FileSystemEntity entity in entities) {
@@ -101,6 +124,6 @@ class FileCodesignVisitor extends FileVisitor {
       }
       childnames += ' ${entity.basename}';
     }
-    stdio.printStatus('child files of direcotry are$childnames\n');
+    stdio!.printStatus('child files of direcotry are$childnames\n');
   }
 }

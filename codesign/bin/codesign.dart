@@ -96,7 +96,7 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  return CodesignContext(
+  return FileCodesignVisitor(
     codesignCertName: codesignCertName,
     codesignUserName: codesignUserName,
     commitHash: commit,
@@ -105,5 +105,5 @@ Future<void> main(List<String> args) async {
     codesignTeamId: codesignTeamId,
     codesignFilepaths: codesignFilepaths,
     production: production,
-  ).run();
+  ).validateAll();
 }
