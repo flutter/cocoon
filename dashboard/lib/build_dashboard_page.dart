@@ -347,8 +347,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
-    const flutterIssueUrl =
-        'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md';
+    final Uri flutterIssueUrl = Uri.parse(
+        'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md');
     final BuildState _buildState = Provider.of<BuildState>(context);
     _buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(
@@ -369,8 +369,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               icon: const Icon(Icons.bug_report),
               onPressed: () async {
                 const url = 'https://blog.logrocket.com';
-                if (await canLaunch(flutterIssueUrl)) {
-                  await launch(flutterIssueUrl);
+                if (await canLaunchUrl(flutterIssueUrl)) {
+                  await launchUrl(flutterIssueUrl);
                 } else {
                   throw 'Could not launch $url';
                 }
