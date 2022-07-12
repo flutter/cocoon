@@ -33,9 +33,7 @@ class FakeCommand {
     this.stdin,
     this.exception,
     this.outputFollowsExit = false,
-  })  : assert(command != null),
-        assert(duration != null),
-        assert(exitCode != null);
+  });
 
   /// The exact commands that must be matched for this [FakeCommand] to be
   /// considered correct.
@@ -140,7 +138,7 @@ class _FakeProcess implements io.Process {
           return _exitCode;
         }),
         stdin = stdin ?? IOSink(StreamController<List<int>>().sink) {
-    if (_stderr == null) {
+    if (_stderr == '') {
       stderr = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
       stderr = Stream<List<int>>.fromFuture(exitCode.then((_) {
@@ -150,7 +148,7 @@ class _FakeProcess implements io.Process {
       stderr = Stream<List<int>>.value(utf8.encode(_stderr));
     }
 
-    if (_stdout == null) {
+    if (_stdout == '') {
       stdout = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
       stdout = Stream<List<int>>.fromFuture(exitCode.then((_) {
