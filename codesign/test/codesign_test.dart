@@ -36,8 +36,8 @@ void main() {
   FakeProcessManager processManager = FakeProcessManager.list(<FakeCommand>[]);
   late Directory tempDir;
   late FakeCodesignVisitor codesignVisitor;
-  
-  void createRunner(){
+
+  void createRunner() {
     tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     codesignVisitor = FakeCodesignVisitor(
       codesignCertName: randomString,
@@ -51,7 +51,7 @@ void main() {
     codesignVisitor.tempDir = tempDir;
     codesignVisitor.processManager = processManager;
     codesignVisitor.stdio = stdio;
-  } 
+  }
 
   test('visit directory', () async {
     createRunner();

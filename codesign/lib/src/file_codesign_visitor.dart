@@ -57,8 +57,8 @@ class FileCodesignVisitor extends FileVisitor {
   Set<String> fileConsumed = <String>{};
   List<String> codesignFilepaths;
 
-  late final File entitlementsFile; 
-  late final Directory remoteDownloadsDir; 
+  late final File entitlementsFile;
+  late final Directory remoteDownloadsDir;
   late final Directory codesignedZipsDir;
 
   int _remoteDownloadIndex = 0;
@@ -85,7 +85,7 @@ class FileCodesignVisitor extends FileVisitor {
 </plist>
 ''';
 
-  void initialize(){
+  void initialize() {
     fileSystem ??= LocalFileSystem();
     tempDir ??= fileSystem!.systemTempDirectory.createTempSync('conductor_codesign');
     stdio ??= VerboseStdio(
