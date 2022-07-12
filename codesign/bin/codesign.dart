@@ -17,6 +17,7 @@ const String kCodesignUserName = 'codesign-username';
 const String kAppSpecificPassword = 'app-specific-password';
 const String kCodesignAppStoreId = 'codesign-appstore-id';
 const String kCodesignTeamId = 'codesign-team-id';
+const String kCodesignFilepath = 'filepath';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -30,7 +31,7 @@ const String kCodesignTeamId = 'codesign-team-id';
 /// For `--filepath`, provides the artifacts zip paths to be code signed.
 ///
 /// Usage:
-/// dart run bin/main.dart --commit=a5967ed309ef2beb9625f128571f7060597b5eda
+/// dart run bin/main.dart --commit=$commitSha
 /// --filepath=darwin-x64/FlutterMacOS.framework.zip --filepath=ios/artifacts.zip
 /// --filepath=dart-sdk-darwin-arm64.zip
 /// ( add `--production` if this is intended for production)
@@ -63,6 +64,12 @@ Future<void> main(List<String> args) async {
       kCommit,
       help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing',
     )
+    ..addMultiOption(
+      kCodesignFilepath,
+      help: 'The zip file paths to be codesigned. Pass this option multiple'
+          'times to codesign multiple zip files',
+      valueHelp: 'darwin-x64/font-subset.zip',
+    )
     ..addFlag(
       kProduction,
       help: 'whether we are going to upload the artifacts back to GCS for production',
@@ -79,6 +86,7 @@ Future<void> main(List<String> args) async {
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreId, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamId, argResults, platform.environment)!;
 
+  final List<String> codesignFilepaths = argResults[kCodesignFilepath]!;
   final bool production = argResults[kProduction] as bool;
 
   if (!platform.isMacOS) {
@@ -95,6 +103,7 @@ Future<void> main(List<String> args) async {
     appSpecificPassword: appSpecificPassword,
     codesignAppstoreId: codesignAppstoreId,
     codesignTeamId: codesignTeamId,
+    codesignFilepaths: codesignFilepaths,
     production: production,
   ).run();
 }

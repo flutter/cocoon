@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
+import 'dart:io' as io;
 
 /// Interface for classes that interact with files nested inside of [RemoteZip]s.
 abstract class FileVisitor {
@@ -32,6 +33,7 @@ class FileCodesignVisitor extends FileVisitor {
     required this.codesignAppstoreId,
     required this.codesignTeamId,
     required this.stdio,
+    required this.codesignFilepaths,
     this.production = false,
   });
 
@@ -54,6 +56,7 @@ class FileCodesignVisitor extends FileVisitor {
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
+  List<String> codesignFilepaths;
 
   late final File entitlementsFile = tempDir.childFile('Entitlements.plist')
     ..writeAsStringSync(_entitlementsFileContents);
@@ -86,5 +89,18 @@ class FileCodesignVisitor extends FileVisitor {
 ''';
   Future<void> validateAll() async {
     return Future.value(null);
+  }
+
+  Future<void> visitDirectory(Directory directory, String entitlementParentPath) async {
+    stdio.printStatus('visiting directory ${directory.absolute.path}\n');
+    final List<FileSystemEntity> entities = await directory.list().toList();
+    String childnames = "";
+    for (FileSystemEntity entity in entities) {
+      if (entity is io.Directory) {
+        continue; // TODO(xilaizhang): fill up logic to recursively visit directory
+      }
+      childnames += ' ${entity.basename}';
+    }
+    stdio.printStatus('child files of direcotry are$childnames\n');
   }
 }

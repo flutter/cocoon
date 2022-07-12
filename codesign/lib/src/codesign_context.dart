@@ -16,6 +16,7 @@ class CodesignContext {
     required this.codesignAppstoreId,
     required this.codesignTeamId,
     required this.commitHash,
+    required this.codesignFilepaths,
     this.production = false,
   });
 
@@ -26,6 +27,7 @@ class CodesignContext {
   final String codesignTeamId;
   final String commitHash;
   final bool production;
+  List<String> codesignFilepaths;
   Directory? tempDir;
   FileCodesignVisitor? codesignVisitor;
 
@@ -50,6 +52,7 @@ class CodesignContext {
       stdio: stdio,
       codesignAppstoreId: codesignAppstoreId,
       codesignTeamId: codesignTeamId,
+      codesignFilepaths: codesignFilepaths,
       production: production,
     );
 
