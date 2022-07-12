@@ -3,16 +3,19 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/utilities/entity_generators.dart';
 
 class Counter {
   int count = 0;
@@ -107,6 +110,32 @@ void main() {
       final List<Commit> commits = await datastoreService.queryRecentCommits(slug: Config.engineSlug).toList();
       expect(commits, hasLength(1));
       expect(commits[0].branch, equals('main'));
+    });
+
+    test('queryRecentTasks returns all tasks', () async {
+      const String branch = 'main';
+      final Commit commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+        repository: Config.engineSlug.fullName,
+        sha: 'abc_$branch',
+        branch: branch,
+      );
+      const int taskNumber = 2;
+      for (int i = 0; i < taskNumber; i++) {
+        final Task task = generateTask(
+          i,
+          parent: commit,
+        );
+        config.db.values[task.key] = task;
+      }
+
+      config.db.values[commit.key] = commit;
+      final List<FullTask> datastoreTasks = await datastoreService
+          .queryRecentTasks(
+            slug: Config.engineSlug,
+          )
+          .toList();
+      expect(datastoreTasks, hasLength(taskNumber));
     });
 
     test('Shard', () async {

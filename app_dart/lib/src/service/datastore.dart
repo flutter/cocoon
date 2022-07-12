@@ -130,9 +130,6 @@ class DatastoreService {
   /// [commitLimit] argument specifies how many commits to consider when
   /// retrieving the list of recent tasks.
   ///
-  /// The [taskLimit] argument specifies how many tasks to retrieve for each
-  /// commit that is considered.
-  ///
   /// If [taskName] is specified, only tasks whose [Task.name] matches the
   /// specified value will be returned. By default, tasks will be returned
   /// regardless of their name.
@@ -142,14 +139,11 @@ class DatastoreService {
   Stream<FullTask> queryRecentTasks({
     String? taskName,
     int commitLimit = 20,
-    int taskLimit = 20,
     String? branch,
     required RepositorySlug slug,
   }) async* {
     await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch, slug: slug)) {
-      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-        ..limit(taskLimit)
-        ..order('-createTimestamp');
+      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       if (taskName != null) {
         query.filter('name =', taskName);
       }
