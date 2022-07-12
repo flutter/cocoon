@@ -388,19 +388,23 @@ class LuciBuildService {
     final Map<String, dynamic> userData = <String, dynamic>{};
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
+
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
       slug,
       sha,
       checkName,
     );
+
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
 
     final Build build = builds.first;
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
+
     log.info('input ${build.input!} properties ${build.input!.properties!}');
+
     Map<String, dynamic> properties = <String, dynamic>{};
     properties.addAll(build.input!.properties!);
     properties.addEntries(
@@ -410,10 +414,12 @@ class LuciBuildService {
         'exe_cipd_version': cipdVersion,
       }.entries,
     );
+
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
     userData['user_agent'] = 'flutter-cocoon';
+
     final Build scheduleBuild = await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
@@ -425,7 +431,7 @@ class LuciBuildService {
         'user_agent': const <String>['flutter-cocoon'],
         'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
         'cipd_version': <String>[cipdVersion],
-      }, 
+      },
       properties: properties,
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
@@ -435,6 +441,7 @@ class LuciBuildService {
         'cipdVersion': cipdVersion,
       },
     ));
+
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
     return true;

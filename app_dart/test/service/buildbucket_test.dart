@@ -96,7 +96,8 @@ void main() {
         experimental: Trinary.yes,
         tags: <String, List<String>>{
           'user_agent': <String>['flutter_cocoon'],
-          'flutter_pr': <String>['true', '1']
+          'flutter_pr': <String>['true', '1'],
+          'cipd_version': <String>['/refs/heads/main'],
         },
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
@@ -111,11 +112,13 @@ void main() {
         'ScheduleBuild',
         (BuildBucketClient client) => client.scheduleBuild(request, buildBucketUri: 'https://localhost/builds'),
       );
+
       expect(build.id, '123');
-      expect(build.tags!.length, 2);
+      expect(build.tags!.length, 3);
       expect(build.tags, <String?, List<String?>>{
         'user_agent': <String>['flutter_cocoon'],
-        'flutter_pr': <String>['1']
+        'flutter_pr': <String>['1'],
+        'cipd_version': <String>['/refs/heads/main'],
       });
     });
 
@@ -134,7 +137,7 @@ void main() {
       );
 
       expect(build.id, '123');
-      expect(build.tags!.length, 2);
+      expect(build.tags!.length, 3);
     });
 
     test('BatchBuildRequest', () async {
@@ -145,7 +148,8 @@ void main() {
           experimental: Trinary.yes,
           tags: <String, List<String>>{
             'user_agent': <String>['flutter_cocoon'],
-            'flutter_pr': <String>['true', '1']
+            'flutter_pr': <String>['true', '1'],
+            'cipd_version': <String>['/refs/heads/main'],
           },
           properties: <String, String>{
             'git_url': 'https://github.com/flutter/flutter',
@@ -165,7 +169,8 @@ void main() {
       expect(response.responses!.first.getBuild!.status, Status.success);
       expect(response.responses!.first.getBuild!.tags, <String?, List<String?>>{
         'user_agent': <String>['flutter_cocoon'],
-        'flutter_pr': <String>['1']
+        'flutter_pr': <String>['1'],
+        'cipd_version': <String>['/refs/heads/main'],
       });
     });
 
@@ -204,7 +209,7 @@ void main() {
       );
 
       expect(build.id, '123');
-      expect(build.tags!.length, 2);
+      expect(build.tags!.length, 3);
     });
 
     test('SearchBuilds', () async {
@@ -324,6 +329,10 @@ const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
           {
             "key": "flutter_pr",
             "value": "1"
+          },
+          {
+            "key": "cipd_version",
+            "value": "/refs/heads/main"
           }
         ]
       }
@@ -354,5 +363,9 @@ const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
   }, {
     "key": "flutter_pr",
     "value": "1"
-  }]
+  },
+  {
+            "key": "cipd_version",
+            "value": "/refs/heads/main"
+          }]
 }''';
