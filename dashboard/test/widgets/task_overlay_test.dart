@@ -53,7 +53,7 @@ void main() {
   final DateTime startTime = nowTime.subtract(const Duration(minutes: 50));
   final DateTime finishTime = nowTime.subtract(const Duration(minutes: 10));
 
-  Int64 _int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
+  Int64 int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
 
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
@@ -65,9 +65,9 @@ void main() {
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
       ..status = TaskBox.statusFailed
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = int64FromDateTime(createTime)
+      ..startTimestamp = int64FromDateTime(startTime)
+      ..endTimestamp = int64FromDateTime(finishTime);
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -121,9 +121,9 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..isFlaky = true // This is the point of this test.
       ..status = TaskBox.statusFailed
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = int64FromDateTime(createTime)
+      ..startTimestamp = int64FromDateTime(startTime)
+      ..endTimestamp = int64FromDateTime(finishTime);
 
     final String flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -170,9 +170,9 @@ void main() {
       ..stageName = StageName.luci
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = int64FromDateTime(createTime)
+      ..startTimestamp = int64FromDateTime(startTime)
+      ..endTimestamp = int64FromDateTime(finishTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
@@ -211,8 +211,8 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusInProgress
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime);
+      ..createTimestamp = int64FromDateTime(createTime)
+      ..startTimestamp = int64FromDateTime(startTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Running for 9 minutes\n'
@@ -250,7 +250,7 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusNew
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime);
+      ..createTimestamp = int64FromDateTime(createTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Queueing for 2 minutes';

@@ -30,10 +30,10 @@ class CommitBox extends StatefulWidget {
   final Commit commit;
 
   @override
-  _CommitBoxState createState() => _CommitBoxState();
+  CommitBoxState createState() => CommitBoxState();
 }
 
-class _CommitBoxState extends State<CommitBox> {
+class CommitBoxState extends State<CommitBox> {
   OverlayEntry? _commitOverlay;
 
   @override
@@ -186,10 +186,10 @@ class Hyperlink extends StatefulWidget {
   final VoidCallback? onPressed;
 
   @override
-  _HyperlinkState createState() => _HyperlinkState();
+  HyperlinkState createState() => HyperlinkState();
 }
 
-class _HyperlinkState extends State<Hyperlink> {
+class HyperlinkState extends State<Hyperlink> {
   bool hover = false;
 
   @override

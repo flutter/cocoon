@@ -110,7 +110,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     });
   }
 
-  Widget _settingsDialog(BuildContext context, BuildState _buildState) {
+  Widget _settingsDialog(BuildContext context, BuildState buildState) {
     final ThemeData theme = Theme.of(context);
     return Center(
       child: Container(
@@ -126,10 +126,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               height: 360,
               child: ListView(
                 children: <Widget>[
-                  if (_smallScreen) ..._slugSelection(context, _buildState),
+                  if (_smallScreen) ..._slugSelection(context, buildState),
                   TextButton(
+                    onPressed: buildState.refreshGitHubCommits,
                     child: const Text('Vacuum GitHub Commits'),
-                    onPressed: _buildState.refreshGitHubCommits,
                   ),
                   Row(
                     children: [
@@ -141,12 +141,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       TextButton(
-                        child: const Text('Defaults'),
                         onPressed: _filter!.isDefault ? null : () => _filter!.reset(),
+                        child: const Text('Defaults'),
                       ),
                       TextButton(
+                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context, buildState),
                         child: const Text('Apply'),
-                        onPressed: _filter == _settingsBasis ? null : () => _updateNavigation(context, _buildState),
                       ),
                       TextButton(
                         child: const Text('Cancel'),
@@ -169,7 +169,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
-  List<Widget> _slugSelection(BuildContext context, BuildState _buildState) {
+  List<Widget> _slugSelection(BuildContext context, BuildState buildState) {
     final ThemeData theme = Theme.of(context);
     return <Widget>[
       const Padding(
@@ -181,7 +181,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       DropdownButton<String>(
         key: const Key('repo dropdown'),
         isExpanded: _smallScreen,
-        value: _buildState.currentRepo,
+        value: buildState.currentRepo,
         icon: const Padding(
           padding: EdgeInsets.only(top: 8),
           child: Icon(
@@ -195,9 +195,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedRepo) {
           repo = selectedRepo;
-          _updateNavigation(context, _buildState);
+          _updateNavigation(context, buildState);
         },
-        items: _buildState.repos.map<DropdownMenuItem<String>>((String value) {
+        items: buildState.repos.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Padding(
@@ -216,7 +216,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       DropdownButton<String>(
         key: const Key('branch dropdown'),
         isExpanded: _smallScreen,
-        value: _buildState.currentBranch,
+        value: buildState.currentBranch,
         icon: const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Icon(
@@ -230,18 +230,18 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         onChanged: (String? selectedBranch) {
           branch = selectedBranch;
-          _updateNavigation(context, _buildState);
+          _updateNavigation(context, buildState);
         },
         items: [
           DropdownMenuItem<String>(
-            value: _buildState.currentBranch,
+            value: buildState.currentBranch,
             child: Padding(
               padding: const EdgeInsets.only(top: 9.0),
-              child: Center(child: Text(_buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
+              child: Center(child: Text(buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
             ),
           ),
-          ..._buildState.branches
-              .where((Branch b) => b.repository == _buildState.currentRepo && b.branch != _buildState.currentBranch)
+          ...buildState.branches
+              .where((Branch b) => b.repository == buildState.currentRepo && b.branch != buildState.currentBranch)
               .map<DropdownMenuItem<String>>((Branch b) {
             return DropdownMenuItem<String>(
               value: b.branch,
@@ -349,21 +349,21 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     final Uri flutterIssueUrl = Uri.parse(
         'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md');
-    final BuildState _buildState = Provider.of<BuildState>(context);
+    final BuildState buildState = Provider.of<BuildState>(context);
     _buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(
-      animation: _buildState,
+      animation: buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: CocoonAppBar(
           title: Tooltip(
-            message: _getStatusTitle(_buildState),
+            message: _getStatusTitle(buildState),
             child: Text(
-              _getStatusTitle(_buildState),
+              _getStatusTitle(buildState),
             ),
           ),
-          backgroundColor: colorTable[_buildState.isTreeBuilding],
+          backgroundColor: colorTable[buildState.isTreeBuilding],
           actions: <Widget>[
-            if (!_smallScreen) ..._slugSelection(context, _buildState),
+            if (!_smallScreen) ..._slugSelection(context, buildState),
             IconButton(
               tooltip: 'Report Issue',
               icon: const Icon(Icons.bug_report),
@@ -389,7 +389,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ],
         ),
         body: ErrorBrookWatcher(
-          errors: _buildState.errors,
+          errors: buildState.errors,
           child: Stack(
             children: <Widget>[
               SizedBox.expand(
@@ -398,7 +398,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   useAnimatedLoading: true,
                 ),
               ),
-              if (_settingsBasis != null) _settingsDialog(context, _buildState),
+              if (_settingsBasis != null) _settingsDialog(context, buildState),
             ],
           ),
         ),

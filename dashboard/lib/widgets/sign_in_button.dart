@@ -34,14 +34,6 @@ class SignInButton extends StatelessWidget {
         /// On sign out, there's a second where the user is null before isAuthenticated catches up.
         if (isAuthenticated.data == true && authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
-            child: WebImage(
-              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
-              imageUrl: authService.user?.photoUrl,
-              placeholder: Padding(
-                child: Text(authService.user!.email),
-                padding: const EdgeInsets.only(right: 10.0, top: 20.0),
-              ),
-            ),
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
               const PopupMenuItem<_SignInButtonAction>(
@@ -56,12 +48,20 @@ class SignInButton extends StatelessWidget {
                   break;
               }
             },
+            child: WebImage(
+              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
+              imageUrl: authService.user?.photoUrl,
+              placeholder: Padding(
+                padding: const EdgeInsets.only(right: 10.0, top: 20.0),
+                child: Text(authService.user!.email),
+              ),
+            ),
           );
         }
         return TextButton(
-          child: const Text('SIGN IN'),
           style: TextButton.styleFrom(foregroundColor: textButtonForeground),
           onPressed: authService.signIn,
+          child: const Text('SIGN IN'),
         );
       },
     );

@@ -181,7 +181,7 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final _flutterAppIconsPlugin = FlutterAppIcons();
+        final flutterAppIconsPlugin = FlutterAppIcons();
         final String queriedRepoBranch = '$currentRepo/$currentBranch';
         final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(
           branch: currentBranch,
@@ -199,9 +199,9 @@ class BuildState extends ChangeNotifier {
           _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data!.failingTasks;
           if (_isTreeBuilding == false) {
-            _flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
+            flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
           } else {
-            _flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
+            flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
           }
           notifyListeners();
         }
