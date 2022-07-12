@@ -9,7 +9,7 @@ import 'package:codesign/codesign.dart';
 import 'package:platform/platform.dart';
 
 /// Definitions of variables are included in help texts below.
-const String helpFlag = 'help';
+const String kHelpFlag = 'help';
 const String kCommit = 'commit';
 const String kProduction = 'production';
 const String kCodesignCertName = 'codesign-cert-name';
@@ -38,7 +38,7 @@ const String kCodesignFilepath = 'filepath';
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addFlag(helpFlag, help: 'Prints usage info.', callback: (bool value) {
+    ..addFlag(kHelpFlag, help: 'Prints usage info.', callback: (bool value) {
       if (value) {
         stdout.write('${parser.usage}\n');
         exit(1);
