@@ -272,8 +272,8 @@ void main() {
         // fails because in this case there is only a single fail status
         expect(false, value.result);
         // Remove label.
-        expect((value.action == Action.REMOVE_LABEL), isTrue);
-        expect(value.message, 'Try again when the tree status has been applied to this PR.');
+        expect(value.action, Action.IGNORE_TEMPORARILY);
+        expect(value.message, 'Hold to wait for the tree status ready.');
       });
     });
 
@@ -291,8 +291,8 @@ void main() {
         // fails because in this case there is only a single fail status
         expect(false, value.result);
         // Remove label.
-        expect((value.action == Action.REMOVE_LABEL), isTrue);
-        expect(value.message, 'Try again when the tree status has been applied to this PR.');
+        expect(value.action, Action.IGNORE_TEMPORARILY);
+        expect(value.message, 'Hold to wait for the tree status ready.');
       });
     });
 
