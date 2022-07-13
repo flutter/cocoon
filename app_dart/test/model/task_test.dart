@@ -67,6 +67,7 @@ void main() {
           createdTimestamp: created,
           startedTimestamp: started,
           completedTimestamp: completed,
+          status: Status.scheduled,
         );
         final Task task = generateTask(1);
 
@@ -79,7 +80,7 @@ void main() {
 
         task.updateFromBuild(build);
 
-        expect(task.status, Task.statusSucceeded);
+        expect(task.status, Task.statusInProgress);
         expect(task.buildNumber, 1);
         expect(task.buildNumberList, '1');
         expect(task.createTimestamp, created.millisecondsSinceEpoch);
