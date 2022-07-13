@@ -350,7 +350,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final Uri flutterIssueUrl = Uri.parse(
         'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md');
     final BuildState buildState = Provider.of<BuildState>(context);
-    _buildState.updateCurrentRepoBranch(repo!, branch!);
+    buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(
       animation: buildState,
       builder: (BuildContext context, Widget? child) => Scaffold(
