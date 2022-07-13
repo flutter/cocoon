@@ -385,7 +385,7 @@ class LuciBuildService {
   /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
   Future<bool> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
-    final Map<String, dynamic> userData = <String, dynamic>{};
+
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
@@ -399,48 +399,13 @@ class LuciBuildService {
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
 
     final Build build = builds.first;
-    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
-    final String cipdVersion = build.tags!['cipd_version']![0]!;
-    final int prNumber = int.parse(prString.split('/')[2]);
 
-    log.info('input ${build.input!} properties ${build.input!.properties!}');
+    int? githubCheckRunId = githubCheckRun.id;
 
-    Map<String, dynamic> properties = <String, dynamic>{};
-    properties.addAll(build.input!.properties!);
-    properties.addEntries(
-      <String, dynamic>{
-        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/$prNumber/head',
-        'exe_cipd_version': cipdVersion,
-      }.entries,
-    );
+    ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+        slug: slug, sha: sha, checkName: checkName, build: build, checkRunId: githubCheckRunId);
 
-    userData['check_run_id'] = githubCheckRun.id;
-    userData['repo_owner'] = slug.owner;
-    userData['repo_name'] = slug.name;
-    userData['user_agent'] = 'flutter-cocoon';
-
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: checkRunEvent.checkRun!.name,
-      ),
-      tags: <String, List<String>>{
-        'buildset': <String>['pr/git/$prNumber', 'sha/git/$sha'],
-        'user_agent': const <String>['flutter-cocoon'],
-        'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
-        'cipd_version': <String>[cipdVersion],
-      },
-      properties: properties,
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: base64Encode(json.encode(userData).codeUnits),
-      ),
-      exe: <String, dynamic>{
-        'cipdVersion': cipdVersion,
-      },
-    ));
+    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
 
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
@@ -500,6 +465,58 @@ class LuciBuildService {
     log.fine(batchRequest);
     await pubsub.publish('scheduler-requests', batchRequest);
     log.info('Published a request with ${buildRequests.length} builds');
+  }
+
+  /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and 
+  /// [checkName] for the provided [build] with the provided [checkRunId].
+  ScheduleBuildRequest _createPresubmitScheduleBuild({
+    required github.RepositorySlug slug,
+    required String sha,
+    required String checkName,
+    required Build build,
+    required int? checkRunId,
+    Map<String, dynamic>? properties,
+    Map<String, List<String>>? tags,
+    Map<String, dynamic>? userData,
+  }) {
+    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
+    final String cipdVersion = build.tags!['cipd_version']![0]!;
+    final int prNumber = int.parse(prString.split('/')[2]);
+
+    log.info('input ${build.input!} properties ${build.input!.properties!}');
+
+    final Map<String, dynamic> processedProperties = <String, dynamic>{};
+    processedProperties.addAll(build.input!.properties!);
+    processedProperties.addEntries(
+      <String, dynamic>{
+        'git_url': 'https://github.com/${slug.owner}/${slug.name}',
+        'git_ref': 'refs/pull/$prNumber/head',
+        'exe_cipd_version': cipdVersion,
+      }.entries,
+    );
+
+    final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
+    processedUserData['check_run_id'] = checkRunId;
+    processedUserData['repo_owner'] = slug.owner;
+    processedUserData['repo_name'] = slug.name;
+    processedUserData['user_agent'] = 'flutter-cocoon';
+
+    final BuilderId builderId = BuilderId(project: 'flutter', bucket: 'try', builder: checkName);
+
+    final Map<String, List<String>> processedTags = tags ?? <String, List<String>>{};
+    processedTags['buildset'] = <String>['pr/git/$prNumber', 'sha/git/$sha'];
+    processedTags['user_agent'] = const <String>['flutter-cocoon'];
+    processedTags['github_link'] = <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'];
+    processedTags['cipd_version'] = <String>[cipdVersion];
+
+    final NotificationConfig notificationConfig = NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+        userData: base64Encode(json.encode(processedUserData).codeUnits));
+
+    final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
+
+    return ScheduleBuildRequest(
+        builderId: builderId, tags: tags, properties: properties, notify: notificationConfig, exe: exec);
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
