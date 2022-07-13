@@ -62,7 +62,7 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kCommit,
-      help: 'the commit hash of flutter/engine github pr used for google cloud storage bucket indexing',
+      help: 'the Flutter engine commit revision for which Google Cloud Storage binary artifacts should be codesigned.',
     )
     ..addMultiOption(
       kCodesignFilepath,
