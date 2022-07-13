@@ -163,69 +163,6 @@ class LuciBuildService {
     return {for (Build b in builds) b.builderId.builder: b};
   }
 
-  /// Creates BuildBucket [Request] using [checkSuiteEvent], [pullRequest], [builder], [builderId], and [userData].
-  Future<Request> _createBuildRequest({
-    CheckSuiteEvent? checkSuiteEvent,
-    required github.PullRequest pullRequest,
-    String? builder,
-    required BuilderId builderId,
-    required Map<String, dynamic> userData,
-    Map<String, dynamic>? properties,
-    List<RequestedDimension>? dimensions,
-    List<String>? branches,
-  }) async {
-    int? checkRunId;
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
-      final String sha = pullRequest.head!.sha!;
-      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-        config,
-        slug,
-        sha,
-        builder!,
-      );
-      userData['check_run_id'] = checkRun.id;
-      checkRunId = checkRun.id;
-      userData['commit_sha'] = sha;
-      userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
-      userData['builder_name'] = builder;
-      log.info(
-          'successfully created check run id: ${checkRun.id} for slug: ${slug.fullName}, sha: $sha, builder: $builder');
-    }
-    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    log.info('Branches from recipes repo: $branches, expected ref $cipdVersion');
-    cipdVersion = branches != null && branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
-    properties ??= <String, dynamic>{};
-    properties.addAll(<String, String>{
-      'git_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-      'git_url': 'https://github.com/${pullRequest.base!.repo!.fullName}',
-      'git_ref': 'refs/pull/${pullRequest.number}/head',
-      'exe_cipd_version': cipdVersion,
-    });
-    return Request(
-      scheduleBuild: ScheduleBuildRequest(
-        builderId: builderId,
-        tags: <String, List<String>>{
-          'buildset': <String>['pr/git/${pullRequest.number}', 'sha/git/${pullRequest.head!.sha}'],
-          'user_agent': const <String>['flutter-cocoon'],
-          'github_link': <String>['https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'],
-          'github_checkrun': <String>[checkRunId.toString()],
-          'cipd_version': <String>[cipdVersion],
-        },
-        properties: properties,
-        dimensions: dimensions,
-        notify: NotificationConfig(
-          pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: base64Encode(json.encode(userData).codeUnits),
-        ),
-        fields: 'id,builder,number,status,tags',
-        exe: <String, dynamic>{
-          'cipdVersion': cipdVersion,
-        },
-      ),
-    );
-  }
-
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
@@ -279,28 +216,51 @@ class LuciBuildService {
     final List<Request> requests = <Request>[];
     final List<String> branches =
         await gerritService.branches('flutter-review.googlesource.com', 'recipes', 'flutter-');
+
+    final String sha = pullRequest.head!.sha!;
+    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
+    cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
+
     for (Target target in targets) {
-      final BuilderId builderId = BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: target.value.name,
+      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+        config,
+        target.slug,
+        sha,
+        target.value.name,
       );
-      final Map<String, dynamic> userData = <String, dynamic>{
-        'repo_owner': pullRequest.base!.repo!.owner!.login,
-        'repo_name': pullRequest.base!.repo!.name,
-        'user_agent': 'flutter-cocoon',
+
+      final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+
+      final Map<String, dynamic> userData = <String, dynamic>{};
+      if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
+        userData['check_run_id'] = checkRun.id;
+        userData['commit_sha'] = sha;
+        userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
+        userData['builder_name'] = target.value.name;
+      }
+
+      Map<String, List<String>> tags = <String, List<String>>{
+        'github_checkrun': <String>[checkRun.id.toString()],
       };
-      requests.add(await _createBuildRequest(
-        checkSuiteEvent: checkSuiteEvent,
-        pullRequest: pullRequest,
-        builder: target.value.name,
-        builderId: builderId,
-        userData: userData,
-        properties: target.getProperties(),
-        dimensions: target.getDimensions(),
-        branches: branches,
-      ));
+
+      Map<String, Object> properties = target.getProperties();
+      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+
+      // Are builder and checkrun the same?
+      requests.add(Request(
+          scheduleBuild: _createPresubmitScheduleBuild(
+              slug: slug,
+              sha: pullRequest.head!.sha!,
+              //Use target.value.name here otherwise tests will die due to null checkRun.name.
+              checkName: target.value.name,
+              pullRequestNumber: pullRequest.number!,
+              cipdVersion: cipdVersion,
+              userData: userData,
+              properties: properties,
+              tags: tags,
+              dimensions: target.getDimensions())));
     }
+
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
     for (List<Request> requestPartition in requestPartitions) {
       final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
@@ -400,10 +360,22 @@ class LuciBuildService {
 
     final Build build = builds.first;
 
-    int? githubCheckRunId = githubCheckRun.id;
+    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
+    final String cipdVersion = build.tags!['cipd_version']![0]!;
+    final int prNumber = int.parse(prString.split('/')[2]);
+
+    Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+    Map<String, dynamic>? properties = build.input!.properties;
+    log.info('input ${build.input!} properties $properties');
 
     ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-        slug: slug, sha: sha, checkName: checkName, build: build, checkRunId: githubCheckRunId);
+        slug: slug,
+        sha: sha,
+        checkName: checkName,
+        pullRequestNumber: prNumber,
+        cipdVersion: cipdVersion,
+        properties: properties,
+        userData: userData);
 
     final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
 
@@ -467,36 +439,31 @@ class LuciBuildService {
     log.info('Published a request with ${buildRequests.length} builds');
   }
 
-  /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and 
+  /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   ScheduleBuildRequest _createPresubmitScheduleBuild({
     required github.RepositorySlug slug,
     required String sha,
     required String checkName,
-    required Build build,
-    required int? checkRunId,
+    required int pullRequestNumber,
+    required String cipdVersion,
     Map<String, dynamic>? properties,
     Map<String, List<String>>? tags,
     Map<String, dynamic>? userData,
+    List<RequestedDimension>? dimensions,
   }) {
-    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
-    final String cipdVersion = build.tags!['cipd_version']![0]!;
-    final int prNumber = int.parse(prString.split('/')[2]);
-
-    log.info('input ${build.input!} properties ${build.input!.properties!}');
-
     final Map<String, dynamic> processedProperties = <String, dynamic>{};
-    processedProperties.addAll(build.input!.properties!);
+    processedProperties.addAll(properties ?? <String, dynamic>{});
     processedProperties.addEntries(
       <String, dynamic>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/$prNumber/head',
+        'git_ref': 'refs/pull/$pullRequestNumber/head',
         'exe_cipd_version': cipdVersion,
       }.entries,
     );
 
     final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
-    processedUserData['check_run_id'] = checkRunId;
+    // processedUserData['check_run_id'] = checkRunId;
     processedUserData['repo_owner'] = slug.owner;
     processedUserData['repo_name'] = slug.name;
     processedUserData['user_agent'] = 'flutter-cocoon';
@@ -504,9 +471,9 @@ class LuciBuildService {
     final BuilderId builderId = BuilderId(project: 'flutter', bucket: 'try', builder: checkName);
 
     final Map<String, List<String>> processedTags = tags ?? <String, List<String>>{};
-    processedTags['buildset'] = <String>['pr/git/$prNumber', 'sha/git/$sha'];
+    processedTags['buildset'] = <String>['pr/git/$pullRequestNumber', 'sha/git/$sha'];
     processedTags['user_agent'] = const <String>['flutter-cocoon'];
-    processedTags['github_link'] = <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'];
+    processedTags['github_link'] = <String>['https://github.com/${slug.owner}/${slug.name}/pull/$pullRequestNumber'];
     processedTags['cipd_version'] = <String>[cipdVersion];
 
     final NotificationConfig notificationConfig = NotificationConfig(
@@ -516,7 +483,13 @@ class LuciBuildService {
     final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
 
     return ScheduleBuildRequest(
-        builderId: builderId, tags: tags, properties: properties, notify: notificationConfig, exe: exec);
+        builderId: builderId,
+        tags: processedTags,
+        properties: processedProperties,
+        notify: notificationConfig,
+        fields: 'id,builder,number,status,tags',
+        exe: exec,
+        dimensions: dimensions);
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
