@@ -66,7 +66,6 @@ class BatchBackfiller extends RequestHandler {
 
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
     final List<Tuple<Target, Task, Commit>> backfill = <Tuple<Target, Task, Commit>>[];
-    final List<Task> backfillTasks = <Task>[];
     for (List<FullTask> taskColumn in taskMap.values) {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
@@ -77,7 +76,6 @@ class BatchBackfiller extends RequestHandler {
       final FullTask? _backfill = _backfillTask(target, taskColumn);
       if (_backfill != null) {
         backfill.add(Tuple<Target, Task, Commit>(target, _backfill.task, _backfill.commit));
-        backfillTasks.add(_backfill.task);
       }
     }
 
@@ -102,6 +100,7 @@ class BatchBackfiller extends RequestHandler {
     await Future.wait<void>(futures);
 
     // Update tasks status as in progress to avoid duplicate scheduling.
+    final List<Task> backfillTasks = backfill.map((Tuple<Target, Task, Commit> tuple) => tuple.second).toList();
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
