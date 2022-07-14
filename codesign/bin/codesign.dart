@@ -25,17 +25,17 @@ const String kCodesignFilepathOption = 'filepath';
 
 /// Perform Mac code signing based on file paths.
 ///
-/// If ```--production``` is set to true, code signed artifacts will be uploaded
+/// If [kProductionFlag] is set to true, code signed artifacts will be uploaded
 /// back to google cloud storage.
 /// Otherwise, nothing will be uploaded back for production. default value is
 /// false.
 ///
-/// For ```--commit```, asks for the engine commit to be code signed.
+/// For [kCommitOption], provides the engine commit to be code signed.
 ///
-/// For ```--filepath```, provides the artifacts zip paths to be code signed.
+/// For [kCodesignFilepathOption], provides the artifacts zip paths to be code signed.
 ///
 /// Usage:
-/// ```
+/// ```shell
 /// dart run bin/main.dart --commit=$commitSha
 /// --filepath=darwin-x64/FlutterMacOS.framework.zip --filepath=ios/artifacts.zip
 /// --filepath=dart-sdk-darwin-arm64.zip
@@ -50,10 +50,10 @@ Future<void> main(List<String> args) async {
         exit(1);
       }
     })
-    // Name of the certificate, e.g. FLUTTER.IO LLC
     ..addOption(
       kCodesignCertNameOption,
-      help: 'The name of the codesign certificate to be used when codesigning.',
+      help: 'The name of the codesign certificate to be used when codesigning.'
+          'the name of the certificate for flutter, for example, is: FLUTTER.IO LLC',
     )
     ..addOption(
       kAppSpecificPasswordOption,
@@ -106,7 +106,7 @@ Future<void> main(List<String> args) async {
 
   FileSystem fileSystem = const LocalFileSystem();
   Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-  Logger logger = Logger('codesign-logger');
+  Logger logger = Logger('codesign');
   ProcessManager processManager = const LocalProcessManager();
 
   return FileCodesignVisitor(

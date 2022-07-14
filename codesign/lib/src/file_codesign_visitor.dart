@@ -8,8 +8,10 @@ import 'package:process/process.dart';
 import 'package:logging/logging.dart';
 import 'dart:io' as io;
 
-/// The notarization status reported by notary server, after user uploaded
-/// artifacts to notary server.
+/// Statuses reported by Apple's Notary Server.
+///
+/// See more:
+///   * https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow
 enum NotaryStatus {
   pending,
   failed,
