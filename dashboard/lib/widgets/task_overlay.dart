@@ -291,8 +291,8 @@ class TaskOverlayContents extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: ProgressButton(
-                        child: const Text('RERUN'),
                         onPressed: _rerunTask,
+                        child: const Text('RERUN'),
                       ),
                     ),
                 ],
