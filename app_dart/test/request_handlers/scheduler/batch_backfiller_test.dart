@@ -92,6 +92,21 @@ void main() {
       expect(pubsub.messages.length, 1);
     });
 
+    test('updates task as in-progress after backfilling', () async {
+      List<Task> oldestGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
+        generateTask(3, name: 'Linux_android A', status: Task.statusNew),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => oldestGray);
+      final Task task = oldestGray[2];
+      expect(db.values.length, 0);
+      expect(task.status, Task.statusNew);
+      await tester.get(handler);
+      expect(db.values.length, 1);
+      expect(task.status, Task.statusInProgress);
+    });
+
     test('backfills only column A when B does need backfill', () async {
       List<Task> scheduleA = <Task>[
         // Linux_android A

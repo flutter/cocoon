@@ -279,8 +279,7 @@ class Task extends Model<int> {
     final int currentBuildNumber = int.parse(buildAddress.split('/').last);
     if (buildNumber == null || buildNumber! < currentBuildNumber) {
       buildNumber = currentBuildNumber;
-      // Mark task as in progress to ensure it isn't scheduled over
-      status = statusInProgress; // Reset status
+      status = statusNew; // Reset status
       createTimestamp = null;
       endTimestamp = null;
       startTimestamp = null;
@@ -311,7 +310,7 @@ class Task extends Model<int> {
       return status;
     }
 
-    if (build.status == Status.scheduled || build.status == Status.started) {
+    if (build.status == Status.started) {
       return status = statusInProgress;
     }
     switch (build.result) {

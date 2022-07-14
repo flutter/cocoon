@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -65,6 +66,7 @@ class BatchBackfiller extends RequestHandler {
 
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
     final List<Tuple<Target, Task, Commit>> backfill = <Tuple<Target, Task, Commit>>[];
+    final List<Task> backfillTasks = <Task>[];
     for (List<FullTask> taskColumn in taskMap.values) {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
@@ -75,11 +77,24 @@ class BatchBackfiller extends RequestHandler {
       final FullTask? _backfill = _backfillTask(target, taskColumn);
       if (_backfill != null) {
         backfill.add(Tuple<Target, Task, Commit>(target, _backfill.task, _backfill.commit));
+        backfillTasks.add(_backfill.task);
       }
     }
 
     log.fine('Backfilling ${backfill.length} builds');
     log.fine(backfill.map<String>((Tuple<Target, Task, Commit> tuple) => tuple.first.value.name));
+
+    // Datastore must be written to generate task keys
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: backfillTasks);
+        await transaction.commit();
+        log.fine(
+            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
+      });
+    } catch (error) {
+      log.severe('Failed to update tasks when backfilling: $error');
+    }
 
     // Create list of backfill requests.
     final List<Future> futures = <Future>[];
@@ -121,7 +136,9 @@ class BatchBackfiller extends RequestHandler {
       return null;
     }
 
-    // First item in the list is guranteed to be most recent
+    // First item in the list is guranteed to be most recent.
+    // Mark task as in progress to ensure it isn't scheduled over
+    backfillTask.first.task.status = Task.statusInProgress;
     return backfillTask.first;
   }
 }
