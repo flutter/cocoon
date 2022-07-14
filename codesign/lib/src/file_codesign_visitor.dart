@@ -3,27 +3,35 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
-import 'package:file/local.dart';
+import 'package:logging/logging.dart';
 import 'dart:io' as io;
 
-/// Interface for classes that interact with files nested inside of [RemoteZip]s.
-abstract class FileVisitor {
-  const FileVisitor();
-
-  // TODO(xilaizhang): add back the visit interfaces
-}
-
+/// The notarization status reported by notary server, after user uploaded
+/// artifacts to notary server.
 enum NotaryStatus {
   pending,
   failed,
   succeeded,
 }
 
+/// Visit a [Directory] type while examining the file system extracted from an
+/// artifact.
+Future<void> visitDirectory(Directory directory, String entitlementParentPath, Logger logger) async {
+  logger.info('visiting directory ${directory.absolute.path}\n');
+  final List<FileSystemEntity> entities = await directory.list().toList();
+  for (FileSystemEntity entity in entities) {
+    if (entity is io.Directory) {
+      await visitDirectory(directory.childDirectory(entity.basename), entitlementParentPath, logger);
+    }
+    logger.info('child file of direcotry ${directory.basename} is ${entity.basename}\n');
+  }
+  
+}
+
 /// Codesign and notarize all files within a [RemoteArchive].
-class FileCodesignVisitor extends FileVisitor {
+class FileCodesignVisitor{
   FileCodesignVisitor({
     required this.commitHash,
     required this.codesignCertName,
@@ -32,16 +40,21 @@ class FileCodesignVisitor extends FileVisitor {
     required this.codesignAppstoreId,
     required this.codesignTeamId,
     required this.codesignFilepaths,
+    required this.fileSystem,
+    required this.tempDir,
+    required this.logger,
+    required this.processManager,
+    required this.visitDirectory,
     this.production = false,
   });
 
   /// Temp [Directory] to download/extract files to.
   ///
   /// This file will be deleted if [validateAll] completes successfully.
-  Directory? tempDir;
-  FileSystem? fileSystem;
-  Stdio? stdio;
-  ProcessManager? processManager;
+  final Directory tempDir;
+  final FileSystem fileSystem;
+  final Logger logger;
+  final ProcessManager processManager;
 
   final String commitHash;
   final String codesignCertName;
@@ -50,6 +63,8 @@ class FileCodesignVisitor extends FileVisitor {
   final String codesignAppstoreId;
   final String codesignTeamId;
   final bool production;
+
+  final Function visitDirectory;
 
   // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
@@ -85,45 +100,21 @@ class FileCodesignVisitor extends FileVisitor {
 </plist>
 ''';
 
-  void initialize() {
-    fileSystem ??= LocalFileSystem();
-    tempDir ??= fileSystem!.systemTempDirectory.createTempSync('conductor_codesign');
-    stdio ??= VerboseStdio(
-      stdout: io.stdout,
-      stderr: io.stderr,
-      stdin: io.stdin,
-    );
-    processManager ??= LocalProcessManager();
-    entitlementsFile = tempDir!.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = tempDir!.childDirectory('downloads')..createSync();
-    codesignedZipsDir = tempDir!.childDirectory('codesigned_zips')..createSync();
+  void _initialize() {
+    entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
+    codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
   }
 
+  /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    initialize();
+    _initialize();
 
-    try {
-      await Future.value(null);
-      stdio!.printStatus('Codesigned all binaries in ${tempDir!.path}');
-    } finally {
-      if (production) {
-        await tempDir?.delete(recursive: true);
-      } else {
-        stdio!.printStatus('Codesign test run finished. You can examine files at ${tempDir!.path}');
-      }
-    }
+    await Future.value(null);
+    logger.info('Codesigned all binaries in ${tempDir.path}');
+
+    await tempDir.delete(recursive: true);
   }
 
-  Future<void> visitDirectory(Directory directory, String entitlementParentPath) async {
-    stdio!.printStatus('visiting directory ${directory.absolute.path}\n');
-    final List<FileSystemEntity> entities = await directory.list().toList();
-    String childnames = "";
-    for (FileSystemEntity entity in entities) {
-      if (entity is io.Directory) {
-        continue; // TODO(xilaizhang): fill up logic to recursively visit directory
-      }
-      childnames += ' ${entity.basename}';
-    }
-    stdio!.printStatus('child files of direcotry are$childnames\n');
-  }
+
 }

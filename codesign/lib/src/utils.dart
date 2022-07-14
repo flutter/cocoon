@@ -2,12 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: unnecessary_string_escapes
-
 import 'package:args/args.dart';
 
-class ConductorException implements Exception {
-  ConductorException(this.message);
+class CodesignException implements Exception {
+  CodesignException(this.message);
 
   final String message;
 
@@ -47,6 +45,6 @@ String? getValueFromEnvOrArgs(
   if (allowNull) {
     return null;
   }
-  throw ConductorException('Expected either the CLI arg --$name or the environment variable $envName '
+  throw CodesignException('Expected either the CLI arg --$name or the environment variable $envName '
       'to be provided!');
 }
