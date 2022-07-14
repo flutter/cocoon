@@ -98,7 +98,7 @@ class TaskIcon extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        launch(qualifiedTask.sourceConfigurationUrl);
+        launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
       },
       child: Tooltip(
         message: '${qualifiedTask.task} (${qualifiedTask.stage})',

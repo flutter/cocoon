@@ -61,12 +61,12 @@ class _ProgressButtonState extends State<ProgressButton> {
     return Stack(
       children: <Widget>[
         ElevatedButton(
-          child: widget.child,
           onPressed: _busy // dartfmt will soon require this new formatting
               ? null
               : widget.onPressed != null // dartfmt will soon require this new formatting
                   ? _handlePressed
                   : null,
+          child: widget.child,
         ),
         if (_busy)
           const Positioned(

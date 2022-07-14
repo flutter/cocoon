@@ -669,7 +669,7 @@ void main() {
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
-      expect(task.status, Task.statusNew);
+      expect(task.status, Task.statusInProgress);
     });
 
     test('Rerun a test failed builder', () async {

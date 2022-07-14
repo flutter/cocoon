@@ -593,7 +593,8 @@ class LuciBuildService {
     await pubsub.publish('scheduler-requests', request);
 
     task.attempts = (task.attempts ?? 0) + 1;
-    task.status = Task.statusNew;
+    // Mark task as in progress to ensure it isn't scheduled over
+    task.status = Task.statusInProgress;
     await datastore.insert(<Task>[task]);
 
     return true;

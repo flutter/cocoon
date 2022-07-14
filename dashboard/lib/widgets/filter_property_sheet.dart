@@ -238,8 +238,8 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
   Widget _pad(Widget child, Alignment alignment) {
     return Container(
       padding: const EdgeInsets.all(5.0),
-      child: child,
       alignment: alignment,
+      child: child,
     );
   }
 
@@ -314,8 +314,8 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
         if (widget.onClose != null)
           Positioned(
             child: TextButton(
-              child: const Icon(Icons.close),
               onPressed: widget.onClose,
+              child: const Icon(Icons.close),
             ),
           ),
         Table(
