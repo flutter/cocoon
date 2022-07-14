@@ -84,18 +84,6 @@ class BatchBackfiller extends RequestHandler {
     log.fine('Backfilling ${backfill.length} builds');
     log.fine(backfill.map<String>((Tuple<Target, Task, Commit> tuple) => tuple.first.value.name));
 
-    // Datastore must be written to generate task keys
-    try {
-      await datastore.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: backfillTasks);
-        await transaction.commit();
-        log.fine(
-            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
-      });
-    } catch (error) {
-      log.severe('Failed to update tasks when backfilling: $error');
-    }
-
     // Create list of backfill requests.
     final List<Future> futures = <Future>[];
     for (Tuple<Target, Task, Commit> tuple in backfill) {
@@ -112,6 +100,18 @@ class BatchBackfiller extends RequestHandler {
     }
     // Schedule all builds asynchronously
     await Future.wait<void>(futures);
+
+    // Update tasks status as in progress to avoid duplicate scheduling.
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: backfillTasks);
+        await transaction.commit();
+        log.fine(
+            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
+      });
+    } catch (error) {
+      log.severe('Failed to update tasks when backfilling: $error');
+    }
   }
 
   /// Returns the most recent [FullTask] to backfill.
