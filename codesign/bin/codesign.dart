@@ -50,7 +50,7 @@ Future<void> main(List<String> args) async {
         exit(1);
       }
     })
-    // e.g. FLUTTER.IO LLC
+    // Name of the certificate, e.g. FLUTTER.IO LLC
     ..addOption(
       kCodesignCertNameOption,
       help: 'The name of the codesign certificate to be used when codesigning.',
