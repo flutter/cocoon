@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 import 'package:platform/platform.dart';
 import 'package:process/process.dart';
 
-
 /// Definitions of variables are included in help texts below.
 const String kHelpFlag = 'help';
 const String kCommitOption = 'commit';
@@ -90,7 +89,8 @@ Future<void> main(List<String> args) async {
   final String commit = getValueFromEnvOrArgs(kCommitOption, argResults, platform.environment)!;
   final String codesignCertName = getValueFromEnvOrArgs(kCodesignCertNameOption, argResults, platform.environment)!;
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
-  final String appSpecificPassword = getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
+  final String appSpecificPassword =
+      getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
 

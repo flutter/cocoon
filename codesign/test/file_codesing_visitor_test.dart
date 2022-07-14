@@ -22,21 +22,21 @@ void main() {
 
   group('visit directory', () {
     setUp(() {
-        tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-        codesignVisitor = cs.FileCodesignVisitor(
-          codesignCertName: randomString,
-          codesignUserName: randomString,
-          appSpecificPassword: randomString,
-          codesignAppstoreId: randomString,
-          codesignTeamId: randomString,
-          codesignFilepaths: fakeFilepaths,
-          commitHash: randomString,
-          fileSystem: fileSystem,
-          logger: logger,
-          processManager: processManager,
-          visitDirectory: cs.visitDirectory,
-          tempDir: tempDir,
-        );
+      tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        codesignUserName: randomString,
+        appSpecificPassword: randomString,
+        codesignAppstoreId: randomString,
+        codesignTeamId: randomString,
+        codesignFilepaths: fakeFilepaths,
+        commitHash: randomString,
+        fileSystem: fileSystem,
+        logger: logger,
+        processManager: processManager,
+        visitDirectory: cs.visitDirectory,
+        tempDir: tempDir,
+      );
     });
 
     test('list files', () async {
@@ -45,7 +45,6 @@ void main() {
         ..file('${tempDir.path}/remote_zip_0/file_b').createSync(recursive: true)
         ..file('${tempDir.path}/remote_zip_0/file_c').createSync(recursive: true);
       await codesignVisitor.visitDirectory(fileSystem.directory('${tempDir.path}/remote_zip_0'), '', logger);
-      print(logger.logs);
       expect(logger.logs[Level.INFO], contains('visiting directory ${tempDir.path}/remote_zip_0\n'));
       expect(logger.logs[Level.INFO], contains('child file of direcotry remote_zip_0 is file_a\n'));
       expect(logger.logs[Level.INFO], contains('child file of direcotry remote_zip_0 is file_b\n'));
@@ -57,12 +56,10 @@ void main() {
         ..file('${tempDir.path}/remote_zip_1/file_a').createSync(recursive: true)
         ..file('${tempDir.path}/remote_zip_1/folder_a/file_b').createSync(recursive: true);
       await codesignVisitor.visitDirectory(fileSystem.directory('${tempDir.path}/remote_zip_1'), '', logger);
-      print(logger.logs);
       expect(logger.logs[Level.INFO], contains('visiting directory ${tempDir.path}/remote_zip_1\n'));
-          expect(logger.logs[Level.INFO], contains('visiting directory ${tempDir.path}/remote_zip_1/folder_a\n'));
+      expect(logger.logs[Level.INFO], contains('visiting directory ${tempDir.path}/remote_zip_1/folder_a\n'));
       expect(logger.logs[Level.INFO], contains('child file of direcotry remote_zip_1 is file_a\n'));
       expect(logger.logs[Level.INFO], contains('child file of direcotry folder_a is file_b\n'));
     });
   });
-
 }

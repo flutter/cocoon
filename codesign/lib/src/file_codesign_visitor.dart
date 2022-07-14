@@ -27,11 +27,10 @@ Future<void> visitDirectory(Directory directory, String entitlementParentPath, L
     }
     logger.info('child file of direcotry ${directory.basename} is ${entity.basename}\n');
   }
-  
 }
 
 /// Codesign and notarize all files within a [RemoteArchive].
-class FileCodesignVisitor{
+class FileCodesignVisitor {
   FileCodesignVisitor({
     required this.commitHash,
     required this.codesignCertName,
@@ -115,6 +114,4 @@ class FileCodesignVisitor{
 
     await tempDir.delete(recursive: true);
   }
-
-
 }

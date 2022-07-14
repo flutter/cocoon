@@ -9,22 +9,22 @@ class TestLogger implements Logger {
 
   @override
   void clearListeners() => throw UnimplementedError('Unimplemented!');
-  
+
   @override
   bool isLoggable(Level value) => throw UnimplementedError('Unimplemented!');
-  
+
   @override
   Level get level => throw UnimplementedError('Unimplemented!');
-  
+
   @override
   set level(Level? value) => throw UnimplementedError('Unimplemented!');
-  
+
   @override
   Stream<LogRecord> get onRecord => throw UnimplementedError('Unimplemented!');
-  
+
   @override
   final Logger? parent = null;
-  
+
   @override
   final Map<String, Logger> children = const <String, Logger>{};
 
