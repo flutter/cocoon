@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -97,6 +98,19 @@ class BatchBackfiller extends RequestHandler {
     }
     // Schedule all builds asynchronously
     await Future.wait<void>(futures);
+
+    // Update tasks status as in progress to avoid duplicate scheduling.
+    final List<Task> backfillTasks = backfill.map((Tuple<Target, Task, Commit> tuple) => tuple.second).toList();
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: backfillTasks);
+        await transaction.commit();
+        log.fine(
+            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
+      });
+    } catch (error) {
+      log.severe('Failed to update tasks when backfilling: $error');
+    }
   }
 
   /// Returns the most recent [FullTask] to backfill.
@@ -121,7 +135,9 @@ class BatchBackfiller extends RequestHandler {
       return null;
     }
 
-    // First item in the list is guranteed to be most recent
+    // First item in the list is guranteed to be most recent.
+    // Mark task as in progress to ensure it isn't scheduled over
+    backfillTask.first.task.status = Task.statusInProgress;
     return backfillTask.first;
   }
 }
