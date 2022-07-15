@@ -2,6 +2,5 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-int calculate() {
-  return 6 * 7;
-}
+export 'src/utils.dart';
+export 'src/file_codesign_visitor.dart';
