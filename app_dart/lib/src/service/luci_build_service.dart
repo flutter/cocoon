@@ -248,16 +248,17 @@ class LuciBuildService {
 
       requests.add(Request(
           scheduleBuild: _createPresubmitScheduleBuild(
-              slug: slug,
-              sha: pullRequest.head!.sha!,
-              //Use target.value.name here otherwise tests will die due to null checkRun.name.
-              checkName: target.value.name,
-              pullRequestNumber: pullRequest.number!,
-              cipdVersion: cipdVersion,
-              userData: userData,
-              properties: properties,
-              tags: tags,
-              dimensions: target.getDimensions(),)));
+        slug: slug,
+        sha: pullRequest.head!.sha!,
+        //Use target.value.name here otherwise tests will die due to null checkRun.name.
+        checkName: target.value.name,
+        pullRequestNumber: pullRequest.number!,
+        cipdVersion: cipdVersion,
+        userData: userData,
+        properties: properties,
+        tags: tags,
+        dimensions: target.getDimensions(),
+      )));
     }
 
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
@@ -481,13 +482,14 @@ class LuciBuildService {
     final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
 
     return ScheduleBuildRequest(
-        builderId: builderId,
-        tags: processedTags,
-        properties: processedProperties,
-        notify: notificationConfig,
-        fields: 'id,builder,number,status,tags',
-        exe: exec,
-        dimensions: dimensions,);
+      builderId: builderId,
+      tags: processedTags,
+      properties: processedProperties,
+      notify: notificationConfig,
+      fields: 'id,builder,number,status,tags',
+      exe: exec,
+      dimensions: dimensions,
+    );
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
