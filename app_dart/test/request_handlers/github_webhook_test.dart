@@ -2640,7 +2640,7 @@ void foo() {
   group('github webhook create branch event', () {
     test('process create branch event', () async {
       request.headers.set('X-GitHub-Event', 'create');
-      request.body = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
+      request.body = jsonEncode(generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter').toJson());
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);

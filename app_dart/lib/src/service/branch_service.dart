@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositoryCommit, RepositorySlug;
 import 'package:github/hooks.dart';
@@ -32,13 +33,8 @@ class BranchService {
   final Config config;
   final GerritService gerritService;
 
-  /// Parse a create github webhook event, and add it to datastore.
-  Future<void> handleCreateRequest(String rawRequest) async {
-    final CreateEvent? createEvent = await _getCreateRequestEvent(rawRequest);
-    if (createEvent == null) {
-      log.info('create branch event was rejected because could not parse the json webhook request');
-      throw const BadRequestException('Expected create request event.');
-    }
+  /// Add a [CreateEvent] branch to Datastore.
+  Future<void> handleCreateRequest(CreateEvent createEvent) async {
     log.info('the branch parsed from string request is ${createEvent.ref}');
 
     final String? refType = createEvent.refType;
@@ -98,7 +94,8 @@ class BranchService {
       log.warning('$branch already exists for $recipesSlug');
       throw BadRequestException('$branch already exists');
     }
-    final Iterable<GerritCommit> recipeCommits = await gerritService.commits(recipesSlug, 'main');
+    final Iterable<GerritCommit> recipeCommits =
+        await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
     final GithubService githubService = await config.createDefaultGitHubService();
     final List<RepositoryCommit> githubCommits = await githubService.listCommits(Config.flutterSlug, branch, null);
@@ -111,16 +108,5 @@ class BranchService {
     }
 
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
-  }
-
-  Future<CreateEvent?> _getCreateRequestEvent(String request) async {
-    try {
-      return CreateEvent.fromJson(json.decode(request) as Map<String, dynamic>);
-    } on FormatException {
-      return null;
-    } catch (e) {
-      log.severe('Unexpected exception was encountered while decoding json webhook msg for branch creation: $e');
-      return null;
-    }
   }
 }

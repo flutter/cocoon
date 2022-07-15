@@ -71,6 +71,7 @@ class Config {
       engineSlug: 'main',
       pluginsSlug: 'main',
       packagesSlug: 'main',
+      recipesSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;

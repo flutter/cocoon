@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:github/hooks.dart';
 
 String generatePullRequestEvent(
   String action,
@@ -841,7 +844,8 @@ String generateCheckRunEvent({
   return body;
 }
 
-String generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) => '''
+CreateEvent generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) =>
+    CreateEvent.fromJson(jsonDecode('''
 {
   "ref": "$branchName",
   "ref_type": "branch",
@@ -962,4 +966,4 @@ String generateCreateBranchEvent(String branchName, String repository, {bool for
     "type": "User",
     "site_admin": false
   }
-}''';
+}''') as Map<String, dynamic>);

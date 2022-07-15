@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/service/branch_service.dart';
 
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositoryCommit;
+import 'package:github/hooks.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -44,16 +45,16 @@ void main() {
   group('handleCreateRequest', () {
     test('should not add branch if it is created in a fork', () async {
       expect(db.values.values.whereType<Branch>().length, 0);
-      final String request = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon', forked: true);
-      await branchService.handleCreateRequest(request);
+      final CreateEvent createEvent = generateCreateBranchEvent('filter_forks', 'godofredo/cocoon', forked: true);
+      await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 0);
     });
 
     test('should add branch to db if db is empty', () async {
       expect(db.values.values.whereType<Branch>().length, 0);
-      final String request = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
-      await branchService.handleCreateRequest(request);
+      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
+      await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 1);
       final Branch branch = db.values.values.whereType<Branch>().single;
@@ -71,8 +72,8 @@ void main() {
       db.values[currentBranch.key] = currentBranch;
       expect(db.values.values.whereType<Branch>().length, 1);
 
-      final String request = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
-      await branchService.handleCreateRequest(request);
+      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter');
+      await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 1);
       final Branch branch = db.values.values.whereType<Branch>().single;
@@ -91,8 +92,8 @@ void main() {
 
       expect(db.values.values.whereType<Branch>().length, 1);
 
-      final String request = generateCreateBranchEvent('flutter-2.12-candidate.5', 'flutter/flutter');
-      await branchService.handleCreateRequest(request);
+      final CreateEvent createEvent = generateCreateBranchEvent('flutter-2.12-candidate.5', 'flutter/flutter');
+      await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 2);
       expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.branch),

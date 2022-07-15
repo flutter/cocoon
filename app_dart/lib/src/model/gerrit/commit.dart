@@ -10,6 +10,10 @@ import '../../request_handling/body.dart';
 
 part 'commit.g.dart';
 
+/// Representation of a commit on Gerrit.
+///
+/// See more:
+///   * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#commit-info
 @JsonSerializable()
 class GerritCommit extends JsonBody {
   const GerritCommit({
@@ -35,6 +39,10 @@ class GerritCommit extends JsonBody {
   String toString() => jsonEncode(toJson());
 }
 
+/// Gerrit info containing the author/comitter of a commit.
+///
+/// See more:
+///   * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#git-person-info
 @JsonSerializable()
 class GerritUser extends JsonBody {
   const GerritUser({
@@ -51,6 +59,8 @@ class GerritUser extends JsonBody {
   @JsonKey(fromJson: _dateTimeFromGerritTime)
   final DateTime? time;
 
+  /// Gerrit uses a non ISO-8601 time format, which requires manual translation.
+  ///
   /// Example: `Tue Jul 12 17:21:25 2022 +0000`
   static DateTime _dateTimeFromGerritTime(String date) {
     final List<String> parts = date.split(' ');
