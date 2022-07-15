@@ -461,8 +461,6 @@ targets:
         );
       });
 
-      // TODO when this executes something is not getting enough time to 'schedule'
-      // presubmit targets due to the changes since we are not creating a future.
       test('triggers all presubmit build checks when diff cannot be found', () async {
         final MockGithubService mockGithubService = MockGithubService();
         when(mockGithubService.listFiles(pullRequest))

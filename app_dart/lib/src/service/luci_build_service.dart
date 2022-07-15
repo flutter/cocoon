@@ -246,7 +246,6 @@ class LuciBuildService {
       Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
-      // Are builder and checkrun the same?
       requests.add(Request(
           scheduleBuild: _createPresubmitScheduleBuild(
               slug: slug,
@@ -258,7 +257,7 @@ class LuciBuildService {
               userData: userData,
               properties: properties,
               tags: tags,
-              dimensions: target.getDimensions())));
+              dimensions: target.getDimensions(),)));
     }
 
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
@@ -463,7 +462,6 @@ class LuciBuildService {
     );
 
     final Map<String, dynamic> processedUserData = userData ?? <String, dynamic>{};
-    // processedUserData['check_run_id'] = checkRunId;
     processedUserData['repo_owner'] = slug.owner;
     processedUserData['repo_name'] = slug.name;
     processedUserData['user_agent'] = 'flutter-cocoon';
@@ -489,7 +487,7 @@ class LuciBuildService {
         notify: notificationConfig,
         fields: 'id,builder,number,status,tags',
         exe: exec,
-        dimensions: dimensions);
+        dimensions: dimensions,);
   }
 
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
