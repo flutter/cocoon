@@ -45,6 +45,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('There are no requests in the queue');
       return Response.ok('No requests in the queue.');
     }
+    log.info('Processing ${receivedMessages.length} messages');
     ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
@@ -52,12 +53,15 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      log.info('Processing PR: $pullRequest');
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
+        log.info('Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
         continue;
       } else {
         await approver.approve(pullRequest);
+        log.info('Approved pull request: $pullRequest');
         processingLog.add(pullRequest.number!);
       }
       futures.add(validationService.processMessage(pullRequest, message.ackId!, pubsub));
