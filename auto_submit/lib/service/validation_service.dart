@@ -61,7 +61,7 @@ class ValidationService {
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     if (!await shouldProcess(messagePullRequest)) {
-      log.info('Shout not process $messagePullRequest, and ack the message.');
+      log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       return;
     }
