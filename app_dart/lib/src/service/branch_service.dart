@@ -3,12 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositoryCommit, RepositorySlug;
 import 'package:github/hooks.dart';

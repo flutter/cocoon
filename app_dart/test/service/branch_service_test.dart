@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' show RepositoryCommit;
 import 'package:github/hooks.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
