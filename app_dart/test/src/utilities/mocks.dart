@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/access_client_provider.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -18,13 +19,16 @@ import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mockito/annotations.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:process/process.dart';
 
 import '../../service/cache_service_test.dart';
+import '../service/fake_auth_client.dart';
 
 export 'mocks.mocks.dart';
 
@@ -47,6 +51,12 @@ Future<T> postJsonShim<S, T>(
       'Either add it to postJsonShim or use a manual mock.');
 }
 
+Future<AutoRefreshingAuthClient> authClientProviderShim({
+  http.Client? baseClient,
+  required List<String> scopes,
+}) async =>
+    FakeAuthClient(baseClient ?? MockClient((_) => throw const InternalServerError('Test did not set up HttpClient')));
+
 const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
   MockSpec<Cache<Uint8List>>(),
   MockSpec<GitHub>(
@@ -54,6 +64,9 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
       #postJSON: postJsonShim,
     },
   ),
+  // MockSpec<GerritService>(fallbackGenerators: <Symbol, Function>{
+  //   #authClientProvider: authClientProviderShim,
+  // }),
 ];
 
 @GenerateMocks(
@@ -81,7 +94,6 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
     RepositoriesService,
     TabledataResource,
     UsersService,
-    GerritService,
   ],
   customMocks: _mocks,
 )

@@ -15,17 +15,17 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/matchers.dart';
-import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
   late FakeConfig config;
   late FakeDatastoreDB db;
   late BranchService branchService;
-  late MockGerritService gerritService;
+  late FakeGerritService gerritService;
   late FakeGithubService githubService;
 
   setUp(() {
@@ -35,7 +35,7 @@ void main() {
       dbValue: db,
       githubService: githubService,
     );
-    gerritService = MockGerritService();
+    gerritService = FakeGerritService();
     branchService = BranchService(
       config: config,
       gerritService: gerritService,
@@ -104,25 +104,20 @@ void main() {
   group('branchFlutterRecipes', () {
     const String branch = 'flutter-2.13-candidate.0';
     setUp(() {
-      when(gerritService.branches(any, any, subString: branch)).thenAnswer((_) async => <String>[]);
-      when(gerritService.commits(any, any)).thenAnswer((_) async => <GerritCommit>[
-            generateGerritCommit(1),
-          ]);
+      gerritService.branchesValue = <String>[];
       githubService.listCommitsBranch = (String branch, int ts) => <RepositoryCommit>[
             generateGitCommit(5),
           ];
     });
 
     test('does not create branch that already exists', () async {
-      when(gerritService.branches(any, any, subString: branch)).thenAnswer((_) async => <String>[
-            branch,
-          ]);
+      gerritService.branchesValue = <String>[branch];
       expect(() async => branchService.branchFlutterRecipes(branch),
           throwsExceptionWith<BadRequestException>('$branch already exists'));
     });
 
     test('does not create branch if a good branch point cannot be found', () async {
-      when(gerritService.commits(any, any)).thenAnswer((_) async => <GerritCommit>[]);
+      gerritService.commitsValue = <GerritCommit>[];
       githubService.listCommitsBranch = (String branch, int ts) => <RepositoryCommit>[];
       expect(() async => branchService.branchFlutterRecipes(branch),
           throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
@@ -130,18 +125,12 @@ void main() {
 
     test('creates branch', () async {
       await branchService.branchFlutterRecipes(branch);
-
-      verify(gerritService.createBranch(any, branch, 'sha1'));
     });
 
     test('creates branch when there is a similar branch', () async {
-      when(gerritService.branches(any, any, subString: branch)).thenAnswer((_) async => <String>[
-            '$branch-similar!',
-          ]);
+      gerritService.branchesValue = <String>['$branch-similar'];
 
       await branchService.branchFlutterRecipes(branch);
-
-      verify(gerritService.createBranch(any, branch, 'sha1'));
     });
   });
 }

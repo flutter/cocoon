@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/foundation/utils.dart' as _i35;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i34;
 import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i32;
-import 'package:cocoon_service/src/model/gerrit/commit.dart' as _i40;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i33;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i8;
 import 'package:cocoon_service/src/model/luci/push_message.dart' as _i29;
@@ -44,7 +43,7 @@ import 'package:neat_cache/neat_cache.dart' as _i20;
 import 'package:process/src/interface/process_manager.dart' as _i39;
 
 import '../../service/cache_service_test.dart' as _i25;
-import 'mocks.dart' as _i41;
+import 'mocks.dart' as _i40;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -216,39 +215,37 @@ class _FakeUser_78 extends _i1.Fake implements _i9.User {}
 
 class _FakeCurrentUser_79 extends _i1.Fake implements _i9.CurrentUser {}
 
-class _FakeAutoRefreshingAuthClient_80 extends _i1.Fake implements _i4.AutoRefreshingAuthClient {}
+class _FakeEntry_80<T> extends _i1.Fake implements _i20.Entry<T> {}
 
-class _FakeEntry_81<T> extends _i1.Fake implements _i20.Entry<T> {}
+class _FakeCache_81<T> extends _i1.Fake implements _i20.Cache<T> {}
 
-class _FakeCache_82<T> extends _i1.Fake implements _i20.Cache<T> {}
+class _FakeActivityService_82 extends _i1.Fake implements _i9.ActivityService {}
 
-class _FakeActivityService_83 extends _i1.Fake implements _i9.ActivityService {}
+class _FakeAuthorizationsService_83 extends _i1.Fake implements _i9.AuthorizationsService {}
 
-class _FakeAuthorizationsService_84 extends _i1.Fake implements _i9.AuthorizationsService {}
+class _FakeGistsService_84 extends _i1.Fake implements _i9.GistsService {}
 
-class _FakeGistsService_85 extends _i1.Fake implements _i9.GistsService {}
+class _FakeGitService_85 extends _i1.Fake implements _i9.GitService {}
 
-class _FakeGitService_86 extends _i1.Fake implements _i9.GitService {}
+class _FakeIssuesService_86 extends _i1.Fake implements _i9.IssuesService {}
 
-class _FakeIssuesService_87 extends _i1.Fake implements _i9.IssuesService {}
+class _FakeMiscService_87 extends _i1.Fake implements _i9.MiscService {}
 
-class _FakeMiscService_88 extends _i1.Fake implements _i9.MiscService {}
+class _FakeOrganizationsService_88 extends _i1.Fake implements _i9.OrganizationsService {}
 
-class _FakeOrganizationsService_89 extends _i1.Fake implements _i9.OrganizationsService {}
+class _FakePullRequestsService_89 extends _i1.Fake implements _i9.PullRequestsService {}
 
-class _FakePullRequestsService_90 extends _i1.Fake implements _i9.PullRequestsService {}
+class _FakeRepositoriesService_90 extends _i1.Fake implements _i9.RepositoriesService {}
 
-class _FakeRepositoriesService_91 extends _i1.Fake implements _i9.RepositoriesService {}
+class _FakeSearchService_91 extends _i1.Fake implements _i9.SearchService {}
 
-class _FakeSearchService_92 extends _i1.Fake implements _i9.SearchService {}
+class _FakeUrlShortenerService_92 extends _i1.Fake implements _i9.UrlShortenerService {}
 
-class _FakeUrlShortenerService_93 extends _i1.Fake implements _i9.UrlShortenerService {}
+class _FakeUsersService_93 extends _i1.Fake implements _i9.UsersService {}
 
-class _FakeUsersService_94 extends _i1.Fake implements _i9.UsersService {}
+class _FakeChecksService_94 extends _i1.Fake implements _i9.ChecksService {}
 
-class _FakeChecksService_95 extends _i1.Fake implements _i9.ChecksService {}
-
-class _FakeResponse_96 extends _i1.Fake implements _i2.Response {}
+class _FakeResponse_95 extends _i1.Fake implements _i2.Response {}
 
 /// A class which mocks [AccessClientProvider].
 ///
@@ -2258,38 +2255,6 @@ class MockUsersService extends _i1.Mock implements _i9.UsersService {
           returnValue: Future<_i9.PublicKey>.value(_FakePublicKey_67())) as _i16.Future<_i9.PublicKey>);
 }
 
-/// A class which mocks [GerritService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockGerritService extends _i1.Mock implements _i7.GerritService {
-  MockGerritService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i2.Client get httpClient =>
-      (super.noSuchMethod(Invocation.getter(#httpClient), returnValue: _FakeClient_0()) as _i2.Client);
-  @override
-  _i16.Future<_i4.AutoRefreshingAuthClient> Function({_i2.Client? baseClient, List<String> scopes})
-      get authClientProvider => (super.noSuchMethod(Invocation.getter(#authClientProvider),
-              returnValue: ({_i2.Client? baseClient, List<String> scopes}) =>
-                  Future<_i4.AutoRefreshingAuthClient>.value(_FakeAutoRefreshingAuthClient_80()))
-          as _i16.Future<_i4.AutoRefreshingAuthClient> Function({_i2.Client? baseClient, List<String> scopes}));
-  @override
-  _i16.Future<List<String>> branches(String? repo, String? project, {String? subString}) =>
-      (super.noSuchMethod(Invocation.method(#branches, [repo, project], {#subString: subString}),
-          returnValue: Future<List<String>>.value(<String>[])) as _i16.Future<List<String>>);
-  @override
-  _i16.Future<Iterable<_i40.GerritCommit>> commits(_i9.RepositorySlug? slug, String? branch) =>
-      (super.noSuchMethod(Invocation.method(#commits, [slug, branch]),
-              returnValue: Future<Iterable<_i40.GerritCommit>>.value(<_i40.GerritCommit>[]))
-          as _i16.Future<Iterable<_i40.GerritCommit>>);
-  @override
-  _i16.Future<void> createBranch(_i9.RepositorySlug? slug, String? branchName, String? revision) =>
-      (super.noSuchMethod(Invocation.method(#createBranch, [slug, branchName, revision]),
-          returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i16.Future<void>);
-}
-
 /// A class which mocks [Cache].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -2300,18 +2265,18 @@ class MockCache extends _i1.Mock implements _i20.Cache<_i26.Uint8List> {
 
   @override
   _i20.Entry<_i26.Uint8List> operator [](String? key) =>
-      (super.noSuchMethod(Invocation.method(#[], [key]), returnValue: _FakeEntry_81<_i26.Uint8List>())
+      (super.noSuchMethod(Invocation.method(#[], [key]), returnValue: _FakeEntry_80<_i26.Uint8List>())
           as _i20.Entry<_i26.Uint8List>);
   @override
   _i20.Cache<_i26.Uint8List> withPrefix(String? prefix) =>
-      (super.noSuchMethod(Invocation.method(#withPrefix, [prefix]), returnValue: _FakeCache_82<_i26.Uint8List>())
+      (super.noSuchMethod(Invocation.method(#withPrefix, [prefix]), returnValue: _FakeCache_81<_i26.Uint8List>())
           as _i20.Cache<_i26.Uint8List>);
   @override
   _i20.Cache<S> withCodec<S>(_i15.Codec<S, _i26.Uint8List>? codec) =>
-      (super.noSuchMethod(Invocation.method(#withCodec, [codec]), returnValue: _FakeCache_82<S>()) as _i20.Cache<S>);
+      (super.noSuchMethod(Invocation.method(#withCodec, [codec]), returnValue: _FakeCache_81<S>()) as _i20.Cache<S>);
   @override
   _i20.Cache<_i26.Uint8List> withTTL(Duration? ttl) =>
-      (super.noSuchMethod(Invocation.method(#withTTL, [ttl]), returnValue: _FakeCache_82<_i26.Uint8List>())
+      (super.noSuchMethod(Invocation.method(#withTTL, [ttl]), returnValue: _FakeCache_81<_i26.Uint8List>())
           as _i20.Cache<_i26.Uint8List>);
 }
 
@@ -2332,48 +2297,48 @@ class MockGitHub extends _i1.Mock implements _i9.GitHub {
   _i2.Client get client => (super.noSuchMethod(Invocation.getter(#client), returnValue: _FakeClient_0()) as _i2.Client);
   @override
   _i9.ActivityService get activity =>
-      (super.noSuchMethod(Invocation.getter(#activity), returnValue: _FakeActivityService_83()) as _i9.ActivityService);
+      (super.noSuchMethod(Invocation.getter(#activity), returnValue: _FakeActivityService_82()) as _i9.ActivityService);
   @override
   _i9.AuthorizationsService get authorizations =>
-      (super.noSuchMethod(Invocation.getter(#authorizations), returnValue: _FakeAuthorizationsService_84())
+      (super.noSuchMethod(Invocation.getter(#authorizations), returnValue: _FakeAuthorizationsService_83())
           as _i9.AuthorizationsService);
   @override
   _i9.GistsService get gists =>
-      (super.noSuchMethod(Invocation.getter(#gists), returnValue: _FakeGistsService_85()) as _i9.GistsService);
+      (super.noSuchMethod(Invocation.getter(#gists), returnValue: _FakeGistsService_84()) as _i9.GistsService);
   @override
   _i9.GitService get git =>
-      (super.noSuchMethod(Invocation.getter(#git), returnValue: _FakeGitService_86()) as _i9.GitService);
+      (super.noSuchMethod(Invocation.getter(#git), returnValue: _FakeGitService_85()) as _i9.GitService);
   @override
   _i9.IssuesService get issues =>
-      (super.noSuchMethod(Invocation.getter(#issues), returnValue: _FakeIssuesService_87()) as _i9.IssuesService);
+      (super.noSuchMethod(Invocation.getter(#issues), returnValue: _FakeIssuesService_86()) as _i9.IssuesService);
   @override
   _i9.MiscService get misc =>
-      (super.noSuchMethod(Invocation.getter(#misc), returnValue: _FakeMiscService_88()) as _i9.MiscService);
+      (super.noSuchMethod(Invocation.getter(#misc), returnValue: _FakeMiscService_87()) as _i9.MiscService);
   @override
   _i9.OrganizationsService get organizations =>
-      (super.noSuchMethod(Invocation.getter(#organizations), returnValue: _FakeOrganizationsService_89())
+      (super.noSuchMethod(Invocation.getter(#organizations), returnValue: _FakeOrganizationsService_88())
           as _i9.OrganizationsService);
   @override
   _i9.PullRequestsService get pullRequests =>
-      (super.noSuchMethod(Invocation.getter(#pullRequests), returnValue: _FakePullRequestsService_90())
+      (super.noSuchMethod(Invocation.getter(#pullRequests), returnValue: _FakePullRequestsService_89())
           as _i9.PullRequestsService);
   @override
   _i9.RepositoriesService get repositories =>
-      (super.noSuchMethod(Invocation.getter(#repositories), returnValue: _FakeRepositoriesService_91())
+      (super.noSuchMethod(Invocation.getter(#repositories), returnValue: _FakeRepositoriesService_90())
           as _i9.RepositoriesService);
   @override
   _i9.SearchService get search =>
-      (super.noSuchMethod(Invocation.getter(#search), returnValue: _FakeSearchService_92()) as _i9.SearchService);
+      (super.noSuchMethod(Invocation.getter(#search), returnValue: _FakeSearchService_91()) as _i9.SearchService);
   @override
   _i9.UrlShortenerService get urlShortener =>
-      (super.noSuchMethod(Invocation.getter(#urlShortener), returnValue: _FakeUrlShortenerService_93())
+      (super.noSuchMethod(Invocation.getter(#urlShortener), returnValue: _FakeUrlShortenerService_92())
           as _i9.UrlShortenerService);
   @override
   _i9.UsersService get users =>
-      (super.noSuchMethod(Invocation.getter(#users), returnValue: _FakeUsersService_94()) as _i9.UsersService);
+      (super.noSuchMethod(Invocation.getter(#users), returnValue: _FakeUsersService_93()) as _i9.UsersService);
   @override
   _i9.ChecksService get checks =>
-      (super.noSuchMethod(Invocation.getter(#checks), returnValue: _FakeChecksService_95()) as _i9.ChecksService);
+      (super.noSuchMethod(Invocation.getter(#checks), returnValue: _FakeChecksService_94()) as _i9.ChecksService);
   @override
   _i16.Future<T> getJSON<S, T>(String? path,
           {int? statusCode,
@@ -2415,7 +2380,7 @@ class MockGitHub extends _i1.Mock implements _i9.GitHub {
             #body: body,
             #preview: preview
           }),
-          returnValue: _i41.postJsonShim<S, T>(path,
+          returnValue: _i40.postJsonShim<S, T>(path,
               statusCode: statusCode,
               fail: fail,
               headers: headers,
@@ -2510,7 +2475,7 @@ class MockGitHub extends _i1.Mock implements _i9.GitHub {
             #fail: fail,
             #preview: preview
           }),
-          returnValue: Future<_i2.Response>.value(_FakeResponse_96())) as _i16.Future<_i2.Response>);
+          returnValue: Future<_i2.Response>.value(_FakeResponse_95())) as _i16.Future<_i2.Response>);
   @override
   void handleStatusCode(_i2.Response? response) =>
       super.noSuchMethod(Invocation.method(#handleStatusCode, [response]), returnValueForMissingStub: null);
