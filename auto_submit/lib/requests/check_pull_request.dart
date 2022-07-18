@@ -53,7 +53,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
-      log.info('Processing PR: $pullRequest');
+      log.info('Processing PR: $rawBody');
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
@@ -61,7 +61,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         continue;
       } else {
         await approver.approve(pullRequest);
-        log.info('Approved pull request: $pullRequest');
+        log.info('Approved pull request: $rawBody');
         processingLog.add(pullRequest.number!);
       }
       futures.add(validationService.processMessage(pullRequest, message.ackId!, pubsub));
