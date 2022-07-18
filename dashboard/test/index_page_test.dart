@@ -28,7 +28,11 @@ void main() {
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage(), signedIn: false)));
+    await tester.pumpWidget(const MaterialApp(
+        home: FakeInserter(
+      signedIn: false,
+      child: IndexPage(),
+    )));
 
     expect(find.byIcon(Icons.menu), findsOneWidget);
 

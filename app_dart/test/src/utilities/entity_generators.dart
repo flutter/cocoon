@@ -142,12 +142,14 @@ push_message.Build generatePushMessageBuild(
 
 github.CheckRun generateCheckRun(
   int i, {
+  String name = 'name',
   int checkSuite = 2,
   DateTime? startedAt,
 }) {
   startedAt ??= DateTime.utc(2020, 05, 12);
   return github.CheckRun.fromJson(<String, dynamic>{
     'id': i,
+    'name': name,
     'started_at': startedAt.toIso8601String(),
     'check_suite': <String, dynamic>{'id': checkSuite}
   });

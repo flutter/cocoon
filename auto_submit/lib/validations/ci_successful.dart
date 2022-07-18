@@ -43,13 +43,11 @@ class CiSuccessful extends Validation {
 
     // We want to check statuses for luci-flutter and luci-engine but do not
     // want to block on other repos like plugins or packages. If there are no
-    // statuses we want to remove the label but also warn the user and log a
-    // message for us.
-    // https://github.com/flutter/flutter/issues/106914
+    // statuses we want to hold and wait for the status ready, same as waiting
+    // for checks to finish.
     if (Config.reposWithTreeStatus.contains(slug) && statuses.isEmpty) {
-      log.warning('Statuses were not ready.');
-      return ValidationResult(
-          false, Action.REMOVE_LABEL, 'Try again when the tree status has been applied to this PR.');
+      log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
+      return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
     }
 
     /// Validate tree statuses are set.

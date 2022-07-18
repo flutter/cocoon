@@ -61,6 +61,7 @@ class ValidationService {
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     if (!await shouldProcess(messagePullRequest)) {
+      log.info('Shout not process $messagePullRequest, and ack the message.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       return;
     }
@@ -119,6 +120,7 @@ class ValidationService {
     // If we got to this point it means we are ready to submit the PR.
     bool processed = await processMerge(config, result, messagePullRequest);
     if (processed) await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    log.info('Ack the processed message : $ackId.');
   }
 
   /// Merges the commit if the PullRequest passes all the validations.

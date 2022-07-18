@@ -31,14 +31,14 @@ class LuciTaskAttemptSummary extends StatelessWidget {
         return ElevatedButton(
             child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
             onPressed: () {
-              launch(_luciProdLogUrl(task.builderName, buildNumberList[i]));
+              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
             });
       }),
     );
   }
 
-  String _luciProdLogUrl(String builderName, String buildNumber) {
+  Uri _luciProdLogUrl(String builderName, String buildNumber) {
     final String pool = task.isFlaky ? 'staging' : 'prod';
-    return '$luciProdLogBase/$pool/$builderName/$buildNumber';
+    return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
   }
 }

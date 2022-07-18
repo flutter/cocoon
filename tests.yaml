@@ -20,6 +20,9 @@ tasks:
   - task: licenses_check
     script: test_utilities/bin/licenses.sh
 
+  - task: codesign
+    script: test_utilities/bin/dart_test_runner.sh
+
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
 
@@ -30,7 +33,4 @@ tasks:
     script: test_utilities/bin/dart_test_runner.sh
 
   - task: device_doctor
-    script: test_utilities/bin/dart_test_runner.sh
-
-  - task: codesign
     script: test_utilities/bin/dart_test_runner.sh

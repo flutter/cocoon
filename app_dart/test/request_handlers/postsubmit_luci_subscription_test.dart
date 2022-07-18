@@ -106,7 +106,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusInProgress,
+      status: Task.statusNew,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -117,9 +117,11 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusInProgress);
-    expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusNew);
+    expect(task.attempts, 1);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
+    expect(task.attempts, 2);
   });
 
   test('fallback to build parameters if task_key is not present', () async {
@@ -128,7 +130,7 @@ void main() {
       4507531199512576,
       name: 'Linux A',
       parent: commit,
-      status: Task.statusInProgress,
+      status: Task.statusNew,
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
@@ -139,8 +141,8 @@ void main() {
       userData: '{\\"task_key\\":\\"null\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
-    expect(task.status, Task.statusInProgress);
-    expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusNew);
+    expect(await tester.post(handler), Body.empty);
+    expect(task.status, Task.statusInProgress);
   });
 }

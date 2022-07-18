@@ -60,6 +60,7 @@ void main() {
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
+
     test('Null build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -79,6 +80,7 @@ void main() {
       );
       expect(builds.first, macBuild);
     });
+
     test('Existing prod build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -98,6 +100,7 @@ void main() {
       );
       expect(builds, isEmpty);
     });
+
     test('Existing try build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -133,6 +136,7 @@ void main() {
       );
       slug = RepositorySlug('flutter', 'flutter');
     });
+
     test('with one rpc call', () async {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return const ListBuildersResponse(builders: [
@@ -168,6 +172,7 @@ void main() {
       expect(builders, <String>{'test1', 'test2', 'test3', 'test4'});
     });
   });
+
   group('buildsForRepositoryAndPr', () {
     final Build macBuild = generateBuild(999, name: 'Mac', status: Status.started);
     final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.started);
@@ -184,6 +189,7 @@ void main() {
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
+
     test('Empty responses are handled correctly', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -221,6 +227,7 @@ void main() {
       expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
+
   group('scheduleBuilds', () {
     setUp(() {
       githubService = FakeGithubService();
@@ -248,7 +255,8 @@ void main() {
           ],
         );
       });
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async => generateCheckRun(1));
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       final List<Target> scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: targets,
@@ -257,6 +265,7 @@ void main() {
       expect(scheduledTargetNames, <String>['Linux 1']);
       final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
       expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
+
       final ScheduleBuildRequest scheduleBuild = batchRequest.requests!.single.scheduleBuild!;
       expect(scheduleBuild.builderId.bucket, 'try');
       expect(scheduleBuild.builderId.builder, 'Linux 1');
@@ -272,6 +281,7 @@ void main() {
         'commit_branch': 'master',
         'builder_name': 'Linux 1'
       });
+
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       final List<RequestedDimension> dimensions = scheduleBuild.dimensions!;
       expect(properties, <String, dynamic>{
@@ -658,7 +668,7 @@ void main() {
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
-      expect(task.status, Task.statusNew);
+      expect(task.status, Task.statusInProgress);
     });
 
     test('Rerun a test failed builder', () async {
