@@ -67,14 +67,14 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     }
     log.fine('Setting status: ${buildPushMessage.toJson()} for $builderName');
 
-    Map<String, dynamic> userData;
+    Map<String, dynamic>? userData;
     try {
       userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     } on FormatException {
       userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
     }
 
-    if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
+    if (userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
       // Message is coming from a github checks api enabled repo. We need to
       // create the slug from the data in the message and send the check status
       // update.
