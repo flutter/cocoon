@@ -2,14 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Tests configuration file. 
+# Tests configuration file.
 #
 # It is used to define the tests that will be run on this repository
 # it uses a very simple schema:
 #
 # tasks:
 #   - task: <folder name>
-#     script: <relative path to the runner script> 
+#     script: <relative path to the runner script>
 
 tasks:
   # License checks should be first as testing Flutter projects creates artifacts
@@ -19,6 +19,9 @@ tasks:
 
   - task: licenses_check
     script: test_utilities/bin/licenses.sh
+
+  - task: analyze
+    script: test_utilities/bin/analyze.sh
 
   - task: codesign
     script: test_utilities/bin/dart_test_runner.sh

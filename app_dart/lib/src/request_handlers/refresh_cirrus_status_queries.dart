@@ -6,10 +6,10 @@ import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
 
 final DocumentNode cirusStatusQuery = lang.parseString(r'''
-    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
-      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
-        id branch latestGroupTasks { 
-          id name status 
+    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) {
+      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) {
+        id branch latestGroupTasks {
+          id name status
         }
-      }  
+      }
     }''');

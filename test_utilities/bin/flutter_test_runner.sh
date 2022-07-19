@@ -27,4 +27,3 @@ dart format --set-exit-if-changed --line-length=120 . lib/ test/
 flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 popd > /dev/null
-
