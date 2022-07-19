@@ -6,7 +6,7 @@
 # Fetches corresponding dart sdk from CIPD for different platforms, builds
 # an executable binary of codesign to `build` folder.
 #
-# This build script will be triggered on Mac code signing machines. 
+# This build script will be triggered on Mac code signing machines.
 
 set -e
 

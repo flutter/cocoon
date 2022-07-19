@@ -24,7 +24,7 @@ const String noStatusInCommitJson = """
                 "pushedDate": "2022-05-11T22:35:03Z",
                 "status": {
                   "contexts":[
-                    
+
                   ]
                 }
               }

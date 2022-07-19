@@ -22,4 +22,3 @@ bq \
   --autodetect \
   cirrus.Task \
   ./tmp/task.json
-

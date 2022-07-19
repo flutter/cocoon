@@ -30,7 +30,7 @@ Cocoon has several components:
   Engine](https://github.com/dart-lang/appengine_samples). The server
   is found in [app_dart](app_dart/).
 
-* A Flutter app (generally used as a Web app) for the build 
+* A Flutter app (generally used as a Web app) for the build
   dashboards. The dashboard is found in [dashboard](dashboard/).
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is
@@ -69,7 +69,7 @@ This will output `Serving requests at 0.0.0.0:8080` indicating the server is wor
 
 New requests will be logged to the console.
 
-To develop and test some features, you need to have a local service 
+To develop and test some features, you need to have a local service
 account(key.json) with access to the project you will be connecting to.
 
 If you work for Google you can use the key with flutter-dashboard project

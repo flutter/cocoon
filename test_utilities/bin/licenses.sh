@@ -15,4 +15,3 @@ dart pub get
 dart check_licenses.dart
 
 popd > /dev/null
-
