@@ -83,7 +83,6 @@ class AuthenticationProvider {
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
     final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final ClientContext clientContext = clientContextProvider();
-
     if (isCron) {
       // Authenticate cron requests
       return AuthenticatedContext(clientContext: clientContext);

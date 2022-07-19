@@ -46,7 +46,6 @@ class GetBranches extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   ProcessRunner? processRunner;
 
-  static const String kUpdateBranchParam = 'update';
   static const Duration kActiveBranchActivity = Duration(days: 60);
 
   @override

@@ -32,6 +32,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -67,7 +68,6 @@ void main() {
   late MockClient httpClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
-  late MockGerritService mockGerritService;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -109,8 +109,6 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
-      mockGerritService = MockGerritService();
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -121,7 +119,9 @@ void main() {
         luciBuildService: FakeLuciBuildService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
-          gerritService: mockGerritService,
+          gerritService: FakeGerritService(
+            branchesValue: <String>['master'],
+          ),
         ),
       );
 
@@ -482,7 +482,7 @@ targets:
           luciBuildService: FakeLuciBuildService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
-            gerritService: mockGerritService,
+            gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -607,7 +607,7 @@ targets:
             config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
-            gerritService: mockGerritService,
+            gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
         );

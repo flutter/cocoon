@@ -431,7 +431,7 @@ Map<String, dynamic> _$BuilderIdToJson(BuilderId instance) {
 
 NotificationConfig _$NotificationConfigFromJson(Map<String, dynamic> json) => NotificationConfig(
       pubsubTopic: json['pubsubTopic'] as String?,
-      userData: json['userData'] as String?,
+      userData: _$JsonConverterFromJson<String, String>(json['userData'], const Base64Converter().fromJson),
     );
 
 Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
@@ -444,9 +444,21 @@ Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
   }
 
   writeNotNull('pubsubTopic', instance.pubsubTopic);
-  writeNotNull('userData', instance.userData);
+  writeNotNull('userData', _$JsonConverterToJson<String, String>(instance.userData, const Base64Converter().toJson));
   return val;
 }
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
 
 Input _$InputFromJson(Map<String, dynamic> json) => Input(
       properties: json['properties'] as Map<String, dynamic>?,

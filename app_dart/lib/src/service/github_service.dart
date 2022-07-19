@@ -22,7 +22,7 @@ class GithubService {
   /// found and only the branched commit will be returned for now, though the
   /// rare case that multiple commits exist. For other cases, it returns all
   /// newer commits since [lastCommitTimestampMills].
-  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int? lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
@@ -31,7 +31,7 @@ class GithubService {
     ///  it will return all commits prior to this release branch commit,
     /// leading to heavy workload.
     int? pages;
-    if (lastCommitTimestampMills == 0) {
+    if (lastCommitTimestampMills == null || lastCommitTimestampMills == 0) {
       pages = 1;
     }
 
@@ -44,7 +44,7 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1).toUtc().toIso8601String(),
+        'since': DateTime.fromMillisecondsSinceEpoch((lastCommitTimestampMills ?? 0) + 1).toUtc().toIso8601String(),
       },
       pages: pages,
       headers: headers,
