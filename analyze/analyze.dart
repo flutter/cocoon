@@ -200,7 +200,18 @@ Future<EvalResult> _evalCommand(
 }
 
 // These files legitimately require executable permissions
-const Set<String> kExecutableAllowlist = <String>{};
+const Set<String> kExecutableAllowlist = <String>{
+  'build_and_analyze.sh',
+  'dev/provision_salt.sh',
+  'format.sh',
+  'oneoff/cirrus_stats/load.sh',
+  'test.sh',
+  'test_utilities/bin/config_test_runner.sh',
+  'test_utilities/bin/dart_test_runner.sh',
+  'test_utilities/bin/flutter_test_runner.sh',
+  'test_utilities/bin/global_test_runner.dart',
+  'test_utilities/bin/prepare_environment.sh',
+};
 
 Future<void> _checkForNewExecutables() async {
   // 0b001001001
