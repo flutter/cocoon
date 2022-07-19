@@ -10,20 +10,11 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as path;
 
-/// The path to the `dart` executable; set at the top of `main`
-const String dart = 'dart';
-
 const FileSystem fs = LocalFileSystem();
 
 // Cocoon's root is the parent of the current working directory,
 final Directory cocoonRoot = fs.currentDirectory.parent;
 
-/// When you call this, you can pass additional arguments to pass custom
-/// arguments to flutter analyze. For example, you might want to call this
-/// script with the parameter --dart-sdk to use custom dart sdk.
-///
-/// For example:
-/// bin/cache/dart-sdk/bin/dart dev/bots/analyze.dart --dart-sdk=/tmp/dart-sdk
 Future<void> main(List<String> arguments) async {
   print('STARTING ANALYSIS');
   print('cocoonRoot: ${cocoonRoot.path}');
@@ -150,7 +141,6 @@ class EvalResult {
   final int exitCode;
 }
 
-// TODO(ianh): Refactor this to reuse the code in run_command.dart
 Future<EvalResult> _evalCommand(
   String executable,
   List<String> arguments, {
@@ -235,7 +225,7 @@ Future<void> _checkForNewExecutables() async {
     throw Exception(
       'found $unexpectedExecutableCount unexpected executable file'
       '${unexpectedExecutableCount == 1 ? '' : 's'}! If this was intended, you '
-      'must add this file to kExecutableAllowlist in dev/bots/analyze.dart',
+      'must add this file to kExecutableAllowlist in analyze/analyze.dart',
     );
   }
 }
