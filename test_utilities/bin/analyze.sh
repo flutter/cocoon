@@ -11,6 +11,6 @@ dir=$(dirname $0)
 
 pushd $dir/../../analyze > /dev/null
 dart pub get
-dart analyze.dart
+dart --enable-asserts analyze.dart
 
 popd > /dev/null
