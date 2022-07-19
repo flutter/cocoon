@@ -66,7 +66,14 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.fine('User data is empty');
       return Body.empty;
     }
-    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+
+    Map<String, dynamic> userData;
+    try {
+      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+    } on FormatException {
+      userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
+    }
+
     final String? rawTaskKey = userData['task_key'] as String?;
     final String? rawCommitKey = userData['commit_key'] as String?;
     if (rawCommitKey == null) {
