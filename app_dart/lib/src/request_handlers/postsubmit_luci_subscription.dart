@@ -54,8 +54,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     final String data = message.data!;
-    final BuildPushMessage buildPushMessage =
-        BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    BuildPushMessage buildPushMessage;
+    try {
+      buildPushMessage =
+          BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    } on FormatException {
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
+    }
     log.fine(buildPushMessage.userData);
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
     // Example user data:

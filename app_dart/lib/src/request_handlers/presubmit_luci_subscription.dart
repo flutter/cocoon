@@ -55,8 +55,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     RepositorySlug slug;
     final String data = message.data!;
-    final BuildPushMessage buildPushMessage =
-        BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    BuildPushMessage buildPushMessage;
+    try {
+      buildPushMessage =
+          BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    } on FormatException {
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
+    }
     final Build build = buildPushMessage.build!;
     final String builderName = build.tagsByName('builder').single;
     log.fine('Available tags: ${build.tags.toString()}');
