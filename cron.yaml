@@ -3,26 +3,6 @@
 # To manually deploy this config, run:
 #   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
-- description: refresh chromebot build status (cocoon)
-  url: /api/refresh-chromebot-status?repo=cocoon
-  schedule: every 15 minutes
-
-- description: refresh chromebot build status (engine)
-  url: /api/refresh-chromebot-status?repo=engine
-  schedule: every 3 minutes
-
-- description: refresh chromebot build status (flutter)
-  url: /api/refresh-chromebot-status?repo=flutter
-  schedule: every 3 minutes
-
-- description: refresh chromebot build status (packages)
-  url: /api/refresh-chromebot-status?repo=packages
-  schedule: every 15 minutes
-
-- description: refresh chromebot build status (plugins)
-  url: /api/refresh-chromebot-status?repo=plugins
-  schedule: every 15 minutes
-
 - description: retrieve missing commits
   url: /api/vacuum-github-commits
   schedule: every 1 hours
