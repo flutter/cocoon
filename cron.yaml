@@ -70,4 +70,4 @@ cron:
 - description: check pull request in auto submit bot
   url: /check-pull-request
   target: auto-submit
-  schedule: every 2 minutes
+  schedule: every 1 minutes
