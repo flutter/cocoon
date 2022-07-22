@@ -600,24 +600,10 @@ void main() {
       ..attempts = 3
       ..isTestFlaky = true;
 
-    // Task taskB1 = Task()
-    //   ..name = 'B'
-    //   ..status = TaskBox.statusSucceeded
-    //   ..attempts = 1
-    //   ..isTestFlaky = true;
-
-    // Task taskC1 = Task()
-    //   ..name = 'C'
-    //   ..status = TaskBox.statusSucceeded
-    //   ..attempts = 1
-    //   ..isTestFlaky = false;
-
     List<Task> expectedTaskOrderList = [
       taskA1,
       taskA2,
       taskA3,
-      // taskB1,
-      // taskC1,
     ];
 
     await tester.pumpWidget(
@@ -629,9 +615,6 @@ void main() {
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: <CommitStatus>[
-              // CommitStatus()
-              //   ..commit = (Commit()..author = 'Cast')
-              //   ..tasks.addAll(<Task>[taskC1]),
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
                 ..tasks.addAll(
@@ -641,9 +624,6 @@ void main() {
                     taskA3,
                   ],
                 ),
-              // CommitStatus()
-              //   ..commit = (Commit()..author = 'Cast')
-              //   ..tasks.addAll(<Task>[taskB1]),
             ],
           ),
         ),
