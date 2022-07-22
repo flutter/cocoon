@@ -155,14 +155,14 @@ class Scheduler {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
-    await _bactchScheduleBuilds(commit, toBeScheduled);
+    await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
   }
 
   /// Schedule all builds in batch requests instead of a single request.
   ///
   /// Each batch request contains `kBatchSize` builds to be scheduled.
-  Future<void> _bactchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
+  Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
     final List<Future> futures = <Future>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(luciBuildService.schedulePostsubmitBuilds(
