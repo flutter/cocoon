@@ -56,6 +56,7 @@ class FakeConfig implements Config {
     this.supportedBranchesValue,
     this.luciBuildersValue,
     this.supportedReposValue,
+    this.batchSizeValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -69,6 +70,7 @@ class FakeConfig implements Config {
   ServiceAccountInfo? deviceLabServiceAccountValue;
   int? maxTaskRetriesValue;
   int? maxLuciTaskRetriesValue;
+  int? batchSizeValue;
   FakeKeyHelper? keyHelperValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
@@ -131,6 +133,9 @@ class FakeConfig implements Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   @override
   int get schedulingShardSize => 5;
+
+  @override
+  int get batchSize => batchSizeValue ?? 5;
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;

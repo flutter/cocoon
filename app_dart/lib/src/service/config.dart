@@ -143,6 +143,9 @@ class Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
 
+  /// Batch size of builds to schedule in each swarming request.
+  int get batchSize => 5;
+
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 

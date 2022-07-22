@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
@@ -154,9 +155,22 @@ class Scheduler {
       log.severe('Failed to add commit ${commit.sha!}: $error');
     }
 
-    await luciBuildService.schedulePostsubmitBuilds(commit: commit, toBeScheduled: toBeScheduled);
-
+    await _batchScheduleBuilds(commit, toBeScheduled);
     await _uploadToBigQuery(commit);
+  }
+
+  /// Schedule all builds in batch requests instead of a single request.
+  ///
+  /// Each batch request contains [Config.batchSize] builds to be scheduled.
+  Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
+    final List<Future> futures = <Future>[];
+    for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
+      futures.add(luciBuildService.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
+      ));
+    }
+    await Future.wait<void>(futures);
   }
 
   /// Return subset of [commits] not stored in Datastore.
