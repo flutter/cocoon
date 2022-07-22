@@ -135,6 +135,7 @@ void main() {
     });
 
     group('add commits', () {
+      final FakePubSub pubsub = FakePubSub();
       List<Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
@@ -254,6 +255,37 @@ void main() {
         // Tasks triggered by cocoon are marked as in progress
         final Iterable<Task> tasks = db.values.values.whereType<Task>();
         expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status, Task.statusInProgress);
+      });
+
+      test('schedules cocoon based targets - multiple batch requests', () async {
+        final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+        final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
+          config,
+          buildbucket: mockBuildBucketClient,
+          gerritService: FakeGerritService(),
+          pubsub: pubsub,
+        );
+        when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+          return const ListBuildersResponse(builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
+          ]);
+        });
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        config.batchSizeValue = 1;
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: luciBuildService,
+        );
+
+        await scheduler.addCommits(createCommitList(<String>['1']));
+        expect(pubsub.messages.length, 2);
       });
     });
 
