@@ -665,6 +665,7 @@ void main() {
       for (String key in Config.engineDefaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);
