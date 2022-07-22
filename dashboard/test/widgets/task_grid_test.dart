@@ -581,6 +581,88 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
+    Task taskA1 = Task()
+      ..name = 'A'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 1
+      ..isTestFlaky = true;
+
+    Task taskA2 = Task()
+      ..name = 'A'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 2
+      ..isTestFlaky = true;
+
+    Task taskA3 = Task()
+      ..name = 'A'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 3
+      ..isTestFlaky = true;
+
+    Task taskB1 = Task()
+      ..name = 'B'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 1
+      ..isTestFlaky = true;
+
+    Task taskC1 = Task()
+      ..name = 'C'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 1
+      ..isTestFlaky = false;
+
+    List<Task> expectedTaskOrderList = [
+      taskA1,
+      taskA2,
+      taskA3,
+      taskB1,
+      taskC1,
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(
+              authService: MockGoogleSignInService(),
+              cocoonService: MockCocoonService(),
+            ),
+            commitStatuses: <CommitStatus>[
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(<Task>[taskC1]),
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[
+                    taskA1,
+                    taskA2,
+                    taskA3,
+                  ],
+                ),
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(<Task>[taskB1]),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.priority_high), findsNWidgets(2));
+
+    // check the order of the items. The flaky should be to the left and first.
+    expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
+    TaskGrid taskGrid = tester.firstWidget(find.byType(TaskGrid));
+
+    List<Task> sortedTasks = taskGrid.sortedStatuses();
+    expect(sortedTasks.length, expectedTaskOrderList.length);
+
+    for (int i = 0; i < sortedTasks.length; i++) {
+      expect(sortedTasks[i], expectedTaskOrderList[i]);
+    }
+  });
+
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[

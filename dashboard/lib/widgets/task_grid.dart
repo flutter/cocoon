@@ -71,15 +71,15 @@ class TaskGridContainer extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class TaskGrid extends StatefulWidget {
-  const TaskGrid({
-    Key? key,
-    // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
-    // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
-    required this.buildState,
-    required this.commitStatuses,
-    this.filter,
-    this.useAnimatedLoading = false,
-  }) : super(key: key);
+  const TaskGrid(
+      {Key? key,
+      // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
+      // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
+      required this.buildState,
+      required this.commitStatuses,
+      this.filter,
+      this.useAnimatedLoading = false})
+      : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> commitStatuses;
@@ -96,7 +96,79 @@ class TaskGrid extends StatefulWidget {
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
+
+  /// Function to facilitate testing. Do not used this in production. This
+  /// method will sort the supplied CommitStatuses according to the weights
+  /// calculated from the status scores per task and return that sorted list.
+  List<Task> sortedStatuses() {
+    int commitCount = 0;
+    final Map<Task, double> scores = <Task, double>{};
+
+    for (final CommitStatus status in commitStatuses) {
+      commitCount += 1;
+      for (final Task task in status.tasks) {
+        String weightStatus = task.status;
+        if (task.isFlaky || task.isTestFlaky) {
+          // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
+          weightStatus += ' - Flaky';
+        } else if (task.attempts > 1) {
+          // Reruns take up extra infra capacity and should be prioritized.
+          weightStatus += ' - Rerun';
+        }
+
+        // Make the score relative to how long ago it was run.
+        final double score = _statusScores.containsKey(weightStatus)
+            ? _statusScores[weightStatus]! / commitCount
+            : _statusScores['Unknown']! / commitCount;
+
+        scores.update(
+          task,
+          (double value) => value += score,
+          ifAbsent: () => score,
+        );
+      }
+    }
+
+    final List<Task> tasks = scores.keys.toList()
+      ..sort((Task a, Task b) {
+        final int scoreComparison = scores[b]!.compareTo(scores[a]!);
+        if (scoreComparison != 0) {
+          return scoreComparison;
+        }
+        // If the scores are identical, break ties on the name of the task.
+        // We do that because otherwise the sort order isn't stable.
+        if (a.name != b.name) {
+          return a.name.compareTo(b.name);
+        }
+        return a.name.compareTo(b.name);
+      });
+
+    return tasks;
+  }
 }
+
+/// Look up table for task status weights in the grid.
+///
+/// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
+/// largest integer weight.
+const Map<String, double> _statusScores = <String, double>{
+  'Failed - Rerun': 1.0,
+  'Failed': 0.7,
+  'Infra Failure - Rerun': 0.69,
+  'Infra Failure': 0.68,
+  'Failed - Flaky': 0.67,
+  'Infra Failure - Flaky': 0.65,
+  'In Progress - Flaky': 0.64,
+  'New - Flaky': 0.63,
+  'Succeeded - Flaky': 0.61,
+  'New - Rerun': 0.5,
+  'In Progress - Rerun': 0.4,
+  'Unknown': 0.2,
+  'In Progress': 0.1,
+  'New': 0.1,
+  'Succeeded': 0.01,
+  'Skipped': 0.0,
+};
 
 class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Cache the lattice cells. Right now we are regenerating the entire
@@ -139,29 +211,6 @@ class _TaskGridState extends State<TaskGrid> {
     );
   }
 
-  /// Look up table for task status weights in the grid.
-  ///
-  /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
-  /// largest integer weight.
-  static const Map<String, double> _statusScores = <String, double>{
-    'Failed - Rerun': 1.0,
-    'Failed': 0.7,
-    'Infra Failure - Rerun': 0.69,
-    'Infra Failure': 0.68,
-    'Failed - Flaky': 0.67,
-    'Infra Failure - Flaky': 0.65,
-    'In Progress - Flaky': 0.64,
-    'New - Flaky': 0.63,
-    'Succeeded - Flaky': 0.61,
-    'New - Rerun': 0.5,
-    'In Progress - Rerun': 0.4,
-    'Unknown': 0.2,
-    'In Progress': 0.1,
-    'New': 0.1,
-    'Succeeded': 0.01,
-    'Skipped': 0.0,
-  };
-
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
   /// [CommitStatus] objects, into the data that describes the rendering as used by the
   /// [LatticeScrollView], a list of lists of [LatticeCell]s.
@@ -171,7 +220,7 @@ class _TaskGridState extends State<TaskGrid> {
   /// 1. We create `rows`, a list of [_Row] objects which are used to temporarily
   ///    represent each row in the data, where a row basically represents a [Commit].
   ///
-  ///    These are derived from th `commitStatuses` directly -- each [CommitStatus] is one
+  ///    These are derived from the `commitStatuses` directly -- each [CommitStatus] is one
   ///    row, representing one [Commit] and all its [Task]s.
   ///
   /// 2. We walk the `commitStatuses` again, examining each [Task] of each [CommitStatus],
@@ -214,7 +263,7 @@ class _TaskGridState extends State<TaskGrid> {
         }
         if (commitCount <= 25) {
           String weightStatus = task.status;
-          if (task.isFlaky) {
+          if (task.isFlaky || task.isTestFlaky) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.attempts > 1) {
