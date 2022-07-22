@@ -554,6 +554,7 @@ class LuciBuildService {
       ),
       tags: tags,
       properties: processedProperties,
+      priority: priority,
     );
   }
 
