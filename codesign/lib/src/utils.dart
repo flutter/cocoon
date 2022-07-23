@@ -8,10 +8,10 @@ import 'package:args/args.dart';
 import 'package:process/process.dart';
 
 /// helper function to generate unique next IDs.
-int _nextId = 0;
+int id = 0;
 int get nextId {
-  final int currentKey = _nextId;
-  _nextId += 1;
+  final int currentKey = id;
+  id += 1;
   return currentKey;
 }
 

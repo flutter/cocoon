@@ -92,6 +92,7 @@ void main() {
       );
       records.clear();
       logger.onRecord.listen((LogRecord record) => records.add(record));
+      cs.id = 0;
     });
 
     test('visitDirectory correctly list files', () async {
@@ -135,7 +136,7 @@ void main() {
       processManager.addCommands(<FakeCommand>[
         FakeCommand(command: <String>[
           'unzip',
-          '${tempDir.absolute.path}/remote_zip_2',
+          '${tempDir.absolute.path}/remote_zip_2/zip_1',
           '-d',
           '${tempDir.absolute.path}/embedded_zip_0',
         ]),
@@ -143,15 +144,15 @@ void main() {
           'zip',
           '--symlinks',
           '--recurse-paths',
-          '${tempDir.absolute.path}/remote_zip_2',
+          '${tempDir.absolute.path}/remote_zip_2/zip_1',
           '.',
           '--include',
           '*'
         ]),
       ]);
 
-      await codesignVisitor.visitEmbeddedZip(
-          fileSystem.file('${tempDir.path}/remote_zip_2'), '', tempDir, processManager, logger, visitDirectoryPrintln);
+      await codesignVisitor.visitEmbeddedZip(fileSystem.file('${tempDir.path}/remote_zip_2/zip_1'), '', tempDir,
+          processManager, logger, visitDirectoryPrintln);
       List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
@@ -159,7 +160,7 @@ void main() {
       expect(
           messages,
           contains(
-              'the downloaded file is unzipped from ${tempDir.path}/remote_zip_2 to ${tempDir.path}/embedded_zip_0\n'));
+              'the downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_0\n'));
       expect(messages, contains('visiting a test directory embedded_zip_0'));
     });
 
@@ -172,7 +173,7 @@ void main() {
           'unzip',
           '${tempDir.absolute.path}/remote_zip_4/folder_1/zip_1',
           '-d',
-          '${tempDir.absolute.path}/embedded_zip_1',
+          '${tempDir.absolute.path}/embedded_zip_0',
         ]),
         FakeCommand(command: <String>[
           'zip',
@@ -194,8 +195,8 @@ void main() {
       expect(
           messages,
           contains(
-              'the downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_1\n'));
-      expect(messages, contains('visiting a test directory embedded_zip_1'));
+              'the downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_0\n'));
+      expect(messages, contains('visiting a test directory embedded_zip_0'));
     });
   });
 }
