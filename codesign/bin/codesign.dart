@@ -122,6 +122,7 @@ Future<void> main(List<String> args) async {
     tempDir: tempDir,
     processManager: processManager,
     visitDirectory: visitDirectory,
+    visitEmbeddedZip: visitEmbeddedZip,
     production: production,
   ).validateAll();
 }

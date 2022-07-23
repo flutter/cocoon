@@ -2,7 +2,42 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
+import 'package:process/process.dart';
+
+/// helper function to generate unique next IDs.
+int _nextId = 0;
+int get nextId {
+  final int currentKey = _nextId;
+  _nextId += 1;
+  return currentKey;
+}
+
+enum FILETYPE { FOLDER, ZIP, BINARY, OTHER }
+
+/// Check mime-type of file at [filePath] to determine if it is a directory.
+FILETYPE checkFileType(String filePath, ProcessManager processManager) {
+  final ProcessResult result = processManager.runSync(
+    <String>[
+      'file',
+      '--mime-type',
+      '-b', // is binary
+      filePath,
+    ],
+  );
+  String output = result.stdout as String;
+  if (output.contains('inode/directory')) {
+    return FILETYPE.FOLDER;
+  } else if (output.contains('application/zip')) {
+    return FILETYPE.ZIP;
+  } else if (output.contains('application/x-mach-binary')) {
+    return FILETYPE.BINARY;
+  } else {
+    return FILETYPE.OTHER;
+  }
+}
 
 class CodesignException implements Exception {
   CodesignException(this.message);

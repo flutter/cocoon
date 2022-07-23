@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 import 'package:logging/logging.dart';
+import 'package:codesign/codesign.dart';
 import 'dart:io' as io;
 
 /// Statuses reported by Apple's Notary Server.
@@ -20,15 +21,64 @@ enum NotaryStatus {
 
 /// Visit a [Directory] type while examining the file system extracted from an
 /// artifact.
-Future<void> visitDirectory(Directory directory, String entitlementParentPath, Logger logger) async {
+Future<void> visitDirectory(Directory directory, String entitlementParentPath, Directory tempDir, Logger logger,
+    ProcessManager processManager, Function visitEmbeddedZip) async {
   logger.info('visiting directory ${directory.absolute.path}\n');
   final List<FileSystemEntity> entities = await directory.list().toList();
   for (FileSystemEntity entity in entities) {
     if (entity is io.Directory) {
-      await visitDirectory(directory.childDirectory(entity.basename), entitlementParentPath, logger);
+      await visitDirectory(directory.childDirectory(entity.basename), entitlementParentPath, tempDir, logger,
+          processManager, visitEmbeddedZip);
+    }
+    FILETYPE childType = checkFileType(entity.absolute.path, processManager);
+    if (childType == FILETYPE.ZIP) {
+      await visitEmbeddedZip(entity, entitlementParentPath, tempDir, processManager, logger, visitDirectory);
     }
     logger.info('child file of direcotry ${directory.basename} is ${entity.basename}\n');
   }
+}
+
+/// Unzip an [EmbeddedZip] and visit its children.
+Future<void> visitEmbeddedZip(FileSystemEntity file, String entitlementParentPath, Directory tempDir,
+    ProcessManager processManager, Logger logger, Function visitDirectory) async {
+  logger.info('this embedded file is ${file.path} and entilementParentPath is $entitlementParentPath\n');
+  String currentFileName = file.path.split('/').last;
+  final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');
+  await unzip(file, newDir, processManager, logger);
+
+  // the virtual file path is advanced by the name of the embedded zip
+  String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
+  await visitDirectory(newDir, currentZipEntitlementPath, tempDir, logger, processManager, visitEmbeddedZip);
+  await file.delete(recursive: true);
+  await zip(newDir, file, processManager, logger);
+}
+
+Future<void> unzip(FileSystemEntity inputZip, Directory outDir, ProcessManager processManager, Logger logger) async {
+  await processManager.run(
+    <String>[
+      'unzip',
+      inputZip.absolute.path,
+      '-d',
+      outDir.absolute.path,
+    ],
+  );
+  logger.info('the downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}\n');
+}
+
+Future<void> zip(Directory inDir, FileSystemEntity outputZip, ProcessManager processManager, Logger logger) async {
+  await processManager.run(
+    <String>[
+      'zip',
+      '--symlinks',
+      '--recurse-paths',
+      outputZip.absolute.path,
+      // use '.' so that the full absolute path is not encoded into the zip file
+      '.',
+      '--include',
+      '*',
+    ],
+    workingDirectory: inDir.absolute.path,
+  );
 }
 
 /// Codesign and notarize all files within a [RemoteArchive].
@@ -46,6 +96,7 @@ class FileCodesignVisitor {
     required this.logger,
     required this.processManager,
     required this.visitDirectory,
+    required this.visitEmbeddedZip,
     this.production = false,
   });
 
@@ -65,7 +116,8 @@ class FileCodesignVisitor {
   final String codesignTeamId;
   final bool production;
 
-  final Function visitDirectory;
+  Function visitDirectory;
+  Function visitEmbeddedZip;
 
   // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
