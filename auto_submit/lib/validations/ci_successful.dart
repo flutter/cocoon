@@ -41,17 +41,13 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
-    // We want to check statuses for luci-flutter and luci-engine but do not
-    // want to block on other repos like plugins or packages. If there are no
-    // statuses we want to hold and wait for the status ready, same as waiting
+    // Check tree status of repos. If the tree status is not ready,
+    // we want to hold and wait for the status, same as waiting
     // for checks to finish.
-    if (Config.reposWithTreeStatus.contains(slug) && statuses.isEmpty) {
+    if (!treeStatusCheck(slug, statuses)) {
       log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
       return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Hold to wait for the tree status ready.');
     }
-
-    /// Validate tree statuses are set.
-    validateTreeStatusIsSet(slug, statuses, failures);
 
     // List of labels associated with the pull request.
     final List<String> labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
@@ -87,27 +83,30 @@ class CiSuccessful extends Validation {
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 
-  /// Validate that the tree status exists for all statuses in the supplied list.
+  /// Check the tree status.
   ///
-  /// If a failure is found it is added to the set of overall failures.
-  void validateTreeStatusIsSet(github.RepositorySlug slug, List<ContextNode> statuses, Set<FailureDetail> failures) {
-    if (Config.reposWithTreeStatus.contains(slug)) {
-      bool treeStatusExists = false;
-      final String treeStatusName = 'luci-${slug.name}';
-      log.info('Validating tree status: ${slug.name}, statuses: $statuses');
+  /// If a repo has a tree status, we should wait for it to show up instead of posting
+  /// a failure to GitHub pull request.
+  /// If a repo doesn't have a tree status, simply return `true`.
+  bool treeStatusCheck(github.RepositorySlug slug, List<ContextNode> statuses) {
+    bool treeStatusValid = false;
+    if (!Config.reposWithTreeStatus.contains(slug)) {
+      return true;
+    }
+    if (statuses.isEmpty) {
+      return false;
+    }
+    final String treeStatusName = 'luci-${slug.name}';
+    log.info('Validating tree status: ${slug.name}, statuses: $statuses');
 
-      /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
-      for (ContextNode status in statuses) {
-        if (status.context == treeStatusName) {
-          // Does only one tree status need to be set for the condition?
-          treeStatusExists = true;
-        }
-      }
-
-      if (!treeStatusExists) {
-        failures.add(FailureDetail('tree status $treeStatusName', 'https://flutter-dashboard.appspot.com/#/build'));
+    /// Scan list of statuses to see if the tree status exists (this list is expected to be <5 items)
+    for (ContextNode status in statuses) {
+      if (status.context == treeStatusName) {
+        // Does only one tree status need to be set for the condition?
+        treeStatusValid = true;
       }
     }
+    return treeStatusValid;
   }
 
   /// Validate the ci build test run statuses to see which have succeeded and

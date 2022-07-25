@@ -367,6 +367,7 @@ void main() {
       flutterRequest = PullRequestHelper(
         lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
           StatusHelper.otherStatusFailure,
         ],
       );
