@@ -583,27 +583,40 @@ void main() {
 
   testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
     Task taskA1 = Task()
+      ..stageName = 'A'
+      ..builderName = '1'
       ..name = 'A'
       ..status = TaskBox.statusSucceeded
       ..attempts = 1
       ..isTestFlaky = true;
 
     Task taskA2 = Task()
+      ..stageName = 'A'
+      ..builderName = '1'
       ..name = 'A'
       ..status = TaskBox.statusSucceeded
       ..attempts = 2
       ..isTestFlaky = true;
 
     Task taskA3 = Task()
+      ..stageName = 'A'
+      ..builderName = '1'
       ..name = 'A'
       ..status = TaskBox.statusSucceeded
       ..attempts = 3
       ..isTestFlaky = true;
 
+    Task taskB1 = Task()
+      ..stageName = 'B'
+      ..builderName = '2'
+      ..name = 'B'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 1
+      ..isTestFlaky = false;
+
     List<Task> expectedTaskOrderList = [
-      taskA1,
-      taskA2,
       taskA3,
+      taskB1,
     ];
 
     await tester.pumpWidget(
@@ -624,6 +637,13 @@ void main() {
                     taskA3,
                   ],
                 ),
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[
+                    taskB1
+                  ],
+                ),
             ],
           ),
         ),
@@ -635,12 +655,9 @@ void main() {
     expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
     TaskGrid taskGrid = tester.firstWidget(find.byType(TaskGrid));
 
-    List<Task> sortedTasks = taskGrid.sortedStatuses();
+    List<Task> sortedTasks = taskGrid.sortedTasks;
     expect(sortedTasks.length, expectedTaskOrderList.length);
-
-    for (int i = 0; i < sortedTasks.length; i++) {
-      expect(sortedTasks[i], expectedTaskOrderList[i]);
-    }
+    expect(sortedTasks, containsAllInOrder(expectedTaskOrderList));
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
