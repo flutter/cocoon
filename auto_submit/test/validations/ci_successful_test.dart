@@ -217,27 +217,27 @@ void main() {
     });
   });
 
-  group('validateTreeStatusIsSet', () {
+  group('treeStatusCheck', () {
     test('Validate tree status is set contains slug.', () {
-      slug = github.RepositorySlug('octocat', 'flutter');
+      slug = github.RepositorySlug('flutter', 'flutter');
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
       expect(contextNodeList.isEmpty, false);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
-      ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
-      expect(failures, isEmpty);
+      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      expect(treeStatusFlag, true);
     });
 
     test('Validate tree status is set does not contain slug.', () {
-      slug = github.RepositorySlug('octocat', 'infra');
+      slug = github.RepositorySlug('flutter', 'infra');
       final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
       expect(contextNodeList.isEmpty, false);
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
-      ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
-      expect(failures, isEmpty);
+      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      expect(treeStatusFlag, true);
     });
 
     test('Validate tree status is set but context does not match slug.', () {
@@ -246,10 +246,8 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       _convertContextNodeStatuses(contextNodeList);
-      ciSuccessful.validateTreeStatusIsSet(slug, contextNodeList, failures);
-      expect(failures, isNotEmpty);
-      expect(failures.length, 1);
-      expect(failures.elementAt(0).name.contains('tree status luci-flutter'), isTrue);
+      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      expect(treeStatusFlag, false);
     });
   });
 
