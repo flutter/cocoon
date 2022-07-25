@@ -640,9 +640,7 @@ void main() {
               CommitStatus()
                 ..commit = (Commit()..author = 'Cast')
                 ..tasks.addAll(
-                  <Task>[
-                    taskB1
-                  ],
+                  <Task>[taskB1],
                 ),
             ],
           ),

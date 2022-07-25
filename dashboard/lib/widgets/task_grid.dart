@@ -72,13 +72,13 @@ class TaskGridContainer extends StatelessWidget {
 /// are the results from tasks.
 class TaskGrid extends StatefulWidget {
   TaskGrid({
-      Key? key,
-      // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
-      // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
-      required this.buildState,
-      required this.commitStatuses,
-      this.filter,
-      this.useAnimatedLoading = false,
+    Key? key,
+    // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
+    // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
+    required this.buildState,
+    required this.commitStatuses,
+    this.filter,
+    this.useAnimatedLoading = false,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -203,7 +203,7 @@ class _TaskGridState extends State<TaskGrid> {
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
   List<List<LatticeCell>> _processCommitStatuses(TaskGrid taskGrid) {
-  // List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter? filter]) {
+    // List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter? filter]) {
     TaskGridFilter? filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
@@ -272,7 +272,7 @@ class _TaskGridState extends State<TaskGrid> {
         }
         return a.task!.compareTo(b.task!);
       });
-    
+
     for (QualifiedTask qualifiedTask in tasks) {
       widget.sortedTasks.add(taskLookupMap[qualifiedTask]!);
     }
