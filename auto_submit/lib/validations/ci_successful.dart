@@ -41,9 +41,8 @@ class CiSuccessful extends Validation {
       statuses.addAll(commit.status!.contexts!);
     }
 
-    // We want to check statuses for luci-flutter and luci-engine but do not
-    // want to block on other repos like plugins or packages. If statuses are
-    // not ready we want to hold and wait for the status, same as waiting
+    // Check tree status of repos. If the tree status is not ready,
+    // we want to hold and wait for the status, same as waiting
     // for checks to finish.
     if (!treeStatusCheck(slug, statuses)) {
       log.warning('Statuses were not ready for ${slug.fullName}, sha: $commit.');
@@ -84,9 +83,11 @@ class CiSuccessful extends Validation {
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 
-  /// Validate that the tree status exists for all statuses in the supplied list.
+  /// Check the tree status.
   ///
-  /// If not, we should hold and wait instead of posting a failure to GitHub pull request.
+  /// If a repo has a tree status, we should wait for it to show up instead of posting
+  /// a failure to GitHub pull request.
+  /// If a repo doesn't have a tree status, simply return `true`.
   bool treeStatusCheck(github.RepositorySlug slug, List<ContextNode> statuses) {
     bool treeStatusValid = false;
     if (!Config.reposWithTreeStatus.contains(slug)) {
