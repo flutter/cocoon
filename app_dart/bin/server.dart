@@ -100,12 +100,6 @@ Future<void> main() async {
         authProvider,
       ),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
-      '/api/refresh-chromebot-status': RefreshChromebotStatus(
-        config,
-        authProvider,
-        luciBuildService,
-        scheduler: scheduler,
-      ),
       '/api/reset-prod-task': ResetProdTask(
         config,
         authProvider,
