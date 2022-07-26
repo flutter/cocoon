@@ -48,7 +48,8 @@ class SignInButton extends StatelessWidget {
                   break;
               }
             },
-            child: GoogleUserCircleAvatar(
+            iconSize: Scaffold.of(context).appBarMaxHeight,
+            icon: GoogleUserCircleAvatar(
               identity: authService.user!,
             ),
           );
