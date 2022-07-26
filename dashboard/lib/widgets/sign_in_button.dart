@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
@@ -48,13 +49,8 @@ class SignInButton extends StatelessWidget {
                   break;
               }
             },
-            child: WebImage(
-              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
-              imageUrl: authService.user?.photoUrl,
-              placeholder: Padding(
-                padding: const EdgeInsets.only(right: 10.0, top: 20.0),
-                child: Text(authService.user!.email),
-              ),
+            child: GoogleUserCircleAvatar(
+              identity: authService.user!,
             ),
           );
         }
