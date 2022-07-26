@@ -79,10 +79,59 @@ class ValidationService {
     await processPullRequest(config, queryResult, messagePullRequest, ackId, pubsub);
   }
 
-  /// Processes a PullRequest running several validations to decide whether to
-  /// land the commit or remove the autosubmit label.
+  /// Processes a PullRequest.
+  ///
+  /// If it is a ToT revert, the PR will be landed without validations.
+  /// If it is not a ToT revert, the PR will be landed if all validations pass.
   Future<void> processPullRequest(
       Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final PullRequest pullRequest = result.repository!.pullRequest!;
+    Commit commit = pullRequest.commits!.nodes!.single.commit!;
+    final String? sha = commit.oid;
+    final GithubService gitHubService = await config.createGithubService(slug);
+    final bool isTotRevert = await checkIsTotRevert(sha!, slug, gitHubService);
+    bool shouldMergePR = false;
+    if (!isTotRevert) {
+      shouldMergePR = await checkShoudMergePR(config, result, messagePullRequest, ackId, pubsub, slug, gitHubService);
+      if (!shouldMergePR) {
+        return;
+      }
+    }
+    // If we got to this point it means we are ready to submit the PR.
+    bool processed = await processMerge(config, result, messagePullRequest, sha);
+    if (processed) {
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('Acked the processed message : $ackId.');
+    }
+  }
+
+  /// Check if the `commitSha` is a clean revert of TOT commit.
+  ///
+  /// A clean revert of TOT commit only reverts all changes made by TOT, thus should be
+  /// equivalent to the second TOT commit. When comparing the current commit with second
+  /// TOT commit, empty `files` in `GitHubComparison` validates a clean revert of TOT commit.
+  ///
+  /// Note: [compareCommits] expects base commit first, and then head commit.
+  Future<bool> checkIsTotRevert(String headSha, github.RepositorySlug slug, GithubService githubService) async {
+    final github.RepositoryCommit secondTotCommit = await githubService.getCommit(slug, 'HEAD~');
+    log.info('Current commit is: $headSha');
+    log.info('Second TOT commit is: ${secondTotCommit.sha}');
+    final github.GitHubComparison githubComparison =
+        await githubService.compareTwoCommits(slug, secondTotCommit.sha!, headSha);
+    final bool filesIsEmpty = githubComparison.files!.isEmpty;
+    if (filesIsEmpty) {
+      log.info('This is a TOT revert. Merge ignoring tests statuses.');
+    }
+    return filesIsEmpty;
+  }
+
+  /// Check if a PullRequest is mergeable.
+  ///
+  /// The check conducts several validations to decide whether to land the commit
+  /// or remove the autosubmit label.
+  Future<bool> checkShoudMergePR(Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId,
+      PubSub pubsub, github.RepositorySlug slug, GithubService gitHubService) async {
     List<ValidationResult> results = <ValidationResult>[];
 
     /// Runs all the validation defined in the service.
@@ -90,8 +139,6 @@ class ValidationService {
       ValidationResult validationResult = await validation.validate(result, messagePullRequest);
       results.add(validationResult);
     }
-    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
@@ -109,27 +156,23 @@ class ValidationService {
       log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknoledged.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
-      return;
+      return false;
     }
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.IGNORE_TEMPORARILY) {
-        return;
+        return false;
       }
     }
-    // If we got to this point it means we are ready to submit the PR.
-    bool processed = await processMerge(config, result, messagePullRequest);
-    if (processed) await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-    log.info('Ack the processed message : $ackId.');
+    return true;
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<bool> processMerge(Config config, QueryResult queryResult, github.PullRequest messagePullRequest) async {
+  Future<bool> processMerge(
+      Config config, QueryResult queryResult, github.PullRequest messagePullRequest, String sha) async {
     String id = queryResult.repository!.pullRequest!.id!;
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final PullRequest pullRequest = queryResult.repository!.pullRequest!;
-    Commit commit = pullRequest.commits!.nodes!.single.commit!;
-    final String? sha = commit.oid;
+
     int number = messagePullRequest.number!;
     final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
     try {

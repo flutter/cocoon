@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/model/auto_submit_query_result.dart' hide PullRequest;
+import 'package:auto_submit/model/auto_submit_query_result.dart' as autosubmit hide PullRequest;
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
+import 'package:graphql/client.dart' hide Request, Response;
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
@@ -38,15 +39,42 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
+    githubService.commitData = commitMock;
+    githubService.compareTwoCommitsData = shouldRebaseMock;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
     pubsub.publish('auto-submit-queue-sub', pullRequest);
-    QueryResult queryResult = createQueryResult(flutterRequest);
+    autosubmit.QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processPullRequest(config, queryResult, pullRequest, 'test', pubsub);
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
+    assert(pubsub.messagesQueue.isEmpty);
+  });
+
+  test('land ToT revert ignoring validation failure', () async {
+    githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
+    PullRequestHelper flutterRequest = PullRequestHelper(
+      prNumber: 0,
+      lastCommitHash: oid,
+      // Assumes no approval exists.
+      reviews: <PullRequestReviewHelper>[],
+    );
+    githubService.checkRunsData = checkRunsMock;
+    githubService.createCommentData = createCommentMock;
+    githubService.commitData = commitMock;
+    // Assumes ToT commit revert.
+    githubService.compareTwoCommitsData = compareToTCommitsMock;
+    final FakePubSub pubsub = FakePubSub();
+    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    pubsub.publish('auto-submit-queue-sub', pullRequest);
+    autosubmit.QueryResult queryResult = createQueryResult(flutterRequest);
+
+    await validationService.processPullRequest(config, queryResult, pullRequest, 'test', pubsub);
+
+    expect(githubService.issueComment, isNull);
+    expect(githubService.labelRemoved, false);
     assert(pubsub.messagesQueue.isEmpty);
   });
 }
