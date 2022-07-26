@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
@@ -49,8 +52,18 @@ class SignInButton extends StatelessWidget {
               }
             },
             iconSize: Scaffold.of(context).appBarMaxHeight,
-            icon: GoogleUserCircleAvatar(
-              identity: authService.user!,
+            icon: Builder(
+              builder: (BuildContext context) {
+                if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 10.0, top: 20.0),
+                    child: Text(authService.user!.email),
+                  );
+                }
+                return GoogleUserCircleAvatar(
+                  identity: authService.user!,
+                );
+              }
             ),
           );
         }
