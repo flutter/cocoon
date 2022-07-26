@@ -7,7 +7,6 @@ import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
-import 'web_image.dart';
 
 enum _SignInButtonAction { logout }
 
