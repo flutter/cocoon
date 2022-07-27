@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:codesign/src/file_codesign_visitor.dart';
 import 'package:process/process.dart';
 
 /// helper function to generate unique next IDs.
@@ -15,10 +16,38 @@ int get nextId {
   return currentKey;
 }
 
-enum FILETYPE { FOLDER, ZIP, BINARY, OTHER }
+enum FileType { folder, zip, binary, other }
+
+Future<void> unzip(FileSystemEntity inputZip, Directory outDir, ProcessManager processManager) async {
+  await processManager.run(
+    <String>[
+      'unzip',
+      inputZip.absolute.path,
+      '-d',
+      outDir.absolute.path,
+    ],
+  );
+  logger!.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}\n');
+}
+
+Future<void> zip(Directory inDir, FileSystemEntity outputZip, ProcessManager processManager) async {
+  await processManager.run(
+    <String>[
+      'zip',
+      '--symlinks',
+      '--recurse-paths',
+      outputZip.absolute.path,
+      // use '.' so that the full absolute path is not encoded into the zip file
+      '.',
+      '--include',
+      '*',
+    ],
+    workingDirectory: inDir.absolute.path,
+  );
+}
 
 /// Check mime-type of file at [filePath] to determine if it is a directory.
-FILETYPE checkFileType(String filePath, ProcessManager processManager) {
+FileType getFileType(String filePath, ProcessManager processManager) {
   final ProcessResult result = processManager.runSync(
     <String>[
       'file',
@@ -29,13 +58,13 @@ FILETYPE checkFileType(String filePath, ProcessManager processManager) {
   );
   String output = result.stdout as String;
   if (output.contains('inode/directory')) {
-    return FILETYPE.FOLDER;
+    return FileType.folder;
   } else if (output.contains('application/zip')) {
-    return FILETYPE.ZIP;
+    return FileType.zip;
   } else if (output.contains('application/x-mach-binary')) {
-    return FILETYPE.BINARY;
+    return FileType.binary;
   } else {
-    return FILETYPE.OTHER;
+    return FileType.other;
   }
 }
 

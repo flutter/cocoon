@@ -25,4 +25,3 @@ linter:
   rules:
     prefer_single_quotes: true
     unawaited_futures: true
-    constant_identifier_names: false

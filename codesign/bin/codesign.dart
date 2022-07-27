@@ -106,7 +106,7 @@ Future<void> main(List<String> args) async {
 
   FileSystem fileSystem = const LocalFileSystem();
   Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-  Logger logger = Logger('codesign');
+  logger = Logger('codesign');
   ProcessManager processManager = const LocalProcessManager();
 
   return FileCodesignVisitor(
@@ -118,11 +118,8 @@ Future<void> main(List<String> args) async {
     codesignTeamId: codesignTeamId,
     codesignFilepaths: codesignFilepaths,
     fileSystem: fileSystem,
-    logger: logger,
     tempDir: tempDir,
     processManager: processManager,
-    visitDirectory: visitDirectory,
-    visitEmbeddedZip: visitEmbeddedZip,
     production: production,
   ).validateAll();
 }
