@@ -135,9 +135,9 @@ class Scheduler {
     for (Target target in initialTargets) {
       final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
       SchedulerPolicy policy = target.schedulerPolicy;
-      // Engine repo and release branches should always run every task
+      // Engine repo and release branches should run every task
       if (commit.slug == Config.engineSlug || Config.defaultBranch(commit.slug) != commit.branch) {
-        policy = GuranteedPolicy();
+        policy = GuaranteedPolicy();
       }
       final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
       if (priority != null) {
