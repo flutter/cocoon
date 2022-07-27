@@ -332,7 +332,7 @@ void main() {
       });
 
       test('vm cocoon targets return guranteed policy', () {
-        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuranteedPolicy>());
+        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuaranteedPolicy>());
       });
     });
   });
