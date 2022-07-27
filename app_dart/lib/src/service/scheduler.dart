@@ -134,7 +134,11 @@ class Scheduler {
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     for (Target target in initialTargets) {
       final Task task = tasks.singleWhere((Task task) => task.name == target.value.name);
-      final SchedulerPolicy policy = target.schedulerPolicy;
+      SchedulerPolicy policy = target.schedulerPolicy;
+      // Engine repo and release branches should always run every task
+      if (commit.slug == Config.engineSlug || Config.defaultBranch(commit.slug) != commit.branch) {
+        policy = GuranteedPolicy();
+      }
       final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
