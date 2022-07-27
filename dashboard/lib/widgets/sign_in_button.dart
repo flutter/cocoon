@@ -52,19 +52,17 @@ class SignInButton extends StatelessWidget {
               }
             },
             iconSize: Scaffold.of(context).appBarMaxHeight,
-            icon: Builder(
-              builder: (BuildContext context) {
-                if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 10.0, top: 20.0),
-                    child: Text(authService.user!.email),
-                  );
-                }
-                return GoogleUserCircleAvatar(
-                  identity: authService.user!,
+            icon: Builder(builder: (BuildContext context) {
+              if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10.0, top: 20.0),
+                  child: Text(authService.user!.email),
                 );
               }
-            ),
+              return GoogleUserCircleAvatar(
+                identity: authService.user!,
+              );
+            }),
           );
         }
         return TextButton(
