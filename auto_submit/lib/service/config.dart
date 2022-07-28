@@ -59,7 +59,7 @@ class Config {
       // Tokens have a TTL of 10 minutes. AppEngine requests have a TTL of 1 minute.
       // To ensure no expired tokens are used, set this to 10 - 1, with an extra buffer of a duplicate request.
       const Duration(minutes: 8),
-    ) as Uint8List;
+    ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
@@ -97,13 +97,13 @@ class Config {
 
     final String token = await generateGithubToken(slug);
 
-    final AuthLink _authLink = AuthLink(
+    final AuthLink authLink = AuthLink(
       getToken: () async => 'Bearer $token',
     );
 
     return GraphQLClient(
       cache: GraphQLCache(),
-      link: _authLink.concat(httpLink),
+      link: authLink.concat(httpLink),
     );
   }
 
@@ -179,14 +179,14 @@ class Config {
   Future<String> getWebhookKey() async {
     final Uint8List? cacheValue = await cache[kWebHookKey].get(
       () => _getValueFromSecretManager(kWebHookKey),
-    ) as Uint8List;
+    ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
   Future<String> getFlutterGitHubBotToken() async {
     final Uint8List? cacheValue = await cache[kFlutterGitHubBotKey].get(
       () => _getValueFromSecretManager(kFlutterGitHubBotKey),
-    ) as Uint8List;
+    ) as Uint8List?;
     return String.fromCharCodes(cacheValue!);
   }
 
