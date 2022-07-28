@@ -651,7 +651,7 @@ void main() {
     List<List<LatticeCell>> cells = latticeScrollView.cells;
     List<LatticeCell> myCells = cells.first;
     expect(myCells.length, 3);
-    myCells.removeAt(0); // the first element is null.
+    myCells.removeAt(0); // the first element is the github author box.
     expect(myCells[0].taskName, 'A');
     expect(myCells[1].taskName, 'B');
   });
