@@ -32,8 +32,9 @@ class PubSub {
     final pubsub.PublishRequest request = pubsub.PublishRequest(messages: <pubsub.PubsubMessage>[
       pubsub.PubsubMessage(data: messageBase64),
     ]);
-    final String _topic = 'projects/flutter-dashboard/topics/$topic';
-    final pubsub.PublishResponse response = await pubsubApi.projects.topics.publish(request, _topic);
+    final String fullTopicName = 'projects/flutter-dashboard/topics/$topic';
+    final pubsub.PublishResponse response = await
+    pubsubApi.projects.topics.publish(request, fullTopicName);
     log.info('pubsub response messageId=${response.messageIds}');
   }
 
