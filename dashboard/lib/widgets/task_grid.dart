@@ -71,7 +71,7 @@ class TaskGridContainer extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class TaskGrid extends StatefulWidget {
-  TaskGrid({
+  const TaskGrid({
     Key? key,
     // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
@@ -83,8 +83,6 @@ class TaskGrid extends StatefulWidget {
 
   /// The build status data to display in the grid.
   final List<CommitStatus> commitStatuses;
-
-  final List<Task> sortedTasks = [];
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
@@ -98,11 +96,6 @@ class TaskGrid extends StatefulWidget {
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
-
-  /// Function to facilitate testing. Do not used this in production. This
-  /// method will sort the supplied CommitStatuses according to the weights
-  /// calculated from the status scores per task and return that sorted list.
-  List<Task> get sortedStatuses => sortedTasks;
 }
 
 /// Look up table for task status weights in the grid.
@@ -203,7 +196,6 @@ class _TaskGridState extends State<TaskGrid> {
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
   List<List<LatticeCell>> _processCommitStatuses(TaskGrid taskGrid) {
-    // List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter? filter]) {
     TaskGridFilter? filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
@@ -273,17 +265,12 @@ class _TaskGridState extends State<TaskGrid> {
         return a.task!.compareTo(b.task!);
       });
 
-    for (QualifiedTask qualifiedTask in tasks) {
-      widget.sortedTasks.add(taskLookupMap[qualifiedTask]!);
-    }
-
     // 4: GENERATE RESULTING LIST OF LISTS
     return <List<LatticeCell>>[
       <LatticeCell>[
         const LatticeCell(),
-        ...tasks.map<LatticeCell>((QualifiedTask task) => LatticeCell(
-              builder: (BuildContext context) => TaskIcon(qualifiedTask: task),
-            )),
+        ...tasks.map<LatticeCell>((QualifiedTask task) =>
+            LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage)),
       ],
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[

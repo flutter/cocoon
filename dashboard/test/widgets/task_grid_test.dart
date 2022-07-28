@@ -614,11 +614,6 @@ void main() {
       ..attempts = 1
       ..isTestFlaky = false;
 
-    List<Task> expectedTaskOrderList = [
-      taskA3,
-      taskB1,
-    ];
-
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -651,11 +646,14 @@ void main() {
 
     // check the order of the items. The flaky should be to the left and first.
     expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
-    TaskGrid taskGrid = tester.firstWidget(find.byType(TaskGrid));
 
-    List<Task> sortedTasks = taskGrid.sortedTasks;
-    expect(sortedTasks.length, expectedTaskOrderList.length);
-    expect(sortedTasks, containsAllInOrder(expectedTaskOrderList));
+    LatticeScrollView latticeScrollView = tester.firstWidget(find.byType(LatticeScrollView));
+    List<List<LatticeCell>> cells = latticeScrollView.cells;
+    List<LatticeCell> myCells = cells.first;
+    expect(myCells.length, 3);
+    myCells.removeAt(0); // the first element is null.
+    expect(myCells[0].taskName, 'A');
+    expect(myCells[1].taskName, 'B');
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
