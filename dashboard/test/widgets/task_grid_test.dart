@@ -581,6 +581,63 @@ void main() {
     expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
+  testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
+    Task taskA3 = Task()
+      ..stageName = 'A'
+      ..builderName = '1'
+      ..name = 'A'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 3
+      ..isTestFlaky = true;
+
+    Task taskB1 = Task()
+      ..stageName = 'B'
+      ..builderName = '2'
+      ..name = 'B'
+      ..status = TaskBox.statusSucceeded
+      ..attempts = 1
+      ..isTestFlaky = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(
+              authService: MockGoogleSignInService(),
+              cocoonService: MockCocoonService(),
+            ),
+            commitStatuses: <CommitStatus>[
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[
+                    taskA3,
+                  ],
+                ),
+              CommitStatus()
+                ..commit = (Commit()..author = 'Cast')
+                ..tasks.addAll(
+                  <Task>[taskB1],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.priority_high), findsNWidgets(1));
+
+    // check the order of the items. The flaky should be to the left and first.
+    expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
+
+    LatticeScrollView latticeScrollView = tester.firstWidget(find.byType(LatticeScrollView));
+    List<List<LatticeCell>> cells = latticeScrollView.cells;
+    List<LatticeCell> myCells = cells.first;
+    expect(myCells.length, 3);
+    myCells.removeAt(0); // the first element is the github author box.
+    expect(myCells[0].taskName, 'A');
+    expect(myCells[1].taskName, 'B');
+  });
+
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[

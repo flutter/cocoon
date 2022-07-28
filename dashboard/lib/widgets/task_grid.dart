@@ -98,6 +98,29 @@ class TaskGrid extends StatefulWidget {
   State<TaskGrid> createState() => _TaskGridState();
 }
 
+/// Look up table for task status weights in the grid.
+///
+/// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
+/// largest integer weight.
+const Map<String, double> _statusScores = <String, double>{
+  'Failed - Rerun': 1.0,
+  'Failed': 0.7,
+  'Infra Failure - Rerun': 0.69,
+  'Infra Failure': 0.68,
+  'Failed - Flaky': 0.67,
+  'Infra Failure - Flaky': 0.65,
+  'In Progress - Flaky': 0.64,
+  'New - Flaky': 0.63,
+  'Succeeded - Flaky': 0.61,
+  'New - Rerun': 0.5,
+  'In Progress - Rerun': 0.4,
+  'Unknown': 0.2,
+  'In Progress': 0.1,
+  'New': 0.1,
+  'Succeeded': 0.01,
+  'Skipped': 0.0,
+};
+
 class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Cache the lattice cells. Right now we are regenerating the entire
   // lattice matrix each time the task grid has to update, regardless of whether
@@ -132,35 +155,12 @@ class _TaskGridState extends State<TaskGrid> {
       // we load.
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget.commitStatuses, widget.filter),
+      cells: _processCommitStatuses(widget),
       cellSize: const Size.square(TaskBox.cellSize),
       verticalController: verticalController,
       horizontalController: horizontalController,
     );
   }
-
-  /// Look up table for task status weights in the grid.
-  ///
-  /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
-  /// largest integer weight.
-  static const Map<String, double> _statusScores = <String, double>{
-    'Failed - Rerun': 1.0,
-    'Failed': 0.7,
-    'Infra Failure - Rerun': 0.69,
-    'Infra Failure': 0.68,
-    'Failed - Flaky': 0.67,
-    'Infra Failure - Flaky': 0.65,
-    'In Progress - Flaky': 0.64,
-    'New - Flaky': 0.63,
-    'Succeeded - Flaky': 0.61,
-    'New - Rerun': 0.5,
-    'In Progress - Rerun': 0.4,
-    'Unknown': 0.2,
-    'In Progress': 0.1,
-    'New': 0.1,
-    'Succeeded': 0.01,
-    'Skipped': 0.0,
-  };
 
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
   /// [CommitStatus] objects, into the data that describes the rendering as used by the
@@ -171,7 +171,7 @@ class _TaskGridState extends State<TaskGrid> {
   /// 1. We create `rows`, a list of [_Row] objects which are used to temporarily
   ///    represent each row in the data, where a row basically represents a [Commit].
   ///
-  ///    These are derived from th `commitStatuses` directly -- each [CommitStatus] is one
+  ///    These are derived from the `commitStatuses` directly -- each [CommitStatus] is one
   ///    row, representing one [Commit] and all its [Task]s.
   ///
   /// 2. We walk the `commitStatuses` again, examining each [Task] of each [CommitStatus],
@@ -195,15 +195,18 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter? filter]) {
+  List<List<LatticeCell>> _processCommitStatuses(TaskGrid taskGrid) {
+    TaskGridFilter? filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
     final List<CommitStatus> filteredStatuses =
-        commitStatuses.where((CommitStatus commitStatus) => filter!.matchesCommit(commitStatus)).toList();
+        taskGrid.commitStatuses.where((CommitStatus commitStatus) => filter!.matchesCommit(commitStatus)).toList();
     final List<_Row> rows =
         filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
+    final Map<QualifiedTask, Task> taskLookupMap = <QualifiedTask, Task>{};
+
     int commitCount = 0;
     for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
@@ -212,9 +215,10 @@ class _TaskGridState extends State<TaskGrid> {
         if (!filter.matchesTask(qualifiedTask)) {
           continue;
         }
+        taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           String weightStatus = task.status;
-          if (task.isFlaky) {
+          if (task.isFlaky || task.isTestFlaky) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.attempts > 1) {
@@ -260,13 +264,13 @@ class _TaskGridState extends State<TaskGrid> {
         }
         return a.task!.compareTo(b.task!);
       });
+
     // 4: GENERATE RESULTING LIST OF LISTS
     return <List<LatticeCell>>[
       <LatticeCell>[
         const LatticeCell(),
-        ...tasks.map<LatticeCell>((QualifiedTask task) => LatticeCell(
-              builder: (BuildContext context) => TaskIcon(qualifiedTask: task),
-            )),
+        ...tasks.map<LatticeCell>((QualifiedTask task) =>
+            LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage)),
       ],
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[

@@ -20,9 +20,12 @@ class LatticeCell extends _LatticeCell {
     Painter? painter,
     this.builder,
     LatticeTapCallback? onTap,
+    this.taskName,
   }) : super(painter: painter, onTap: onTap);
 
   final WidgetBuilder? builder;
+
+  final String? taskName;
 
   @override
   bool get hasChild => builder != null;
