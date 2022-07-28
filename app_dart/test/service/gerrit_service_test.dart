@@ -85,6 +85,7 @@ void main() {
           required List<String> scopes,
         }) async =>
             FakeAuthClient(baseClient!),
+        retryDelay: Duration.zero,
       );
 
       await gerritService.createBranch(
@@ -100,9 +101,34 @@ void main() {
           required List<String> scopes,
         }) async =>
             FakeAuthClient(baseClient!),
+        retryDelay: Duration.zero,
       );
       expect(() async => await gerritService.createBranch(Config.recipesSlug, 'flutter-2.13-candidate.0', 'abc'),
           throwsExceptionWith<InternalServerError>('Failed to create branch'));
+    });
+
+    test('retries non-200 responses', () async {
+      int attempts = 0;
+      mockHttpClient = MockClient((_) async {
+        attempts = attempts + 1;
+        // Only send a failed response on the first attempt
+        if (attempts == 1) {
+          return http.Response('error', HttpStatus.internalServerError);
+        }
+        return http.Response(createBranchJson, HttpStatus.accepted);
+      });
+      gerritService = GerritService(
+        httpClient: mockHttpClient,
+        authClientProvider: ({
+          Client? baseClient,
+          required List<String> scopes,
+        }) async =>
+            FakeAuthClient(baseClient!),
+        retryDelay: Duration.zero,
+      );
+      await gerritService.createBranch(
+          Config.recipesSlug, 'flutter-2.13-candidate.0', '00439ab49a991db42595f14078adb9811a6f60c6');
+      expect(attempts, 2);
     });
   });
 }
