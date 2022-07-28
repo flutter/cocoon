@@ -23,6 +23,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -35,7 +36,6 @@ void main() {
   late LuciBuildService service;
   late RepositorySlug slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
-  final MockGerritService mockGerritService = MockGerritService();
   late FakePubSub pubsub;
 
   final List<Target> targets = <Target>[
@@ -55,7 +55,7 @@ void main() {
       service = LuciBuildService(
         config,
         mockBuildBucketClient,
-        gerritService: mockGerritService,
+        gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -131,7 +131,7 @@ void main() {
       service = LuciBuildService(
         config,
         mockBuildBucketClient,
-        gerritService: mockGerritService,
+        gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
@@ -238,10 +238,9 @@ void main() {
         config,
         mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
-        gerritService: mockGerritService,
+        gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
       );
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       slug = RepositorySlug('flutter', 'cocoon');
     });
 
@@ -666,6 +665,7 @@ void main() {
       for (String key in Config.engineDefaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
       expect(scheduleBuildRequest.gitilesCommit?.project, 'mirrors/engine');
       expect(rerunFlag, isTrue);
       expect(task.attempts, 2);

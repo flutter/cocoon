@@ -71,6 +71,7 @@ class Config {
       engineSlug: 'main',
       pluginsSlug: 'main',
       packagesSlug: 'main',
+      recipesSlug: 'main',
     };
 
     return defaultBranches[slug] ?? kDefaultBranchName;
@@ -141,6 +142,9 @@ class Config {
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
+
+  /// Batch size of builds to schedule in each swarming request.
+  int get batchSize => 5;
 
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
@@ -305,6 +309,9 @@ class Config {
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
   static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
   static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
+
+  /// Flutter recipes is hosted on Gerrit instead of GitHub.
+  static RepositorySlug get recipesSlug => RepositorySlug('flutter', 'recipes');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 

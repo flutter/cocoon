@@ -71,7 +71,13 @@ class GithubChecksService {
     if (buildPushMessage.userData!.isEmpty) {
       return false;
     }
-    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+    Map<String, dynamic> userData;
+    try {
+      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+    } on FormatException {
+      userData = jsonDecode(String.fromCharCodes(base64Decode(buildPushMessage.userData!))) as Map<String, dynamic>;
+    }
+
     if (!userData.containsKey('check_run_id') ||
         !userData.containsKey('repo_owner') ||
         !userData.containsKey('repo_name')) {

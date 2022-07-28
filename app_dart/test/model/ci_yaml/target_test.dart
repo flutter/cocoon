@@ -318,13 +318,21 @@ void main() {
         expect(generateTarget(1, platform: 'Linux_android').schedulerPolicy, isA<BatchPolicy>());
       });
 
+      test('devicelab samsung targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Linux_samsung_a02').schedulerPolicy, isA<BatchPolicy>());
+      });
+
+      test('mac host only targets use batch policy', () {
+        expect(generateTarget(1, platform: 'Mac').schedulerPolicy, isA<BatchPolicy>());
+      });
+
       test('non-cocoon scheduler targets return omit policy', () {
         expect(generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicy,
             isA<OmitPolicy>());
       });
 
       test('vm cocoon targets return guranteed policy', () {
-        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuranteedPolicy>());
+        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuaranteedPolicy>());
       });
     });
   });

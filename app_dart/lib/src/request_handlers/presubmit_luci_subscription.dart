@@ -55,8 +55,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     RepositorySlug slug;
     final String data = message.data!;
-    final BuildPushMessage buildPushMessage =
-        BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    BuildPushMessage buildPushMessage;
+    try {
+      buildPushMessage =
+          BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    } on FormatException {
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
+    }
     final Build build = buildPushMessage.build!;
     final String builderName = build.tagsByName('builder').single;
     log.fine('Available tags: ${build.tags.toString()}');
@@ -66,8 +71,15 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
     log.fine('Setting status: ${buildPushMessage.toJson()} for $builderName');
-    final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
-    if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
+
+    Map<String, dynamic>? userData;
+    try {
+      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+    } on FormatException {
+      userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
+    }
+
+    if (userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
       // Message is coming from a github checks api enabled repo. We need to
       // create the slug from the data in the message and send the check status
       // update.

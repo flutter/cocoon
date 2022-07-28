@@ -13,7 +13,7 @@ steps:
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
-    args:  
+    args:
       - '-c'
       - |-
         gcloud config set project $PROJECT_ID

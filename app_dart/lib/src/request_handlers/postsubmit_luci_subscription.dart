@@ -54,8 +54,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     final String data = message.data!;
-    final BuildPushMessage buildPushMessage =
-        BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    BuildPushMessage buildPushMessage;
+    try {
+      buildPushMessage =
+          BuildPushMessage.fromJson(json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>);
+    } on FormatException {
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
+    }
     log.fine(buildPushMessage.userData);
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
     // Example user data:
@@ -66,7 +71,14 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.fine('User data is empty');
       return Body.empty;
     }
-    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+
+    Map<String, dynamic> userData;
+    try {
+      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
+    } on FormatException {
+      userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
+    }
+
     final String? rawTaskKey = userData['task_key'] as String?;
     final String? rawCommitKey = userData['commit_key'] as String?;
     if (rawCommitKey == null) {

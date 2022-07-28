@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -32,6 +33,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -67,7 +69,6 @@ void main() {
   late MockClient httpClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
-  late MockGerritService mockGerritService;
 
   final PullRequest pullRequest = generatePullRequest(id: 42);
 
@@ -97,6 +98,10 @@ void main() {
         dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
+        supportedReposValue: <RepositorySlug>{
+          Config.engineSlug,
+          Config.flutterSlug,
+        },
       );
       httpClient = MockClient((http.Request request) async {
         if (request.url.path.contains('.ci.yaml')) {
@@ -109,8 +114,6 @@ void main() {
       // Generate check runs based on the name hash code
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
           .thenAnswer((Invocation invocation) async => generateCheckRun(invocation.positionalArguments[2].hashCode));
-      mockGerritService = MockGerritService();
-      when(mockGerritService.branches(any, any, any)).thenAnswer((_) async => <String>['master']);
       scheduler = Scheduler(
         cache: cache,
         config: config,
@@ -121,7 +124,9 @@ void main() {
         luciBuildService: FakeLuciBuildService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
-          gerritService: mockGerritService,
+          gerritService: FakeGerritService(
+            branchesValue: <String>['master'],
+          ),
         ),
       );
 
@@ -135,6 +140,7 @@ void main() {
     });
 
     group('add commits', () {
+      final FakePubSub pubsub = FakePubSub();
       List<Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
@@ -255,6 +261,37 @@ void main() {
         final Iterable<Task> tasks = db.values.values.whereType<Task>();
         expect(tasks.singleWhere((Task task) => task.name == 'Linux A').status, Task.statusInProgress);
       });
+
+      test('schedules cocoon based targets - multiple batch requests', () async {
+        final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+        final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
+          config,
+          buildbucket: mockBuildBucketClient,
+          gerritService: FakeGerritService(),
+          pubsub: pubsub,
+        );
+        when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+          return const ListBuildersResponse(builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
+          ]);
+        });
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        config.batchSizeValue = 1;
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_) => buildStatusService,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: luciBuildService,
+        );
+
+        await scheduler.addCommits(createCommitList(<String>['1']));
+        expect(pubsub.messages.length, 2);
+      });
     });
 
     group('add pull request', () {
@@ -279,6 +316,29 @@ void main() {
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
+      });
+
+      test('gurantees scheduling of tasks against merged release branch PR', () async {
+        final PullRequest mergedPr = generatePullRequest(branch: 'flutter-3.2-candidate.5');
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 3);
+        // Ensure all tasks have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
+      });
+
+      test('gurantees scheduling of tasks against merged engine PR', () async {
+        final PullRequest mergedPr = generatePullRequest(
+          repo: Config.engineSlug.name,
+          branch: Config.defaultBranch(Config.engineSlug),
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 3);
+        // Ensure all tasks have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -482,7 +542,7 @@ targets:
           luciBuildService: FakeLuciBuildService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
-            gerritService: mockGerritService,
+            gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -607,7 +667,7 @@ targets:
             config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
-            gerritService: mockGerritService,
+            gerritService: FakeGerritService(branchesValue: <String>['master']),
             pubsub: pubsub,
           ),
         );

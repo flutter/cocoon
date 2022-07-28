@@ -47,10 +47,15 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     BatchRequest request;
     try {
-      final String rawJson = String.fromCharCodes(base64Decode(message.data!));
-      log.info('rawJson: $rawJson');
-      final Map<String, dynamic> json = jsonDecode(rawJson) as Map<String, dynamic>;
-      request = BatchRequest.fromJson(json);
+      final String data = message.data!;
+      Map<String, dynamic> jsonData;
+      log.info('rawJson: $data');
+      try {
+        jsonData = jsonDecode(data) as Map<String, dynamic>;
+      } on FormatException {
+        jsonData = json.decode(String.fromCharCodes(base64.decode(data))) as Map<String, dynamic>;
+      }
+      request = BatchRequest.fromJson(jsonData);
     } catch (e) {
       log.severe('Failed to construct BatchRequest from message');
       log.severe(e);

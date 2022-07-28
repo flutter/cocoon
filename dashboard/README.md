@@ -46,12 +46,12 @@ The `lib` directory is organized in subdirectories as follows:
   services. Files in this directory should not import any Flutter
   packages other than foundation, and should not import local files
   that relate to UI (e.g. those in `widgets/`).
-  
+
 * `lib/service/`: Services, objects that interface with the network.
   Files in this directory should not import any Flutter packages other
   than foundation, and should not import any local files from other
   directories.
-  
+
 * `lib/logic/`: Other code, mainly non-UI utility methods and data
   models. Files in this directory should not import any Flutter
   packages other than foundation, and should not import any local

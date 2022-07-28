@@ -20,7 +20,7 @@ abstract class SchedulerPolicy {
 }
 
 /// Every [Task] is triggered to run.
-class GuranteedPolicy implements SchedulerPolicy {
+class GuaranteedPolicy implements SchedulerPolicy {
   @override
   Future<int?> triggerPriority({
     required Task task,

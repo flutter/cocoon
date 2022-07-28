@@ -19,7 +19,7 @@ RUN apt install -y \
   curl \
   git \
   unzip
-  
+
 # Install Flutter.
 ENV FLUTTER_ROOT="/opt/flutter"
 RUN git clone https://github.com/flutter/flutter "${FLUTTER_ROOT}"

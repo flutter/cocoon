@@ -96,7 +96,7 @@ void main() {
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
     });
 
-    void _verifyQueries(List<QueryOptions> expectedOptions) {
+    void verifyQueries(List<QueryOptions> expectedOptions) {
       githubGraphQLClient.verifyQueries(expectedOptions);
     }
 
@@ -186,7 +186,7 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
@@ -227,7 +227,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
@@ -255,7 +255,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
@@ -283,7 +283,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
@@ -308,7 +308,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
@@ -335,7 +335,7 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -354,7 +354,7 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -367,13 +367,14 @@ void main() {
       flutterRequest = PullRequestHelper(
         lastCommitHash: oid,
         lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
           StatusHelper.otherStatusFailure,
         ],
       );
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -393,7 +394,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -411,7 +412,7 @@ void main() {
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -429,7 +430,7 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       expect(pubsub.messagesQueue.length, 2);
       pubsub.messagesQueue.clear();
     });
@@ -448,7 +449,7 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -470,7 +471,7 @@ void main() {
       );
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
-      _verifyQueries(expectedOptions);
+      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
   });

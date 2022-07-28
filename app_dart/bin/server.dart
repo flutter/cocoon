@@ -46,6 +46,11 @@ Future<void> main() async {
       luciBuildService: luciBuildService,
     );
 
+    final BranchService branchService = BranchService(
+      config: config,
+      gerritService: GerritService(),
+    );
+
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       /// Check+merge waiting github pull requests.
       ///
@@ -69,6 +74,7 @@ Future<void> main() async {
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
+        branchService: branchService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),
@@ -94,12 +100,6 @@ Future<void> main() async {
         authProvider,
       ),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
-      '/api/refresh-chromebot-status': RefreshChromebotStatus(
-        config,
-        authProvider,
-        luciBuildService,
-        scheduler: scheduler,
-      ),
       '/api/reset-prod-task': ResetProdTask(
         config,
         authProvider,

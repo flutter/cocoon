@@ -43,7 +43,7 @@ class GithubWebhook extends RequestHandler<Body> {
     required this.scheduler,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.branchService,
+    required this.branchService,
   }) : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
@@ -53,11 +53,10 @@ class GithubWebhook extends RequestHandler<Body> {
   final GithubChecksService? githubChecksService;
 
   final DatastoreServiceProvider datastoreProvider;
-  BranchService? branchService;
+  final BranchService branchService;
 
   @override
   Future<Body> post() async {
-    final DatastoreService datastore = datastoreProvider(config.db);
     final String? gitHubEvent = request!.headers.value('X-GitHub-Event');
 
     if (gitHubEvent == null || request!.headers.value('X-Hub-Signature') == null) {
@@ -85,8 +84,9 @@ class GithubWebhook extends RequestHandler<Body> {
           }
           break;
         case 'create':
-          branchService = BranchService(datastore, rawRequest: stringRequest);
-          await branchService!.handleCreateRequest();
+          final CreateEvent createEvent = _getCreateEvent(stringRequest)!;
+          await branchService.handleCreateRequest(createEvent);
+          await branchService.branchFlutterRecipes(createEvent.ref!);
           break;
       }
 
@@ -648,5 +648,16 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
     return true;
+  }
+
+  CreateEvent? _getCreateEvent(String request) {
+    try {
+      return CreateEvent.fromJson(json.decode(request) as Map<String, dynamic>);
+    } on FormatException {
+      return null;
+    } catch (e) {
+      log.severe('Unexpected exception was encountered while decoding json webhook msg for branch creation: $e');
+      return null;
+    }
   }
 }

@@ -3,15 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Runner for dart tests. It expects a single parameter with the full
-# path to the start folder where tests will be run.
+# General flutter/cocoon repo static analysis.
 
 set -ex
 
 dir=$(dirname $0)
 
-pushd $dir/../../licenses > /dev/null
+pushd $dir/../../analyze > /dev/null
 dart pub get
-dart check_licenses.dart
+dart --enable-asserts analyze.dart
 
 popd > /dev/null

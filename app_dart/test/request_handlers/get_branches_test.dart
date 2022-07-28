@@ -35,11 +35,7 @@ void main() {
     setUp(() {
       db = FakeDatastoreDB();
       clientContext = FakeClientContext();
-      request = FakeHttpRequest(
-        queryParametersValue: <String, dynamic>{
-          GetBranches.kUpdateBranchParam: 'true',
-        },
-      );
+      request = FakeHttpRequest();
       keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester(request: request);
       config = FakeConfig(

@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import '../request_handling/fake_pubsub.dart';
 import '../utilities/mocks.dart';
 import 'fake_buildbucket.dart';
+import 'fake_gerrit_service.dart';
 
 /// Fake [LuciBuildService] for use in tests.
 class FakeLuciBuildService extends LuciBuildService {
@@ -25,7 +26,7 @@ class FakeLuciBuildService extends LuciBuildService {
           config,
           buildbucket ?? FakeBuildBucketClient(),
           githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
-          gerritService: gerritService ?? MockGerritService(),
+          gerritService: gerritService ?? FakeGerritService(),
           pubsub: pubsub ?? FakePubSub(),
         );
 }

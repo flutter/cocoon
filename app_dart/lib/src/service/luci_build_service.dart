@@ -214,8 +214,11 @@ class LuciBuildService {
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
     final List<Request> requests = <Request>[];
-    final List<String> branches =
-        await gerritService.branches('flutter-review.googlesource.com', 'recipes', 'flutter-');
+    final List<String> branches = await gerritService.branches(
+      'flutter-review.googlesource.com',
+      'recipes',
+      subString: 'flutter-',
+    );
 
     final String sha = pullRequest.head!.sha!;
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
@@ -551,6 +554,7 @@ class LuciBuildService {
       ),
       tags: tags,
       properties: processedProperties,
+      priority: priority,
     );
   }
 

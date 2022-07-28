@@ -31,7 +31,7 @@ PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
       attributes: (json['attributes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
-      data: json['data'] as String?,
+      data: _$JsonConverterFromJson<String, String>(json['data'], const Base64Converter().fromJson),
       messageId: json['messageId'] as String?,
     );
 
@@ -45,10 +45,22 @@ Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   }
 
   writeNotNull('attributes', instance.attributes);
-  writeNotNull('data', instance.data);
+  writeNotNull('data', _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson));
   writeNotNull('messageId', instance.messageId);
   return val;
 }
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) =>
+    json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) =>
+    value == null ? null : toJson(value);
 
 BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) => BuildPushMessage(
       build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
