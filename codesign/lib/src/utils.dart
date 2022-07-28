@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:codesign/src/file_codesign_visitor.dart';
+import 'file_codesign_visitor.dart';
 import 'package:process/process.dart';
 
 /// helper function to generate unique next IDs.
@@ -16,9 +16,30 @@ int get nextId {
   return currentKey;
 }
 
-enum FileType { folder, zip, binary, other }
+enum FileType {
+  folder,
+  zip,
+  binary,
+  other;
 
-Future<void> unzip(FileSystemEntity inputZip, Directory outDir, ProcessManager processManager) async {
+  factory FileType.fromMimeType(String mimeType) {
+    if (mimeType.contains('inode/directory')) {
+      return FileType.folder;
+    } else if (mimeType.contains('application/zip')) {
+      return FileType.zip;
+    } else if (mimeType.contains('application/x-mach-binary')) {
+      return FileType.binary;
+    } else {
+      return FileType.other;
+    }
+  }
+}
+
+Future<void> unzip({
+  required FileSystemEntity inputZip,
+  required Directory outDir,
+  required ProcessManager processManager,
+}) async {
   await processManager.run(
     <String>[
       'unzip',
@@ -27,10 +48,14 @@ Future<void> unzip(FileSystemEntity inputZip, Directory outDir, ProcessManager p
       outDir.absolute.path,
     ],
   );
-  logger!.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}\n');
+  log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}\n');
 }
 
-Future<void> zip(Directory inDir, FileSystemEntity outputZip, ProcessManager processManager) async {
+Future<void> zip({
+  required Directory inputDir,
+  required FileSystemEntity outputZip,
+  required ProcessManager processManager,
+}) async {
   await processManager.run(
     <String>[
       'zip',
@@ -42,7 +67,7 @@ Future<void> zip(Directory inDir, FileSystemEntity outputZip, ProcessManager pro
       '--include',
       '*',
     ],
-    workingDirectory: inDir.absolute.path,
+    workingDirectory: inputDir.absolute.path,
   );
 }
 
@@ -56,16 +81,8 @@ FileType getFileType(String filePath, ProcessManager processManager) {
       filePath,
     ],
   );
-  String output = result.stdout as String;
-  if (output.contains('inode/directory')) {
-    return FileType.folder;
-  } else if (output.contains('application/zip')) {
-    return FileType.zip;
-  } else if (output.contains('application/x-mach-binary')) {
-    return FileType.binary;
-  } else {
-    return FileType.other;
-  }
+  final String output = result.stdout as String;
+  return FileType.fromMimeType(output);
 }
 
 class CodesignException implements Exception {

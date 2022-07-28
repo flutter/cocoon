@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 import 'package:logging/logging.dart';
-import 'package:codesign/src/utils.dart';
+import 'utils.dart';
 import 'dart:io' as io;
 
 /// Statuses reported by Apple's Notary Server.
@@ -19,7 +19,7 @@ enum NotaryStatus {
   succeeded,
 }
 
-Logger? logger;
+final Logger log = Logger('codesign');
 
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor {
@@ -56,6 +56,7 @@ class FileCodesignVisitor {
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
+  Set<String> directoriesVisited = <String>{};
   List<String> codesignFilepaths;
 
   late final File entitlementsFile;
@@ -97,18 +98,23 @@ class FileCodesignVisitor {
     _initialize();
 
     await Future.value(null);
-    logger!.info('Codesigned all binaries in ${tempDir.path}');
+    log.info('Codesigned all binaries in ${tempDir.path}');
 
     await tempDir.delete(recursive: true);
   }
 
-  /// Visit a [Directory] type while examining the file system extracted from an
-  /// artifact.
+  /// Visit a [Directory] type while examining the file system extracted from an artifact.
   Future<void> visitDirectory({
     required Directory directory,
     required String entitlementParentPath,
   }) async {
-    logger!.info('Visiting directory ${directory.absolute.path}\n');
+    log.info('Visiting directory ${directory.absolute.path}\n');
+    if (directoriesVisited.contains(directory.absolute.path)) {
+      throw CodesignException(
+        'Error! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}',
+      );
+    }
+    directoriesVisited.add(directory.absolute.path);
     final List<FileSystemEntity> entities = await directory.list().toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Directory) {
@@ -118,7 +124,7 @@ class FileCodesignVisitor {
         );
         continue;
       }
-      FileType childType = getFileType(
+      final FileType childType = getFileType(
         entity.absolute.path,
         processManager,
       );
@@ -128,7 +134,7 @@ class FileCodesignVisitor {
           entitlementParentPath: entitlementParentPath,
         );
       }
-      logger!.info('Child file of direcotry ${directory.basename} is ${entity.basename}\n');
+      log.info('Child file of direcotry ${directory.basename} is ${entity.basename}\n');
     }
   }
 
@@ -137,26 +143,26 @@ class FileCodesignVisitor {
     required FileSystemEntity zipEntity,
     required String entitlementParentPath,
   }) async {
-    logger!.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath\n');
-    String currentFileName = zipEntity.path.split('/').last;
+    log.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath\n');
+    final String currentFileName = zipEntity.path.split('/').last;
     final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');
     await unzip(
-      zipEntity,
-      newDir,
-      processManager,
+      inputZip: zipEntity,
+      outDir: newDir,
+      processManager: processManager,
     );
 
     // the virtual file path is advanced by the name of the embedded zip
-    String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
+    final String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
     await visitDirectory(
       directory: newDir,
       entitlementParentPath: currentZipEntitlementPath,
     );
-    await zipEntity.delete(recursive: true);
+    await zipEntity.delete();
     await zip(
-      newDir,
-      zipEntity,
-      processManager,
+      inputDir: newDir,
+      outputZip: zipEntity,
+      processManager: processManager,
     );
   }
 }

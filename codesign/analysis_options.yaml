@@ -6,7 +6,7 @@
 
 analyzer:
   strong-mode:
-    # implicit-casts: false
+    implicit-casts: false
     implicit-dynamic: false
   errors:
     # treat missing required parameters as a warning (not a hint)
@@ -19,9 +19,13 @@ analyzer:
     # Stream and not importing dart:async
     # Please see https://github.com/flutter/flutter/pull/24528 for details.
     sdk_version_async_exported_from_core: ignore
+    implicit_dynamic_parameter: info
     
 include: package:flutter_lints/flutter.yaml
+
 linter:
   rules:
     prefer_single_quotes: true
     unawaited_futures: true
+    prefer_final_locals: true
+    prefer_relative_imports: true

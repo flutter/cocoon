@@ -11,8 +11,7 @@ import './src/fake_process_manager.dart';
 
 void main() {
   const String randomString = 'abcd1234';
-  cs.logger = Logger('codesign-test');
-  MemoryFileSystem fileSystem = MemoryFileSystem.test();
+  final MemoryFileSystem fileSystem = MemoryFileSystem.test();
   const List<String> fakeFilepaths = ['a.zip', 'b.zip', 'c.zip'];
 
   late FakeProcessManager processManager;
@@ -36,8 +35,9 @@ void main() {
         processManager: processManager,
         tempDir: tempDir,
       );
+      codesignVisitor.directoriesVisited.clear();
       records.clear();
-      cs.logger!.onRecord.listen((LogRecord record) => records.add(record));
+      cs.log.onRecord.listen((LogRecord record) => records.add(record));
       cs.id = 0;
     });
 
@@ -75,12 +75,12 @@ void main() {
           stdout: 'other_files',
         ),
       ]);
-      Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_0');
+      final Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_0');
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
         entitlementParentPath: 'a.zip',
       );
-      List<String> messages = records
+      final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
@@ -94,7 +94,7 @@ void main() {
       fileSystem
         ..file('${tempDir.path}/remote_zip_1/file_a').createSync(recursive: true)
         ..file('${tempDir.path}/remote_zip_1/folder_a/file_b').createSync(recursive: true);
-      Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_1');
+      final Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_1');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -119,7 +119,7 @@ void main() {
         directory: testDirectory,
         entitlementParentPath: 'a.zip',
       );
-      List<String> messages = records
+      final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
@@ -178,7 +178,7 @@ void main() {
         zipEntity: fileSystem.file('${tempDir.path}/remote_zip_2/zip_1'),
         entitlementParentPath: 'a.zip',
       );
-      List<String> messages = records
+      final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
@@ -227,7 +227,7 @@ void main() {
         directory: fileSystem.directory('${tempDir.path}/remote_zip_4'),
         entitlementParentPath: 'a.zip',
       );
-      List<String> messages = records
+      final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
@@ -238,6 +238,35 @@ void main() {
           contains(
               'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_0\n'));
       expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_0\n'));
+    });
+
+    test('throw exception when the same directory is visited', () async {
+      fileSystem.file('${tempDir.path}/parent_1/child_1/file_1').createSync(recursive: true);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/parent_1/child_1/file_1',
+          ],
+          stdout: 'other_files',
+        ),
+      ]);
+
+      expect(
+          () => codesignVisitor.visitDirectory(
+                directory: fileSystem.directory('${tempDir.path}/parent_1/child_1'),
+                entitlementParentPath: 'a.zip',
+              ),
+          returnsNormally);
+
+      expect(
+          () => codesignVisitor.visitDirectory(
+                directory: fileSystem.directory('${tempDir.path}/parent_1'),
+                entitlementParentPath: 'a.zip',
+              ),
+          throwsA(isA<cs.CodesignException>()));
     });
   });
 }

@@ -8,7 +8,6 @@ import 'package:args/args.dart';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:logging/logging.dart';
 import 'package:platform/platform.dart';
 import 'package:process/process.dart';
 
@@ -94,7 +93,7 @@ Future<void> main(List<String> args) async {
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
 
-  final List<String> codesignFilepaths = argResults[kCodesignFilepathOption]!;
+  final List<String> codesignFilepaths = argResults[kCodesignFilepathOption]! as List<String>;
   final bool production = argResults[kProductionFlag] as bool;
 
   if (!platform.isMacOS) {
@@ -104,10 +103,9 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  FileSystem fileSystem = const LocalFileSystem();
-  Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-  logger = Logger('codesign');
-  ProcessManager processManager = const LocalProcessManager();
+  const FileSystem fileSystem = LocalFileSystem();
+  final Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  const ProcessManager processManager = LocalProcessManager();
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
