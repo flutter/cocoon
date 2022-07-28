@@ -80,13 +80,13 @@ class Target {
   ///
   /// Targets not triggered by Cocoon will not be triggered.
   ///
-  /// Targets by default run on a [GuranteedPolicy], but targets in the devicelab run with [BatchPolicy].
+  /// Targets by default run on a [GuaranteedPolicy], but targets in the devicelab run with [BatchPolicy].
   SchedulerPolicy get schedulerPolicy {
     if (value.scheduler != pb.SchedulerSystem.cocoon) {
       return OmitPolicy();
     }
 
-    return isDevicelab ? BatchPolicy() : GuranteedPolicy();
+    return shouldBatchSchedule ? BatchPolicy() : GuaranteedPolicy();
   }
 
   /// Gets the assembled properties for this [pb.Target].
@@ -223,11 +223,20 @@ class Target {
     return value.name.split(' ').first.toLowerCase();
   }
 
-  /// Indicates whether this target is run in the DeviceLab.
+  /// Indicates whether this target should be scheduled via batches.
   ///
   /// DeviceLab targets are special as they run on a host + physical device, and there is limited
-  /// capacity in the labs to run them.
-  bool get isDevicelab => getPlatform().contains('android') || getPlatform().contains('ios');
+  /// capacity in the labs to run them. Their platforms contain one of `android`, `ios`, and `samsung`.
+  ///
+  /// Mac host only targets are scheduled via patches due to high queue time. This can be relieved
+  /// when we have capacity support in Q4/2022.
+  bool get shouldBatchSchedule {
+    final String platform = getPlatform();
+    return platform.contains('android') ||
+        platform.contains('ios') ||
+        platform.contains('samsung') ||
+        platform == 'mac';
+  }
 
   /// Get the associated LUCI bucket to run this [Target] in.
   String getBucket() {

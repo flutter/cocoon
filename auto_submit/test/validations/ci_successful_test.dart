@@ -28,7 +28,7 @@ void main() {
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
 
-  List<ContextNode> _getContextNodeListFromJson(final String repositoryStatuses) {
+  List<ContextNode> getContextNodeListFromJson(final String repositoryStatuses) {
     List<ContextNode> contextNodeList = [];
 
     Map<String, dynamic> contextNodeMap = jsonDecode(repositoryStatuses) as Map<String, dynamic>;
@@ -41,7 +41,7 @@ void main() {
     return contextNodeList;
   }
 
-  void _convertContextNodeStatuses(List<ContextNode> contextNodeList) {
+  void convertContextNodeStatuses(List<ContextNode> contextNodeList) {
     for (ContextNode contextNode in contextNodeList) {
       contextNode.state = contextNode.state!.toUpperCase();
     }
@@ -153,64 +153,64 @@ void main() {
 
   group('validateStatuses', () {
     test('Validate successful statuses show as successful.', () {
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesMock);
       bool allSuccess = true;
 
       /// The status must be uppercase as the original code is expecting this.
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, [], contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
     test('Validate statuses that are not successful but do not cause failure.', () {
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
       bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('warning: land on red to fix tree breakage');
       labelNames.add('Other label');
 
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
     test('Validate failure statuses do not cause failure with not in authors control.', () {
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedAuthorsStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
       bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isEmpty);
     });
 
     test('Validate failure statuses cause failures with not in authors control.', () {
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
 
     test('Validate failure statuses cause failures and preserves false allSuccess.', () {
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(failedNonAuthorsStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       bool allSuccess = false;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
@@ -220,32 +220,32 @@ void main() {
   group('treeStatusCheck', () {
     test('Validate tree status is set contains slug.', () {
       slug = github.RepositorySlug('flutter', 'flutter');
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesMock);
       expect(contextNodeList.isEmpty, false);
 
       /// The status must be uppercase as the original code is expecting this.
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
     test('Validate tree status is set does not contain slug.', () {
       slug = github.RepositorySlug('flutter', 'infra');
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesMock);
       expect(contextNodeList.isEmpty, false);
 
       /// The status must be uppercase as the original code is expecting this.
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
     test('Validate tree status is set but context does not match slug.', () {
       slug = github.RepositorySlug('flutter', 'flutter');
-      final List<ContextNode> contextNodeList = _getContextNodeListFromJson(repositoryStatusesNonLuciFlutterMock);
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesNonLuciFlutterMock);
 
       /// The status must be uppercase as the original code is expecting this.
-      _convertContextNodeStatuses(contextNodeList);
+      convertContextNodeStatuses(contextNodeList);
       bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, false);
     });

@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -97,6 +98,10 @@ void main() {
         dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
+        supportedReposValue: <RepositorySlug>{
+          Config.engineSlug,
+          Config.flutterSlug,
+        },
       );
       httpClient = MockClient((http.Request request) async {
         if (request.url.path.contains('.ci.yaml')) {
@@ -311,6 +316,29 @@ void main() {
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
+      });
+
+      test('gurantees scheduling of tasks against merged release branch PR', () async {
+        final PullRequest mergedPr = generatePullRequest(branch: 'flutter-3.2-candidate.5');
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 3);
+        // Ensure all tasks have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
+      });
+
+      test('gurantees scheduling of tasks against merged engine PR', () async {
+        final PullRequest mergedPr = generatePullRequest(
+          repo: Config.engineSlug.name,
+          branch: Config.defaultBranch(Config.engineSlug),
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 3);
+        // Ensure all tasks have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
