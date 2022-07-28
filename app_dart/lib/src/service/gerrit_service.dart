@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
@@ -21,9 +22,12 @@ class GerritService {
   GerritService({
     http.Client? httpClient,
     @visibleForTesting this.authClientProvider = clientViaApplicationDefaultCredentials,
+    @visibleForTesting this.retryDelay,
   }) : httpClient = httpClient ?? http.Client();
 
   final http.Client httpClient;
+
+  final Duration? retryDelay;
 
   /// Provider for generating a [http.Client] that is authenticated to make calls to GCP services.
   final Future<AutoRefreshingAuthClient> Function({
@@ -99,8 +103,16 @@ class GerritService {
     Object? body,
   }) async {
     final http.Client authClient = await authClientProvider(baseClient: httpClient, scopes: <String>[]);
-    final RetryClient client = RetryClient(authClient);
+    // GoB replicas may not have all the Flutter state, and can require several retries
+    final http.Client client = RetryClient(
+      authClient,
+      when: (http.BaseResponse response) => _responseIsAcceptable(response) == false,
+      delay: (int attempt) => retryDelay ?? const Duration(seconds: 3) * attempt,
+    );
     final http.Response response = await client.put(url, body: body);
+    if (_responseIsAcceptable(response) == false) {
+      throw InternalServerError('Gerrit returned ${response.statusCode} which is not 200 or 202');
+    }
     log.info('Sent PUT to $url');
     log.info(response.body);
     // Remove XSS token
@@ -108,4 +120,7 @@ class GerritService {
     log.info(jsonBody);
     return jsonDecode(jsonBody);
   }
+
+  bool _responseIsAcceptable(http.BaseResponse response) =>
+      response.statusCode == HttpStatus.ok || response.statusCode == HttpStatus.accepted;
 }
