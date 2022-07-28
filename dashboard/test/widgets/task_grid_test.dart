@@ -582,22 +582,6 @@ void main() {
   });
 
   testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
-    Task taskA1 = Task()
-      ..stageName = 'A'
-      ..builderName = '1'
-      ..name = 'A'
-      ..status = TaskBox.statusSucceeded
-      ..attempts = 1
-      ..isTestFlaky = true;
-
-    Task taskA2 = Task()
-      ..stageName = 'A'
-      ..builderName = '1'
-      ..name = 'A'
-      ..status = TaskBox.statusSucceeded
-      ..attempts = 2
-      ..isTestFlaky = true;
-
     Task taskA3 = Task()
       ..stageName = 'A'
       ..builderName = '1'
@@ -627,8 +611,6 @@ void main() {
                 ..commit = (Commit()..author = 'Cast')
                 ..tasks.addAll(
                   <Task>[
-                    taskA1,
-                    taskA2,
                     taskA3,
                   ],
                 ),
