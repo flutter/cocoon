@@ -173,11 +173,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final ThemeData theme = Theme.of(context);
     return <Widget>[
       const Padding(
-          padding: EdgeInsets.only(top: 22, left: 5, right: 5),
-          child: Text(
-            'repo: ',
-            textAlign: TextAlign.center,
-          )),
+        padding: EdgeInsets.only(top: 22, left: 5, right: 5),
+        child: Text(
+          'repo: ',
+          textAlign: TextAlign.center,
+        ),
+      ),
       DropdownButton<String>(
         key: const Key('repo dropdown'),
         isExpanded: _smallScreen,
@@ -208,11 +209,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         }).toList(),
       ),
       const Padding(
-          padding: EdgeInsets.only(top: 22, left: 5, right: 5),
-          child: Text(
-            'branch: ',
-            textAlign: TextAlign.center,
-          )),
+        padding: EdgeInsets.only(top: 22, left: 5, right: 5),
+        child: Text(
+          'branch: ',
+          textAlign: TextAlign.center,
+        ),
+      ),
       DropdownButton<String>(
         key: const Key('branch dropdown'),
         isExpanded: _smallScreen,
@@ -276,42 +278,49 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final List<PopupMenuEntry<String>> key = <PopupMenuEntry<String>>[];
 
     for (final String status in TaskBox.statusColor.keys) {
-      key.add(_getTaskKeyEntry(
-        box: Container(color: TaskBox.statusColor[status]),
-        description: status,
-      ));
+      key.add(
+        _getTaskKeyEntry(
+          box: Container(color: TaskBox.statusColor[status]),
+          description: status,
+        ),
+      );
       key.add(const PopupMenuDivider());
     }
 
-    key.add(_getTaskKeyEntry(
-      box: Center(
-        child: Container(
-          width: TaskBox.cellSize * 0.8,
-          height: TaskBox.cellSize * 0.8,
-          decoration: BoxDecoration(
+    key.add(
+      _getTaskKeyEntry(
+        box: Center(
+          child: Container(
+            width: TaskBox.cellSize * 0.8,
+            height: TaskBox.cellSize * 0.8,
+            decoration: BoxDecoration(
               border: Border.all(
-            width: 2.0,
-            color: isDark ? Colors.white : Colors.black,
-          )),
+                width: 2.0,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+          ),
         ),
+        description: 'Flaky',
       ),
-      description: 'Flaky',
-    ));
+    );
 
     key.add(const PopupMenuDivider());
 
-    key.add(_getTaskKeyEntry(
-      box: const Center(
-        child: Text(
-          '!',
-          style: TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
+    key.add(
+      _getTaskKeyEntry(
+        box: const Center(
+          child: Text(
+            '!',
+            style: TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+        description: 'Ran more than once',
       ),
-      description: 'Ran more than once',
-    ));
+    );
 
     key.add(const PopupMenuDivider());
 
@@ -348,7 +357,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final Uri flutterIssueUrl = Uri.parse(
-        'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md');
+      'https://github.com/flutter/flutter/issues/new?assignees=&labels=team%3A+infra&template=6_infrastructure.md',
+    );
     final BuildState buildState = Provider.of<BuildState>(context);
     buildState.updateCurrentRepoBranch(repo!, branch!);
     return AnimatedBuilder(

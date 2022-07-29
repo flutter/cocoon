@@ -25,9 +25,11 @@ void main() {
 
     Widget buildAuthors({required List<String> names, ThemeData? theme}) {
       final List<Widget> avatars = names
-          .map((String name) => CommitAuthorAvatar(
-                commit: Commit()..author = name,
-              ))
+          .map(
+            (String name) => CommitAuthorAvatar(
+              commit: Commit()..author = name,
+            ),
+          )
           .toList();
 
       return MaterialApp(
@@ -44,25 +46,31 @@ void main() {
     }
 
     testWidgets('dark theme', (WidgetTester tester) async {
-      await tester.pumpWidget(buildAuthors(
-        theme: ThemeData.dark(),
-        names: generateInitials(),
-      ));
+      await tester.pumpWidget(
+        buildAuthors(
+          theme: ThemeData.dark(),
+          names: generateInitials(),
+        ),
+      );
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('light theme', (WidgetTester tester) async {
-      await tester.pumpWidget(buildAuthors(
-        names: generateInitials(),
-      ));
+      await tester.pumpWidget(
+        buildAuthors(
+          names: generateInitials(),
+        ),
+      );
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('long names, dark theme', (WidgetTester tester) async {
-      await tester.pumpWidget(buildAuthors(
-        theme: ThemeData.dark(),
-        names: longNames,
-      ));
+      await tester.pumpWidget(
+        buildAuthors(
+          theme: ThemeData.dark(),
+          names: longNames,
+        ),
+      );
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 

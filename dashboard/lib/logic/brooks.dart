@@ -43,24 +43,26 @@ class BrookSink<T> extends Brook<T> {
           listener(event);
         }
       } catch (exception, stack) {
-        FlutterError.reportError(FlutterErrorDetails(
-          exception: exception,
-          stack: stack,
-          library: 'Flutter Dashboard',
-          context: ErrorDescription('while sending event'),
-          informationCollector: () sync* {
-            yield DiagnosticsProperty<BrookSink<T>>(
-              'The $runtimeType sending the event was',
-              this,
-              style: DiagnosticsTreeStyle.errorProperty,
-            );
-            yield DiagnosticsProperty<T>(
-              'The $T event was',
-              event,
-              style: DiagnosticsTreeStyle.errorProperty,
-            );
-          },
-        ));
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: exception,
+            stack: stack,
+            library: 'Flutter Dashboard',
+            context: ErrorDescription('while sending event'),
+            informationCollector: () sync* {
+              yield DiagnosticsProperty<BrookSink<T>>(
+                'The $runtimeType sending the event was',
+                this,
+                style: DiagnosticsTreeStyle.errorProperty,
+              );
+              yield DiagnosticsProperty<T>(
+                'The $T event was',
+                event,
+                style: DiagnosticsTreeStyle.errorProperty,
+              );
+            },
+          ),
+        );
       }
     }
   }
