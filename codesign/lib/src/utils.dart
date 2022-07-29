@@ -5,16 +5,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'file_codesign_visitor.dart';
 import 'package:process/process.dart';
 
-/// helper function to generate unique next IDs.
-int id = 0;
-int get nextId {
-  final int currentKey = id;
-  id += 1;
-  return currentKey;
-}
+import 'log.dart';
 
 enum FileType {
   folder,

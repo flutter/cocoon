@@ -3,11 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io' as io;
+
 import 'package:file/file.dart';
 import 'package:process/process.dart';
-import 'package:logging/logging.dart';
+
+import 'log.dart';
 import 'utils.dart';
-import 'dart:io' as io;
 
 /// Statuses reported by Apple's Notary Server.
 ///
@@ -18,8 +20,6 @@ enum NotaryStatus {
   failed,
   succeeded,
 }
-
-final Logger log = Logger('codesign');
 
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor {
@@ -97,7 +97,7 @@ class FileCodesignVisitor {
   Future<void> validateAll() async {
     _initialize();
 
-    await Future.value(null);
+    await Future<void>.value(null);
     log.info('Codesigned all binaries in ${tempDir.path}');
 
     await tempDir.delete(recursive: true);
@@ -145,7 +145,7 @@ class FileCodesignVisitor {
   }) async {
     log.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath\n');
     final String currentFileName = zipEntity.path.split('/').last;
-    final Directory newDir = tempDir.childDirectory('embedded_zip_$nextId');
+    final Directory newDir = tempDir.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
       inputZip: zipEntity,
       outDir: newDir,

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:codesign/codesign.dart' as cs;
+import 'package:codesign/src/log.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
@@ -12,7 +13,7 @@ import './src/fake_process_manager.dart';
 void main() {
   const String randomString = 'abcd1234';
   final MemoryFileSystem fileSystem = MemoryFileSystem.test();
-  const List<String> fakeFilepaths = ['a.zip', 'b.zip', 'c.zip'];
+  const List<String> fakeFilepaths = <String>['a.zip', 'b.zip', 'c.zip'];
 
   late FakeProcessManager processManager;
   late Directory tempDir;
@@ -37,8 +38,7 @@ void main() {
       );
       codesignVisitor.directoriesVisited.clear();
       records.clear();
-      cs.log.onRecord.listen((LogRecord record) => records.add(record));
-      cs.id = 0;
+      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('visitDirectory correctly list files', () async {
@@ -130,24 +130,25 @@ void main() {
     });
 
     test('visit directory inside a zip', () async {
-      fileSystem.file('${tempDir.path}/remote_zip_2/zip_1').createSync(recursive: true);
+      final String zipFileName = '${tempDir.path}/remote_zip_2/zip_1';
+      fileSystem.file(zipFileName).createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
             command: <String>[
               'unzip',
               '${tempDir.absolute.path}/remote_zip_2/zip_1',
               '-d',
-              '${tempDir.absolute.path}/embedded_zip_0',
+              '${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}',
             ],
             onRun: () => fileSystem
-              ..file('${tempDir.path}/embedded_zip_0/file_1').createSync(recursive: true)
-              ..file('${tempDir.path}/embedded_zip_0/file_2').createSync(recursive: true)),
+              ..file('${tempDir.path}/embedded_zip_${zipFileName.hashCode}/file_1').createSync(recursive: true)
+              ..file('${tempDir.path}/embedded_zip_${zipFileName.hashCode}/file_2').createSync(recursive: true)),
         FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
             '-b',
-            '${tempDir.absolute.path}/embedded_zip_0/file_1',
+            '${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}/file_1',
           ],
           stdout: 'other_files',
         ),
@@ -156,7 +157,7 @@ void main() {
             'file',
             '--mime-type',
             '-b',
-            '${tempDir.absolute.path}/embedded_zip_0/file_2',
+            '${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}/file_2',
           ],
           stdout: 'other_files',
         ),
@@ -185,14 +186,15 @@ void main() {
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_0\n'));
-      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_0\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_0 is file_1\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_0 is file_2\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
+      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_1\n'));
+      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_2\n'));
     });
 
     test('visit zip inside a directory', () async {
-      fileSystem.file('${tempDir.path}/remote_zip_4/folder_1/zip_1').createSync(recursive: true);
+      final String zipFileName = '${tempDir.path}/remote_zip_4/folder_1/zip_1';
+      fileSystem.file(zipFileName).createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -208,9 +210,10 @@ void main() {
             'unzip',
             '${tempDir.absolute.path}/remote_zip_4/folder_1/zip_1',
             '-d',
-            '${tempDir.absolute.path}/embedded_zip_0',
+            '${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}',
           ],
-          onRun: () => fileSystem.directory('${tempDir.path}/embedded_zip_0').createSync(recursive: true),
+          onRun: () =>
+              fileSystem.directory('${tempDir.path}/embedded_zip_${zipFileName.hashCode}').createSync(recursive: true),
         ),
         FakeCommand(command: <String>[
           'zip',
@@ -236,8 +239,8 @@ void main() {
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_0\n'));
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_0\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}\n'));
     });
 
     test('throw exception when the same directory is visited', () async {
