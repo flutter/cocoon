@@ -53,14 +53,18 @@ void main() {
     throwOnMissingStub(fakeCocoonService);
     when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
     when(fakeCocoonService.fetchRepos()).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(fakeCocoonService.fetchCommitStatuses(
-      branch: anyNamed('branch'),
-      repo: anyNamed('repo'),
-    )).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(fakeCocoonService.fetchTreeBuildStatus(
-      branch: anyNamed('branch'),
-      repo: anyNamed('repo'),
-    )).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
+    when(
+      fakeCocoonService.fetchCommitStatuses(
+        branch: anyNamed('branch'),
+        repo: anyNamed('repo'),
+      ),
+    ).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
+    when(
+      fakeCocoonService.fetchTreeBuildStatus(
+        branch: anyNamed('branch'),
+        repo: anyNamed('repo'),
+      ),
+    ).thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
 
     final BuildState buildState = BuildState(
       cocoonService: fakeCocoonService,
@@ -456,10 +460,12 @@ void main() {
 
   testWidgets('ensure smooth transition between invalid states', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
-    BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
-      'repo': 'flutter',
-      'branch': 'flutter-release',
-    });
+    BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(
+      queryParameters: {
+        'repo': 'flutter',
+        'branch': 'flutter-release',
+      },
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -475,18 +481,24 @@ void main() {
 
     expect(find.byType(dropdownButtonType), findsNWidgets(2));
     // simulate a url request, which retriggers a rebuild of the widget
-    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
-      'repo': 'engine',
-    });
-    expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value,
-        equals('flutter-release')); //invalid state: engine + flutter-release
+    controlledBuildDashboardPage = const BuildDashboardPage(
+      queryParameters: {
+        'repo': 'engine',
+      },
+    );
+    expect(
+      (tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value,
+      equals('flutter-release'),
+    ); //invalid state: engine + flutter-release
     await tester.pump(); //an invalid state will generate delayed network responses
 
     //if a delayed network request come in, from a previous invalid state: cocoon + engine - release, no exceptions should be raised
-    controlledBuildDashboardPage = const BuildDashboardPage(queryParameters: {
-      'repo': 'cocoon',
-      'branch': 'engine-release',
-    });
+    controlledBuildDashboardPage = const BuildDashboardPage(
+      queryParameters: {
+        'repo': 'cocoon',
+        'branch': 'engine-release',
+      },
+    );
   });
 
   testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {

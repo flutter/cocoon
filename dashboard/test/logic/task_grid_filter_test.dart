@@ -51,10 +51,14 @@ void main() {
   test('map constructor result matches field setters', () {
     expect(TaskGridFilter.fromMap(<String, String>{}), TaskGridFilter());
     expect(TaskGridFilter.fromMap(<String, String>{'taskFilter': 'foo'}), TaskGridFilter()..taskFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'authorFilter': 'foo'}),
-        TaskGridFilter()..authorFilter = RegExp('foo'));
-    expect(TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
-        TaskGridFilter()..messageFilter = RegExp('foo'));
+    expect(
+      TaskGridFilter.fromMap(<String, String>{'authorFilter': 'foo'}),
+      TaskGridFilter()..authorFilter = RegExp('foo'),
+    );
+    expect(
+      TaskGridFilter.fromMap(<String, String>{'messageFilter': 'foo'}),
+      TaskGridFilter()..messageFilter = RegExp('foo'),
+    );
     expect(TaskGridFilter.fromMap(<String, String>{'hashFilter': 'foo'}), TaskGridFilter()..hashFilter = RegExp('foo'));
     expect(TaskGridFilter.fromMap(<String, String>{'showMac': 'false'}), TaskGridFilter()..showMac = false);
     expect(TaskGridFilter.fromMap(<String, String>{'showStaging': 'false'}), TaskGridFilter()..showStaging = false);
@@ -116,8 +120,10 @@ void main() {
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_linux task')), false);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Staging_build_mac task')), false);
       expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Linux_android staging_build')), true);
-      expect(filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android_staging_build_linux task')),
-          true);
+      expect(
+        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'linux_android_staging_build_linux task')),
+        true,
+      );
     }
   });
 
@@ -164,11 +170,12 @@ void main() {
     }
   });
 
-  void testStage(
-      {required String taskName,
-      required String fieldName,
-      required TaskGridFilter trueFilter,
-      required TaskGridFilter falseFilter}) {
+  void testStage({
+    required String taskName,
+    required String fieldName,
+    required TaskGridFilter trueFilter,
+    required TaskGridFilter falseFilter,
+  }) {
     final TaskGridFilter trueFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'true'});
     final TaskGridFilter falseFilterMap = TaskGridFilter.fromMap(<String, String>{fieldName: 'false'});
 
