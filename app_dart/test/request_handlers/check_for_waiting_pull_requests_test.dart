@@ -371,6 +371,35 @@ void main() {
       );
     });
 
+    test('Merges unapproved pub autoroll PR from fluttergithubbot', () async {
+      // Ensure there is at least one cirrus status.
+      statuses = <dynamic>[
+        <String, String>{'id': '3', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      config.rollerAccountsValue = <String>{'fluttergithubbot'};
+      flutterRepoPRs.add(PullRequestHelper(
+          author: 'fluttergithubbot', reviews: const <PullRequestReviewHelper>[], labels: waitForTreeGreenlabels));
+      engineRepoPRs.add(PullRequestHelper(
+          author: 'fluttergithubbot', reviews: const <PullRequestReviewHelper>[], labels: waitForTreeGreenlabels));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(engineRepoPRs.first.id),
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: getMergePullRequestVariables(flutterRepoPRs.first.id),
+          ),
+        ],
+      );
+    });
+
     test('Does not merge PR with in progress tests', () async {
       statuses = <dynamic>[
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},

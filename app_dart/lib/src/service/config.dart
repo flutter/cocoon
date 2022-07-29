@@ -323,6 +323,8 @@ class Config {
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot',
+        // for pub package autorolls https://github.com/flutter/flutter/issues/106371
+        'fluttergithubbot',
       };
 
   Future<String> generateJsonWebToken() async {
