@@ -15,6 +15,7 @@ enum FileType {
   binary,
   other;
 
+  // Artifact files have many different types. Codesign would be no-op when encoutering non typical types such as application/octet-stream.
   factory FileType.fromMimeType(String mimeType) {
     if (mimeType.contains('inode/directory')) {
       return FileType.folder;
