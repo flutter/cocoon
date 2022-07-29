@@ -255,21 +255,39 @@ void main() {
           ],
           stdout: 'other_files',
         ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/parent_1/child_1/file_1',
+          ],
+          stdout: 'other_files',
+        ),
       ]);
 
-      expect(
-          () => codesignVisitor.visitDirectory(
-                directory: fileSystem.directory('${tempDir.path}/parent_1/child_1'),
-                entitlementParentPath: 'a.zip',
-              ),
-          returnsNormally);
+      await codesignVisitor.visitDirectory(
+        directory: fileSystem.directory('${tempDir.path}/parent_1/child_1'),
+        entitlementParentPath: 'a.zip',
+      );
+      List<String> warnings = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(warnings, isEmpty);
 
+      await codesignVisitor.visitDirectory(
+        directory: fileSystem.directory('${tempDir.path}/parent_1'),
+        entitlementParentPath: 'a.zip',
+      );
+      warnings = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
-          () => codesignVisitor.visitDirectory(
-                directory: fileSystem.directory('${tempDir.path}/parent_1'),
-                entitlementParentPath: 'a.zip',
-              ),
-          throwsA(isA<cs.CodesignException>()));
+          warnings,
+          contains(
+              'Warning! You are visiting a directory that has been visited before, the directory is ${tempDir.path}/parent_1/child_1'));
     });
   });
 }

@@ -110,9 +110,8 @@ class FileCodesignVisitor {
   }) async {
     log.info('Visiting directory ${directory.absolute.path}\n');
     if (directoriesVisited.contains(directory.absolute.path)) {
-      throw CodesignException(
-        'Error! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}',
-      );
+      log.warning(
+          'Warning! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}');
     }
     directoriesVisited.add(directory.absolute.path);
     final List<FileSystemEntity> entities = await directory.list().toList();
