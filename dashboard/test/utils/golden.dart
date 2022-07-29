@@ -22,10 +22,12 @@ Future<void> expectGoldenMatches(
   dynamic skip = false, // true or a String
 }) {
   final String goldenPath = path.join('goldens', goldenFileKey);
-  goldenFileComparator = CocoonFileComparator(path.join(
-    (goldenFileComparator as LocalFileComparator).basedir.toString(),
-    goldenFileKey,
-  ),);
+  goldenFileComparator = CocoonFileComparator(
+    path.join(
+      (goldenFileComparator as LocalFileComparator).basedir.toString(),
+      goldenFileKey,
+    ),
+  );
   return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
 }
 
