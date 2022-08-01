@@ -8,8 +8,9 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show RepositoryCommit;
+import 'package:github/github.dart' show GitHubError, RepositoryCommit;
 import 'package:github/hooks.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -18,6 +19,7 @@ import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/matchers.dart';
+import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
@@ -38,6 +40,7 @@ void main() {
     branchService = BranchService(
       config: config,
       gerritService: gerritService,
+      retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
   });
 
@@ -122,7 +125,21 @@ void main() {
           throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
     });
 
+    test('creates branch when GitHub requires retries', () async {
+      await branchService.branchFlutterRecipes(branch);
+    });
+
     test('creates branch', () async {
+      int attempts = 0;
+      githubService.listCommitsBranch = (String branch, int ts) {
+        attempts++;
+
+        if (attempts == 3) {
+          return <RepositoryCommit>[generateGitCommit(5)];
+        }
+
+        throw GitHubError(MockGitHub(), 'Failed to list commits');
+      };
       await branchService.branchFlutterRecipes(branch);
     });
 
