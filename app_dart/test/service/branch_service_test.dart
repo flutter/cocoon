@@ -125,11 +125,11 @@ void main() {
           throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
     });
 
-    test('creates branch when GitHub requires retries', () async {
+    test('creates branch', () async {
       await branchService.branchFlutterRecipes(branch);
     });
 
-    test('creates branch', () async {
+    test('creates branch when GitHub requires retries', () async {
       int attempts = 0;
       githubService.listCommitsBranch = (String branch, int ts) {
         attempts++;
