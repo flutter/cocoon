@@ -34,25 +34,27 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   final ApproverServiceProvider approverProvider;
 
   static const int kPullMesssageBatchSize = 100;
+  static const int kPubsubPullNumber = 5;
 
   @override
   Future<Response> get() async {
     final Set<int> processingLog = <int>{};
-    final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final ApproverService approver = approverProvider(config);
-    final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
-    if (receivedMessages == null) {
+    final List<pub.ReceivedMessage> messageSet = await pullMessages();
+    if (messageSet.isEmpty) {
       log.info('There are no requests in the queue');
       return Response.ok('No requests in the queue.');
     }
-    log.info('Processing ${receivedMessages.length} messages');
+    log.info('Processing ${messageSet.length} messages');
     ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
-    for (pub.ReceivedMessage message in receivedMessages) {
+    for (pub.ReceivedMessage message in messageSet) {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      log.info('Processing message ackId: ${message.ackId}');
+      log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
@@ -68,5 +70,25 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     }
     await Future.wait(futures);
     return Response.ok('Finished processing changes');
+  }
+
+  /// Pulls queued Pub/Sub messages.
+  ///
+  /// Pub/Sub pull request API doesn't guarantee returning all messages each time. This
+  /// loops to pull `kPubsubPullNumber` times to try covering all queued messages.
+  Future<List<pub.ReceivedMessage>> pullMessages() async {
+    final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
+    for (int i = 0; i < kPubsubPullNumber; i++) {
+      final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
+      final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
+      if (receivedMessages == null) {
+        continue;
+      }
+      for (pub.ReceivedMessage message in receivedMessages) {
+        final String messageId = message.message!.messageId!;
+        messageMap[messageId] = message;
+      }
+    }
+    return messageMap.values.toList();
   }
 }

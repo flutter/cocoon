@@ -5,23 +5,24 @@
 // ignore_for_file: constant_identifier_names
 import 'package:auto_submit/service/config.dart';
 
-import 'package:auto_submit/service/log.dart';
-import 'package:logging/logging.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
+import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/pubsub/v1.dart' as pub;
+import 'package:graphql/client.dart' hide Request, Response;
+import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:graphql/client.dart' hide Request, Response;
 
-import '../utilities/mocks.dart';
-import '../utilities/utils.dart' hide createQueryResult;
 import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
+import '../utilities/mocks.dart';
+import '../utilities/utils.dart' hide createQueryResult;
 
 const String oid = '6dcb09b5b57875f334f61aebed695e2e4193db5e';
 const String title = 'some_title';
@@ -35,7 +36,7 @@ void main() {
     final FakeGithubService githubService = FakeGithubService();
     late MockPullRequestsService pullRequests;
     final MockGitHub gitHub = MockGitHub();
-    final FakePubSub pubsub = FakePubSub();
+    late FakePubSub pubsub;
     late PullRequestHelper flutterRequest;
     late PullRequestHelper cocoonRequest;
     late List<QueryOptions> expectedOptions;
@@ -50,6 +51,7 @@ void main() {
     setUp(() {
       githubGraphQLClient = FakeGraphQLClient();
       auth = FakeCronAuthProvider();
+      pubsub = FakePubSub();
       expectedOptions = <QueryOptions>[];
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
@@ -473,6 +475,18 @@ void main() {
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
+    });
+
+    test('All messages are pulled', () async {
+      for (int i = 0; i < 3; i++) {
+        final PullRequest pullRequest = generatePullRequest(prNumber: i, repoName: cocoonRepo);
+        pubsub.publish('auto-submit-queue-sub', pullRequest);
+      }
+
+      checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+      cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+      final List<pub.ReceivedMessage> messages = await checkPullRequest.pullMessages();
+      expect(messages.length, 3);
     });
   });
 }

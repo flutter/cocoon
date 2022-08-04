@@ -10,6 +10,10 @@ import 'package:googleapis/pubsub/v1.dart';
 
 class FakePubSub extends PubSub {
   List<dynamic> messagesQueue = <dynamic>[];
+  // The iteration of `pull` API calls.
+  int iteration = -1;
+  // Mock returned message number on each `pull` call.
+  int messageSize = 2;
 
   @override
   Future<void> publish(String topicName, dynamic json) async {
@@ -23,10 +27,15 @@ class FakePubSub extends PubSub {
   Future<PullResponse> pull(String subscription, int maxMessages) async {
     // The list will be empty if there are no more messages available in the backlog.
     List<ReceivedMessage> receivedMessages = <ReceivedMessage>[];
+    iteration++;
     if (messagesQueue.isNotEmpty) {
-      int i = 0;
-      while (i < min(100, messagesQueue.length)) {
-        receivedMessages.add(ReceivedMessage(message: PubsubMessage(data: messagesQueue[i] as String), ackId: '1'));
+      int i = iteration * messageSize;
+      // Returns only allowed max number of messages. The number should not be greater than
+      // `maxMessages`, the available messages, and the number allowed in each call. The
+      // last number is to mock real `pull` API call.
+      while (i < min(min(maxMessages, messagesQueue.length), (iteration + 1) * messageSize)) {
+        receivedMessages.add(ReceivedMessage(
+            message: PubsubMessage(data: messagesQueue[i] as String, messageId: '$i'), ackId: 'ackId_$i'));
         i++;
       }
       return PullResponse(receivedMessages: receivedMessages);
