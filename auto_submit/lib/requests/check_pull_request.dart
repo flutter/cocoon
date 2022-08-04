@@ -40,16 +40,16 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   Future<Response> get() async {
     final Set<int> processingLog = <int>{};
     final ApproverService approver = approverProvider(config);
-    final List<pub.ReceivedMessage> messageSet = await pullMessages();
-    if (messageSet.isEmpty) {
+    final List<pub.ReceivedMessage> messageList = await pullMessages();
+    if (messageList.isEmpty) {
       log.info('There are no requests in the queue');
       return Response.ok('No requests in the queue.');
     }
-    log.info('Processing ${messageSet.length} messages');
+    log.info('Processing ${messageList.length} messages');
     ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
-    for (pub.ReceivedMessage message in messageSet) {
+    for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
