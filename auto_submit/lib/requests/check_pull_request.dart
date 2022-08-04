@@ -42,8 +42,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
     final ApproverService approver = approverProvider(config);
     final List<pub.ReceivedMessage> messageList = await pullMessages();
     if (messageList.isEmpty) {
-      log.info('There are no requests in the queue');
-      return Response.ok('No requests in the queue.');
+      log.info('No messages are pulled.');
+      return Response.ok('No messages are pulled.');
     }
     log.info('Processing ${messageList.length} messages');
     ValidationService validationService = ValidationService(config);
