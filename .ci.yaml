@@ -23,6 +23,7 @@ platform_properties:
 targets:
   - name: Linux Cocoon
     recipe: cocoon/cocoon
+    bringup: true
     properties:
       add_recipes_cq: "true"
       hello: world
