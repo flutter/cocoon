@@ -25,6 +25,7 @@ targets:
     recipe: cocoon/cocoon
     properties:
       add_recipes_cq: "true"
+      hello: world
 
   - name: Linux device_doctor
     postsubmit: false
