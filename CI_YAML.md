@@ -172,10 +172,23 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
 
 ## Scheduling Targets
 
-For targets using the Cocoon scheduler (set by default), there's several features supported:
+For targets using the Cocoon scheduler, they can run on:
+ * Presubmit (via GitHub checks)
+ * Postsubmit (via [build dashboard](https://flutter-dashboard.appspot.com/#/build))
+
+By default, all targets should use the Cocoon scheduler.
+
+### Presubmit Features
+
+1. GitHub checks enable targets to run immediately, and are available on the pull request page.
+2. Changes to the ci.yaml will be applied during those presubmit runs.
+3. New targets are required to be brought up with `bringup: true`
+
+### Postsubmit Features
 
 1. Targets are immediately triggered on GitHub webhooks for merged pull requests
 2. Updates are made immediate via LUCI PubSub notifications
 3. Prioritizes recently failed targets (to unblock the tree quicker)
 4. Backfills targets at a low swarming priority when nothing is actively running
 5. Batches targets that have a high queue time, and backfills in off peak hours
+6. Flakiness monitoring
