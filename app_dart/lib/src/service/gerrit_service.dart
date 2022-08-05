@@ -77,12 +77,9 @@ class GerritService {
   Future<void> createBranch(RepositorySlug slug, String branchName, String revision) async {
     log.info('Creating branch $branchName at $revision');
     final Uri url = Uri.https('${slug.owner}-review.googlesource.com', 'projects/${slug.name}/branches/$branchName');
-    String body = jsonEncode(<String, String>{
-      'revision': revision,
-    });
     final Map<String, dynamic> response = await _put(
       url,
-      body: body,
+      body: revision,
       branchName: branchName,
     ) as Map<String, dynamic>;
     log.info(response);
