@@ -175,6 +175,12 @@ class Config {
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
 
+  /// Number of Pub/Sub pull calls in each cron job run.
+  ///
+  /// TODO(keyonghan): monitor and optimize this number based on response time
+  /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
+  int get kPubsubPullNumber => 5;
+
   /// Get the webhook key
   Future<String> getWebhookKey() async {
     final Uint8List? cacheValue = await cache[kWebHookKey].get(
