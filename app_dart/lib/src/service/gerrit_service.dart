@@ -80,7 +80,6 @@ class GerritService {
     final Map<String, dynamic> response = await _put(
       url,
       body: revision,
-      branchName: branchName,
     ) as Map<String, dynamic>;
     log.info(response);
     if (response['revision'] != revision) {
@@ -102,8 +101,6 @@ class GerritService {
   Future<dynamic> _put(
     Uri url, {
     Object? body,
-    // TODO(chillers): Remove once b/239021831 has been fixed by the GoB side.
-    String? branchName,
   }) async {
     final http.Client authClient = await authClientProvider(baseClient: httpClient, scopes: <String>[]);
     // GoB replicas may not have all the Flutter state, and can require several retries
@@ -115,10 +112,6 @@ class GerritService {
     final http.Response response = await client.put(
       url,
       body: body,
-      headers: <String, String>{
-        // TODO(chillers): Remove once b/239021831 has been fixed by the GoB side.
-        'X-Gerrit-Trace': 'bug-239021831-$branchName'
-      },
     );
     if (_responseIsAcceptable(response) == false) {
       throw InternalServerError('Gerrit returned ${response.statusCode} which is not 200 or 202');
