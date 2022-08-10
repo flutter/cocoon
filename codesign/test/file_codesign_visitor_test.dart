@@ -85,9 +85,9 @@ void main() {
           .map((LogRecord record) => record.message)
           .toList();
       expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_0'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_a'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_b'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_c'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_a'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_b'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_c'));
     });
 
     test('visitDirectory recursively visits directory', () async {
@@ -125,8 +125,8 @@ void main() {
           .toList();
       expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1'));
       expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1/folder_a'));
-      expect(messages, contains('Child file of direcotry remote_zip_1 is file_a'));
-      expect(messages, contains('Child file of direcotry folder_a is file_b'));
+      expect(messages, contains('Child file of directory remote_zip_1 is file_a'));
+      expect(messages, contains('Child file of directory folder_a is file_b'));
     });
 
     test('visit directory inside a zip', () async {
@@ -188,8 +188,8 @@ void main() {
           contains(
               'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
       expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_1'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_2'));
+      expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_1'));
+      expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_2'));
     });
 
     test('visit zip inside a directory', () async {
