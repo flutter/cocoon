@@ -4,13 +4,14 @@
 
 import 'dart:convert';
 
+import 'ci_successful_test_data.dart';
+
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 
-import 'validation_test_data.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import '../src/service/fake_config.dart';
