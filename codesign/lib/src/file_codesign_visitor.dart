@@ -153,7 +153,7 @@ update these file paths accordingly.
       } else if (childType == FileType.binary) {
         await visitBinaryFile(binaryFile: entity as File, entitlementParentPath: entitlementParentPath);
       }
-      log.info('Child file of direcotry ${directory.basename} is ${entity.basename}');
+      log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
   }
 
