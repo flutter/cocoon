@@ -15,7 +15,6 @@ class AutosubmitLabelExistence extends Validation {
   }) : super(config: config);
 
   @override
-
   /// The `autosubmit` label must exist when landing PRs.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     // List of labels associated with the pull request.
