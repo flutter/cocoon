@@ -95,7 +95,7 @@ class FileCodesignVisitor {
 Codesign test failed.
 
 We compared binary files in engine artifacts with those listed in
-entilement.txt and withoutEntitlements.txt, and the binary files do not match.
+entitlement.txt and withoutEntitlements.txt, and the binary files do not match.
 *entitlements.txt is the configuartion file encoded in engine artifact zip,
 built by BUILD.gn and Ninja, to detail the list of entitlement files.
 Either an expected file was not found in *entitlements.txt, or an unexpected
@@ -162,7 +162,7 @@ update these file paths accordingly.
     required FileSystemEntity zipEntity,
     required String entitlementParentPath,
   }) async {
-    log.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath');
+    log.info('This embedded file is ${zipEntity.path} and entitlementParentPath is $entitlementParentPath');
     final String currentFileName = zipEntity.basename;
     final Directory newDir = tempDir.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
@@ -195,14 +195,14 @@ update these file paths accordingly.
       return;
     }
 
-    final String currentFileName = binaryFile.absolute.path.split('/').last;
+    final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
       log.severe('The system has detected a binary file at $entitlementCurrentPath.'
           'but it is not in the entitlements configuartion files you provided.'
-          'if this is a new engine artifact, please add it to one of the entilements.txt files');
+          'if this is a new engine artifact, please add it to one of the entitlements.txt files');
       throw CodesignException(fixItInstructions);
     }
     log.info('signing file at path ${binaryFile.absolute.path}');
