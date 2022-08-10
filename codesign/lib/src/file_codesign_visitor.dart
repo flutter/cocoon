@@ -189,7 +189,7 @@ update these file paths accordingly.
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
   Future<void> visitBinaryFile({required File binaryFile, required String entitlementParentPath}) async {
-    if (await isSymlink(binaryFile.absolute.path, processManager)) {
+    if (io.FileSystemEntity.isLinkSync(binaryFile.absolute.path)) {
       return;
     }
 
