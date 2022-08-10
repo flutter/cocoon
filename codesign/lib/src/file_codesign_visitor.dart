@@ -35,7 +35,11 @@ class FileCodesignVisitor {
     required this.tempDir,
     required this.processManager,
     this.production = false,
-  });
+  }) {
+    entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
+    codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
+  }
 
   /// Temp [Directory] to download/extract files to.
   ///
@@ -93,27 +97,22 @@ Codesign test failed.
 We compared binary files in engine artifacts with those listed in
 entilement.txt and withoutEntitlements.txt, and the binary files do not match.
 *entitlements.txt is the configuartion file encoded in engine artifact zip,
-built by BUID.gn and Ninja, to detail the list of entitlement files.
+built by BUILD.gn and Ninja, to detail the list of entitlement files.
 Either an expected file was not found in *entitlements.txt, or an unexpected
 file was found in entitlements.txt.
 
-This usually happens either during an engine roll.
+This usually happens during an engine roll.
 If this is a valid change, then BUILD.gn needs to be changed.
-Specifically, update [entitlements.txt] or
-[withoutEntitlements.txt] lists, depending on if the file should have macOS
-entitlements applied during codesigning.
+For example, If this is a new binary that need to be code signed with entitlements, add it
+to [entitlements.txt] file inside the zip artifact produced by BUILD.gn.
+If this is a new binary that need to be code signed without entitlements, add it
+to [withoutEntitlements.txt].
+If there are obsolete binaries in entitlements configuration files, please delete or
+update these file paths accordingly.
 ''';
-
-  void initialize() {
-    entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
-    codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
-  }
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    initialize();
-
     await Future<void>.value(null);
     log.info('Codesigned all binaries in ${tempDir.path}');
 
@@ -125,7 +124,7 @@ entitlements applied during codesigning.
     required Directory directory,
     required String entitlementParentPath,
   }) async {
-    log.info('Visiting directory ${directory.absolute.path}\n');
+    log.info('Visiting directory ${directory.absolute.path}');
     if (directoriesVisited.contains(directory.absolute.path)) {
       log.warning(
           'Warning! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}');
@@ -150,9 +149,9 @@ entitlements applied during codesigning.
           entitlementParentPath: entitlementParentPath,
         );
       } else if (childType == FileType.binary) {
-        await visitBinaryFile(binaryEntity: entity, entitlementParentPath: entitlementParentPath);
+        await visitBinaryFile(binaryFile: entity as File, entitlementParentPath: entitlementParentPath);
       }
-      log.info('Child file of direcotry ${directory.basename} is ${entity.basename}\n');
+      log.info('Child file of direcotry ${directory.basename} is ${entity.basename}');
     }
   }
 
@@ -161,8 +160,8 @@ entitlements applied during codesigning.
     required FileSystemEntity zipEntity,
     required String entitlementParentPath,
   }) async {
-    log.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath\n');
-    final String currentFileName = zipEntity.path.split('/').last;
+    log.info('This embedded file is ${zipEntity.path} and entilementParentPath is $entitlementParentPath');
+    final String currentFileName = zipEntity.basename;
     final Directory newDir = tempDir.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
       inputZip: zipEntity,
@@ -184,35 +183,35 @@ entitlements applied during codesigning.
     );
   }
 
-  /// Visit and codesign a binary with / without entilement.
+  /// Visit and codesign a binary with / without entitlement.
   ///
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
-  Future<void> visitBinaryFile({required FileSystemEntity binaryEntity, required String entitlementParentPath}) async {
-    if (await isSymlink(binaryEntity.absolute.path, processManager)) {
+  Future<void> visitBinaryFile({required File binaryFile, required String entitlementParentPath}) async {
+    if (await isSymlink(binaryFile.absolute.path, processManager)) {
       return;
     }
 
-    final String currentFileName = binaryEntity.absolute.path.split('/').last;
+    final String currentFileName = binaryFile.absolute.path.split('/').last;
     final String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
-      log.severe('The system has detected a binary file at $entitlementCurrentPath\n'
-          'but it is not in the entitlements configuartion files your provided \n'
-          'if this is a new engine artifact, please add it to one of the entilements.txt files\n');
+      log.severe('The system has detected a binary file at $entitlementCurrentPath.'
+          'but it is not in the entitlements configuartion files you provided.'
+          'if this is a new engine artifact, please add it to one of the entilements.txt files');
       throw CodesignException(fixItInstructions);
     }
-    log.info('\n signing file at path ${binaryEntity.absolute.path}');
-    log.info('\n the virtual entitlement path associated with file is $entitlementCurrentPath');
-    log.info('\n the decision to sign with entitlement is ${fileWithEntitlements.contains(entitlementCurrentPath)}');
+    log.info('signing file at path ${binaryFile.absolute.path}');
+    log.info('the virtual entitlement path associated with file is $entitlementCurrentPath');
+    log.info('the decision to sign with entitlement is ${fileWithEntitlements.contains(entitlementCurrentPath)}');
     final List<String> args = <String>[
       'codesign',
       '-f', // force
       '-s', // use the cert provided by next argument
       codesignCertName,
-      binaryEntity.absolute.path,
+      binaryFile.absolute.path,
       '--timestamp', // add a secure timestamp
       '--options=runtime', // hardened runtime
       if (fileWithEntitlements.contains(entitlementCurrentPath)) ...<String>[
@@ -223,8 +222,8 @@ entitlements applied during codesigning.
     final io.ProcessResult result = await processManager.run(args);
     if (result.exitCode != 0) {
       throw CodesignException(
-        'Failed to codesign ${binaryEntity.absolute.path} with args: ${args.join(' ')}\n'
-        'stdout:\n${(result.stdout as String).trim()}\n'
+        'Failed to codesign ${binaryFile.absolute.path} with args: ${args.join(' ')}\n'
+        'stdout:\n${(result.stdout as String).trim()}'
         'stderr:\n${(result.stderr as String).trim()}',
       );
     }

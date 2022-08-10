@@ -37,7 +37,6 @@ void main() {
         tempDir: tempDir,
       );
       codesignVisitor.directoriesVisited.clear();
-      codesignVisitor.initialize();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
@@ -85,10 +84,10 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_0\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_a\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_b\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_c\n'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_0'));
+      expect(messages, contains('Child file of direcotry remote_zip_0 is file_a'));
+      expect(messages, contains('Child file of direcotry remote_zip_0 is file_b'));
+      expect(messages, contains('Child file of direcotry remote_zip_0 is file_c'));
     });
 
     test('visitDirectory recursively visits directory', () async {
@@ -124,10 +123,10 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1\n'));
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1/folder_a\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_1 is file_a\n'));
-      expect(messages, contains('Child file of direcotry folder_a is file_b\n'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1/folder_a'));
+      expect(messages, contains('Child file of direcotry remote_zip_1 is file_a'));
+      expect(messages, contains('Child file of direcotry folder_a is file_b'));
     });
 
     test('visit directory inside a zip', () async {
@@ -187,10 +186,10 @@ void main() {
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_1\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_2\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_1'));
+      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_2'));
     });
 
     test('visit zip inside a directory', () async {
@@ -235,13 +234,13 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4\n'));
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4/folder_1\n'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4/folder_1'));
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}'));
     });
 
     test('throw exception when the same directory is visited', () async {
@@ -366,13 +365,13 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('\n signing file at path ${tempDir.absolute.path}/remote_zip_1/file_a'));
-      expect(messages, contains('\n the virtual entitlement path associated with file is root/file_a'));
-      expect(messages, contains('\n the decision to sign with entitlement is true'));
+      expect(messages, contains('signing file at path ${tempDir.absolute.path}/remote_zip_1/file_a'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/file_a'));
+      expect(messages, contains('the decision to sign with entitlement is true'));
 
-      expect(messages, contains('\n signing file at path ${tempDir.absolute.path}/remote_zip_1/file_b'));
-      expect(messages, contains('\n the virtual entitlement path associated with file is root/file_b'));
-      expect(messages, contains('\n the decision to sign with entitlement is false'));
+      expect(messages, contains('signing file at path ${tempDir.absolute.path}/remote_zip_1/file_b'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/file_b'));
+      expect(messages, contains('the decision to sign with entitlement is false'));
     });
   });
 }
