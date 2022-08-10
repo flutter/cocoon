@@ -23,6 +23,7 @@ class FakeConfig extends Config {
     this.overrideTreeStatusLabelValue,
     this.autosubmitLabelValue,
     this.webhookKey,
+    this.kPubsubPullNumberValue,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),
@@ -35,6 +36,10 @@ class FakeConfig extends Config {
   String? overrideTreeStatusLabelValue;
   String? autosubmitLabelValue;
   String? webhookKey;
+  int? kPubsubPullNumberValue;
+
+  @override
+  int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;
 
   @override
   Future<GitHub> createGithubClient(RepositorySlug slug) async => githubClient!;
