@@ -90,11 +90,11 @@ class FileCodesignVisitor {
   static const String fixItInstructions = '''
 Codesign test failed.
 
-We compared binary files in engine artifacts with those listed in 
-entilement.txt and withoutEntitlements.txt, and the binary files do not match. 
-*entitlements.txt is the configuartion file encoded in engine artifact zip, 
+We compared binary files in engine artifacts with those listed in
+entilement.txt and withoutEntitlements.txt, and the binary files do not match.
+*entitlements.txt is the configuartion file encoded in engine artifact zip,
 built by BUID.gn and Ninja, to detail the list of entitlement files.
-Either an expected file was not found in *entitlements.txt, or an unexpected 
+Either an expected file was not found in *entitlements.txt, or an unexpected
 file was found in entitlements.txt.
 
 This usually happens either during an engine roll.
@@ -149,8 +149,7 @@ entitlements applied during codesigning.
           zipEntity: entity,
           entitlementParentPath: entitlementParentPath,
         );
-      }
-      else if (childType == FileType.binary){
+      } else if (childType == FileType.binary) {
         await visitBinaryFile(binaryEntity: entity, entitlementParentPath: entitlementParentPath);
       }
       log.info('Child file of direcotry ${directory.basename} is ${entity.basename}\n');
@@ -184,7 +183,6 @@ entitlements applied during codesigning.
       processManager: processManager,
     );
   }
-
 
   /// Visit and codesign a binary with / without entilement.
   ///
@@ -232,5 +230,4 @@ entitlements applied during codesigning.
     }
     fileConsumed.add(entitlementCurrentPath);
   }
-
 }

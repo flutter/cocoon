@@ -374,6 +374,5 @@ void main() {
       expect(messages, contains('\n the virtual entitlement path associated with file is root/file_b'));
       expect(messages, contains('\n the decision to sign with entitlement is false'));
     });
-
   });
 }
