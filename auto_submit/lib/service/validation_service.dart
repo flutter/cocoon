@@ -102,7 +102,6 @@ class ValidationService {
         await gitHubService.createComment(slug, prNumber, commmentMessage);
         try {
           await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
-          print('test');
           log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
         } on github.NotFound {
           log.info('${config.autosubmitLabel} does not exist in current PR.');
