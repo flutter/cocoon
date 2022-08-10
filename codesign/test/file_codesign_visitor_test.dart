@@ -309,14 +309,6 @@ void main() {
         ),
         FakeCommand(
           command: <String>[
-            'ls',
-            '-alhf',
-            '${tempDir.absolute.path}/remote_zip_1/file_a',
-          ],
-          stdout: 'no_arrow_output',
-        ),
-        FakeCommand(
-          command: <String>[
             'codesign',
             '-f',
             '-s',
@@ -336,14 +328,6 @@ void main() {
             '${tempDir.absolute.path}/remote_zip_1/file_b',
           ],
           stdout: 'application/x-mach-binary',
-        ),
-        FakeCommand(
-          command: <String>[
-            'ls',
-            '-alhf',
-            '${tempDir.absolute.path}/remote_zip_1/file_b',
-          ],
-          stdout: 'no_arrow_output',
         ),
         FakeCommand(
           command: <String>[
