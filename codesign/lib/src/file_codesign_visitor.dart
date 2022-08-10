@@ -105,9 +105,9 @@ This usually happens during an engine roll.
 If this is a valid change, then BUILD.gn needs to be changed.
 Binaries that will run on a macOS host require entitlements, and
 binaries that run on an iOS device must NOT have entitlements.
-For example, If this is a new binarythat runs on macOS host, add it
+For example, if this is a new binary that runs on macOS host, add it
 to [entitlements.txt] file inside the zip artifact produced by BUILD.gn.
-If this is a new binary that need to be run on iOS device, add it
+If this is a new binary that needs to be run on iOS device, add it
 to [withoutEntitlements.txt].
 If there are obsolete binaries in entitlements configuration files, please delete or
 update these file paths accordingly.
