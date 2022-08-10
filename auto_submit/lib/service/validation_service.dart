@@ -100,8 +100,13 @@ class ValidationService {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
         await gitHubService.createComment(slug, prNumber, commmentMessage);
-        await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
-        log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+        try {
+          await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
+          print('test');
+          log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+        } on github.NotFound {
+          log.info('${config.autosubmitLabel} does not exist in current PR.');
+        }
         shouldReturn = true;
       }
     }

@@ -71,7 +71,7 @@ String generateWebhookEvent(
 
 PullRequest generatePullRequest(
     {String? labelName,
-    String? autosubmitLabel,
+    String? autosubmitLabel = 'autosubmit',
     String? repoName,
     String? login,
     String? authorAssociation,
@@ -95,7 +95,7 @@ PullRequest generatePullRequest(
         },
         {
           "id": 284437560,
-          "name": "${autosubmitLabel ?? "autosubmit"}"
+          "name": "$autosubmitLabel"
         }
       ],
       "created_at": "2011-01-26T19:01:12Z",
