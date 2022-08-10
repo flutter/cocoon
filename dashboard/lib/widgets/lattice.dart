@@ -215,17 +215,15 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
         debugWidgetBuilderValue(widget, newWidget);
       } catch (exception, stack) {
         newWidget = ErrorWidget.builder(
-          _debugReportException(
-            FlutterErrorDetails(
-              context: ErrorDescription('building cell $coordinate for $widget'),
-              exception: exception,
-              stack: stack,
-              library: 'Flutter Dashboard',
-              informationCollector: () sync* {
-                yield DiagnosticsDebugCreator(DebugCreator(this));
-              },
-            ),
-          ),
+          _debugReportException(FlutterErrorDetails(
+            context: ErrorDescription('building cell $coordinate for $widget'),
+            exception: exception,
+            stack: stack,
+            library: 'Flutter Dashboard',
+            informationCollector: () sync* {
+              yield DiagnosticsDebugCreator(DebugCreator(this));
+            },
+          )),
         );
       }
       Element? oldElement;
@@ -246,17 +244,15 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
         newElement = updateChild(oldElement, newWidget, coordinate);
       } catch (e, stack) {
         newWidget = ErrorWidget.builder(
-          _debugReportException(
-            FlutterErrorDetails(
-              context: ErrorDescription('building widget $newWidget at cell $coordinate for $widget'),
-              exception: e,
-              stack: stack,
-              library: 'Flutter Dashboard',
-              informationCollector: () sync* {
-                yield DiagnosticsDebugCreator(DebugCreator(this));
-              },
-            ),
-          ),
+          _debugReportException(FlutterErrorDetails(
+            context: ErrorDescription('building widget $newWidget at cell $coordinate for $widget'),
+            exception: e,
+            stack: stack,
+            library: 'Flutter Dashboard',
+            informationCollector: () sync* {
+              yield DiagnosticsDebugCreator(DebugCreator(this));
+            },
+          )),
         );
         newElement = updateChild(null, newWidget, slot);
       }

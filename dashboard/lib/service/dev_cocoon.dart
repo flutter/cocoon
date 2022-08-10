@@ -129,16 +129,12 @@ class DevelopmentCocoonService implements CocoonService {
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
     List<Branch> fakeBranches = <Branch>[];
     for (String repo in _repos) {
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = defaultBranches[repo]!,
-      );
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = '$repo-release',
-      );
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = defaultBranches[repo]!);
+      fakeBranches.add(Branch()
+        ..repository = repo
+        ..branch = '$repo-release');
     }
     return CocoonResponse<List<Branch>>.data(fakeBranches);
   }
@@ -151,8 +147,7 @@ class DevelopmentCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<bool>> rerunTask(Task task, String? accessToken, String repo) async {
     return const CocoonResponse<bool>.error(
-      'Unable to retry against fake data. Try building the app to use prod data.',
-    );
+        'Unable to retry against fake data. Try building the app to use prod data.');
   }
 
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
@@ -206,9 +201,7 @@ class DevelopmentCocoonService implements CocoonService {
       throw Exception('Add ${commit.repository} to _repoTaskCount in DevCocoonService');
     }
     return List<Task>.generate(
-      _repoTaskCount[commit.repository]!,
-      (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random),
-    );
+        _repoTaskCount[commit.repository]!, (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random));
   }
 
   static const List<String> _statuses = <String>[

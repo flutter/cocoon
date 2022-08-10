@@ -85,10 +85,8 @@ void main() {
       expect(authService.user!.displayName, 'Dr. Test');
       expect(authService.user!.email, 'test@flutter.dev');
       expect(authService.user!.id, 'test123');
-      expect(
-        authService.user!.photoUrl,
-        'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID',
-      );
+      expect(authService.user!.photoUrl,
+          'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID');
     });
 
     test('id token available with logged in user', () async {

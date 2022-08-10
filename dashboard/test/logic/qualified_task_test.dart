@@ -19,14 +19,11 @@ void main() {
     final Task cirrusTask = Task()..stageName = 'cirrus';
 
     expect(
-      logUrl(
-        cirrusTask,
-        commit: Commit()
-          ..sha = 'abc123'
-          ..branch = 'master',
-      ),
-      'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master',
-    );
+        logUrl(cirrusTask,
+            commit: Commit()
+              ..sha = 'abc123'
+              ..branch = 'master'),
+        'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master');
 
     expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
 
@@ -40,19 +37,15 @@ void main() {
       ..name = 'abc'
       ..builderName = 'def';
 
-    expect(
-      QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
-      'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def',
-    );
+    expect(QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def');
   });
 
   test('QualifiedTask.sourceConfigurationUrl for cirrus', () {
     final Task cirrusTask = Task()..stageName = 'cirrus';
 
-    expect(
-      QualifiedTask.fromTask(cirrusTask).sourceConfigurationUrl,
-      'https://cirrus-ci.com/github/flutter/flutter/master',
-    );
+    expect(QualifiedTask.fromTask(cirrusTask).sourceConfigurationUrl,
+        'https://cirrus-ci.com/github/flutter/flutter/master');
   });
 
   test('QualifiedTask.sourceConfigurationUrl for google test', () {

@@ -25,18 +25,14 @@ void main() {
     late AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(luciJsonGetStatsResponse, 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(luciJsonGetStatsResponse, 200);
+      }));
     });
 
     test('should return CocoonResponse<List<CommitStatus>>', () {
       expect(
-        service.fetchCommitStatuses(repo: 'engine'),
-        const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>(),
-      );
+          service.fetchCommitStatuses(repo: 'engine'), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
     });
 
     test('should return expected List<CommitStatus>', () async {
@@ -52,26 +48,24 @@ void main() {
           ..authorAvatarUrl = 'https://flutter.dev'
           ..repository = 'flutter/cocoon'
           ..branch = 'master')
-        ..tasks.add(
-          Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
-            ..attempts = 1
-            ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
-            ..stageName = 'chromebot'
-            ..status = 'Succeeded'
-            ..isTestFlaky = false
-            ..buildNumberList = '123'
-            ..builderName = 'Linux'
-            ..luciBucket = 'luci.flutter.try',
-        );
+        ..tasks.add(Task()
+          ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+          ..createTimestamp = Int64(1569353940885)
+          ..startTimestamp = Int64(1569354594672)
+          ..endTimestamp = Int64(1569354700642)
+          ..name = 'linux'
+          ..attempts = 1
+          ..isFlaky = false
+          ..timeoutInMinutes = 0
+          ..reason = ''
+          ..requiredCapabilities.add('[linux]')
+          ..reservedForAgentId = ''
+          ..stageName = 'chromebot'
+          ..status = 'Succeeded'
+          ..isTestFlaky = false
+          ..buildNumberList = '123'
+          ..builderName = 'Linux'
+          ..luciBucket = 'luci.flutter.try');
 
       expect(statuses.data!.length, 1);
       expect(statuses.data!.first, expectedStatus);
@@ -96,18 +90,14 @@ void main() {
     late AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(jsonBuildStatusTrueResponse, 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonBuildStatusTrueResponse, 200);
+      }));
     });
 
     test('should return CocoonResponse<bool>', () {
-      expect(
-        service.fetchTreeBuildStatus(repo: 'engine'),
-        const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>(),
-      );
+      expect(service.fetchTreeBuildStatus(repo: 'engine'),
+          const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
     });
 
     test('data should be true when given Succeeded', () async {
@@ -117,11 +107,9 @@ void main() {
     });
 
     test('data should be false when given Failed', () async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(jsonBuildStatusFalseResponse, 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonBuildStatusFalseResponse, 200);
+      }));
       final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus(repo: 'engine');
 
       expect(treeBuildStatus.data!.buildStatus, EnumBuildStatus.failure);
@@ -147,11 +135,9 @@ void main() {
     late Task task;
 
     setUp(() {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response('', 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
       task = Task()
         ..key = RootKey()
         ..stageName = StageName.luci;
@@ -165,29 +151,25 @@ void main() {
     test('should set error in response if task key is null', () async {
       final CocoonResponse<bool> response = await service.rerunTask(task, null, 'engine');
       expect(
-        response.error,
-        allOf(<Matcher>[
-          isNotNull,
-          contains('Sign in to trigger reruns'),
-        ]),
-      );
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('Sign in to trigger reruns'),
+          ]));
     });
 
     test('should set error in response if bad status code is returned', () async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response('internal server error', 500);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('internal server error', 500);
+      }));
 
       final CocoonResponse<bool> response = await service.rerunTask(task, 'fakeAccessToken', 'engine');
       expect(
-        response.error,
-        allOf(<Matcher>[
-          isNotNull,
-          contains('HTTP Code: 500, internal server error'),
-        ]),
-      );
+          response.error,
+          allOf(<Matcher>[
+            isNotNull,
+            contains('HTTP Code: 500, internal server error'),
+          ]));
     });
   });
 
@@ -195,11 +177,9 @@ void main() {
     late AppEngineCocoonService service;
 
     setUp(() {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response('', 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
     });
 
     test('should return true if request succeeds', () async {
@@ -207,11 +187,9 @@ void main() {
     });
 
     test('should return false if request failed', () async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response('', 500);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
       expect(await service.vacuumGitHubCommits('fakeIdToken'), false);
     });
   });
@@ -220,11 +198,9 @@ void main() {
     late AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(jsonGetBranchesResponse, 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetBranchesResponse, 200);
+      }));
     });
 
     test('should return CocoonResponse<List<Branch>>', () {
@@ -236,20 +212,15 @@ void main() {
 
       expect(branches.data!.length, 2);
       expect(
-        branches.data,
-        allOf([
-          contains(
-            Branch()
+          branches.data,
+          allOf([
+            contains(Branch()
               ..repository = 'flutter'
-              ..branch = 'branch-framework-release',
-          ),
-          contains(
-            Branch()
+              ..branch = 'branch-framework-release'),
+            contains(Branch()
               ..repository = 'engine'
-              ..branch = 'branch-engine-release',
-          )
-        ]),
-      );
+              ..branch = 'branch-engine-release')
+          ]));
     });
 
     test('should have error if given non-200 response', () async {
@@ -271,11 +242,9 @@ void main() {
     late AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(
-        client: MockClient((Request request) async {
-          return Response(jsonGetReposResponse, 200);
-        }),
-      );
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetReposResponse, 200);
+      }));
     });
 
     test('data should be expected list of branches', () async {
@@ -304,35 +273,28 @@ void main() {
   });
 
   group('AppEngine CocoonService apiEndpoint', () {
-    final AppEngineCocoonService service = AppEngineCocoonService(
-      client: MockClient((Request request) async {
-        return Response('{"Token": "abc123"}', 200);
-      }),
-    );
+    final AppEngineCocoonService service = AppEngineCocoonService(client: MockClient((Request request) async {
+      return Response('{"Token": "abc123"}', 200);
+    }));
 
     test('handles url suffix', () {
       expect(service.apiEndpoint('/test').toString(), '$baseApiUrl/test');
     });
 
     test('single query parameter', () {
-      expect(
-        service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value'}).toString(),
-        '$baseApiUrl/test?key=value',
-      );
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value'}).toString(),
+          '$baseApiUrl/test?key=value');
     });
 
     test('multiple query parameters', () {
       expect(
-        service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}).toString(),
-        '$baseApiUrl/test?key=value&another=test',
-      );
+          service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}).toString(),
+          '$baseApiUrl/test?key=value&another=test');
     });
 
     test('query parameter with null value', () {
-      expect(
-        service.apiEndpoint('/test', queryParameters: <String, String?>{'key': null}).toString(),
-        '$baseApiUrl/test?key',
-      );
+      expect(service.apiEndpoint('/test', queryParameters: <String, String?>{'key': null}).toString(),
+          '$baseApiUrl/test?key');
     });
 
     /// This test requires runs on different platforms.

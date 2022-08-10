@@ -29,11 +29,10 @@ class LuciTaskAttemptSummary extends StatelessWidget {
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return ElevatedButton(
-          child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-          onPressed: () {
-            launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
-          },
-        );
+            child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
+            onPressed: () {
+              launchUrl(_luciProdLogUrl(task.builderName, buildNumberList[i]));
+            });
       }),
     );
   }

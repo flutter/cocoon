@@ -33,18 +33,15 @@ void main() {
       when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'), repo: anyNamed('repo')))
           .thenAnswer((dynamic _) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus]));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'), repo: anyNamed('repo'))).thenAnswer(
-        (_) async =>
-            CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success),
-      );
+          (_) async =>
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success));
       when(mockCocoonService.fetchRepos())
           .thenAnswer((_) async => const CocoonResponse<List<String>>.data(<String>['flutter']));
-      when(mockCocoonService.fetchFlutterBranches()).thenAnswer(
-        (_) async => CocoonResponse<List<Branch>>.data(<Branch>[
-          Branch()
-            ..branch = defaultBranch
-            ..repository = 'flutter'
-        ]),
-      );
+      when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) async => CocoonResponse<List<Branch>>.data(<Branch>[
+            Branch()
+              ..branch = defaultBranch
+              ..repository = 'flutter'
+          ]));
     });
 
     tearDown(() {
@@ -260,13 +257,11 @@ void main() {
 
       expect(buildState.statuses, <CommitStatus?>[setupCommitStatus]);
 
-      when(
-        mockCocoonService.fetchCommitStatuses(
-          lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'),
-          branch: anyNamed('branch'),
-          repo: anyNamed('repo'),
-        ),
-      ).thenAnswer((_) async => const CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[]));
+      when(mockCocoonService.fetchCommitStatuses(
+        lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'),
+        branch: anyNamed('branch'),
+        repo: anyNamed('repo'),
+      )).thenAnswer((_) async => const CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[]));
 
       await buildState.fetchMoreCommitStatuses();
 
@@ -286,20 +281,14 @@ void main() {
         ).then((CocoonResponse<List<CommitStatus>> value) => value),
       );
       // Mark tree green on master, red on dev
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer(
-        (_) => Future<CocoonResponse<BuildStatusResponse>>.value(
-          CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success),
-        ),
-      );
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev', repo: 'flutter')).thenAnswer(
-        (_) => Future<CocoonResponse<BuildStatusResponse>>.value(
-          CocoonResponse<BuildStatusResponse>.data(
-            BuildStatusResponse()
-              ..buildStatus = EnumBuildStatus.failure
-              ..failingTasks.addAll(<String>['failing_task_1']),
-          ),
-        ),
-      );
+      when(mockCocoonService.fetchTreeBuildStatus(branch: 'master', repo: 'flutter')).thenAnswer((_) =>
+          Future<CocoonResponse<BuildStatusResponse>>.value(
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success)));
+      when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev', repo: 'flutter')).thenAnswer((_) =>
+          Future<CocoonResponse<BuildStatusResponse>>.value(
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()
+                ..buildStatus = EnumBuildStatus.failure
+                ..failingTasks.addAll(<String>['failing_task_1']))));
       final BuildState buildState = BuildState(
         authService: MockGoogleSignInService(),
         cocoonService: mockCocoonService,

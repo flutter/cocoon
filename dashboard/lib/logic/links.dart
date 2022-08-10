@@ -24,26 +24,23 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
     ),
     CocoonLink(
-      name: 'Framework Benchmarks',
-      icon: const Icon(Icons.show_chart),
-      action: () {
-        launchUrl(Uri.parse('https://flutter-flutter-perf.skia.org/'));
-      },
-    ),
+        name: 'Framework Benchmarks',
+        icon: const Icon(Icons.show_chart),
+        action: () {
+          launchUrl(Uri.parse('https://flutter-flutter-perf.skia.org/'));
+        }),
     CocoonLink(
-      name: 'Engine Benchmarks',
-      icon: const Icon(Icons.show_chart),
-      action: () {
-        launchUrl(Uri.parse('https://flutter-engine-perf.skia.org/'));
-      },
-    ),
+        name: 'Engine Benchmarks',
+        icon: const Icon(Icons.show_chart),
+        action: () {
+          launchUrl(Uri.parse('https://flutter-engine-perf.skia.org/'));
+        }),
     CocoonLink(
-      name: 'Source Code',
-      icon: const Icon(Icons.code),
-      action: () {
-        launchUrl(Uri.parse('https://github.com/flutter/cocoon'));
-      },
-    ),
+        name: 'Source Code',
+        icon: const Icon(Icons.code),
+        action: () {
+          launchUrl(Uri.parse('https://github.com/flutter/cocoon'));
+        }),
   ];
 }
 

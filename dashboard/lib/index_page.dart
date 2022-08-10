@@ -41,19 +41,17 @@ class IndexPage extends StatelessWidget {
               children: <Widget>[
                 const HeaderText('Select a dashboard'),
                 for (CocoonLink link in cocoonLinks)
-                  Column(
-                    children: <Widget>[
-                      IntrinsicWidth(
-                        stepWidth: 80.0,
-                        child: ElevatedButton.icon(
-                          icon: link.icon!,
-                          label: Text(link.name!.toUpperCase()),
-                          onPressed: link.action,
-                        ),
+                  Column(children: <Widget>[
+                    IntrinsicWidth(
+                      stepWidth: 80.0,
+                      child: ElevatedButton.icon(
+                        icon: link.icon!,
+                        label: Text(link.name!.toUpperCase()),
+                        onPressed: link.action,
                       ),
-                      separator,
-                    ],
-                  )
+                    ),
+                    separator,
+                  ])
               ],
             ),
           ),
