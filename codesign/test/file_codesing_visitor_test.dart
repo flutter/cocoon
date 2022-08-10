@@ -37,6 +37,7 @@ void main() {
         tempDir: tempDir,
       );
       codesignVisitor.directoriesVisited.clear();
+      codesignVisitor.initialize();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
@@ -289,5 +290,90 @@ void main() {
           contains(
               'Warning! You are visiting a directory that has been visited before, the directory is ${tempDir.path}/parent_1/child_1'));
     });
+
+    test('visitBinary codesigns binary with / without entitlement', () async {
+      codesignVisitor.fileWithEntitlements = <String>{'root/file_a'};
+      codesignVisitor.fileWithoutEntitlements = <String>{'root/file_b'};
+      fileSystem
+        ..file('${tempDir.path}/remote_zip_1/file_a').createSync(recursive: true)
+        ..file('${tempDir.path}/remote_zip_1/file_b').createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_1');
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/remote_zip_1/file_a',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>[
+            'ls',
+            '-alhf',
+            '${tempDir.absolute.path}/remote_zip_1/file_a',
+          ],
+          stdout: 'no_arrow_output',
+        ),
+        FakeCommand(
+          command: <String>[
+            'codesign',
+            '-f',
+            '-s',
+            randomString,
+            '${tempDir.absolute.path}/remote_zip_1/file_a',
+            '--timestamp',
+            '--options=runtime',
+            '--entitlements',
+            '${tempDir.absolute.path}/Entitlements.plist'
+          ],
+        ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/remote_zip_1/file_b',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>[
+            'ls',
+            '-alhf',
+            '${tempDir.absolute.path}/remote_zip_1/file_b',
+          ],
+          stdout: 'no_arrow_output',
+        ),
+        FakeCommand(
+          command: <String>[
+            'codesign',
+            '-f',
+            '-s',
+            randomString,
+            '${tempDir.absolute.path}/remote_zip_1/file_b',
+            '--timestamp',
+            '--options=runtime',
+          ],
+        ),
+      ]);
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        entitlementParentPath: 'root',
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(messages, contains('\n signing file at path ${tempDir.absolute.path}/remote_zip_1/file_a'));
+      expect(messages, contains('\n the virtual entitlement path associated with file is root/file_a'));
+      expect(messages, contains('\n the decision to sign with entitlement is true'));
+
+      expect(messages, contains('\n signing file at path ${tempDir.absolute.path}/remote_zip_1/file_b'));
+      expect(messages, contains('\n the virtual entitlement path associated with file is root/file_b'));
+      expect(messages, contains('\n the decision to sign with entitlement is false'));
+    });
+
   });
 }

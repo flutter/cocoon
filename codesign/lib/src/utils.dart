@@ -29,6 +29,21 @@ enum FileType {
   }
 }
 
+Future<bool> isSymlink(String fileOrFolderPath, ProcessManager processManager) async {
+  final ProcessResult result = processManager.runSync(
+    <String>[
+      'ls',
+      '-alhf',
+      fileOrFolderPath,
+    ],
+  );
+
+  return (result.stdout as String)
+      .split('\n')
+      .where((String s) => !s.split(' ').contains('->') && s.trim().isNotEmpty)
+      .isEmpty;
+}
+
 Future<void> unzip({
   required FileSystemEntity inputZip,
   required Directory outDir,
