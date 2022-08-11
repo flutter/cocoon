@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 
 String generateWebhookEvent(
@@ -71,7 +72,7 @@ String generateWebhookEvent(
 
 PullRequest generatePullRequest(
     {String? labelName,
-    String? autosubmitLabel,
+    String? autosubmitLabel = Config.kAutosubmitLabel,
     String? repoName,
     String? login,
     String? authorAssociation,
@@ -95,7 +96,7 @@ PullRequest generatePullRequest(
         },
         {
           "id": 284437560,
-          "name": "${autosubmitLabel ?? "autosubmit"}"
+          "name": "$autosubmitLabel"
         }
       ],
       "created_at": "2011-01-26T19:01:12Z",

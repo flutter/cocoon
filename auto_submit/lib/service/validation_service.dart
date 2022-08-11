@@ -49,13 +49,16 @@ class ValidationService {
   final Config config;
   final Set<Validation> validations = <Validation>{};
 
-  /// Checks if a pullRequest is still open before trying to process it.
+  /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
   Future<bool> shouldProcess(github.PullRequest pullRequest) async {
-    github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    github.GitHub gitHub = await config.createGithubClient(pullRequest.base!.repo!.slug());
-    github.PullRequest currentPullRequest = await gitHub.pullRequests.get(slug, pullRequest.number!);
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService gitHubService = await config.createGithubService(slug);
+    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
     // Accepted states open, closed, or all.
-    return currentPullRequest.state == 'open';
+    return currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel);
   }
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -100,7 +103,7 @@ class ValidationService {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
         await gitHubService.createComment(slug, prNumber, commmentMessage);
-        await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
+        await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
         log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
         shouldReturn = true;
       }

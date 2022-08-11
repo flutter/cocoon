@@ -29,6 +29,11 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
+  /// Fetches the specified pull request.
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
+    return await github.pullRequests.get(slug, pullRequestNumber);
+  }
+
   /// Compares two commits to fetch diff.
   ///
   /// The response will include details on the files that were changed between the two commits.
