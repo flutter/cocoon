@@ -6,7 +6,7 @@
 
 steps:
   # Build dashboard.
-  - name: us-docker.pkg.dev/$PROJECT_ID/gcr.io/flutter
+  - name: us-docker.pkg.dev/$PROJECT_ID/flutter/flutter
     entrypoint: '/bin/bash'
     args: ['cloud_build/dashboard_build.sh']
 
