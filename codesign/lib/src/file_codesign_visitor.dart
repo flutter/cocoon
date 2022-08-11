@@ -135,9 +135,6 @@ update these file paths accordingly.
     final List<FileSystemEntity> entities = await directory.list().toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Directory) {
-        if (io.FileSystemEntity.isLinkSync(entity.absolute.path)) {
-          return;
-        }
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
           entitlementParentPath: entitlementParentPath,
