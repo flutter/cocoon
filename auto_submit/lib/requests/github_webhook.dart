@@ -53,7 +53,7 @@ class GithubWebhook extends RequestHandler {
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
-    hasAutosubmit = pullRequest.labels!.any((label) => label.name == config.autosubmitLabel);
+    hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
 
     if (hasAutosubmit) {
       log.info('Found pull request with auto submit label.');

@@ -21,7 +21,6 @@ class FakeConfig extends Config {
     this.githubService,
     this.rollerAccountsValue,
     this.overrideTreeStatusLabelValue,
-    this.autosubmitLabelValue,
     this.webhookKey,
     this.kPubsubPullNumberValue,
   }) : super(
@@ -34,7 +33,6 @@ class FakeConfig extends Config {
   GithubService? githubService = FakeGithubService();
   Set<String>? rollerAccountsValue;
   String? overrideTreeStatusLabelValue;
-  String? autosubmitLabelValue;
   String? webhookKey;
   int? kPubsubPullNumberValue;
 
@@ -64,9 +62,6 @@ class FakeConfig extends Config {
 
   @override
   String get overrideTreeStatusLabel => overrideTreeStatusLabelValue ?? 'warning: land on red to fix tree breakage';
-
-  @override
-  String get autosubmitLabel => autosubmitLabelValue ?? 'autosubmit';
 
   @override
   Future<String> getWebhookKey() async {

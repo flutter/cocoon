@@ -58,7 +58,7 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
     // Accepted states open, closed, or all.
-    return currentPullRequest.state == 'open' && labelNames.contains(config.autosubmitLabel);
+    return currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel);
   }
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -103,7 +103,7 @@ class ValidationService {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
         await gitHubService.createComment(slug, prNumber, commmentMessage);
-        await gitHubService.removeLabel(slug, prNumber, config.autosubmitLabel);
+        await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
         log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
         shouldReturn = true;
       }
