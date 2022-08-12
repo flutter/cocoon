@@ -20,5 +20,3 @@ steps:
         fi
 
 timeout: 1200s
-
-images: ['us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA']
