@@ -29,6 +29,34 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
+  /// Fetches a particular pull request.
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestId) async {
+    return await github.pullRequests.get(slug, pullRequestId);
+  }
+
+  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+    int? pullRequestId = pullRequest.number;
+    List<PullRequestFile> listPullRequestFiles = [];
+
+    if (pullRequestId == null) {
+      return listPullRequestFiles;
+    }
+
+    Stream<PullRequestFile> pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
+
+    await for (PullRequestFile file in pullRequestFiles) {
+      listPullRequestFiles.add(file);
+    }
+
+    return listPullRequestFiles;
+  }
+
+  // TODO we need this to create follow on issues for tracking revert requests.
+  // Future<void> createIssue() async {
+  //   IssueRequest issueRequest = IssueRequest(title: '', body: '', )
+  //   github.issues.create(slug, issue)
+  // }
+
   /// Compares two commits to fetch diff.
   ///
   /// The response will include details on the files that were changed between the two commits.

@@ -26,6 +26,10 @@ import 'package:github/github.dart' as github;
 class ValidationService {
   ValidationService(this.config) {
     validations.addAll({
+      /// revert validation will go here since it needs to be done before the
+      /// others in order to prevent the full ci suite and approvals from being
+      /// enforced.
+
       /// Validates the PR has been approved following the codereview guidelines.
       Approval(config: config),
 

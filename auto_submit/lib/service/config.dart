@@ -174,6 +174,7 @@ class Config {
 
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
+  String get revertLabel => 'revert';
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
