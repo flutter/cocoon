@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show GitHubError, RepositoryCommit, RepositorySlug;
+import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
@@ -87,7 +87,7 @@ class BranchService {
   /// Generally, this should work. However, some edge cases may require CPs. Such as when commits land in a
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
   Future<void> branchFlutterRecipes(String branch) async {
-    final RepositorySlug recipesSlug = RepositorySlug('flutter', 'recipes');
+    final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
     if ((await gerritService.branches('${recipesSlug.owner}-review.googlesource.com', recipesSlug.name,
             subString: branch))
         .contains(branch)) {
@@ -99,9 +99,9 @@ class BranchService {
         await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
     final GithubService githubService = await config.createDefaultGitHubService();
-    final List<RepositoryCommit> githubCommits = await retryOptions.retry(
+    final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
       () async => await githubService.listCommits(Config.flutterSlug, branch, null),
-      retryIf: (Exception e) => e is GitHubError,
+      retryIf: (Exception e) => e is gh.GitHubError,
     );
     log.info('${Config.flutterSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
@@ -112,5 +112,19 @@ class BranchService {
     }
 
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
+  }
+
+  Future<List<String>> getStableBetaDevBranches({required gh.GitHub github, required gh.RepositorySlug slug}) async {
+    String devSha = (await github.repositories.getBranch(slug, 'dev')).commit!.sha!;
+    String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
+    String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
+    print("dev, beta, stable shas are: $devSha $betaSha $stableSha");
+
+    List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
+    String devName = branches.where(((gh.Branch b) => b.commit!.sha == devSha)).single.name!;
+    String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
+    String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
+
+    return [stableName, betaName, devName];
   }
 }

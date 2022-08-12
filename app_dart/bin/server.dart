@@ -173,7 +173,7 @@ Future<void> main() async {
         ttl: const Duration(seconds: 15),
       ),
 
-      '/api/public/get-release-branches': GetReleaseBranches(config),
+      '/api/public/get-release-branches': GetReleaseBranches(config, branchService: branchService),
 
       /// Returns task results for commits.
       ///
