@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/get_release_branches.dart';
 import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
@@ -171,6 +172,8 @@ Future<void> main() async {
         delegate: GetBuildStatus(config),
         ttl: const Duration(seconds: 15),
       ),
+
+      '/api/public/get-release-branches': GetReleaseBranches(config),
 
       /// Returns task results for commits.
       ///
