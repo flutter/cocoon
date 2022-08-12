@@ -52,7 +52,7 @@ class GetReleaseBranches extends RequestHandler<Body> {
     List<String> betaBranches = betaAndStableBranches[0];
     List<String> stableBranches = betaAndStableBranches[1];
     List<String> googleThreeBranches = await _getGoogleThreeBranches(github: github, slug: Config.flutterSlug);
-    //some JSONNNN
+
     return Body.forJson(<String, List<String>>{
       'Beta': betaBranches,
       'Stable': stableBranches,
