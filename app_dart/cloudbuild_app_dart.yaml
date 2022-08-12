@@ -10,6 +10,12 @@ steps:
     entrypoint: '/bin/bash'
     args: ['cloud_build/dashboard_build.sh']
 
+
+  # Build docker image
+  - name: 'us-docker.pkg.dev/cloud-builders/ga/v1/docker'
+    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA', 'app_dart']
+
+
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
@@ -25,3 +31,5 @@ steps:
         fi
 
 timeout: 1200s
+
+images: ['us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA']
