@@ -64,7 +64,7 @@ targets:
      - upload_metrics: "true"
 ```
 
-## Adding new targets
+### Adding new targets
 
 All new targets should be added as `bringup: true` to ensure they do not block the tree.
 
@@ -86,7 +86,7 @@ promote a test that has been passing for the past 50 runs.
 To prevent tests from rotting, all targets are required to have a clear owner. Add an
 owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
 
-## Properties
+### Properties
 
 Targets support specifying properties that can be passed throughout infrastructure. The
 following are a list of keys that are reserved for special use.
@@ -124,7 +124,7 @@ tags: >
   ["devicelab","hostonly"]
 ```
 
-## Upgrading dependencies
+### Upgrading dependencies
 1. Find the cipd ref to upgrade to
     - If this is a Flutter managed package, look up its docs on uploading a new version
     - For example, JDK is at https://chrome-infra-packages.appspot.com/p/flutter_internal/java/openjdk/linux-amd64
@@ -146,7 +146,7 @@ tags: >
 3. If the check is red, add patches to get it green
 4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
 
-## External Tests
+### External Tests
 
 Cocoon supports tests that are not owned by Flutter infrastructure. By default, these should not block the tree but act as FYI to the gardeners.
 
@@ -168,3 +168,27 @@ Cocoon supports tests that are not owned by Flutter infrastructure. By default, 
      scheduler: my_external_location
    ```
 8. Send updates to `https://flutter-dashboard.appspot.com/api/update-task-status` - https://github.com/flutter/cocoon/blob/master/app_dart/lib/src/request_handlers/update_task_status.dart
+
+
+## Scheduling Targets
+
+For targets using the Cocoon scheduler, they can run on:
+ * Presubmit (via GitHub checks)
+ * Postsubmit (via [build dashboard](https://flutter-dashboard.appspot.com/#/build))
+
+By default, all targets should use the Cocoon scheduler.
+
+### Presubmit Features
+
+1. GitHub checks enable targets to run immediately, and are available on the pull request page.
+2. Changes to the ci.yaml will be applied during those presubmit runs.
+3. New targets are required to be brought up with `bringup: true`
+
+### Postsubmit Features
+
+1. Targets are immediately triggered on GitHub webhooks for merged pull requests
+2. Updates are made immediate via LUCI PubSub notifications
+3. Prioritizes recently failed targets (to unblock the tree quicker)
+4. Backfills targets at a low swarming priority when nothing is actively running
+5. Batches targets that have a high queue time, and backfills in off peak hours
+6. Flakiness monitoring

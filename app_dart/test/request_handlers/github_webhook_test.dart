@@ -99,11 +99,13 @@ void main() {
       });
     });
 
-    webhook = GithubWebhook(config,
-        datastoreProvider: (_) => DatastoreService(config.db, 5),
-        githubChecksService: mockGithubChecksService,
-        scheduler: scheduler,
-        branchService: branchService);
+    webhook = GithubWebhook(
+      config,
+      datastoreProvider: (_) => DatastoreService(config.db, 5),
+      githubChecksService: mockGithubChecksService,
+      scheduler: scheduler,
+      branchService: branchService,
+    );
 
     config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
     config.wrongBaseBranchPullRequestMessageValue = '{{target_branch}} -> {{default_branch}}';
@@ -2640,12 +2642,28 @@ void foo() {
   group('github webhook create branch event', () {
     test('process create branch event', () async {
       request.headers.set('X-GitHub-Event', 'create');
-      request.body = jsonEncode(generateCreateBranchEvent('flutter-2.12-candidate.4', 'flutter/flutter').toJson());
+      request.body =
+          jsonEncode(generateCreateBranchEvent('flutter-2.12-candidate.4', Config.flutterSlug.fullName).toJson());
       final Uint8List body = utf8.encode(request.body!) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       await tester.post(webhook);
+
+      verify(branchService.branchFlutterRecipes('flutter-2.12-candidate.4'));
+    });
+
+    test('do not create recipe branches on non-flutter/flutter branches', () async {
+      request.headers.set('X-GitHub-Event', 'create');
+      request.body =
+          jsonEncode(generateCreateBranchEvent('flutter-2.12-candidate.4', Config.engineSlug.fullName).toJson());
+      final Uint8List body = utf8.encode(request.body!) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      await tester.post(webhook);
+
+      verifyNever(branchService.branchFlutterRecipes(any));
     });
   });
 

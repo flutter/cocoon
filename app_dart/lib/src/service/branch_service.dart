@@ -8,8 +8,9 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show RepositoryCommit, RepositorySlug;
+import 'package:github/github.dart' show GitHubError, RepositoryCommit, RepositorySlug;
 import 'package:github/hooks.dart';
+import 'package:retry/retry.dart';
 
 import '../model/appengine/branch.dart';
 import '../model/gerrit/commit.dart';
@@ -26,10 +27,12 @@ class BranchService {
   BranchService({
     required this.config,
     required this.gerritService,
+    this.retryOptions = const RetryOptions(),
   });
 
   final Config config;
   final GerritService gerritService;
+  final RetryOptions retryOptions;
 
   /// Add a [CreateEvent] branch to Datastore.
   Future<void> handleCreateRequest(CreateEvent createEvent) async {
@@ -96,7 +99,10 @@ class BranchService {
         await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
     final GithubService githubService = await config.createDefaultGitHubService();
-    final List<RepositoryCommit> githubCommits = await githubService.listCommits(Config.flutterSlug, branch, null);
+    final List<RepositoryCommit> githubCommits = await retryOptions.retry(
+      () async => await githubService.listCommits(Config.flutterSlug, branch, null),
+      retryIf: (Exception e) => e is GitHubError,
+    );
     log.info('${Config.flutterSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
       if (recipeCommit.author!.time!.isBefore(githubCommits.first.commit!.committer!.date!)) {

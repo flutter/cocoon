@@ -60,7 +60,8 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       return CocoonResponse<List<CommitStatus>>.data(
-          await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']));
+        await compute<List<dynamic>, List<CommitStatus>>(_commitStatusesFromJson, jsonResponse['Statuses']),
+      );
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -130,9 +131,11 @@ class AppEngineCocoonService implements CocoonService {
       final List<Branch> branches = <Branch>[];
       for (final Map<String, dynamic> jsonBranch in jsonResponse) {
         final Map<String, dynamic> branchInfo = jsonBranch['branch'];
-        branches.add(Branch()
-          ..branch = branchInfo['branch']
-          ..repository = branchInfo['repository'].split('/')[1]);
+        branches.add(
+          Branch()
+            ..branch = branchInfo['branch']
+            ..repository = branchInfo['repository'].split('/')[1],
+        );
       }
       return CocoonResponse<List<Branch>>.data(branches);
     } catch (error) {
@@ -163,14 +166,16 @@ class AppEngineCocoonService implements CocoonService {
 
     /// This endpoint only returns a status code.
     final Uri postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
-    final http.Response response = await _client.post(postResetTaskUrl,
-        headers: <String, String>{
-          'X-Flutter-IdToken': idToken,
-        },
-        body: jsonEncode(<String, String>{
-          'Key': task.key.child.name,
-          'Repo': repo,
-        }));
+    final http.Response response = await _client.post(
+      postResetTaskUrl,
+      headers: <String, String>{
+        'X-Flutter-IdToken': idToken,
+      },
+      body: jsonEncode(<String, String>{
+        'Key': task.key.child.name,
+        'Repo': repo,
+      }),
+    );
 
     if (response.statusCode == HttpStatus.ok) {
       return const CocoonResponse<bool>.data(true);
@@ -210,10 +215,12 @@ class AppEngineCocoonService implements CocoonService {
 
     for (final Map<String, dynamic> jsonCommitStatus in jsonCommitStatuses!) {
       final Map<String, dynamic> checklist = jsonCommitStatus['Checklist'];
-      statuses.add(CommitStatus()
-        ..commit = _commitFromJson(checklist)
-        ..branch = _branchFromJson(checklist)!
-        ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])));
+      statuses.add(
+        CommitStatus()
+          ..commit = _commitFromJson(checklist)
+          ..branch = _branchFromJson(checklist)!
+          ..tasks.addAll(_tasksFromStagesJson(jsonCommitStatus['Stages'])),
+      );
     }
 
     return statuses;

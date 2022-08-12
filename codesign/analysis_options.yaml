@@ -6,7 +6,7 @@
 
 analyzer:
   strong-mode:
-    # implicit-casts: false
+    implicit-casts: false
     implicit-dynamic: false
   errors:
     # treat missing required parameters as a warning (not a hint)
@@ -19,9 +19,159 @@ analyzer:
     # Stream and not importing dart:async
     # Please see https://github.com/flutter/flutter/pull/24528 for details.
     sdk_version_async_exported_from_core: ignore
+    implicit_dynamic_parameter: info
 
 include: package:flutter_lints/flutter.yaml
+
 linter:
   rules:
+    # these rules are documented on and in the same order as
+    # the Dart Lint rules page to make maintenance easier
+    # https://github.com/dart-lang/linter/blob/master/example/all.yaml
+    always_declare_return_types: true
+    always_put_control_body_on_new_line: true
+    # - always_put_required_named_parameters_first # we prefer having parameters in the same order as fields https://github.com/flutter/flutter/issues/10219
+    always_require_non_null_named_parameters: true
+    always_specify_types: true
+    annotate_overrides: true
+    # - avoid_annotating_with_dynamic # conflicts with always_specify_types
+    # - avoid_as # incompatible with implicit-casts: false
+    avoid_bool_literals_in_conditional_expressions: true
+    # - avoid_catches_without_on_clauses # we do this commonly
+    # - avoid_catching_errors # we do this commonly
+    avoid_classes_with_only_static_members: true
+    # - avoid_double_and_int_checks # only useful when targeting JS runtime
+    avoid_empty_else: true
+    avoid_field_initializers_in_const_classes: true
+    avoid_function_literals_in_foreach_calls: true
+    # - avoid_implementing_value_types # not yet tested
+    avoid_init_to_null: true
+    # - avoid_js_rounded_ints # only useful when targeting JS runtime
+    avoid_null_checks_in_equality_operators: true
+    # - avoid_positional_boolean_parameters # not yet tested
+    # - avoid_private_typedef_functions # we prefer having typedef (discussion in https://github.com/flutter/flutter/pull/16356)
+    avoid_relative_lib_imports: true
+    avoid_renaming_method_parameters: true
+    avoid_return_types_on_setters: true
+    # - avoid_returning_null # there are plenty of valid reasons to return null
+    # - avoid_returning_null_for_future # not yet tested
+    avoid_returning_null_for_void: true
+    # - avoid_returning_this # there are plenty of valid reasons to return this
+    # - avoid_setters_without_getters # not yet tested
+    # - avoid_shadowing_type_parameters # not yet tested
+    # - avoid_single_cascade_in_expression_statements # not yet tested
+    avoid_slow_async_io: true
+    avoid_types_as_parameter_names: true
+    # - avoid_types_on_closure_parameters # conflicts with always_specify_types
+    avoid_unused_constructor_parameters: true
+    avoid_void_async: true
+    await_only_futures: true
+    camel_case_types: true
+    cancel_subscriptions: true
+    # - cascade_invocations # not yet tested
+    # - close_sinks # not reliable enough
+    # - comment_references # blocked on https://github.com/flutter/flutter/issues/20765
+    # - constant_identifier_names # needs an opt-out https://github.com/dart-lang/linter/issues/204
+    control_flow_in_finally: true
+    curly_braces_in_flow_control_structures: true
+    # - diagnostic_describe_all_properties # not yet tested
+    directives_ordering: true
+    empty_catches: true
+    empty_constructor_bodies: true
+    empty_statements: true
+    # - file_names # not yet tested
+    flutter_style_todos: true
+    hash_and_equals: true
+    implementation_imports: true
+    # - invariant_booleans # too many false positives: https://github.com/dart-lang/linter/issues/811
+    iterable_contains_unrelated_type: true
+    # - join_return_with_assignment # not yet tested
+    library_names: true
+    library_prefixes: true
+    # - lines_longer_than_80_chars # not yet tested
+    list_remove_unrelated_type: true
+    # - literal_only_boolean_expressions # too many false positives: https://github.com/dart-lang/sdk/issues/34181
+    no_adjacent_strings_in_list: true
+    no_duplicate_case_values: true
+    non_constant_identifier_names: true
+    # - null_closures  # not yet tested
+    # - omit_local_variable_types # opposite of always_specify_types
+    # - one_member_abstracts # too many false positives
+    # - only_throw_errors # https://github.com/flutter/flutter/issues/5792
+    overridden_fields: true
+    package_api_docs: true
+    package_names: true
+    package_prefixed_library_names: true
+    # - parameter_assignments # we do this commonly
+    prefer_adjacent_string_concatenation: true
+    prefer_asserts_in_initializer_lists: true
+    # - prefer_asserts_with_message # not yet tested
+    prefer_collection_literals: true
+    prefer_conditional_assignment: true
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    # - prefer_constructors_over_static_methods # not yet tested
+    prefer_contains: true
+    # - prefer_double_quotes # opposite of prefer_single_quotes
+    prefer_equal_for_default_values: true
+    # - prefer_expression_function_bodies # conflicts with https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#consider-using--for-short-functions-and-methods
+    prefer_final_fields: true
+    # - prefer_final_in_for_each # not yet tested
+    prefer_final_locals: true
+    # - prefer_for_elements_to_map_fromIterable # not yet tested
+    prefer_foreach: true
+    # - prefer_function_declarations_over_variables # not yet tested
+    prefer_generic_function_type_aliases: true
+    # - prefer_if_elements_to_conditional_expressions # not yet tested
+    prefer_if_null_operators: true
+    prefer_initializing_formals: true
+    prefer_inlined_adds: true
+    # - prefer_int_literals # not yet tested
+    # - prefer_interpolation_to_compose_strings # not yet tested
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    prefer_iterable_whereType: true
+    # - prefer_mixin # https://github.com/dart-lang/language/issues/32
+    # - prefer_null_aware_operators # disable until NNBD, see https://github.com/flutter/flutter/pull/32711#issuecomment-492930932
+    prefer_relative_imports: true
     prefer_single_quotes: true
+    prefer_spread_collections: true
+    prefer_typing_uninitialized_variables: true
+    prefer_void_to_null: true
+    # - provide_deprecation_message # not yet tested
+    # - public_member_api_docs # enabled on a case-by-case basis; see e.g. packages/analysis_options.yaml
+    recursive_getters: true
+    slash_for_doc_comments: true
+    # - sort_child_properties_last # not yet tested
+    sort_constructors_first: true
+    sort_pub_dependencies: true
+    sort_unnamed_constructors_first: true
+    test_types_in_equals: true
+    throw_in_finally: true
+    # - type_annotate_public_apis # subset of always_specify_types
+    type_init_formals: true
     unawaited_futures: true
+    # - unnecessary_await_in_return # not yet tested
+    unnecessary_brace_in_string_interps: true
+    unnecessary_const: true
+    unnecessary_getters_setters: true
+    # - unnecessary_lambdas # has false positives: https://github.com/dart-lang/linter/issues/498
+    unnecessary_new: true
+    unnecessary_null_aware_assignments: true
+    unnecessary_null_in_if_null_operators: true
+    unnecessary_overrides: true
+    unnecessary_parenthesis: true
+    unnecessary_statements: true
+    unnecessary_this: true
+    unrelated_type_equality_checks: true
+    # - unsafe_html # not yet tested
+    use_full_hex_values_for_flutter_colors: true
+    # - use_function_type_syntax_for_parameters # not yet tested
+    use_rethrow_when_possible: true
+    # - use_setters_to_change_properties # not yet tested
+    # - use_string_buffers # has false positives: https://github.com/dart-lang/sdk/issues/34182
+    # - use_to_and_as_if_applicable # has false positives, so we prefer to catch this by code-review
+    valid_regexps: true
+    # - void_checks # not yet tested

@@ -269,8 +269,10 @@ class _TaskGridState extends State<TaskGrid> {
     return <List<LatticeCell>>[
       <LatticeCell>[
         const LatticeCell(),
-        ...tasks.map<LatticeCell>((QualifiedTask task) =>
-            LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage)),
+        ...tasks.map<LatticeCell>(
+          (QualifiedTask task) =>
+              LatticeCell(builder: (BuildContext context) => TaskIcon(qualifiedTask: task), taskName: task.stage),
+        ),
       ],
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
@@ -323,17 +325,19 @@ class _TaskGridState extends State<TaskGrid> {
 
   List<LatticeCell> _generateLoadingRow(int length) {
     return <LatticeCell>[
-      LatticeCell(builder: (BuildContext context) {
-        return FittedBox(
-          fit: BoxFit.contain,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: widget.useAnimatedLoading
-                ? const RepaintBoundary(child: CircularProgressIndicator())
-                : const Icon(Icons.refresh),
-          ),
-        );
-      }),
+      LatticeCell(
+        builder: (BuildContext context) {
+          return FittedBox(
+            fit: BoxFit.contain,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: widget.useAnimatedLoading
+                  ? const RepaintBoundary(child: CircularProgressIndicator())
+                  : const Icon(Icons.refresh),
+            ),
+          );
+        },
+      ),
       for (int index = 0; index < max(length, _loadingMessage.length); index++)
         LatticeCell(
           builder: (BuildContext context) {

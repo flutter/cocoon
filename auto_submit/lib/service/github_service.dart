@@ -29,10 +29,6 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
-  /// Fetches a particular pull request.
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestId) async {
-    return await github.pullRequests.get(slug, pullRequestId);
-  }
 
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
     int? pullRequestId = pullRequest.number;
@@ -56,6 +52,11 @@ class GithubService {
   //   IssueRequest issueRequest = IssueRequest(title: '', body: '', )
   //   github.issues.create(slug, issue)
   // }
+
+  /// Fetches the specified pull request.
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
+    return await github.pullRequests.get(slug, pullRequestNumber);
+  }
 
   /// Compares two commits to fetch diff.
   ///

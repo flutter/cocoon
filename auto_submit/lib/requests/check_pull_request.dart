@@ -37,13 +37,23 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
   @override
   Future<Response> get() async {
+    // Loops [config.kPubsubPullNumber] times to try pulling/processing as many
+    // messages as possible.
+    for (int i = 0; i < config.kPubsubPullNumber; i++) {
+      await checkPullRequest();
+    }
+    return Response.ok('Finished processing changes');
+  }
+
+  /// Pulls Pub/Sub messages and processes pull requests.
+  Future<void> checkPullRequest() async {
     final Set<int> processingLog = <int>{};
-    final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final ApproverService approver = approverProvider(config);
+    final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
     final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
     if (receivedMessages == null) {
       log.info('There are no requests in the queue');
-      return Response.ok('No requests in the queue.');
+      return;
     }
     log.info('Processing ${receivedMessages.length} messages');
     ValidationService validationService = ValidationService(config);
@@ -53,6 +63,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+      log.info('Processing message ackId: ${message.ackId}');
+      log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
@@ -67,6 +79,5 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       futures.add(validationService.processMessage(pullRequest, message.ackId!, pubsub));
     }
     await Future.wait(futures);
-    return Response.ok('Finished processing changes');
   }
 }

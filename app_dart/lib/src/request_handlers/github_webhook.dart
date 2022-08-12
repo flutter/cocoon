@@ -86,7 +86,9 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'create':
           final CreateEvent createEvent = _getCreateEvent(stringRequest)!;
           await branchService.handleCreateRequest(createEvent);
-          await branchService.branchFlutterRecipes(createEvent.ref!);
+          if (createEvent.repository?.slug() == Config.flutterSlug) {
+            await branchService.branchFlutterRecipes(createEvent.ref!);
+          }
           break;
       }
 
