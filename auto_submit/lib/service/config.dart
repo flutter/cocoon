@@ -30,6 +30,7 @@ class Config {
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
+  static const String kAutosubmitLabel = 'autosubmit';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -171,9 +172,6 @@ class Config {
 
   /// The label which shows the overrideTreeStatus.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
-
-  /// The autosubmit label.
-  String get autosubmitLabel => 'autosubmit';
 
   /// Number of Pub/Sub pull calls in each cron job run.
   ///

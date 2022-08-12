@@ -103,6 +103,7 @@ void main() {
 
     test('Multiple identical messages are processed once', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       for (int i = 0; i < 2; i++) {
         pubsub.publish('auto-submit-queue-sub', pullRequest1);
       }
@@ -124,6 +125,7 @@ void main() {
 
     test('Closed PRs are not processed', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo, state: 'close');
+      githubService.pullRequestData = pullRequest1;
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 0, state: 'close'));
       for (int i = 0; i < 2; i++) {
         pubsub.publish('auto-submit-queue-sub', pullRequest1);
@@ -142,6 +144,7 @@ void main() {
     test('Merge exception is handled correctly', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       int errorIndex = 0;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -174,6 +177,7 @@ void main() {
     test('Merges PR with successful status and checks', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
 
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -205,6 +209,7 @@ void main() {
 
     test('Merges unapproved PR from autoroller', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: rollorAuthor);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       checkPullRequest = CheckPullRequest(
@@ -242,6 +247,7 @@ void main() {
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, labelName: labelName);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -270,6 +276,7 @@ void main() {
 
     test('Merges a clean revert PR with in progress tests', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -298,6 +305,7 @@ void main() {
 
     test('Merges PR with successful checks on repo without tree status', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -324,6 +332,7 @@ void main() {
     test('Merges PR with neutral status checkrun', () async {
       PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -343,6 +352,7 @@ void main() {
     test('Removes the label for the PR with failed tests', () async {
       PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -361,6 +371,7 @@ void main() {
 
     test('Removes the label for the PR with failed status', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -381,6 +392,7 @@ void main() {
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -401,6 +413,7 @@ void main() {
 
     test('Removes the label for the PR with null checks and statuses', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
 
       githubService.checkRunsData = emptyCheckRunsMock;
@@ -420,6 +433,7 @@ void main() {
     test('Does not merge PR with in progress checks', () async {
       PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -440,6 +454,7 @@ void main() {
       PullRequest pullRequest1 = generatePullRequest(prNumber: 0, autosubmitLabel: noAutosubmitLabel);
       PullRequest pullRequest2 =
           generatePullRequest(prNumber: 1, autosubmitLabel: noAutosubmitLabel, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         pubsub.publish(testTopic, pr);
@@ -448,14 +463,12 @@ void main() {
       flutterRequest = PullRequestHelper(prNumber: 0);
       cocoonRequest = PullRequestHelper(prNumber: 1);
       await checkPullRequest.get();
-      expectedOptions.add(flutterOption);
-      expectedOptions.add(cocoonOption);
-      verifyQueries(expectedOptions);
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Self review is disallowed', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
+      githubService.pullRequestData = pullRequest;
       pubsub.publish(testTopic, pullRequest);
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(
@@ -479,6 +492,7 @@ void main() {
     test('Multiple pull calls are executed.', () async {
       config.kPubsubPullNumberValue = 2;
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo);
+      githubService.pullRequestData = pullRequest1;
       for (int i = 0; i < 3; i++) {
         pubsub.publish('auto-submit-queue-sub', pullRequest1);
       }

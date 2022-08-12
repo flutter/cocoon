@@ -16,6 +16,7 @@ class FakeGithubService implements GithubService {
     MockGitHub? client,
     String? checkRunsMock,
     String? commitMock,
+    String? pullRequest,
     String? compareTwoCommitsMock,
     String? successMergeMock,
     String? createCommentMock,
@@ -27,6 +28,7 @@ class FakeGithubService implements GithubService {
 
   String? checkRunsMock;
   String? commitMock;
+  PullRequest? pullRequestMock;
   String? compareTwoCommitsMock;
   String? successMergeMock;
   String? createCommentMock;
@@ -41,6 +43,10 @@ class FakeGithubService implements GithubService {
 
   set commitData(String? commitMock) {
     this.commitMock = commitMock;
+  }
+
+  set pullRequestData(PullRequest? pullRequestMock) {
+    this.pullRequestMock = pullRequestMock;
   }
 
   set compareTwoCommitsData(String? compareTwoCommitsMock) {
@@ -78,6 +84,12 @@ class FakeGithubService implements GithubService {
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
     return commit;
+  }
+
+  @override
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
+    final PullRequest pullRequest = pullRequestMock!;
+    return pullRequest;
   }
 
   @override

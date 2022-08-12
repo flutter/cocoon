@@ -49,4 +49,33 @@ void main() {
     expect(githubService.labelRemoved, true);
     assert(pubsub.messagesQueue.isEmpty);
   });
+
+  group('shouldProcess pull request', () {
+    test('should process message when autosubmit label exists and pr is open', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      githubService.pullRequestData = pullRequest;
+      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
+      expect(shouldProcessFlag, true);
+    });
+
+    test('skip processing message when autosubmit label does not exist anymore', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      pullRequest.labels = <IssueLabel>[];
+      githubService.pullRequestData = pullRequest;
+
+      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
+
+      expect(shouldProcessFlag, false);
+    });
+
+    test('skip processing message when the pull request is closed', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      pullRequest.state = 'closed';
+      githubService.pullRequestData = pullRequest;
+
+      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
+
+      expect(shouldProcessFlag, false);
+    });
+  });
 }
