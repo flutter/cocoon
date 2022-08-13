@@ -114,17 +114,21 @@ class BranchService {
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
   }
 
-  Future<List<String>> getStableBetaDevBranches({required gh.GitHub github, required gh.RepositorySlug slug}) async {
-    String devSha = (await github.repositories.getBranch(slug, 'dev')).commit!.sha!;
-    String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
-    String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
-    print("dev, beta, stable shas are: $devSha $betaSha $stableSha");
+  Future<List<Map<String, String>>> getStableBetaDevBranches(
+      {required gh.GitHub github, required gh.RepositorySlug slug}) async {
+    final String devSha = (await github.repositories.getBranch(slug, 'dev')).commit!.sha!;
+    final String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
+    final String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
 
     List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
-    String devName = branches.where(((gh.Branch b) => b.commit!.sha == devSha)).single.name!;
-    String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
-    String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
+    final String devName = branches.where(((gh.Branch b) => b.commit!.sha == devSha)).single.name!;
+    final String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
+    final String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
 
-    return [stableName, betaName, devName];
+    return <Map<String, String>>[
+      {"branch": stableName, "name": "stable"},
+      {"branch": betaName, "name": "beta"},
+      {"branch": devName, "name": "dev"}
+    ];
   }
 }

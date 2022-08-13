@@ -138,9 +138,15 @@ void main() {
           betaBranch,
         ]);
       });
-      final List<String> result =
+      final List<Map<String, String>> result =
           await branchService.getStableBetaDevBranches(github: mockGitHubClient, slug: Config.flutterSlug);
-      expect(result, [stableBranch.name, betaBranch.name, devBranch.name]);
+      expect(result.length, 3);
+      expect(result[0]['branch'], stableBranch.name);
+      expect(result[0]['name'], "stable");
+      expect(result[1]['branch'], betaBranch.name);
+      expect(result[1]['name'], "beta");
+      expect(result[2]['branch'], devBranch.name);
+      expect(result[2]['name'], "dev");
     });
   });
 
