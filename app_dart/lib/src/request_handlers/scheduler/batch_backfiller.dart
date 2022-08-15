@@ -113,6 +113,10 @@ class BatchBackfiller extends RequestHandler {
     }
   }
 
+  /// Returns priority for back filled targets.
+  /// 
+  /// Uses a higher priority if there is an earlier failed build. Otherwise,
+  /// uses default `LuciBuildService.kBackfillPriority`
   int backfillPriority(List<Task> tasks, int pastTaskNumber) {
     if (shouldRerunPriority(tasks, pastTaskNumber)) {
       return LuciBuildService.kRerunPriority;

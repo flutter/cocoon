@@ -76,11 +76,12 @@ class BatchPolicy implements SchedulerPolicy {
   }
 }
 
+/// Return true if there is an earlier failed build.
 bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   // Prioritize tasks that recently failed.
   bool hasRecentFailure = false;
   for (int i = 0; i < pastTaskNumber; i++) {
-    if (isFailed(tasks[i])) {
+    if (_isFailed(tasks[i])) {
       hasRecentFailure = true;
       break;
     }
@@ -88,7 +89,7 @@ bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   return hasRecentFailure;
 }
 
-bool isFailed(Task task) {
+bool _isFailed(Task task) {
   return task.status == Task.statusFailed || task.status == Task.statusInfraFailure;
 }
 
