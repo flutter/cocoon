@@ -1,22 +1,20 @@
 # Provide instructions for google Cloud Build to auto-build flutter
-# auto submit to flutter-dashboard project. Auto-build will be triggered
-# by daily schedule on `main` branch.
+# auto-submit bot to flutter-dashboard project. Auto-build will be triggered
+# by daily schedule on `main` branch. This cloudbuild calls two cloudbuild
+# configurations.
 #
-# The auto-build will be skipped if no new commits since last deployment.
+# The first job is for generating the docker image with build provenance,
+# and the second uses the generated docker image and deploys it to app engine.
 
 steps:
-  # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
     args:
       - '-c'
       - |-
-        gcloud config set project $PROJECT_ID
-        latest_version=$(gcloud app versions list --hide-no-traffic --format 'value(version.id)')
-        if [ "$latest_version" = "version-$SHORT_SHA" ]; then
-          echo "No updates since last deployment."
-        else
-          bash cloud_build/deploy_auto_submit.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
-        fi
+        gcloud builds submit --config auto_submit/cloudbuild_auto_submit_docker.yaml \
+          --substitutions="SHORT_SHA=$SHORT_SHA"
+        gcloud builds submit --config auto_submit/cloudbuild_auto_submit_deploy.yaml \
+          --substitutions="_GAE_PROMOTE=$_GAE_PROMOTE,SHORT_SHA=$SHORT_SHA"
 
 timeout: 1200s
