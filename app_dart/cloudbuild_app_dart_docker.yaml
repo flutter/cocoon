@@ -3,6 +3,9 @@
 
 steps:
   # Build dashboard.
+  # This step generates the dashboard files using flutter, then moves the
+  # generated files into the app_dart folder, where a docker image is then
+  # created in the next step.
   - name: us-docker.pkg.dev/$PROJECT_ID/flutter/flutter
     entrypoint: '/bin/bash'
     args: ['cloud_build/dashboard_build.sh']
