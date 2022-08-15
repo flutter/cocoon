@@ -114,14 +114,13 @@ class BranchService {
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
   }
 
-  Future<List<Map<String, String>>> getStableBetaDevBranches(
+  Future<List<Map<String, String>>> getReleaseBranches(
       {required gh.GitHub github, required gh.RepositorySlug slug}) async {
-    final String devSha = (await github.repositories.getBranch(slug, 'dev')).commit!.sha!;
     final String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
     final String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
 
     List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
-    final String devName = branches.where(((gh.Branch b) => b.commit!.sha == devSha)).single.name!;
+    final String devName = await _getDevBranch(github: github, slug: slug, branches: branches);
     final String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
     final String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
 
@@ -130,5 +129,30 @@ class BranchService {
       {"branch": betaName, "name": "beta"},
       {"branch": devName, "name": "dev"}
     ];
+  }
+
+  Future<String> _getDevBranch({
+    required gh.GitHub github,
+    required gh.RepositorySlug slug,
+    required List<gh.Branch> branches,
+  }) async {
+    final RegExp candidateBranchName = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
+    devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
+    String devBranchName = devBranches.take(1).single.name!;
+    return devBranchName;
+  }
+
+  int _versionSum(String tagOrBranchName) {
+    List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
+    int versionSum = 0;
+    for (String digit in digits) {
+      int? d = int.tryParse(digit);
+      if (d == null) {
+        continue;
+      }
+      versionSum = versionSum * 100 + d;
+    }
+    return versionSum;
   }
 }

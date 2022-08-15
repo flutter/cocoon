@@ -4,13 +4,14 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:github/github.dart';
 
-import '../../cocoon_service.dart';
+import '../request_handling/body.dart';
+import '../service/branch_service.dart';
+import '../service/config.dart';
 
-/// Return a list of commit shas of the latest 5 branches for google3 roll, beta, and stable.
-///
-/// Branches are sorted based on the version number.
+/// Return a list of release branch information.
 ///
 /// GET: /api/public/get-release-branches
 ///
@@ -39,7 +40,7 @@ class GetReleaseBranches extends RequestHandler<Body> {
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
     List<Map<String, String>> branchNames =
-        await branchService.getStableBetaDevBranches(github: github, slug: Config.flutterSlug);
+        await branchService.getReleaseBranches(github: github, slug: Config.flutterSlug);
     return Body.forJson(branchNames);
   }
 }
