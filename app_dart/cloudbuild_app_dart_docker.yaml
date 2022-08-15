@@ -1,8 +1,5 @@
-# Provide instructions for google Cloud Build to auto-build flutter
-# dashboard to flutter-dashboard project. Auto-build will be triggered
-# by daily schedule on `main` branch.
-#
-# The auto-build will be skipped if no new commits since last deployment.
+# Provide instructions for google Cloud Build to build and upload the flutter
+# dashboard docker image to artifact registry.
 
 steps:
   # Build dashboard.
