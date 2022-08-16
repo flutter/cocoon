@@ -5,6 +5,7 @@
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
@@ -79,6 +80,23 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => allGray);
       await tester.get(handler);
       expect(pubsub.messages.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest =
+          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+      expect(scheduleBuildRequest.priority, LuciBuildService.kBackfillPriority);
+    });
+
+    test('backfills earlier failed task with higher priority', () async {
+      List<Task> allGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(3, name: 'Linux_android A', status: Task.statusFailed),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => allGray);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest =
+          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 
     test('backfills older task', () async {

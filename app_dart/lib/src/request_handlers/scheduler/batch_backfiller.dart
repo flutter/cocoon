@@ -11,7 +11,6 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../../model/appengine/commit.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/request_handler.dart';
@@ -65,7 +64,7 @@ class BatchBackfiller extends RequestHandler {
     }
 
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
-    final List<Tuple<Target, Task, Commit>> backfill = <Tuple<Target, Task, Commit>>[];
+    final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[];
     for (List<FullTask> taskColumn in taskMap.values) {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
@@ -74,25 +73,26 @@ class BatchBackfiller extends RequestHandler {
         continue;
       }
       final FullTask? _backfill = _backfillTask(target, taskColumn);
+      final int priority = backfillPriority(taskColumn.map((e) => e.task).toList(), BatchPolicy.kBatchSize);
       if (_backfill != null) {
-        backfill.add(Tuple<Target, Task, Commit>(target, _backfill.task, _backfill.commit));
+        backfill.add(Tuple<Target, FullTask, int>(target, _backfill, priority));
       }
     }
 
     log.fine('Backfilling ${backfill.length} builds');
-    log.fine(backfill.map<String>((Tuple<Target, Task, Commit> tuple) => tuple.first.value.name));
+    log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
 
     // Create list of backfill requests.
     final List<Future> futures = <Future>[];
-    for (Tuple<Target, Task, Commit> tuple in backfill) {
+    for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
       final Tuple<Target, Task, int> toBeScheduled = Tuple(
         tuple.first,
-        tuple.second,
-        LuciBuildService.kBackfillPriority,
+        tuple.second.task,
+        tuple.third,
       );
       futures.add(scheduler.luciBuildService.schedulePostsubmitBuilds(
-        commit: tuple.third,
+        commit: tuple.second.commit,
         toBeScheduled: [toBeScheduled],
       ));
     }
@@ -100,7 +100,7 @@ class BatchBackfiller extends RequestHandler {
     await Future.wait<void>(futures);
 
     // Update tasks status as in progress to avoid duplicate scheduling.
-    final List<Task> backfillTasks = backfill.map((Tuple<Target, Task, Commit> tuple) => tuple.second).toList();
+    final List<Task> backfillTasks = backfill.map((Tuple<Target, FullTask, int> tuple) => tuple.second.task).toList();
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
@@ -111,6 +111,17 @@ class BatchBackfiller extends RequestHandler {
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
+  }
+
+  /// Returns priority for back filled targets.
+  ///
+  /// Uses a higher priority if there is an earlier failed build. Otherwise,
+  /// uses default `LuciBuildService.kBackfillPriority`
+  int backfillPriority(List<Task> tasks, int pastTaskNumber) {
+    if (shouldRerunPriority(tasks, pastTaskNumber)) {
+      return LuciBuildService.kRerunPriority;
+    }
+    return LuciBuildService.kBackfillPriority;
   }
 
   /// Returns the most recent [FullTask] to backfill.
