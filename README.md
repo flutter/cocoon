@@ -1,4 +1,16 @@
-Cocoon is a Dart App Engine custom runtime (backend) with a frontend
+<a href="https://github.com/flutter/cocoon">
+  <h1 align="center">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://storage.googleapis.com/cms-storage-bucket/6e19fee6b47b36ca613f.png">
+      <img alt="Flutter" src="https://storage.googleapis.com/cms-storage-bucket/c823e53b3a1a7b0d36a9.png">
+    </picture>
+  </h1>
+</a>
+
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon/badge)](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon)
+
+**Cocoon** is a Dart App Engine custom runtime (backend) with a frontend
 of Flutter apps (build and repository dashboard). Cocoon coordinates
 and aggregates the results of [flutter/flutter](https://github.com/flutter/flutter)
 builds.
