@@ -30,7 +30,7 @@ class FakeGerritService extends GerritService {
   ];
 
   @override
-  Future<List<String>> branches(String repo, String project, {String? subString}) async => branchesValue;
+  Future<List<String>> branches(String repo, String project, {String? filterRegex}) async => branchesValue;
 
   @override
   Future<Iterable<GerritCommit>> commits(RepositorySlug slug, String branch) async => commitsValue ?? _defaultCommits;

@@ -217,7 +217,7 @@ class LuciBuildService {
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
       'recipes',
-      subString: 'flutter-',
+      filterRegex: 'flutter-*|fuchsia*',
     );
 
     final String sha = pullRequest.head!.sha!;

@@ -28,7 +28,7 @@ void main() {
         await gerritService.branches(
           'myhost',
           'a/b/c',
-          subString: 'flutter-',
+          filterRegex: 'flutter-*',
         );
       } catch (e) {
         expect(e, isA<RetryException>());
@@ -42,7 +42,7 @@ void main() {
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
-        subString: 'flutter-',
+        filterRegex: 'flutter-*',
       );
       expect(branches, equals(<String>['refs/heads/branch_a']));
     });
@@ -53,7 +53,7 @@ void main() {
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
-        subString: 'flutter-',
+        filterRegex: 'flutter-',
       );
       expect(branches, equals(<String>[]));
     });
