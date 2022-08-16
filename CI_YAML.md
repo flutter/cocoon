@@ -22,10 +22,19 @@ enabled_branches:
   - main
   - flutter-\\d+\\.\\d+-candidate\\.\\d+
 
+# Platform properties defines common properties shared among targets from the same platform.
+platform_properties:
+  linux:
+    properties:
+      # os will be inherited by all Linux targets, but it can be overrided at the target level
+      os: Linux
+
 targets:
 # A Target is an individual unit of work that is scheduled by Flutter infra
 # Target's are composed of the following properties:
 # name: A human readable string to uniquely identify this target.
+#       The first word indicates the platform this test will be run on. This should match
+#       to an existing platform under platform_properties.
 # bringup: Whether this target is under active development and should not block the tree.
 #          If true, will not run in presubmit and will not block postsubmit.
 # scheduler: String identifying where this target is triggered.
