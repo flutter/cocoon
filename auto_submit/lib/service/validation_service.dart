@@ -8,6 +8,7 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
+import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:graphql/client.dart' as graphql;
 

@@ -33,6 +33,7 @@ class FakeGithubService implements GithubService {
   String? successMergeMock;
   String? createCommentMock;
   String? pullRequestMergeMock;
+  String? pullRequestFilesJsonMock;
 
   IssueComment? issueComment;
   bool labelRemoved = false;
@@ -63,6 +64,10 @@ class FakeGithubService implements GithubService {
 
   set pullRequestMergeData(String? pullRequestMergeMock) {
     this.pullRequestMergeMock = pullRequestMergeMock;
+  }
+
+  set pullrequestFilesData(String? pullRequestFilesMock) {
+    pullRequestFilesJsonMock = pullRequestFilesMock;
   }
 
   @override
@@ -120,5 +125,22 @@ class FakeGithubService implements GithubService {
   Future<Response> autoMergeBranch(PullRequest pullRequest) {
     // TODO: implement autoMergeBranch
     throw UnimplementedError();
+  }
+  
+  @override
+  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+    List<PullRequestFile> pullRequestFileList = [];
+    if (pullRequestFilesJsonMock == null) {
+      return pullRequestFileList;
+    }
+    String pullRequestData = pullRequestFilesJsonMock as String;
+    dynamic parsedList = jsonDecode(pullRequestData);
+    
+    for (dynamic d in parsedList) {
+      PullRequestFile file = PullRequestFile.fromJson(d as Map<String, dynamic>);
+      pullRequestFileList.add(file);
+    }
+
+    return pullRequestFileList;
   }
 }

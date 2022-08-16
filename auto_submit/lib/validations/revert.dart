@@ -18,6 +18,7 @@ class Revert extends Validation {
 
   static const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
 
+  /// Validate a revert pull request.
   @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
@@ -53,8 +54,16 @@ class Revert extends Validation {
     }
 
     // Get the reverts pull request.
-    github.RepositorySlug repositorySlug = getSlugFromLink(revertLink);
-    int pullRequestId = getPullRequestIdFromLink(revertLink);
+    github.RepositorySlug? repositorySlug = getSlugFromLink(revertLink);
+    if (repositorySlug == null) {
+      log.info('Could not determine repository slug from provided link. Please correct the link and re-add the revert label.');
+      return ValidationResult(false, Action.REMOVE_LABEL, 'Could not determine repository slug from provided link. Please correct the link and re-add the revert label.');
+    }
+    int? pullRequestId = getPullRequestIdFromLink(revertLink);
+    if (pullRequestId == null) {
+      log.info('Could not determine original pull request id from provided link. Please correct the link and re-add the revert label.');
+      return ValidationResult(false, Action.REMOVE_LABEL, 'Could not determine original pull request id from provided link. Please correct the link and re-add the revert label.');
+    }
     github.PullRequest requestToRevert = await getPullRequest(repositorySlug, pullRequestId);
 
     // Compare the changes made with the linked pull request.
@@ -76,8 +85,7 @@ class Revert extends Validation {
 
   /// The full text here is 'Reverts flutter/cocoon#XXXXX' as output by github
   /// the link must be in the form github.com/flutter/repo/pull/id
-  final RegExp _regExp = RegExp(r'^[Rr]everts[\s]+([-\.a-zA-Z/_]+#[0-9]+)$');
-
+  final RegExp _regExp = RegExp(r'^[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)$', multiLine: true);
   String? extractLinkFromText(String? bodyText) {
     if (bodyText == null) {
       return null;
@@ -94,7 +102,11 @@ class Revert extends Validation {
   /// Split a reverts link on the '#' then the '/' to get the parts of the repo
   /// slug.
   /// It is assumed that the link has the format flutter/repo#id.
-  github.RepositorySlug getSlugFromLink(String link) {
+  final RegExp _regExpLink = RegExp(r'^[-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+$');
+  github.RepositorySlug? getSlugFromLink(String link) {
+    if (!_regExpLink.hasMatch(link)) {
+      return null;
+    }
     List<String> linkSplit = link.split('#');
     List<String> slugSplit = linkSplit.elementAt(0).split('/');
     return github.RepositorySlug(slugSplit.elementAt(0), slugSplit.elementAt(1));
@@ -102,7 +114,10 @@ class Revert extends Validation {
 
   /// Split a reverts link on the '#' to get the id part of the link.
   /// It is assumed that the link has the format flutter/repo#id.
-  int getPullRequestIdFromLink(String link) {
+  int? getPullRequestIdFromLink(String link) {
+    if (!_regExpLink.hasMatch(link)) {
+      return null;
+    }
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }
@@ -126,8 +141,8 @@ class Revert extends Validation {
     return validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
   }
 
-  /// Validate that each pull request has the same number of files. This must be
-  /// the case in order to process the revert.
+  /// Validate that each pull request has the same number of files and that the 
+  /// file names match. This must be the case in order to process the revert.
   bool validateFileSetsAreEqual(
       List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
     List<String?> revertFileNames = [];
