@@ -114,6 +114,10 @@ class BranchService {
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
   }
 
+  /// Returns a Map that contains the latest google3 roll, beta, and stable branches.
+  ///
+  /// Latest beta and stable branches are retrieved based on 'beta' and 'stable' tags. Dev branch is retrived
+  /// as the latest flutter candidate branch.
   Future<List<Map<String, String>>> getReleaseBranches(
       {required gh.GitHub github, required gh.RepositorySlug slug}) async {
     final String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
@@ -131,6 +135,7 @@ class BranchService {
     ];
   }
 
+  /// Retrieve the latest canidate branch from all candidate branches.
   Future<String> _getDevBranch({
     required gh.GitHub github,
     required gh.RepositorySlug slug,
@@ -143,6 +148,7 @@ class BranchService {
     return devBranchName;
   }
 
+  /// Helper function to convert candidate branch versions to numbers for comparison.
   int _versionSum(String tagOrBranchName) {
     List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
     int versionSum = 0;
