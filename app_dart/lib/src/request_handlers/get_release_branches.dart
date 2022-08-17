@@ -1,0 +1,46 @@
+// Copyright 2020 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:async';
+
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:github/github.dart';
+
+import '../request_handling/body.dart';
+import '../service/branch_service.dart';
+import '../service/config.dart';
+
+/// Return a list of release branch information.
+///
+/// GET: /api/public/get-release-branches
+///
+/// Response: Status 200 OK
+///[
+///    {
+///        "branch":"flutter-2.13-candidate.0",
+///        "name":"stable"
+///    },
+///    {
+///        "branch":"flutter-3.2-candidate.5",
+///        "name":"beta"
+///    },
+///    {
+///        "branch":"flutter-3.4-candidate.5",
+///        "name":"dev"
+///    }
+///]
+
+class GetReleaseBranches extends RequestHandler<Body> {
+  GetReleaseBranches(Config config, {required this.branchService}) : super(config: config);
+
+  final BranchService branchService;
+
+  @override
+  Future<Body> get() async {
+    final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
+    List<Map<String, String>> branchNames =
+        await branchService.getReleaseBranches(github: github, slug: Config.flutterSlug);
+    return Body.forJson(branchNames);
+  }
+}

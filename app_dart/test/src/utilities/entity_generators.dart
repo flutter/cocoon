@@ -34,6 +34,40 @@ Commit generateCommit(
       ),
     );
 
+github.Branch generateBranch(
+  int i, {
+  String? name,
+  String? sha,
+}) =>
+    github.Branch(
+      name ?? '$i',
+      github.CommitData(
+        sha,
+        github.GitCommit(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      ),
+    );
+
+github.Tag generateTag(
+  int i, {
+  String? name,
+  String? sha,
+}) =>
+    github.Tag(
+      name ?? '$i',
+      github.CommitInfo(
+        sha,
+        null,
+      ),
+      'blah_zip',
+      'blah_tar',
+    );
+
 Task generateTask(
   int i, {
   String? name,

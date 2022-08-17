@@ -1,27 +1,20 @@
 # Provide instructions for google Cloud Build to auto-build flutter
 # dashboard to flutter-dashboard project. Auto-build will be triggered
-# by daily schedule on `main` branch.
+# by daily schedule on `main` branch. This cloudbuild calls two cloudbuild
+# configurations.
 #
-# The auto-build will be skipped if no new commits since last deployment.
+# The first job is for generating the docker image with build provenance,
+# and the second uses the generated docker image and deploys it to app engine.
 
 steps:
-  # Build dashboard.
-  - name: us-docker.pkg.dev/$PROJECT_ID/flutter/flutter
-    entrypoint: '/bin/bash'
-    args: ['cloud_build/dashboard_build.sh']
-
-  # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
     args:
       - '-c'
       - |-
-        gcloud config set project $PROJECT_ID
-        latest_version=$(gcloud app versions list --hide-no-traffic --format 'value(version.id)')
-        if [ "$latest_version" = "version-$SHORT_SHA" ]; then
-          echo "No updates since last deployment."
-        else
-          bash cloud_build/deploy_app_dart.sh $PROJECT_ID $SHORT_SHA $_GAE_PROMOTE
-        fi
+        gcloud builds submit --config app_dart/cloudbuild_app_dart_docker.yaml \
+          --substitutions="SHORT_SHA=$SHORT_SHA"
+        gcloud builds submit --config app_dart/cloudbuild_app_dart_deploy.yaml \
+          --substitutions="_GAE_PROMOTE=$_GAE_PROMOTE,SHORT_SHA=$SHORT_SHA"
 
 timeout: 1200s

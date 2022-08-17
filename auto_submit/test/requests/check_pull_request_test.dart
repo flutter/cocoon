@@ -9,6 +9,7 @@ import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:graphql/client.dart' hide Request, Response;
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
@@ -489,17 +490,16 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
-    test('Multiple pull calls are executed.', () async {
-      config.kPubsubPullNumberValue = 2;
-      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo);
-      githubService.pullRequestData = pullRequest1;
+    test('All messages are pulled', () async {
       for (int i = 0; i < 3; i++) {
-        pubsub.publish('auto-submit-queue-sub', pullRequest1);
+        final PullRequest pullRequest = generatePullRequest(prNumber: i, repoName: cocoonRepo);
+        pubsub.publish('auto-submit-queue-sub', pullRequest);
       }
+
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
-      await checkPullRequest.get();
-      expect(0, pubsub.messagesQueue.length);
+      final List<pub.ReceivedMessage> messages = await checkPullRequest.pullMessages();
+      expect(messages.length, 3);
     });
   });
 }
