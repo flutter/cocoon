@@ -24,48 +24,73 @@ void main() {
     });
 
     final List<Task> allPending = <Task>[
+      generateTask(3),
       generateTask(2),
       generateTask(1),
     ];
 
+    final List<Task> latestAllPending = <Task>[
+      generateTask(6),
+      generateTask(5),
+      generateTask(4),
+      generateTask(3),
+      generateTask(2),
+      generateTask(1, status: Task.statusSucceeded),
+    ];
+
     final List<Task> latestFinishedButRestPending = <Task>[
-      generateTask(3, status: Task.statusSucceeded),
+      generateTask(6, status: Task.statusSucceeded),
+      generateTask(5),
+      generateTask(4),
+      generateTask(3),
       generateTask(2),
       generateTask(1),
     ];
 
     final List<Task> latestFailed = <Task>[
-      generateTask(3, status: Task.statusFailed),
+      generateTask(6, status: Task.statusFailed),
+      generateTask(5),
+      generateTask(4),
+      generateTask(3),
       generateTask(2),
       generateTask(1),
     ];
 
     final List<Task> latestPending = <Task>[
+      generateTask(6),
+      generateTask(5),
+      generateTask(4),
       generateTask(3),
       generateTask(2, status: Task.statusSucceeded),
       generateTask(1, status: Task.statusSucceeded),
     ];
 
-    test('triggers after batch size', () async {
+    test('triggers if less tasks than batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => allPending);
       expect(
-          await policy.triggerPriority(task: generateTask(3), datastore: datastore), LuciBuildService.kDefaultPriority);
+          await policy.triggerPriority(task: generateTask(4), datastore: datastore), LuciBuildService.kDefaultPriority);
+    });
+
+    test('triggers after batch size', () async {
+      db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
+      expect(
+          await policy.triggerPriority(task: generateTask(7), datastore: datastore), LuciBuildService.kDefaultPriority);
     });
 
     test('triggers with higher priority on recent failures', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
       expect(
-          await policy.triggerPriority(task: generateTask(4), datastore: datastore), LuciBuildService.kRerunPriority);
+          await policy.triggerPriority(task: generateTask(7), datastore: datastore), LuciBuildService.kRerunPriority);
     });
 
     test('does not trigger when a test was recently scheduled', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFinishedButRestPending);
-      expect(await policy.triggerPriority(task: generateTask(4), datastore: datastore), isNull);
+      expect(await policy.triggerPriority(task: generateTask(7), datastore: datastore), isNull);
     });
 
     test('does not trigger when pending queue is smaller than batch', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestPending);
-      expect(await policy.triggerPriority(task: generateTask(4), datastore: datastore), isNull);
+      expect(await policy.triggerPriority(task: generateTask(7), datastore: datastore), isNull);
     });
   });
 

@@ -41,7 +41,7 @@ class GuaranteedPolicy implements SchedulerPolicy {
   }
 }
 
-/// [Task] is run at least every 3 commits.
+/// [Task] is run at least every 6 commits.
 ///
 /// If there is capacity, a backfiller cron triggers the latest task that was not run
 /// to ensure ToT is always tested.
@@ -49,7 +49,7 @@ class GuaranteedPolicy implements SchedulerPolicy {
 /// This is intended for targets that are run in an infra pool that has limited capacity,
 /// such as the on device tests in the DeviceLab.
 class BatchPolicy implements SchedulerPolicy {
-  static const int kBatchSize = 3;
+  static const int kBatchSize = 6;
   @override
   Future<int?> triggerPriority({
     required Task task,
@@ -68,12 +68,22 @@ class BatchPolicy implements SchedulerPolicy {
       return LuciBuildService.kRerunPriority;
     }
 
-    if (recentTasks[0].status == Task.statusNew && recentTasks[1].status == Task.statusNew) {
+    if (allNew(recentTasks.sublist(0, kBatchSize - 1))) {
       return LuciBuildService.kDefaultPriority;
     }
 
     return null;
   }
+}
+
+/// Checks if all tasks are with [Task.statusNew].
+bool allNew(List<Task> tasks) {
+  for (Task task in tasks) {
+    if (task.status != Task.statusNew) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// Return true if there is an earlier failed build.
