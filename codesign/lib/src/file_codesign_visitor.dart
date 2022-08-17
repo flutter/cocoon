@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:process/process.dart';
 
 import 'log.dart';
@@ -226,5 +228,23 @@ update these file paths accordingly.
       );
     }
     fileConsumed.add(entitlementCurrentPath);
+  }
+
+  /// Extract entitlements configurations from downloaded zip files.
+  ///
+  /// Parse and store codesign configurations detailed in configuration files.
+  /// File paths of entilement files and non entitlement files will be parsed and stored in [fileWithEntitlements].
+  Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async {
+    final String entitlementFilePath = entitlements
+        ? fileSystem.path.join(parent.path, 'entitlements.txt')
+        : fileSystem.path.join(parent.path, 'without_entitlements.txt');
+    if (!(await fileSystem.file(entitlementFilePath).exists())) {
+      throw CodesignException('entitilements configuration files are not detected \n'
+          'make sure you have provided them along with the engine artifacts \n');
+    }
+
+    final Set<String> fileWithEntitlements = <String>{};
+    fileWithEntitlements.addAll(await fileSystem.file(entitlementFilePath).readAsLines());
+    return fileWithEntitlements;
   }
 }

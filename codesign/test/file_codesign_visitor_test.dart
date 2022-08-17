@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:codesign/codesign.dart' as cs;
 import 'package:codesign/src/log.dart';
+import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
@@ -356,6 +359,98 @@ void main() {
       expect(messages, contains('signing file at path ${tempDir.absolute.path}/remote_zip_1/file_b'));
       expect(messages, contains('the virtual entitlement path associated with file is root/file_b'));
       expect(messages, contains('the decision to sign with entitlement is false'));
+    });
+  });
+
+  group('pase entitlement configs: ', () {
+    setUp(() {
+      tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+      processManager = FakeProcessManager.list(<FakeCommand>[]);
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        codesignUserName: randomString,
+        appSpecificPassword: randomString,
+        codesignAppstoreId: randomString,
+        codesignTeamId: randomString,
+        codesignFilepaths: fakeFilepaths,
+        commitHash: randomString,
+        fileSystem: fileSystem,
+        processManager: processManager,
+        tempDir: tempDir,
+      );
+      codesignVisitor.directoriesVisited.clear();
+      records.clear();
+      log.onRecord.listen((LogRecord record) => records.add(record));
+    });
+
+    test('parse and store file paths', () async {
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').createSync(recursive: true);
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').writeAsStringSync(
+            'file_a\nfile_b\nfile_c\n',
+            mode: FileMode.append,
+            encoding: utf8,
+          );
+
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/without_entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          'file_d\nfile_e\n',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        true,
+      );
+      final Set<String> fileWithoutEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        false,
+      );
+      expect(fileWithEntitlements.length, 3);
+      expect(
+          fileWithEntitlements,
+          containsAll(<String>[
+            'file_a',
+            'file_b',
+            'file_c',
+          ]));
+      expect(fileWithoutEntitlements.length, 2);
+      expect(
+          fileWithoutEntitlements,
+          containsAll(<String>[
+            'file_d',
+            'file_e',
+          ]));
+    });
+
+    test('throw exception when configuration file is missing', () async {
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').createSync(recursive: true);
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').writeAsStringSync(
+            'file_a\nfile_b\nfile_c\n',
+            mode: FileMode.append,
+            encoding: utf8,
+          );
+
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        true,
+      );
+      expect(fileWithEntitlements.length, 3);
+      expect(
+          fileWithEntitlements,
+          containsAll(<String>[
+            'file_a',
+            'file_b',
+            'file_c',
+          ]));
+      expect(
+          () => codesignVisitor.parseEntitlements(
+                fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement'),
+                false,
+              ),
+          throwsA(
+            isA<CodesignException>(),
+          ));
     });
   });
 }
