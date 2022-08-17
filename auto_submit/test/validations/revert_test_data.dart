@@ -30,7 +30,7 @@ const String queryResultRepositoryOwnerJson = """
           ]
         },
         "reviews": {
-          
+
         }
       }
     }
@@ -65,7 +65,7 @@ const String queryResultRepositoryContributorJson = """
           ]
         },
         "reviews": {
-          
+
         }
       }
     }

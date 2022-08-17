@@ -71,7 +71,7 @@ void main() {
       tests['reverts flutter/cocoon#12323'] = 'flutter/cocoon#12323';
       tests['reverts flutter/cocoon#223'] = 'flutter/cocoon#223';
       tests["""Reverts flutter/cocoon#123456
-      
+
       Some other notes in the description a developer might add.
       And another note."""] = 'flutter/cocoon#123456';
 
