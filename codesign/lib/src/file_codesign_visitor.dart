@@ -3,11 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
-import 'package:file/local.dart';
 import 'package:process/process.dart';
 
 import 'log.dart';
