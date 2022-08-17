@@ -170,7 +170,7 @@ class FakeGithubService implements GithubService {
 
     return pullRequestFileList;
   }
-  
+
   @override
   Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
     return githubIssueMock!;
