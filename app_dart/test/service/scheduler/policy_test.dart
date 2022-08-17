@@ -28,7 +28,7 @@ void main() {
       generateTask(2),
       generateTask(1),
     ];
-    
+
     final List<Task> latestAllPending = <Task>[
       generateTask(6),
       generateTask(5),
@@ -70,7 +70,7 @@ void main() {
       expect(
           await policy.triggerPriority(task: generateTask(4), datastore: datastore), LuciBuildService.kDefaultPriority);
     });
-    
+
     test('triggers after batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
       expect(
