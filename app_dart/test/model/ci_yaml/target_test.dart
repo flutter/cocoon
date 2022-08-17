@@ -331,8 +331,8 @@ void main() {
             isA<OmitPolicy>());
       });
 
-      test('vm cocoon targets return guranteed policy', () {
-        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<GuaranteedPolicy>());
+      test('vm cocoon targets return batch policy', () {
+        expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<BatchPolicy>());
       });
     });
   });
