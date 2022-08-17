@@ -4,19 +4,19 @@
 
 import 'dart:convert';
 
-import 'package:github/github.dart';
+import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/validations/validation.dart';
+import 'package:github/github.dart' as github;
 
 import 'revert_test_data.dart';
 
 import 'package:auto_submit/validations/revert.dart';
 import 'package:test/scaffolding.dart';
 
-import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
-import '../requests/github_webhook_test_data.dart';
 
 void main() {
   late FakeConfig config;
@@ -24,13 +24,36 @@ void main() {
   late FakeGraphQLClient githubGraphQLClient;
   MockGitHub gitHub = MockGitHub();
   late Revert revert;
-  
 
   /// Setup objects needed across test groups.
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
     revert = Revert(config: config);
+  });
+
+  group('Author validation tests.', () {
+    test('Validate author association member is valid.', () {
+      String authorAssociation = 'MEMBER';
+      assert(revert.isValidAuthor('octocat', authorAssociation));
+    });
+
+    test('Validate author association owner is valid.', () {
+      String authorAssociation = 'OWNER';
+      assert(revert.isValidAuthor('octocat', authorAssociation));
+    });
+
+    test('Validate author dependabot is valid.', () {
+      String author = 'dependabot';
+      String authorAssociation = 'NON_MEMBER';
+      assert(revert.isValidAuthor(author, authorAssociation));
+    });
+
+    test('Validate autoroller account is valid.', () {
+      String author = 'engine-flutter-autoroll';
+      String authorAssociation = 'CONTRIBUTOR';
+      assert(revert.isValidAuthor(author, authorAssociation));
+    });
   });
 
   group('Pattern matching for revert text link', () {
@@ -73,72 +96,132 @@ void main() {
     });
   });
 
-  group('Get slug from pull request link tests.', () {
-    test('Slug is successfully extracted from link.', () {
-      String link = 'flutter/cocoon#123456';
-      RepositorySlug? slug = revert.getSlugFromLink(link);
-      assert(slug != null);
-      assert(slug!.owner == 'flutter');
-      assert(slug!.name == 'cocoon');
-    });
-
-    test('Slug cannot be successfully extracted from link partial.', () {
-      String link = 'flutter/cocoon';
-      RepositorySlug? slug = revert.getSlugFromLink(link);
-      assert(slug == null);
-    });
-  });
-
-  group('Get pull request id from pull requst link tests.', () {
-    test('Pull Request id is successfully extracted from provided link.', () {
-      String link = 'flutter/cocoon#234';
-      int? id = revert.getPullRequestIdFromLink(link);
-      assert(id != null);
-      assert(id == 234);
-    });
-
-    test('Pull request id cannot be extracted from link.', () {
-      String link = 'flutter/cocoon1234';
-      int? id = revert.getPullRequestIdFromLink(link);
-      assert(id == null);
-    });
-  });
-
   group('Validate pull request file sets.', () {
     test('Validate pull request file sets match.', () async {
-      RepositorySlug slug = RepositorySlug('cocoon', 'flutter');
+      github.RepositorySlug slug = github.RepositorySlug('cocoon', 'flutter');
 
       Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      PullRequest revertPullRequest = PullRequest.fromJson(pullRequestJsonMap);
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       githubService.pullRequestData = revertPullRequest;
       githubService.pullRequestFilesJsonMock = revertPullRequestFilesJson;
-      List<PullRequestFile> revertPullRequestFiles = await githubService.getPullRequestFiles(slug, revertPullRequest);
+      List<github.PullRequestFile> revertPullRequestFiles =
+          await githubService.getPullRequestFiles(slug, revertPullRequest);
 
       Map<String, dynamic> pullRequestJsonMap2 = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      PullRequest originalPullRequest = PullRequest.fromJson(pullRequestJsonMap2);
+      github.PullRequest originalPullRequest = github.PullRequest.fromJson(pullRequestJsonMap2);
       githubService.pullRequestData = originalPullRequest;
       githubService.pullRequestFilesJsonMock = originalPullRequestFilesJson;
-      List<PullRequestFile> originalPullRequestFiles = await githubService.getPullRequestFiles(slug, originalPullRequest);
+      List<github.PullRequestFile> originalPullRequestFiles =
+          await githubService.getPullRequestFiles(slug, originalPullRequest);
 
       assert(revert.validateFileSetsAreEqual(revertPullRequestFiles, originalPullRequestFiles));
     });
 
     test('Validate that a subset of files is caught in the comparison', () async {
-      RepositorySlug slug = RepositorySlug('cocoon', 'flutter');
+      github.RepositorySlug slug = github.RepositorySlug('cocoon', 'flutter');
 
       Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      PullRequest revertPullRequest = PullRequest.fromJson(pullRequestJsonMap);
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       githubService.pullRequestData = revertPullRequest;
       githubService.pullRequestFilesJsonMock = revertPullRequestFilesJson;
-      List<PullRequestFile> revertPullRequestFiles = await githubService.getPullRequestFiles(slug, revertPullRequest);
+      List<github.PullRequestFile> revertPullRequestFiles =
+          await githubService.getPullRequestFiles(slug, revertPullRequest);
 
       Map<String, dynamic> pullRequestJsonMap2 = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      PullRequest originalPullRequest = PullRequest.fromJson(pullRequestJsonMap2);
+      github.PullRequest originalPullRequest = github.PullRequest.fromJson(pullRequestJsonMap2);
       githubService.pullRequestData = originalPullRequest;
       githubService.pullRequestFilesJsonMock = originalPullRequestFilesSubsetJson;
-      List<PullRequestFile> originalPullRequestFiles = await githubService.getPullRequestFiles(slug, originalPullRequest);
+      List<github.PullRequestFile> originalPullRequestFiles =
+          await githubService.getPullRequestFiles(slug, originalPullRequest);
 
       assert(!revert.validateFileSetsAreEqual(revertPullRequestFiles, originalPullRequestFiles));
+    });
+  });
+
+  group('Validate Pull Requests.', () {
+    test('Validation fails on author validation, returns error.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      revertPullRequest.authorAssociation = 'CONTRIBUTOR';
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryContributorJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(!validationResult.result);
+      assert(validationResult.action == Action.REMOVE_LABEL);
+      assert(validationResult.message.contains(RegExp(r'The author.*does not have permissions to make this request.')));
+    });
+
+    test('Validation fails on merge conflict flag.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      revertPullRequest.mergeable = false;
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(!validationResult.result);
+      assert(validationResult.action == Action.REMOVE_LABEL);
+      assert(validationResult.message ==
+          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.');
+    });
+
+    test('Validation fails on malformed reverts link in the pr body.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      revertPullRequest.body = 'Reverting flutter/cocoon#1234';
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(!validationResult.result);
+      assert(validationResult.action == Action.REMOVE_LABEL);
+      assert(validationResult.message ==
+          'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'');
+    });
+
+    test('Validation fails on pull request file lists not matching.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+
+      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      githubService.pullRequestData = originalPullRequest;
+
+      // code gets the original file list then the current file list.
+      githubService.usePullRequestFilesList = true;
+      githubService.pullRequestFilesMockList.add(originalPullRequestFilesSubsetJson);
+      githubService.pullRequestFilesMockList.add(revertPullRequestFilesJson);
+
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(!validationResult.result);
+      assert(validationResult.action == Action.REMOVE_LABEL);
+      assert(validationResult.message ==
+          'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
+    });
+
+    test('Validation is successful.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+
+      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      githubService.pullRequestData = originalPullRequest;
+
+      // code gets the original file list then the current file list.
+      githubService.usePullRequestFilesList = true;
+      githubService.pullRequestFilesMockList.add(originalPullRequestFilesJson);
+      githubService.pullRequestFilesMockList.add(revertPullRequestFilesJson);
+
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(validationResult.result);
+      assert(validationResult.message == 'Revert request has been verified and will be queued for merge.');
     });
   });
 }

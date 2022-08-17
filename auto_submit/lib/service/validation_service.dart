@@ -25,12 +25,15 @@ import 'package:github/github.dart' as github;
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
 /// tested. The expectation is that the list of validation will grow overtime.
 class ValidationService {
-  ValidationService(this.config) {
-    validations.addAll({
-      /// revert validation will go here since it needs to be done before the
-      /// others in order to prevent the full ci suite and approvals from being
-      /// enforced.
+  Revert? revertValidation;
 
+  ValidationService(this.config) {
+    /// revert validation will go here since it needs to be done before the
+    /// others in order to prevent the full ci suite and approvals from being
+    /// enforced.
+    revertValidation = Revert(config: config);
+
+    validations.addAll({
       /// Validates the PR has been approved following the codereview guidelines.
       Approval(config: config),
 
@@ -63,7 +66,8 @@ class ValidationService {
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
     // Accepted states open, closed, or all.
-    return currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel);
+    return currentPullRequest.state == 'open' &&
+        (labelNames.contains(Config.kAutosubmitLabel) || labelNames.contains(Config.kRevertLabel));
   }
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -93,6 +97,18 @@ class ValidationService {
       Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     List<ValidationResult> results = <ValidationResult>[];
 
+    /// Check for the revert label and only process the revert request if the
+    /// revert label is the only label present.
+    List<String> labels = (messagePullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
+
+    // Process a pull request that is marked with the revert label.
+    if (labels.contains(Config.kRevertLabel) && !labels.contains(Config.kAutosubmitLabel)) {
+      processRevertRequest(config, result, messagePullRequest, ackId, pubsub);
+      return;
+    }
+
     /// Runs all the validation defined in the service.
     for (Validation validation in validations) {
       ValidationResult validationResult = await validation.validate(result, messagePullRequest);
@@ -114,7 +130,7 @@ class ValidationService {
       }
     }
     if (shouldReturn) {
-      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknoledged.');
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
@@ -158,5 +174,45 @@ class ValidationService {
       return false;
     }
     return true;
+  }
+
+  /// The logic for processing a revert request. If the revert request is
+  /// processed successfully a new tracking review issue is opened as a result
+  /// since we want to be able to follow up with a formal review.
+  ///
+  /// TODO (ricardoamador) move this code to its own service.
+  Future<void> processRevertRequest(
+      Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+    ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
+    if (revertValidationResult.result) {
+      bool processed = await processMerge(config, result, messagePullRequest);
+      if (processed) {
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      }
+      log.info('Ack the processed message : $ackId.');
+      github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+      final int prNumber = messagePullRequest.number!;
+      final GithubService githubService = await config.createGithubService(slug);
+
+      github.Issue issue = await githubService.createIssue(
+        slug,
+        'Follow up review for revert pull request $prNumber',
+        'Revert request by author ${result.repository!.pullRequest!.author}',
+      );
+    } else {
+      // since we do not temporarily ignore anything with a revert request we
+      // know we will report the error and remove the label.
+      final int prNumber = messagePullRequest.number!;
+      github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+      final GithubService gitHubService = await config.createGithubService(slug);
+      final String commmentMessage =
+          revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
+      await gitHubService.createComment(slug, prNumber, commmentMessage);
+      await gitHubService.removeLabel(slug, prNumber, Config.kRevertLabel);
+      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+    }
   }
 }

@@ -1,3 +1,73 @@
+const String queryResultRepositoryOwnerJson = """
+{
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "login": "author1"
+        },
+        "authorAssociation": "OWNER",
+        "id": "PR_kwDOA8VHis43rs4_",
+        "title": "Revert Trailing comma analysis",
+        "commits": {
+          "nodes":[
+            {
+              "commit": {
+                "abbreviatedOid": "4009ecc",
+                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
+                "committedDate": "2022-05-11T22:35:02Z",
+                "pushedDate": "2022-05-11T22:35:03Z",
+                "status": {
+                  "contexts":[
+
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "reviews": {
+          
+        }
+      }
+    }
+  }
+""";
+
+const String queryResultRepositoryContributorJson = """
+{
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "login": "author1"
+        },
+        "authorAssociation": "CONTRIBUTOR",
+        "id": "PR_kwDOA8VHis43rs4_",
+        "title": "Revert Trailing comma analysis",
+        "commits": {
+          "nodes":[
+            {
+              "commit": {
+                "abbreviatedOid": "4009ecc",
+                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
+                "committedDate": "2022-05-11T22:35:02Z",
+                "pushedDate": "2022-05-11T22:35:03Z",
+                "status": {
+                  "contexts":[
+
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "reviews": {
+          
+        }
+      }
+    }
+  }
+""";
+
 const String revertPullRequestJson = """
   {
   "url": "https://api.github.com/repos/flutter/cocoon/pulls/2047",

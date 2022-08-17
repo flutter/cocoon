@@ -27,43 +27,33 @@ class Revert extends Validation {
 
     // Check to make sure the author is valid.
     if (!isValidAuthor(author, authorAssociation)) {
-      log.info('The author is not a Member or owner.');
-      return ValidationResult(false, Action.REMOVE_LABEL, 'The author is not part of the required group.');
+      String message = 'The author $author does not have permissions to make this request.';
+      log.info(message);
+      return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
     // check if the PR is mergeable
     bool? canMerge = messagePullRequest.mergeable;
-    if (canMerge == null) {
-      log.warning('Unable to determine mergeability of this request.');
-      return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Unable to determine mergeability of this request.');
-    }
-    if (!canMerge) {
-      log.info(
-          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.');
-      return ValidationResult(false, Action.REMOVE_LABEL,
-          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.');
+    if (canMerge == null || !canMerge) {
+      String message =
+          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
+      log.info(message);
+      return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
     // Get the reverts link from the pull request.
     String? pullRequestBody = messagePullRequest.body;
     String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
-      log.info('A reverts link could not be found or was formatted incorrectly.');
-      return ValidationResult(
-          false, Action.REMOVE_LABEL, 'A reverts link could not be found or was formatted incorrectly.');
+      String message =
+          'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
+      log.info(message);
+      return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
     // Get the reverts pull request.
-    github.RepositorySlug? repositorySlug = getSlugFromLink(revertLink);
-    if (repositorySlug == null) {
-      log.info('Could not determine repository slug from provided link. Please correct the link and re-add the revert label.');
-      return ValidationResult(false, Action.REMOVE_LABEL, 'Could not determine repository slug from provided link. Please correct the link and re-add the revert label.');
-    }
-    int? pullRequestId = getPullRequestIdFromLink(revertLink);
-    if (pullRequestId == null) {
-      log.info('Could not determine original pull request id from provided link. Please correct the link and re-add the revert label.');
-      return ValidationResult(false, Action.REMOVE_LABEL, 'Could not determine original pull request id from provided link. Please correct the link and re-add the revert label.');
-    }
+    github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
+    int pullRequestId = _getPullRequestIdFromLink(revertLink);
     github.PullRequest requestToRevert = await getPullRequest(repositorySlug, pullRequestId);
 
     // Compare the changes made with the linked pull request.
@@ -72,10 +62,13 @@ class Revert extends Validation {
     // if the changes are a revert then approve the pull request.
     if (requestsMatch) {
       // create a follow on issue to track the review request for this revert.
-      return ValidationResult(true, Action.MERGE_REVERT, 'Merging revert request.');
+      return ValidationResult(
+          true, Action.REMOVE_LABEL, 'Revert request has been verified and will be queued for merge.');
     }
 
-    return ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Merge is being requeued.');
+    // The requests do not match so we need to notify the user.
+    return ValidationResult(false, Action.REMOVE_LABEL,
+        'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
   }
 
   /// Only a team member and code owner can submit a revert request with a review.
@@ -102,11 +95,7 @@ class Revert extends Validation {
   /// Split a reverts link on the '#' then the '/' to get the parts of the repo
   /// slug.
   /// It is assumed that the link has the format flutter/repo#id.
-  final RegExp _regExpLink = RegExp(r'^[-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+$');
-  github.RepositorySlug? getSlugFromLink(String link) {
-    if (!_regExpLink.hasMatch(link)) {
-      return null;
-    }
+  github.RepositorySlug _getSlugFromLink(String link) {
     List<String> linkSplit = link.split('#');
     List<String> slugSplit = linkSplit.elementAt(0).split('/');
     return github.RepositorySlug(slugSplit.elementAt(0), slugSplit.elementAt(1));
@@ -114,10 +103,7 @@ class Revert extends Validation {
 
   /// Split a reverts link on the '#' to get the id part of the link.
   /// It is assumed that the link has the format flutter/repo#id.
-  int? getPullRequestIdFromLink(String link) {
-    if (!_regExpLink.hasMatch(link)) {
-      return null;
-    }
+  int _getPullRequestIdFromLink(String link) {
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }
@@ -135,13 +121,13 @@ class Revert extends Validation {
   Future<bool> comparePullRequests(
       github.RepositorySlug repositorySlug, github.PullRequest revert, github.PullRequest current) async {
     final GithubService githubService = await config.createGithubService(repositorySlug);
-    List<PullRequestFile> revertPullRequestFiles = await githubService.getPullRequestFiles(repositorySlug, revert);
+    List<PullRequestFile> originalPullRequestFiles = await githubService.getPullRequestFiles(repositorySlug, revert);
     List<PullRequestFile> currentPullRequestFiles = await githubService.getPullRequestFiles(repositorySlug, current);
 
-    return validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
+    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
   }
 
-  /// Validate that each pull request has the same number of files and that the 
+  /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
   bool validateFileSetsAreEqual(
       List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {

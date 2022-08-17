@@ -45,9 +45,6 @@ enum Action {
   /// Do not land the PR but do not remove the autosubmit label either. This is
   /// used for temporary states that may fix by themselves.
   IGNORE_TEMPORARILY,
-
-  /// may not need this here.
-  MERGE_REVERT,
 }
 
 /// Holds a result of a validation execution.

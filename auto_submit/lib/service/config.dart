@@ -31,6 +31,7 @@ class Config {
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
   static const String kAutosubmitLabel = 'autosubmit';
+  static const String kRevertLabel = 'revert';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -176,6 +177,7 @@ class Config {
   /// The autosubmit label.
   String get autosubmitLabel => 'autosubmit';
   String get revertLabel => 'revert';
+
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
   /// TODO(keyonghan): monitor and optimize this number based on response time

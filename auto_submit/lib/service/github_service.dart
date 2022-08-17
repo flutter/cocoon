@@ -29,7 +29,6 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
-
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
     int? pullRequestId = pullRequest.number;
     List<PullRequestFile> listPullRequestFiles = [];
@@ -47,11 +46,18 @@ class GithubService {
     return listPullRequestFiles;
   }
 
-  // TODO we need this to create follow on issues for tracking revert requests.
-  // Future<void> createIssue() async {
-  //   IssueRequest issueRequest = IssueRequest(title: '', body: '', )
-  //   github.issues.create(slug, issue)
-  // }
+  // Create a new issue in github.
+  Future<Issue> createIssue(
+    RepositorySlug repositorySlug,
+    String title,
+    String body,
+  ) async {
+    IssueRequest issueRequest = IssueRequest(
+      title: title,
+      body: body,
+    );
+    return github.issues.create(repositorySlug, issueRequest);
+  }
 
   /// Fetches the specified pull request.
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
