@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show GitHubError, RepositoryCommit, RepositorySlug;
+import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
@@ -87,7 +87,7 @@ class BranchService {
   /// Generally, this should work. However, some edge cases may require CPs. Such as when commits land in a
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
   Future<void> branchFlutterRecipes(String branch) async {
-    final RepositorySlug recipesSlug = RepositorySlug('flutter', 'recipes');
+    final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
     if ((await gerritService.branches('${recipesSlug.owner}-review.googlesource.com', recipesSlug.name,
             subString: branch))
         .contains(branch)) {
@@ -99,9 +99,9 @@ class BranchService {
         await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
     final GithubService githubService = await config.createDefaultGitHubService();
-    final List<RepositoryCommit> githubCommits = await retryOptions.retry(
+    final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
       () async => await githubService.listCommits(Config.flutterSlug, branch, null),
-      retryIf: (Exception e) => e is GitHubError,
+      retryIf: (Exception e) => e is gh.GitHubError,
     );
     log.info('${Config.flutterSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
@@ -112,5 +112,53 @@ class BranchService {
     }
 
     throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
+  }
+
+  /// Returns a Map that contains the latest google3 roll, beta, and stable branches.
+  ///
+  /// Latest beta and stable branches are retrieved based on 'beta' and 'stable' tags. Dev branch is retrived
+  /// as the latest flutter candidate branch.
+  Future<List<Map<String, String>>> getReleaseBranches(
+      {required gh.GitHub github, required gh.RepositorySlug slug}) async {
+    final String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
+    final String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
+
+    List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
+    final String devName = await _getDevBranch(github: github, slug: slug, branches: branches);
+    final String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
+    final String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
+
+    return <Map<String, String>>[
+      {"branch": stableName, "name": "stable"},
+      {"branch": betaName, "name": "beta"},
+      {"branch": devName, "name": "dev"}
+    ];
+  }
+
+  /// Retrieve the latest canidate branch from all candidate branches.
+  Future<String> _getDevBranch({
+    required gh.GitHub github,
+    required gh.RepositorySlug slug,
+    required List<gh.Branch> branches,
+  }) async {
+    final RegExp candidateBranchName = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
+    devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
+    String devBranchName = devBranches.take(1).single.name!;
+    return devBranchName;
+  }
+
+  /// Helper function to convert candidate branch versions to numbers for comparison.
+  int _versionSum(String tagOrBranchName) {
+    List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
+    int versionSum = 0;
+    for (String digit in digits) {
+      int? d = int.tryParse(digit);
+      if (d == null) {
+        continue;
+      }
+      versionSum = versionSum * 100 + d;
+    }
+    return versionSum;
   }
 }
