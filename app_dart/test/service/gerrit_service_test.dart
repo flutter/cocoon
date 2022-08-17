@@ -12,7 +12,6 @@ import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/service/fake_auth_client.dart';

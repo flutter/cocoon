@@ -219,6 +219,7 @@ class LuciBuildService {
       'recipes',
       filterRegex: 'flutter-*|fuchsia*',
     );
+    log.info('Available release branches: $branches');
 
     final String sha = pullRequest.head!.sha!;
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
