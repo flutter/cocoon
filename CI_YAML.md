@@ -75,7 +75,7 @@ targets:
 
 All new targets should be added as `bringup: true` to ensure they do not block the tree.
 
-Targets first need to be mirrored to flutter/infra before they will be run. 
+Targets first need to be mirrored to flutter/infra before they will be run.
 This propagation takes about 30 minutes, and will only run as non-blocking in postsubmit.
 
 The target will show runs in https://ci.chromium.org/p/flutter (under the repo). See
