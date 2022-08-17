@@ -384,12 +384,13 @@ void main() {
     });
 
     test('parse and store file paths', () async {
-      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').createSync(recursive: true);
-      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').writeAsStringSync(
-            'file_a\nfile_b\nfile_c\n',
-            mode: FileMode.append,
-            encoding: utf8,
-          );
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          'file_a\nfile_b\nfile_c\n',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
 
       fileSystem.file('${tempDir.absolute.path}/test_entitlement/without_entitlements.txt')
         ..createSync(recursive: true)
@@ -424,12 +425,13 @@ void main() {
     });
 
     test('throw exception when configuration file is missing', () async {
-      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').createSync(recursive: true);
-      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt').writeAsStringSync(
-            'file_a\nfile_b\nfile_c\n',
-            mode: FileMode.append,
-            encoding: utf8,
-          );
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          'file_a\nfile_b\nfile_c\n',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
 
       final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
         fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
