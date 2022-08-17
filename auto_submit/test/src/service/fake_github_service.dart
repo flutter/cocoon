@@ -8,7 +8,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:shelf/src/response.dart';
 
-import '../../requests/github_webhook_test_data.dart';
 import '../../utilities/mocks.dart';
 
 /// A fake GithubService implementation.

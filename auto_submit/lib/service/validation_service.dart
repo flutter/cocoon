@@ -199,6 +199,8 @@ class ValidationService {
         'Follow up review for revert pull request $prNumber',
         'Revert request by author ${result.repository!.pullRequest!.author}',
       );
+
+      log.info('$issue was created to track the review for $prNumber');
     } else {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
