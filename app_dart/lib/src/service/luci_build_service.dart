@@ -217,7 +217,7 @@ class LuciBuildService {
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
       'recipes',
-      filterRegex: 'flutter-*|fuchsia*',
+      filterRegex: 'flutter-.*|fuchsia.*',
     );
     log.info('Available release branches: $branches');
 
