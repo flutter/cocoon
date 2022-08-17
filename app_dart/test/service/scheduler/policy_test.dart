@@ -24,8 +24,18 @@ void main() {
     });
 
     final List<Task> allPending = <Task>[
+      generateTask(3),
       generateTask(2),
       generateTask(1),
+    ];
+    
+    final List<Task> latestAllPending = <Task>[
+      generateTask(6),
+      generateTask(5),
+      generateTask(4),
+      generateTask(3),
+      generateTask(2),
+      generateTask(1, status: Task.statusSucceeded),
     ];
 
     final List<Task> latestFinishedButRestPending = <Task>[
@@ -55,10 +65,16 @@ void main() {
       generateTask(1, status: Task.statusSucceeded),
     ];
 
-    test('triggers after batch size', () async {
+    test('triggers if less tasks than batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => allPending);
       expect(
-          await policy.triggerPriority(task: generateTask(3), datastore: datastore), LuciBuildService.kDefaultPriority);
+          await policy.triggerPriority(task: generateTask(4), datastore: datastore), LuciBuildService.kDefaultPriority);
+    });
+    
+    test('triggers after batch size', () async {
+      db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
+      expect(
+          await policy.triggerPriority(task: generateTask(7), datastore: datastore), LuciBuildService.kDefaultPriority);
     });
 
     test('triggers with higher priority on recent failures', () async {

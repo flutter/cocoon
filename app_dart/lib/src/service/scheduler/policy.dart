@@ -68,7 +68,7 @@ class BatchPolicy implements SchedulerPolicy {
       return LuciBuildService.kRerunPriority;
     }
 
-    if (allNew(recentTasks.sublist(0, kBatchSize))) {
+    if (allNew(recentTasks.sublist(0, kBatchSize - 1))) {
       return LuciBuildService.kDefaultPriority;
     }
 
