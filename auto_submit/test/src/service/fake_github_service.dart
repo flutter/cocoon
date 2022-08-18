@@ -49,7 +49,7 @@ class FakeGithubService implements GithubService {
   bool labelRemoved = false;
 
   bool compareReturnValue = false;
-  bool skipRealCompare = false; 
+  bool skipRealCompare = false;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
@@ -177,7 +177,7 @@ class FakeGithubService implements GithubService {
   Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
     return githubIssueMock!;
   }
-  
+
   @override
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
     if (skipRealCompare) {

@@ -106,7 +106,7 @@ class GithubService {
     }
   }
 
-  /// Compare the filesets of the current pull request and the original pull 
+  /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(
       RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
@@ -117,7 +117,7 @@ class GithubService {
     return _validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
   }
 
-  /// Validate that each pull request has the same number of files and that the 
+  /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
   bool _validateFileSetsAreEqual(
       List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {

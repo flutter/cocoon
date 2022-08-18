@@ -11,7 +11,7 @@ import 'package:github/github.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 
-class Revert extends Validation { 
+class Revert extends Validation {
   Revert({
     required Config config,
   }) : super(config: config);

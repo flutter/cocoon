@@ -58,20 +58,20 @@ class ValidationService {
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     ProcessMethod processMethod = await shouldProcess(messagePullRequest);
-    
+
     switch (processMethod) {
       case ProcessMethod.process_autosubmit:
-        await processPullRequest(config, 
-            await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest, 
-            ackId, 
+        await processPullRequest(config,
+            await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest,
+            ackId,
             pubsub);
         break;
       case ProcessMethod.process_revert:
-        await processRevertRequest(config, 
-            await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest, 
-            ackId, 
+        await processRevertRequest(config,
+            await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest,
+            ackId,
             pubsub);
         break;
       case ProcessMethod.do_not_process:
@@ -103,7 +103,7 @@ class ValidationService {
     final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
-    
+
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
       return ProcessMethod.process_revert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
@@ -186,12 +186,12 @@ class ValidationService {
     return true;
   }
 
-  /// The logic for processing a revert request and opening the follow up 
+  /// The logic for processing a revert request and opening the follow up
   /// review issue in github.
   Future<void> processRevertRequest(
       Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub,) async {
     ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
-    
+
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
     final GithubService githubService = await config.createGithubService(slug);

@@ -56,7 +56,7 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       githubService.pullRequestData = pullRequest;
       final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
-      
+
       expect(processMethod, ProcessMethod.process_autosubmit);
     });
 
