@@ -77,52 +77,18 @@ const String revertPullRequestJson = """
   "url": "https://api.github.com/repos/flutter/cocoon/pulls/2047",
   "id": 1023297178,
   "node_id": "PR_kwDOA8VHis48_kaa",
-  "html_url": "https://github.com/flutter/cocoon/pull/2047",
-  "diff_url": "https://github.com/flutter/cocoon/pull/2047.diff",
-  "patch_url": "https://github.com/flutter/cocoon/pull/2047.patch",
-  "issue_url": "https://api.github.com/repos/flutter/cocoon/issues/2047",
   "number": 2047,
   "state": "open",
   "locked": false,
   "title": "Revert Trailing comma analysis",
   "user": {
     "login": "ricardoamador",
-    "id": 32242716,
-    "node_id": "MDQ6VXNlcjMyMjQyNzE2",
-    "avatar_url": "https://avatars.githubusercontent.com/u/32242716?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/ricardoamador",
-    "html_url": "https://github.com/ricardoamador",
-    "followers_url": "https://api.github.com/users/ricardoamador/followers",
-    "following_url": "https://api.github.com/users/ricardoamador/following{/other_user}",
-    "gists_url": "https://api.github.com/users/ricardoamador/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/ricardoamador/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/ricardoamador/subscriptions",
-    "organizations_url": "https://api.github.com/users/ricardoamador/orgs",
-    "repos_url": "https://api.github.com/users/ricardoamador/repos",
-    "events_url": "https://api.github.com/users/ricardoamador/events{/privacy}",
-    "received_events_url": "https://api.github.com/users/ricardoamador/received_events",
-    "type": "User",
-    "site_admin": false
+    "id": 32242716
   },
   "body": "Reverts flutter/cocoon#2024",
   "created_at": "2022-08-10T23:27:49Z",
   "updated_at": "2022-08-12T16:57:35Z",
-  "closed_at": null,
-  "merged_at": null,
-  "merge_commit_sha": "744830fe9378ed5f18593cb859e8473d48f5b11e",
-  "assignee": null,
-  "assignees": [],
-  "requested_reviewers": [],
-  "requested_teams": [],
   "labels": [],
-  "milestone": null,
-  "draft": false,
-  "commits_url": "https://api.github.com/repos/flutter/cocoon/pulls/2047/commits",
-  "review_comments_url": "https://api.github.com/repos/flutter/cocoon/pulls/2047/comments",
-  "review_comment_url": "https://api.github.com/repos/flutter/cocoon/pulls/comments{/number}",
-  "comments_url": "https://api.github.com/repos/flutter/cocoon/issues/2047/comments",
-  "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
   "head": {
     "label": "flutter:revert-2024-trailing_comma_analysis",
     "ref": "revert-2024-trailing_comma_analysis",
@@ -130,22 +96,7 @@ const String revertPullRequestJson = """
     "user": {
       "login": "flutter",
       "id": 14101776,
-      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/14101776?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/flutter",
-      "html_url": "https://github.com/flutter",
-      "followers_url": "https://api.github.com/users/flutter/followers",
-      "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-      "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-      "organizations_url": "https://api.github.com/users/flutter/orgs",
-      "repos_url": "https://api.github.com/users/flutter/repos",
-      "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/flutter/received_events",
-      "type": "Organization",
-      "site_admin": false
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2"
     },
     "repo": {
       "id": 63260554,
@@ -161,95 +112,9 @@ const String revertPullRequestJson = """
         "gravatar_id": "",
         "url": "https://api.github.com/users/flutter",
         "html_url": "https://github.com/flutter",
-        "followers_url": "https://api.github.com/users/flutter/followers",
-        "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-        "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-        "organizations_url": "https://api.github.com/users/flutter/orgs",
-        "repos_url": "https://api.github.com/users/flutter/repos",
-        "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/flutter/received_events",
         "type": "Organization",
         "site_admin": false
       },
-      "html_url": "https://github.com/flutter/cocoon",
-      "description": "Flutter's build coordinator and aggregator",
-      "fork": false,
-      "url": "https://api.github.com/repos/flutter/cocoon",
-      "forks_url": "https://api.github.com/repos/flutter/cocoon/forks",
-      "keys_url": "https://api.github.com/repos/flutter/cocoon/keys{/key_id}",
-      "collaborators_url": "https://api.github.com/repos/flutter/cocoon/collaborators{/collaborator}",
-      "teams_url": "https://api.github.com/repos/flutter/cocoon/teams",
-      "hooks_url": "https://api.github.com/repos/flutter/cocoon/hooks",
-      "issue_events_url": "https://api.github.com/repos/flutter/cocoon/issues/events{/number}",
-      "events_url": "https://api.github.com/repos/flutter/cocoon/events",
-      "assignees_url": "https://api.github.com/repos/flutter/cocoon/assignees{/user}",
-      "branches_url": "https://api.github.com/repos/flutter/cocoon/branches{/branch}",
-      "tags_url": "https://api.github.com/repos/flutter/cocoon/tags",
-      "blobs_url": "https://api.github.com/repos/flutter/cocoon/git/blobs{/sha}",
-      "git_tags_url": "https://api.github.com/repos/flutter/cocoon/git/tags{/sha}",
-      "git_refs_url": "https://api.github.com/repos/flutter/cocoon/git/refs{/sha}",
-      "trees_url": "https://api.github.com/repos/flutter/cocoon/git/trees{/sha}",
-      "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/{sha}",
-      "languages_url": "https://api.github.com/repos/flutter/cocoon/languages",
-      "stargazers_url": "https://api.github.com/repos/flutter/cocoon/stargazers",
-      "contributors_url": "https://api.github.com/repos/flutter/cocoon/contributors",
-      "subscribers_url": "https://api.github.com/repos/flutter/cocoon/subscribers",
-      "subscription_url": "https://api.github.com/repos/flutter/cocoon/subscription",
-      "commits_url": "https://api.github.com/repos/flutter/cocoon/commits{/sha}",
-      "git_commits_url": "https://api.github.com/repos/flutter/cocoon/git/commits{/sha}",
-      "comments_url": "https://api.github.com/repos/flutter/cocoon/comments{/number}",
-      "issue_comment_url": "https://api.github.com/repos/flutter/cocoon/issues/comments{/number}",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/{+path}",
-      "compare_url": "https://api.github.com/repos/flutter/cocoon/compare/{base}...{head}",
-      "merges_url": "https://api.github.com/repos/flutter/cocoon/merges",
-      "archive_url": "https://api.github.com/repos/flutter/cocoon/{archive_format}{/ref}",
-      "downloads_url": "https://api.github.com/repos/flutter/cocoon/downloads",
-      "issues_url": "https://api.github.com/repos/flutter/cocoon/issues{/number}",
-      "pulls_url": "https://api.github.com/repos/flutter/cocoon/pulls{/number}",
-      "milestones_url": "https://api.github.com/repos/flutter/cocoon/milestones{/number}",
-      "notifications_url": "https://api.github.com/repos/flutter/cocoon/notifications{?since,all,participating}",
-      "labels_url": "https://api.github.com/repos/flutter/cocoon/labels{/name}",
-      "releases_url": "https://api.github.com/repos/flutter/cocoon/releases{/id}",
-      "deployments_url": "https://api.github.com/repos/flutter/cocoon/deployments",
-      "created_at": "2016-07-13T16:04:04Z",
-      "updated_at": "2022-07-29T06:49:11Z",
-      "pushed_at": "2022-08-12T21:33:23Z",
-      "git_url": "git://github.com/flutter/cocoon.git",
-      "ssh_url": "git@github.com:flutter/cocoon.git",
-      "clone_url": "https://github.com/flutter/cocoon.git",
-      "svn_url": "https://github.com/flutter/cocoon",
-      "homepage": null,
-      "size": 10500,
-      "stargazers_count": 130,
-      "watchers_count": 130,
-      "language": "Dart",
-      "has_issues": false,
-      "has_projects": true,
-      "has_downloads": true,
-      "has_wiki": false,
-      "has_pages": false,
-      "forks_count": 77,
-      "mirror_url": null,
-      "archived": false,
-      "disabled": false,
-      "open_issues_count": 4,
-      "license": {
-        "key": "bsd-3-clause",
-        "name": "BSD 3-Clause New or Revised License",
-        "spdx_id": "BSD-3-Clause",
-        "url": "https://api.github.com/licenses/bsd-3-clause",
-        "node_id": "MDc6TGljZW5zZTU="
-      },
-      "allow_forking": true,
-      "is_template": false,
-      "web_commit_signoff_required": false,
-      "topics": [],
-      "visibility": "public",
-      "forks": 77,
-      "open_issues": 4,
-      "watchers": 130,
       "default_branch": "main"
     }
   },
@@ -260,22 +125,7 @@ const String revertPullRequestJson = """
     "user": {
       "login": "flutter",
       "id": 14101776,
-      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/14101776?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/flutter",
-      "html_url": "https://github.com/flutter",
-      "followers_url": "https://api.github.com/users/flutter/followers",
-      "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-      "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-      "organizations_url": "https://api.github.com/users/flutter/orgs",
-      "repos_url": "https://api.github.com/users/flutter/repos",
-      "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/flutter/received_events",
-      "type": "Organization",
-      "site_admin": false
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2"
     },
     "repo": {
       "id": 63260554,
@@ -291,122 +141,10 @@ const String revertPullRequestJson = """
         "gravatar_id": "",
         "url": "https://api.github.com/users/flutter",
         "html_url": "https://github.com/flutter",
-        "followers_url": "https://api.github.com/users/flutter/followers",
-        "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-        "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-        "organizations_url": "https://api.github.com/users/flutter/orgs",
-        "repos_url": "https://api.github.com/users/flutter/repos",
-        "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/flutter/received_events",
         "type": "Organization",
         "site_admin": false
       },
-      "html_url": "https://github.com/flutter/cocoon",
-      "description": "Flutter's build coordinator and aggregator",
-      "fork": false,
-      "url": "https://api.github.com/repos/flutter/cocoon",
-      "forks_url": "https://api.github.com/repos/flutter/cocoon/forks",
-      "keys_url": "https://api.github.com/repos/flutter/cocoon/keys{/key_id}",
-      "collaborators_url": "https://api.github.com/repos/flutter/cocoon/collaborators{/collaborator}",
-      "teams_url": "https://api.github.com/repos/flutter/cocoon/teams",
-      "hooks_url": "https://api.github.com/repos/flutter/cocoon/hooks",
-      "issue_events_url": "https://api.github.com/repos/flutter/cocoon/issues/events{/number}",
-      "events_url": "https://api.github.com/repos/flutter/cocoon/events",
-      "assignees_url": "https://api.github.com/repos/flutter/cocoon/assignees{/user}",
-      "branches_url": "https://api.github.com/repos/flutter/cocoon/branches{/branch}",
-      "tags_url": "https://api.github.com/repos/flutter/cocoon/tags",
-      "blobs_url": "https://api.github.com/repos/flutter/cocoon/git/blobs{/sha}",
-      "git_tags_url": "https://api.github.com/repos/flutter/cocoon/git/tags{/sha}",
-      "git_refs_url": "https://api.github.com/repos/flutter/cocoon/git/refs{/sha}",
-      "trees_url": "https://api.github.com/repos/flutter/cocoon/git/trees{/sha}",
-      "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/{sha}",
-      "languages_url": "https://api.github.com/repos/flutter/cocoon/languages",
-      "stargazers_url": "https://api.github.com/repos/flutter/cocoon/stargazers",
-      "contributors_url": "https://api.github.com/repos/flutter/cocoon/contributors",
-      "subscribers_url": "https://api.github.com/repos/flutter/cocoon/subscribers",
-      "subscription_url": "https://api.github.com/repos/flutter/cocoon/subscription",
-      "commits_url": "https://api.github.com/repos/flutter/cocoon/commits{/sha}",
-      "git_commits_url": "https://api.github.com/repos/flutter/cocoon/git/commits{/sha}",
-      "comments_url": "https://api.github.com/repos/flutter/cocoon/comments{/number}",
-      "issue_comment_url": "https://api.github.com/repos/flutter/cocoon/issues/comments{/number}",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/{+path}",
-      "compare_url": "https://api.github.com/repos/flutter/cocoon/compare/{base}...{head}",
-      "merges_url": "https://api.github.com/repos/flutter/cocoon/merges",
-      "archive_url": "https://api.github.com/repos/flutter/cocoon/{archive_format}{/ref}",
-      "downloads_url": "https://api.github.com/repos/flutter/cocoon/downloads",
-      "issues_url": "https://api.github.com/repos/flutter/cocoon/issues{/number}",
-      "pulls_url": "https://api.github.com/repos/flutter/cocoon/pulls{/number}",
-      "milestones_url": "https://api.github.com/repos/flutter/cocoon/milestones{/number}",
-      "notifications_url": "https://api.github.com/repos/flutter/cocoon/notifications{?since,all,participating}",
-      "labels_url": "https://api.github.com/repos/flutter/cocoon/labels{/name}",
-      "releases_url": "https://api.github.com/repos/flutter/cocoon/releases{/id}",
-      "deployments_url": "https://api.github.com/repos/flutter/cocoon/deployments",
-      "created_at": "2016-07-13T16:04:04Z",
-      "updated_at": "2022-07-29T06:49:11Z",
-      "pushed_at": "2022-08-12T21:33:23Z",
-      "git_url": "git://github.com/flutter/cocoon.git",
-      "ssh_url": "git@github.com:flutter/cocoon.git",
-      "clone_url": "https://github.com/flutter/cocoon.git",
-      "svn_url": "https://github.com/flutter/cocoon",
-      "homepage": null,
-      "size": 10500,
-      "stargazers_count": 130,
-      "watchers_count": 130,
-      "language": "Dart",
-      "has_issues": false,
-      "has_projects": true,
-      "has_downloads": true,
-      "has_wiki": false,
-      "has_pages": false,
-      "forks_count": 77,
-      "mirror_url": null,
-      "archived": false,
-      "disabled": false,
-      "open_issues_count": 4,
-      "license": {
-        "key": "bsd-3-clause",
-        "name": "BSD 3-Clause New or Revised License",
-        "spdx_id": "BSD-3-Clause",
-        "url": "https://api.github.com/licenses/bsd-3-clause",
-        "node_id": "MDc6TGljZW5zZTU="
-      },
-      "allow_forking": true,
-      "is_template": false,
-      "web_commit_signoff_required": false,
-      "topics": [],
-      "visibility": "public",
-      "forks": 77,
-      "open_issues": 4,
-      "watchers": 130,
       "default_branch": "main"
-    }
-  },
-  "_links": {
-    "self": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2047"
-    },
-    "html": {
-      "href": "https://github.com/flutter/cocoon/pull/2047"
-    },
-    "issue": {
-      "href": "https://api.github.com/repos/flutter/cocoon/issues/2047"
-    },
-    "comments": {
-      "href": "https://api.github.com/repos/flutter/cocoon/issues/2047/comments"
-    },
-    "review_comments": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2047/comments"
-    },
-    "review_comment": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/comments{/number}"
-    },
-    "commits": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2047/commits"
-    },
-    "statuses": {
-      "href": "https://api.github.com/repos/flutter/cocoon/statuses/8c8d14b5eda928e25b43fc76da94f78ab11d99d7"
     }
   },
   "author_association": "MEMBER",
@@ -430,304 +168,79 @@ const String revertPullRequestJson = """
 const String revertPullRequestFilesJson = """
   [
     {
-      "sha": "bc8895e9ed973fb86d1f88174c5205ede5b09410",
-      "filename": "dashboard/analysis_options.yaml",
-      "status": "modified",
-      "additions": 0,
-      "deletions": 1,
-      "changes": 1,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Fanalysis_options.yaml",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Fanalysis_options.yaml",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fanalysis_options.yaml?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/analysis_options.yaml"
     },
     {
-      "sha": "5f48e443db76cc750e436513a5e83858cb80b515",
-      "filename": "dashboard/lib/build_dashboard_page.dart",
-      "status": "modified",
-      "additions": 35,
-      "deletions": 45,
-      "changes": 80,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fbuild_dashboard_page.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/build_dashboard_page.dart"
     },
     {
-      "sha": "2cd66e750772d8522404e233d730b00e9dedda72",
-      "filename": "dashboard/lib/index_page.dart",
-      "status": "modified",
-      "additions": 10,
-      "deletions": 12,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Findex_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Findex_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Findex_page.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/index_page.dart"
     },
     {
-      "sha": "eeaad2a410269f50af605e5b648d380ab34d59de",
-      "filename": "dashboard/lib/logic/brooks.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 20,
-      "changes": 38,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Fbrooks.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/logic/brooks.dart"
     },
     {
-      "sha": "27337cae353b3bdaeaf1c25916285805e792da20",
-      "filename": "dashboard/lib/logic/links.dart",
-      "status": "modified",
-      "additions": 15,
-      "deletions": 18,
-      "changes": 33,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Flinks.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/logic/links.dart"
     },
     {
-      "sha": "5fe794e4efe4e580e23e2d40e0ad1ae06afb48ca",
-      "filename": "dashboard/lib/logic/task_grid_filter.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 12,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/logic/task_grid_filter.dart"
     },
     {
-      "sha": "c5a2b4b52f7df3dd667041b798c56f84ddeca1df",
-      "filename": "dashboard/lib/main.dart",
-      "status": "modified",
-      "additions": 6,
-      "deletions": 7,
-      "changes": 13,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fmain.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fmain.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fmain.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/main.dart"
     },
     {
-      "sha": "e534cec6e7fb9b3d1b439a95bdea8dfc2bc7538d",
-      "filename": "dashboard/lib/service/appengine_cocoon.dart",
-      "status": "modified",
-      "additions": 16,
-      "deletions": 23,
-      "changes": 39,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/service/appengine_cocoon.dart"
     },
     {
-      "sha": "f57cf4662a76412e944703949d25e7e5dac4e3a5",
-      "filename": "dashboard/lib/service/dev_cocoon.dart",
-      "status": "modified",
-      "additions": 8,
-      "deletions": 15,
-      "changes": 23,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/service/dev_cocoon.dart"
     },
     {
-      "sha": "758c0376055d1a59f1b837b6c1778bb1f8c046b6",
-      "filename": "dashboard/lib/widgets/lattice.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 22,
-      "changes": 40,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Flattice.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/lattice.dart"
     },
     {
-      "sha": "f3ad500b77843eb9cd88837736f2b87ec9055202",
-      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 5,
-      "changes": 9,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart"
     },
     {
-      "sha": "1cb427d46630b1e491705a3895b3bfe001fa524c",
-      "filename": "dashboard/lib/widgets/sign_in_button.dart",
-      "status": "modified",
-      "additions": 10,
-      "deletions": 12,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/sign_in_button.dart"
     },
     {
-      "sha": "77ecfcae0b7d98bdcb1a6e0dbee541c78d15015e",
-      "filename": "dashboard/lib/widgets/task_grid.dart",
-      "status": "modified",
-      "additions": 13,
-      "deletions": 17,
-      "changes": 30,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_grid.dart"
     },
     {
-      "sha": "adf6b1ae17c5dca6c741f7d2a9961c6becac4182",
-      "filename": "dashboard/lib/widgets/task_overlay.dart",
-      "status": "modified",
-      "additions": 2,
-      "deletions": 3,
-      "changes": 5,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_overlay.dart"
     },
     {
-      "sha": "20761e3bc19d8858d70fdbaf1d5cf16504cc5fee",
-      "filename": "dashboard/pubspec.lock",
-      "status": "modified",
-      "additions": 1,
-      "deletions": 1,
-      "changes": 2,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Fpubspec.lock",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Fpubspec.lock",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fpubspec.lock?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/pubspec.lock"
     },
     {
-      "sha": "8b21f73e04741ed9535a4d4dd764d1f0b86d5c34",
-      "filename": "dashboard/test/build_dashboard_page_test.dart",
-      "status": "modified",
-      "additions": 21,
-      "deletions": 33,
-      "changes": 54,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/build_dashboard_page_test.dart"
     },
     {
-      "sha": "318f21c0055a839610cffbb13a22ef5d88a13b26",
-      "filename": "dashboard/test/index_page_test.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 7,
-      "changes": 11,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Findex_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Findex_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Findex_page_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/index_page_test.dart"
     },
     {
-      "sha": "755ac8d7c62ed8049dc030f810dbcb6bb3e04a28",
-      "filename": "dashboard/test/logic/qualified_task_test.dart",
-      "status": "modified",
-      "additions": 9,
-      "deletions": 16,
-      "changes": 25,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/logic/qualified_task_test.dart"
     },
     {
-      "sha": "ca17069465a954e10bb556925a92594b699ff93e",
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
-      "status": "modified",
-      "additions": 11,
-      "deletions": 18,
-      "changes": 29,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
     },
     {
-      "sha": "8d4b213a7c7848524e63dab012860cbfc0ff75fb",
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
-      "status": "modified",
-      "additions": 74,
-      "deletions": 112,
-      "changes": 186,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
     },
     {
-      "sha": "eb541933d670cc4e1a1ec21a5ce3c12bf1e96f60",
-      "filename": "dashboard/test/service/google_authentication_test.dart",
-      "status": "modified",
-      "additions": 2,
-      "deletions": 4,
-      "changes": 6,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/service/google_authentication_test.dart"
     },
     {
-      "sha": "7f927f7b5af5bc703363b4178e938f0f5b452e6c",
-      "filename": "dashboard/test/state/build_test.dart",
-      "status": "modified",
-      "additions": 20,
-      "deletions": 31,
-      "changes": 51,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fstate%2Fbuild_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/state/build_test.dart"
     },
     {
-      "sha": "89afa7ccb46d81dfeb320d876d80a520e8a891b4",
-      "filename": "dashboard/test/utils/fake_build.dart",
-      "status": "modified",
-      "additions": 6,
-      "deletions": 10,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Ffake_build.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/utils/fake_build.dart"
     },
     {
-      "sha": "8b967d8a8070ac340bc54dbd7da39b65291a0c4d",
-      "filename": "dashboard/test/utils/golden.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 6,
-      "changes": 10,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Fgolden.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/utils/golden.dart"
     },
     {
-      "sha": "ac5bb6fc18061a1a6936b86e1f0b3179671c97e2",
-      "filename": "dashboard/test/widgets/accessibility_test.dart",
-      "status": "modified",
-      "additions": 14,
-      "deletions": 22,
-      "changes": 36,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8c8d14b5eda928e25b43fc76da94f78ab11d99d7/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart?ref=8c8d14b5eda928e25b43fc76da94f78ab11d99d7",
-      "patch": ""
+      "filename": "dashboard/test/widgets/accessibility_test.dart"
     }
   ]
 """;
@@ -737,44 +250,16 @@ const String originalPullRequestJson = """
   "url": "https://api.github.com/repos/flutter/cocoon/pulls/2024",
   "id": 1012225049,
   "node_id": "PR_kwDOA8VHis48VVQZ",
-  "html_url": "https://github.com/flutter/cocoon/pull/2024",
-  "diff_url": "https://github.com/flutter/cocoon/pull/2024.diff",
-  "patch_url": "https://github.com/flutter/cocoon/pull/2024.patch",
-  "issue_url": "https://api.github.com/repos/flutter/cocoon/issues/2024",
   "number": 2024,
   "state": "closed",
   "locked": false,
   "title": "Trailing comma analysis",
   "user": {
     "login": "ricardoamador",
-    "id": 32242716,
-    "node_id": "MDQ6VXNlcjMyMjQyNzE2",
-    "avatar_url": "https://avatars.githubusercontent.com/u/32242716?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/ricardoamador",
-    "html_url": "https://github.com/ricardoamador",
-    "followers_url": "https://api.github.com/users/ricardoamador/followers",
-    "following_url": "https://api.github.com/users/ricardoamador/following{/other_user}",
-    "gists_url": "https://api.github.com/users/ricardoamador/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/ricardoamador/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/ricardoamador/subscriptions",
-    "organizations_url": "https://api.github.com/users/ricardoamador/orgs",
-    "repos_url": "https://api.github.com/users/ricardoamador/repos",
-    "events_url": "https://api.github.com/users/ricardoamador/events{/privacy}",
-    "received_events_url": "https://api.github.com/users/ricardoamador/received_events",
-    "type": "User",
-    "site_admin": false
+    "id": 32242716
   },
   "body": "## Description Add trailing comma requirement to analysis file. * if you had to change anything in the [flutter/tests] repo, include a link to the migration guide as per the [breaking change policy].* ## Pre-launch Checklist - [x] I read the [Contributor Guide] and followed the process outlined there for submitting PRs. - [x]  I read the [Tree Hygiene] wiki page, which explains my responsibilities. - [x] I read the [Flutter Style Guide] _recently_, and have followed its advice. - [x] I signed the [CLA]. - [x] I listed at least one issue that this PR fixes in the description above. - [x] I updated/added relevant documentation (doc comments with `///`). - [x] I added new tests to check the change I am making, or this PR is [test-exempt]. - [x] All existing and new tests are passing. If you need help, consider asking for advice on the #hackers-new channel on [Discord]. <!-- Links --> [Contributor Guide]: https://github.com/flutter/flutter/wiki/Tree-hygiene#overview [Tree Hygiene]: https://github.com/flutter/flutter/wiki/Tree-hygiene [test-exempt]: https://github.com/flutter/flutter/wiki/Tree-hygiene#tests [Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo [CLA]: https://cla.developers.google.com/ [flutter/tests]: https://github.com/flutter/tests [breaking change policy]: https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes [Discord]: https://github.com/flutter/flutter/wiki/Chat",
   "created_at": "2022-07-29T17:56:31Z",
-  "updated_at": "2022-07-29T18:53:48Z",
-  "closed_at": "2022-07-29T18:53:03Z",
-  "merged_at": "2022-07-29T18:53:03Z",
-  "merge_commit_sha": "74cffb8e045c93dca865c61af2e8e2bebec9989b",
-  "assignee": null,
-  "assignees": [],
-  "requested_reviewers": [],
-  "requested_teams": [],
   "labels": [
     {
       "id": 3960015931,
@@ -786,13 +271,6 @@ const String originalPullRequestJson = """
       "description": "Merge PR when tree becomes green via auto submit App"
     }
   ],
-  "milestone": null,
-  "draft": false,
-  "commits_url": "https://api.github.com/repos/flutter/cocoon/pulls/2024/commits",
-  "review_comments_url": "https://api.github.com/repos/flutter/cocoon/pulls/2024/comments",
-  "review_comment_url": "https://api.github.com/repos/flutter/cocoon/pulls/comments{/number}",
-  "comments_url": "https://api.github.com/repos/flutter/cocoon/issues/2024/comments",
-  "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
   "head": {
     "label": "ricardoamador:trailing_comma_analysis",
     "ref": "trailing_comma_analysis",
@@ -800,22 +278,7 @@ const String originalPullRequestJson = """
     "user": {
       "login": "ricardoamador",
       "id": 32242716,
-      "node_id": "MDQ6VXNlcjMyMjQyNzE2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/32242716?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/ricardoamador",
-      "html_url": "https://github.com/ricardoamador",
-      "followers_url": "https://api.github.com/users/ricardoamador/followers",
-      "following_url": "https://api.github.com/users/ricardoamador/following{/other_user}",
-      "gists_url": "https://api.github.com/users/ricardoamador/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/ricardoamador/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/ricardoamador/subscriptions",
-      "organizations_url": "https://api.github.com/users/ricardoamador/orgs",
-      "repos_url": "https://api.github.com/users/ricardoamador/repos",
-      "events_url": "https://api.github.com/users/ricardoamador/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/ricardoamador/received_events",
-      "type": "User",
-      "site_admin": false
+      "node_id": "MDQ6VXNlcjMyMjQyNzE2"
     },
     "repo": {
       "id": 494596620,
@@ -831,95 +294,9 @@ const String originalPullRequestJson = """
         "gravatar_id": "",
         "url": "https://api.github.com/users/ricardoamador",
         "html_url": "https://github.com/ricardoamador",
-        "followers_url": "https://api.github.com/users/ricardoamador/followers",
-        "following_url": "https://api.github.com/users/ricardoamador/following{/other_user}",
-        "gists_url": "https://api.github.com/users/ricardoamador/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/ricardoamador/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/ricardoamador/subscriptions",
-        "organizations_url": "https://api.github.com/users/ricardoamador/orgs",
-        "repos_url": "https://api.github.com/users/ricardoamador/repos",
-        "events_url": "https://api.github.com/users/ricardoamador/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/ricardoamador/received_events",
         "type": "User",
         "site_admin": false
       },
-      "html_url": "https://github.com/ricardoamador/cocoon",
-      "description": "Flutter's build coordinator and aggregator",
-      "fork": true,
-      "url": "https://api.github.com/repos/ricardoamador/cocoon",
-      "forks_url": "https://api.github.com/repos/ricardoamador/cocoon/forks",
-      "keys_url": "https://api.github.com/repos/ricardoamador/cocoon/keys{/key_id}",
-      "collaborators_url": "https://api.github.com/repos/ricardoamador/cocoon/collaborators{/collaborator}",
-      "teams_url": "https://api.github.com/repos/ricardoamador/cocoon/teams",
-      "hooks_url": "https://api.github.com/repos/ricardoamador/cocoon/hooks",
-      "issue_events_url": "https://api.github.com/repos/ricardoamador/cocoon/issues/events{/number}",
-      "events_url": "https://api.github.com/repos/ricardoamador/cocoon/events",
-      "assignees_url": "https://api.github.com/repos/ricardoamador/cocoon/assignees{/user}",
-      "branches_url": "https://api.github.com/repos/ricardoamador/cocoon/branches{/branch}",
-      "tags_url": "https://api.github.com/repos/ricardoamador/cocoon/tags",
-      "blobs_url": "https://api.github.com/repos/ricardoamador/cocoon/git/blobs{/sha}",
-      "git_tags_url": "https://api.github.com/repos/ricardoamador/cocoon/git/tags{/sha}",
-      "git_refs_url": "https://api.github.com/repos/ricardoamador/cocoon/git/refs{/sha}",
-      "trees_url": "https://api.github.com/repos/ricardoamador/cocoon/git/trees{/sha}",
-      "statuses_url": "https://api.github.com/repos/ricardoamador/cocoon/statuses/{sha}",
-      "languages_url": "https://api.github.com/repos/ricardoamador/cocoon/languages",
-      "stargazers_url": "https://api.github.com/repos/ricardoamador/cocoon/stargazers",
-      "contributors_url": "https://api.github.com/repos/ricardoamador/cocoon/contributors",
-      "subscribers_url": "https://api.github.com/repos/ricardoamador/cocoon/subscribers",
-      "subscription_url": "https://api.github.com/repos/ricardoamador/cocoon/subscription",
-      "commits_url": "https://api.github.com/repos/ricardoamador/cocoon/commits{/sha}",
-      "git_commits_url": "https://api.github.com/repos/ricardoamador/cocoon/git/commits{/sha}",
-      "comments_url": "https://api.github.com/repos/ricardoamador/cocoon/comments{/number}",
-      "issue_comment_url": "https://api.github.com/repos/ricardoamador/cocoon/issues/comments{/number}",
-      "contents_url": "https://api.github.com/repos/ricardoamador/cocoon/contents/{+path}",
-      "compare_url": "https://api.github.com/repos/ricardoamador/cocoon/compare/{base}...{head}",
-      "merges_url": "https://api.github.com/repos/ricardoamador/cocoon/merges",
-      "archive_url": "https://api.github.com/repos/ricardoamador/cocoon/{archive_format}{/ref}",
-      "downloads_url": "https://api.github.com/repos/ricardoamador/cocoon/downloads",
-      "issues_url": "https://api.github.com/repos/ricardoamador/cocoon/issues{/number}",
-      "pulls_url": "https://api.github.com/repos/ricardoamador/cocoon/pulls{/number}",
-      "milestones_url": "https://api.github.com/repos/ricardoamador/cocoon/milestones{/number}",
-      "notifications_url": "https://api.github.com/repos/ricardoamador/cocoon/notifications{?since,all,participating}",
-      "labels_url": "https://api.github.com/repos/ricardoamador/cocoon/labels{/name}",
-      "releases_url": "https://api.github.com/repos/ricardoamador/cocoon/releases{/id}",
-      "deployments_url": "https://api.github.com/repos/ricardoamador/cocoon/deployments",
-      "created_at": "2022-05-20T20:19:50Z",
-      "updated_at": "2022-07-21T22:51:13Z",
-      "pushed_at": "2022-08-12T19:21:31Z",
-      "git_url": "git://github.com/ricardoamador/cocoon.git",
-      "ssh_url": "git@github.com:ricardoamador/cocoon.git",
-      "clone_url": "https://github.com/ricardoamador/cocoon.git",
-      "svn_url": "https://github.com/ricardoamador/cocoon",
-      "homepage": null,
-      "size": 10513,
-      "stargazers_count": 0,
-      "watchers_count": 0,
-      "language": "Dart",
-      "has_issues": false,
-      "has_projects": true,
-      "has_downloads": true,
-      "has_wiki": false,
-      "has_pages": false,
-      "forks_count": 0,
-      "mirror_url": null,
-      "archived": false,
-      "disabled": false,
-      "open_issues_count": 12,
-      "license": {
-        "key": "bsd-3-clause",
-        "name": "BSD 3-Clause New or Revised License",
-        "spdx_id": "BSD-3-Clause",
-        "url": "https://api.github.com/licenses/bsd-3-clause",
-        "node_id": "MDc6TGljZW5zZTU="
-      },
-      "allow_forking": true,
-      "is_template": false,
-      "web_commit_signoff_required": false,
-      "topics": [],
-      "visibility": "public",
-      "forks": 0,
-      "open_issues": 12,
-      "watchers": 0,
       "default_branch": "main"
     }
   },
@@ -930,22 +307,7 @@ const String originalPullRequestJson = """
     "user": {
       "login": "flutter",
       "id": 14101776,
-      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2",
-      "avatar_url": "https://avatars.githubusercontent.com/u/14101776?v=4",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/flutter",
-      "html_url": "https://github.com/flutter",
-      "followers_url": "https://api.github.com/users/flutter/followers",
-      "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-      "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-      "organizations_url": "https://api.github.com/users/flutter/orgs",
-      "repos_url": "https://api.github.com/users/flutter/repos",
-      "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/flutter/received_events",
-      "type": "Organization",
-      "site_admin": false
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0MTAxNzc2"
     },
     "repo": {
       "id": 63260554,
@@ -961,122 +323,10 @@ const String originalPullRequestJson = """
         "gravatar_id": "",
         "url": "https://api.github.com/users/flutter",
         "html_url": "https://github.com/flutter",
-        "followers_url": "https://api.github.com/users/flutter/followers",
-        "following_url": "https://api.github.com/users/flutter/following{/other_user}",
-        "gists_url": "https://api.github.com/users/flutter/gists{/gist_id}",
-        "starred_url": "https://api.github.com/users/flutter/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/flutter/subscriptions",
-        "organizations_url": "https://api.github.com/users/flutter/orgs",
-        "repos_url": "https://api.github.com/users/flutter/repos",
-        "events_url": "https://api.github.com/users/flutter/events{/privacy}",
-        "received_events_url": "https://api.github.com/users/flutter/received_events",
         "type": "Organization",
         "site_admin": false
       },
-      "html_url": "https://github.com/flutter/cocoon",
-      "description": "Flutter's build coordinator and aggregator",
-      "fork": false,
-      "url": "https://api.github.com/repos/flutter/cocoon",
-      "forks_url": "https://api.github.com/repos/flutter/cocoon/forks",
-      "keys_url": "https://api.github.com/repos/flutter/cocoon/keys{/key_id}",
-      "collaborators_url": "https://api.github.com/repos/flutter/cocoon/collaborators{/collaborator}",
-      "teams_url": "https://api.github.com/repos/flutter/cocoon/teams",
-      "hooks_url": "https://api.github.com/repos/flutter/cocoon/hooks",
-      "issue_events_url": "https://api.github.com/repos/flutter/cocoon/issues/events{/number}",
-      "events_url": "https://api.github.com/repos/flutter/cocoon/events",
-      "assignees_url": "https://api.github.com/repos/flutter/cocoon/assignees{/user}",
-      "branches_url": "https://api.github.com/repos/flutter/cocoon/branches{/branch}",
-      "tags_url": "https://api.github.com/repos/flutter/cocoon/tags",
-      "blobs_url": "https://api.github.com/repos/flutter/cocoon/git/blobs{/sha}",
-      "git_tags_url": "https://api.github.com/repos/flutter/cocoon/git/tags{/sha}",
-      "git_refs_url": "https://api.github.com/repos/flutter/cocoon/git/refs{/sha}",
-      "trees_url": "https://api.github.com/repos/flutter/cocoon/git/trees{/sha}",
-      "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/{sha}",
-      "languages_url": "https://api.github.com/repos/flutter/cocoon/languages",
-      "stargazers_url": "https://api.github.com/repos/flutter/cocoon/stargazers",
-      "contributors_url": "https://api.github.com/repos/flutter/cocoon/contributors",
-      "subscribers_url": "https://api.github.com/repos/flutter/cocoon/subscribers",
-      "subscription_url": "https://api.github.com/repos/flutter/cocoon/subscription",
-      "commits_url": "https://api.github.com/repos/flutter/cocoon/commits{/sha}",
-      "git_commits_url": "https://api.github.com/repos/flutter/cocoon/git/commits{/sha}",
-      "comments_url": "https://api.github.com/repos/flutter/cocoon/comments{/number}",
-      "issue_comment_url": "https://api.github.com/repos/flutter/cocoon/issues/comments{/number}",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/{+path}",
-      "compare_url": "https://api.github.com/repos/flutter/cocoon/compare/{base}...{head}",
-      "merges_url": "https://api.github.com/repos/flutter/cocoon/merges",
-      "archive_url": "https://api.github.com/repos/flutter/cocoon/{archive_format}{/ref}",
-      "downloads_url": "https://api.github.com/repos/flutter/cocoon/downloads",
-      "issues_url": "https://api.github.com/repos/flutter/cocoon/issues{/number}",
-      "pulls_url": "https://api.github.com/repos/flutter/cocoon/pulls{/number}",
-      "milestones_url": "https://api.github.com/repos/flutter/cocoon/milestones{/number}",
-      "notifications_url": "https://api.github.com/repos/flutter/cocoon/notifications{?since,all,participating}",
-      "labels_url": "https://api.github.com/repos/flutter/cocoon/labels{/name}",
-      "releases_url": "https://api.github.com/repos/flutter/cocoon/releases{/id}",
-      "deployments_url": "https://api.github.com/repos/flutter/cocoon/deployments",
-      "created_at": "2016-07-13T16:04:04Z",
-      "updated_at": "2022-07-29T06:49:11Z",
-      "pushed_at": "2022-08-12T21:33:23Z",
-      "git_url": "git://github.com/flutter/cocoon.git",
-      "ssh_url": "git@github.com:flutter/cocoon.git",
-      "clone_url": "https://github.com/flutter/cocoon.git",
-      "svn_url": "https://github.com/flutter/cocoon",
-      "homepage": null,
-      "size": 10500,
-      "stargazers_count": 130,
-      "watchers_count": 130,
-      "language": "Dart",
-      "has_issues": false,
-      "has_projects": true,
-      "has_downloads": true,
-      "has_wiki": false,
-      "has_pages": false,
-      "forks_count": 77,
-      "mirror_url": null,
-      "archived": false,
-      "disabled": false,
-      "open_issues_count": 4,
-      "license": {
-        "key": "bsd-3-clause",
-        "name": "BSD 3-Clause New or Revised License",
-        "spdx_id": "BSD-3-Clause",
-        "url": "https://api.github.com/licenses/bsd-3-clause",
-        "node_id": "MDc6TGljZW5zZTU="
-      },
-      "allow_forking": true,
-      "is_template": false,
-      "web_commit_signoff_required": false,
-      "topics": [],
-      "visibility": "public",
-      "forks": 77,
-      "open_issues": 4,
-      "watchers": 130,
       "default_branch": "main"
-    }
-  },
-  "_links": {
-    "self": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2024"
-    },
-    "html": {
-      "href": "https://github.com/flutter/cocoon/pull/2024"
-    },
-    "issue": {
-      "href": "https://api.github.com/repos/flutter/cocoon/issues/2024"
-    },
-    "comments": {
-      "href": "https://api.github.com/repos/flutter/cocoon/issues/2024/comments"
-    },
-    "review_comments": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2024/comments"
-    },
-    "review_comment": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/comments{/number}"
-    },
-    "commits": {
-      "href": "https://api.github.com/repos/flutter/cocoon/pulls/2024/commits"
-    },
-    "statuses": {
-      "href": "https://api.github.com/repos/flutter/cocoon/statuses/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8"
     }
   },
   "author_association": "MEMBER",
@@ -1094,15 +344,6 @@ const String originalPullRequestJson = """
     "gravatar_id": "",
     "url": "https://api.github.com/users/auto-submit%5Bbot%5D",
     "html_url": "https://github.com/apps/auto-submit",
-    "followers_url": "https://api.github.com/users/auto-submit%5Bbot%5D/followers",
-    "following_url": "https://api.github.com/users/auto-submit%5Bbot%5D/following{/other_user}",
-    "gists_url": "https://api.github.com/users/auto-submit%5Bbot%5D/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/auto-submit%5Bbot%5D/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/auto-submit%5Bbot%5D/subscriptions",
-    "organizations_url": "https://api.github.com/users/auto-submit%5Bbot%5D/orgs",
-    "repos_url": "https://api.github.com/users/auto-submit%5Bbot%5D/repos",
-    "events_url": "https://api.github.com/users/auto-submit%5Bbot%5D/events{/privacy}",
-    "received_events_url": "https://api.github.com/users/auto-submit%5Bbot%5D/received_events",
     "type": "Bot",
     "site_admin": false
   },
@@ -1119,304 +360,79 @@ const String originalPullRequestJson = """
 const String originalPullRequestFilesJson = """
   [
     {
-      "sha": "0a801d301a75eddba8c1b0961e45c4e97ed8855d",
-      "filename": "dashboard/analysis_options.yaml",
-      "status": "modified",
-      "additions": 1,
-      "deletions": 0,
-      "changes": 1,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fanalysis_options.yaml",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fanalysis_options.yaml",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fanalysis_options.yaml?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/analysis_options.yaml"
     },
     {
-      "sha": "4ae457f1ceb175873e368851e0bb025273cae849",
-      "filename": "dashboard/lib/build_dashboard_page.dart",
-      "status": "modified",
-      "additions": 45,
-      "deletions": 35,
-      "changes": 80,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fbuild_dashboard_page.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/build_dashboard_page.dart"
     },
     {
-      "sha": "6c9fe8c0722c267b40b69e1db57bc0d257b898e6",
-      "filename": "dashboard/lib/index_page.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 10,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Findex_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Findex_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Findex_page.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/index_page.dart"
     },
     {
-      "sha": "73034002b8a799098ff66c0564b185c72df2f934",
-      "filename": "dashboard/lib/logic/brooks.dart",
-      "status": "modified",
-      "additions": 20,
-      "deletions": 18,
-      "changes": 38,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Fbrooks.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/brooks.dart"
     },
     {
-      "sha": "55c6e9f4d6577c5edac856a8f6a668f1de675b1d",
-      "filename": "dashboard/lib/logic/links.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 15,
-      "changes": 33,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Flinks.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/links.dart"
     },
     {
-      "sha": "e9a5153be6058201fd1c7ccea4302a09012946e7",
-      "filename": "dashboard/lib/logic/task_grid_filter.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 4,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/task_grid_filter.dart"
     },
     {
-      "sha": "b20d5079c22b44125750821f07eaa59ee86c63c8",
-      "filename": "dashboard/lib/main.dart",
-      "status": "modified",
-      "additions": 7,
-      "deletions": 6,
-      "changes": 13,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fmain.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fmain.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fmain.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/main.dart"
     },
     {
-      "sha": "3f72596fa049b2cdbdac668af9e343de9391e401",
-      "filename": "dashboard/lib/service/appengine_cocoon.dart",
-      "status": "modified",
-      "additions": 23,
-      "deletions": 16,
-      "changes": 39,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/service/appengine_cocoon.dart"
     },
     {
-      "sha": "bf081e60ba3d0137cd2c6956d07e8bb84c5914f2",
-      "filename": "dashboard/lib/service/dev_cocoon.dart",
-      "status": "modified",
-      "additions": 15,
-      "deletions": 8,
-      "changes": 23,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/service/dev_cocoon.dart"
     },
     {
-      "sha": "62f32ac13826256e03debfb770ac51154f77e74c",
-      "filename": "dashboard/lib/widgets/lattice.dart",
-      "status": "modified",
-      "additions": 22,
-      "deletions": 18,
-      "changes": 40,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Flattice.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/lattice.dart"
     },
     {
-      "sha": "b78024d67d0b119748257541fc2226df4c7b5873",
-      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart",
-      "status": "modified",
-      "additions": 5,
-      "deletions": 4,
-      "changes": 9,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Fluci_task_attempt_summary.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart"
     },
     {
-      "sha": "1e34ef6e3e78881368fc04104c1671ab1a1f8c9c",
-      "filename": "dashboard/lib/widgets/sign_in_button.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 10,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/sign_in_button.dart"
     },
     {
-      "sha": "afc1d7684dddf651f51a556b6f7e2539a1f4f46f",
-      "filename": "dashboard/lib/widgets/task_grid.dart",
-      "status": "modified",
-      "additions": 17,
-      "deletions": 13,
-      "changes": 30,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_grid.dart"
     },
     {
-      "sha": "d156a21e68cd5a811a33b4d185beb8ca6edd6855",
-      "filename": "dashboard/lib/widgets/task_overlay.dart",
-      "status": "modified",
-      "additions": 3,
-      "deletions": 2,
-      "changes": 5,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_overlay.dart"
     },
     {
-      "sha": "56535464a410a3f16a62773d857bab32f2a76ba0",
-      "filename": "dashboard/pubspec.lock",
-      "status": "modified",
-      "additions": 1,
-      "deletions": 1,
-      "changes": 2,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fpubspec.lock",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fpubspec.lock",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fpubspec.lock?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/pubspec.lock"
     },
     {
-      "sha": "37e02283bd0d67c69ffffe56fa56ceceaf47c294",
-      "filename": "dashboard/test/build_dashboard_page_test.dart",
-      "status": "modified",
-      "additions": 33,
-      "deletions": 21,
-      "changes": 54,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/build_dashboard_page_test.dart"
     },
     {
-      "sha": "b2d05d1ecd2358e8eefbff7836d1081bd7ae7fab",
-      "filename": "dashboard/test/index_page_test.dart",
-      "status": "modified",
-      "additions": 7,
-      "deletions": 4,
-      "changes": 11,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Findex_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Findex_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Findex_page_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/index_page_test.dart"
     },
     {
-      "sha": "e460c9e86b0b36823ad92bee95dc74ba69b52b64",
-      "filename": "dashboard/test/logic/qualified_task_test.dart",
-      "status": "modified",
-      "additions": 16,
-      "deletions": 9,
-      "changes": 25,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/logic/qualified_task_test.dart"
     },
     {
-      "sha": "a63eba6fb4c111e068a0745fd98f66d076b8a757",
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 11,
-      "changes": 29,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
     },
     {
-      "sha": "93b39f4d8120db308a933737f317903563c44154",
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
-      "status": "modified",
-      "additions": 112,
-      "deletions": 74,
-      "changes": 186,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
     },
     {
-      "sha": "16f157b767f922cd451a2c8289af6c7ce15a227d",
-      "filename": "dashboard/test/service/google_authentication_test.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 2,
-      "changes": 6,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/service/google_authentication_test.dart"
     },
     {
-      "sha": "68ae1d10c9dec0dc029538c9a94e0890883d2e4e",
-      "filename": "dashboard/test/state/build_test.dart",
-      "status": "modified",
-      "additions": 31,
-      "deletions": 20,
-      "changes": 51,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fstate%2Fbuild_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/state/build_test.dart"
     },
     {
-      "sha": "59bd2aa9f4c8d7330af3ca8036ff88696c4d2743",
-      "filename": "dashboard/test/utils/fake_build.dart",
-      "status": "modified",
-      "additions": 10,
-      "deletions": 6,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Ffake_build.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/utils/fake_build.dart"
     },
     {
-      "sha": "bd0feab0d8201b6091f4ab1615612641850be1b2",
-      "filename": "dashboard/test/utils/golden.dart",
-      "status": "modified",
-      "additions": 6,
-      "deletions": 4,
-      "changes": 10,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Fgolden.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/utils/golden.dart"
     },
     {
-      "sha": "642c4c1c75b057e8fb37b3dce6ab4470c2342467",
-      "filename": "dashboard/test/widgets/accessibility_test.dart",
-      "status": "modified",
-      "additions": 22,
-      "deletions": 14,
-      "changes": 36,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/widgets/accessibility_test.dart"
     }
   ]
 """;
@@ -1424,280 +440,73 @@ const String originalPullRequestFilesJson = """
 const String originalPullRequestFilesSubsetJson = """
   [
     {
-      "sha": "0a801d301a75eddba8c1b0961e45c4e97ed8855d",
-      "filename": "dashboard/analysis_options.yaml",
-      "status": "modified",
-      "additions": 1,
-      "deletions": 0,
-      "changes": 1,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fanalysis_options.yaml",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fanalysis_options.yaml",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fanalysis_options.yaml?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/analysis_options.yaml"
     },
     {
-      "sha": "4ae457f1ceb175873e368851e0bb025273cae849",
-      "filename": "dashboard/lib/build_dashboard_page.dart",
-      "status": "modified",
-      "additions": 45,
-      "deletions": 35,
-      "changes": 80,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fbuild_dashboard_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fbuild_dashboard_page.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/build_dashboard_page.dart"
     },
     {
-      "sha": "6c9fe8c0722c267b40b69e1db57bc0d257b898e6",
-      "filename": "dashboard/lib/index_page.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 10,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Findex_page.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Findex_page.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Findex_page.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/index_page.dart"
     },
     {
-      "sha": "73034002b8a799098ff66c0564b185c72df2f934",
-      "filename": "dashboard/lib/logic/brooks.dart",
-      "status": "modified",
-      "additions": 20,
-      "deletions": 18,
-      "changes": 38,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Fbrooks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Fbrooks.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/brooks.dart"
     },
     {
-      "sha": "55c6e9f4d6577c5edac856a8f6a668f1de675b1d",
-      "filename": "dashboard/lib/logic/links.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 15,
-      "changes": 33,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Flinks.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Flinks.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/links.dart"
     },
     {
-      "sha": "e9a5153be6058201fd1c7ccea4302a09012946e7",
-      "filename": "dashboard/lib/logic/task_grid_filter.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 4,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Flogic%2Ftask_grid_filter.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/logic/task_grid_filter.dart"
     },
     {
-      "sha": "3f72596fa049b2cdbdac668af9e343de9391e401",
-      "filename": "dashboard/lib/service/appengine_cocoon.dart",
-      "status": "modified",
-      "additions": 23,
-      "deletions": 16,
-      "changes": 39,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fappengine_cocoon.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/service/appengine_cocoon.dart"
     },
     {
-      "sha": "bf081e60ba3d0137cd2c6956d07e8bb84c5914f2",
-      "filename": "dashboard/lib/service/dev_cocoon.dart",
-      "status": "modified",
-      "additions": 15,
-      "deletions": 8,
-      "changes": 23,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fservice%2Fdev_cocoon.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/service/dev_cocoon.dart"
     },
     {
-      "sha": "62f32ac13826256e03debfb770ac51154f77e74c",
-      "filename": "dashboard/lib/widgets/lattice.dart",
-      "status": "modified",
-      "additions": 22,
-      "deletions": 18,
-      "changes": 40,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Flattice.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Flattice.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/lattice.dart"
     },
     {
-      "sha": "1e34ef6e3e78881368fc04104c1671ab1a1f8c9c",
-      "filename": "dashboard/lib/widgets/sign_in_button.dart",
-      "status": "modified",
-      "additions": 12,
-      "deletions": 10,
-      "changes": 22,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Fsign_in_button.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/sign_in_button.dart"
     },
     {
-      "sha": "afc1d7684dddf651f51a556b6f7e2539a1f4f46f",
-      "filename": "dashboard/lib/widgets/task_grid.dart",
-      "status": "modified",
-      "additions": 17,
-      "deletions": 13,
-      "changes": 30,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_grid.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_grid.dart"
     },
     {
-      "sha": "d156a21e68cd5a811a33b4d185beb8ca6edd6855",
-      "filename": "dashboard/lib/widgets/task_overlay.dart",
-      "status": "modified",
-      "additions": 3,
-      "deletions": 2,
-      "changes": 5,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Flib%2Fwidgets%2Ftask_overlay.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/lib/widgets/task_overlay.dart"
     },
     {
-      "sha": "56535464a410a3f16a62773d857bab32f2a76ba0",
-      "filename": "dashboard/pubspec.lock",
-      "status": "modified",
-      "additions": 1,
-      "deletions": 1,
-      "changes": 2,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fpubspec.lock",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Fpubspec.lock",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Fpubspec.lock?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/pubspec.lock"
     },
     {
-      "sha": "37e02283bd0d67c69ffffe56fa56ceceaf47c294",
-      "filename": "dashboard/test/build_dashboard_page_test.dart",
-      "status": "modified",
-      "additions": 33,
-      "deletions": 21,
-      "changes": 54,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fbuild_dashboard_page_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/build_dashboard_page_test.dart"
     },
     {
-      "sha": "b2d05d1ecd2358e8eefbff7836d1081bd7ae7fab",
-      "filename": "dashboard/test/index_page_test.dart",
-      "status": "modified",
-      "additions": 7,
-      "deletions": 4,
-      "changes": 11,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Findex_page_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Findex_page_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Findex_page_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/index_page_test.dart"
     },
     {
-      "sha": "e460c9e86b0b36823ad92bee95dc74ba69b52b64",
-      "filename": "dashboard/test/logic/qualified_task_test.dart",
-      "status": "modified",
-      "additions": 16,
-      "deletions": 9,
-      "changes": 25,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Fqualified_task_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/logic/qualified_task_test.dart"
     },
     {
-      "sha": "a63eba6fb4c111e068a0745fd98f66d076b8a757",
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
-      "status": "modified",
-      "additions": 18,
-      "deletions": 11,
-      "changes": 29,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Flogic%2Ftask_grid_filter_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
     },
     {
-      "sha": "93b39f4d8120db308a933737f317903563c44154",
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
-      "status": "modified",
-      "additions": 112,
-      "deletions": 74,
-      "changes": 186,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fappengine_cocoon_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
     },
     {
-      "sha": "16f157b767f922cd451a2c8289af6c7ce15a227d",
-      "filename": "dashboard/test/service/google_authentication_test.dart",
-      "status": "modified",
-      "additions": 4,
-      "deletions": 2,
-      "changes": 6,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fservice%2Fgoogle_authentication_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/service/google_authentication_test.dart"
     },
     {
-      "sha": "68ae1d10c9dec0dc029538c9a94e0890883d2e4e",
-      "filename": "dashboard/test/state/build_test.dart",
-      "status": "modified",
-      "additions": 31,
-      "deletions": 20,
-      "changes": 51,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fstate%2Fbuild_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fstate%2Fbuild_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/state/build_test.dart"
     },
     {
-      "sha": "59bd2aa9f4c8d7330af3ca8036ff88696c4d2743",
-      "filename": "dashboard/test/utils/fake_build.dart",
-      "status": "modified",
-      "additions": 10,
-      "deletions": 6,
-      "changes": 16,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Ffake_build.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Ffake_build.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/utils/fake_build.dart"
     },
     {
-      "sha": "bd0feab0d8201b6091f4ab1615612641850be1b2",
-      "filename": "dashboard/test/utils/golden.dart",
-      "status": "modified",
-      "additions": 6,
-      "deletions": 4,
-      "changes": 10,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Futils%2Fgolden.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Futils%2Fgolden.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/utils/golden.dart"
     },
     {
-      "sha": "642c4c1c75b057e8fb37b3dce6ab4470c2342467",
-      "filename": "dashboard/test/widgets/accessibility_test.dart",
-      "status": "modified",
-      "additions": 22,
-      "deletions": 14,
-      "changes": 36,
-      "blob_url": "https://github.com/flutter/cocoon/blob/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "raw_url": "https://github.com/flutter/cocoon/raw/8f2f3d7157345fc1d1c497e1b8106a1d9716fac8/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart",
-      "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/dashboard%2Ftest%2Fwidgets%2Faccessibility_test.dart?ref=8f2f3d7157345fc1d1c497e1b8106a1d9716fac8",
-      "patch": ""
+      "filename": "dashboard/test/widgets/accessibility_test.dart"
     }
   ]
 """;
