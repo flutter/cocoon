@@ -37,13 +37,14 @@ class GerritService {
 
   /// Gets the branches from a remote git repository using the gerrit APIs.
   ///
-  /// [subString] allows to filter branches with this text (not case sensitive).
+  /// [filterRegex] a regular expression string to filter the branches list to
+  /// the ones matching the regex.
   ///
   /// See more:
   ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html#list-branches
-  Future<List<String>> branches(String repo, String project, {String? subString}) async {
+  Future<List<String>> branches(String repo, String project, {String? filterRegex}) async {
     final Map<String, String> queryParameters = <String, String>{
-      if (subString != null && subString.isNotEmpty) 'm': subString,
+      if (filterRegex != null && filterRegex.isNotEmpty) 'r': filterRegex,
     };
     final Uri url = Uri.https(repo, 'projects/$project/branches', queryParameters);
     final List<dynamic> response = await _get(url) as List<dynamic>;
