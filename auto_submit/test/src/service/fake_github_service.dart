@@ -48,6 +48,9 @@ class FakeGithubService implements GithubService {
   IssueComment? issueComment;
   bool labelRemoved = false;
 
+  bool compareReturnValue = false;
+  bool skipRealCompare = false; 
+
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
   }
@@ -173,5 +176,33 @@ class FakeGithubService implements GithubService {
   @override
   Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
     return githubIssueMock!;
+  }
+  
+  @override
+  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
+    if (skipRealCompare) {
+      return compareReturnValue;
+    }
+
+    List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+
+    return _validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
+  }
+
+  bool _validateFileSetsAreEqual(
+      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
+    List<String?> revertFileNames = [];
+    List<String?> currentFileNames = [];
+
+    for (var element in revertPullRequestFiles) {
+      revertFileNames.add(element.filename);
+    }
+    for (var element in currentPullRequestFiles) {
+      currentFileNames.add(element.filename);
+    }
+
+    return revertFileNames.toSet().containsAll(currentFileNames) &&
+        currentFileNames.toSet().containsAll(revertFileNames);
   }
 }

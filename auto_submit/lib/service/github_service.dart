@@ -105,4 +105,33 @@ class GithubService {
       await updateBranch(slug, prNumber, headSha);
     }
   }
+
+  /// Compare the filesets of the current pull request and the original pull 
+  /// request that is being reverted.
+  Future<bool> comparePullRequests(
+      RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
+    // final GithubService githubService = await config.createGithubService(repositorySlug);
+    List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+
+    return _validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
+  }
+
+  /// Validate that each pull request has the same number of files and that the 
+  /// file names match. This must be the case in order to process the revert.
+  bool _validateFileSetsAreEqual(
+      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
+    List<String?> revertFileNames = [];
+    List<String?> currentFileNames = [];
+
+    for (var element in revertPullRequestFiles) {
+      revertFileNames.add(element.filename);
+    }
+    for (var element in currentPullRequestFiles) {
+      currentFileNames.add(element.filename);
+    }
+
+    return revertFileNames.toSet().containsAll(currentFileNames) &&
+        currentFileNames.toSet().containsAll(revertFileNames);
+  }
 }

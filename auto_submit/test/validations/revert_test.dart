@@ -96,48 +96,6 @@ void main() {
     });
   });
 
-  group('Validate pull request file sets.', () {
-    test('Validate pull request file sets match.', () async {
-      github.RepositorySlug slug = github.RepositorySlug('cocoon', 'flutter');
-
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
-      githubService.pullRequestData = revertPullRequest;
-      githubService.pullRequestFilesJsonMock = revertPullRequestFilesJson;
-      List<github.PullRequestFile> revertPullRequestFiles =
-          await githubService.getPullRequestFiles(slug, revertPullRequest);
-
-      Map<String, dynamic> pullRequestJsonMap2 = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest originalPullRequest = github.PullRequest.fromJson(pullRequestJsonMap2);
-      githubService.pullRequestData = originalPullRequest;
-      githubService.pullRequestFilesJsonMock = originalPullRequestFilesJson;
-      List<github.PullRequestFile> originalPullRequestFiles =
-          await githubService.getPullRequestFiles(slug, originalPullRequest);
-
-      assert(revert.validateFileSetsAreEqual(revertPullRequestFiles, originalPullRequestFiles));
-    });
-
-    test('Validate that a subset of files is caught in the comparison', () async {
-      github.RepositorySlug slug = github.RepositorySlug('cocoon', 'flutter');
-
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
-      githubService.pullRequestData = revertPullRequest;
-      githubService.pullRequestFilesJsonMock = revertPullRequestFilesJson;
-      List<github.PullRequestFile> revertPullRequestFiles =
-          await githubService.getPullRequestFiles(slug, revertPullRequest);
-
-      Map<String, dynamic> pullRequestJsonMap2 = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest originalPullRequest = github.PullRequest.fromJson(pullRequestJsonMap2);
-      githubService.pullRequestData = originalPullRequest;
-      githubService.pullRequestFilesJsonMock = originalPullRequestFilesSubsetJson;
-      List<github.PullRequestFile> originalPullRequestFiles =
-          await githubService.getPullRequestFiles(slug, originalPullRequest);
-
-      assert(!revert.validateFileSetsAreEqual(revertPullRequestFiles, originalPullRequestFiles));
-    });
-  });
-
   group('Validate Pull Requests.', () {
     test('Validation fails on author validation, returns error.', () async {
       Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;

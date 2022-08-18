@@ -46,10 +46,11 @@ class Revert extends Validation {
     }
 
     github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
+    GithubService githubService = await config.createGithubService(repositorySlug);
     int pullRequestId = _getPullRequestIdFromLink(revertLink);
-    github.PullRequest requestToRevert = await getPullRequest(repositorySlug, pullRequestId);
+    github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
-    bool requestsMatch = await comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
+    bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
 
     if (requestsMatch) {
       return ValidationResult(true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.');
@@ -90,41 +91,5 @@ class Revert extends Validation {
   int _getPullRequestIdFromLink(String link) {
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
-  }
-
-  /// Method to wrap functionality for getting the revert request. Done mainly
-  /// for testing purposes.
-  Future<github.PullRequest> getPullRequest(github.RepositorySlug repositorySlug, int issueId) async {
-    final GithubService gitHubService = await config.createGithubService(repositorySlug);
-    return gitHubService.getPullRequest(repositorySlug, issueId);
-  }
-
-  /// Compare the filesets of the current pull request and the original pull 
-  /// request that is being reverted.
-  Future<bool> comparePullRequests(
-      github.RepositorySlug repositorySlug, github.PullRequest revert, github.PullRequest current) async {
-    final GithubService githubService = await config.createGithubService(repositorySlug);
-    List<PullRequestFile> originalPullRequestFiles = await githubService.getPullRequestFiles(repositorySlug, revert);
-    List<PullRequestFile> currentPullRequestFiles = await githubService.getPullRequestFiles(repositorySlug, current);
-
-    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
-  }
-
-  /// Validate that each pull request has the same number of files and that the 
-  /// file names match. This must be the case in order to process the revert.
-  bool validateFileSetsAreEqual(
-      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
-    List<String?> revertFileNames = [];
-    List<String?> currentFileNames = [];
-
-    for (var element in revertPullRequestFiles) {
-      revertFileNames.add(element.filename);
-    }
-    for (var element in currentPullRequestFiles) {
-      currentFileNames.add(element.filename);
-    }
-
-    return revertFileNames.toSet().containsAll(currentFileNames) &&
-        currentFileNames.toSet().containsAll(revertFileNames);
   }
 }
