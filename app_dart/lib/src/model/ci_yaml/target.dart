@@ -80,13 +80,13 @@ class Target {
   ///
   /// Targets not triggered by Cocoon will not be triggered.
   ///
-  /// Targets by default run on a [GuaranteedPolicy], but targets in the devicelab run with [BatchPolicy].
+  /// All targets run with [BatchPolicy] to reduce queue time.
   SchedulerPolicy get schedulerPolicy {
     if (value.scheduler != pb.SchedulerSystem.cocoon) {
       return OmitPolicy();
     }
 
-    return shouldBatchSchedule ? BatchPolicy() : GuaranteedPolicy();
+    return BatchPolicy();
   }
 
   /// Gets the assembled properties for this [pb.Target].
