@@ -108,8 +108,7 @@ class GithubService {
 
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
-  Future<bool> comparePullRequests(
-      RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
+  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
     // final GithubService githubService = await config.createGithubService(repositorySlug);
     List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
     List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);

@@ -32,7 +32,8 @@ class Revert extends Validation {
 
     bool? canMerge = messagePullRequest.mergeable;
     if (canMerge == null || !canMerge) {
-      String message = 'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
+      String message =
+          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
@@ -40,7 +41,8 @@ class Revert extends Validation {
     String? pullRequestBody = messagePullRequest.body;
     String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
-      String message = 'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
+      String message =
+          'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
@@ -53,10 +55,12 @@ class Revert extends Validation {
     bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
 
     if (requestsMatch) {
-      return ValidationResult(true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.');
+      return ValidationResult(
+          true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.');
     }
 
-    return ValidationResult(false, Action.REMOVE_LABEL, 'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
+    return ValidationResult(false, Action.REMOVE_LABEL,
+        'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
   }
 
   /// Only a team member and code owner can submit a revert request without a review.

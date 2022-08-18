@@ -61,18 +61,12 @@ class ValidationService {
 
     switch (processMethod) {
       case ProcessMethod.process_autosubmit:
-        await processPullRequest(config,
-            await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest,
-            ackId,
-            pubsub);
+        await processPullRequest(
+            config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
       case ProcessMethod.process_revert:
-        await processRevertRequest(config,
-            await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest,
-            ackId,
-            pubsub);
+        await processRevertRequest(
+            config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
       case ProcessMethod.do_not_process:
         log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
@@ -189,7 +183,12 @@ class ValidationService {
   /// The logic for processing a revert request and opening the follow up
   /// review issue in github.
   Future<void> processRevertRequest(
-      Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub,) async {
+    Config config,
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+    String ackId,
+    PubSub pubsub,
+  ) async {
     ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
 
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
