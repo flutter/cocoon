@@ -6,7 +6,6 @@ import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:auto_submit/service/github_service.dart';
-import 'package:github/github.dart';
 
 import '../service/config.dart';
 import '../service/log.dart';
