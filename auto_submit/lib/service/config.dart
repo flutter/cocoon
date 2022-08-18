@@ -174,10 +174,6 @@ class Config {
   /// The label which shows the overrideTreeStatus.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 
-  /// The autosubmit label.
-  String get autosubmitLabel => 'autosubmit';
-  String get revertLabel => 'revert';
-
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
   /// TODO(keyonghan): monitor and optimize this number based on response time

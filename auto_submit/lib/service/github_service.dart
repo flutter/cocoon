@@ -30,8 +30,8 @@ class GithubService {
   }
 
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
-    int? pullRequestId = pullRequest.number;
-    List<PullRequestFile> listPullRequestFiles = [];
+    final int? pullRequestId = pullRequest.number;
+    final List<PullRequestFile> listPullRequestFiles = [];
 
     if (pullRequestId == null) {
       return listPullRequestFiles;

@@ -11,7 +11,7 @@ import 'package:github/github.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 
-class Revert extends Validation {
+class Revert extends Validation { 
   Revert({
     required Config config,
   }) : super(config: config);
@@ -35,8 +35,7 @@ class Revert extends Validation {
     // check if the PR is mergeable
     bool? canMerge = messagePullRequest.mergeable;
     if (canMerge == null || !canMerge) {
-      String message =
-          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
+      String message = 'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
@@ -45,8 +44,7 @@ class Revert extends Validation {
     String? pullRequestBody = messagePullRequest.body;
     String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
-      String message =
-          'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
+      String message = 'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
@@ -62,13 +60,11 @@ class Revert extends Validation {
     // if the changes are a revert then approve the pull request.
     if (requestsMatch) {
       // create a follow on issue to track the review request for this revert.
-      return ValidationResult(
-          true, Action.REMOVE_LABEL, 'Revert request has been verified and will be queued for merge.');
+      return ValidationResult(true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.');
     }
 
     // The requests do not match so we need to notify the user.
-    return ValidationResult(false, Action.REMOVE_LABEL,
-        'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
+    return ValidationResult(false, Action.REMOVE_LABEL, 'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
   }
 
   /// Only a team member and code owner can submit a revert request with a review.
@@ -93,8 +89,7 @@ class Revert extends Validation {
   }
 
   /// Split a reverts link on the '#' then the '/' to get the parts of the repo
-  /// slug.
-  /// It is assumed that the link has the format flutter/repo#id.
+  /// slug. It is assumed that the link has the format flutter/repo#id.
   github.RepositorySlug _getSlugFromLink(String link) {
     List<String> linkSplit = link.split('#');
     List<String> slugSplit = linkSplit.elementAt(0).split('/');
@@ -127,7 +122,7 @@ class Revert extends Validation {
     return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
   }
 
-  /// Validate that each pull request has the same number of files and that the
+  /// Validate that each pull request has the same number of files and that the 
   /// file names match. This must be the case in order to process the revert.
   bool validateFileSetsAreEqual(
       List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
