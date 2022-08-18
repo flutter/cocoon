@@ -18,21 +18,18 @@ class Revert extends Validation {
 
   static const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
 
-  /// Validate a revert pull request.
   @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
 
-    // Check to make sure the author is valid.
     if (!isValidAuthor(author, authorAssociation)) {
       String message = 'The author $author does not have permissions to make this request.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    // check if the PR is mergeable
     bool? canMerge = messagePullRequest.mergeable;
     if (canMerge == null || !canMerge) {
       String message = 'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
@@ -40,7 +37,6 @@ class Revert extends Validation {
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    // Get the reverts link from the pull request.
     String? pullRequestBody = messagePullRequest.body;
     String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
@@ -49,21 +45,16 @@ class Revert extends Validation {
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    // Get the reverts pull request.
     github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     int pullRequestId = _getPullRequestIdFromLink(revertLink);
     github.PullRequest requestToRevert = await getPullRequest(repositorySlug, pullRequestId);
 
-    // Compare the changes made with the linked pull request.
     bool requestsMatch = await comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
 
-    // if the changes are a revert then approve the pull request.
     if (requestsMatch) {
-      // create a follow on issue to track the review request for this revert.
       return ValidationResult(true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.');
     }
 
-    // The requests do not match so we need to notify the user.
     return ValidationResult(false, Action.REMOVE_LABEL, 'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
   }
 
@@ -80,9 +71,7 @@ class Revert extends Validation {
       return null;
     }
     var matches = _regExp.allMatches(bodyText);
-    // look at only the first match
     if (matches.isNotEmpty) {
-      // return the first group
       return matches.elementAt(0).group(1);
     }
     return null;
@@ -110,9 +99,8 @@ class Revert extends Validation {
     return gitHubService.getPullRequest(repositorySlug, issueId);
   }
 
-  /// Proposer the current pull request we want to compare against proposee. If
-  /// the files in proposer are the same or a subset of proposee then we can
-  /// consider this a revert request.
+  /// Compare the filesets of the current pull request and the original pull 
+  /// request that is being reverted.
   Future<bool> comparePullRequests(
       github.RepositorySlug repositorySlug, github.PullRequest revert, github.PullRequest current) async {
     final GithubService githubService = await config.createGithubService(repositorySlug);

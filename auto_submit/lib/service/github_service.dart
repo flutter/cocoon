@@ -56,7 +56,7 @@ class GithubService {
       title: title,
       body: body,
     );
-    return github.issues.create(repositorySlug, issueRequest);
+    return await github.issues.create(repositorySlug, issueRequest);
   }
 
   /// Fetches the specified pull request.

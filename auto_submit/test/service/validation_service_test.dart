@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart' hide PullRequest;
+import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -54,28 +55,58 @@ void main() {
     test('should process message when autosubmit label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       githubService.pullRequestData = pullRequest;
-      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
-      expect(shouldProcessFlag, true);
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
+      
+      expect(processMethod, ProcessMethod.process_autosubmit);
     });
 
     test('skip processing message when autosubmit label does not exist anymore', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.labels = <IssueLabel>[];
       githubService.pullRequestData = pullRequest;
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
 
-      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
-
-      expect(shouldProcessFlag, false);
+      expect(processMethod, ProcessMethod.do_not_process);
     });
 
     test('skip processing message when the pull request is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       githubService.pullRequestData = pullRequest;
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
 
-      final bool shouldProcessFlag = await validationService.shouldProcess(pullRequest);
+      expect(processMethod, ProcessMethod.do_not_process);
+    });
 
-      expect(shouldProcessFlag, false);
+    test('should process message when revert label exists and pr is open', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      pullRequest.labels = <IssueLabel>[issueLabel];
+      githubService.pullRequestData = pullRequest;
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
+
+      expect(processMethod, ProcessMethod.process_revert);
+    });
+
+    test('should process message as revert when revert and autosubmit labels are present and pr is open', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      pullRequest.labels!.add(issueLabel);
+      githubService.pullRequestData = pullRequest;
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
+
+      expect(processMethod, ProcessMethod.process_revert);
+    });
+
+    test('skip processing message when revert label exists and pr is closed', () async {
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+      pullRequest.state = 'closed';
+      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      pullRequest.labels = <IssueLabel>[issueLabel];
+      githubService.pullRequestData = pullRequest;
+      final ProcessMethod processMethod = await validationService.shouldProcess(pullRequest);
+
+      expect(processMethod, ProcessMethod.do_not_process);
     });
   });
 }
