@@ -59,7 +59,7 @@ class Revert extends Validation {
     return ValidationResult(false, Action.REMOVE_LABEL, 'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.');
   }
 
-  /// Only a team member and code owner can submit a revert request with a review.
+  /// Only a team member and code owner can submit a revert request without a review.
   bool isValidAuthor(String? author, String authorAssociation) {
     return config.rollerAccounts.contains(author) || allowedReviewers.contains(authorAssociation);
   }
