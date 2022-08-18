@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
@@ -237,7 +238,7 @@ update these file paths accordingly.
         ? fileSystem.path.join(parent.path, 'entitlements.txt')
         : fileSystem.path.join(parent.path, 'without_entitlements.txt');
     if (!(await fileSystem.file(entitlementFilePath).exists())) {
-      throw CodesignException('entitilements configuration files are not detected \n'
+      throw CodesignException('$entitlementFilePath not found \n'
           'make sure you have provided them along with the engine artifacts \n');
     }
 

@@ -362,7 +362,7 @@ void main() {
     });
   });
 
-  group('pase entitlement configs: ', () {
+  group('parse entitlement configs: ', () {
     setUp(() {
       tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
@@ -383,11 +383,13 @@ void main() {
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
-    test('parse and store file paths', () async {
+    test('correctly store file paths', () async {
       fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
         ..createSync(recursive: true)
         ..writeAsStringSync(
-          'file_a\nfile_b\nfile_c\n',
+          '''file_a
+file_b
+file_c''',
           mode: FileMode.append,
           encoding: utf8,
         );
@@ -395,7 +397,8 @@ void main() {
       fileSystem.file('${tempDir.absolute.path}/test_entitlement/without_entitlements.txt')
         ..createSync(recursive: true)
         ..writeAsStringSync(
-          'file_d\nfile_e\n',
+          '''file_d
+file_e''',
           mode: FileMode.append,
           encoding: utf8,
         );
@@ -428,7 +431,9 @@ void main() {
       fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
         ..createSync(recursive: true)
         ..writeAsStringSync(
-          'file_a\nfile_b\nfile_c\n',
+          '''file_a
+file_b
+file_c''',
           mode: FileMode.append,
           encoding: utf8,
         );
