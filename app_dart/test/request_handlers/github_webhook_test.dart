@@ -1117,9 +1117,10 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           // Example of real behavior code change.
-          PullRequestFile()..filename = 'packages/flutter_tools/templates/app_shared/macos.tmpl/Runner/Base.lproj/MainMenu.xib',
+          PullRequestFile()
+            ..filename = 'packages/flutter_tools/templates/app_shared/macos.tmpl/Runner/Base.lproj/MainMenu.xib',
           // Example of Objective-C test.
           PullRequestFile()..filename = 'dev/integration_tests/flutter_gallery/macos/RunnerTests/RunnerTests.m',
         ]),
