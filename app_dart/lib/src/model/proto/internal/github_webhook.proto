@@ -1,0 +1,13 @@
+// Copyright 2019 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+// TODO(chillers): Use this for the generated models.
+message GithubWebhookMessage {
+    // TODO(chillers)
+    optional string event = 1;
+    // JSON encoded webhook payload from GitHub.
+    optional string payload = 2;
+}

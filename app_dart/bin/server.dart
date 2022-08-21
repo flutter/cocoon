@@ -61,7 +61,12 @@ Future<void> main() async {
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
-        config,
+        config: config,
+        pubsub: const PubSub(),
+      ),
+      '/api/github/webhook-subscription': GithubWebhookSubscription(
+        config: config,
+        cache: cache,
         branchService: branchService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
