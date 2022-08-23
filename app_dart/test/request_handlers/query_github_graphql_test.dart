@@ -36,16 +36,16 @@ void main() {
       graphqlClient = FakeGraphQLClient();
       config = FakeConfig(githubGraphQLClient: graphqlClient);
       handler = QueryGithubGraphql(
-        config,
-        FakeAuthenticationProvider(),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(),
         requestBodyValue: utf8.encode(graphQLHelloWorld) as Uint8List,
       );
     });
 
     test('Empty body raises a bad request exception', () async {
       handler = QueryGithubGraphql(
-        config,
-        FakeAuthenticationProvider(),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(),
         requestBodyValue: utf8.encode('') as Uint8List,
       );
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));

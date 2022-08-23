@@ -12,12 +12,9 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/push_message.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/cache_service.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import '../service/scheduler.dart';
@@ -32,18 +29,13 @@ import '../service/scheduler.dart';
 class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PostsubmitLuciSubscription({
-    required CacheService cache,
-    required Config config,
-    AuthenticationProvider? authProvider,
+    required super.cache,
+    required super.config,
+    super.authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.luciBuildService,
     required this.scheduler,
-  }) : super(
-          cache: cache,
-          config: config,
-          authProvider: authProvider,
-          topicName: 'luci-postsubmit',
-        );
+  }) : super(topicName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;

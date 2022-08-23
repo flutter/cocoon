@@ -20,16 +20,16 @@ Future<void> main() async {
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
-    final AuthenticationProvider authProvider = AuthenticationProvider(config);
-    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
+    final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
+    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
 
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
-      config,
-      buildBucketClient,
+      config: config,
+      buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
     );
 
@@ -52,16 +52,25 @@ Future<void> main() async {
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
-      '/api/check_flaky_builders': CheckFlakyBuilders(config, authProvider),
-      '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(config, authProvider),
+      '/api/check_flaky_builders': CheckFlakyBuilders(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
+      '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
       '/api/flush-cache': FlushCache(
-        config,
-        authProvider,
+        config: config,
+        authenticationProvider: authProvider,
         cache: cache,
       ),
-      '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
+      '/api/get-authentication-status': GetAuthenticationStatus(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
       '/api/github-webhook-pullrequest': GithubWebhook(
-        config,
+        config: config,
         branchService: branchService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
@@ -69,13 +78,16 @@ Future<void> main() async {
 
       /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
       /// of a POST request.
-      '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
+      '/api/query-github-graphql': QueryGithubGraphql(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
       '/api/presubmit-luci-subscription': PresubmitLuciSubscription(
-        cache,
-        config,
-        buildBucketClient,
-        luciBuildService,
-        githubChecksService,
+        cache: cache,
+        config: config,
+        buildBucketClient: buildBucketClient,
+        luciBuildService: luciBuildService,
+        githubChecksService: githubChecksService,
       ),
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
         cache: cache,
@@ -84,20 +96,23 @@ Future<void> main() async {
         scheduler: scheduler,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(
-        config,
-        authProvider,
+        config: config,
+        authenticationProvider: authProvider,
       ),
-      '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
+      '/api/push-gold-status-to-github': PushGoldStatusToGithub(
+        config: config,
+        authenticationProvider: authProvider,
+      ),
       '/api/reset-prod-task': ResetProdTask(
-        config,
-        authProvider,
-        luciBuildService,
-        scheduler,
+        config: config,
+        authenticationProvider: authProvider,
+        luciBuildService: luciBuildService,
+        scheduler: scheduler,
       ),
       '/api/reset-try-task': ResetTryTask(
-        config,
-        authProvider,
-        scheduler,
+        config: config,
+        authenticationProvider: authProvider,
+        scheduler: scheduler,
       ),
       '/api/scheduler/batch-backfiller': BatchBackfiller(
         config: config,
@@ -109,10 +124,12 @@ Future<void> main() async {
         buildBucketClient: buildBucketClient,
       ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
-        config,
-        authProvider,
+        config: config,
+        authenticationProvider: authProvider,
       ),
-      '/api/update-branches': UpdateBranches(config),
+      '/api/update-branches': UpdateBranches(
+        config: config,
+      ),
 
       /// Updates task related details.
       ///
@@ -130,10 +147,13 @@ Future<void> main() async {
       ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
       ///
       /// Response: Status 200 OK
-      '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
+      '/api/update-task-status': UpdateTaskStatus(
+        config: config,
+        authenticationProvider: swarmingAuthProvider,
+      ),
       '/api/vacuum-github-commits': VacuumGithubCommits(
-        config,
-        authProvider,
+        config: config,
+        authenticationProvider: authProvider,
         scheduler: scheduler,
       ),
 
@@ -156,11 +176,11 @@ Future<void> main() async {
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
-        delegate: GetBuildStatus(config),
+        delegate: GetBuildStatus(config: config),
         ttl: const Duration(seconds: 15),
       ),
 
-      '/api/public/get-release-branches': GetReleaseBranches(config, branchService: branchService),
+      '/api/public/get-release-branches': GetReleaseBranches(config: config, branchService: branchService),
 
       /// Returns task results for commits.
       ///
@@ -210,15 +230,15 @@ Future<void> main() async {
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
-        delegate: GetStatus(config),
+        delegate: GetStatus(config: config),
       ),
 
-      '/api/public/get-green-commits': GetGreenCommits(config),
+      '/api/public/get-green-commits': GetGreenCommits(config: config),
 
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
-        delegate: GetBranches(config),
+        delegate: GetBranches(config: config),
         ttl: const Duration(minutes: 15),
       ),
 
@@ -236,9 +256,9 @@ Future<void> main() async {
         config: config,
         cache: cache,
         ttl: const Duration(minutes: 1),
-        delegate: GithubRateLimitStatus(config),
+        delegate: GithubRateLimitStatus(config: config),
       ),
-      '/api/public/repos': GetRepos(config),
+      '/api/public/repos': GetRepos(config: config),
 
       /// Handler for AppEngine to identify when dart server is ready to serve requests.
       '/readiness_check': ReadinessCheck(config: config),

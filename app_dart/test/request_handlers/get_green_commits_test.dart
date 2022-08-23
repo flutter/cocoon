@@ -67,7 +67,7 @@ void main() {
       config = FakeConfig(keyHelperValue: keyHelper);
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -84,7 +84,7 @@ void main() {
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
       ]);
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -104,7 +104,7 @@ void main() {
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
       ]);
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -121,7 +121,7 @@ void main() {
         CommitStatus(commit2, <Stage>[stageFailedFlaky])
       ]);
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -138,7 +138,7 @@ void main() {
         CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])
       ]);
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -160,7 +160,7 @@ void main() {
         GetGreenCommits.kBranchParam: commitBranched.branch!,
       });
       handler = GetGreenCommits(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );

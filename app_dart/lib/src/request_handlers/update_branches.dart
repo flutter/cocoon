@@ -42,11 +42,11 @@ import '../service/datastore.dart';
 ///]
 
 class UpdateBranches extends RequestHandler<Body> {
-  UpdateBranches(
-    Config config, {
+  UpdateBranches({
+    required super.config,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.processManager,
-  }) : super(config: config);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
   ProcessManager? processManager;

@@ -55,7 +55,7 @@ void main() {
 
       config = FakeConfig(dbValue: db, keyHelperValue: keyHelper, githubClient: mockGitHubClient);
       handler = UpdateBranches(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         processManager: processManager,
       );

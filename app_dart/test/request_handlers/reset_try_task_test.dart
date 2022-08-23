@@ -44,9 +44,9 @@ void main() {
         githubChecksUtil: mockGithubChecksUtil,
       );
       handler = ResetTryTask(
-        config,
-        FakeAuthenticationProvider(clientContext: clientContext),
-        fakeScheduler,
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
+        scheduler: fakeScheduler,
       );
       when(mockGithub.pullRequests).thenReturn(mockPullRequestsService);
       when(mockPullRequestsService.get(any, 123)).thenAnswer((_) async => generatePullRequest(id: 123));

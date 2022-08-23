@@ -31,9 +31,9 @@ const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.sta
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
-  LuciBuildService(
-    this.config,
-    this.buildBucketClient, {
+  LuciBuildService({
+    required this.config,
+    required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
