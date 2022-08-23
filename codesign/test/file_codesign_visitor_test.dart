@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:codesign/codesign.dart' as cs;
 import 'package:codesign/src/log.dart';
+import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
@@ -84,10 +87,10 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_0\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_a\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_b\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_0 is file_c\n'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_0'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_a'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_b'));
+      expect(messages, contains('Child file of directory remote_zip_0 is file_c'));
     });
 
     test('visitDirectory recursively visits directory', () async {
@@ -123,10 +126,10 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1\n'));
-      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1/folder_a\n'));
-      expect(messages, contains('Child file of direcotry remote_zip_1 is file_a\n'));
-      expect(messages, contains('Child file of direcotry folder_a is file_b\n'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/remote_zip_1/folder_a'));
+      expect(messages, contains('Child file of directory remote_zip_1 is file_a'));
+      expect(messages, contains('Child file of directory folder_a is file_b'));
     });
 
     test('visit directory inside a zip', () async {
@@ -186,10 +189,10 @@ void main() {
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_1\n'));
-      expect(messages, contains('Child file of direcotry embedded_zip_${zipFileName.hashCode} is file_2\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_2/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Visiting directory ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_1'));
+      expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_2'));
     });
 
     test('visit zip inside a directory', () async {
@@ -234,13 +237,13 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4\n'));
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4/folder_1\n'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/remote_zip_4/folder_1'));
       expect(
           messages,
           contains(
-              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}\n'));
-      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}\n'));
+              'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
+      expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}'));
     });
 
     test('throw exception when the same directory is visited', () async {
@@ -288,6 +291,173 @@ void main() {
           warnings,
           contains(
               'Warning! You are visiting a directory that has been visited before, the directory is ${tempDir.path}/parent_1/child_1'));
+    });
+
+    test('visitBinary codesigns binary with / without entitlement', () async {
+      codesignVisitor.fileWithEntitlements = <String>{'root/file_a'};
+      codesignVisitor.fileWithoutEntitlements = <String>{'root/file_b'};
+      fileSystem
+        ..file('${tempDir.path}/remote_zip_1/file_a').createSync(recursive: true)
+        ..file('${tempDir.path}/remote_zip_1/file_b').createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${tempDir.path}/remote_zip_1');
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/remote_zip_1/file_a',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>[
+            'codesign',
+            '-f',
+            '-s',
+            randomString,
+            '${tempDir.absolute.path}/remote_zip_1/file_a',
+            '--timestamp',
+            '--options=runtime',
+            '--entitlements',
+            '${tempDir.absolute.path}/Entitlements.plist'
+          ],
+        ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${tempDir.absolute.path}/remote_zip_1/file_b',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>[
+            'codesign',
+            '-f',
+            '-s',
+            randomString,
+            '${tempDir.absolute.path}/remote_zip_1/file_b',
+            '--timestamp',
+            '--options=runtime',
+          ],
+        ),
+      ]);
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        entitlementParentPath: 'root',
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(messages, contains('signing file at path ${tempDir.absolute.path}/remote_zip_1/file_a'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/file_a'));
+      expect(messages, contains('the decision to sign with entitlement is true'));
+
+      expect(messages, contains('signing file at path ${tempDir.absolute.path}/remote_zip_1/file_b'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/file_b'));
+      expect(messages, contains('the decision to sign with entitlement is false'));
+    });
+  });
+
+  group('parse entitlement configs: ', () {
+    setUp(() {
+      tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+      processManager = FakeProcessManager.list(<FakeCommand>[]);
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        codesignUserName: randomString,
+        appSpecificPassword: randomString,
+        codesignAppstoreId: randomString,
+        codesignTeamId: randomString,
+        codesignFilepaths: fakeFilepaths,
+        commitHash: randomString,
+        fileSystem: fileSystem,
+        processManager: processManager,
+        tempDir: tempDir,
+      );
+      codesignVisitor.directoriesVisited.clear();
+      records.clear();
+      log.onRecord.listen((LogRecord record) => records.add(record));
+    });
+
+    test('correctly store file paths', () async {
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          '''file_a
+file_b
+file_c''',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
+
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/without_entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          '''file_d
+file_e''',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        true,
+      );
+      final Set<String> fileWithoutEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        false,
+      );
+      expect(fileWithEntitlements.length, 3);
+      expect(
+          fileWithEntitlements,
+          containsAll(<String>[
+            'file_a',
+            'file_b',
+            'file_c',
+          ]));
+      expect(fileWithoutEntitlements.length, 2);
+      expect(
+          fileWithoutEntitlements,
+          containsAll(<String>[
+            'file_d',
+            'file_e',
+          ]));
+    });
+
+    test('throw exception when configuration file is missing', () async {
+      fileSystem.file('${tempDir.absolute.path}/test_entitlement/entitlements.txt')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          '''file_a
+file_b
+file_c''',
+          mode: FileMode.append,
+          encoding: utf8,
+        );
+
+      final Set<String> fileWithEntitlements = await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${tempDir.absolute.path}/test_entitlement'),
+        true,
+      );
+      expect(fileWithEntitlements.length, 3);
+      expect(
+          fileWithEntitlements,
+          containsAll(<String>[
+            'file_a',
+            'file_b',
+            'file_c',
+          ]));
+      expect(
+          () => codesignVisitor.parseEntitlements(
+                fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement'),
+                false,
+              ),
+          throwsA(
+            isA<CodesignException>(),
+          ));
     });
   });
 }

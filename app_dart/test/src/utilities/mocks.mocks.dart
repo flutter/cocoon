@@ -338,6 +338,11 @@ class MockBranchService extends _i1.Mock implements _i24.BranchService {
   _i17.Future<void> branchFlutterRecipes(String? branch) =>
       (super.noSuchMethod(Invocation.method(#branchFlutterRecipes, [branch]),
           returnValue: Future<void>.value(), returnValueForMissingStub: Future<void>.value()) as _i17.Future<void>);
+  @override
+  _i17.Future<List<Map<String, String>>> getStableBetaDevBranches({_i10.GitHub? github, _i10.RepositorySlug? slug}) =>
+      (super.noSuchMethod(Invocation.method(#getStableBetaDevBranches, [], {#github: github, #slug: slug}),
+              returnValue: Future<List<Map<String, String>>>.value(<Map<String, String>>[]))
+          as _i17.Future<List<Map<String, String>>>);
 }
 
 /// A class which mocks [BuildBucketClient].

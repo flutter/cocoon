@@ -217,8 +217,9 @@ class LuciBuildService {
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
       'recipes',
-      subString: 'flutter-',
+      filterRegex: 'flutter-.*|fuchsia.*',
     );
+    log.info('Available release branches: $branches');
 
     final String sha = pullRequest.head!.sha!;
     String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';

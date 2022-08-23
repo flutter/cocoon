@@ -42,7 +42,7 @@ Future<void> unzip({
       outDir.absolute.path,
     ],
   );
-  log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}\n');
+  log.info('The downloaded file is unzipped from ${inputZip.absolute.path} to ${outDir.absolute.path}');
 }
 
 Future<void> zip({

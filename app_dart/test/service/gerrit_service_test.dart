@@ -28,23 +28,28 @@ void main() {
         await gerritService.branches(
           'myhost',
           'a/b/c',
-          subString: 'flutter-',
+          filterRegex: 'flutter-*',
         );
       } catch (e) {
         expect(e, isA<RetryException>());
       }
     });
     test('Returns a list of branches', () async {
+      Request? requestAux;
       const String body =
           ')]}\'\n[{"web_links":[{"name":"browse","url":"https://a.com/branch_a","target":"_blank"}],"ref":"refs/heads/branch_a","revision":"0bc"}]';
-      mockHttpClient = MockClient((_) async => http.Response(body, HttpStatus.ok));
+      mockHttpClient = MockClient((Request request) async {
+        requestAux = request;
+        return http.Response(body, HttpStatus.ok);
+      });
       gerritService = GerritService(httpClient: mockHttpClient);
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
-        subString: 'flutter-',
+        filterRegex: 'flutter-*|fuchsia*',
       );
       expect(branches, equals(<String>['refs/heads/branch_a']));
+      expect(requestAux!.url.queryParameters, equals(<dynamic, dynamic>{'r': 'flutter-*|fuchsia*'}));
     });
 
     test('No results return an empty list', () async {
@@ -53,7 +58,7 @@ void main() {
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
-        subString: 'flutter-',
+        filterRegex: 'flutter-',
       );
       expect(branches, equals(<String>[]));
     });

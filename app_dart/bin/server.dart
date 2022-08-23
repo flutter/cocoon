@@ -165,6 +165,8 @@ Future<void> main() async {
         ttl: const Duration(seconds: 15),
       ),
 
+      '/api/public/get-release-branches': GetReleaseBranches(config, branchService: branchService),
+
       /// Returns task results for commits.
       ///
       /// Returns result details about each task in each checklist for every commit.

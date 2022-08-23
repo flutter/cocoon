@@ -25,11 +25,23 @@ class GuaranteedPolicy implements SchedulerPolicy {
   Future<int?> triggerPriority({
     required Task task,
     required DatastoreService datastore,
-  }) async =>
-      LuciBuildService.kDefaultPriority;
+  }) async {
+    final List<Task> recentTasks = await datastore.queryRecentTasksByName(name: task.name!).toList();
+    // Ensure task isn't considered in recentTasks
+    recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
+    if (recentTasks.isEmpty) {
+      log.warning('${task.name} is newly added, triggerring builds regardless of policy');
+      return LuciBuildService.kDefaultPriority;
+    }
+    // Prioritize tasks that recently failed.
+    if (shouldRerunPriority(recentTasks, 1)) {
+      return LuciBuildService.kRerunPriority;
+    }
+    return LuciBuildService.kDefaultPriority;
+  }
 }
 
-/// [Task] is run at least every 3 commits.
+/// [Task] is run at least every 6 commits.
 ///
 /// If there is capacity, a backfiller cron triggers the latest task that was not run
 /// to ensure ToT is always tested.
@@ -37,7 +49,7 @@ class GuaranteedPolicy implements SchedulerPolicy {
 /// This is intended for targets that are run in an infra pool that has limited capacity,
 /// such as the on device tests in the DeviceLab.
 class BatchPolicy implements SchedulerPolicy {
-  static const int kBatchSize = 3;
+  static const int kBatchSize = 6;
   @override
   Future<int?> triggerPriority({
     required Task task,
@@ -46,26 +58,49 @@ class BatchPolicy implements SchedulerPolicy {
     final List<Task> recentTasks = await datastore.queryRecentTasksByName(name: task.name!).toList();
     // Ensure task isn't considered in recentTasks
     recentTasks.removeWhere((Task t) => t.commitKey == task.commitKey);
-    if (recentTasks.length < kBatchSize - 1) {
+    if (recentTasks.length < kBatchSize) {
       log.warning('${task.name} has less than $kBatchSize, triggerring all builds regardless of policy');
       return LuciBuildService.kDefaultPriority;
     }
 
     // Prioritize tasks that recently failed.
-    if (_isFailed(recentTasks[0]) || _isFailed(recentTasks[1])) {
+    if (shouldRerunPriority(recentTasks, kBatchSize)) {
       return LuciBuildService.kRerunPriority;
     }
 
-    if (recentTasks[0].status == Task.statusNew && recentTasks[1].status == Task.statusNew) {
+    if (allNew(recentTasks.sublist(0, kBatchSize - 1))) {
       return LuciBuildService.kDefaultPriority;
     }
 
     return null;
   }
+}
 
-  bool _isFailed(Task task) {
-    return task.status == Task.statusFailed || task.status == Task.statusInfraFailure;
+/// Checks if all tasks are with [Task.statusNew].
+bool allNew(List<Task> tasks) {
+  for (Task task in tasks) {
+    if (task.status != Task.statusNew) {
+      return false;
+    }
   }
+  return true;
+}
+
+/// Return true if there is an earlier failed build.
+bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
+  // Prioritize tasks that recently failed.
+  bool hasRecentFailure = false;
+  for (int i = 0; i < pastTaskNumber; i++) {
+    if (_isFailed(tasks[i])) {
+      hasRecentFailure = true;
+      break;
+    }
+  }
+  return hasRecentFailure;
+}
+
+bool _isFailed(Task task) {
+  return task.status == Task.statusFailed || task.status == Task.statusInfraFailure;
 }
 
 /// [Task] run outside of Cocoon are not triggered by the Cocoon scheduler.

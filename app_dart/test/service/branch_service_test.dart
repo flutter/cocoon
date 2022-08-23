@@ -6,10 +6,12 @@ import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show GitHubError, RepositoryCommit;
+import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
+import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
@@ -103,11 +105,57 @@ void main() {
     });
   });
 
+  group('retrieve latest release branches', () {
+    late MockGitHub mockGitHubClient;
+    late MockRepositoriesService mockRepositoriesService;
+
+    setUp(() {
+      mockGitHubClient = MockGitHub();
+      mockRepositoriesService = MockRepositoriesService();
+      when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
+    });
+
+    test('return beta, stable, and dev branches', () async {
+      gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
+      gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
+      gh.Branch devBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
+      gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
+      gh.Branch candidateBranchTwo = generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
+      gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
+
+      when(mockRepositoriesService.getBranch(any, 'stable')).thenAnswer((Invocation invocation) {
+        return Future<gh.Branch>.value(stableBranch);
+      });
+      when(mockRepositoriesService.getBranch(any, 'beta')).thenAnswer((Invocation invocation) {
+        return Future<gh.Branch>.value(betaBranch);
+      });
+      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
+        return Stream.fromIterable([
+          devBranch,
+          candidateBranchOne,
+          stableBranch,
+          betaBranch,
+          candidateBranchTwo,
+          candidateBranchThree,
+        ]);
+      });
+      final List<Map<String, String>> result =
+          await branchService.getReleaseBranches(github: mockGitHubClient, slug: Config.flutterSlug);
+      expect(result.length, 3);
+      expect(result[0]['branch'], stableBranch.name);
+      expect(result[0]['name'], "stable");
+      expect(result[1]['branch'], betaBranch.name);
+      expect(result[1]['name'], "beta");
+      expect(result[2]['branch'], devBranch.name);
+      expect(result[2]['name'], "dev");
+    });
+  });
+
   group('branchFlutterRecipes', () {
     const String branch = 'flutter-2.13-candidate.0';
     setUp(() {
       gerritService.branchesValue = <String>[];
-      githubService.listCommitsBranch = (String branch, int ts) => <RepositoryCommit>[
+      githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[
             generateGitCommit(5),
           ];
     });
@@ -120,7 +168,7 @@ void main() {
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
-      githubService.listCommitsBranch = (String branch, int ts) => <RepositoryCommit>[];
+      githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[];
       expect(() async => branchService.branchFlutterRecipes(branch),
           throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
     });
@@ -135,10 +183,10 @@ void main() {
         attempts++;
 
         if (attempts == 3) {
-          return <RepositoryCommit>[generateGitCommit(5)];
+          return <gh.RepositoryCommit>[generateGitCommit(5)];
         }
 
-        throw GitHubError(MockGitHub(), 'Failed to list commits');
+        throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
       };
       await branchService.branchFlutterRecipes(branch);
     });

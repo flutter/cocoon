@@ -309,13 +309,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     if (kNotActuallyATest.any(filename.endsWith)) {
       return false;
     }
+    // Check for Objective-C tests which end in either "Tests.m" or "Test.m"
+    // in the "dev" directory.
+    final RegExp objectiveCTestRegex = RegExp(r'.*dev\/.*Test[s]?\.m$');
     return filename.endsWith('_test.dart') ||
         filename.endsWith('.expect') ||
         filename.contains('test_fixes') ||
         filename.startsWith('dev/bots/analyze.dart') ||
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
-        filename.startsWith('dev/devicelab/lib/tasks');
+        filename.startsWith('dev/devicelab/lib/tasks') ||
+        filename.startsWith('dev/devicelab/lib/tasks') ||
+        objectiveCTestRegex.hasMatch(filename);
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.

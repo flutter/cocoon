@@ -22,14 +22,21 @@ enabled_branches:
   - main
   - flutter-\\d+\\.\\d+-candidate\\.\\d+
 
+# Platform properties defines common properties shared among targets from the same platform.
+platform_properties:
+  linux:
+    properties:
+      # os will be inherited by all Linux targets, but it can be overrided at the target level
+      os: Linux
+
 targets:
 # A Target is an individual unit of work that is scheduled by Flutter infra
 # Target's are composed of the following properties:
 # name: A human readable string to uniquely identify this target.
+#       The first word indicates the platform this test will be run on. This should match
+#       to an existing platform under platform_properties.
 # bringup: Whether this target is under active development and should not block the tree.
 #          If true, will not run in presubmit and will not block postsubmit.
-# scheduler: String identifying where this target is triggered.
-#            Currently supports cocoon and luci.
 # presubmit: Whether to run this target on presubmit (defaults to true).
 # postsubmit: Whether to run this target on postsubmit (defaults to true).
 # run_if: List of path regexes that can trigger this target on presubmit.
@@ -68,9 +75,8 @@ targets:
 
 All new targets should be added as `bringup: true` to ensure they do not block the tree.
 
-Targets based on the LUCI or Cocoon schedulers will first need to be mirrored to flutter/infra
-before they will be run. This propagation takes about 30 minutes, and will only run as non-blocking
-in postsubmit.
+Targets first need to be mirrored to flutter/infra before they will be run.
+This propagation takes about 30 minutes, and will only run as non-blocking in postsubmit.
 
 The target will show runs in https://ci.chromium.org/p/flutter (under the repo). See
 https://github.com/flutter/flutter/wiki/Adding-a-new-Test-Shard for up to date information
@@ -140,7 +146,6 @@ tags: >
               {"dependency": "open_jdk", "version": "11"}
           ]
         timeout: 60
-        scheduler: luci
     ```
     - Send PR, wait for the checks to go green (the change takes effect on presubmit)
 3. If the check is red, add patches to get it green
