@@ -5,7 +5,7 @@
 /// Enum to tell the auto-submit bot which action to take based on the label
 /// found.
 enum ProcessMethod {
-  process_autosubmit,
-  process_revert,
-  do_not_process,
+  processAutosubmit,
+  processRevert,
+  doNotProcess,
 }

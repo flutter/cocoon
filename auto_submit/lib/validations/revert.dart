@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
+import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
-import 'package:auto_submit/service/github_service.dart';
 
 import '../service/config.dart';
 import '../service/log.dart';
@@ -69,12 +69,12 @@ class Revert extends Validation {
 
   /// The full text here is 'Reverts flutter/cocoon#XXXXX' as output by github
   /// the link must be in the form github.com/flutter/repo/pull/id
-  final RegExp _regExp = RegExp(r'^[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)$', multiLine: true);
   String? extractLinkFromText(String? bodyText) {
     if (bodyText == null) {
       return null;
     }
-    var matches = _regExp.allMatches(bodyText);
+    final RegExp regExp = RegExp(r'^[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)$', multiLine: true);
+    Iterable<RegExpMatch> matches = regExp.allMatches(bodyText);
     if (matches.isNotEmpty) {
       return matches.elementAt(0).group(1);
     }

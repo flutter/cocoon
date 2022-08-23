@@ -11,6 +11,7 @@ import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
+import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 
 import '../model/auto_submit_query_result.dart';
@@ -20,7 +21,6 @@ import '../validations/change_requested.dart';
 import '../validations/conflicting.dart';
 import '../validations/empty_checks.dart';
 import '../validations/validation.dart';
-import 'package:github/github.dart' as github;
 
 /// Provides an extensible and standardized way to validate different aspects of
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
@@ -57,18 +57,18 @@ class ValidationService {
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    ProcessMethod processMethod = await shouldProcess(messagePullRequest);
+    ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
 
     switch (processMethod) {
-      case ProcessMethod.process_autosubmit:
+      case ProcessMethod.processAutosubmit:
         await processPullRequest(
             config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
-      case ProcessMethod.process_revert:
+      case ProcessMethod.processRevert:
         await processRevertRequest(
             config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
-      case ProcessMethod.do_not_process:
+      case ProcessMethod.doNotProcess:
         log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         break;
@@ -90,7 +90,7 @@ class ValidationService {
   }
 
   /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
-  Future<ProcessMethod> shouldProcess(github.PullRequest pullRequest) async {
+  Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
@@ -99,11 +99,11 @@ class ValidationService {
         .toList();
 
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
-      return ProcessMethod.process_revert;
+      return ProcessMethod.processRevert;
     } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
-      return ProcessMethod.process_autosubmit;
+      return ProcessMethod.processAutosubmit;
     } else {
-      return ProcessMethod.do_not_process;
+      return ProcessMethod.doNotProcess;
     }
   }
 
@@ -206,7 +206,7 @@ class ValidationService {
         'Follow up review for revert pull request $prNumber',
         'Revert request by author ${result.repository!.pullRequest!.author}',
       );
-      log.info('$issue was created to track the review for $prNumber');
+      log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
     } else {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.

@@ -46,7 +46,7 @@ class GithubService {
     return listPullRequestFiles;
   }
 
-  // Create a new issue in github.
+  /// Create a new issue in github.
   Future<Issue> createIssue(
     RepositorySlug repositorySlug,
     String title,
@@ -109,7 +109,6 @@ class GithubService {
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
-    // final GithubService githubService = await config.createGithubService(repositorySlug);
     List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
     List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
 
@@ -123,10 +122,10 @@ class GithubService {
     List<String?> revertFileNames = [];
     List<String?> currentFileNames = [];
 
-    for (var element in revertPullRequestFiles) {
+    for (PullRequestFile element in revertPullRequestFiles) {
       revertFileNames.add(element.filename);
     }
-    for (var element in currentPullRequestFiles) {
+    for (PullRequestFile element in currentPullRequestFiles) {
       currentFileNames.add(element.filename);
     }
 
