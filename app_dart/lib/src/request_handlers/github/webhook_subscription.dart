@@ -74,7 +74,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
 
-  ///
   final DatastoreServiceProvider datastoreProvider;
   final BranchService branchService;
 
