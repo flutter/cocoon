@@ -16,7 +16,7 @@ dependencies:
   corsac_jwt: ^1.0.0-nullsafety.1
   crypto: ^3.0.2
   dbcrypt: ^2.0.0
-  file: ^6.1.2
+  file: ^6.1.4
   fixnum: ^1.0.1
   gcloud: ^0.8.4
   github: ^9.4.0
