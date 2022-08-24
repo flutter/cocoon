@@ -69,6 +69,7 @@ DELETE FROM `flutter-dashboard.revert.revert_requests`
 WHERE reverting_pr_id=@REVERTING_PR_ID AND repository=@REPOSITORY
 ''';
 
+
 const String insertPullRequestDml = r'''
 INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
   pr_created_timestamp,
@@ -144,8 +145,7 @@ class BigqueryService {
         _createIntegerQueryParameter('REVERTING_PR_ID', revertRequestRecord.revertingPrId!),
         _createStringQueryParameter('REVERTING_PR_COMMIT', revertRequestRecord.revertingPrCommit),
         _createStringQueryParameter('REVERTING_PR_URL', revertRequestRecord.revertingPrUrl),
-        _createIntegerQueryParameter(
-            'REVERTING_PR_CREATED_TIMESTAMP', revertRequestRecord.revertingPrCreatedTimestamp!),
+        _createIntegerQueryParameter('REVERTING_PR_CREATED_TIMESTAMP', revertRequestRecord.revertingPrCreatedTimestamp!),
         _createIntegerQueryParameter('REVERTING_PR_LANDED_TIMESTAMP', revertRequestRecord.revertingPrLandedTimestamp!),
         _createStringQueryParameter('ORIGINAL_PR_AUTHOR', revertRequestRecord.originalPrAuthor),
         _createIntegerQueryParameter('ORIGINAL_PR_ID', revertRequestRecord.originalPrId!),
@@ -166,16 +166,19 @@ class BigqueryService {
       throw Exception('There was an error inserting $revertRequestRecord into the table.');
     }
   }
-
+  
   /// Select a specific revert request from the database.
   Future<RevertRequestRecord> selectRevertRequestByRevertPrId(
-      String projectId, int revertPrId, String repository) async {
-    final JobsResource jobsResource = await defaultJobs();
+      String projectId, 
+      int revertPrId, 
+      String repository) async {
 
+    final JobsResource jobsResource = await defaultJobs();
+    
     QueryRequest queryRequest = QueryRequest(
-      query: selectRevertRequestDml,
+      query: selectRevertRequestDml, 
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId),
+        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId), 
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -197,33 +200,36 @@ class BigqueryService {
 
     RevertRequestRecord revertRequestRecord = RevertRequestRecord();
     TableRow tableRow = tableRows.first;
-
+    
     revertRequestRecord
-      ..organization = tableRow.f![0].v as String
-      ..repository = tableRow.f![1].v as String
-      ..revertingPrAuthor = tableRow.f![2].v as String
-      ..revertingPrId = int.parse(tableRow.f![3].v as String)
-      ..revertingPrCommit = tableRow.f![4].v as String
-      ..revertingPrUrl = tableRow.f![5].v as String
-      ..revertingPrCreatedTimestamp = int.parse(tableRow.f![6].v as String)
-      ..revertingPrLandedTimestamp = int.parse(tableRow.f![7].v as String)
-      ..originalPrAuthor = tableRow.f![8].v as String
-      ..originalPrId = int.parse(tableRow.f![9].v as String)
-      ..originalPrCommit = tableRow.f![10].v as String
-      ..originalPrUrl = tableRow.f![11].v as String
-      ..originalPrCreatedTimestamp = int.parse(tableRow.f![12].v as String)
-      ..originalPrLandedTimestamp = int.parse(tableRow.f![13].v as String);
-
+        ..organization = tableRow.f![0].v as String
+        ..repository = tableRow.f![1].v as String
+        ..revertingPrAuthor = tableRow.f![2].v as String
+        ..revertingPrId = int.parse(tableRow.f![3].v as String)
+        ..revertingPrCommit = tableRow.f![4].v as String
+        ..revertingPrUrl = tableRow.f![5].v as String
+        ..revertingPrCreatedTimestamp = int.parse(tableRow.f![6].v as String)
+        ..revertingPrLandedTimestamp = int.parse(tableRow.f![7].v as String)
+        ..originalPrAuthor = tableRow.f![8].v as String
+        ..originalPrId = int.parse(tableRow.f![9].v as String)
+        ..originalPrCommit = tableRow.f![10].v as String
+        ..originalPrUrl = tableRow.f![11].v as String
+        ..originalPrCreatedTimestamp =  int.parse(tableRow.f![12].v as String)
+        ..originalPrLandedTimestamp = int.parse(tableRow.f![13].v as String);
+    
     return revertRequestRecord;
   }
 
-  Future<void> deleteRevertRequestRecord(String projectId, int revertPrId, String repository) async {
+  Future<void> deleteRevertRequestRecord(
+      String projectId,
+      int revertPrId, 
+      String repository) async {
     final JobsResource jobsResource = await defaultJobs();
-
+    
     QueryRequest queryRequest = QueryRequest(
-      query: deleteRevertRequestDml,
+      query: deleteRevertRequestDml, 
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId),
+        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId), 
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -244,7 +250,10 @@ class BigqueryService {
   }
 
   /// Insert a new pull request record into the database.
-  Future<void> insertPullRequestRecord(String projectId, PullRequestRecord pullRequestRecord) async {
+  Future<void> insertPullRequestRecord(
+      String projectId, 
+      PullRequestRecord pullRequestRecord) async {
+
     final JobsResource jobsResource = await defaultJobs();
 
     final QueryRequest queryRequest = QueryRequest(
@@ -317,11 +326,11 @@ class BigqueryService {
 
   Future<void> deletePullRequestRecord(String projectId, int pullRequestId, String repository) async {
     final JobsResource jobsResource = await defaultJobs();
-
+    
     QueryRequest queryRequest = QueryRequest(
-      query: deletePullRequestDml,
+      query: deletePullRequestDml, 
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('PR_ID', pullRequestId),
+        _createIntegerQueryParameter('PR_ID', pullRequestId), 
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -344,16 +353,16 @@ class BigqueryService {
   /// Create an int parameter for query substitution.
   QueryParameter _createIntegerQueryParameter(String name, int? value) {
     return QueryParameter(
-        name: name,
-        parameterType: QueryParameterType(type: 'INT64'),
-        parameterValue: QueryParameterValue(value: value.toString()));
+      name: name,
+      parameterType: QueryParameterType(type: 'INT64'),
+      parameterValue: QueryParameterValue(value: value.toString()));
   }
 
   /// Create a String parameter for query substitution.
   QueryParameter _createStringQueryParameter(String name, String? value) {
     return QueryParameter(
-        name: name,
-        parameterType: QueryParameterType(type: 'STRING'),
-        parameterValue: QueryParameterValue(value: value));
+      name: name,
+      parameterType: QueryParameterType(type: 'STRING'),
+      parameterValue: QueryParameterValue(value: value));
   }
 }

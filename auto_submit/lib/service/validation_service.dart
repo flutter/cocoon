@@ -155,8 +155,12 @@ class ValidationService {
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<bool> processMerge(Config config, QueryResult queryResult, github.PullRequest messagePullRequest,
+  Future<bool> processMerge(
+      Config config, 
+      QueryResult queryResult, 
+      github.PullRequest messagePullRequest,
       PullRequestType pullRequestType) async {
+
     String id = queryResult.repository!.pullRequest!.id!;
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final PullRequest pullRequest = queryResult.repository!.pullRequest!;
@@ -229,29 +233,28 @@ class ValidationService {
     }
   }
 
-  Future<void> insertPullRequestRecord(
-      Config config, github.PullRequest pullRequest, PullRequestType pullRequestType) async {
+  Future<void> insertPullRequestRecord(Config config, github.PullRequest pullRequest, PullRequestType pullRequestType) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+      final GithubService gitHubService = await config.createGithubService(slug);
+      final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
 
-    // add a record for the pull request into our metrics tracking
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
-      prCreatedTimestamp: currentPullRequest.createdAt!.millisecondsSinceEpoch,
-      prLandedTimestamp: currentPullRequest.closedAt!.millisecondsSinceEpoch,
-      organization: currentPullRequest.base!.repo!.slug().owner,
-      repository: currentPullRequest.base!.repo!.slug().name,
-      author: currentPullRequest.user!.login,
-      prId: currentPullRequest.number,
-      prCommit: currentPullRequest.head!.sha,
-      prRequestType: pullRequestType.getName,
-    );
+      // add a record for the pull request into our metrics tracking
+      PullRequestRecord pullRequestRecord = PullRequestRecord(
+        prCreatedTimestamp: currentPullRequest.createdAt!.millisecondsSinceEpoch,
+        prLandedTimestamp: currentPullRequest.closedAt!.millisecondsSinceEpoch,
+        organization: currentPullRequest.base!.repo!.slug().owner,
+        repository: currentPullRequest.base!.repo!.slug().name,
+        author: currentPullRequest.user!.login,
+        prId: currentPullRequest.number,
+        prCommit: currentPullRequest.head!.sha,
+        prRequestType: pullRequestType.getName,
+      );
 
-    try {
-      BigqueryService bigqueryService = await config.createBigQueryService();
-      await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
-    } catch (exception) {
-      log.severe(exception.toString());
-    }
+      try {
+        BigqueryService bigqueryService = await config.createBigQueryService();
+        await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
+      } catch (exception) {
+        log.severe(exception.toString());
+      }
   }
 }

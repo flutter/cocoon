@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 class PullRequestRecord {
+
   PullRequestRecord({
     this.prCreatedTimestamp,
     this.prLandedTimestamp,
