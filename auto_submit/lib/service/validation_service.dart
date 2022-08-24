@@ -157,7 +157,7 @@ class ValidationService {
         await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
         await gitHubService.createComment(slug, prNumber, message);
       }
-    } catch(exception) {
+    } catch (exception) {
       String message = '''
 An exception occurred during merge of pull request $prNumber, removing the autosubmit label. 
 Exception: ${exception.toString()}
@@ -230,9 +230,9 @@ Exception: ${exception.toString()}
           await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
           await githubService.createComment(slug, prNumber, message);
         }
-      } catch(exception) {
+      } catch (exception) {
         String message = '''
-An exception occurred during merge of pull request $prNumber, removing the autosubmit label. 
+An exception occurred during merge of pull request $prNumber, removing the revert label. 
 Exception: ${exception.toString()}
 ''';
         log.severe(message);
