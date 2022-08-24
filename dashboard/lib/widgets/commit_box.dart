@@ -124,7 +124,7 @@ class CommitOverlayContents extends StatelessWidget {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: AnimatedDefaultTextStyle(
-                              style: theme.textTheme.subtitle1!,
+                              style: theme.textTheme.titleMedium!,
                               duration: kThemeChangeDuration,
                               child: Row(
                                 children: <Widget>[
@@ -148,8 +148,8 @@ class CommitOverlayContents extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: AnimatedDefaultTextStyle(
-                              style: theme.textTheme.bodyText2!.copyWith(
-                                color: theme.textTheme.caption!.color,
+                              style: theme.textTheme.bodyMedium!.copyWith(
+                                color: theme.textTheme.bodySmall!.color,
                               ),
                               duration: kThemeChangeDuration,
                               child: SelectableText(commit.message.split('\n').first),
