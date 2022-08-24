@@ -159,12 +159,6 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   }) async {
     gitBranch = gitBranch.trim();
     sha = sha.trim();
-    final List<String> flutterBranches = await config.flutterBranches;
-    if (!flutterBranches.contains(gitBranch)) {
-      throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
-          'If this is a valid branch, '
-          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
-    }
     final String id = '${slug.fullName}/$gitBranch/$sha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
