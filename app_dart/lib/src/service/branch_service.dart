@@ -125,8 +125,10 @@ class BranchService {
 
     List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
     final String devName = await _getDevBranch(github: github, slug: slug, branches: branches);
-    final String betaName = branches.where(((gh.Branch b) => b.commit!.sha == betaSha)).single.name!;
-    final String stableName = branches.where(((gh.Branch b) => b.commit!.sha == stableSha)).single.name!;
+    final String betaName =
+        branches.where(((gh.Branch b) => b.commit!.sha == betaSha && b.name != 'beta' && b.name != 'dev')).single.name!;
+    final String stableName =
+        branches.where(((gh.Branch b) => b.commit!.sha == stableSha && b.name != 'stable')).single.name!;
 
     return <Map<String, String>>[
       {"branch": stableName, "name": "stable"},

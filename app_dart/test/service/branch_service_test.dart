@@ -149,6 +149,39 @@ void main() {
       expect(result[2]['branch'], devBranch.name);
       expect(result[2]['name'], "dev");
     });
+
+    test('deduplicate branches with alias', () async {
+      gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
+      gh.Branch stableAliasBranch = generateBranch(2, name: 'stable', sha: '123stable');
+      gh.Branch betaBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789beta');
+      gh.Branch devBranch = generateBranch(4, name: 'dev', sha: '789beta');
+      gh.Branch betaAliasBranch = generateBranch(5, name: 'beta', sha: '789beta');
+
+      when(mockRepositoriesService.getBranch(any, 'stable')).thenAnswer((Invocation invocation) {
+        return Future<gh.Branch>.value(stableAliasBranch);
+      });
+      when(mockRepositoriesService.getBranch(any, 'beta')).thenAnswer((Invocation invocation) {
+        return Future<gh.Branch>.value(betaAliasBranch);
+      });
+      when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
+        return Stream.fromIterable([
+          devBranch,
+          betaAliasBranch,
+          stableBranch,
+          betaBranch,
+          stableAliasBranch,
+        ]);
+      });
+      final List<Map<String, String>> result =
+          await branchService.getReleaseBranches(github: mockGitHubClient, slug: Config.flutterSlug);
+      expect(result.length, 3);
+      expect(result[0]['branch'], stableBranch.name);
+      expect(result[0]['name'], "stable");
+      expect(result[1]['branch'], betaBranch.name);
+      expect(result[1]['name'], "beta");
+      expect(result[2]['branch'], betaBranch.name);
+      expect(result[2]['name'], "dev");
+    });
   });
 
   group('branchFlutterRecipes', () {
