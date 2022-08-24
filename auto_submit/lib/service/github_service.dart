@@ -29,6 +29,36 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
+  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+    final int? pullRequestId = pullRequest.number;
+    final List<PullRequestFile> listPullRequestFiles = [];
+
+    if (pullRequestId == null) {
+      return listPullRequestFiles;
+    }
+
+    Stream<PullRequestFile> pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
+
+    await for (PullRequestFile file in pullRequestFiles) {
+      listPullRequestFiles.add(file);
+    }
+
+    return listPullRequestFiles;
+  }
+
+  /// Create a new issue in github.
+  Future<Issue> createIssue(
+    RepositorySlug repositorySlug,
+    String title,
+    String body,
+  ) async {
+    IssueRequest issueRequest = IssueRequest(
+      title: title,
+      body: body,
+    );
+    return await github.issues.create(repositorySlug, issueRequest);
+  }
+
   /// Fetches the specified pull request.
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
     return await github.pullRequests.get(slug, pullRequestNumber);
@@ -74,5 +104,32 @@ class GithubService {
       final String headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
+  }
+
+  /// Compare the filesets of the current pull request and the original pull
+  /// request that is being reverted.
+  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
+    List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+
+    return _validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
+  }
+
+  /// Validate that each pull request has the same number of files and that the
+  /// file names match. This must be the case in order to process the revert.
+  bool _validateFileSetsAreEqual(
+      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
+    List<String?> revertFileNames = [];
+    List<String?> currentFileNames = [];
+
+    for (PullRequestFile element in revertPullRequestFiles) {
+      revertFileNames.add(element.filename);
+    }
+    for (PullRequestFile element in currentPullRequestFiles) {
+      currentFileNames.add(element.filename);
+    }
+
+    return revertFileNames.toSet().containsAll(currentFileNames) &&
+        currentFileNames.toSet().containsAll(revertFileNames);
   }
 }
