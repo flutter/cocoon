@@ -159,7 +159,7 @@ class ValidationService {
       }
     } catch (exception) {
       String message = '''
-An exception occurred during merge of pull request $prNumber, removing the autosubmit label. 
+An exception occurred during merge of pull request $prNumber, removing the autosubmit label.
 Exception: ${exception.toString()}
 ''';
       log.severe(message);
@@ -232,7 +232,7 @@ Exception: ${exception.toString()}
         }
       } catch (exception) {
         String message = '''
-An exception occurred during merge of pull request $prNumber, removing the revert label. 
+An exception occurred during merge of pull request $prNumber, removing the revert label.
 Exception: ${exception.toString()}
 ''';
         log.severe(message);
