@@ -7,9 +7,7 @@ enum PullRequestType {
   rebase(name: 'rebase'),
   revert(name: 'revert');
 
-  const PullRequestType({
-    required this.name
-  });
+  const PullRequestType({required this.name});
 
   final String name;
 

@@ -108,8 +108,8 @@ void main() {
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
 
       when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>));
+        return Future<QueryResponse>.value(
+            QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>));
       });
     });
 

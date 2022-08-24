@@ -12,7 +12,6 @@ import 'package:test/scaffolding.dart';
 import '../src/service/fake_bigquery_service.dart';
 import '../utilities/mocks.dart';
 
-
 const String revertRequestRecordResponse = '''
 {
   "jobComplete": true,
@@ -196,8 +195,7 @@ void main() {
 
   test('Insert pull request record handles unsuccessful job complete error.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
@@ -268,14 +266,14 @@ void main() {
 
   test('Select pull request handles unsuccessful job failure.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+      PullRequestRecord pullRequestRecord =
+          await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: Get pull request by id for 345 and cocoon did not complete.');
     }
@@ -285,13 +283,14 @@ void main() {
   test('Select pull request handles no rows returned failure.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+      PullRequestRecord pullRequestRecord =
+          await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: Could not find an entry for pull request id 345 in repository cocoon.');
     }
@@ -301,29 +300,30 @@ void main() {
   test('Select pull request handles too many rows returned failure.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(selectPullRequestTooManyRowsResponse) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(selectPullRequestTooManyRowsResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+      PullRequestRecord pullRequestRecord =
+          await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+    } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: More than one record was returned for pull request id 345 in repository cocoon.');
+      expect(exception.toString(),
+          'Exception: More than one record was returned for pull request id 345 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
 
   test('Delete pull request record handles failure to complete job.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: Delete pull request for 345 in repository cocoon did not complete.');
     }
@@ -333,13 +333,13 @@ void main() {
   test('Delete pull request record handles success but no affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: The pull request record for 345 in repository cocoon was not deleted.');
     }
@@ -349,19 +349,19 @@ void main() {
   test('Delete pull request record handles success but wrong number of affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: More than one row we deleted from the database for 345 in repository cocoon.');
+      expect(exception.toString(),
+          'Exception: More than one row we deleted from the database for 345 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
-
 
   test('Insert revert request record is successful.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
@@ -370,20 +370,20 @@ void main() {
     });
 
     RevertRequestRecord revertRequestRecord = RevertRequestRecord(
-        organization: 'flutter',
-        repository: 'cocoon',
-        revertingPrAuthor: 'ricardoamador',
-        revertingPrId: 1024,
-        revertingPrCommit: '123f124',
-        revertingPrUrl: 'flutter/cocoon#1024',
-        revertingPrCreatedTimestamp: 123456789,
-        revertingPrLandedTimestamp: 123456999,
-        originalPrAuthor: 'ricardoamador',
-        originalPrId: 1000,
-        originalPrCommit: 'ce345dc',
-        originalPrCreatedTimestamp: 234567890,
-        originalPrLandedTimestamp: 234567999,
-      );
+      organization: 'flutter',
+      repository: 'cocoon',
+      revertingPrAuthor: 'ricardoamador',
+      revertingPrId: 1024,
+      revertingPrCommit: '123f124',
+      revertingPrUrl: 'flutter/cocoon#1024',
+      revertingPrCreatedTimestamp: 123456789,
+      revertingPrLandedTimestamp: 123456999,
+      originalPrAuthor: 'ricardoamador',
+      originalPrId: 1000,
+      originalPrCommit: 'ce345dc',
+      originalPrCreatedTimestamp: 234567890,
+      originalPrLandedTimestamp: 234567999,
+    );
 
     bool hasError = false;
     try {
@@ -396,26 +396,25 @@ void main() {
 
   test('Insert revert request record handles unsuccessful job complete error.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     RevertRequestRecord revertRequestRecord = RevertRequestRecord(
-        organization: 'flutter',
-        repository: 'cocoon',
-        revertingPrAuthor: 'ricardoamador',
-        revertingPrId: 1024,
-        revertingPrCommit: '123f124',
-        revertingPrUrl: 'flutter/cocoon#1024',
-        revertingPrCreatedTimestamp: 123456789,
-        revertingPrLandedTimestamp: 123456999,
-        originalPrAuthor: 'ricardoamador',
-        originalPrId: 1000,
-        originalPrCommit: 'ce345dc',
-        originalPrCreatedTimestamp: 234567890,
-        originalPrLandedTimestamp: 234567999,
-      );
+      organization: 'flutter',
+      repository: 'cocoon',
+      revertingPrAuthor: 'ricardoamador',
+      revertingPrId: 1024,
+      revertingPrCommit: '123f124',
+      revertingPrUrl: 'flutter/cocoon#1024',
+      revertingPrCreatedTimestamp: 123456789,
+      revertingPrLandedTimestamp: 123456999,
+      originalPrAuthor: 'ricardoamador',
+      originalPrId: 1000,
+      originalPrCommit: 'ce345dc',
+      originalPrCreatedTimestamp: 234567890,
+      originalPrLandedTimestamp: 234567999,
+    );
 
     try {
       await service.insertRevertRequest(expectedProjectId, revertRequestRecord);
@@ -432,7 +431,8 @@ void main() {
           QueryResponse.fromJson(jsonDecode(revertRequestRecordResponse) as Map<dynamic, dynamic>));
     });
 
-    RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+    RevertRequestRecord revertRequestRecord =
+        await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
     expect(revertRequestRecord, isNotNull);
     expect(revertRequestRecord.organization, equals('flutter'));
     expect(revertRequestRecord.repository, equals('cocoon'));
@@ -452,14 +452,14 @@ void main() {
 
   test('Select revert request is unsuccessful with job did not complete error.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+      RevertRequestRecord revertRequestRecord =
+          await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: Get revert request by id 2048 in repository cocoon did not complete.');
     }
@@ -469,15 +469,17 @@ void main() {
   test('Select revert request is successful but does not return any rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+      RevertRequestRecord revertRequestRecord =
+          await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+    } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: Could not find an entry for revert request id 2048 in repository cocoon.');
+      expect(
+          exception.toString(), 'Exception: Could not find an entry for revert request id 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -485,29 +487,30 @@ void main() {
   test('Select is successful but returns more than one row in the request.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(selectRevertRequestTooManyRowsResponse) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(selectRevertRequestTooManyRowsResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
-      RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+      RevertRequestRecord revertRequestRecord =
+          await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+    } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: More than one record was returned for revert request id 2048 in repository cocoon.');
+      expect(exception.toString(),
+          'Exception: More than one record was returned for revert request id 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
 
   test('Delete revert request record handles failure to complete job.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
-      return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
+      return Future<QueryResponse>.value(QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: Delete revert request for 2048 in repository cocoon did not complete.');
     }
@@ -517,13 +520,13 @@ void main() {
   test('Delete revert request record handles success but no affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
       expect(exception.toString(), 'Exception: The request record for 2048 in repository cocoon was not deleted.');
     }
@@ -533,31 +536,30 @@ void main() {
   test('Delete revert request record handles success but wrong number of affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>));
+          QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>));
     });
 
     bool hasError = false;
     try {
       await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: More than one row we deleted from the database for 2048 in repository cocoon.');
+      expect(exception.toString(),
+          'Exception: More than one row we deleted from the database for 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
 
-
-
   test('Testing select revert request record from bigquery.', () async {
-    
     final AccessClientProvider accessClientProvider = AccessClientProvider();
     BigqueryService bigqueryService = BigqueryService(accessClientProvider);
 
     try {
-      RevertRequestRecord revertRequestRecord = await bigqueryService.selectRevertRequestByRevertPrId('flutter-dashboard', 1024, 'cocoon');
+      RevertRequestRecord revertRequestRecord =
+          await bigqueryService.selectRevertRequestByRevertPrId('flutter-dashboard', 1024, 'cocoon');
       expect(revertRequestRecord.organization, isNotNull);
       print(revertRequestRecord);
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
@@ -584,7 +586,7 @@ void main() {
       );
 
       await bigqueryService.insertRevertRequest('flutter-dashboard', revertRequestRecord);
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
@@ -595,7 +597,7 @@ void main() {
 
     try {
       await bigqueryService.deleteRevertRequestRecord('flutter-dashboard', 1024, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
@@ -605,10 +607,11 @@ void main() {
     BigqueryService bigqueryService = BigqueryService(accessClientProvider);
 
     try {
-      PullRequestRecord pullRequestRecord = await bigqueryService.selectPullRequestRecordByPrId('flutter-dashboard', 345, 'cocoon');
+      PullRequestRecord pullRequestRecord =
+          await bigqueryService.selectPullRequestRecordByPrId('flutter-dashboard', 345, 'cocoon');
       expect(pullRequestRecord.organization, isNotNull);
       print(pullRequestRecord);
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
@@ -619,7 +622,7 @@ void main() {
 
     try {
       await bigqueryService.deletePullRequestRecord('flutter-dashboard', 345, 'cocoon');
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
@@ -641,7 +644,7 @@ void main() {
 
     try {
       await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
-    } catch(exception) {
+    } catch (exception) {
       print(exception.toString());
     }
   }, skip: true);
