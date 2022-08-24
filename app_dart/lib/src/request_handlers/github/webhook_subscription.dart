@@ -40,9 +40,8 @@ final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 /// Subscription for processing GitHub webhooks.
 ///
-// TODO(chillers): Change this to an actual subscription.
 /// The PubSub subscription is set up here:
-/// https://cloud.google.com/cloudpubsub/subscription/detail/github-webhooks?project=flutter-dashboard&tab=overview
+/// https://cloud.google.com/cloudpubsub/subscription/detail/github-webhooks-sub?project=flutter-dashboard&tab=overview
 ///
 /// This endpoint enables Cocoon to recover from outages.
 ///
