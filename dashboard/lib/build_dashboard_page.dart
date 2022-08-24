@@ -395,12 +395,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               tooltip: 'Report Issue',
               icon: const Icon(Icons.bug_report),
               onPressed: () async {
-                // TODO(chillers): Is this right?
-                const url = 'https://github.com/flutter/flutter/issues/new';
                 if (await canLaunchUrl(flutterIssueUrl)) {
                   await launchUrl(flutterIssueUrl);
                 } else {
-                  throw 'Could not launch $url';
+                  throw 'Could not launch $flutterIssueUrl';
                 }
               },
             ),
