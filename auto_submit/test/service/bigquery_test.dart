@@ -1,7 +1,3 @@
-// Copyright 2022 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:convert';
 
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
@@ -217,7 +213,7 @@ void main() {
     try {
       await service.insertPullRequestRecord(expectedProjectId, pullRequestRecord);
     } catch (exception) {
-      expect(exception.toString(), 'Exception: Insert pull request $pullRequestRecord did not complete.');
+      expect(exception.toString(), 'Exception: Insert pull request record for $pullRequestRecord did not complete.');
       hasError = true;
     }
     expect(hasError, isTrue);
@@ -279,7 +275,7 @@ void main() {
           await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: Get pull request by id 345 in repository cocoon did not complete.');
+      expect(exception.toString(), 'Exception: Get pull request by id for 345 and cocoon did not complete.');
     }
     expect(hasError, isTrue);
   });
@@ -296,8 +292,7 @@ void main() {
           await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(exception.toString(),
-          'Exception: Could not find an entry for pull request with id 345 in repository cocoon.');
+      expect(exception.toString(), 'Exception: Could not find an entry for pull request id 345 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -315,7 +310,7 @@ void main() {
     } catch (exception) {
       hasError = true;
       expect(exception.toString(),
-          'Exception: More than one record was returned for pull request with id 345 in repository cocoon.');
+          'Exception: More than one record was returned for pull request id 345 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -330,7 +325,7 @@ void main() {
       await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(exception.toString(), 'Exception: Delete pull request with id 345 in repository cocoon did not complete.');
+      expect(exception.toString(), 'Exception: Delete pull request for 345 in repository cocoon did not complete.');
     }
     expect(hasError, isTrue);
   });
@@ -346,8 +341,7 @@ void main() {
       await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(
-          exception.toString(), 'Exception: Could not find pull request with id 345 in repository cocoon to delete.');
+      expect(exception.toString(), 'Exception: The pull request record for 345 in repository cocoon was not deleted.');
     }
     expect(hasError, isTrue);
   });
@@ -364,7 +358,7 @@ void main() {
     } catch (exception) {
       hasError = true;
       expect(exception.toString(),
-          'Exception: More than one row was deleted from the database for pull request with id 345 in repository cocoon.');
+          'Exception: More than one row we deleted from the database for 345 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -484,8 +478,8 @@ void main() {
           await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(exception.toString(),
-          'Exception: Could not find an entry for revert request with id 2048 in repository cocoon.');
+      expect(
+          exception.toString(), 'Exception: Could not find an entry for revert request id 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -503,7 +497,7 @@ void main() {
     } catch (exception) {
       hasError = true;
       expect(exception.toString(),
-          'Exception: More than one record was returned for revert request with id 2048 in repository cocoon.');
+          'Exception: More than one record was returned for revert request id 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
@@ -518,8 +512,7 @@ void main() {
       await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(
-          exception.toString(), 'Exception: Delete revert request with id 2048 in repository cocoon did not complete.');
+      expect(exception.toString(), 'Exception: Delete revert request for 2048 in repository cocoon did not complete.');
     }
     expect(hasError, isTrue);
   });
@@ -535,8 +528,7 @@ void main() {
       await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
     } catch (exception) {
       hasError = true;
-      expect(exception.toString(),
-          'Exception: Could not find revert request with id 2048 in repository cocoon to delete.');
+      expect(exception.toString(), 'Exception: The request record for 2048 in repository cocoon was not deleted.');
     }
     expect(hasError, isTrue);
   });
@@ -553,7 +545,7 @@ void main() {
     } catch (exception) {
       hasError = true;
       expect(exception.toString(),
-          'Exception: More than one row was deleted from the database for revert request with id 2048 in repository cocoon.');
+          'Exception: More than one row we deleted from the database for 2048 in repository cocoon.');
     }
     expect(hasError, isTrue);
   });
