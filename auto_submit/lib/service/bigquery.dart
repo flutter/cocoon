@@ -188,11 +188,12 @@ class BigqueryService {
 
     List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
-      throw Exception('Could not find an entry for revert request id $revertPrId in repository $repository.');
+      throw Exception('Could not find an entry for revert request with id $revertPrId in repository $repository.');
     }
 
     if (tableRows.length != 1) {
-      throw Exception('More than one record was returned for revert request id $revertPrId in repository $repository.');
+      throw Exception(
+          'More than one record was returned for revert request with id $revertPrId in repository $repository.');
     }
 
     RevertRequestRecord revertRequestRecord = RevertRequestRecord();
@@ -231,15 +232,16 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw Exception('Delete revert request for $revertPrId in repository $repository did not complete.');
+      throw Exception('Delete revert request with id $revertPrId in repository $repository did not complete.');
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
-      throw Exception('The request record for $revertPrId in repository $repository was not deleted.');
+      throw Exception('Could not find revert request with id $revertPrId in repository $repository to delete.');
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
-      throw Exception('More than one row we deleted from the database for $revertPrId in repository $repository.');
+      throw Exception(
+          'More than one row was deleted from the database for revert request with id $revertPrId in repository $repository.');
     }
   }
 
@@ -264,7 +266,7 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw Exception('Insert pull request record for $pullRequestRecord did not complete.');
+      throw Exception('Insert pull request $pullRequestRecord did not complete.');
     }
 
     if (queryResponse.numDmlAffectedRows != null && int.parse(queryResponse.numDmlAffectedRows!) != 1) {
@@ -287,16 +289,16 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw Exception('Get pull request by id for $prId and $repository did not complete.');
+      throw Exception('Get pull request by id $prId in repository $repository did not complete.');
     }
 
     List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
-      throw Exception('Could not find an entry for pull request id $prId in repository $repository.');
+      throw Exception('Could not find an entry for pull request with id $prId in repository $repository.');
     }
 
     if (tableRows.length != 1) {
-      throw Exception('More than one record was returned for pull request id $prId in repository $repository.');
+      throw Exception('More than one record was returned for pull request with id $prId in repository $repository.');
     }
 
     PullRequestRecord pullRequestRecord = PullRequestRecord();
@@ -329,15 +331,16 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw Exception('Delete pull request for $pullRequestId in repository $repository did not complete.');
+      throw Exception('Delete pull request with id $pullRequestId in repository $repository did not complete.');
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
-      throw Exception('The pull request record for $pullRequestId in repository $repository was not deleted.');
+      throw Exception('Could not find pull request with id $pullRequestId in repository $repository to delete.');
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
-      throw Exception('More than one row we deleted from the database for $pullRequestId in repository $repository.');
+      throw Exception(
+          'More than one row was deleted from the database for pull request with id $pullRequestId in repository $repository.');
     }
   }
 
