@@ -3,22 +3,19 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/no_auth_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
-import 'fake_http.dart';
 import 'request_handler_tester.dart';
 
 class NoAuthRequestHandlerTester extends RequestHandlerTester {
   NoAuthRequestHandlerTester({
-    HttpRequest? request,
+    super.request,
     Map<String, dynamic>? requestData,
-  })  : requestData = requestData ?? <String, dynamic>{},
-        super(request: request as FakeHttpRequest?);
+  }) : requestData = requestData ?? <String, dynamic>{};
 
   Map<String, dynamic> requestData;
 

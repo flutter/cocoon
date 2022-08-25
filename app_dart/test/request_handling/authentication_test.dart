@@ -32,7 +32,7 @@ void main() {
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
       auth = AuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => throw AssertionError(),
       );
@@ -53,7 +53,7 @@ void main() {
 
       setUp(() {
         auth = AuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -62,7 +62,7 @@ void main() {
       test('auth succeeds with authenticated header', () async {
         httpClient = MockClient((_) async => http.Response('{"aud": "client-id", "hd": "google.com"}', HttpStatus.ok));
         auth = AuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );

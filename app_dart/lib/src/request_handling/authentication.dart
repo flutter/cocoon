@@ -50,8 +50,8 @@ import 'exceptions.dart';
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 class AuthenticationProvider {
-  const AuthenticationProvider(
-    this.config, {
+  const AuthenticationProvider({
+    required this.config,
     this.clientContextProvider = Providers.serviceScopeContext,
     this.httpClientProvider = Providers.freshHttpClient,
   });

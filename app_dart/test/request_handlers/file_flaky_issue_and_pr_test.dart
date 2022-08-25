@@ -122,8 +122,8 @@ void main() {
       tester = ApiRequestHandlerTester(request: request);
 
       handler = FileFlakyIssueAndPR(
-        config,
-        auth,
+        config: config,
+        authenticationProvider: auth,
       );
     });
 

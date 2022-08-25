@@ -4,14 +4,13 @@
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
-import 'package:cocoon_service/src/service/config.dart';
 
 // ignore: must_be_immutable
 class FakeRequestHandler extends RequestHandler<Body> {
   FakeRequestHandler({
     required this.body,
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   final Body body;
 

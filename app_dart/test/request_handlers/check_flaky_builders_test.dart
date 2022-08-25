@@ -117,8 +117,8 @@ void main() {
       tester = ApiRequestHandlerTester(request: request);
 
       handler = CheckFlakyBuilders(
-        config,
-        auth,
+        config: config,
+        authenticationProvider: auth,
       );
     });
 

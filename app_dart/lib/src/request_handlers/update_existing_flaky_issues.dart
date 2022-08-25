@@ -12,7 +12,6 @@ import 'package:yaml/yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
@@ -26,8 +25,10 @@ import 'flaky_handler_utils.dart';
 /// properly adjusts the priority labels.
 @immutable
 class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
-  const UpdateExistingFlakyIssue(Config config, AuthenticationProvider authenticationProvider)
-      : super(config: config, authenticationProvider: authenticationProvider);
+  const UpdateExistingFlakyIssue({
+    required super.config,
+    required super.authenticationProvider,
+  });
 
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
