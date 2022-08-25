@@ -1,27 +1,4 @@
-# For more information about the core and recommended set of lints, see
-# https://dart.dev/go/core-lints
-
-# For additional information about configuring this file, see
-# https://dart.dev/guides/language/analysis-options
-
-analyzer:
-  strong-mode:
-    implicit-casts: false
-    implicit-dynamic: false
-  errors:
-    # treat missing required parameters as a warning (not a hint)
-    missing_required_param: warning
-    # treat missing returns as a warning (not a hint)
-    missing_return: warning
-    # allow having TODOs in the code
-    todo: ignore
-    # Ignore analyzer hints for updating pubspecs when using Future or
-    # Stream and not importing dart:async
-    # Please see https://github.com/flutter/flutter/pull/24528 for details.
-    sdk_version_async_exported_from_core: ignore
-    implicit_dynamic_parameter: info
-
-include: package:flutter_lints/flutter.yaml
+include: ../analysis_options.yaml
 
 linter:
   rules:
@@ -49,8 +26,7 @@ linter:
     # - avoid_js_rounded_ints # only useful when targeting JS runtime
     avoid_null_checks_in_equality_operators: true
     # - avoid_positional_boolean_parameters # not yet tested
-    # - avoid_private_typedef_functions # we prefer having typedef (discussion in https://github.com/flutter/flutter/pull/16356)
-    avoid_relative_lib_imports: true
+    # - avoid_private_typedef_functions # we prefer having typedef (discussion in https://github.com/flutter/flutter/pull/16356) avoid_relative_lib_imports: true
     avoid_renaming_method_parameters: true
     avoid_return_types_on_setters: true
     # - avoid_returning_null # there are plenty of valid reasons to return null
