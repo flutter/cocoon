@@ -202,6 +202,8 @@ Exception: ${exception.toString()}
     }
   }
 
+  /// Safe merge that wraps the merging process so that we can fail gracefully and
+  /// process the pull request correctly.
   Future<bool> processMergeSafely(
       Config config,
       GithubService gitHubService,
@@ -265,6 +267,7 @@ Exception: ${exception.toString()}
     return true;
   }
 
+  /// Remove the requested label and add a comment to the target pull request issue.
   Future<void> removeLabelAndComment(GithubService githubService, gh.RepositorySlug repositorySlug, int prNumber,
       String prLabel, String message) async {
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
