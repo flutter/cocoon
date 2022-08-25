@@ -203,7 +203,13 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
             value: value,
             child: Padding(
               padding: const EdgeInsets.only(top: 11),
-              child: Center(child: Text(value, style: theme.primaryTextTheme.bodyText1, textAlign: TextAlign.center)),
+              child: Center(
+                child: Text(
+                  value,
+                  style: theme.primaryTextTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
           );
         }).toList(),
@@ -239,7 +245,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
             value: buildState.currentBranch,
             child: Padding(
               padding: const EdgeInsets.only(top: 9.0),
-              child: Center(child: Text(buildState.currentBranch, style: theme.primaryTextTheme.bodyText1)),
+              child: Center(
+                child: Text(
+                  buildState.currentBranch,
+                  style: theme.primaryTextTheme.bodyLarge,
+                ),
+              ),
             ),
           ),
           ...buildState.branches
@@ -249,7 +260,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               value: b.branch,
               child: Padding(
                 padding: const EdgeInsets.only(top: 9.0),
-                child: Center(child: Text(b.branch, style: theme.primaryTextTheme.bodyText1)),
+                child: Center(
+                  child: Text(
+                    b.branch,
+                    style: theme.primaryTextTheme.bodyLarge,
+                  ),
+                ),
               ),
             );
           })
