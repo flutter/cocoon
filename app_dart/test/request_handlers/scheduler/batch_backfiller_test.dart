@@ -38,7 +38,7 @@ void main() {
         config: config,
         ciYaml: batchPolicyConfig,
         luciBuildService: FakeLuciBuildService(
-          config,
+          config: config,
           pubsub: pubsub,
         ),
       );

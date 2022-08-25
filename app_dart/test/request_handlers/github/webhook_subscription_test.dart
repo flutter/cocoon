@@ -1010,7 +1010,7 @@ void main() {
       ));
     });
 
-        test('Framework no test comment if Objective-C test changed', () async {
+    test('Framework no test comment if Objective-C test changed', () async {
       const int issueNumber = 123;
       tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
 

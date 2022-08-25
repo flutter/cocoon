@@ -19,9 +19,9 @@ import '../service/config.dart';
 ///   2. Event payload that was HMAC authenticated
 class GithubWebhook extends RequestHandler<Body> {
   GithubWebhook({
-    required Config config,
+    required super.config,
     required this.pubsub,
-  }) : super(config: config);
+  });
 
   final PubSub pubsub;
 

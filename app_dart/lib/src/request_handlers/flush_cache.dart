@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/cache_service.dart';
@@ -19,11 +18,11 @@ import '../service/config.dart';
 /// If the cache does not have the given key, throws [NotFoundException].
 @immutable
 class FlushCache extends ApiRequestHandler<Body> {
-  const FlushCache(
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  const FlushCache({
+    required super.config,
+    required super.authenticationProvider,
     required this.cache,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  });
 
   final CacheService cache;
 

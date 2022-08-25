@@ -15,11 +15,11 @@ import '../request_handling/exceptions.dart';
 /// used to unblock rollers when creating a new commit is not possible.
 @immutable
 class ResetTryTask extends ApiRequestHandler<Body> {
-  const ResetTryTask(
-    Config config,
-    AuthenticationProvider authenticationProvider,
-    this.scheduler,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+  const ResetTryTask({
+    required super.config,
+    required super.authenticationProvider,
+    required this.scheduler,
+  });
 
   final Scheduler scheduler;
 

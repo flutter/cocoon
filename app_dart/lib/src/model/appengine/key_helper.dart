@@ -49,7 +49,7 @@ class KeyHelper {
   /// type names.
   ///
   /// This is initialized when the [KeyHelper] is created by iterating over
-  /// the `types` argument to the [new KeyHelper] constructor and looking for
+  /// the `types` argument to the [KeyHelper.new] constructor and looking for
   /// `@`[Kind] annotations on those classes.
   final Map<Type, Kind> types;
 

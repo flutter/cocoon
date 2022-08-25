@@ -53,19 +53,14 @@ final List<String> kNeedsTestsLabels = <String>['needs tests'];
 class GithubWebhookSubscription extends SubscriptionHandler {
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
-    required CacheService cache,
-    required Config config,
+    required super.cache,
+    required super.config,
     required this.scheduler,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     required this.branchService,
-    AuthenticationProvider? authProvider,
-  }) : super(
-          cache: cache,
-          config: config,
-          authProvider: authProvider,
-          topicName: 'github-webhooks',
-        );
+    super.authProvider,
+  }) : super(topicName: 'github-webhooks');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;

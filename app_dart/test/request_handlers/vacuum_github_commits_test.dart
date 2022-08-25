@@ -93,8 +93,8 @@ void main() {
       );
       tester = ApiRequestHandlerTester();
       handler = VacuumGithubCommits(
-        config,
-        auth,
+        config: config,
+        authenticationProvider: auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         scheduler: scheduler,
       );

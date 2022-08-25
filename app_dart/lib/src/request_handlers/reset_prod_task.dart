@@ -15,7 +15,6 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/google/token_info.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
@@ -29,14 +28,13 @@ import '../service/scheduler.dart';
 /// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
 class ResetProdTask extends ApiRequestHandler<Body> {
-  const ResetProdTask(
-    Config config,
-    AuthenticationProvider authenticationProvider,
-    this.luciBuildService,
-    this.scheduler, {
+  const ResetProdTask({
+    required super.config,
+    required super.authenticationProvider,
+    required this.luciBuildService,
+    required this.scheduler,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        super(config: config, authenticationProvider: authenticationProvider);
+  }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
