@@ -168,8 +168,6 @@ class ValidationService {
       try {
         bool processed = await processMerge(config, result, messagePullRequest);
         if (processed) {
-          await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-          log.info('Ack the processed message : $ackId.');
           gh.Issue issue = await githubService.createIssue(
             slug,
             'Follow up review for revert pull request $prNumber',
@@ -189,8 +187,12 @@ Exception: ${exception.toString()}
         log.severe(message);
         await removeLabelAndComment(githubService, slug, prNumber, Config.kRevertLabel, message);
       }
+
+      // We will acknowledge in any case so do it here.
+      log.info('Ack the processed message : $ackId.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
     } else {
-      // since we do not temporarily ignore anything with a revert request we
+      // Since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
       final String commentMessage =
           revertValidationResult.message.isEmpty ? 'Validation Failed.' : revertValidationResult.message;
@@ -217,16 +219,15 @@ Exception: ${exception.toString()}
     try {
       bool processed = await processMerge(config, queryResult, messagePullRequest);
 
-      if (processed) {
-        log.info('Ack the processed message : $ackId.');
-        await pubSub.acknowledge('auto-submit-queue-sub', ackId);
-        return true;
-      } else {
+      if (!processed) {
         String message = 'Unable to merge pull request $prNumber.';
         log.warning(message);
         await removeLabelAndComment(gitHubService, repositorySlug, prNumber, prLabel, message);
-        return false;
       }
+
+      log.info('Ack the processed message : $ackId.');
+      await pubSub.acknowledge('auto-submit-queue-sub', ackId);
+      return processed;
     } catch (exception) {
       String message = '''
 An exception occurred during merge of pull request $prNumber, removing the autosubmit label.
@@ -234,6 +235,8 @@ Exception: ${exception.toString()}
 ''';
       log.severe(message);
       await removeLabelAndComment(gitHubService, repositorySlug, prNumber, prLabel, message);
+      log.info('Ack the processed message : $ackId.');
+      await pubSub.acknowledge('auto-submit-queue-sub', ackId);
       return false;
     }
   }
@@ -247,6 +250,7 @@ Exception: ${exception.toString()}
     final String? sha = commit.oid;
     int number = messagePullRequest.number!;
     final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
+
     try {
       final graphql.QueryResult result = await client.mutate(graphql.MutationOptions(
         document: mergePullRequestMutation,
