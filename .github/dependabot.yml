@@ -28,7 +28,8 @@ updates:
       - "team"
       - "team: infra"
       - "autosubmit"
-  - codesign"
+  - package-ecosystem: "pub"
+    directory: "/codesign"
     schedule:
       interval: "daily"
     labels:
