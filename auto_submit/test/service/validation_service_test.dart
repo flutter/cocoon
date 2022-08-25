@@ -45,7 +45,12 @@ void main() {
     pubsub.publish('auto-submit-queue-sub', pullRequest);
     qr.QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(config, queryResult, pullRequest, 'test', pubsub);
+    await validationService.processPullRequest(
+      config: config, 
+      result: queryResult, 
+      messagePullRequest: pullRequest, 
+      ackId: 'test', 
+      pubsub: pubsub);
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
@@ -135,7 +140,15 @@ void main() {
     test('ProcessMerge is successful.', () async {
       validationService.processMergeReturn = true;
       bool validated = await validationService.processMergeSafely(
-          config, githubService, pullRequest, queryResult, pubsub, 'id', pullRequest.base!.repo!.slug(), 0, 'merge');
+          config: config, 
+          gitHubService: githubService, 
+          messagePullRequest: pullRequest, 
+          queryResult: queryResult, 
+          pubSub: pubsub, 
+          ackId: 'id', 
+          repositorySlug: pullRequest.base!.repo!.slug(), 
+          prNumber: 0, 
+          prLabel: 'merge');
 
       expect(validated, isTrue);
       expect(validationService.threwException, isFalse);
@@ -143,7 +156,15 @@ void main() {
 
     test('ProcessMerge is unsuccessful.', () async {
       bool validated = await validationService.processMergeSafely(
-          config, githubService, pullRequest, queryResult, pubsub, 'id', pullRequest.base!.repo!.slug(), 0, 'merge');
+          config: config, 
+          gitHubService: githubService, 
+          messagePullRequest: pullRequest, 
+          queryResult: queryResult, 
+          pubSub: pubsub, 
+          ackId: 'id', 
+          repositorySlug: pullRequest.base!.repo!.slug(), 
+          prNumber: 0, 
+          prLabel: 'merge');
 
       expect(validated, isFalse);
       expect(validationService.threwException, isFalse);
@@ -152,7 +173,15 @@ void main() {
     test('ProcessMerge is unsuccessful.', () async {
       validationService.returnValue = false;
       bool validated = await validationService.processMergeSafely(
-          config, githubService, pullRequest, queryResult, pubsub, 'id', pullRequest.base!.repo!.slug(), 0, 'merge');
+          config: config, 
+          gitHubService: githubService, 
+          messagePullRequest: pullRequest, 
+          queryResult: queryResult, 
+          pubSub: pubsub, 
+          ackId: 'id', 
+          repositorySlug: pullRequest.base!.repo!.slug(), 
+          prNumber: 0, 
+          prLabel: 'merge');
 
       expect(validated, isFalse);
       expect(validationService.threwException, isTrue);
