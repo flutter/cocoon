@@ -10,10 +10,8 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 
@@ -29,11 +27,11 @@ import '../service/logging.dart';
 ///  B. Optional: [resultsParam] and [scoreKeysParam] which hold performance benchmark data.
 @immutable
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
-  const UpdateTaskStatus(
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  const UpdateTaskStatus({
+    required super.config,
+    required super.authenticationProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
 

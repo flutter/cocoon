@@ -71,8 +71,8 @@ void main() {
       );
       tester = ApiRequestHandlerTester(context: authContext);
       handler = PushBuildStatusToGithub(
-        config,
-        FakeAuthenticationProvider(clientContext: clientContext),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
         buildStatusServiceProvider: (_) => buildStatusService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );

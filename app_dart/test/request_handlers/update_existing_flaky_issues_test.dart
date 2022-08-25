@@ -79,8 +79,8 @@ void main() {
       tester = ApiRequestHandlerTester(request: request);
 
       handler = UpdateExistingFlakyIssue(
-        config,
-        auth,
+        config: config,
+        authenticationProvider: auth,
       );
     });
 

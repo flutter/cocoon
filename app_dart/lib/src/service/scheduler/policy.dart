@@ -90,7 +90,7 @@ bool allNew(List<Task> tasks) {
 bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   // Prioritize tasks that recently failed.
   bool hasRecentFailure = false;
-  for (int i = 0; i < pastTaskNumber; i++) {
+  for (int i = 0; i < pastTaskNumber && i < tasks.length; i++) {
     if (_isFailed(tasks[i])) {
       hasRecentFailure = true;
       break;

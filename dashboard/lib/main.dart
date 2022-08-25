@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
       title: 'Build Dashboard',
       theme: ThemeData(
         primaryTextTheme: const TextTheme(
-          bodyText1: TextStyle(color: Colors.black87),
+          bodyLarge: TextStyle(color: Colors.black87),
         ),
       ),
       darkTheme: ThemeData.dark(),

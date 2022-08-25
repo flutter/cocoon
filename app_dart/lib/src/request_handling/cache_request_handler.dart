@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
-import '../service/config.dart';
 import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.
@@ -22,10 +21,10 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CacheRequestHandler].
   const CacheRequestHandler({
     required this.delegate,
-    required Config config,
+    required super.config,
     required this.cache,
     this.ttl = const Duration(minutes: 1),
-  }) : super(config: config);
+  });
 
   /// [RequestHandler] to fallback on for cache misses.
   final RequestHandler<T> delegate;

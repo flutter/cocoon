@@ -122,7 +122,7 @@ void main() {
         githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
         luciBuildService: FakeLuciBuildService(
-          config,
+          config: config,
           githubChecksUtil: mockGithubChecksUtil,
           gerritService: FakeGerritService(
             branchesValue: <String>['master'],
@@ -265,7 +265,7 @@ void main() {
       test('schedules cocoon based targets - multiple batch requests', () async {
         final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
-          config,
+          config: config,
           buildbucket: mockBuildBucketClient,
           gerritService: FakeGerritService(),
           pubsub: pubsub,
@@ -540,7 +540,7 @@ targets:
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
-            config,
+            config: config,
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
@@ -664,7 +664,7 @@ targets:
           buildStatusProvider: (_) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
-            config,
+            config: config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
             gerritService: FakeGerritService(branchesValue: <String>['master']),

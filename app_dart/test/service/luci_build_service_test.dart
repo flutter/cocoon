@@ -53,8 +53,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -129,8 +129,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
       );
@@ -183,8 +183,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -235,8 +235,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
         pubsub: pubsub,
@@ -406,8 +406,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        FakeConfig(),
-        mockBuildBucketClient,
+        config: FakeConfig(),
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
     });
@@ -507,8 +507,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
@@ -557,8 +557,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
@@ -598,8 +598,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
@@ -632,8 +632,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
-        config,
-        mockBuildBucketClient,
+        config: config,
+        buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       datastore = DatastoreService(config.db, 5);

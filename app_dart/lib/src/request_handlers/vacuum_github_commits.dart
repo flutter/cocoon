@@ -12,7 +12,6 @@ import 'package:truncate/truncate.dart';
 import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
@@ -23,12 +22,12 @@ import '../service/scheduler.dart';
 /// Query GitHub for commits from the past day and ensure they exist in datastore.
 @immutable
 class VacuumGithubCommits extends ApiRequestHandler<Body> {
-  const VacuumGithubCommits(
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  const VacuumGithubCommits({
+    required super.config,
+    required super.authenticationProvider,
     required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
 

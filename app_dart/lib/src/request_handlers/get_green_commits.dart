@@ -34,12 +34,11 @@ import '../service/datastore.dart';
 
 @immutable
 class GetGreenCommits extends RequestHandler<Body> {
-  const GetGreenCommits(
-    Config config, {
+  const GetGreenCommits({
+    required super.config,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  })  : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
-        super(config: config);
+  }) : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;

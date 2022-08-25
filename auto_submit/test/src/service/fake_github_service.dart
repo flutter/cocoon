@@ -33,9 +33,23 @@ class FakeGithubService implements GithubService {
   String? successMergeMock;
   String? createCommentMock;
   String? pullRequestMergeMock;
+  String? pullRequestFilesJsonMock;
+  Issue? githubIssueMock;
+
+  /// Setting either of these flags to true will pop the front element from the
+  /// list. Setting either to false will just return the non list version from
+  /// the appropriate method.
+  bool usePullRequestList = false;
+  bool usePullRequestFilesList = false;
+
+  List<String?> pullRequestFilesMockList = [];
+  List<PullRequest?> pullRequestMockList = [];
 
   IssueComment? issueComment;
   bool labelRemoved = false;
+
+  bool compareReturnValue = false;
+  bool skipRealCompare = false;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
@@ -65,6 +79,14 @@ class FakeGithubService implements GithubService {
     this.pullRequestMergeMock = pullRequestMergeMock;
   }
 
+  set pullrequestFilesData(String? pullRequestFilesMock) {
+    pullRequestFilesJsonMock = pullRequestFilesMock;
+  }
+
+  set githubIssue(Issue? issue) {
+    githubIssueMock = issue;
+  }
+
   @override
   Future<List<CheckRun>> getCheckRuns(
     RepositorySlug slug,
@@ -88,7 +110,12 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
-    final PullRequest pullRequest = pullRequestMock!;
+    PullRequest pullRequest = pullRequestMock!;
+    if (usePullRequestList && pullRequestMockList.isNotEmpty) {
+      pullRequest = pullRequestMockList.removeAt(0)!;
+    } else if (usePullRequestList && pullRequestMockList.isEmpty) {
+      throw Exception('List is empty.');
+    }
     return pullRequest;
   }
 
@@ -120,5 +147,62 @@ class FakeGithubService implements GithubService {
   Future<Response> autoMergeBranch(PullRequest pullRequest) {
     // TODO: implement autoMergeBranch
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
+    String pullRequestData;
+
+    if (usePullRequestFilesList && pullRequestFilesMockList.isNotEmpty) {
+      pullRequestData = pullRequestFilesMockList.removeAt(0)!;
+    } else if (usePullRequestFilesList && pullRequestFilesMockList.isEmpty) {
+      throw Exception('File list is empty.');
+    } else {
+      pullRequestData = pullRequestFilesJsonMock as String;
+    }
+
+    List<PullRequestFile> pullRequestFileList = [];
+
+    dynamic parsedList = jsonDecode(pullRequestData);
+
+    for (dynamic d in parsedList) {
+      PullRequestFile file = PullRequestFile.fromJson(d as Map<String, dynamic>);
+      pullRequestFileList.add(file);
+    }
+
+    return pullRequestFileList;
+  }
+
+  @override
+  Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
+    return githubIssueMock!;
+  }
+
+  @override
+  Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
+    if (skipRealCompare) {
+      return compareReturnValue;
+    }
+
+    List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+
+    return _validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
+  }
+
+  bool _validateFileSetsAreEqual(
+      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
+    List<String?> revertFileNames = [];
+    List<String?> currentFileNames = [];
+
+    for (var element in revertPullRequestFiles) {
+      revertFileNames.add(element.filename);
+    }
+    for (var element in currentPullRequestFiles) {
+      currentFileNames.add(element.filename);
+    }
+
+    return revertFileNames.toSet().containsAll(currentFileNames) &&
+        currentFileNames.toSet().containsAll(revertFileNames);
   }
 }

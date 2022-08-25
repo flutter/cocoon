@@ -16,14 +16,13 @@ import '../service/logging.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
-  const PushBuildStatusToGithub(
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  const PushBuildStatusToGithub({
+    required super.config,
+    required super.authenticationProvider,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
-        super(config: config, authenticationProvider: authenticationProvider);
+        buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider;
 
   final BuildStatusServiceProvider buildStatusServiceProvider;
   final DatastoreServiceProvider datastoreProvider;

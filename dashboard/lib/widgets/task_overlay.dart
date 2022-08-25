@@ -265,11 +265,11 @@ class TaskOverlayContents extends StatelessWidget {
                         children: <Widget>[
                           SelectableText(
                             task.name,
-                            style: Theme.of(context).textTheme.bodyText1,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           Text(
                             summaryText,
-                            style: Theme.of(context).textTheme.bodyText2,
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
