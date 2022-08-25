@@ -4,6 +4,7 @@
 
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:github/github.dart';
+import 'package:graphql/client.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,6 +14,7 @@ export 'mocks.mocks.dart';
   ApproverService,
   GitHub,
   PullRequestsService,
+  GraphQLClient,
   RepositoriesService,
   GitHubComparison,
   http.Response,

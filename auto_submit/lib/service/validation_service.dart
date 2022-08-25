@@ -11,7 +11,7 @@ import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
-import 'package:github/github.dart' as github;
+import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart' as graphql;
 
 import '../model/auto_submit_query_result.dart';
@@ -56,7 +56,7 @@ class ValidationService {
   final Set<Validation> validations = <Validation>{};
 
   /// Processes a pub/sub message associated with PullRequest event.
-  Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+  Future<void> processMessage(gh.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
 
     switch (processMethod) {
@@ -76,8 +76,8 @@ class ValidationService {
   }
 
   /// Fetch the most up to date info for the current pull request from github.
-  Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+  Future<QueryResult> getNewestPullRequestInfo(Config config, gh.PullRequest pullRequest) async {
+    final gh.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
     final int? prNumber = pullRequest.number;
     GraphQlService graphQlService = GraphQlService();
@@ -90,12 +90,12 @@ class ValidationService {
   }
 
   /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
-  Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+  Future<ProcessMethod> processPullRequestMethod(gh.PullRequest pullRequest) async {
+    final gh.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
-    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+    final gh.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final List<String> labelNames = (currentPullRequest.labels as List<gh.IssueLabel>)
+        .map<String>((gh.IssueLabel labelMap) => labelMap.name)
         .toList();
 
     if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
@@ -110,7 +110,7 @@ class ValidationService {
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest(
-      Config config, QueryResult result, github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
+      Config config, QueryResult result, gh.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
     List<ValidationResult> results = <ValidationResult>[];
 
     /// Runs all the validation defined in the service.
@@ -118,7 +118,7 @@ class ValidationService {
       ValidationResult validationResult = await validation.validate(result, messagePullRequest);
       results.add(validationResult);
     }
-    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    gh.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
@@ -126,10 +126,9 @@ class ValidationService {
     final int prNumber = messagePullRequest.number!;
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
-        final String commmentMessage = result.message.isEmpty ? 'Validations Failed.' : result.message;
-        await gitHubService.createComment(slug, prNumber, commmentMessage);
-        await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
-        log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+        final String commentMessage = result.message.isEmpty ? 'Validations Failed.' : result.message;
+        log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
+        await removeLabelAndComment(gitHubService, slug, prNumber, Config.kAutosubmitLabel, commentMessage);
         shouldReturn = true;
       }
     }
@@ -146,16 +145,85 @@ class ValidationService {
       }
     }
     // If we got to this point it means we are ready to submit the PR.
+    await processMergeSafely(
+        config, gitHubService, messagePullRequest, result, pubsub, ackId, slug, prNumber, Config.kAutosubmitLabel);
+  }
+
+  /// The logic for processing a revert request and opening the follow up
+  /// review issue in github.
+  Future<void> processRevertRequest(
+    Config config,
+    QueryResult result,
+    gh.PullRequest messagePullRequest,
+    String ackId,
+    PubSub pubsub,
+  ) async {
+    ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
+
+    gh.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int prNumber = messagePullRequest.number!;
+    final GithubService githubService = await config.createGithubService(slug);
+
+    if (revertValidationResult.result) {
+      try {
+        bool processed = await processMerge(config, result, messagePullRequest);
+        if (processed) {
+          await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+          log.info('Ack the processed message : $ackId.');
+          gh.Issue issue = await githubService.createIssue(
+            slug,
+            'Follow up review for revert pull request $prNumber',
+            'Revert request by author ${result.repository!.pullRequest!.author}',
+          );
+          log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+        } else {
+          String message = 'Unable to merge pull request $prNumber.';
+          log.warning(message);
+          await removeLabelAndComment(githubService, slug, prNumber, Config.kRevertLabel, message);
+        }
+      } catch (exception) {
+        String message = '''
+An exception occurred during merge of pull request $prNumber, removing the revert label.
+Exception: ${exception.toString()}
+''';
+        log.severe(message);
+        await removeLabelAndComment(githubService, slug, prNumber, Config.kRevertLabel, message);
+      }
+    } else {
+      // since we do not temporarily ignore anything with a revert request we
+      // know we will report the error and remove the label.
+      final String commentMessage =
+          revertValidationResult.message.isEmpty ? 'Validation Failed.' : revertValidationResult.message;
+      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
+      await removeLabelAndComment(githubService, slug, prNumber, Config.kRevertLabel, commentMessage);
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+    }
+  }
+
+  Future<bool> processMergeSafely(
+      Config config,
+      GithubService gitHubService,
+      gh.PullRequest messagePullRequest,
+      QueryResult queryResult,
+      PubSub pubSub,
+      String ackId,
+      gh.RepositorySlug repositorySlug,
+      int prNumber,
+      String prLabel) async {
     try {
-      bool processed = await processMerge(config, result, messagePullRequest);
+      bool processed = await processMerge(config, queryResult, messagePullRequest);
+
       if (processed) {
-        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         log.info('Ack the processed message : $ackId.');
+        await pubSub.acknowledge('auto-submit-queue-sub', ackId);
+        return true;
       } else {
         String message = 'Unable to merge pull request $prNumber.';
         log.warning(message);
-        await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
-        await gitHubService.createComment(slug, prNumber, message);
+        await removeLabelAndComment(gitHubService, repositorySlug, prNumber, prLabel, message);
+        return false;
       }
     } catch (exception) {
       String message = '''
@@ -163,15 +231,15 @@ An exception occurred during merge of pull request $prNumber, removing the autos
 Exception: ${exception.toString()}
 ''';
       log.severe(message);
-      await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
-      await gitHubService.createComment(slug, prNumber, message);
+      await removeLabelAndComment(gitHubService, repositorySlug, prNumber, prLabel, message);
+      return false;
     }
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<bool> processMerge(Config config, QueryResult queryResult, github.PullRequest messagePullRequest) async {
+  Future<bool> processMerge(Config config, QueryResult queryResult, gh.PullRequest messagePullRequest) async {
     String id = queryResult.repository!.pullRequest!.id!;
-    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    gh.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final PullRequest pullRequest = queryResult.repository!.pullRequest!;
     Commit commit = pullRequest.commits!.nodes!.single.commit!;
     final String? sha = commit.oid;
@@ -197,59 +265,9 @@ Exception: ${exception.toString()}
     return true;
   }
 
-  /// The logic for processing a revert request and opening the follow up
-  /// review issue in github.
-  Future<void> processRevertRequest(
-    Config config,
-    QueryResult result,
-    github.PullRequest messagePullRequest,
-    String ackId,
-    PubSub pubsub,
-  ) async {
-    ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
-
-    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final int prNumber = messagePullRequest.number!;
-    final GithubService githubService = await config.createGithubService(slug);
-
-    if (revertValidationResult.result) {
-      try {
-        bool processed = await processMerge(config, result, messagePullRequest);
-        if (processed) {
-          await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-          log.info('Ack the processed message : $ackId.');
-          github.Issue issue = await githubService.createIssue(
-            slug,
-            'Follow up review for revert pull request $prNumber',
-            'Revert request by author ${result.repository!.pullRequest!.author}',
-          );
-          log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
-        } else {
-          String message = 'Unable to merge pull request $prNumber.';
-          log.warning(message);
-          await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-          await githubService.createComment(slug, prNumber, message);
-        }
-      } catch (exception) {
-        String message = '''
-An exception occurred during merge of pull request $prNumber, removing the revert label.
-Exception: ${exception.toString()}
-''';
-        log.severe(message);
-        await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-        await githubService.createComment(slug, prNumber, message);
-      }
-    } else {
-      // since we do not temporarily ignore anything with a revert request we
-      // know we will report the error and remove the label.
-      final String commmentMessage =
-          revertValidationResult.message.isEmpty ? 'Validation Failed.' : revertValidationResult.message;
-      await githubService.createComment(slug, prNumber, commmentMessage);
-      await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
-      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
-    }
+  Future<void> removeLabelAndComment(GithubService githubService, gh.RepositorySlug repositorySlug, int prNumber,
+      String prLabel, String message) async {
+    await githubService.removeLabel(repositorySlug, prNumber, prLabel);
+    await githubService.createComment(repositorySlug, prNumber, message);
   }
 }
