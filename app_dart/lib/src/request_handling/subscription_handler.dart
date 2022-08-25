@@ -149,7 +149,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
 @visibleForTesting
 class PubSubKey<T> extends RequestKey<T> {
-  const PubSubKey._(String name) : super(name);
+  const PubSubKey._(super.name);
 
   static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
 }
