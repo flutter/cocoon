@@ -11,9 +11,7 @@ import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
 import '../service/validation_service.dart';
 
-import '../request_handling/authentication.dart';
 import '../request_handling/pubsub.dart';
-import '../service/config.dart';
 
 import '../service/log.dart';
 import '../server/authenticated_request_handler.dart';
@@ -24,11 +22,11 @@ import '../server/authenticated_request_handler.dart';
 /// check if the pull request is mergable.
 class CheckPullRequest extends AuthenticatedRequestHandler {
   const CheckPullRequest({
-    required Config config,
-    required CronAuthProvider cronAuthProvider,
+    required super.config,
+    required super.cronAuthProvider,
     this.approverProvider = ApproverService.defaultProvider,
     this.pubsub = const PubSub(),
-  }) : super(config: config, cronAuthProvider: cronAuthProvider);
+  });
 
   final PubSub pubsub;
   final ApproverServiceProvider approverProvider;

@@ -6,14 +6,13 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart';
 
-import '../service/config.dart';
 import '../server/request_handler.dart';
 
 /// Handler for readiness checks.
 class ReadinessCheck extends RequestHandler {
   const ReadinessCheck({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
   Future<Response> get() async {

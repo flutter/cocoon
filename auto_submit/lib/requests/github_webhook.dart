@@ -21,9 +21,9 @@ import '../requests/exceptions.dart';
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
   const GithubWebhook({
-    required Config config,
+    required super.config,
     this.pubsub = const PubSub(),
-  }) : super(config: config);
+  });
 
   final PubSub pubsub;
 
