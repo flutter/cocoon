@@ -19,7 +19,7 @@ class WebImage extends StatelessWidget {
     this.placeholder,
     this.width = 50,
     this.height = 50,
-  })  : _enabled = enabled;
+  }) : _enabled = enabled;
 
   final bool? _enabled;
   bool? get enabled {

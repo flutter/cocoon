@@ -6,7 +6,6 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-
 /// Validates the PR is not temporarily in a unknown mergeable state.
 class UnknownMergeable extends Validation {
   UnknownMergeable({
