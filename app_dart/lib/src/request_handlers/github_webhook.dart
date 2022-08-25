@@ -10,7 +10,6 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
-import '../service/config.dart';
 
 /// The [RequestHandler] for processing GitHub webhooks and publishing valid events to PubSub.
 ///

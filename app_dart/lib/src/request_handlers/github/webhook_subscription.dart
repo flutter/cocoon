@@ -10,12 +10,10 @@ import 'package:meta/meta.dart';
 
 import '../../../protos.dart' as pb;
 import '../../model/github/checks.dart' as cocoon_checks;
-import '../../request_handling/authentication.dart';
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/branch_service.dart';
-import '../../service/cache_service.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/github_checks_service.dart';
