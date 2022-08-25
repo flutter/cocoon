@@ -28,6 +28,13 @@ updates:
       - "team"
       - "team: infra"
       - "autosubmit"
+  - codesign"
+    schedule:
+      interval: "daily"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
   - package-ecosystem: "pub"
     directory: "/device_doctor"
     schedule:
