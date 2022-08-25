@@ -5,13 +5,14 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 
@@ -43,7 +44,6 @@ class FakeConfig implements Config {
     this.rollerAccountsValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
-    this.flutterBranchesValue,
     this.maxRecordsValue,
     this.flutterGoldPendingValue,
     this.flutterGoldSuccessValue,
@@ -60,7 +60,7 @@ class FakeConfig implements Config {
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
-  GitHub? githubClient;
+  gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
   GraphQLClient? cirrusGraphQLClient;
   TabledataResource? tabledataResource;
@@ -85,7 +85,6 @@ class FakeConfig implements Config {
   Logging? loggingServiceValue;
   String? waitingForTreeToGoGreenLabelNameValue;
   Set<String>? rollerAccountsValue;
-  List<String>? flutterBranchesValue;
   int? maxRecordsValue;
   String? flutterGoldPendingValue;
   String? flutterGoldSuccessValue;
@@ -98,13 +97,13 @@ class FakeConfig implements Config {
   List<String>? supportedBranchesValue;
   List<LuciBuilder>? luciBuildersValue;
   String? overrideTreeStatusLabelValue;
-  Set<RepositorySlug>? supportedReposValue;
+  Set<gh.RepositorySlug>? supportedReposValue;
 
   @override
-  Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async => githubClient!;
+  Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
 
   @override
-  GitHub createGitHubClientWithToken(String token) => githubClient!;
+  gh.GitHub createGitHubClientWithToken(String token) => githubClient!;
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient!;
@@ -119,7 +118,7 @@ class FakeConfig implements Config {
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override
-  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService!;
+  Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService!;
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService!;
@@ -165,16 +164,13 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue!;
 
   @override
-  String flutterGoldAlertConstant(RepositorySlug slug) => flutterGoldAlertConstantValue!;
+  String flutterGoldAlertConstant(gh.RepositorySlug slug) => flutterGoldAlertConstantValue!;
 
   @override
-  String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
+  String flutterGoldCommentID(gh.PullRequest pr) => 'PR ${pr.number}, at ${pr.head!.sha}';
 
   @override
   int get commitNumber => 30;
-
-  @override
-  Future<List<String>> get flutterBranches async => flutterBranchesValue!;
 
   @override
   KeyHelper get keyHelper => keyHelperValue!;
@@ -222,18 +218,18 @@ class FakeConfig implements Config {
   Set<String> get rollerAccounts => rollerAccountsValue!;
 
   @override
-  bool githubPresubmitSupportedRepo(RepositorySlug slug) {
-    return <RepositorySlug>[
-      RepositorySlug('flutter', 'flutter'),
-      RepositorySlug('flutter', 'engine'),
-      RepositorySlug('flutter', 'cocoon'),
-      RepositorySlug('flutter', 'packages'),
-      RepositorySlug('flutter', 'plugins'),
+  bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
+    return <gh.RepositorySlug>[
+      Config.flutterSlug,
+      Config.engineSlug,
+      Config.cocoonSlug,
+      Config.packagesSlug,
+      Config.pluginsSlug,
     ].contains(slug);
   }
 
   @override
-  Future<String> generateGithubToken(RepositorySlug slug) {
+  Future<String> generateGithubToken(gh.RepositorySlug slug) {
     throw UnimplementedError();
   }
 
@@ -255,9 +251,6 @@ class FakeConfig implements Config {
   Future<String> get githubPublicKey => throw UnimplementedError();
 
   @override
-  Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue!;
-
-  @override
   Future<GithubService> createDefaultGitHubService() async => githubService!;
 
   @override
@@ -270,5 +263,18 @@ class FakeConfig implements Config {
   Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
 
   @override
-  Set<RepositorySlug> get supportedRepos => supportedReposValue ?? <RepositorySlug>{Config.flutterSlug};
+  Set<gh.RepositorySlug> get supportedRepos => supportedReposValue ?? <gh.RepositorySlug>{Config.flutterSlug};
+
+  @override
+  Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
+    if (supportedBranchesValue == null) {
+      throw Exception('Test must set suportedBranchesValue to be able to use Config.getBranches');
+    }
+    return supportedBranchesValue!.map((String branch) => Branch(
+          key: db.emptyKey.append<String>(
+            Branch,
+            id: '${slug.fullName}/$branch',
+          ),
+        ));
+  }
 }

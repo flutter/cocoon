@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
@@ -102,30 +101,6 @@ FutureOr<String> getUrl(
   } finally {
     client.close();
   }
-}
-
-/// Gets supported branch list of `flutter/flutter` via GitHub http request.
-Future<Uint8List> getBranches(
-  HttpClientProvider httpClientProvider, {
-  RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
-}) async {
-  String content;
-  try {
-    content = await githubFileContent(
-      RepositorySlug('flutter', 'cocoon'),
-      'app_dart/dev/branches.txt',
-      httpClientProvider: httpClientProvider,
-      ref: Config.defaultBranch(Config.cocoonSlug),
-      retryOptions: retryOptions,
-    );
-  } on HttpException {
-    log.warning('githubFileContent failed to get branches');
-    content = 'master';
-  }
-
-  final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
-  branches.removeWhere((String branch) => branch.isEmpty);
-  return Uint8List.fromList(branches.join(',').codeUnits);
 }
 
 Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String builderName) async {

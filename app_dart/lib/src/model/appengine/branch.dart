@@ -26,7 +26,7 @@ class Branch extends Model<String> {
 
   String get repository => key.id!.substring(0, key.id!.lastIndexOf('/'));
 
-  String get branch => key.id!.substring(key.id!.lastIndexOf('/') + 1);
+  String get name => key.id!.substring(key.id!.lastIndexOf('/') + 1);
 
   @override
   String toString() {
@@ -34,7 +34,7 @@ class Branch extends Model<String> {
       ..write('$runtimeType(')
       ..write('id: $id')
       ..write(', key: ${parentKey == null ? null : key.id}')
-      ..write(', branch: $branch')
+      ..write(', branch: $name')
       ..write(', channel: $channel')
       ..write(', repository: $repository')
       ..write(', lastActivity: $lastActivity')
@@ -46,7 +46,7 @@ class Branch extends Model<String> {
     return <String, dynamic>{
       'id': id,
       'branch': <String, dynamic>{
-        'branch': branch,
+        'branch': name,
         'repository': repository,
       },
     };

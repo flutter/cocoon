@@ -100,12 +100,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Key<String>> _constructCommitKey(DatastoreService datastore) async {
     final String gitBranch = (requestData![gitBranchParam] as String).trim();
     final String gitSha = (requestData![gitShaParam] as String).trim();
-    final List<String> flutterBranches = await config.flutterBranches;
-    if (!flutterBranches.contains(gitBranch)) {
-      throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
-          'If this is a valid branch, '
-          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
-    }
+
     final String id = 'flutter/flutter/$gitBranch/$gitSha';
     final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');

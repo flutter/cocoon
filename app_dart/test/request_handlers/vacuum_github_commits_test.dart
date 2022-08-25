@@ -108,7 +108,7 @@ void main() {
 
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
-      config.flutterBranchesValue = <String>['master'];
+      config.supportedBranchesValue = <String>['master'];
       final Body body = await tester.get<Body>(handler);
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
@@ -153,7 +153,6 @@ void main() {
 
     test('inserts all relevant fields of the commit', () async {
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
       const int supportedBranchesCount = 2;
@@ -173,7 +172,6 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['2', '3', '4'];
-      config.flutterBranchesValue = <String>['main'];
 
       /// This test is simulating an existing branch, which must already
       /// have at least one commit in the datastore.

@@ -49,7 +49,6 @@ class BatchBackfiller extends RequestHandler {
 
   Future<void> backfillRepository(RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    // TODO(chillers): There's a bug in how this is getting the tasks for the test. It's duplicating all of them.
     final List<FullTask> tasks = await (datastore.queryRecentTasks(slug: slug)).toList();
 
     // Construct Task columns to scan for backfilling

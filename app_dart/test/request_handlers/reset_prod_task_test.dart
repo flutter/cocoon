@@ -37,7 +37,7 @@ void main() {
       config = FakeConfig(
         dbValue: datastoreDB,
         keyHelperValue: keyHelper,
-        flutterBranchesValue: <String>[
+        supportedBranchesValue: <String>[
           Config.defaultBranch(Config.flutterSlug),
         ],
       );
