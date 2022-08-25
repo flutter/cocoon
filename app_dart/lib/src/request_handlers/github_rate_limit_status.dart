@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
-import '../service/config.dart';
 import '../service/github_service.dart';
 
 @immutable
@@ -26,7 +25,9 @@ import '../service/github_service.dart';
 ///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
 ///   `resets`: [DateTime] when [remaining] will reset back to [limit].
 class GithubRateLimitStatus extends RequestHandler<Body> {
-  const GithubRateLimitStatus(Config config) : super(config: config);
+  const GithubRateLimitStatus({
+    required super.config,
+  });
 
   @override
   Future<Body> get() async {

@@ -38,13 +38,13 @@ final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(
-    Config config, {
+  GithubWebhook({
+    required super.config,
     required this.scheduler,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     required this.branchService,
-  }) : super(config: config);
+  });
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;

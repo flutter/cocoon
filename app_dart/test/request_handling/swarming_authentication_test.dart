@@ -28,7 +28,7 @@ void main() {
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
       auth = SwarmingAuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
       );
     });
@@ -43,7 +43,7 @@ void main() {
 
       setUp(() {
         auth = SwarmingAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -52,7 +52,7 @@ void main() {
       test('auth succeeds with flutter luci service account', () async {
         httpClient = MockClient((_) async => http.Response('{"email": "${Config.luciProdAccount}"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -66,7 +66,7 @@ void main() {
       test('auth succeeds with frob service account', () async {
         httpClient = MockClient((_) async => http.Response('{"email": "${Config.frobAccount}"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -79,7 +79,7 @@ void main() {
       test('auth fails with non-luci service account', () async {
         httpClient = MockClient((_) async => http.Response('{"email": "abc@gmail.com"}', HttpStatus.ok));
         auth = SwarmingAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -92,7 +92,7 @@ void main() {
       test('auth fails with unauthenticated service account token', () async {
         httpClient = MockClient((_) async => http.Response('Invalid token', HttpStatus.unauthorized));
         auth = SwarmingAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );

@@ -63,7 +63,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 1);
       final Branch branch = db.values.values.whereType<Branch>().single;
       expect(branch.repository, 'flutter/flutter');
-      expect(branch.branch, 'flutter-2.12-candidate.4');
+      expect(branch.name, 'flutter-2.12-candidate.4');
     });
 
     test('should not add duplicate entity if branch already exists in db', () async {
@@ -82,7 +82,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 1);
       final Branch branch = db.values.values.whereType<Branch>().single;
       expect(branch.repository, 'flutter/flutter');
-      expect(branch.branch, 'flutter-2.12-candidate.4');
+      expect(branch.name, 'flutter-2.12-candidate.4');
     });
 
     test('should add branch if it is different from previously existing branches', () async {
@@ -100,7 +100,7 @@ void main() {
       await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 2);
-      expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.branch),
+      expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
           containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']));
     });
   });

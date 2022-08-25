@@ -27,17 +27,12 @@ import '../../service/logging.dart';
 class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const SchedulerRequestSubscription({
-    required CacheService cache,
-    required Config config,
+    required super.cache,
+    required super.config,
     required this.buildBucketClient,
-    AuthenticationProvider? authProvider,
+    super.authProvider,
     this.retryOptions = Config.schedulerRetry,
-  }) : super(
-          cache: cache,
-          config: config,
-          authProvider: authProvider,
-          topicName: 'scheduler-requests',
-        );
+  }) : super(topicName: 'scheduler-requests');
 
   final BuildBucketClient buildBucketClient;
 

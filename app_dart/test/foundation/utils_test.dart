@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -169,30 +168,6 @@ void main() {
         // It will request from GitHub 3 times, fallback to GoB, then fail.
         expect(retry, 6);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isNotEmpty);
-      });
-    });
-
-    group('GetBranches', () {
-      late MockClient branchHttpClient;
-
-      test('returns branches', () async {
-        branchHttpClient = MockClient((_) async => http.Response(branchRegExp, HttpStatus.ok));
-        final Uint8List branches = await getBranches(
-          () => branchHttpClient,
-          retryOptions: noRetry,
-        );
-        expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
-      });
-
-      test('returns master when http request fails', () async {
-        branchHttpClient = MockClient((_) async {
-          return http.Response('', HttpStatus.serviceUnavailable);
-        });
-        final Uint8List builders = await getBranches(
-          () => branchHttpClient,
-          retryOptions: noRetry,
-        );
-        expect(String.fromCharCodes(builders), 'master');
       });
     });
 

@@ -33,11 +33,11 @@ void main() {
 
     mockGithubChecksService = MockGithubChecksService();
     handler = PresubmitLuciSubscription(
-      CacheService(inMemory: true),
-      config,
-      buildbucket,
-      FakeLuciBuildService(config),
-      mockGithubChecksService,
+      cache: CacheService(inMemory: true),
+      config: config,
+      buildBucketClient: buildbucket,
+      luciBuildService: FakeLuciBuildService(config: config),
+      githubChecksService: mockGithubChecksService,
       authProvider: FakeAuthenticationProvider(),
     );
     request = FakeHttpRequest();

@@ -43,7 +43,7 @@ void main() {
       config = FakeConfig(keyHelperValue: keyHelper);
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -76,7 +76,7 @@ void main() {
         CommitStatus(commit2, const <Stage>[])
       ]);
       handler = GetStatus(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -108,7 +108,7 @@ void main() {
         CommitStatus(commit2, const <Stage>[])
       ]);
       handler = GetStatus(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
@@ -149,7 +149,7 @@ void main() {
         CommitStatus(commit2, const <Stage>[])
       ]);
       handler = GetStatus(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );

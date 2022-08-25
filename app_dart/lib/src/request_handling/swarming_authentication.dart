@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../model/google/token_info.dart';
 import '../service/logging.dart';
 import 'exceptions.dart';
@@ -31,15 +30,11 @@ import 'exceptions.dart';
 /// [authenticate] will throw an [Unauthenticated] exception.
 @immutable
 class SwarmingAuthenticationProvider extends AuthenticationProvider {
-  const SwarmingAuthenticationProvider(
-    Config config, {
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-  }) : super(
-          config,
-          clientContextProvider: clientContextProvider,
-          httpClientProvider: httpClientProvider,
-        );
+  const SwarmingAuthenticationProvider({
+    required super.config,
+    super.clientContextProvider = Providers.serviceScopeContext,
+    super.httpClientProvider = Providers.freshHttpClient,
+  });
 
   /// Name of the header that LUCI requests will put their service account token.
   static const String kSwarmingTokenHeader = 'Service-Account-Token';

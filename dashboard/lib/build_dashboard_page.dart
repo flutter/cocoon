@@ -126,7 +126,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               height: 360,
               child: ListView(
                 children: <Widget>[
-                  if (_smallScreen) ..._slugSelection(context, buildState),
+                  if (_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
                   TextButton(
                     onPressed: buildState.refreshGitHubCommits,
                     child: const Text('Vacuum GitHub Commits'),
@@ -169,7 +169,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
-  List<Widget> _slugSelection(BuildContext context, BuildState buildState) {
+  /// List of widgets for selecting slug and branch for configuring the build view.
+  List<Widget> _buildRepositorySelectionWidgets(BuildContext context, BuildState buildState) {
     final ThemeData theme = Theme.of(context);
     return <Widget>[
       const Padding(
@@ -389,16 +390,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ),
           backgroundColor: colorTable[buildState.isTreeBuilding],
           actions: <Widget>[
-            if (!_smallScreen) ..._slugSelection(context, buildState),
+            if (!_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
             IconButton(
               tooltip: 'Report Issue',
               icon: const Icon(Icons.bug_report),
               onPressed: () async {
-                const url = 'https://blog.logrocket.com';
                 if (await canLaunchUrl(flutterIssueUrl)) {
                   await launchUrl(flutterIssueUrl);
                 } else {
-                  throw 'Could not launch $url';
+                  throw 'Could not launch $flutterIssueUrl';
                 }
               },
             ),
