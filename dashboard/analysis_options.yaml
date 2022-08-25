@@ -30,3 +30,4 @@ linter:
   rules:
     prefer_single_quotes: true
     require_trailing_commas: true
+    use_super_parameters: true

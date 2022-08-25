@@ -22,9 +22,9 @@ import 'commit_author_avatar.dart';
 /// will close it.
 class CommitBox extends StatefulWidget {
   const CommitBox({
-    Key? key,
+    super.key,
     required this.commit,
-  }) : super(key: key);
+  });
 
   /// The commit being shown
   final Commit commit;
@@ -68,11 +68,11 @@ class CommitBoxState extends State<CommitBox> {
 /// [closeCallback] that will remove the widget from the tree.
 class CommitOverlayContents extends StatelessWidget {
   const CommitOverlayContents({
-    Key? key,
+    super.key,
     required this.parentContext,
     required this.commit,
     required this.closeCallback,
-  }) : super(key: key);
+  });
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
@@ -177,10 +177,10 @@ class CommitOverlayContents extends StatelessWidget {
 
 class Hyperlink extends StatefulWidget {
   const Hyperlink({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final String text;
   final VoidCallback? onPressed;

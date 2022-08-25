@@ -76,10 +76,9 @@ abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterProp
 
 /// A class used to represent a Regular Expression property in the filter object.
 class RegExpFilterProperty extends ValueFilterProperty<String?> {
-  RegExpFilterProperty({required String fieldName, String? label, String? value, bool caseSensitive = true})
+  RegExpFilterProperty({required super.fieldName, super.label, String? value, bool caseSensitive = true})
       : _value = value,
-        _caseSensitive = caseSensitive,
-        super(fieldName: fieldName, label: label);
+        _caseSensitive = caseSensitive;
 
   String? _value;
   final bool _caseSensitive;
@@ -136,10 +135,9 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
 
 /// A class used to represent a boolean property in the filter object.
 class BoolFilterProperty extends ValueFilterProperty<bool?> {
-  BoolFilterProperty({required String fieldName, String? label, bool value = true})
+  BoolFilterProperty({required super.fieldName, super.label, bool value = true})
       : _value = value,
-        _defaultValue = value,
-        super(fieldName: fieldName, label: label);
+        _defaultValue = value;
 
   bool? _value;
   final bool? _defaultValue;
@@ -195,7 +193,7 @@ class BoolFilterPropertyGroup extends FilterPropertyNode {
 /// and notify the creator when it is closed via the callback. Otherwise the creator is
 /// responsible for the lifecycle of this sheet.
 class FilterPropertySheet extends StatefulWidget {
-  const FilterPropertySheet(this.propertySource, {this.onClose, Key? key}) : super(key: key);
+  const FilterPropertySheet(this.propertySource, {this.onClose, super.key});
 
   /// The notifier object used to get the initial value of the filter properties and to
   /// send back new filter objects with modified values as the user edits the fields.

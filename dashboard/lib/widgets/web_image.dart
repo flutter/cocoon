@@ -13,14 +13,13 @@ import 'package:flutter/widgets.dart';
 /// HTTP errors in tests by default.
 class WebImage extends StatelessWidget {
   const WebImage({
-    Key? key,
+    super.key,
     bool? enabled,
     this.imageUrl,
     this.placeholder,
     this.width = 50,
     this.height = 50,
-  })  : _enabled = enabled,
-        super(key: key);
+  })  : _enabled = enabled;
 
   final bool? _enabled;
   bool? get enabled {

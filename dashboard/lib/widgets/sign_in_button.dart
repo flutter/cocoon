@@ -19,9 +19,9 @@ enum _SignInButtonAction { logout }
 /// Otherwise, a sign in button will show.
 class SignInButton extends StatelessWidget {
   const SignInButton({
-    Key? key,
+    super.key,
     this.colorBrightness,
-  }) : super(key: key);
+  });
 
   final Brightness? colorBrightness;
 
