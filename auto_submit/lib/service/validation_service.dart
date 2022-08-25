@@ -7,8 +7,11 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
+import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
+import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 
 import '../model/auto_submit_query_result.dart';
@@ -18,13 +21,15 @@ import '../validations/change_requested.dart';
 import '../validations/conflicting.dart';
 import '../validations/empty_checks.dart';
 import '../validations/validation.dart';
-import 'package:github/github.dart' as github;
 
 /// Provides an extensible and standardized way to validate different aspects of
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
 /// tested. The expectation is that the list of validation will grow overtime.
 class ValidationService {
   ValidationService(this.config) {
+    /// Validates a PR marked with the reverts label.
+    revertValidation = Revert(config: config);
+
     validations.addAll({
       /// Validates the PR has been approved following the codereview guidelines.
       Approval(config: config),
@@ -46,40 +51,60 @@ class ValidationService {
     });
   }
 
+  Revert? revertValidation;
   final Config config;
   final Set<Validation> validations = <Validation>{};
 
-  /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
-  Future<bool> shouldProcess(github.PullRequest pullRequest) async {
-    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
-    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
-        .map<String>((github.IssueLabel labelMap) => labelMap.name)
-        .toList();
-    // Accepted states open, closed, or all.
-    return currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel);
-  }
-
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    if (!await shouldProcess(messagePullRequest)) {
-      log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
-      return;
-    }
+    ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
 
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    switch (processMethod) {
+      case ProcessMethod.processAutosubmit:
+        await processPullRequest(
+            config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
+        break;
+      case ProcessMethod.processRevert:
+        await processRevertRequest(
+            config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
+        break;
+      case ProcessMethod.doNotProcess:
+        log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+        break;
+    }
+  }
+
+  /// Fetch the most up to date info for the current pull request from github.
+  Future<QueryResult> getNewestPullRequestInfo(Config config, github.PullRequest pullRequest) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final graphql.GraphQLClient graphQLClient = await config.createGitHubGraphQLClient(slug);
-    final int? prNumber = messagePullRequest.number;
+    final int? prNumber = pullRequest.number;
     GraphQlService graphQlService = GraphQlService();
     final Map<String, dynamic> data = await graphQlService.queryGraphQL(
       slug,
       prNumber!,
       graphQLClient,
     );
-    QueryResult queryResult = QueryResult.fromJson(data);
-    await processPullRequest(config, queryResult, messagePullRequest, ackId, pubsub);
+    return QueryResult.fromJson(data);
+  }
+
+  /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
+  Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService gitHubService = await config.createGithubService(slug);
+    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
+
+    if (currentPullRequest.state == 'open' && labelNames.contains(Config.kRevertLabel)) {
+      return ProcessMethod.processRevert;
+    } else if (currentPullRequest.state == 'open' && labelNames.contains(Config.kAutosubmitLabel)) {
+      return ProcessMethod.processAutosubmit;
+    } else {
+      return ProcessMethod.doNotProcess;
+    }
   }
 
   /// Processes a PullRequest running several validations to decide whether to
@@ -109,7 +134,7 @@ class ValidationService {
       }
     }
     if (shouldReturn) {
-      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknoledged.');
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
@@ -153,5 +178,46 @@ class ValidationService {
       return false;
     }
     return true;
+  }
+
+  /// The logic for processing a revert request and opening the follow up
+  /// review issue in github.
+  Future<void> processRevertRequest(
+    Config config,
+    QueryResult result,
+    github.PullRequest messagePullRequest,
+    String ackId,
+    PubSub pubsub,
+  ) async {
+    ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
+
+    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final int prNumber = messagePullRequest.number!;
+    final GithubService githubService = await config.createGithubService(slug);
+
+    if (revertValidationResult.result) {
+      bool processed = await processMerge(config, result, messagePullRequest);
+      if (processed) {
+        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      }
+      log.info('Ack the processed message : $ackId.');
+      github.Issue issue = await githubService.createIssue(
+        slug,
+        'Follow up review for revert pull request $prNumber',
+        'Revert request by author ${result.repository!.pullRequest!.author}',
+      );
+      log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+    } else {
+      // since we do not temporarily ignore anything with a revert request we
+      // know we will report the error and remove the label.
+      final String commmentMessage =
+          revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
+      await githubService.createComment(slug, prNumber, commmentMessage);
+      await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
+      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
+      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
+    }
   }
 }
