@@ -27,8 +27,8 @@ void main() {
       cache = CacheService(inMemory: true);
       config = FakeConfig();
       handler = FlushCache(
-        config,
-        FakeAuthenticationProvider(),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(),
         cache: cache,
       );
     });

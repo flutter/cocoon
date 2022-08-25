@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/request_handler.dart';
-import '../../service/config.dart';
 import '../../service/logging.dart';
 import '../../service/luci_build_service.dart';
 import '../../service/scheduler.dart';
@@ -26,10 +25,10 @@ import '../../service/scheduler.dart';
 class BatchBackfiller extends RequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfiller({
-    required Config config,
+    required super.config,
     required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;

@@ -10,17 +10,15 @@ import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
-import 'fake_http.dart';
 import 'request_handler_tester.dart';
 
 class ApiRequestHandlerTester extends RequestHandlerTester {
   ApiRequestHandlerTester({
-    FakeHttpRequest? request,
+    super.request,
     FakeAuthenticatedContext? context,
     Map<String, dynamic>? requestData,
   })  : context = context ?? FakeAuthenticatedContext(),
-        requestData = requestData ?? <String, dynamic>{},
-        super(request: request);
+        requestData = requestData ?? <String, dynamic>{};
 
   FakeAuthenticatedContext context;
   Map<String, dynamic> requestData;

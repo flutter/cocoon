@@ -43,7 +43,7 @@ void main() {
         keyHelperValue: keyHelper,
       );
       handler = GetBranches(
-        config,
+        config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 

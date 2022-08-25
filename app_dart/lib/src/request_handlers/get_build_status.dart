@@ -11,19 +11,16 @@ import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
-import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable
 class GetBuildStatus extends RequestHandler<Body> {
-  const GetBuildStatus(
-    Config config, {
+  const GetBuildStatus({
+    required super.config,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
-        super(config: config);
-
+        buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
 

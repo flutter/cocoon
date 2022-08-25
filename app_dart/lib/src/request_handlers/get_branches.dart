@@ -37,11 +37,11 @@ import '../service/datastore.dart';
 ///]
 
 class GetBranches extends RequestHandler<Body> {
-  GetBranches(
-    Config config, {
+  GetBranches({
+    required super.config,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.processRunner,
-  }) : super(config: config);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
   ProcessRunner? processRunner;

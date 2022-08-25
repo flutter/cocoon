@@ -13,7 +13,6 @@ import 'package:yaml/yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/bigquery.dart';
 import '../service/config.dart';
@@ -27,8 +26,10 @@ import 'flaky_handler_utils.dart';
 /// the standard when compares the flaky ratios.
 @immutable
 class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
-  const FileFlakyIssueAndPR(Config config, AuthenticationProvider authenticationProvider)
-      : super(config: config, authenticationProvider: authenticationProvider);
+  const FileFlakyIssueAndPR({
+    required super.config,
+    required super.authenticationProvider,
+  });
 
   static const String kThresholdKey = 'threshold';
 

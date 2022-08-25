@@ -12,16 +12,14 @@ import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
-import 'fake_http.dart';
 import 'request_handler_tester.dart';
 
 class SubscriptionTester extends RequestHandlerTester {
   SubscriptionTester({
-    FakeHttpRequest? request,
+    super.request,
     FakeAuthenticatedContext? context,
     this.message = const PushMessage(),
-  })  : context = context ?? FakeAuthenticatedContext(),
-        super(request: request);
+  }) : context = context ?? FakeAuthenticatedContext();
 
   FakeAuthenticatedContext context;
   PushMessage message;

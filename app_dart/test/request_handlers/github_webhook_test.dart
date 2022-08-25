@@ -100,7 +100,7 @@ void main() {
     });
 
     webhook = GithubWebhook(
-      config,
+      config: config,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,

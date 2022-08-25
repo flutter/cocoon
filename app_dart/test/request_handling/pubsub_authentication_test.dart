@@ -29,7 +29,7 @@ void main() {
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
       auth = PubsubAuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
       );
@@ -45,7 +45,7 @@ void main() {
               },
             ));
         auth = PubsubAuthenticationProvider(
-          config,
+          config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
         );
@@ -66,7 +66,7 @@ void main() {
             },
           ));
       auth = PubsubAuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
       );
@@ -85,7 +85,7 @@ void main() {
             },
           ));
       auth = PubsubAuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
       );
@@ -107,7 +107,7 @@ void main() {
             },
           ));
       auth = PubsubAuthenticationProvider(
-        config,
+        config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => httpClient,
       );

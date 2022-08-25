@@ -37,8 +37,8 @@ void main() {
       );
       tester = ApiRequestHandlerTester();
       handler = UpdateTaskStatus(
-        config,
-        FakeAuthenticationProvider(),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(),
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
       commit = Commit(
