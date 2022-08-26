@@ -63,18 +63,18 @@ class ValidationService {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         await processPullRequest(
-            config: config, 
-            result: await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest: messagePullRequest, 
-            ackId: ackId, 
+            config: config,
+            result: await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest: messagePullRequest,
+            ackId: ackId,
             pubsub: pubsub);
         break;
       case ProcessMethod.processRevert:
         await processRevertRequest(
-            config: config, 
-            result: await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest: messagePullRequest, 
-            ackId: ackId, 
+            config: config,
+            result: await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest: messagePullRequest,
+            ackId: ackId,
             pubsub: pubsub);
         break;
       case ProcessMethod.doNotProcess:
@@ -119,10 +119,10 @@ class ValidationService {
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest({
-      required Config config, 
-      required QueryResult result, 
-      required github.PullRequest messagePullRequest, 
-      required String ackId, 
+      required Config config,
+      required QueryResult result,
+      required github.PullRequest messagePullRequest,
+      required String ackId,
       required PubSub pubsub,
       }) async {
 
@@ -173,8 +173,8 @@ class ValidationService {
 
     // If we got to this point it means we are ready to submit the PR.
     bool processed = await processMerge(
-        config: config, 
-        queryResult: result, 
+        config: config,
+        queryResult: result,
         messagePullRequest: messagePullRequest);
 
     if (!processed) {
@@ -214,8 +214,8 @@ class ValidationService {
       approverService.revertApproval(messagePullRequest);
 
       bool processed = await processMerge(
-        config: config, 
-        queryResult: result, 
+        config: config,
+        queryResult: result,
         messagePullRequest: messagePullRequest);
 
       if (processed) {
@@ -270,8 +270,8 @@ Exception: ${exception.message}
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<bool> processMerge({
-      required Config config, 
-      required QueryResult queryResult, 
+      required Config config,
+      required QueryResult queryResult,
       required github.PullRequest messagePullRequest,
       }) async {
 
