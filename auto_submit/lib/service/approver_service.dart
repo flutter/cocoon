@@ -25,8 +25,15 @@ class ApproverService {
     final String? author = pullRequest.user!.login;
 
     if (!config.rollerAccounts.contains(author)) {
-      log.info('Auto-review ignored for $author');
-      return;
+      final List<String> labelNames = (pullRequest.labels as List<IssueLabel>)
+        .map<String>((IssueLabel labelMap) => labelMap.name)
+        .toList();
+      if (labelNames.contains(Config.kRevertLabel)) {
+        log.info('Auto-review approved for revert request.');
+      } else {
+        log.info('Auto-review ignored for $author');
+        return;
+      }
     }
 
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
