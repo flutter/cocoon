@@ -119,13 +119,12 @@ class ValidationService {
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest({
-      required Config config,
-      required QueryResult result,
-      required github.PullRequest messagePullRequest,
-      required String ackId,
-      required PubSub pubsub,
-      }) async {
-
+    required Config config,
+    required QueryResult result,
+    required github.PullRequest messagePullRequest,
+    required String ackId,
+    required PubSub pubsub,
+  }) async {
     List<ValidationResult> results = <ValidationResult>[];
 
     /// Runs all the validation defined in the service.
@@ -172,10 +171,7 @@ class ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    bool processed = await processMerge(
-        config: config,
-        queryResult: result,
-        messagePullRequest: messagePullRequest);
+    bool processed = await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
 
     if (!processed) {
       String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
@@ -200,8 +196,7 @@ class ValidationService {
     required github.PullRequest messagePullRequest,
     required String ackId,
     required PubSub pubsub,
-    }) async {
-
+  }) async {
     ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
 
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
@@ -213,10 +208,7 @@ class ValidationService {
       ApproverService approverService = ApproverService(config);
       approverService.revertApproval(messagePullRequest);
 
-      bool processed = await processMerge(
-        config: config,
-        queryResult: result,
-        messagePullRequest: messagePullRequest);
+      bool processed = await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
 
       if (processed) {
         try {
@@ -270,11 +262,10 @@ Exception: ${exception.message}
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<bool> processMerge({
-      required Config config,
-      required QueryResult queryResult,
-      required github.PullRequest messagePullRequest,
-      }) async {
-
+    required Config config,
+    required QueryResult queryResult,
+    required github.PullRequest messagePullRequest,
+  }) async {
     String id = queryResult.repository!.pullRequest!.id!;
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final PullRequest pullRequest = queryResult.repository!.pullRequest!;
@@ -307,8 +298,8 @@ Exception: ${exception.message}
   }
 
   /// Remove a pull request label and add a comment to the pull request.
-  Future<void> removeLabelAndComment({
-      required GithubService githubService,
+  Future<void> removeLabelAndComment(
+      {required GithubService githubService,
       required github.RepositorySlug repositorySlug,
       required int prNumber,
       required String prLabel,

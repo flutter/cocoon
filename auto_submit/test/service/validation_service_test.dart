@@ -45,11 +45,7 @@ void main() {
     QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processPullRequest(
-      config: config,
-      result: queryResult,
-      messagePullRequest: pullRequest,
-      ackId: 'test',
-      pubsub: pubsub);
+        config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
@@ -114,8 +110,6 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
 
-    group('Process merge tests.',() {
-
-    });
+    group('Process merge tests.', () {});
   });
 }
