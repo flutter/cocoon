@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
+import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';

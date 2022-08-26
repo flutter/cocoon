@@ -301,10 +301,17 @@ class MockApproverService extends _i1.Mock implements _i8.ApproverService {
           returnValue: _FakeConfig_0(this, Invocation.getter(#config)))
       as _i2.Config);
   @override
-  _i9.Future<void> approve(_i4.PullRequest? pullRequest) => (super.noSuchMethod(
-      Invocation.method(#approve, [pullRequest]),
-      returnValue: _i9.Future<void>.value(),
-      returnValueForMissingStub: _i9.Future<void>.value()) as _i9.Future<void>);
+  _i9.Future<void> autoApproval(_i4.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#autoApproval, [pullRequest]),
+              returnValue: _i9.Future<void>.value(),
+              returnValueForMissingStub: _i9.Future<void>.value())
+          as _i9.Future<void>);
+  @override
+  _i9.Future<void> revertApproval(_i4.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#revertApproval, [pullRequest]),
+              returnValue: _i9.Future<void>.value(),
+              returnValueForMissingStub: _i9.Future<void>.value())
+          as _i9.Future<void>);
 }
 
 /// A class which mocks [GitHub].
