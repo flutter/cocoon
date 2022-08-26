@@ -31,7 +31,7 @@ void main() {
     slug = RepositorySlug('flutter', 'cocoon');
   });
 
-  test('removes label and post comment when no approval', () async {
+  test('Removes label and post comment when no approval', () async {
     PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
@@ -52,8 +52,8 @@ void main() {
     assert(pubsub.messagesQueue.isEmpty);
   });
 
-  group('shouldProcess pull request', () {
-    test('should process message when autosubmit label exists and pr is open', () async {
+  group('ShouldProcess pull request', () {
+    test('Should process message when autosubmit label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       githubService.pullRequestData = pullRequest;
       final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
@@ -61,7 +61,7 @@ void main() {
       expect(processMethod, ProcessMethod.processAutosubmit);
     });
 
-    test('skip processing message when autosubmit label does not exist anymore', () async {
+    test('Skip processing message when autosubmit label does not exist anymore', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.labels = <IssueLabel>[];
       githubService.pullRequestData = pullRequest;
@@ -70,7 +70,7 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
 
-    test('skip processing message when the pull request is closed', () async {
+    test('Skip processing message when the pull request is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       githubService.pullRequestData = pullRequest;
@@ -79,7 +79,7 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
 
-    test('should process message when revert label exists and pr is open', () async {
+    test('Should process message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
@@ -89,7 +89,7 @@ void main() {
       expect(processMethod, ProcessMethod.processRevert);
     });
 
-    test('should process message as revert when revert and autosubmit labels are present and pr is open', () async {
+    test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels!.add(issueLabel);
@@ -99,7 +99,7 @@ void main() {
       expect(processMethod, ProcessMethod.processRevert);
     });
 
-    test('skip processing message when revert label exists and pr is closed', () async {
+    test('Skip processing message when revert label exists and pr is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
       IssueLabel issueLabel = IssueLabel(name: 'revert');

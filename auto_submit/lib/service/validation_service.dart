@@ -236,7 +236,7 @@ Exception: ${exception.message}
             githubService: gitHubService,
             repositorySlug: slug,
             prNumber: prNumber,
-            prLabel: Config.kAutosubmitLabel,
+            prLabel: Config.kRevertLabel,
             message: message);
       }
     } else {
@@ -250,7 +250,7 @@ Exception: ${exception.message}
           githubService: gitHubService,
           repositorySlug: slug,
           prNumber: prNumber,
-          prLabel: Config.kAutosubmitLabel,
+          prLabel: Config.kRevertLabel,
           message: commentMessage);
 
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
