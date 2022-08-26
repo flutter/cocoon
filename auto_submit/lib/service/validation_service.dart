@@ -194,11 +194,12 @@ class ValidationService {
         bool processed = await processMerge(config, result, messagePullRequest);
         if (processed) {
           gh.Issue issue = await githubService.createIssue(
-            slug,
-            'Follow up review for revert pull request $prNumber',
-            'Revert request by author ${result.repository!.pullRequest!.author}',
+            repositorySlug: gh.RepositorySlug('flutter', 'flutter'),
+            title: 'Follow up review for revert pull request $prNumber',
+            body: 'Revert request by author ${result.repository!.pullRequest!.author}',
+            labels: <String>['P1'],
           );
-          log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+          log.info('Issue #${issue.id} was created to track the review for $prNumber in flutter/flutter');
         } else {
           String message = 'Unable to merge pull request $prNumber.';
           log.warning(message);
@@ -209,6 +210,18 @@ class ValidationService {
             prLabel: Config.kRevertLabel, 
             message: message);
         }
+      } on gh.GitHubError catch (exception) {
+        String message = '''
+An exception occurred while attempting to create a follow up review for $prNumber in flutter/flutter.
+Exception: ${exception.toString()} 
+''';
+        log.severe(message);
+        await removeLabelAndComment(
+          githubService: githubService, 
+          repositorySlug: slug, 
+          prNumber: prNumber, 
+          prLabel: Config.kRevertLabel, 
+          message: message);
       } catch (exception) {
         String message = '''
 An exception occurred during merge of pull request $prNumber, removing the revert label.

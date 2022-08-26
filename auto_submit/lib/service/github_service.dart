@@ -47,14 +47,22 @@ class GithubService {
   }
 
   /// Create a new issue in github.
-  Future<Issue> createIssue(
-    RepositorySlug repositorySlug,
-    String title,
-    String body,
-  ) async {
+  Future<Issue> createIssue({
+    required RepositorySlug repositorySlug,
+    required String title,
+    required String body,
+    List<String>? labels,
+    String? assignee,
+    List<String>? assignees,
+    String? state,
+  }) async {
     IssueRequest issueRequest = IssueRequest(
       title: title,
       body: body,
+      labels: labels,
+      assignee: assignee,
+      assignees: assignees,
+      state: state
     );
     return await github.issues.create(repositorySlug, issueRequest);
   }
