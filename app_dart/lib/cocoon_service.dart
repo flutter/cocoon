@@ -16,6 +16,7 @@ export 'src/request_handlers/get_status.dart';
 export 'src/request_handlers/get_green_commits.dart';
 export 'src/request_handlers/github_rate_limit_status.dart';
 export 'src/request_handlers/github_webhook.dart';
+export 'src/request_handlers/github/webhook_subscription.dart';
 export 'src/request_handlers/postsubmit_luci_subscription.dart';
 export 'src/request_handlers/presubmit_luci_subscription.dart';
 export 'src/request_handlers/push_build_status_to_github.dart';

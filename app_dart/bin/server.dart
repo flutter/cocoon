@@ -71,6 +71,11 @@ Future<void> main() async {
       ),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config: config,
+        pubsub: const PubSub(),
+      ),
+      '/api/github/webhook-subscription': GithubWebhookSubscription(
+        config: config,
+        cache: cache,
         branchService: branchService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,

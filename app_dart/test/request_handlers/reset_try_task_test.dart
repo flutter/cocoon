@@ -80,5 +80,14 @@ void main() {
       });
       expect(await tester.get(handler), Body.empty);
     });
+
+    test('Parses empty builder correctly', () {
+      final List<String> builders = handler.getBuilderList('');
+      expect(builders.isEmpty, true);
+    });
+
+    test('Parses non-empty builder correctly', () {
+      expect(handler.getBuilderList('a, b, c'), <String>['a', 'b', 'c']);
+    });
   });
 }
