@@ -31,15 +31,20 @@ class ApproverService {
     }
   }
 
+  /// Auto approves a pull request when the revert label is present.
   Future<void> revertApproval(PullRequest pullRequest) async {
+    final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
+
     final String? author = pullRequest.user!.login;
-    final List<String> labelNames = (pullRequest.labels as List<IssueLabel>)
-        .map<String>((IssueLabel labelMap) => labelMap.name).toList();
-      
-    if (!labelNames.contains(Config.kRevertLabel)) {
-      log.info('Auto-review ignored for $author');
-    } else {
+    final String? authorAssociation = pullRequest.authorAssociation;
+    final List<String> labelNames =
+        (pullRequest.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
+
+    if (labelNames.contains(Config.kRevertLabel) &&
+        (config.rollerAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
       await _approve(pullRequest, author);
+    } else {
+      log.info('Auto-review ignored for $author');
     }
   }
 
