@@ -25,9 +25,8 @@ class ApproverService {
     final String? author = pullRequest.user!.login;
 
     if (!config.rollerAccounts.contains(author)) {
-      final List<String> labelNames = (pullRequest.labels as List<IssueLabel>)
-        .map<String>((IssueLabel labelMap) => labelMap.name)
-        .toList();
+      final List<String> labelNames =
+          (pullRequest.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
       if (labelNames.contains(Config.kRevertLabel)) {
         log.info('Auto-review approved for revert request.');
       } else {
