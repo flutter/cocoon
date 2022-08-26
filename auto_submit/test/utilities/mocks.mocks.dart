@@ -200,8 +200,13 @@ class MockApproverService extends _i1.Mock implements _i5.ApproverService {
       (super.noSuchMethod(Invocation.getter(#config), returnValue: _FakeConfig_0(this, Invocation.getter(#config)))
           as _i2.Config);
   @override
-  _i6.Future<void> approve(_i4.PullRequest? pullRequest) =>
-      (super.noSuchMethod(Invocation.method(#approve, [pullRequest]),
+  _i6.Future<void> autoApproval(_i4.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#autoApproval, [pullRequest]),
+          returnValue: _i6.Future<void>.value(),
+          returnValueForMissingStub: _i6.Future<void>.value()) as _i6.Future<void>);
+  @override
+  _i6.Future<void> revertApproval(_i4.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#revertApproval, [pullRequest]),
           returnValue: _i6.Future<void>.value(),
           returnValueForMissingStub: _i6.Future<void>.value()) as _i6.Future<void>);
 }

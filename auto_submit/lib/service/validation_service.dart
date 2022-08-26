@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
+import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
@@ -196,6 +197,10 @@ class ValidationService {
     final GithubService githubService = await config.createGithubService(slug);
 
     if (revertValidationResult.result) {
+      // Approve the pull request automatically as it has been validated.
+      ApproverService approverService = ApproverService(config);
+      approverService.revertApproval(messagePullRequest);
+
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);

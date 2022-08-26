@@ -21,14 +21,34 @@ class ApproverService {
     return ApproverService(config);
   }
 
-  Future<void> approve(PullRequest pullRequest) async {
+  Future<void> autoApproval(PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
 
     if (!config.rollerAccounts.contains(author)) {
       log.info('Auto-review ignored for $author');
-      return;
+    } else {
+      await _approve(pullRequest, author);
     }
+  }
 
+  /// Auto approves a pull request when the revert label is present.
+  Future<void> revertApproval(PullRequest pullRequest) async {
+    final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
+
+    final String? author = pullRequest.user!.login;
+    final String? authorAssociation = pullRequest.authorAssociation;
+    final List<String> labelNames =
+        (pullRequest.labels as List<IssueLabel>).map<String>((IssueLabel labelMap) => labelMap.name).toList();
+
+    if (labelNames.contains(Config.kRevertLabel) &&
+        (config.rollerAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
+      await _approve(pullRequest, author);
+    } else {
+      log.info('Auto-review ignored for $author');
+    }
+  }
+
+  Future<void> _approve(PullRequest pullRequest, String? author) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 
