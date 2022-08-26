@@ -30,9 +30,11 @@ import 'logging.dart';
 const String kDefaultBranchName = 'master';
 
 /// Name of an example release base branch name.
+// TODO(chillers): Delete this as it's only used for tests.
 const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
 
 /// Name of an example release head branch name.
+// TODO(chillers): Delete this as it's only used for tests.
 const String kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
 
 class Config {

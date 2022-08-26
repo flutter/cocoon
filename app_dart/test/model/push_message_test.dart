@@ -14,6 +14,7 @@ void main() {
       json.decode(buildPushMessageJson) as Map<String, dynamic>,
     );
 
+    // TODO(chillers): This fails in EMEA timezones. Prefer using UTC instead of local.
     expect(data.build!.createdTimestamp!.year, 2019);
     expect(data.build!.createdTimestamp!.month, 8);
     expect(data.build!.createdTimestamp!.day, 5);
