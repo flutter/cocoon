@@ -174,7 +174,15 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
+  Future<Issue> createIssue({
+    required RepositorySlug repositorySlug,
+    required String title,
+    required String body,
+    List<String>? labels,
+    String? assignee,
+    List<String>? assignees,
+    String? state,
+  }) async {
     return githubIssueMock!;
   }
 

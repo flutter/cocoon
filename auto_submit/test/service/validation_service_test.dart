@@ -44,7 +44,12 @@ void main() {
     pubsub.publish('auto-submit-queue-sub', pullRequest);
     QueryResult queryResult = createQueryResult(flutterRequest);
 
-    await validationService.processPullRequest(config, queryResult, pullRequest, 'test', pubsub);
+    await validationService.processPullRequest(
+      config: config, 
+      result: queryResult, 
+      messagePullRequest: pullRequest, 
+      ackId: 'test', 
+      pubsub: pubsub);
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
