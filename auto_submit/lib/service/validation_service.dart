@@ -62,18 +62,18 @@ class ValidationService {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         await processPullRequest(
-            config: config, 
-            result: await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest: messagePullRequest, 
-            ackId: ackId, 
+            config: config,
+            result: await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest: messagePullRequest,
+            ackId: ackId,
             pubsub: pubsub);
         break;
       case ProcessMethod.processRevert:
         await processRevertRequest(
-            config: config, 
-            result: await getNewestPullRequestInfo(config, messagePullRequest), 
-            messagePullRequest: messagePullRequest, 
-            ackId: ackId, 
+            config: config,
+            result: await getNewestPullRequestInfo(config, messagePullRequest),
+            messagePullRequest: messagePullRequest,
+            ackId: ackId,
             pubsub: pubsub);
         break;
       case ProcessMethod.doNotProcess:
@@ -118,10 +118,10 @@ class ValidationService {
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest({
-      required Config config, 
-      required QueryResult result, 
-      required gh.PullRequest messagePullRequest, 
-      required String ackId, 
+      required Config config,
+      required QueryResult result,
+      required gh.PullRequest messagePullRequest,
+      required String ackId,
       required PubSub pubsub}) async {
     List<ValidationResult> results = <ValidationResult>[];
 
@@ -141,10 +141,10 @@ class ValidationService {
         final String commentMessage = result.message.isEmpty ? 'Validations Failed.' : result.message;
         log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
         await removeLabelAndComment(
-          githubService: gitHubService, 
-          repositorySlug: slug, 
-          prNumber: prNumber, 
-          prLabel: Config.kAutosubmitLabel, 
+          githubService: gitHubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kAutosubmitLabel,
           message: commentMessage);
         shouldReturn = true;
       }
@@ -163,14 +163,14 @@ class ValidationService {
     }
     // If we got to this point it means we are ready to submit the PR.
     await processMergeSafely(
-        config: config, 
-        gitHubService: gitHubService, 
-        messagePullRequest: messagePullRequest, 
-        queryResult: result, 
-        pubSub: pubsub, 
-        ackId: ackId, 
-        repositorySlug: slug, 
-        prNumber: prNumber, 
+        config: config,
+        gitHubService: gitHubService,
+        messagePullRequest: messagePullRequest,
+        queryResult: result,
+        pubSub: pubsub,
+        ackId: ackId,
+        repositorySlug: slug,
+        prNumber: prNumber,
         prLabel: Config.kAutosubmitLabel);
   }
 
@@ -204,23 +204,23 @@ class ValidationService {
           String message = 'Unable to merge pull request $prNumber.';
           log.warning(message);
           await removeLabelAndComment(
-            githubService: githubService, 
-            repositorySlug: slug, 
-            prNumber: prNumber, 
-            prLabel: Config.kRevertLabel, 
+            githubService: githubService,
+            repositorySlug: slug,
+            prNumber: prNumber,
+            prLabel: Config.kRevertLabel,
             message: message);
         }
       } on gh.GitHubError catch (exception) {
         String message = '''
 An exception occurred while attempting to create a follow up review for $prNumber in flutter/flutter.
-Exception: ${exception.toString()} 
+Exception: ${exception.toString()}
 ''';
         log.severe(message);
         await removeLabelAndComment(
-          githubService: githubService, 
-          repositorySlug: slug, 
-          prNumber: prNumber, 
-          prLabel: Config.kRevertLabel, 
+          githubService: githubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kRevertLabel,
           message: message);
       } catch (exception) {
         String message = '''
@@ -229,10 +229,10 @@ Exception: ${exception.toString()}
 ''';
         log.severe(message);
         await removeLabelAndComment(
-          githubService: githubService, 
-          repositorySlug: slug, 
-          prNumber: prNumber, 
-          prLabel: Config.kRevertLabel, 
+          githubService: githubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kRevertLabel,
           message: message);
       }
 
@@ -246,10 +246,10 @@ Exception: ${exception.toString()}
           revertValidationResult.message.isEmpty ? 'Validation Failed.' : revertValidationResult.message;
       log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
       await removeLabelAndComment(
-        githubService: githubService, 
+        githubService: githubService,
         repositorySlug: slug,
-        prNumber: prNumber, 
-        prLabel: Config.kRevertLabel, 
+        prNumber: prNumber,
+        prLabel: Config.kRevertLabel,
         message: commentMessage);
       log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
@@ -276,10 +276,10 @@ Exception: ${exception.toString()}
         String message = 'Unable to merge pull request $prNumber.';
         log.warning(message);
         await removeLabelAndComment(
-          githubService: gitHubService, 
-          repositorySlug: repositorySlug, 
-          prNumber: prNumber, 
-          prLabel: prLabel, 
+          githubService: gitHubService,
+          repositorySlug: repositorySlug,
+          prNumber: prNumber,
+          prLabel: prLabel,
           message: message);
       }
 
@@ -293,10 +293,10 @@ Exception: ${exception.toString()}
 ''';
       log.severe(message);
       await removeLabelAndComment(
-        githubService: gitHubService, 
-        repositorySlug: repositorySlug, 
-        prNumber: prNumber, 
-        prLabel: prLabel, 
+        githubService: gitHubService,
+        repositorySlug: repositorySlug,
+        prNumber: prNumber,
+        prLabel: prLabel,
         message: message);
       log.info('Ack the processed message : $ackId.');
       await pubSub.acknowledge('auto-submit-queue-sub', ackId);
@@ -336,10 +336,10 @@ Exception: ${exception.toString()}
 
   /// Remove the requested label and add a comment to the target pull request issue.
   Future<void> removeLabelAndComment({
-      required GithubService githubService, 
-      required gh.RepositorySlug repositorySlug, 
+      required GithubService githubService,
+      required gh.RepositorySlug repositorySlug,
       required int prNumber,
-      required String prLabel, 
+      required String prLabel,
       required String message}) async {
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
