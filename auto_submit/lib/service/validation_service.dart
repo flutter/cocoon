@@ -184,7 +184,8 @@ class ValidationService {
     int number = messagePullRequest.number!;
 
     try {
-      // The createGitHubGraphQLClient can throw Exception.
+      // The createGitHubGraphQLClient can throw Exception on github permissions
+      // errors.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
 
       final graphql.QueryResult result = await client.mutate(graphql.MutationOptions(
@@ -228,12 +229,23 @@ class ValidationService {
 
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
-        github.Issue issue = await gitHubService.createIssue(
-          slug,
-          'Follow up review for revert pull request $prNumber',
-          'Revert request by author ${result.repository!.pullRequest!.author}',
-        );
-        log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+        try {
+          github.Issue issue = await gitHubService.createIssue(
+            github.RepositorySlug('flutter', 'flutter'),
+            'Follow up review for revert pull request $prNumber',
+            'Revert request by author ${result.repository!.pullRequest!.author}',
+          );
+          log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+        } on github.GitHubError catch (exception) {
+          // We have merged but failed to create follow up issue.
+          String errorMessage = '''
+An exception has occurred while attempting to create the follow up review issue for $prNumber.
+Please create a follow up issue to track a review for this pull request.
+Exception: ${exception.message}
+''';
+          log.warning(errorMessage);
+          await gitHubService.createComment(slug, prNumber, errorMessage);
+        }
       } else {
         String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
         log.info(message);
