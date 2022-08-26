@@ -130,13 +130,13 @@ class ValidationService {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
 
         String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage';
-        
+
         log.info(message);
         await removeLabelAndComment(
-            githubService: gitHubService, 
-            repositorySlug: slug, 
-            prNumber: prNumber, 
-            prLabel: Config.kAutosubmitLabel, 
+            githubService: gitHubService,
+            repositorySlug: slug,
+            prNumber: prNumber,
+            prLabel: Config.kAutosubmitLabel,
             message: message);
 
         shouldReturn = true;
@@ -163,10 +163,10 @@ class ValidationService {
       String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
       log.info(message);
       await removeLabelAndComment(
-          githubService: gitHubService, 
-          repositorySlug: slug, 
-          prNumber: prNumber, 
-          prLabel: Config.kAutosubmitLabel, 
+          githubService: gitHubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kAutosubmitLabel,
           message: message);
     }
 
@@ -182,7 +182,7 @@ class ValidationService {
     Commit commit = pullRequest.commits!.nodes!.single.commit!;
     final String? sha = commit.oid;
     int number = messagePullRequest.number!;
-    
+
     try {
       // The createGitHubGraphQLClient can throw Exception.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
@@ -229,19 +229,19 @@ class ValidationService {
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
         github.Issue issue = await gitHubService.createIssue(
-            slug,
-            'Follow up review for revert pull request $prNumber',
-            'Revert request by author ${result.repository!.pullRequest!.author}',
+          slug,
+          'Follow up review for revert pull request $prNumber',
+          'Revert request by author ${result.repository!.pullRequest!.author}',
         );
         log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
       } else {
         String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
         log.info(message);
         await removeLabelAndComment(
-            githubService: gitHubService, 
-            repositorySlug: slug, 
-            prNumber: prNumber, 
-            prLabel: Config.kAutosubmitLabel, 
+            githubService: gitHubService,
+            repositorySlug: slug,
+            prNumber: prNumber,
+            prLabel: Config.kAutosubmitLabel,
             message: message);
       }
     } else {
@@ -250,12 +250,12 @@ class ValidationService {
       final String commentMessage =
           revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
       log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
-      
+
       await removeLabelAndComment(
-          githubService: gitHubService, 
-          repositorySlug: slug, 
-          prNumber: prNumber, 
-          prLabel: Config.kAutosubmitLabel, 
+          githubService: gitHubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kAutosubmitLabel,
           message: commentMessage);
 
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
@@ -265,8 +265,8 @@ class ValidationService {
     await pubsub.acknowledge('auto-submit-queue-sub', ackId);
   }
 
-  Future<void> removeLabelAndComment({
-      required GithubService githubService,
+  Future<void> removeLabelAndComment(
+      {required GithubService githubService,
       required github.RepositorySlug repositorySlug,
       required int prNumber,
       required String prLabel,
