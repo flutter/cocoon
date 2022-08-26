@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
@@ -23,11 +24,16 @@ import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/fake_flutter_app_icons.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
 void main() {
+  setUp(() {
+    FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
+  });
+
   testWidgets('TaskGridContainer shows loading indicator when statuses is empty', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
