@@ -21,14 +21,29 @@ class ApproverService {
     return ApproverService(config);
   }
 
-  Future<void> approve(PullRequest pullRequest) async {
+  Future<void> autoApproval(PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
 
     if (!config.rollerAccounts.contains(author)) {
       log.info('Auto-review ignored for $author');
-      return;
+    } else {
+      await _approve(pullRequest, author);
     }
+  }
 
+  Future<void> revertApproval(PullRequest pullRequest) async {
+    final String? author = pullRequest.user!.login;
+    final List<String> labelNames = (pullRequest.labels as List<IssueLabel>)
+        .map<String>((IssueLabel labelMap) => labelMap.name).toList();
+      
+    if (!labelNames.contains(Config.kRevertLabel)) {
+      log.info('Auto-review ignored for $author');
+    } else {
+      await _approve(pullRequest, author);
+    }
+  }
+
+  Future<void> _approve(PullRequest pullRequest, String? author) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 

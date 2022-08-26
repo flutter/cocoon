@@ -62,7 +62,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
         continue;
       } else {
-        await approver.approve(pullRequest);
+        await approver.autoApproval(pullRequest);
         log.info('Approved pull request: $rawBody');
         processingLog.add(pullRequest.number!);
       }

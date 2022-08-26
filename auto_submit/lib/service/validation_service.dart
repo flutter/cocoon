@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
+import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
@@ -197,13 +198,8 @@ class ValidationService {
 
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
-      final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-      final github.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
-      final github.CreatePullRequestReview review =
-          github.CreatePullRequestReview(slug.owner, slug.name, messagePullRequest.number!, 'APPROVE');
-      await botClient.pullRequests.createReview(slug, review);
-      log.info('Pull request for author ${result.repository!.pullRequest!.author} has been approved.');
-      botClient.dispose();
+      ApproverService approverService = ApproverService(config);
+      approverService.revertApproval(messagePullRequest);
 
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
