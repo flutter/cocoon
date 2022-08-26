@@ -4,11 +4,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
+import '../utils/fake_flutter_app_icons.dart';
 import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 
@@ -33,6 +35,10 @@ void main() {
       ),
     ),
   );
+
+  setUp(() {
+    FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
+  });
 
   testWidgets('CommitBox shows information correctly', (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
