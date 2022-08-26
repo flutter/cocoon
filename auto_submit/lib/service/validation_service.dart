@@ -70,7 +70,7 @@ class ValidationService {
             config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
       case ProcessMethod.doNotProcess:
-        log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
+        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         break;
     }
@@ -128,28 +128,50 @@ class ValidationService {
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.REMOVE_LABEL) {
         final String commmentMessage = result.message.isEmpty ? 'Validations Fail.' : result.message;
-        await gitHubService.createComment(slug, prNumber, commmentMessage);
-        await gitHubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
-        log.info('auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
+
+        String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage';
+        
+        log.info(message);
+        await removeLabelAndComment(
+            githubService: gitHubService, 
+            repositorySlug: slug, 
+            prNumber: prNumber, 
+            prLabel: Config.kAutosubmitLabel, 
+            message: message);
+
         shouldReturn = true;
       }
     }
+
     if (shouldReturn) {
       log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
       await pubsub.acknowledge('auto-submit-queue-sub', ackId);
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
       return;
     }
+
     // If PR has some failures to ignore temporarily do nothing and continue.
     for (ValidationResult result in results) {
       if (!result.result && result.action == Action.IGNORE_TEMPORARILY) {
         return;
       }
     }
+
     // If we got to this point it means we are ready to submit the PR.
     bool processed = await processMerge(config, result, messagePullRequest);
-    if (processed) await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+    if (!processed) {
+      String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
+      log.info(message);
+      await removeLabelAndComment(
+          githubService: gitHubService, 
+          repositorySlug: slug, 
+          prNumber: prNumber, 
+          prLabel: Config.kAutosubmitLabel, 
+          message: message);
+    }
+
     log.info('Ack the processed message : $ackId.');
+    await pubsub.acknowledge('auto-submit-queue-sub', ackId);
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
@@ -160,8 +182,11 @@ class ValidationService {
     Commit commit = pullRequest.commits!.nodes!.single.commit!;
     final String? sha = commit.oid;
     int number = messagePullRequest.number!;
-    final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
+    
     try {
+      // The createGitHubGraphQLClient can throw Exception.
+      final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
+
       final graphql.QueryResult result = await client.mutate(graphql.MutationOptions(
         document: mergePullRequestMutation,
         variables: <String, dynamic>{
@@ -194,7 +219,7 @@ class ValidationService {
 
     github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
-    final GithubService githubService = await config.createGithubService(slug);
+    final GithubService gitHubService = await config.createGithubService(slug);
 
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
@@ -203,26 +228,50 @@ class ValidationService {
 
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
-        await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+        github.Issue issue = await gitHubService.createIssue(
+            slug,
+            'Follow up review for revert pull request $prNumber',
+            'Revert request by author ${result.repository!.pullRequest!.author}',
+        );
+        log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+      } else {
+        String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
+        log.info(message);
+        await removeLabelAndComment(
+            githubService: gitHubService, 
+            repositorySlug: slug, 
+            prNumber: prNumber, 
+            prLabel: Config.kAutosubmitLabel, 
+            message: message);
       }
-      log.info('Ack the processed message : $ackId.');
-      github.Issue issue = await githubService.createIssue(
-        slug,
-        'Follow up review for revert pull request $prNumber',
-        'Revert request by author ${result.repository!.pullRequest!.author}',
-      );
-      log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
     } else {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
-      final String commmentMessage =
+      final String commentMessage =
           revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
-      await githubService.createComment(slug, prNumber, commmentMessage);
-      await githubService.removeLabel(slug, prNumber, Config.kRevertLabel);
-      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage');
-      log.info('The pr ${slug.fullName}/$prNumber with message: $ackId should be acknowledged.');
-      await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
+      
+      await removeLabelAndComment(
+          githubService: gitHubService, 
+          repositorySlug: slug, 
+          prNumber: prNumber, 
+          prLabel: Config.kAutosubmitLabel, 
+          message: commentMessage);
+
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
+
+    log.info('Ack the processed message : $ackId.');
+    await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+  }
+
+  Future<void> removeLabelAndComment({
+      required GithubService githubService,
+      required github.RepositorySlug repositorySlug,
+      required int prNumber,
+      required String prLabel,
+      required String message}) async {
+    await githubService.removeLabel(repositorySlug, prNumber, prLabel);
+    await githubService.createComment(repositorySlug, prNumber, message);
   }
 }
