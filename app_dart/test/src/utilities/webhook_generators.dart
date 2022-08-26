@@ -4,33 +4,65 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/protos.dart' as pb;
+import 'package:cocoon_service/src/model/luci/push_message.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 
-String generatePullRequestEvent(
+PushMessage generateGithubWebhookMessage({
+  String event = 'pull_request',
+  String action = 'merged',
+  int number = 123,
+  String baseRef = kDefaultBranchName,
+  String login = 'dash',
+  String headRef = 'abc',
+  bool isDraft = false,
+  bool merged = false,
+  bool mergeable = true,
+  RepositorySlug? slug,
+}) {
+  final String data = (pb.GithubWebhookMessage.create()
+        ..event = event
+        ..payload = _generatePullRequestEvent(
+          action,
+          number,
+          baseRef,
+          login: login,
+          headRef: headRef,
+          isDraft: isDraft,
+          merged: merged,
+          isMergeable: mergeable,
+          slug: slug,
+        ))
+      .writeToJson();
+  return PushMessage(data: data, messageId: 'abc123');
+}
+
+String _generatePullRequestEvent(
   String action,
   int number,
   String baseRef, {
+  RepositorySlug? slug,
   String login = 'flutter',
   String headRef = 'wait_for_reassemble',
   bool includeCqLabel = false,
   bool isDraft = false,
   bool merged = false,
-  String repoFullName = 'flutter/flutter',
-  String repoName = 'flutter',
   bool isMergeable = true,
-}) =>
-    '''{
+}) {
+  slug ??= Config.flutterSlug;
+  return '''{
   "action": "$action",
   "number": $number,
   "pull_request": {
-    "url": "https://api.github.com/repos/$repoFullName/pulls/$number",
+    "url": "https://api.github.com/repos/${slug.fullName}/pulls/$number",
     "id": 294034,
     "node_id": "MDExOlB1bGxSZXF1ZXN0Mjk0MDMzODQx",
-    "html_url": "https://github.com/$repoFullName/pull/$number",
-    "diff_url": "https://github.com/$repoFullName/pull/$number.diff",
-    "patch_url": "https://github.com/$repoFullName/pull/$number.patch",
-    "issue_url": "https://api.github.com/repos/$repoFullName/issues/$number",
+    "html_url": "https://github.com/${slug.fullName}/pull/$number",
+    "diff_url": "https://github.com/${slug.fullName}/pull/$number.diff",
+    "patch_url": "https://github.com/${slug.fullName}/pull/$number.patch",
+    "issue_url": "https://api.github.com/repos/${slug.fullName}/issues/$number",
     "number": $number,
     "state": "open",
     "locked": false,
@@ -70,7 +102,7 @@ String generatePullRequestEvent(
       {
         "id": 487496476,
         "node_id": "MDU6TGFiZWw0ODc0OTY0NzY=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/cla:%20yes",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/cla:%20yes",
         "name": "cla: yes",
         "color": "ffffff",
         "default": false
@@ -78,7 +110,7 @@ String generatePullRequestEvent(
       {
         "id": 284437560,
         "node_id": "MDU6TGFiZWwyODQ0Mzc1NjA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/framework",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/framework",
         "name": "framework",
         "color": "207de5",
         "default": false
@@ -87,25 +119,25 @@ String generatePullRequestEvent(
       {
         "id": 283480100,
         "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/tool",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/tool",
         "color": "5319e7",
         "default": false
       },''' : ''}
       {
         "id": 283480100,
         "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/$repoFullName/labels/tool",
+        "url": "https://api.github.com/repos/${slug.fullName}/labels/tool",
         "name": "tool",
         "color": "5319e7",
         "default": false
       }
     ],
     "milestone": null,
-    "commits_url": "https://api.github.com/repos/$repoFullName/pulls/$number/commits",
-    "review_comments_url": "https://api.github.com/repos/$repoFullName/pulls/$number/comments",
-    "review_comment_url": "https://api.github.com/repos/$repoFullName/pulls/comments{/number}",
-    "comments_url": "https://api.github.com/repos/$repoFullName/issues/$number/comments",
-    "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+    "commits_url": "https://api.github.com/repos/${slug.fullName}/pulls/$number/commits",
+    "review_comments_url": "https://api.github.com/repos/${slug.fullName}/pulls/$number/comments",
+    "review_comment_url": "https://api.github.com/repos/${slug.fullName}/pulls/comments{/number}",
+    "comments_url": "https://api.github.com/repos/${slug.fullName}/issues/$number/comments",
+    "statuses_url": "https://api.github.com/repos/${slug.fullName}/statuses/be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
     "head": {
       "label": "$login:$headRef",
       "ref": "$headRef",
@@ -133,8 +165,8 @@ String generatePullRequestEvent(
       "repo": {
         "id": 131232406,
         "node_id": "MDEwOlJlcG9zaXRvcnkxMzEyMzI0MDY=",
-        "name": "$repoName",
-        "full_name": "$repoFullName",
+        "name": "${slug.name}",
+        "full_name": "${slug.fullName}",
         "private": false,
         "owner": {
           "login": "flutter",
@@ -156,53 +188,53 @@ String generatePullRequestEvent(
           "type": "User",
           "site_admin": false
         },
-        "html_url": "https://github.com/$repoFullName",
+        "html_url": "https://github.com/${slug.fullName}",
         "description": "Flutter makes it easy and fast to build beautiful mobile apps.",
         "fork": true,
-        "url": "https://api.github.com/repos/$repoFullName",
-        "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-        "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-        "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-        "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/$repoFullName/events",
-        "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-        "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-        "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-        "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-        "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-        "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-        "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-        "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-        "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-        "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-        "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-        "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
+        "url": "https://api.github.com/repos/${slug.fullName}",
+        "forks_url": "https://api.github.com/repos/${slug.fullName}/forks",
+        "keys_url": "https://api.github.com/repos/${slug.fullName}/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/${slug.fullName}/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/${slug.fullName}/teams",
+        "hooks_url": "https://api.github.com/repos/${slug.fullName}/hooks",
+        "issue_events_url": "https://api.github.com/repos/${slug.fullName}/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/${slug.fullName}/events",
+        "assignees_url": "https://api.github.com/repos/${slug.fullName}/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/${slug.fullName}/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/${slug.fullName}/tags",
+        "blobs_url": "https://api.github.com/repos/${slug.fullName}/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/${slug.fullName}/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/${slug.fullName}/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/${slug.fullName}/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/${slug.fullName}/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/${slug.fullName}/languages",
+        "stargazers_url": "https://api.github.com/repos/${slug.fullName}/stargazers",
+        "contributors_url": "https://api.github.com/repos/${slug.fullName}/contributors",
+        "subscribers_url": "https://api.github.com/repos/${slug.fullName}/subscribers",
+        "subscription_url": "https://api.github.com/repos/${slug.fullName}/subscription",
+        "commits_url": "https://api.github.com/repos/${slug.fullName}/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/${slug.fullName}/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/${slug.fullName}/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/${slug.fullName}/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/${slug.fullName}/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/${slug.fullName}/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/${slug.fullName}/merges",
+        "archive_url": "https://api.github.com/repos/${slug.fullName}/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/${slug.fullName}/downloads",
+        "issues_url": "https://api.github.com/repos/${slug.fullName}/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/${slug.fullName}/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/${slug.fullName}/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/${slug.fullName}/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/${slug.fullName}/labels{/name}",
+        "releases_url": "https://api.github.com/repos/${slug.fullName}/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/${slug.fullName}/deployments",
         "created_at": "2018-04-27T02:03:08Z",
         "updated_at": "2019-06-27T06:56:59Z",
         "pushed_at": "2019-07-03T19:40:11Z",
-        "git_url": "git://github.com/$repoFullName.git",
-        "ssh_url": "git@github.com:$repoFullName.git",
-        "clone_url": "https://github.com/$repoFullName.git",
-        "svn_url": "https://github.com/$repoFullName",
+        "git_url": "git://github.com/${slug.fullName}.git",
+        "ssh_url": "git@github.com:${slug.fullName}.git",
+        "clone_url": "https://github.com/${slug.fullName}.git",
+        "svn_url": "https://github.com/${slug.fullName}",
         "homepage": "https://flutter.io",
         "size": 94508,
         "stargazers_count": 1,
@@ -258,8 +290,8 @@ String generatePullRequestEvent(
       "repo": {
         "id": 31792824,
         "node_id": "MDEwOlJlcG9zaXRvcnkzMTc5MjgyNA==",
-        "name": "$repoName",
-        "full_name": "$repoFullName",
+        "name": "${slug.name}",
+        "full_name": "${slug.fullName}",
         "private": false,
         "owner": {
           "login": "flutter",
@@ -281,53 +313,53 @@ String generatePullRequestEvent(
           "type": "Organization",
           "site_admin": false
         },
-        "html_url": "https://github.com/$repoFullName",
+        "html_url": "https://github.com/${slug.fullName}",
         "description": "Flutter makes it easy and fast to build beautiful mobile apps.",
         "fork": false,
-        "url": "https://api.github.com/repos/$repoFullName",
-        "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-        "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-        "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-        "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/$repoFullName/events",
-        "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-        "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-        "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-        "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-        "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-        "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-        "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-        "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-        "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-        "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-        "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-        "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
+        "url": "https://api.github.com/repos/${slug.fullName}",
+        "forks_url": "https://api.github.com/repos/${slug.fullName}/forks",
+        "keys_url": "https://api.github.com/repos/${slug.fullName}/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/${slug.fullName}/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/${slug.fullName}/teams",
+        "hooks_url": "https://api.github.com/repos/${slug.fullName}/hooks",
+        "issue_events_url": "https://api.github.com/repos/${slug.fullName}/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/${slug.fullName}/events",
+        "assignees_url": "https://api.github.com/repos/${slug.fullName}/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/${slug.fullName}/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/${slug.fullName}/tags",
+        "blobs_url": "https://api.github.com/repos/${slug.fullName}/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/${slug.fullName}/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/${slug.fullName}/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/${slug.fullName}/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/${slug.fullName}/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/${slug.fullName}/languages",
+        "stargazers_url": "https://api.github.com/repos/${slug.fullName}/stargazers",
+        "contributors_url": "https://api.github.com/repos/${slug.fullName}/contributors",
+        "subscribers_url": "https://api.github.com/repos/${slug.fullName}/subscribers",
+        "subscription_url": "https://api.github.com/repos/${slug.fullName}/subscription",
+        "commits_url": "https://api.github.com/repos/${slug.fullName}/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/${slug.fullName}/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/${slug.fullName}/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/${slug.fullName}/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/${slug.fullName}/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/${slug.fullName}/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/${slug.fullName}/merges",
+        "archive_url": "https://api.github.com/repos/${slug.fullName}/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/${slug.fullName}/downloads",
+        "issues_url": "https://api.github.com/repos/${slug.fullName}/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/${slug.fullName}/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/${slug.fullName}/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/${slug.fullName}/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/${slug.fullName}/labels{/name}",
+        "releases_url": "https://api.github.com/repos/${slug.fullName}/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/${slug.fullName}/deployments",
         "created_at": "2015-03-06T22:54:58Z",
         "updated_at": "2019-07-04T02:08:44Z",
         "pushed_at": "2019-07-04T02:03:04Z",
-        "git_url": "git://github.com/$repoFullName.git",
-        "ssh_url": "git@github.com:$repoFullName.git",
-        "clone_url": "https://github.com/$repoFullName.git",
-        "svn_url": "https://github.com/$repoFullName",
+        "git_url": "git://github.com/${slug.fullName}.git",
+        "ssh_url": "git@github.com:${slug.fullName}.git",
+        "clone_url": "https://github.com/${slug.fullName}.git",
+        "svn_url": "https://github.com/${slug.fullName}",
         "homepage": "https://flutter.dev",
         "size": 65507,
         "stargazers_count": 68944,
@@ -358,28 +390,28 @@ String generatePullRequestEvent(
     },
     "_links": {
       "self": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number"
+        "href": "https://api.github.com/repos/${slug.fullName}/pulls/$number"
       },
       "html": {
-        "href": "https://github.com/$repoFullName/pull/$number"
+        "href": "https://github.com/${slug.fullName}/pull/$number"
       },
       "issue": {
-        "href": "https://api.github.com/repos/$repoFullName/issues/$number"
+        "href": "https://api.github.com/repos/${slug.fullName}/issues/$number"
       },
       "comments": {
-        "href": "https://api.github.com/repos/$repoFullName/issues/$number/comments"
+        "href": "https://api.github.com/repos/${slug.fullName}/issues/$number/comments"
       },
       "review_comments": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number/comments"
+        "href": "https://api.github.com/repos/${slug.fullName}/pulls/$number/comments"
       },
       "review_comment": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/comments{/number}"
+        "href": "https://api.github.com/repos/${slug.fullName}/pulls/comments{/number}"
       },
       "commits": {
-        "href": "https://api.github.com/repos/$repoFullName/pulls/$number/commits"
+        "href": "https://api.github.com/repos/${slug.fullName}/pulls/$number/commits"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/$repoFullName/statuses/deadbeef"
+        "href": "https://api.github.com/repos/${slug.fullName}/statuses/deadbeef"
       }
     },
     "author_association": "MEMBER",
@@ -400,8 +432,8 @@ String generatePullRequestEvent(
   "repository": {
     "id": 1868532,
     "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
-    "name": "$repoName",
-    "full_name": "$repoFullName",
+    "name": "${slug.name}",
+    "full_name": "${slug.fullName}",
     "private": false,
     "owner": {
       "login": "flutter",
@@ -423,53 +455,53 @@ String generatePullRequestEvent(
       "type": "User",
       "site_admin": false
     },
-    "html_url": "https://github.com/$repoFullName",
+    "html_url": "https://github.com/${slug.fullName}",
     "description": null,
     "fork": false,
-    "url": "https://api.github.com/repos/$repoFullName",
-    "forks_url": "https://api.github.com/repos/$repoFullName/forks",
-    "keys_url": "https://api.github.com/repos/$repoFullName/keys{/key_id}",
-    "collaborators_url": "https://api.github.com/repos/$repoFullName/collaborators{/collaborator}",
-    "teams_url": "https://api.github.com/repos/$repoFullName/teams",
-    "hooks_url": "https://api.github.com/repos/$repoFullName/hooks",
-    "issue_events_url": "https://api.github.com/repos/$repoFullName/issues/events{/number}",
-    "events_url": "https://api.github.com/repos/$repoFullName/events",
-    "assignees_url": "https://api.github.com/repos/$repoFullName/assignees{/user}",
-    "branches_url": "https://api.github.com/repos/$repoFullName/branches{/branch}",
-    "tags_url": "https://api.github.com/repos/$repoFullName/tags",
-    "blobs_url": "https://api.github.com/repos/$repoFullName/git/blobs{/sha}",
-    "git_tags_url": "https://api.github.com/repos/$repoFullName/git/tags{/sha}",
-    "git_refs_url": "https://api.github.com/repos/$repoFullName/git/refs{/sha}",
-    "trees_url": "https://api.github.com/repos/$repoFullName/git/trees{/sha}",
-    "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/{sha}",
-    "languages_url": "https://api.github.com/repos/$repoFullName/languages",
-    "stargazers_url": "https://api.github.com/repos/$repoFullName/stargazers",
-    "contributors_url": "https://api.github.com/repos/$repoFullName/contributors",
-    "subscribers_url": "https://api.github.com/repos/$repoFullName/subscribers",
-    "subscription_url": "https://api.github.com/repos/$repoFullName/subscription",
-    "commits_url": "https://api.github.com/repos/$repoFullName/commits{/sha}",
-    "git_commits_url": "https://api.github.com/repos/$repoFullName/git/commits{/sha}",
-    "comments_url": "https://api.github.com/repos/$repoFullName/comments{/number}",
-    "issue_comment_url": "https://api.github.com/repos/$repoFullName/issues/comments{/number}",
-    "contents_url": "https://api.github.com/repos/$repoFullName/contents/{+path}",
-    "compare_url": "https://api.github.com/repos/$repoFullName/compare/{base}...{head}",
-    "merges_url": "https://api.github.com/repos/$repoFullName/merges",
-    "archive_url": "https://api.github.com/repos/$repoFullName/{archive_format}{/ref}",
-    "downloads_url": "https://api.github.com/repos/$repoFullName/downloads",
-    "issues_url": "https://api.github.com/repos/$repoFullName/issues{/number}",
-    "pulls_url": "https://api.github.com/repos/$repoFullName/pulls{/number}",
-    "milestones_url": "https://api.github.com/repos/$repoFullName/milestones{/number}",
-    "notifications_url": "https://api.github.com/repos/$repoFullName/notifications{?since,all,participating}",
-    "labels_url": "https://api.github.com/repos/$repoFullName/labels{/name}",
-    "releases_url": "https://api.github.com/repos/$repoFullName/releases{/id}",
-    "deployments_url": "https://api.github.com/repos/$repoFullName/deployments",
+    "url": "https://api.github.com/repos/${slug.fullName}",
+    "forks_url": "https://api.github.com/repos/${slug.fullName}/forks",
+    "keys_url": "https://api.github.com/repos/${slug.fullName}/keys{/key_id}",
+    "collaborators_url": "https://api.github.com/repos/${slug.fullName}/collaborators{/collaborator}",
+    "teams_url": "https://api.github.com/repos/${slug.fullName}/teams",
+    "hooks_url": "https://api.github.com/repos/${slug.fullName}/hooks",
+    "issue_events_url": "https://api.github.com/repos/${slug.fullName}/issues/events{/number}",
+    "events_url": "https://api.github.com/repos/${slug.fullName}/events",
+    "assignees_url": "https://api.github.com/repos/${slug.fullName}/assignees{/user}",
+    "branches_url": "https://api.github.com/repos/${slug.fullName}/branches{/branch}",
+    "tags_url": "https://api.github.com/repos/${slug.fullName}/tags",
+    "blobs_url": "https://api.github.com/repos/${slug.fullName}/git/blobs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/${slug.fullName}/git/tags{/sha}",
+    "git_refs_url": "https://api.github.com/repos/${slug.fullName}/git/refs{/sha}",
+    "trees_url": "https://api.github.com/repos/${slug.fullName}/git/trees{/sha}",
+    "statuses_url": "https://api.github.com/repos/${slug.fullName}/statuses/{sha}",
+    "languages_url": "https://api.github.com/repos/${slug.fullName}/languages",
+    "stargazers_url": "https://api.github.com/repos/${slug.fullName}/stargazers",
+    "contributors_url": "https://api.github.com/repos/${slug.fullName}/contributors",
+    "subscribers_url": "https://api.github.com/repos/${slug.fullName}/subscribers",
+    "subscription_url": "https://api.github.com/repos/${slug.fullName}/subscription",
+    "commits_url": "https://api.github.com/repos/${slug.fullName}/commits{/sha}",
+    "git_commits_url": "https://api.github.com/repos/${slug.fullName}/git/commits{/sha}",
+    "comments_url": "https://api.github.com/repos/${slug.fullName}/comments{/number}",
+    "issue_comment_url": "https://api.github.com/repos/${slug.fullName}/issues/comments{/number}",
+    "contents_url": "https://api.github.com/repos/${slug.fullName}/contents/{+path}",
+    "compare_url": "https://api.github.com/repos/${slug.fullName}/compare/{base}...{head}",
+    "merges_url": "https://api.github.com/repos/${slug.fullName}/merges",
+    "archive_url": "https://api.github.com/repos/${slug.fullName}/{archive_format}{/ref}",
+    "downloads_url": "https://api.github.com/repos/${slug.fullName}/downloads",
+    "issues_url": "https://api.github.com/repos/${slug.fullName}/issues{/number}",
+    "pulls_url": "https://api.github.com/repos/${slug.fullName}/pulls{/number}",
+    "milestones_url": "https://api.github.com/repos/${slug.fullName}/milestones{/number}",
+    "notifications_url": "https://api.github.com/repos/${slug.fullName}/notifications{?since,all,participating}",
+    "labels_url": "https://api.github.com/repos/${slug.fullName}/labels{/name}",
+    "releases_url": "https://api.github.com/repos/${slug.fullName}/releases{/id}",
+    "deployments_url": "https://api.github.com/repos/${slug.fullName}/deployments",
     "created_at": "2019-05-15T15:19:25Z",
     "updated_at": "2019-05-15T15:19:27Z",
     "pushed_at": "2019-05-15T15:20:32Z",
-    "git_url": "git://github.com/$repoFullName.git",
-    "ssh_url": "git@github.com:$repoFullName.git",
-    "clone_url": "https://github.com/$repoFullName.git",
-    "svn_url": "https://github.com/$repoFullName",
+    "git_url": "git://github.com/${slug.fullName}.git",
+    "ssh_url": "git@github.com:${slug.fullName}.git",
+    "clone_url": "https://github.com/${slug.fullName}.git",
+    "svn_url": "https://github.com/${slug.fullName}",
     "homepage": null,
     "size": 0,
     "stargazers_count": 0,
@@ -512,12 +544,13 @@ String generatePullRequestEvent(
     "site_admin": false
   }
 }''';
+}
 
-String generateCheckRunEvent({
+PushMessage generateCheckRunEvent({
   String action = 'created',
   int numberOfPullRequests = 1,
 }) {
-  String body = '''{
+  String data = '''{
   "action": "$action",
   "check_run": {
     "id": 128620228,
@@ -684,7 +717,7 @@ String generateCheckRunEvent({
     "pull_requests": [''';
 
   for (int i = 0; i < numberOfPullRequests; i++) {
-    body += '''{
+    data += '''{
         "url": "https://api.github.com/repos/flutter/flutter/pulls/2",
         "id": 279147437,
         "number": ${i + 2},
@@ -708,10 +741,10 @@ String generateCheckRunEvent({
         }
       }''';
     if (i < numberOfPullRequests - 1) {
-      body += ',';
+      data += ',';
     }
   }
-  body += '''],
+  data += '''],
     "deployment": {
       "url": "https://api.github.com/repos/flutter/flutter/deployments/326191728",
       "id": 326191728,
@@ -841,7 +874,23 @@ String generateCheckRunEvent({
     "site_admin": false
   }
 }''';
-  return body;
+  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
+    event: 'check_run',
+    payload: data,
+  );
+  return PushMessage(
+    data: message.writeToJson(),
+    messageId: 'abc123',
+  );
+}
+
+PushMessage generateCreateBranchMessage(String branchName, String repository, {bool forked = false}) {
+  final CreateEvent createEvent = generateCreateBranchEvent(branchName, repository, forked: forked);
+  final pb.GithubWebhookMessage message = pb.GithubWebhookMessage(
+    event: 'create',
+    payload: jsonEncode(createEvent),
+  );
+  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
 }
 
 CreateEvent generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) =>

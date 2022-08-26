@@ -35,7 +35,7 @@ $ dart test
 To update the JSON serialization generated code, run:
 
 ```sh
-$ dart pub run build_runner build
+$ dart run build_runner build
 ```
 
 Any updates should be checked into source control.
@@ -48,8 +48,8 @@ To update the Protocol Buffer generated code:
    the protocol buffer compiler (`protoc`). Once installed, update your `PATH`
    to include the path to the `protoc` binary.
 
-   On Linux, you may be able to use `sudo apt-get install protocol-compiler` to install.
-   On macOS, you may be able to use `brew install protobuf`
+   On Linux, use `sudo apt-get install protocol-compiler` to install.
+   On macOS, use `brew install protobuf`
 
 2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
    package. Once installed, update your `PATH` to include the path to the
@@ -59,10 +59,7 @@ To update the Protocol Buffer generated code:
 3. Run the following command:
 
    ```sh
-   $ protoc \
-       --plugin=/path/to/protoc_plugin/bin/ \
-       --dart_out=. \
-       lib/src/path/to/file.proto
+   $ protoc --dart_out=. lib/src/model/proto/**/*.proto
    ```
 
 4. Remove the unused generated files:
