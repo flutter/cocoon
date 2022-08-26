@@ -157,7 +157,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 }
 
 class ApiKey<T> extends RequestKey<T> {
-  const ApiKey._(String name) : super(name);
+  const ApiKey._(super.name);
 
   static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._('requestBody');
   static const ApiKey<AuthenticatedContext> authContext = ApiKey<AuthenticatedContext>._('authenticatedContext');

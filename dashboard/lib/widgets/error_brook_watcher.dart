@@ -14,10 +14,10 @@ import '../logic/brooks.dart';
 /// are displayed as [SnackBar]s on the nearest [Scaffold].
 class ErrorBrookWatcher extends StatefulWidget {
   const ErrorBrookWatcher({
-    Key? key,
+    super.key,
     this.errors,
     this.child,
-  }) : super(key: key);
+  });
 
   final Brook<String>? errors;
 

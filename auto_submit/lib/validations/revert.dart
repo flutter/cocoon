@@ -7,13 +7,12 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/config.dart';
 import '../service/log.dart';
 
 class Revert extends Validation {
   Revert({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   static const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
 

@@ -13,9 +13,9 @@ import '../model/task.pb.dart';
 /// for a Task.
 class LuciTaskAttemptSummary extends StatelessWidget {
   const LuciTaskAttemptSummary({
-    Key? key,
+    super.key,
     required this.task,
-  }) : super(key: key);
+  });
 
   /// The task to show information from.
   final Task task;

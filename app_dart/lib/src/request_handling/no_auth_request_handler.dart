@@ -109,7 +109,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
 
 @visibleForTesting
 class NoAuthKey<T> extends RequestKey<T> {
-  const NoAuthKey._(String name) : super(name);
+  const NoAuthKey._(super.name);
 
   static const NoAuthKey<Uint8List> requestBody = NoAuthKey<Uint8List>._('requestBody');
   static const NoAuthKey<Map<String, dynamic>> requestData = NoAuthKey<Map<String, dynamic>>._('requestData');

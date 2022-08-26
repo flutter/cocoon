@@ -14,9 +14,9 @@ import 'web_image.dart';
 /// from the avatar's name.
 class CommitAuthorAvatar extends StatelessWidget {
   const CommitAuthorAvatar({
-    Key? key,
+    super.key,
     this.commit,
-  }) : super(key: key);
+  });
 
   final Commit? commit;
 

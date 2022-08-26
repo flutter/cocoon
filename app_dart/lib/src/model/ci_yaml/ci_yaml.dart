@@ -202,7 +202,7 @@ class DependencyValidator {
     final List<String> exceptions = <String>[];
 
     /// Decoded will contain a list of maps for the dependencies found.
-    dynamic decoded = json.decode(dependencyJsonString);
+    List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
 
     for (Map<String, dynamic> depMap in decoded) {
       if (!depMap.containsKey('version')) {

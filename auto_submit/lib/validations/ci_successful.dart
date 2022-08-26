@@ -20,8 +20,8 @@ class CiSuccessful extends Validation {
   };
 
   CiSuccessful({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
 

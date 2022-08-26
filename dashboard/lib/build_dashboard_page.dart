@@ -24,9 +24,9 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 /// The results from tasks run on individual commits is shown in [TaskGrid].
 class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
-    Key? key,
+    super.key,
     this.queryParameters,
-  }) : super(key: key);
+  });
 
   static const String routeName = '/build';
 

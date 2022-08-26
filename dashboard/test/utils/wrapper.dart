@@ -13,7 +13,7 @@ import 'fake_index_state.dart';
 import 'mocks.dart';
 
 class FakeInserter extends StatelessWidget {
-  const FakeInserter({Key? key, this.child, this.signedIn = true}) : super(key: key);
+  const FakeInserter({super.key, this.child, this.signedIn = true});
 
   final Widget? child;
 
