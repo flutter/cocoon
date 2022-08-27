@@ -5,14 +5,17 @@
 import 'package:auto_submit/model/auto_submit_query_result.dart' hide PullRequest;
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/validation_service.dart';
+import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_approver_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/validations/fake_revert.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
 
@@ -45,6 +48,57 @@ void main() {
     QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processPullRequest(
+        config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+
+    expect(githubService.issueComment, isNotNull);
+    expect(githubService.labelRemoved, true);
+    assert(pubsub.messagesQueue.isEmpty);
+  });
+
+  test('Remove label and post comment when no revert label.', () async {
+    PullRequestHelper flutterRequest = PullRequestHelper(
+      prNumber: 0,
+      lastCommitHash: oid,
+      reviews: <PullRequestReviewHelper>[],
+    );
+    githubService.checkRunsData = checkRunsMock;
+    githubService.createCommentData = createCommentMock;
+    final FakePubSub pubsub = FakePubSub();
+    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    pubsub.publish('auto-submit-queue-sub', pullRequest);
+    QueryResult queryResult = createQueryResult(flutterRequest);
+
+    await validationService.processRevertRequest(
+        config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+
+    expect(githubService.issueComment, isNotNull);
+    expect(githubService.labelRemoved, true);
+    assert(pubsub.messagesQueue.isEmpty);
+  });
+
+  test('Remove label and post comment when unable to process merge.', () async {
+    PullRequestHelper flutterRequest = PullRequestHelper(
+      prNumber: 0,
+      lastCommitHash: oid,
+      reviews: <PullRequestReviewHelper>[],
+    );
+    githubService.checkRunsData = checkRunsMock;
+    githubService.createCommentData = createCommentMock;
+    final FakePubSub pubsub = FakePubSub();
+    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    pullRequest.authorAssociation = 'OWNER';
+    pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
+
+    FakeRevert fakeRevert = FakeRevert(config: config);
+    fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
+    validationService.revertValidation = fakeRevert;
+    FakeApproverService fakeApproverService = FakeApproverService(config);
+    validationService.approverService = fakeApproverService;
+
+    pubsub.publish('auto-submit-queue-sub', pullRequest);
+    QueryResult queryResult = createQueryResult(flutterRequest);
+
+    await validationService.processRevertRequest(
         config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
 
     expect(githubService.issueComment, isNotNull);
@@ -109,7 +163,5 @@ void main() {
 
       expect(processMethod, ProcessMethod.doNotProcess);
     });
-
-    group('Process merge tests.', () {});
   });
 }

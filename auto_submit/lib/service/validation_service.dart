@@ -30,6 +30,7 @@ class ValidationService {
   ValidationService(this.config) {
     /// Validates a PR marked with the reverts label.
     revertValidation = Revert(config: config);
+    approverService = ApproverService(config);
 
     validations.addAll({
       /// Validates the PR has been approved following the codereview guidelines.
@@ -53,6 +54,7 @@ class ValidationService {
   }
 
   Revert? revertValidation;
+  ApproverService? approverService;
   final Config config;
   final Set<Validation> validations = <Validation>{};
 
@@ -205,8 +207,7 @@ class ValidationService {
 
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
-      ApproverService approverService = ApproverService(config);
-      approverService.revertApproval(messagePullRequest);
+      approverService!.revertApproval(messagePullRequest);
 
       bool processed = await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
 
