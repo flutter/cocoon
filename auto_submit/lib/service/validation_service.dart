@@ -199,7 +199,7 @@ class ValidationService {
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
       ApproverService approverService = ApproverService(config);
-      approverService.revertApproval(messagePullRequest);
+      await approverService.revertApproval(messagePullRequest);
 
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
@@ -207,7 +207,7 @@ class ValidationService {
       }
       log.info('Ack the processed message : $ackId.');
       github.Issue issue = await githubService.createIssue(
-        slug,
+        github.RepositorySlug('flutter', 'flutter'),
         'Follow up review for revert pull request $prNumber',
         'Revert request by author ${result.repository!.pullRequest!.author}',
       );
