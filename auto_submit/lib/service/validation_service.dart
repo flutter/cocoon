@@ -210,9 +210,9 @@ class ValidationService {
       await approverService!.revertApproval(result, messagePullRequest);
 
       bool processed = await processMerge(
-          config: config, 
-          queryResult: result, 
-          messagePullRequest: messagePullRequest);
+          config: config,
+          queryResult: result,
+          messagePullRequest: messagePullRequest,);
 
       if (processed) {
         try {
@@ -241,7 +241,7 @@ Exception: ${exception.message}
             repositorySlug: slug,
             prNumber: prNumber,
             prLabel: Config.kRevertLabel,
-            message: message);
+            message: message,);
       }
     } else {
       // since we do not temporarily ignore anything with a revert request we
@@ -255,7 +255,7 @@ Exception: ${exception.message}
           repositorySlug: slug,
           prNumber: prNumber,
           prLabel: Config.kRevertLabel,
-          message: commentMessage);
+          message: commentMessage,);
 
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
