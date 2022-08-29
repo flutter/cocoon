@@ -48,7 +48,7 @@ class ApproverService {
     if (labelNames.contains(Config.kRevertLabel) &&
         (config.rollerAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
       log.info(
-          'Revert label and author has been validated. Attempting to approve the pull request. $pullRequest by $author');
+          'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo.toString()} by $author');
       await _approve(pullRequest, author);
     } else {
       log.info('Auto-review ignored for $author');
