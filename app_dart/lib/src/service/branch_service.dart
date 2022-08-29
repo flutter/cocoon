@@ -119,17 +119,15 @@ class BranchService {
   /// Latest beta and stable branches are retrieved based on 'beta' and 'stable' tags. Dev branch is retrived
   /// as the latest flutter candidate branch.
   Future<List<Map<String, String>>> getReleaseBranches(
-      {required gh.GitHub github, required gh.RepositorySlug slug}) async {
-    final String betaSha = (await github.repositories.getBranch(slug, 'beta')).commit!.sha!;
-    final String stableSha = (await github.repositories.getBranch(slug, 'stable')).commit!.sha!;
+      {required GithubService githubService, required gh.RepositorySlug slug}) async {
+    List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
+    final String devName = await _getDevBranch(github: githubService.github, slug: slug, branches: branches);
 
-    List<gh.Branch> branches = await github.repositories.listBranches(slug).toList();
-    final String devName = await _getDevBranch(github: github, slug: slug, branches: branches);
     final String betaName =
-        branches.where(((gh.Branch b) => b.commit!.sha == betaSha && b.name != 'beta' && b.name != 'dev')).single.name!;
+        (await githubService.getFileContent(slug, 'bin/internal/release-candidate-branch.version', ref: 'beta')).trim();
     final String stableName =
-        branches.where(((gh.Branch b) => b.commit!.sha == stableSha && b.name != 'stable')).single.name!;
-
+        (await githubService.getFileContent(slug, 'bin/internal/release-candidate-branch.version', ref: 'stable'))
+            .trim();
     return <Map<String, String>>[
       {"branch": stableName, "name": "stable"},
       {"branch": betaName, "name": "beta"},

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 
@@ -62,8 +64,19 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<String> getFileContent(RepositorySlug slug, String path) async {
-    return '';
+  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
+    if (path == 'bin/internal/release-candidate-branch.version') {
+      String encodedResponse = '';
+      if (ref == 'beta') {
+        encodedResponse = 'Zmx1dHRlci0zLjItY2FuZGlkYXRlLjUK\n';
+      } else if (ref == 'stable') {
+        encodedResponse = 'Zmx1dHRlci0yLjEzLWNhbmRpZGF0ZS4wCg==\n';
+      }
+      String result = utf8.decode(base64.decode(encodedResponse.replaceAll('\n', '')));
+      return Future<String>.value(result);
+    } else {
+      return Future<String>.value('');
+    }
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import '../request_handling/body.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
+import '../service/github_service.dart';
 
 /// Return a list of release branch information.
 ///
@@ -39,8 +40,9 @@ class GetReleaseBranches extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
+    final GithubService githubService = GithubService(github);
     List<Map<String, String>> branchNames =
-        await branchService.getReleaseBranches(github: github, slug: Config.flutterSlug);
+        await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
     return Body.forJson(branchNames);
   }
 }
