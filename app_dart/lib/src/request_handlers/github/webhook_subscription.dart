@@ -263,7 +263,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !filename.contains('.github') &&
           !filename.endsWith('.md') &&
           !filename.contains('CODEOWNERS') &&
-          !filename.startsWith('dev/bots/')) {
+          !filename.startsWith('dev/bots/') &&
+          !filename.endsWith('.gitignore')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
