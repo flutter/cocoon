@@ -199,7 +199,7 @@ class ValidationService {
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
       ApproverService approverService = ApproverService(config);
-      await approverService.revertApproval(messagePullRequest);
+      await approverService.revertApproval(result, messagePullRequest);
 
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
