@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 
 import '../model/luci/push_message.dart';
 import '../service/cache_service.dart';
-import '../service/config.dart';
 import '../service/logging.dart';
 import 'api_request_handler.dart';
 import 'authentication.dart';
@@ -30,12 +29,10 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// Creates a new [SubscriptionHandler].
   const SubscriptionHandler({
     required this.cache,
-    required Config config,
+    required super.config,
     this.authProvider,
     required this.topicName,
-  }) : super(
-          config: config,
-        );
+  });
 
   final CacheService cache;
 
@@ -62,7 +59,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
-    final AuthenticationProvider _authProvider = authProvider ?? PubsubAuthenticationProvider(config);
+    final AuthenticationProvider _authProvider = authProvider ?? PubsubAuthenticationProvider(config: config);
     try {
       authContext = await _authProvider.authenticate(request);
     } on Unauthenticated catch (error) {
@@ -152,7 +149,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
 @visibleForTesting
 class PubSubKey<T> extends RequestKey<T> {
-  const PubSubKey._(String name) : super(name);
+  const PubSubKey._(super.name);
 
   static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
 }

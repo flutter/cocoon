@@ -87,8 +87,8 @@ void main() {
       config.flutterGoldStalePRValue = 'stale';
 
       handler = PushGoldStatusToGithub(
-        config,
-        auth,
+        config: config,
+        authenticationProvider: auth,
         datastoreProvider: (DatastoreDB db) {
           return DatastoreService(
             db,
@@ -403,8 +403,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -771,8 +771,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -828,8 +828,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -894,8 +894,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -958,8 +958,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -1032,8 +1032,8 @@ void main() {
             throw const HttpException('Unexpected http request');
           });
           handler = PushGoldStatusToGithub(
-            config,
-            auth,
+            config: config,
+            authenticationProvider: auth,
             datastoreProvider: (DatastoreDB db) {
               return DatastoreService(
                 config.db,
@@ -1221,8 +1221,8 @@ void main() {
           throw const HttpException('Unexpected http request');
         });
         handler = PushGoldStatusToGithub(
-          config,
-          auth,
+          config: config,
+          authenticationProvider: auth,
           datastoreProvider: (DatastoreDB db) {
             return DatastoreService(
               config.db,
@@ -1332,8 +1332,8 @@ void main() {
           return http.Response(tryjobDigests(requestedPr), HttpStatus.ok);
         });
         handler = PushGoldStatusToGithub(
-          config,
-          auth,
+          config: config,
+          authenticationProvider: auth,
           datastoreProvider: (DatastoreDB db) {
             return DatastoreService(
               config.db,

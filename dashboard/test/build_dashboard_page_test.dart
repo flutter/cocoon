@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
@@ -21,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import 'utils/fake_build.dart';
+import 'utils/fake_flutter_app_icons.dart';
 import 'utils/fake_google_account.dart';
 import 'utils/golden.dart';
 import 'utils/mocks.dart';
@@ -46,6 +48,8 @@ void main() {
     fakeAuthService = MockGoogleSignInService();
     when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
     when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
+
+    FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
   });
 
   testWidgets('shows sign in button', (WidgetTester tester) async {

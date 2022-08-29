@@ -21,9 +21,9 @@ import '../requests/exceptions.dart';
 /// check if the pull request is mergable and publish to pubsub.
 class GithubWebhook extends RequestHandler {
   const GithubWebhook({
-    required Config config,
+    required super.config,
     this.pubsub = const PubSub(),
-  }) : super(config: config);
+  });
 
   final PubSub pubsub;
 
@@ -45,6 +45,7 @@ class GithubWebhook extends RequestHandler {
 
     // Listen to the pull request with 'autosubmit' label.
     bool hasAutosubmit = false;
+    bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
@@ -54,9 +55,10 @@ class GithubWebhook extends RequestHandler {
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
+    hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
 
-    if (hasAutosubmit) {
-      log.info('Found pull request with auto submit label.');
+    if (hasAutosubmit || hasRevertLabel) {
+      log.info('Found pull request with auto submit and/or revert label.');
       await pubsub.publish('auto-submit-queue', pullRequest);
     }
 

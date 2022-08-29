@@ -19,12 +19,11 @@ import '../service/datastore.dart';
 
 @immutable
 class GetStatus extends RequestHandler<Body> {
-  const GetStatus(
-    Config config, {
+  const GetStatus({
+    required super.config,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  })  : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
-        super(config: config);
+  }) : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;

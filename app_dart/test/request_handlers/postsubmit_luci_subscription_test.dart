@@ -32,7 +32,7 @@ void main() {
       config: config,
       authProvider: FakeAuthenticationProvider(),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
-      luciBuildService: FakeLuciBuildService(config),
+      luciBuildService: FakeLuciBuildService(config: config),
       scheduler: FakeScheduler(
         ciYaml: exampleConfig,
         config: config,

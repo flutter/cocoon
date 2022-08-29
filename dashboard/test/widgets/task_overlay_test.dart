@@ -25,7 +25,7 @@ import '../utils/golden.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {
-  const TestGrid({this.buildState, required this.task, Key? key}) : super(key: key);
+  const TestGrid({this.buildState, required this.task, super.key});
 
   final BuildState? buildState;
   final Task task;

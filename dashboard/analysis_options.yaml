@@ -1,31 +1,7 @@
-# To be kept in sync with https://github.com/flutter/flutter/blob/master/analysis_options.yaml
-# We don't set `implicit-casts: false` because of JSON code that we'll migrate with NNBD.
-# We remove the exclusions since they don't apply here.
-
+include: ../analysis_options.yaml
 analyzer:
   strong-mode:
-    # implicit-casts: false
-    implicit-dynamic: false
-  errors:
-    # treat missing required parameters as a warning (not a hint)
-    missing_required_param: warning
-    # treat missing returns as a warning (not a hint)
-    missing_return: warning
-    # allow having TODOs in the code
-    todo: ignore
-    # Ignore analyzer hints for updating pubspecs when using Future or
-    # Stream and not importing dart:async
-    # Please see https://github.com/flutter/flutter/pull/24528 for details.
-    sdk_version_async_exported_from_core: ignore
-  exclude:
-    - ".dart_tool/**"
-    - "**/*.g.dart"
-    - "**/*.pb.dart"
-    - "**/*.pbjson.dart"
-    - "**/*.pbenum.dart"
-    - "test/utils/mocks.mocks.dart"
-
-include: package:flutter_lints/flutter.yaml
+    implicit-casts: true # TODO remove this
 linter:
   rules:
     prefer_single_quotes: true

@@ -6,14 +6,13 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/config.dart';
 import '../service/log.dart';
 
 /// Validates the PR does not have any pending change requests.
 class ChangeRequested extends Validation {
   ChangeRequested({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
 

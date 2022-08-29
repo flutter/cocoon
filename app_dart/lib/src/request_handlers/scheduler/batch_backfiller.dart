@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
 import '../../request_handling/request_handler.dart';
-import '../../service/config.dart';
 import '../../service/logging.dart';
 import '../../service/luci_build_service.dart';
 import '../../service/scheduler.dart';
@@ -26,17 +25,17 @@ import '../../service/scheduler.dart';
 class BatchBackfiller extends RequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfiller({
-    required Config config,
+    required super.config,
     required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config);
+  });
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
 
   @override
   Future<Body> get() async {
-    final List<Future> futures = <Future>[];
+    final List<Future<void>> futures = <Future<void>>[];
 
     for (RepositorySlug slug in config.supportedRepos) {
       futures.add(backfillRepository(slug));
@@ -50,7 +49,6 @@ class BatchBackfiller extends RequestHandler {
 
   Future<void> backfillRepository(RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    // TODO(chillers): There's a bug in how this is getting the tasks for the test. It's duplicating all of them.
     final List<FullTask> tasks = await (datastore.queryRecentTasks(slug: slug)).toList();
 
     // Construct Task columns to scan for backfilling
@@ -83,7 +81,7 @@ class BatchBackfiller extends RequestHandler {
     log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
 
     // Create list of backfill requests.
-    final List<Future> futures = <Future>[];
+    final List<Future<void>> futures = <Future<void>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
       final Tuple<Target, Task, int> toBeScheduled = Tuple(

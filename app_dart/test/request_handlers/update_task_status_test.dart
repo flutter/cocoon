@@ -5,7 +5,6 @@
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -31,14 +30,13 @@ void main() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       config = FakeConfig(
         dbValue: datastoreDB,
-        flutterBranchesValue: <String>['master'],
         tabledataResource: tabledataResourceApi,
         maxTaskRetriesValue: 2,
       );
       tester = ApiRequestHandlerTester();
       handler = UpdateTaskStatus(
-        config,
-        FakeAuthenticationProvider(),
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(),
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
       commit = Commit(
@@ -171,16 +169,6 @@ void main() {
 
       expect(cocoonTask.status, Task.statusNew);
       expect(cocoonTask.attempts, 0);
-    });
-
-    test('task name request fails with unknown branches', () async {
-      tester.requestData = <String, dynamic>{
-        UpdateTaskStatus.gitBranchParam: 'release-abc',
-        UpdateTaskStatus.gitShaParam: commitSha,
-        UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
-      };
-      expect(tester.post(handler), throwsA(isA<BadRequestException>()));
     });
   });
 }

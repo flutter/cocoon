@@ -44,9 +44,9 @@ void main() {
         githubChecksUtil: mockGithubChecksUtil,
       );
       handler = ResetTryTask(
-        config,
-        FakeAuthenticationProvider(clientContext: clientContext),
-        fakeScheduler,
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
+        scheduler: fakeScheduler,
       );
       when(mockGithub.pullRequests).thenReturn(mockPullRequestsService);
       when(mockPullRequestsService.get(any, 123)).thenAnswer((_) async => generatePullRequest(id: 123));
@@ -79,6 +79,15 @@ void main() {
         ResetTryTask.kPullRequestNumberParam: '123',
       });
       expect(await tester.get(handler), Body.empty);
+    });
+
+    test('Parses empty builder correctly', () {
+      final List<String> builders = handler.getBuilderList('');
+      expect(builders.isEmpty, true);
+    });
+
+    test('Parses non-empty builder correctly', () {
+      expect(handler.getBuilderList('a, b, c'), <String>['a', 'b', 'c']);
     });
   });
 }

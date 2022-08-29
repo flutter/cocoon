@@ -92,6 +92,10 @@ void main() {
       db.addOnQuery<Task>((Iterable<Task> results) => latestPending);
       expect(await policy.triggerPriority(task: generateTask(7), datastore: datastore), isNull);
     });
+
+    test('do not return rerun priority when tasks length is smaller than batch size', () {
+      expect(shouldRerunPriority(allPending, 5), false);
+    });
   });
 
   group('GuaranteedPolicy', () {

@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/github_gold_status_update.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
@@ -23,15 +22,14 @@ import '../service/logging.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
-  PushGoldStatusToGithub(
-    Config config,
-    AuthenticationProvider authenticationProvider, {
+  PushGoldStatusToGithub({
+    required super.config,
+    required super.authenticationProvider,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     http.Client? goldClient,
     this.ingestionDelay = const Duration(seconds: 10),
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
-        goldClient = goldClient ?? http.Client(),
-        super(config: config, authenticationProvider: authenticationProvider);
+        goldClient = goldClient ?? http.Client();
 
   final DatastoreServiceProvider datastoreProvider;
   final http.Client goldClient;

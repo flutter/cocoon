@@ -19,8 +19,11 @@ import 'exceptions.dart';
 @immutable
 class StaticFileHandler extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler(this.filePath, {required Config config, this.fs = const LocalFileSystem()})
-      : super(config: config);
+  const StaticFileHandler(
+    this.filePath, {
+    required super.config,
+    this.fs = const LocalFileSystem(),
+  });
 
   /// The current [FileSystem] to retrieve files from.
   final FileSystem fs;

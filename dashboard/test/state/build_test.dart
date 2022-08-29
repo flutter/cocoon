@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
+import '../utils/fake_flutter_app_icons.dart';
 import '../utils/mocks.dart';
 import '../utils/output.dart';
 
@@ -45,6 +47,8 @@ void main() {
             ..repository = 'flutter'
         ]),
       );
+
+      FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
     });
 
     tearDown(() {

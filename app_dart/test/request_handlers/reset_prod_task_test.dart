@@ -37,7 +37,7 @@ void main() {
       config = FakeConfig(
         dbValue: datastoreDB,
         keyHelperValue: keyHelper,
-        flutterBranchesValue: <String>[
+        supportedBranchesValue: <String>[
           Config.defaultBranch(Config.flutterSlug),
         ],
       );
@@ -45,10 +45,10 @@ void main() {
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
       handler = ResetProdTask(
-        config,
-        FakeAuthenticationProvider(clientContext: clientContext),
-        mockLuciBuildService,
-        FakeScheduler(
+        config: config,
+        authenticationProvider: FakeAuthenticationProvider(clientContext: clientContext),
+        luciBuildService: mockLuciBuildService,
+        scheduler: FakeScheduler(
           config: config,
           ciYaml: exampleConfig,
         ),

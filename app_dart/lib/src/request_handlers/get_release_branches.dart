@@ -33,7 +33,7 @@ import '../service/github_service.dart';
 ///]
 
 class GetReleaseBranches extends RequestHandler<Body> {
-  GetReleaseBranches(Config config, {required this.branchService}) : super(config: config);
+  GetReleaseBranches({required super.config, required this.branchService});
 
   final BranchService branchService;
 

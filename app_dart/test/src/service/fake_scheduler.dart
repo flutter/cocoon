@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
@@ -24,14 +23,20 @@ class FakeScheduler extends Scheduler {
     this.ciYaml,
     LuciBuildService? luciBuildService,
     BuildBucketClient? buildbucket,
-    required Config config,
+    required super.config,
     GithubChecksUtil? githubChecksUtil,
   }) : super(
           cache: CacheService(inMemory: true),
-          config: config,
-          githubChecksService: GithubChecksService(config, githubChecksUtil: githubChecksUtil),
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: githubChecksUtil,
+          ),
           luciBuildService: luciBuildService ??
-              FakeLuciBuildService(config, buildbucket: buildbucket, githubChecksUtil: githubChecksUtil),
+              FakeLuciBuildService(
+                config: config,
+                buildbucket: buildbucket,
+                githubChecksUtil: githubChecksUtil,
+              ),
         );
 
   final CiYaml _defaultConfig = emptyConfig;

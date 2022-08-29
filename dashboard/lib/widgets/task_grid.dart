@@ -23,7 +23,7 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key? key, this.filter, this.useAnimatedLoading = false}) : super(key: key);
+  const TaskGridContainer({super.key, this.filter, this.useAnimatedLoading = false});
 
   /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
   /// rows and columns of the task grid. This filter may be updated dynamically through
@@ -72,14 +72,14 @@ class TaskGridContainer extends StatelessWidget {
 /// are the results from tasks.
 class TaskGrid extends StatefulWidget {
   const TaskGrid({
-    Key? key,
+    super.key,
     // TODO(ianh): We really shouldn't take both of these, since buildState exposes status as well;
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     required this.buildState,
     required this.commitStatuses,
     this.filter,
     this.useAnimatedLoading = false,
-  }) : super(key: key);
+  });
 
   /// The build status data to display in the grid.
   final List<CommitStatus> commitStatuses;

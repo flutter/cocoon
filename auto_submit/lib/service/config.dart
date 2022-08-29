@@ -31,6 +31,7 @@ class Config {
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
   static const String kAutosubmitLabel = 'autosubmit';
+  static const String kRevertLabel = 'revert';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;

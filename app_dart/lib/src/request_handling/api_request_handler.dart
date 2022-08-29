@@ -10,7 +10,6 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
 import '../model/google/token_info.dart';
-import '../service/config.dart';
 import 'authentication.dart';
 import 'body.dart';
 import 'exceptions.dart';
@@ -30,10 +29,10 @@ import 'request_handler.dart';
 abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [ApiRequestHandler].
   const ApiRequestHandler({
-    required Config config,
+    required super.config,
     required this.authenticationProvider,
     this.requestBodyValue,
-  }) : super(config: config);
+  });
 
   /// Service responsible for authenticating this [HttpRequest].
   final AuthenticationProvider authenticationProvider;
@@ -158,7 +157,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 }
 
 class ApiKey<T> extends RequestKey<T> {
-  const ApiKey._(String name) : super(name);
+  const ApiKey._(super.name);
 
   static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._('requestBody');
   static const ApiKey<AuthenticatedContext> authContext = ApiKey<AuthenticatedContext>._('authenticatedContext');

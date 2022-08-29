@@ -14,9 +14,9 @@ import '../service/config.dart';
 /// Returns [Config.supportedRepos] as a list of repo names.
 @immutable
 class GetRepos extends RequestHandler<Body> {
-  const GetRepos(
-    Config config,
-  ) : super(config: config);
+  const GetRepos({
+    required super.config,
+  });
 
   @override
   Future<Body> get() async {

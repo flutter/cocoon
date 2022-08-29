@@ -56,14 +56,5 @@ void main() {
         isNot(contains('package:flutter')),
       );
     });
-
-    test('flutter branches', () async {
-      final List<String> branches = <String>['master', 'main', 'flutter-2.13-candidate.0'];
-      final Uint8List branchesBytes = Uint8List.fromList(branches.join(',').codeUnits);
-      await cacheService.set(Config.configCacheName, 'flutterBranches', branchesBytes);
-      expect(await config.getSupportedBranches(Config.flutterSlug), <String>['master', 'flutter-2.13-candidate.0']);
-      expect(await config.getSupportedBranches(Config.engineSlug), <String>['main', 'flutter-2.13-candidate.0']);
-      expect(await config.getSupportedBranches(Config.cocoonSlug), <String>['main']);
-    });
   });
 }

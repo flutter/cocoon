@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../service/logging.dart';
 import 'exceptions.dart';
 
@@ -28,15 +27,11 @@ import 'exceptions.dart';
 /// If there is no token, or it cannot be authenticated, [Unauthenticated] is thrown.
 @immutable
 class PubsubAuthenticationProvider extends AuthenticationProvider {
-  const PubsubAuthenticationProvider(
-    Config config, {
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-  }) : super(
-          config,
-          clientContextProvider: clientContextProvider,
-          httpClientProvider: httpClientProvider,
-        );
+  const PubsubAuthenticationProvider({
+    required super.config,
+    super.clientContextProvider = Providers.serviceScopeContext,
+    super.httpClientProvider = Providers.freshHttpClient,
+  });
 
   static const String kBearerTokenPrefix = 'Bearer ';
 

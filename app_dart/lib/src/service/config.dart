@@ -6,10 +6,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:github/github.dart';
+import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,7 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../foundation/providers.dart';
+import '../model/appengine/branch.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'access_client_provider.dart';
@@ -29,9 +30,11 @@ import 'logging.dart';
 const String kDefaultBranchName = 'master';
 
 /// Name of an example release base branch name.
+// TODO(chillers): Delete this as it's only used for tests.
 const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
 
 /// Name of an example release head branch name.
+// TODO(chillers): Delete this as it's only used for tests.
 const String kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
 
 class Config {
@@ -46,7 +49,7 @@ class Config {
   /// This adds support for the `waiting for tree to go green label` to the repo.
   ///
   /// Relies on the GitHub Checks API being enabled for this repo.
-  Set<RepositorySlug> get supportedRepos => <RepositorySlug>{
+  Set<gh.RepositorySlug> get supportedRepos => <gh.RepositorySlug>{
         cocoonSlug,
         engineSlug,
         flutterSlug,
@@ -58,14 +61,14 @@ class Config {
   static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
-  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
+  static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
     engineSlug,
     flutterSlug,
   };
 
   /// The tip of tree branch for [slug].
-  static String defaultBranch(RepositorySlug slug) {
-    final Map<RepositorySlug, String> defaultBranches = <RepositorySlug, String>{
+  static String defaultBranch(gh.RepositorySlug slug) {
+    final Map<gh.RepositorySlug, String> defaultBranches = <gh.RepositorySlug, String>{
       cocoonSlug: 'main',
       flutterSlug: 'master',
       engineSlug: 'main',
@@ -88,15 +91,11 @@ class Config {
 
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
-  Future<List<String>> _getFlutterBranches() async {
-    final Uint8List? cacheValue = await _cache.getOrCreate(
-      configCacheName,
-      'flutterBranches',
-      createFn: () => getBranches(Providers.freshHttpClient),
-      ttl: configCacheTtl,
-    );
+  Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
+    final DatastoreService datastore = DatastoreService(db, defaultMaxEntityGroups);
+    final List<Branch> branches = await (datastore.queryBranches().toList());
 
-    return String.fromCharCodes(cacheValue!).split(',');
+    return branches.where((Branch branch) => branch.slug == slug);
   }
 
   Future<List<String>> _getReleaseAccounts() async {
@@ -148,23 +147,6 @@ class Config {
 
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
-
-  /// Retrieve the supported branches for a repository.
-  Future<List<String>> getSupportedBranches(RepositorySlug slug) async {
-    // TODO(xilaizhang): Switch this to query datastore once branch entities are being written. https://github.com/flutter/flutter/issues/100491
-    final List<String> branches = await flutterBranches;
-    if (slug == Config.flutterSlug) {
-      branches.remove('main');
-      return branches;
-    } else if (slug == Config.engineSlug) {
-      branches.remove('master');
-      return branches;
-    }
-
-    return <String>['main'];
-  }
-
-  Future<List<String>> get flutterBranches => _getFlutterBranches();
 
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
@@ -259,7 +241,7 @@ class Config {
   String flutterGoldFollowUpAlert(String url) => 'Golden file changes are available for triage from new commit, '
       'Click [here to view]($url).\n\n';
 
-  String flutterGoldAlertConstant(RepositorySlug slug) {
+  String flutterGoldAlertConstant(gh.RepositorySlug slug) {
     if (slug == Config.flutterSlug) {
       return '\n\nFor more guidance, visit '
           '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
@@ -269,7 +251,7 @@ class Config {
     return '';
   }
 
-  String flutterGoldCommentID(PullRequest pr) =>
+  String flutterGoldCommentID(gh.PullRequest pr) =>
       '_Changes reported for pull request #${pr.number} at sha ${pr.head!.sha}_\n\n';
 
   /// Post submit service account email used by LUCI swarming tasks.
@@ -304,14 +286,14 @@ class Config {
   String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
-  static RepositorySlug get cocoonSlug => RepositorySlug('flutter', 'cocoon');
-  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
-  static RepositorySlug get packagesSlug => RepositorySlug('flutter', 'packages');
-  static RepositorySlug get pluginsSlug => RepositorySlug('flutter', 'plugins');
+  static gh.RepositorySlug get cocoonSlug => gh.RepositorySlug('flutter', 'cocoon');
+  static gh.RepositorySlug get engineSlug => gh.RepositorySlug('flutter', 'engine');
+  static gh.RepositorySlug get flutterSlug => gh.RepositorySlug('flutter', 'flutter');
+  static gh.RepositorySlug get packagesSlug => gh.RepositorySlug('flutter', 'packages');
+  static gh.RepositorySlug get pluginsSlug => gh.RepositorySlug('flutter', 'plugins');
 
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
-  static RepositorySlug get recipesSlug => RepositorySlug('flutter', 'recipes');
+  static gh.RepositorySlug get recipesSlug => gh.RepositorySlug('flutter', 'recipes');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
@@ -339,7 +321,7 @@ class Config {
     return signedToken.toString();
   }
 
-  Future<String> generateGithubToken(RepositorySlug slug) async {
+  Future<String> generateGithubToken(gh.RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
     final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
@@ -352,7 +334,7 @@ class Config {
     return String.fromCharCodes(cacheValue!);
   }
 
-  Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
+  Future<Uint8List> _generateGithubToken(gh.RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String? appInstallation = appInstallations[slug.fullName]['installation_id'] as String?;
     final String jsonWebToken = await generateJsonWebToken();
@@ -371,14 +353,14 @@ class Config {
     return Uint8List.fromList(token.codeUnits);
   }
 
-  Future<GitHub> createGitHubClient({PullRequest? pullRequest, RepositorySlug? slug}) async {
+  Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async {
     slug ??= pullRequest!.base!.repo!.slug();
     final String githubToken = await generateGithubToken(slug);
     return createGitHubClientWithToken(githubToken);
   }
 
-  GitHub createGitHubClientWithToken(String token) {
-    return GitHub(auth: Authentication.withToken(token));
+  gh.GitHub createGitHubClientWithToken(String token) {
+    return gh.GitHub(auth: gh.Authentication.withToken(token));
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
@@ -427,17 +409,17 @@ class Config {
     return createGithubService(flutterSlug);
   }
 
-  Future<GithubService> createGithubService(RepositorySlug slug) async {
-    final GitHub github = await createGitHubClient(slug: slug);
+  Future<GithubService> createGithubService(gh.RepositorySlug slug) async {
+    final gh.GitHub github = await createGitHubClient(slug: slug);
     return GithubService(github);
   }
 
   GithubService createGithubServiceWithToken(String token) {
-    final GitHub github = createGitHubClientWithToken(token);
+    final gh.GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);
   }
 
-  bool githubPresubmitSupportedRepo(RepositorySlug slug) {
+  bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
     return supportedRepos.contains(slug);
   }
 }

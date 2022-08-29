@@ -6,15 +6,14 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/config.dart';
 import '../service/log.dart';
 
 /// Validates that a PR has been approved in accordance with the code review
 /// guidelines.
 class Approval extends Validation {
   Approval({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
 

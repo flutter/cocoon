@@ -10,14 +10,13 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
-import '../service/config.dart';
 
 @immutable
 class GetAuthenticationStatus extends RequestHandler<Body> {
-  const GetAuthenticationStatus(
-    Config config,
-    this.authenticationProvider,
-  ) : super(config: config);
+  const GetAuthenticationStatus({
+    required super.config,
+    required this.authenticationProvider,
+  });
 
   final AuthenticationProvider authenticationProvider;
 

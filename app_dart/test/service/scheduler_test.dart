@@ -122,7 +122,7 @@ void main() {
         githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
         luciBuildService: FakeLuciBuildService(
-          config,
+          config: config,
           githubChecksUtil: mockGithubChecksUtil,
           gerritService: FakeGerritService(
             branchesValue: <String>['master'],
@@ -165,7 +165,7 @@ void main() {
       });
 
       test('inserts all relevant fields of the commit', () async {
-        config.flutterBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['master'];
         expect(db.values.values.whereType<Commit>().length, 0);
         await scheduler.addCommits(createCommitList(<String>['1']));
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -180,13 +180,13 @@ void main() {
       });
 
       test('skips scheduling for unsupported repos', () async {
-        config.flutterBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['master'];
         await scheduler.addCommits(createCommitList(<String>['1'], repo: 'not-supported'));
         expect(db.values.values.whereType<Commit>().length, 0);
       });
 
       test('skips commits for which transaction commit fails', () async {
-        config.flutterBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['master'];
 
         // Existing commits should not be duplicated.
         final Commit commit = shaToCommit('1');
@@ -208,7 +208,7 @@ void main() {
       });
 
       test('skips commits for which task transaction fails', () async {
-        config.flutterBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['master'];
 
         // Existing commits should not be duplicated.
         final Commit commit = shaToCommit('1');
@@ -265,7 +265,7 @@ void main() {
       test('schedules cocoon based targets - multiple batch requests', () async {
         final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
         final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
-          config,
+          config: config,
           buildbucket: mockBuildBucketClient,
           gerritService: FakeGerritService(),
           pubsub: pubsub,
@@ -540,7 +540,7 @@ targets:
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
-            config,
+            config: config,
             githubChecksUtil: mockGithubChecksUtil,
             gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
@@ -664,7 +664,7 @@ targets:
           buildStatusProvider: (_) => buildStatusService,
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
-            config,
+            config: config,
             githubChecksUtil: mockGithubChecksUtil,
             buildbucket: mockBuildbucket,
             gerritService: FakeGerritService(branchesValue: <String>['master']),

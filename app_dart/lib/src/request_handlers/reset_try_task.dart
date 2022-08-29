@@ -15,11 +15,11 @@ import '../request_handling/exceptions.dart';
 /// used to unblock rollers when creating a new commit is not possible.
 @immutable
 class ResetTryTask extends ApiRequestHandler<Body> {
-  const ResetTryTask(
-    Config config,
-    AuthenticationProvider authenticationProvider,
-    this.scheduler,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+  const ResetTryTask({
+    required super.config,
+    required super.authenticationProvider,
+    required this.scheduler,
+  });
 
   final Scheduler scheduler;
 
@@ -34,9 +34,8 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final String repo = request!.uri.queryParameters[kRepoParam]!;
     final String pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
-    final String? builders = request!.uri.queryParameters[kBuilderParam] ?? '';
-    // The [builders] parameter is expecting comma joined string, e.g. 'builder1, builder2'.
-    final List<String> builderList = builders!.split(',').map((String builder) => builder.trim()).toList();
+    final String builders = request!.uri.queryParameters[kBuilderParam] ?? '';
+    final List<String> builderList = getBuilderList(builders);
 
     final int? prNumber = int.tryParse(pr);
     if (prNumber == null) {
@@ -47,5 +46,16 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
     await scheduler.triggerPresubmitTargets(pullRequest: pullRequest, builderTriggerList: builderList);
     return Body.empty;
+  }
+
+  /// Parses [builders] to a String list.
+  ///
+  /// The [builders] parameter is expecting comma joined string, e.g. 'builder1, builder2'.
+  /// Returns an empty list if no [builders] is specified.
+  List<String> getBuilderList(String builders) {
+    if (builders.isEmpty) {
+      return <String>[];
+    }
+    return builders.split(',').map((String builder) => builder.trim()).toList();
   }
 }
