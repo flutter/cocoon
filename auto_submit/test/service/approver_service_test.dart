@@ -12,7 +12,6 @@ import '../requests/github_webhook_test_data.dart';
 import '../src/service/fake_config.dart';
 import '../utilities/mocks.dart';
 import '../utilities/utils.dart';
-import '../validations/revert_test_data.dart';
 
 void main() {
   FakeConfig config;
