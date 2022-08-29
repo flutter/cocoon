@@ -70,7 +70,7 @@ class ValidationService {
             config, await getNewestPullRequestInfo(config, messagePullRequest), messagePullRequest, ackId, pubsub);
         break;
       case ProcessMethod.doNotProcess:
-        log.info('Shout not process ${messagePullRequest.toJson()}, and ack the message.');
+        log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
         break;
     }
@@ -204,14 +204,14 @@ class ValidationService {
       bool processed = await processMerge(config, result, messagePullRequest);
       if (processed) {
         await pubsub.acknowledge('auto-submit-queue-sub', ackId);
+        log.info('Ack the processed message : $ackId.');
+        github.Issue issue = await githubService.createIssue(
+          github.RepositorySlug('flutter', 'flutter'),
+          'Follow up review for revert pull request $prNumber',
+          'Revert request by author ${result.repository!.pullRequest!.author}',
+        );
+        log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
       }
-      log.info('Ack the processed message : $ackId.');
-      github.Issue issue = await githubService.createIssue(
-        github.RepositorySlug('flutter', 'flutter'),
-        'Follow up review for revert pull request $prNumber',
-        'Revert request by author ${result.repository!.pullRequest!.author}',
-      );
-      log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
     } else {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
