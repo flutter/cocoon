@@ -211,6 +211,8 @@ class ValidationService {
           'Revert request by author ${result.repository!.pullRequest!.author}',
         );
         log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+      } else {
+        log.warning('Could not process pull merge request.');
       }
     } else {
       // since we do not temporarily ignore anything with a revert request we
