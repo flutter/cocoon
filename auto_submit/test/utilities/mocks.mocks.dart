@@ -4,8 +4,9 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i6;
-import 'dart:typed_data' as _i7;
+import 'dart:typed_data' as _i8;
 
+import 'package:auto_submit/model/auto_submit_query_result.dart' as _i7;
 import 'package:auto_submit/service/approver_service.dart' as _i5;
 import 'package:auto_submit/service/config.dart' as _i2;
 import 'package:github/github.dart' as _i4;
@@ -205,8 +206,8 @@ class MockApproverService extends _i1.Mock implements _i5.ApproverService {
           returnValue: _i6.Future<void>.value(),
           returnValueForMissingStub: _i6.Future<void>.value()) as _i6.Future<void>);
   @override
-  _i6.Future<void> revertApproval(_i4.PullRequest? pullRequest) =>
-      (super.noSuchMethod(Invocation.method(#revertApproval, [pullRequest]),
+  _i6.Future<void> revertApproval(_i7.QueryResult? queryResult, _i4.PullRequest? pullRequest) =>
+      (super.noSuchMethod(Invocation.method(#revertApproval, [queryResult, pullRequest]),
           returnValue: _i6.Future<void>.value(),
           returnValueForMissingStub: _i6.Future<void>.value()) as _i6.Future<void>);
 }
@@ -980,8 +981,8 @@ class MockResponse extends _i1.Mock implements _i3.Response {
   }
 
   @override
-  _i7.Uint8List get bodyBytes =>
-      (super.noSuchMethod(Invocation.getter(#bodyBytes), returnValue: _i7.Uint8List(0)) as _i7.Uint8List);
+  _i8.Uint8List get bodyBytes =>
+      (super.noSuchMethod(Invocation.getter(#bodyBytes), returnValue: _i8.Uint8List(0)) as _i8.Uint8List);
   @override
   String get body => (super.noSuchMethod(Invocation.getter(#body), returnValue: '') as String);
   @override

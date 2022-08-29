@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as gh;
 
@@ -32,11 +33,12 @@ class ApproverService {
   }
 
   /// Auto approves a pull request when the revert label is present.
-  Future<void> revertApproval(gh.PullRequest pullRequest) async {
+  Future<void> revertApproval(QueryResult queryResult, gh.PullRequest pullRequest) async {
     final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
 
     final String? author = pullRequest.user!.login;
-    final String? authorAssociation = pullRequest.authorAssociation;
+    // Use the QueryResult for this field
+    final String? authorAssociation = queryResult.repository!.pullRequest!.authorAssociation;
 
     log.info('Attempting to approve revert request by author $author, authorAssociation $authorAssociation.');
 
