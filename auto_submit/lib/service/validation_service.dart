@@ -210,9 +210,10 @@ class ValidationService {
       await approverService!.revertApproval(result, messagePullRequest);
 
       bool processed = await processMerge(
-          config: config,
-          queryResult: result,
-          messagePullRequest: messagePullRequest,);
+        config: config,
+        queryResult: result,
+        messagePullRequest: messagePullRequest,
+      );
 
       if (processed) {
         try {
@@ -237,11 +238,12 @@ Exception: ${exception.message}
         String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
         log.info(message);
         await removeLabelAndComment(
-            githubService: gitHubService,
-            repositorySlug: slug,
-            prNumber: prNumber,
-            prLabel: Config.kRevertLabel,
-            message: message,);
+          githubService: gitHubService,
+          repositorySlug: slug,
+          prNumber: prNumber,
+          prLabel: Config.kRevertLabel,
+          message: message,
+        );
       }
     } else {
       // since we do not temporarily ignore anything with a revert request we
@@ -251,11 +253,12 @@ Exception: ${exception.message}
       log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
 
       await removeLabelAndComment(
-          githubService: gitHubService,
-          repositorySlug: slug,
-          prNumber: prNumber,
-          prLabel: Config.kRevertLabel,
-          message: commentMessage,);
+        githubService: gitHubService,
+        repositorySlug: slug,
+        prNumber: prNumber,
+        prLabel: Config.kRevertLabel,
+        message: commentMessage,
+      );
 
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
