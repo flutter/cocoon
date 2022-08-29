@@ -35,7 +35,7 @@ class BatchBackfiller extends RequestHandler {
 
   @override
   Future<Body> get() async {
-    final List<Future> futures = <Future>[];
+    final List<Future<void>> futures = <Future<void>>[];
 
     for (RepositorySlug slug in config.supportedRepos) {
       futures.add(backfillRepository(slug));
@@ -81,7 +81,7 @@ class BatchBackfiller extends RequestHandler {
     log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
 
     // Create list of backfill requests.
-    final List<Future> futures = <Future>[];
+    final List<Future<void>> futures = <Future<void>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
       final Tuple<Target, Task, int> toBeScheduled = Tuple(

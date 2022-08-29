@@ -167,7 +167,7 @@ class Scheduler {
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
-    final List<Future> futures = <Future>[];
+    final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(luciBuildService.schedulePostsubmitBuilds(
         commit: commit,

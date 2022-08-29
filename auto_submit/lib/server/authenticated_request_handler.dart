@@ -7,7 +7,6 @@ import 'package:shelf/shelf.dart';
 
 import 'request_handler.dart';
 import '../request_handling/authentication.dart';
-import '../service/config.dart';
 import '../requests/exceptions.dart';
 import '../service/log.dart';
 
@@ -18,9 +17,9 @@ import '../service/log.dart';
 abstract class AuthenticatedRequestHandler extends RequestHandler {
   /// Creates a new [ApiRequestHandler].
   const AuthenticatedRequestHandler({
-    required Config config,
+    required super.config,
     required this.cronAuthProvider,
-  }) : super(config: config);
+  });
 
   /// Service responsible for authenticating this [Request].
   final CronAuthProvider cronAuthProvider;

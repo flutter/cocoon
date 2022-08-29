@@ -6,13 +6,11 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/config.dart';
-
 /// Validates the PR is not conflicting.
 class Conflicting extends Validation {
   Conflicting({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
 

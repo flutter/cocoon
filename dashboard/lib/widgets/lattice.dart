@@ -17,11 +17,11 @@ typedef LatticeTapCallback = void Function(Offset? offset);
 @immutable
 class LatticeCell extends _LatticeCell {
   const LatticeCell({
-    Painter? painter,
+    super.painter,
     this.builder,
-    LatticeTapCallback? onTap,
+    super.onTap,
     this.taskName,
-  }) : super(painter: painter, onTap: onTap);
+  });
 
   final WidgetBuilder? builder;
 
@@ -38,7 +38,7 @@ class LatticeCell extends _LatticeCell {
 /// The cells will be sized according to [cellSize].
 class LatticeScrollView extends StatelessWidget {
   const LatticeScrollView({
-    Key? key,
+    super.key,
     this.horizontalPhysics,
     this.horizontalController,
     this.textDirection,
@@ -47,7 +47,7 @@ class LatticeScrollView extends StatelessWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     required this.cells,
     required this.cellSize,
-  }) : super(key: key);
+  });
 
   final ScrollPhysics? horizontalPhysics;
 
@@ -112,9 +112,8 @@ class LatticeScrollView extends StatelessWidget {
 
 class _FakeViewport extends SingleChildRenderObjectWidget {
   const _FakeViewport({
-    Key? key,
-    Widget? child,
-  }) : super(key: key, child: child);
+    super.child,
+  });
 
   @override
   _RenderFakeViewport createRenderObject(BuildContext context) => _RenderFakeViewport();
@@ -139,13 +138,12 @@ const Object _public = Object();
 @_public
 class _LatticeBody extends RenderObjectWidget {
   const _LatticeBody({
-    Key? key,
     required this.textDirection,
     required this.horizontalOffset,
     required this.verticalOffset,
     required this.cells,
     required this.cellSize,
-  }) : super(key: key);
+  });
 
   final TextDirection textDirection;
   final ViewportOffset horizontalOffset;
@@ -182,7 +180,7 @@ class _LatticeBody extends RenderObjectWidget {
 
 @_public
 class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegate {
-  _LatticeBodyElement(_LatticeBody widget) : super(widget);
+  _LatticeBodyElement(_LatticeBody super.widget);
 
   @override
   _LatticeBody get widget => super.widget as _LatticeBody;

@@ -17,8 +17,8 @@ import 'widgets/header_text.dart';
 /// Expects an [IndexState] to be available via [Provider].
 class IndexPage extends StatelessWidget {
   const IndexPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = '/';
 

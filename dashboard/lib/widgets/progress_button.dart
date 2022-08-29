@@ -14,10 +14,10 @@ typedef AsyncVoidCallback = Future<void> Function();
 /// to Sunday but...
 class ProgressButton extends StatefulWidget {
   const ProgressButton({
-    Key? key,
+    super.key,
     this.child,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final Widget? child;
 

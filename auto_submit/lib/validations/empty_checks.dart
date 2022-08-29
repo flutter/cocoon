@@ -6,14 +6,13 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/config.dart';
 import '../service/github_service.dart';
 
 /// Validates that the list of checks for the PR is not empty.
 class EmptyChecks extends Validation {
   EmptyChecks({
-    required Config config,
-  }) : super(config: config);
+    required super.config,
+  });
 
   @override
 

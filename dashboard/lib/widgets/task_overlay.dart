@@ -80,14 +80,14 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
 /// [closeCallback] that will remove the widget from the tree.
 class TaskOverlayEntry extends StatelessWidget {
   const TaskOverlayEntry({
-    Key? key,
+    super.key,
     required this.position,
     required this.task,
     required this.showSnackBarCallback,
     required this.closeCallback,
     required this.buildState,
     required this.commit,
-  }) : super(key: key);
+  });
 
   /// The global position where to show the task overlay.
   final Offset position;
@@ -162,13 +162,13 @@ class TaskOverlayEntry extends StatelessWidget {
 /// this [Task] through the build system.
 class TaskOverlayContents extends StatelessWidget {
   const TaskOverlayContents({
-    Key? key,
+    super.key,
     required this.showSnackBarCallback,
     required this.buildState,
     required this.task,
     required this.closeCallback,
     this.commit,
-  }) : super(key: key);
+  });
 
   final ShowSnackBarCallback showSnackBarCallback;
 

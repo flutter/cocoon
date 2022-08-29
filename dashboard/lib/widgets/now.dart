@@ -11,23 +11,19 @@ import 'package:flutter/widgets.dart';
 class Now extends InheritedNotifier<ValueNotifier<DateTime?>> {
   /// For production.
   Now({
-    Key? key,
-    required Widget child,
+    super.key,
+    required super.child,
   }) : super(
-          key: key,
           notifier: _Clock(),
-          child: child,
         );
 
   /// For tests.
   Now.fixed({
-    Key? key,
+    super.key,
     required DateTime dateTime,
-    required Widget child,
+    required super.child,
   }) : super(
-          key: key,
           notifier: ValueNotifier<DateTime>(dateTime),
-          child: child,
         );
 
   static DateTime? of(BuildContext context) {

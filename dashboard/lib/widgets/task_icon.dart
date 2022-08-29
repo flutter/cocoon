@@ -15,9 +15,9 @@ import '../logic/qualified_task.dart';
 /// it can't be mapped. On tap, shows the task.
 class TaskIcon extends StatelessWidget {
   const TaskIcon({
-    Key? key,
+    super.key,
     required this.qualifiedTask,
-  }) : super(key: key);
+  });
 
   /// [Task] to get information from.
   final QualifiedTask qualifiedTask;

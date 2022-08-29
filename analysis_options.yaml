@@ -1,0 +1,44 @@
+# Specify analysis options for all of flutter/cocoon
+#
+# Until there are meta linter rules, each desired lint must be explicitly enabled.
+# See: https://github.com/dart-lang/linter/issues/288
+#
+# For a list of lints, see: http://dart-lang.github.io/linter/lints/
+# See the configuration guide for more
+# https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
+#
+# There are other similar analysis options files in the flutter repos,
+# which should be kept in sync with this file:
+#
+#   - analysis_options.yaml (this file)
+#   - packages/flutter/lib/analysis_options_user.yaml
+#   - https://github.com/flutter/plugins/blob/master/analysis_options.yaml
+#   - https://github.com/flutter/engine/blob/master/analysis_options.yaml
+#
+# This file contains the analysis options used by Flutter tools, such as IntelliJ,
+# Android Studio, and the `flutter analyze` command.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: false
+    strict-raw-types: true
+  errors:
+    # treat missing required parameters as a warning (not a hint)
+    missing_required_param: warning
+    # treat missing returns as a warning (not a hint)
+    missing_return: warning
+    # allow having TODOs in the code
+    todo: ignore
+    implicit_dynamic_parameter: info
+  exclude:
+    - ".dart_tool/**"
+    - "**/*.g.dart"
+    - "**/*.pb.dart"
+    - "**/*.pbjson.dart"
+    - "**/*.pbenum.dart"
+    - "test/**/mocks.mocks.dart"
+
+linter:
+  rules:
+    use_super_parameters: true
