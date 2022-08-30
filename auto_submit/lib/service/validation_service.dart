@@ -223,10 +223,10 @@ class ValidationService {
       if (processed.result) {
         try {
           RevertReviewTemplate revertReviewTemplate = RevertReviewTemplate(
-            repositorySlug: slug.fullName, 
-            revertPrNumber: prNumber, 
-            revertPrAuthor: result.repository!.pullRequest!.author!.login!, 
-            originalPrLink: revertValidation!.extractLinkFromText(messagePullRequest.body)!);
+              repositorySlug: slug.fullName,
+              revertPrNumber: prNumber,
+              revertPrAuthor: result.repository!.pullRequest!.author!.login!,
+              originalPrLink: revertValidation!.extractLinkFromText(messagePullRequest.body)!);
 
           github.Issue issue = await gitHubService.createIssue(
             repositorySlug: github.RepositorySlug('flutter', 'flutter'),
@@ -329,8 +329,6 @@ Exception: ${exception.message}
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
   }
-
-
 }
 
 /// Small wrapper class to allow us to capture and create a comment in the PR with

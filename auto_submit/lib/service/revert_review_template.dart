@@ -4,10 +4,11 @@
 
 class RevertReviewTemplate {
   RevertReviewTemplate({
-      required this.repositorySlug,
-      required this.revertPrNumber, 
-      required this.revertPrAuthor,
-      required this.originalPrLink,}) {
+    required this.repositorySlug,
+    required this.revertPrNumber,
+    required this.revertPrAuthor,
+    required this.originalPrLink,
+  }) {
     constructTitle();
     constructBody();
   }
@@ -18,7 +19,7 @@ class RevertReviewTemplate {
   String originalPrLink;
 
   String? _title;
-  String? _body; 
+  String? _body;
 
   void constructTitle() {
     _title = '''
@@ -27,9 +28,9 @@ Review request for Revert PR $repositorySlug#$revertPrNumber
   }
 
   void constructBody() {
-_body = '''
-Pull request $repositorySlug#$revertPrNumber was submitted and merged by 
-$revertPrAuthor in order to revert changes made in this pull request $originalPrLink. 
+    _body = '''
+Pull request $repositorySlug#$revertPrNumber was submitted and merged by
+$revertPrAuthor in order to revert changes made in this pull request $originalPrLink.
 
 Please assign this issue to the person that will make the formal review on the
 revert request listed above.
