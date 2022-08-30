@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
@@ -11,6 +9,7 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/process_method.dart';
+import 'package:auto_submit/service/revert_review_template.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
@@ -223,10 +222,16 @@ class ValidationService {
 
       if (processed.result) {
         try {
+          RevertReviewTemplate revertReviewTemplate = RevertReviewTemplate(
+            repositorySlug: slug.fullName, 
+            revertPrNumber: prNumber, 
+            revertPrAuthor: result.repository!.pullRequest!.author!.login!, 
+            originalPrLink: revertValidation!.extractLinkFromText(messagePullRequest.body)!);
+
           github.Issue issue = await gitHubService.createIssue(
             repositorySlug: github.RepositorySlug('flutter', 'flutter'),
-            title: 'Follow up review for revert pull request $prNumber',
-            body: 'Revert request by author ${result.repository!.pullRequest!.author}',
+            title: revertReviewTemplate.title!,
+            body: revertReviewTemplate.body!,
             labels: <String>['P1'],
           );
           log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
@@ -258,7 +263,6 @@ Exception: ${exception.message}
       // know we will report the error and remove the label.
       final String commentMessage =
           revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
-      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
 
       await removeLabelAndComment(
         githubService: gitHubService,
@@ -268,6 +272,7 @@ Exception: ${exception.message}
         message: commentMessage,
       );
 
+      log.info('revert label is removed for ${slug.fullName}, pr: $prNumber, due to $commentMessage');
       log.info('The pr ${slug.fullName}/$prNumber is not feasible for merge and message: $ackId is acknowledged.');
     }
 
@@ -324,6 +329,8 @@ Exception: ${exception.message}
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
   }
+
+
 }
 
 /// Small wrapper class to allow us to capture and create a comment in the PR with
