@@ -37,10 +37,10 @@ class GithubWebhook extends RequestHandler<Body> {
 
     final String requestString = utf8.decode(requestBytes);
 
-    // TODO(chillers): This won't work until using proto.
     final pb.GithubWebhookMessage message = pb.GithubWebhookMessage.create()
       ..event = event
       ..payload = requestString;
+    log.fine(message);
     await pubsub.publish('github-wehbooks', message.writeToJsonMap());
 
     return Body.empty;
