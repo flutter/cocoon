@@ -235,7 +235,7 @@ Exception: ${exception.message}
           await gitHubService.createComment(slug, prNumber, errorMessage);
         }
       } else {
-        String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
+        String message = 'revert label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
         log.info(message);
         await removeLabelAndComment(
           githubService: gitHubService,
