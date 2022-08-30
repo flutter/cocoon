@@ -73,7 +73,8 @@ void main() {
     await tester.post(webhook);
 
     expect(pubsub.messages, hasLength(1));
-    final GithubWebhookMessage message = pubsub.messages.single as GithubWebhookMessage;
+    final Map<String, dynamic> messageJson = pubsub.messages.single;
+    final GithubWebhookMessage message = GithubWebhookMessage.fromJson(jsonEncode(messageJson));
     expect(message.event, 'pull_request');
     expect(message.payload, '{}');
   });
