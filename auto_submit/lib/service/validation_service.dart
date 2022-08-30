@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
@@ -146,13 +148,14 @@ class ValidationService {
 
         String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage';
 
-        log.info(message);
         await removeLabelAndComment(
             githubService: gitHubService,
             repositorySlug: slug,
             prNumber: prNumber,
             prLabel: Config.kAutosubmitLabel,
             message: message);
+
+        log.info(message);
 
         shouldReturn = true;
       }
@@ -173,17 +176,20 @@ class ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    bool processed = await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
+    ProcessMergeResult processed =
+        await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
 
-    if (!processed) {
-      String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
-      log.info(message);
+    if (!processed.result) {
+      String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
+
       await removeLabelAndComment(
           githubService: gitHubService,
           repositorySlug: slug,
           prNumber: prNumber,
           prLabel: Config.kAutosubmitLabel,
           message: message);
+
+      log.info(message);
     }
 
     log.info('Ack the processed message : $ackId.');
@@ -209,13 +215,13 @@ class ValidationService {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
-      bool processed = await processMerge(
+      ProcessMergeResult processed = await processMerge(
         config: config,
         queryResult: result,
         messagePullRequest: messagePullRequest,
       );
 
-      if (processed) {
+      if (processed.result) {
         try {
           github.Issue issue = await gitHubService.createIssue(
             repositorySlug: github.RepositorySlug('flutter', 'flutter'),
@@ -235,8 +241,8 @@ Exception: ${exception.message}
           await gitHubService.createComment(slug, prNumber, errorMessage);
         }
       } else {
-        String message = 'revert label is removed for ${slug.fullName}, pr: $prNumber, merge did not succeed.';
-        log.info(message);
+        String message = 'revert label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
+
         await removeLabelAndComment(
           githubService: gitHubService,
           repositorySlug: slug,
@@ -244,6 +250,8 @@ Exception: ${exception.message}
           prLabel: Config.kRevertLabel,
           message: message,
         );
+
+        log.info(message);
       }
     } else {
       // since we do not temporarily ignore anything with a revert request we
@@ -268,7 +276,7 @@ Exception: ${exception.message}
   }
 
   /// Merges the commit if the PullRequest passes all the validations.
-  Future<bool> processMerge({
+  Future<ProcessMergeResult> processMerge({
     required Config config,
     required QueryResult queryResult,
     required github.PullRequest messagePullRequest,
@@ -294,14 +302,16 @@ Exception: ${exception.message}
         },
       ));
       if (result.hasException) {
-        log.severe('Failed to merge pr#: $number with ${result.exception.toString()}');
-        return false;
+        String message = 'Failed to merge pr#: $number with ${result.exception}';
+        log.severe(message);
+        return ProcessMergeResult(false, message);
       }
     } catch (e) {
-      log.severe('_processMerge error in $slug: $e');
-      return false;
+      String message = 'Failed to merge pr#: $number with $e';
+      log.severe(message);
+      return ProcessMergeResult(false, message);
     }
-    return true;
+    return ProcessMergeResult.noMessage(true);
   }
 
   /// Remove a pull request label and add a comment to the pull request.
@@ -314,4 +324,14 @@ Exception: ${exception.message}
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
   }
+}
+
+/// Small wrapper class to allow us to capture and create a comment in the PR with
+/// the issue that caused the merge failure.
+class ProcessMergeResult {
+  ProcessMergeResult.noMessage(this.result);
+  ProcessMergeResult(this.result, this.message);
+
+  bool result = false;
+  String? message;
 }
