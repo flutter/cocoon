@@ -38,12 +38,14 @@ Please do the following so that we may track this issue to completion:
 3. Close only when the review has been completed.
 
 
-PLEASE DO NOT MODIFY THE FOLLOWING
+DO NOT EDIT, REVERT METADATA
+<!--
 {
   'originalPrLink': '$originalPrLink',
   'revertPrLink': '$repositorySlug#$revertPrNumber',
   'revertPrAuthor': '$revertPrAuthor'
 }
+-->
 ''';
   }
 
