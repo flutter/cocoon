@@ -216,7 +216,6 @@ void main() {
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNotNull);
       IssueComment issueComment = githubService.issueComment!;
-      print(issueComment.body);
       assert(issueComment.body!.contains('create the follow up review issue'));
       expect(githubService.labelRemoved, false);
       // We acknowledge the issue.
