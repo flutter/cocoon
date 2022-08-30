@@ -36,7 +36,7 @@ void main() {
   });
 
   test('Removes label and post comment when no approval', () async {
-    PullRequestHelper flutterRequest = PullRequestHelper(
+    final PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
@@ -46,7 +46,7 @@ void main() {
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
     pubsub.publish('auto-submit-queue-sub', pullRequest);
-    auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processPullRequest(
         config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
@@ -57,7 +57,7 @@ void main() {
   });
 
   test('Remove label and post comment when no revert label.', () async {
-    PullRequestHelper flutterRequest = PullRequestHelper(
+    final PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,
       lastCommitHash: oid,
       reviews: <PullRequestReviewHelper>[],
@@ -67,7 +67,7 @@ void main() {
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
     pubsub.publish('auto-submit-queue-sub', pullRequest);
-    auto.QueryResult queryResult = createQueryResult(flutterRequest);
+    final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processRevertRequest(
         config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
@@ -80,7 +80,7 @@ void main() {
   group('Processing revert reqeuests.', () {
     test('Merge valid revert request, issue created and message is acknowledged.', () async {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-      PullRequestHelper flutterRequest = PullRequestHelper(
+      final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
@@ -94,19 +94,19 @@ void main() {
       pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
       pullRequest.body = 'Reverts flutter/flutter#1234';
 
-      FakeRevert fakeRevert = FakeRevert(config: config);
+      final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
       validationService.revertValidation = fakeRevert;
-      FakeApproverService fakeApproverService = FakeApproverService(config);
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
-      Issue issue = Issue(
+      final Issue issue = Issue(
         id: 1234,
       );
       githubService.githubIssueMock = issue;
 
       pubsub.publish('auto-submit-queue-sub', pullRequest);
-      auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
           config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
@@ -120,7 +120,7 @@ void main() {
 
     test('Fail to merge non valid revert, issue not created, comment is added and message is acknowledged.', () async {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-      PullRequestHelper flutterRequest = PullRequestHelper(
+      final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
@@ -134,14 +134,14 @@ void main() {
       pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
       pullRequest.body = 'Reverts flutter/flutter#1234';
 
-      FakeRevert fakeRevert = FakeRevert(config: config);
+      final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(false, Action.REMOVE_LABEL, '');
       validationService.revertValidation = fakeRevert;
-      FakeApproverService fakeApproverService = FakeApproverService(config);
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
       pubsub.publish('auto-submit-queue-sub', pullRequest);
-      auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
           config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
@@ -154,7 +154,7 @@ void main() {
     });
 
     test('Remove label and post comment when unable to process merge.', () async {
-      PullRequestHelper flutterRequest = PullRequestHelper(
+      final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
@@ -166,14 +166,14 @@ void main() {
       pullRequest.authorAssociation = 'OWNER';
       pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
 
-      FakeRevert fakeRevert = FakeRevert(config: config);
+      final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
       validationService.revertValidation = fakeRevert;
-      FakeApproverService fakeApproverService = FakeApproverService(config);
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
       pubsub.publish('auto-submit-queue-sub', pullRequest);
-      auto.QueryResult queryResult = createQueryResult(flutterRequest);
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
           config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
@@ -185,7 +185,7 @@ void main() {
 
     test('Fail to create follow up review issue, comment is added and message is acknowledged.', () async {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
-      PullRequestHelper flutterRequest = PullRequestHelper(
+      final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
@@ -215,7 +215,7 @@ void main() {
 
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNotNull);
-      IssueComment issueComment = githubService.issueComment!;
+      final IssueComment issueComment = githubService.issueComment!;
       assert(issueComment.body!.contains('create the follow up review issue'));
       expect(githubService.labelRemoved, false);
       // We acknowledge the issue.
@@ -252,7 +252,7 @@ void main() {
 
     test('Should process message when revert label exists and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
       final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
@@ -262,7 +262,7 @@ void main() {
 
     test('Should process message as revert when revert and autosubmit labels are present and pr is open', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels!.add(issueLabel);
       githubService.pullRequestData = pullRequest;
       final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
@@ -273,7 +273,7 @@ void main() {
     test('Skip processing message when revert label exists and pr is closed', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
       pullRequest.state = 'closed';
-      IssueLabel issueLabel = IssueLabel(name: 'revert');
+      final IssueLabel issueLabel = IssueLabel(name: 'revert');
       pullRequest.labels = <IssueLabel>[issueLabel];
       githubService.pullRequestData = pullRequest;
       final ProcessMethod processMethod = await validationService.processPullRequestMethod(pullRequest);
