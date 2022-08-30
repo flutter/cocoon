@@ -48,7 +48,7 @@ class GithubService {
 
   /// Create a new issue in github.
   Future<Issue> createIssue({
-    required RepositorySlug repositorySlug,
+    required RepositorySlug slug,
     required String title,
     required String body,
     List<String>? labels,
@@ -64,7 +64,7 @@ class GithubService {
       assignees: assignees,
       state: state,
     );
-    return await github.issues.create(repositorySlug, issueRequest);
+    return await github.issues.create(slug, issueRequest);
   }
 
   /// Fetches the specified pull request.

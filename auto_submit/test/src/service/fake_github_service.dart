@@ -175,7 +175,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<Issue> createIssue({
-    required RepositorySlug repositorySlug,
+    required RepositorySlug slug,
     required String title,
     required String body,
     List<String>? labels,

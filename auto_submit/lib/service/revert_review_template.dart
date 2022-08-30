@@ -2,33 +2,30 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// A template for creating follow up review issues for created revert requests.
 class RevertReviewTemplate {
   RevertReviewTemplate({
     required this.repositorySlug,
     required this.revertPrNumber,
     required this.revertPrAuthor,
     required this.originalPrLink,
-  }) {
-    constructTitle();
-    constructBody();
-  }
+  });
 
-  String repositorySlug;
-  int revertPrNumber;
-  String revertPrAuthor;
-  String originalPrLink;
+  final String repositorySlug;
+  final int revertPrNumber;
+  final String revertPrAuthor;
+  final String originalPrLink;
 
-  String? _title;
-  String? _body;
-
-  void constructTitle() {
-    _title = '''
+  /// Constructs the issues title.
+  String _constructTitle() {
+    return '''
 Review request for Revert PR $repositorySlug#$revertPrNumber
 ''';
   }
 
-  void constructBody() {
-    _body = '''
+  /// Constructs the issues body.
+  String _constructBody() {
+    return '''
 Pull request $repositorySlug#$revertPrNumber was submitted and merged by
 $revertPrAuthor in order to revert changes made in this pull request $originalPrLink.
 
@@ -50,6 +47,6 @@ PLEASE DO NOT MODIFY THE FOLLOWING
 ''';
   }
 
-  String? get title => _title;
-  String? get body => _body;
+  String? get title => _constructTitle();
+  String? get body => _constructBody();
 }
