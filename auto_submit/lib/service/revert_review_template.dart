@@ -27,7 +27,7 @@ Review request for Revert PR $repositorySlug#$revertPrNumber
   String _constructBody() {
     return '''
 Pull request $repositorySlug#$revertPrNumber was submitted and merged by
-$revertPrAuthor in order to revert changes made in this pull request $originalPrLink.
+@$revertPrAuthor in order to revert changes made in this pull request $originalPrLink.
 
 Please assign this issue to the person that will make the formal review on the
 revert request listed above.
