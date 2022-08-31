@@ -10,6 +10,7 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
+import '../service/logging.dart';
 
 /// The [RequestHandler] for processing GitHub webhooks and publishing valid events to PubSub.
 ///
@@ -37,11 +38,11 @@ class GithubWebhook extends RequestHandler<Body> {
 
     final String requestString = utf8.decode(requestBytes);
 
-    // TODO(chillers): This won't work until using proto.
     final pb.GithubWebhookMessage message = pb.GithubWebhookMessage.create()
       ..event = event
       ..payload = requestString;
-    await pubsub.publish('github-wehbooks', message);
+    log.fine(message);
+    await pubsub.publish('github-wehbooks', message.writeToJsonMap());
 
     return Body.empty;
   }
