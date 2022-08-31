@@ -48,7 +48,7 @@ void main() {
     final gh.PullRequestReview review =
         gh.PullRequestReview(id: 123, user: gh.User(login: 'fluttergithubbot'), state: 'APPROVED');
     when(pullRequests.listReviews(any, any)).thenAnswer((_) => Stream<gh.PullRequestReview>.value(review));
-    final  gh.PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
+    final gh.PullRequest pr = generatePullRequest(author: 'dependabot[bot]');
     await service.autoApproval(pr);
     verifyNever(pullRequests.createReview(any, captureAny));
   });
