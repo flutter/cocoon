@@ -65,7 +65,10 @@ void main() {
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
     final FakePubSub pubsub = FakePubSub();
-    final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
+    final PullRequest pullRequest = generatePullRequest(
+      prNumber: 0,
+      repoName: slug.name,
+    );
     pubsub.publish('auto-submit-queue-sub', pullRequest);
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
@@ -89,10 +92,12 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       final FakePubSub pubsub = FakePubSub();
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.authorAssociation = 'OWNER';
-      pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
-      pullRequest.body = 'Reverts flutter/flutter#1234';
+      final PullRequest pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: slug.name,
+          authorAssociation: 'OWNER',
+          labelName: 'revert',
+          body: 'Reverts flutter/flutter#1234');
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -129,10 +134,13 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       final FakePubSub pubsub = FakePubSub();
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.authorAssociation = 'OWNER';
-      pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
-      pullRequest.body = 'Reverts flutter/flutter#1234';
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        authorAssociation: 'OWNER',
+        labelName: 'revert',
+        body: 'Reverts flutter/flutter#1234',
+      );
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(false, Action.REMOVE_LABEL, '');
@@ -162,9 +170,8 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       final FakePubSub pubsub = FakePubSub();
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.authorAssociation = 'OWNER';
-      pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
+      final PullRequest pullRequest =
+          generatePullRequest(prNumber: 0, repoName: slug.name, authorAssociation: 'OWNER', labelName: 'revert');
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -196,10 +203,12 @@ void main() {
       githubService.throwOnCreateIssue = true;
       githubService.useRealComment = true;
       final FakePubSub pubsub = FakePubSub();
-      final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      pullRequest.authorAssociation = 'OWNER';
-      pullRequest.labels = <IssueLabel>[IssueLabel(name: 'revert')];
-      pullRequest.body = 'Reverts flutter/flutter#1234';
+      final PullRequest pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: slug.name,
+          authorAssociation: 'OWNER',
+          labelName: 'revert',
+          body: 'Reverts flutter/flutter#1234');
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
