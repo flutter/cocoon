@@ -36,6 +36,8 @@ class FakeGithubService implements GithubService {
   String? pullRequestFilesJsonMock;
   Issue? githubIssueMock;
 
+  bool throwOnCreateIssue = false;
+
   /// Setting either of these flags to true will pop the front element from the
   /// list. Setting either to false will just return the non list version from
   /// the appropriate method.
@@ -46,6 +48,7 @@ class FakeGithubService implements GithubService {
   List<PullRequest?> pullRequestMockList = [];
 
   IssueComment? issueComment;
+  bool useRealComment = false;
   bool labelRemoved = false;
 
   bool compareReturnValue = false;
@@ -134,7 +137,11 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<IssueComment> createComment(RepositorySlug slug, int number, String commentBody) async {
-    issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
+    if (useRealComment) {
+      issueComment = IssueComment(id: number, body: commentBody);
+    } else {
+      issueComment = IssueComment.fromJson(jsonDecode(createCommentMock!) as Map<String, dynamic>);
+    }
     return issueComment!;
   }
 
@@ -174,7 +181,18 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<Issue> createIssue(RepositorySlug repositorySlug, String title, String body) async {
+  Future<Issue> createIssue({
+    required RepositorySlug slug,
+    required String title,
+    required String body,
+    List<String>? labels,
+    String? assignee,
+    List<String>? assignees,
+    String? state,
+  }) async {
+    if (throwOnCreateIssue) {
+      throw GitHubError(github, 'Exception on github create issue.');
+    }
     return githubIssueMock!;
   }
 

@@ -167,11 +167,13 @@ void main() {
       };
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
+      // this is the test.
       await checkPullRequest.get();
-      expect(pubsub.messagesQueue.length, 1);
+      // every failure is now acknowledged from the queue.
+      expect(pubsub.messagesQueue.length, 0);
       final List<LogRecord> errorLogs = records.where((LogRecord record) => record.level == Level.SEVERE).toList();
       expect(errorLogs.length, 1);
-      expect(errorLogs[0].message.contains('_processMerge'), true);
+      expect(errorLogs[0].message.contains('Failed to merge'), true);
       pubsub.messagesQueue.clear();
     });
 

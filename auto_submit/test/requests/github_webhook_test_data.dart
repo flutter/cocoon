@@ -70,15 +70,17 @@ String generateWebhookEvent(
     }''';
 }
 
-PullRequest generatePullRequest(
-    {String? labelName,
-    String? autosubmitLabel = Config.kAutosubmitLabel,
-    String? repoName,
-    String? login,
-    String? authorAssociation,
-    String? author,
-    int? prNumber,
-    String? state}) {
+PullRequest generatePullRequest({
+  String? labelName,
+  String? autosubmitLabel = Config.kAutosubmitLabel,
+  String? repoName,
+  String? login,
+  String? authorAssociation,
+  String? author,
+  int? prNumber,
+  String? state,
+  String? body,
+}) {
   return PullRequest.fromJson(json.decode('''{
       "id": 1,
       "number": ${prNumber ?? 1347},
@@ -88,7 +90,7 @@ PullRequest generatePullRequest(
         "login": "${author ?? "octocat"}",
         "id": 1
       },
-      "body": "Please pull these awesome changes in!",
+      "body": "${body ?? "Please pull these awesome changes in!"}",
       "labels": [
         {
           "id": 487496476,
