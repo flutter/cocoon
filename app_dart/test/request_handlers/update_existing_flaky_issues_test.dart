@@ -57,12 +57,18 @@ void main() {
       });
 
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kCiYamlPath,
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kTestOwnerPath,
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
       });

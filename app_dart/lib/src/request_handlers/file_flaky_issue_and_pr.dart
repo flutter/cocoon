@@ -95,7 +95,12 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       return;
     }
     final String modifiedContent = _marksBuildFlakyInContent(
-        await gitHub.getFileContent(slug, kCiYamlPath), builderDetail.statistic.name, issue.htmlUrl);
+        await gitHub.getFileContent(
+          slug,
+          kCiYamlPath,
+        ),
+        builderDetail.statistic.name,
+        issue.htmlUrl);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final PullRequestBuilder prBuilder =
         PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
