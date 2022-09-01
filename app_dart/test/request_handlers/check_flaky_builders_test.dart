@@ -65,12 +65,20 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kCiYamlPath,
+        ref: anyNamed('ref'),
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(captureAny, kTestOwnerPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kTestOwnerPath,
+        ref: anyNamed('ref'),
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
       });
@@ -227,7 +235,11 @@ void main() {
 
     test('Can create pr if the flaky test is no longer flaky without an issue', () async {
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kCiYamlPath,
+        ref: anyNamed('ref'),
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentNoIssue))));
       });
@@ -328,7 +340,11 @@ void main() {
 
     test('Do not create PR if the builder is in the ignored list', () async {
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(captureAny, kCiYamlPath)).thenAnswer((Invocation invocation) {
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kCiYamlPath,
+        ref: anyNamed('ref'),
+      )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
       });

@@ -118,25 +118,58 @@ class BranchService {
   ///
   /// Latest beta and stable branches are retrieved based on 'beta' and 'stable' tags. Dev branch is retrived
   /// as the latest flutter candidate branch.
-  Future<List<Map<String, String>>> getReleaseBranches(
-      {required GithubService githubService, required gh.RepositorySlug slug}) async {
+  Future<List<Map<String, String>>> getReleaseBranches({
+    required GithubService githubService,
+    required gh.RepositorySlug slug,
+  }) async {
     List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
-    final String devName = await _getDevBranch(github: githubService.github, slug: slug, branches: branches);
+    final String latestCandidateBranch = await _getLatestCandidateBranch(
+      github: githubService.github,
+      slug: slug,
+      branches: branches,
+    );
 
-    final String betaName =
-        (await githubService.getFileContent(slug, 'bin/internal/release-candidate-branch.version', ref: 'beta')).trim();
-    final String stableName =
-        (await githubService.getFileContent(slug, 'bin/internal/release-candidate-branch.version', ref: 'stable'))
-            .trim();
+    final String betaName = await _getBranchNameFromFile(
+      githubService: githubService,
+      slug: slug,
+      branchName: "beta",
+    );
+    final String stableName = await _getBranchNameFromFile(
+      githubService: githubService,
+      slug: slug,
+      branchName: "stable",
+    );
     return <Map<String, String>>[
-      {"branch": stableName, "name": "stable"},
-      {"branch": betaName, "name": "beta"},
-      {"branch": devName, "name": "dev"}
+      {
+        "branch": stableName,
+        "name": "stable",
+      },
+      {
+        "branch": betaName,
+        "name": "beta",
+      },
+      {
+        "branch": latestCandidateBranch,
+        "name": "latestCandidateBranch",
+      }
     ];
   }
 
+  Future<String> _getBranchNameFromFile({
+    required GithubService githubService,
+    required gh.RepositorySlug slug,
+    required String branchName,
+  }) async {
+    return (await githubService.getFileContent(
+      slug,
+      'bin/internal/release-candidate-branch.version',
+      ref: branchName,
+    ))
+        .trim();
+  }
+
   /// Retrieve the latest canidate branch from all candidate branches.
-  Future<String> _getDevBranch({
+  Future<String> _getLatestCandidateBranch({
     required gh.GitHub github,
     required gh.RepositorySlug slug,
     required List<gh.Branch> branches,

@@ -66,14 +66,12 @@ class FakeGithubService implements GithubService {
   @override
   Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
     if (path == 'bin/internal/release-candidate-branch.version') {
-      String encodedResponse = '';
       if (ref == 'beta') {
-        encodedResponse = 'Zmx1dHRlci0zLjItY2FuZGlkYXRlLjUK\n';
+        return 'flutter-3.2-candidate.5\n';
       } else if (ref == 'stable') {
-        encodedResponse = 'Zmx1dHRlci0yLjEzLWNhbmRpZGF0ZS4wCg==\n';
+        return 'flutter-2.13-candidate.0\n';
       }
-      String result = utf8.decode(base64.decode(encodedResponse.replaceAll('\n', '')));
-      return Future<String>.value(result);
+      return Future<String>.value('');
     } else {
       return Future<String>.value('');
     }
