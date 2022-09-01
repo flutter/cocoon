@@ -529,7 +529,7 @@ status: Accepted''',
 Date: 2021-07-02 20:32:01 +0000
 Status: invalid
 LogFileURL: https://osxapps.itunes.apple.com/...
-Status Code: 2 
+Status Code: 2
 Status Message: Package Invalid''',
         ),
       ]);
