@@ -60,7 +60,6 @@ void main() {
       when(mockRepositoriesService.getContents(
         captureAny,
         kCiYamlPath,
-        ref: anyNamed('ref'),
       )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
@@ -69,7 +68,6 @@ void main() {
       when(mockRepositoriesService.getContents(
         captureAny,
         kTestOwnerPath,
-        ref: anyNamed('ref'),
       )).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
             RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));

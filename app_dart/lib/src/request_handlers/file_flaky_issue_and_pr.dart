@@ -39,15 +39,14 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
     final List<BuilderStatistic> builderStatisticList = await bigquery.listBuilderStatistic(kBigQueryProjectId);
-    final YamlMap? ci =
-        loadYaml(await gitHub.getFileContent(slug, kCiYamlPath, ref: Config.defaultBranch(slug))) as YamlMap?;
+    final YamlMap? ci = loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
     final CiYaml ciYaml = CiYaml(
       slug: slug,
       branch: Config.defaultBranch(slug),
       config: unCheckedSchedulerConfig,
     );
-    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath, ref: Config.defaultBranch(slug));
+    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final Map<String?, Issue> nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final Map<String?, PullRequest> nameToExistingPR = await getExistingPRs(gitHub, slug);
     for (final BuilderStatistic statistic in builderStatisticList) {
@@ -99,7 +98,6 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         await gitHub.getFileContent(
           slug,
           kCiYamlPath,
-          ref: Config.defaultBranch(slug),
         ),
         builderDetail.statistic.name,
         issue.htmlUrl);

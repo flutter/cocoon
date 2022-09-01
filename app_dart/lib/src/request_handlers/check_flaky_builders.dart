@@ -58,7 +58,6 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final String ciContent = await gitHub.getFileContent(
       slug,
       kCiYamlPath,
-      ref: Config.defaultBranch(slug),
     );
     final YamlMap? ci = loadYaml(ciContent) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
@@ -74,7 +73,6 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final String testOwnerContent = await gitHub.getFileContent(
       slug,
       kTestOwnerPath,
-      ref: Config.defaultBranch(slug),
     );
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap);

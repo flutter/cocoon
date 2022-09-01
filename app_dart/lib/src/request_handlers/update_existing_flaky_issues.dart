@@ -38,8 +38,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
-    final YamlMap? ci =
-        loadYaml(await gitHub.getFileContent(slug, kCiYamlPath, ref: Config.defaultBranch(slug))) as YamlMap?;
+    final YamlMap? ci = loadYaml(await gitHub.getFileContent(
+      slug,
+      kCiYamlPath,
+    )) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
     final CiYaml ciYaml = CiYaml(
       slug: slug,
@@ -89,12 +91,10 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       final String ciContent = await gitHub.getFileContent(
         slug,
         kCiYamlPath,
-        ref: Config.defaultBranch(slug),
       );
       final String testOwnerContent = await gitHub.getFileContent(
         slug,
         kTestOwnerPath,
-        ref: Config.defaultBranch(slug),
       );
       final String? testOwner = getTestOwnership(
               statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent)
