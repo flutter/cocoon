@@ -616,7 +616,7 @@ status: Invalid''',
             '--team-id',
             randomString,
           ],
-          stdout: '''Error uploading file. 
+          stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
@@ -633,7 +633,7 @@ status: Invalid''',
             '--team-id',
             randomString,
           ],
-          stdout: '''Successfully uploaded file. 
+          stdout: '''Successfully uploaded file.
  id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
@@ -677,7 +677,7 @@ status: Invalid''',
             '--team-id',
             randomString,
           ],
-          stdout: '''Error uploading file. 
+          stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
@@ -694,7 +694,7 @@ status: Invalid''',
             '--team-id',
             randomString,
           ],
-          stdout: '''Error uploading file. 
+          stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
@@ -711,7 +711,7 @@ status: Invalid''',
             '--team-id',
             randomString,
           ],
-          stdout: '''Error uploading file. 
+          stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
         ),
