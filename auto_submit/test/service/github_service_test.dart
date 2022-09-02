@@ -39,7 +39,7 @@ void main() {
             body: anyNamed('body'),
             statusCode: anyNamed('statusCode'),
             fail: anyNamed('fail'),
-            preview: anyNamed('preview')))
+            preview: anyNamed('preview'),),)
         .thenAnswer((_) => Future.value(mockResponse));
     when(mockResponse.statusCode).thenReturn(200);
     when(mockGitHub.repositories).thenReturn(mockRepositoriesService);

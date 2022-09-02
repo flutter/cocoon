@@ -34,18 +34,18 @@ Future<void> main() async {
           '/webhook',
           GithubWebhook(
             config: config,
-          ).post)
+          ).post,)
       ..get(
           '/check-pull-request',
           CheckPullRequest(
             config: config,
             cronAuthProvider: authProvider,
-          ).run)
+          ).run,)
       ..get(
           '/readiness_check',
           ReadinessCheck(
             config: config,
-          ).run);
+          ).run,);
     await serveHandler(router);
   });
 }

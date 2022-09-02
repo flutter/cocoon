@@ -8,7 +8,7 @@ import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 
 String generateWebhookEvent(
-    {String? labelName, String? autosubmitLabel, String? repoName, String? login, String? authorAssociation}) {
+    {String? labelName, String? autosubmitLabel, String? repoName, String? login, String? authorAssociation,}) {
   return '''{
       "action": "open",
       "number": 1598,
@@ -138,7 +138,7 @@ PullRequest generatePullRequest({
       "author_association": "${authorAssociation ?? "OWNER"}",
       "mergeable": true,
       "mergeable_state": "clean"
-  }''') as Map<String, dynamic>);
+  }''') as Map<String, dynamic>,);
 }
 
 const String reviewsMock = '''[

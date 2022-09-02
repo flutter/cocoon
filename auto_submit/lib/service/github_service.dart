@@ -97,7 +97,7 @@ class GithubService {
   /// Update a pull request branch
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
     final response = await github.request('PUT', '/repos/${slug.fullName}/pulls/$number/update-branch',
-        body: GitHubJson.encode({'expected_head_sha': headSha}));
+        body: GitHubJson.encode({'expected_head_sha': headSha}),);
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
@@ -126,7 +126,7 @@ class GithubService {
   /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
   bool _validateFileSetsAreEqual(
-      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles) {
+      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles,) {
     List<String?> revertFileNames = [];
     List<String?> currentFileNames = [];
 

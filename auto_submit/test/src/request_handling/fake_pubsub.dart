@@ -36,7 +36,7 @@ class FakePubSub extends PubSub {
       // last number is to mock real `pull` API call.
       while (i < min(min(maxMessages, messagesQueue.length), (iteration + 1) * messageSize)) {
         receivedMessages.add(ReceivedMessage(
-            message: PubsubMessage(data: messagesQueue[i] as String, messageId: '$i'), ackId: 'ackId_$i'));
+            message: PubsubMessage(data: messagesQueue[i] as String, messageId: '$i'), ackId: 'ackId_$i',),);
         i++;
       }
       return PullResponse(receivedMessages: receivedMessages);

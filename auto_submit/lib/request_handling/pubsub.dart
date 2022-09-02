@@ -24,14 +24,14 @@ class PubSub {
   Future<void> publish(String topic, dynamic json) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
       pubsub.PubsubApi.pubsubScope,
-    ]);
+    ],);
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final String messageData = jsonEncode(json);
     final List<int> messageBytes = utf8.encode(messageData);
     final String messageBase64 = base64Encode(messageBytes);
     final pubsub.PublishRequest request = pubsub.PublishRequest(messages: <pubsub.PubsubMessage>[
       pubsub.PubsubMessage(data: messageBase64),
-    ]);
+    ],);
     final String fullTopicName = 'projects/flutter-dashboard/topics/$topic';
     final pubsub.PublishResponse response = await pubsubApi.projects.topics.publish(request, fullTopicName);
     log.info('pubsub response messageId=${response.messageIds}');
@@ -41,7 +41,7 @@ class PubSub {
   Future<pubsub.PullResponse> pull(String subscription, int maxMessages) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
       pubsub.PubsubApi.pubsubScope,
-    ]);
+    ],);
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
     final pubsub.PullResponse pullResponse = await pubsubApi.projects.subscriptions
@@ -55,7 +55,7 @@ class PubSub {
   Future<void> acknowledge(String subscription, String ackId) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(scopes: <String>[
       pubsub.PubsubApi.pubsubScope,
-    ]);
+    ],);
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final List<String> ackIds = [ackId];
     final pubsub.AcknowledgeRequest acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
