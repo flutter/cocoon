@@ -55,7 +55,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
-    final String ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
+    final String ciContent = await gitHub.getFileContent(
+      slug,
+      kCiYamlPath,
+    );
     final YamlMap? ci = loadYaml(ciContent) as YamlMap?;
     final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
     final CiYaml ciYaml = CiYaml(
@@ -67,7 +70,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent, ciYaml: ciYaml);
     final List<BuilderStatistic> stagingBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
-    final String testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
+    final String testOwnerContent = await gitHub.getFileContent(
+      slug,
+      kTestOwnerPath,
+    );
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap);
       final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);

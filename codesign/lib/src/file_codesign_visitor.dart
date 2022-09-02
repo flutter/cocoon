@@ -90,6 +90,8 @@ class FileCodesignVisitor {
     </dict>
 </plist>
 ''';
+  static const Duration _notarizationTimerDuration = Duration(seconds: 45);
+  static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
 
   static const String fixItInstructions = '''
 Codesign test failed.
@@ -244,5 +246,77 @@ update these file paths accordingly.
     final Set<String> fileWithEntitlements = <String>{};
     fileWithEntitlements.addAll(await fileSystem.file(entitlementFilePath).readAsLines());
     return fileWithEntitlements;
+  }
+
+  /// Upload a zip archive to the notary service and verify the build succeeded.
+  ///
+  /// The apple notarization service will unzip the artifact, validate all
+  /// binaries are properly codesigned, and notarize the entire archive.
+  Future<void> notarize(File file) async {
+    final Completer<void> completer = Completer<void>();
+    final String uuid = uploadZipToNotary(file);
+
+    Future<void> callback(Timer timer) async {
+      final bool notaryFinished = checkNotaryJobFinished(uuid);
+      if (notaryFinished) {
+        timer.cancel();
+        log.info('successfully notarized ${file.path}');
+        completer.complete();
+      }
+    }
+
+    // check on results
+    Timer.periodic(
+      _notarizationTimerDuration,
+      callback,
+    );
+    await completer.future;
+  }
+
+  String uploadZipToNotary(File localFile, [int retryCount = 3]) {
+    throw UnimplementedError('will implement later');
+  }
+
+  /// Make a request to the notary service to see if the notary job is finished.
+  ///
+  /// A return value of true means that notarization finished successfully,
+  /// false means that the job is still pending. If the notarization fails, this
+  /// function will throw a [ConductorException].
+  bool checkNotaryJobFinished(String uuid) {
+    final List<String> args = <String>[
+      'xcrun',
+      'notarytool',
+      'info',
+      uuid,
+      '--password',
+      appSpecificPassword,
+      '--apple-id',
+      codesignAppstoreId,
+      '--team-id',
+      codesignTeamId,
+    ];
+
+    log.info('checking notary status with ${args.join(' ')}');
+    final io.ProcessResult result = processManager.runSync(args);
+    final String combinedOutput = (result.stdout as String) + (result.stderr as String);
+
+    final RegExpMatch? match = _notarytoolStatusCheckPattern.firstMatch(combinedOutput);
+
+    if (match == null) {
+      throw CodesignException(
+        'Malformed output from "${args.join(' ')}"\n${combinedOutput.trim()}',
+      );
+    }
+
+    final String status = match.group(1)!;
+
+    if (status == 'Accepted') {
+      return true;
+    }
+    if (status == 'In Progress') {
+      log.info('job $uuid still pending');
+      return false;
+    }
+    throw CodesignException('Notarization failed with: $status\n$combinedOutput');
   }
 }
