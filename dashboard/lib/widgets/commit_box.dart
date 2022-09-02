@@ -56,7 +56,7 @@ class CommitBoxState extends State<CommitBox> {
       ),
     );
 
-    Overlay.of(context)!.insert(_commitOverlay!);
+    Overlay.of(context).insert(_commitOverlay!);
   }
 
   void _closeOverlay() => _commitOverlay?.remove();
