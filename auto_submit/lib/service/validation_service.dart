@@ -66,19 +66,21 @@ class ValidationService {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         await processPullRequest(
-            config: config,
-            result: await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest: messagePullRequest,
-            ackId: ackId,
-            pubsub: pubsub,);
+          config: config,
+          result: await getNewestPullRequestInfo(config, messagePullRequest),
+          messagePullRequest: messagePullRequest,
+          ackId: ackId,
+          pubsub: pubsub,
+        );
         break;
       case ProcessMethod.processRevert:
         await processRevertRequest(
-            config: config,
-            result: await getNewestPullRequestInfo(config, messagePullRequest),
-            messagePullRequest: messagePullRequest,
-            ackId: ackId,
-            pubsub: pubsub,);
+          config: config,
+          result: await getNewestPullRequestInfo(config, messagePullRequest),
+          messagePullRequest: messagePullRequest,
+          ackId: ackId,
+          pubsub: pubsub,
+        );
         break;
       case ProcessMethod.doNotProcess:
         log.info('Should not process ${messagePullRequest.toJson()}, and ack the message.');
@@ -302,14 +304,16 @@ Exception: ${exception.message}
       // errors.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
 
-      final graphql.QueryResult result = await client.mutate(graphql.MutationOptions(
-        document: mergePullRequestMutation,
-        variables: <String, dynamic>{
-          'id': id,
-          'oid': sha,
-          'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
-        },
-      ),);
+      final graphql.QueryResult result = await client.mutate(
+        graphql.MutationOptions(
+          document: mergePullRequestMutation,
+          variables: <String, dynamic>{
+            'id': id,
+            'oid': sha,
+            'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
+          },
+        ),
+      );
       if (result.hasException) {
         final String message = 'Failed to merge pr#: $number with ${result.exception}';
         log.severe(message);
@@ -324,12 +328,13 @@ Exception: ${exception.message}
   }
 
   /// Remove a pull request label and add a comment to the pull request.
-  Future<void> removeLabelAndComment(
-      {required GithubService githubService,
-      required github.RepositorySlug repositorySlug,
-      required int prNumber,
-      required String prLabel,
-      required String message,}) async {
+  Future<void> removeLabelAndComment({
+    required GithubService githubService,
+    required github.RepositorySlug repositorySlug,
+    required int prNumber,
+    required String prLabel,
+    required String message,
+  }) async {
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
   }

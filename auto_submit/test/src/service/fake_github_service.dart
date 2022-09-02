@@ -100,7 +100,8 @@ class FakeGithubService implements GithubService {
     List<CheckRun> checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(
-          checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),);
+        checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),
+      );
     }
     return checkRuns;
   }
@@ -209,7 +210,9 @@ class FakeGithubService implements GithubService {
   }
 
   bool _validateFileSetsAreEqual(
-      List<PullRequestFile> revertPullRequestFiles, List<PullRequestFile> currentPullRequestFiles,) {
+    List<PullRequestFile> revertPullRequestFiles,
+    List<PullRequestFile> currentPullRequestFiles,
+  ) {
     List<String?> revertFileNames = [];
     List<String?> currentFileNames = [];
 

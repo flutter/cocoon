@@ -120,8 +120,10 @@ void main() {
       ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
-      assert(validationResult.message ==
-          'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.',);
+      assert(
+        validationResult.message ==
+            'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.',
+      );
     });
 
     test('Validation fails on malformed reverts link in the pr body.', () async {
@@ -134,8 +136,10 @@ void main() {
       ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
-      assert(validationResult.message ==
-          'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'',);
+      assert(
+        validationResult.message ==
+            'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'',
+      );
     });
 
     test('Validation fails on pull request file lists not matching.', () async {
@@ -157,8 +161,10 @@ void main() {
       ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
-      assert(validationResult.message ==
-          'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.',);
+      assert(
+        validationResult.message ==
+            'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.',
+      );
     });
 
     test('Validation is successful.', () async {

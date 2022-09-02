@@ -54,11 +54,17 @@ class Revert extends Validation {
 
     if (requestsMatch) {
       return ValidationResult(
-          true, Action.IGNORE_FAILURE, 'Revert request has been verified and will be queued for merge.',);
+        true,
+        Action.IGNORE_FAILURE,
+        'Revert request has been verified and will be queued for merge.',
+      );
     }
 
-    return ValidationResult(false, Action.REMOVE_LABEL,
-        'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.',);
+    return ValidationResult(
+      false,
+      Action.REMOVE_LABEL,
+      'Validation of the revert request has failed. Verify the files in the revert request are the same as the original PR and resubmit the revert request.',
+    );
   }
 
   /// Only a team member and code owner can submit a revert request without a review.

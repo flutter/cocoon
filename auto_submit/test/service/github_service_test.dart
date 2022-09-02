@@ -33,14 +33,18 @@ void main() {
     );
 
     when(mockGitHubComparison.behindBy).thenReturn(10);
-    when(mockGitHub.request(any, any,
-            headers: anyNamed('headers'),
-            params: anyNamed('params'),
-            body: anyNamed('body'),
-            statusCode: anyNamed('statusCode'),
-            fail: anyNamed('fail'),
-            preview: anyNamed('preview'),),)
-        .thenAnswer((_) => Future.value(mockResponse));
+    when(
+      mockGitHub.request(
+        any,
+        any,
+        headers: anyNamed('headers'),
+        params: anyNamed('params'),
+        body: anyNamed('body'),
+        statusCode: anyNamed('statusCode'),
+        fail: anyNamed('fail'),
+        preview: anyNamed('preview'),
+      ),
+    ).thenAnswer((_) => Future.value(mockResponse));
     when(mockResponse.statusCode).thenReturn(200);
     when(mockGitHub.repositories).thenReturn(mockRepositoriesService);
     when(mockRepositoriesService.getCommit(any, any)).thenAnswer((_) => Future.value(testCommit));

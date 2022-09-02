@@ -31,21 +31,24 @@ Future<void> main() async {
 
     final Router router = Router()
       ..post(
-          '/webhook',
-          GithubWebhook(
-            config: config,
-          ).post,)
+        '/webhook',
+        GithubWebhook(
+          config: config,
+        ).post,
+      )
       ..get(
-          '/check-pull-request',
-          CheckPullRequest(
-            config: config,
-            cronAuthProvider: authProvider,
-          ).run,)
+        '/check-pull-request',
+        CheckPullRequest(
+          config: config,
+          cronAuthProvider: authProvider,
+        ).run,
+      )
       ..get(
-          '/readiness_check',
-          ReadinessCheck(
-            config: config,
-          ).run,);
+        '/readiness_check',
+        ReadinessCheck(
+          config: config,
+        ).run,
+      );
     await serveHandler(router);
   });
 }

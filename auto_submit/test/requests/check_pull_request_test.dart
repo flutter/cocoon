@@ -481,9 +481,9 @@ void main() {
         authorAssociation: 'MEMBER',
         reviews: <PullRequestReviewHelper>[
           const PullRequestReviewHelper(
-              authorName: 'some_rando',
-              state: ReviewState.APPROVED,
-              memberType: MemberType.MEMBER,
+            authorName: 'some_rando',
+            state: ReviewState.APPROVED,
+            memberType: MemberType.MEMBER,
           )
         ],
         lastCommitStatuses: const <StatusHelper>[
