@@ -13,13 +13,13 @@ import 'package:http/http.dart';
 import 'access_client_provider.dart';
 
 const String selectRevertRequestDml = r'''
-SELECT organization, 
-       repository, 
-       reverting_pr_author, 
-       reverting_pr_id, 
-       reverting_pr_commit, 
-       reverting_pr_url, 
-       reverting_pr_created_timestamp, 
+SELECT organization,
+       repository,
+       reverting_pr_author,
+       reverting_pr_id,
+       reverting_pr_commit,
+       reverting_pr_url,
+       reverting_pr_created_timestamp,
        reverting_pr_landed_timestamp,
        original_pr_author,
        original_pr_id,
@@ -33,36 +33,36 @@ WHERE reverting_pr_id=@REVERTING_PR_ID AND repository=@REPOSITORY
 
 const String insertRevertRequestDml = r'''
 INSERT INTO `flutter-dashboard.revert.revert_requests` (
-  organization, 
-  repository, 
-  reverting_pr_author, 
-  reverting_pr_id, 
-  reverting_pr_commit, 
+  organization,
+  repository,
+  reverting_pr_author,
+  reverting_pr_id,
+  reverting_pr_commit,
   reverting_pr_url,
-  reverting_pr_created_timestamp, 
-  reverting_pr_landed_timestamp, 
-  original_pr_author, 
-  original_pr_id, 
-  original_pr_commit, 
-  original_pr_url, 
-  original_pr_created_timestamp, 
+  reverting_pr_created_timestamp,
+  reverting_pr_landed_timestamp,
+  original_pr_author,
+  original_pr_id,
+  original_pr_commit,
+  original_pr_url,
+  original_pr_created_timestamp,
   original_pr_landed_timestamp
 ) VALUES (
-  @ORGANIZATION, 
-  @REPOSITORY, 
-  @REVERTING_PR_AUTHOR, 
-  @REVERTING_PR_ID, 
-  @REVERTING_PR_COMMIT, 
-  @REVERTING_PR_URL, 
-  @REVERTING_PR_CREATED_TIMESTAMP, 
-  @REVERTING_PR_LANDED_TIMESTAMP, 
-  @ORIGINAL_PR_AUTHOR, 
-  @ORIGINAL_PR_ID, 
-  @ORIGINAL_PR_COMMIT, 
-  @ORIGINAL_PR_URL, 
-  @ORIGINAL_PR_CREATED_TIMESTAMP, 
+  @ORGANIZATION,
+  @REPOSITORY,
+  @REVERTING_PR_AUTHOR,
+  @REVERTING_PR_ID,
+  @REVERTING_PR_COMMIT,
+  @REVERTING_PR_URL,
+  @REVERTING_PR_CREATED_TIMESTAMP,
+  @REVERTING_PR_LANDED_TIMESTAMP,
+  @ORIGINAL_PR_AUTHOR,
+  @ORIGINAL_PR_ID,
+  @ORIGINAL_PR_COMMIT,
+  @ORIGINAL_PR_URL,
+  @ORIGINAL_PR_CREATED_TIMESTAMP,
   @ORIGINAL_PR_LANDED_TIMESTAMP
-) 
+)
 ''';
 
 const String deleteRevertRequestDml = r'''
@@ -139,38 +139,86 @@ class BigqueryService {
     final QueryRequest queryRequest = QueryRequest(
       query: insertRevertRequestDml,
       queryParameters: <QueryParameter>[
-        _createStringQueryParameter('ORGANIZATION', revertRequestRecord.organization),
-        _createStringQueryParameter('REPOSITORY', revertRequestRecord.repository),
-        _createStringQueryParameter('REVERTING_PR_AUTHOR', revertRequestRecord.revertingPrAuthor),
-        _createIntegerQueryParameter('REVERTING_PR_ID', revertRequestRecord.revertingPrId!),
-        _createStringQueryParameter('REVERTING_PR_COMMIT', revertRequestRecord.revertingPrCommit),
-        _createStringQueryParameter('REVERTING_PR_URL', revertRequestRecord.revertingPrUrl),
+        _createStringQueryParameter(
+          'ORGANIZATION',
+          revertRequestRecord.organization,
+        ),
+        _createStringQueryParameter(
+          'REPOSITORY',
+          revertRequestRecord.repository,
+        ),
+        _createStringQueryParameter(
+          'REVERTING_PR_AUTHOR',
+          revertRequestRecord.revertingPrAuthor,
+        ),
         _createIntegerQueryParameter(
-            'REVERTING_PR_CREATED_TIMESTAMP', revertRequestRecord.revertingPrCreatedTimestamp!),
-        _createIntegerQueryParameter('REVERTING_PR_LANDED_TIMESTAMP', revertRequestRecord.revertingPrLandedTimestamp!),
-        _createStringQueryParameter('ORIGINAL_PR_AUTHOR', revertRequestRecord.originalPrAuthor),
-        _createIntegerQueryParameter('ORIGINAL_PR_ID', revertRequestRecord.originalPrId!),
-        _createStringQueryParameter('ORIGINAL_PR_COMMIT', revertRequestRecord.originalPrCommit),
-        _createStringQueryParameter('ORIGINAL_PR_URL', revertRequestRecord.originalPrUrl),
-        _createIntegerQueryParameter('ORIGINAL_PR_CREATED_TIMESTAMP', revertRequestRecord.originalPrCreatedTimestamp!),
-        _createIntegerQueryParameter('ORIGINAL_PR_LANDED_TIMESTAMP', revertRequestRecord.originalPrLandedTimestamp!),
+          'REVERTING_PR_ID',
+          revertRequestRecord.revertingPrId!,
+        ),
+        _createStringQueryParameter(
+          'REVERTING_PR_COMMIT',
+          revertRequestRecord.revertingPrCommit,
+        ),
+        _createStringQueryParameter(
+          'REVERTING_PR_URL',
+          revertRequestRecord.revertingPrUrl,
+        ),
+        _createIntegerQueryParameter(
+          'REVERTING_PR_CREATED_TIMESTAMP',
+          revertRequestRecord.revertingPrCreatedTimestamp!,
+        ),
+        _createIntegerQueryParameter(
+          'REVERTING_PR_LANDED_TIMESTAMP',
+          revertRequestRecord.revertingPrLandedTimestamp!,
+        ),
+        _createStringQueryParameter(
+          'ORIGINAL_PR_AUTHOR',
+          revertRequestRecord.originalPrAuthor,
+        ),
+        _createIntegerQueryParameter(
+          'ORIGINAL_PR_ID',
+          revertRequestRecord.originalPrId!,
+        ),
+        _createStringQueryParameter(
+          'ORIGINAL_PR_COMMIT',
+          revertRequestRecord.originalPrCommit,
+        ),
+        _createStringQueryParameter(
+          'ORIGINAL_PR_URL',
+          revertRequestRecord.originalPrUrl,
+        ),
+        _createIntegerQueryParameter(
+          'ORIGINAL_PR_CREATED_TIMESTAMP',
+          revertRequestRecord.originalPrCreatedTimestamp!,
+        ),
+        _createIntegerQueryParameter(
+          'ORIGINAL_PR_LANDED_TIMESTAMP',
+          revertRequestRecord.originalPrLandedTimestamp!,
+        ),
       ],
       useLegacySql: false,
     );
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Insert revert request $revertRequestRecord did not complete.');
+      throw BigQueryException(
+        'Insert revert request $revertRequestRecord did not complete.',
+      );
     }
 
     if (queryResponse.numDmlAffectedRows != null && int.parse(queryResponse.numDmlAffectedRows!) != 1) {
-      throw BigQueryException('There was an error inserting $revertRequestRecord into the table.');
+      throw BigQueryException(
+        'There was an error inserting $revertRequestRecord into the table.',
+      );
     }
   }
 
   /// Select a specific revert request from the database.
   Future<RevertRequestRecord> selectRevertRequestByRevertPrId(
-      String projectId, int revertPrId, String repository) async {
+    String projectId,
+    int revertPrId,
+    String repository,
+  ) async {
     final JobsResource jobsResource = await defaultJobs();
 
     QueryRequest queryRequest = QueryRequest(
@@ -184,17 +232,22 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Get revert request by id $revertPrId in repository $repository did not complete.');
+      throw BigQueryException(
+        'Get revert request by id $revertPrId in repository $repository did not complete.',
+      );
     }
 
     List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
-      throw BigQueryException('Could not find an entry for revert request with id $revertPrId in repository $repository.');
+      throw BigQueryException(
+        'Could not find an entry for revert request with id $revertPrId in repository $repository.',
+      );
     }
 
     if (tableRows.length != 1) {
       throw BigQueryException(
-          'More than one record was returned for revert request with id $revertPrId in repository $repository.');
+        'More than one record was returned for revert request with id $revertPrId in repository $repository.',
+      );
     }
 
     RevertRequestRecord revertRequestRecord = RevertRequestRecord();
@@ -233,16 +286,21 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Delete revert request with id $revertPrId in repository $repository did not complete.');
+      throw BigQueryException(
+        'Delete revert request with id $revertPrId in repository $repository did not complete.',
+      );
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
-      throw BigQueryException('Could not find revert request with id $revertPrId in repository $repository to delete.');
+      throw BigQueryException(
+        'Could not find revert request with id $revertPrId in repository $repository to delete.',
+      );
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
       throw BigQueryException(
-          'More than one row was deleted from the database for revert request with id $revertPrId in repository $repository.');
+        'More than one row was deleted from the database for revert request with id $revertPrId in repository $repository.',
+      );
     }
   }
 
@@ -253,25 +311,53 @@ class BigqueryService {
     final QueryRequest queryRequest = QueryRequest(
       query: insertPullRequestDml,
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('PR_CREATED_TIMESTAMP', pullRequestRecord.prCreatedTimestamp),
-        _createIntegerQueryParameter('PR_LANDED_TIMESTAMP', pullRequestRecord.prLandedTimestamp),
-        _createStringQueryParameter('ORGANIZATION', pullRequestRecord.organization),
-        _createStringQueryParameter('REPOSITORY', pullRequestRecord.repository),
-        _createStringQueryParameter('AUTHOR', pullRequestRecord.author),
-        _createIntegerQueryParameter('PR_ID', pullRequestRecord.prId),
-        _createStringQueryParameter('PR_COMMIT', pullRequestRecord.prCommit),
-        _createStringQueryParameter('PR_REQUEST_TYPE', pullRequestRecord.prRequestType),
+        _createIntegerQueryParameter(
+          'PR_CREATED_TIMESTAMP',
+          pullRequestRecord.prCreatedTimestamp,
+        ),
+        _createIntegerQueryParameter(
+          'PR_LANDED_TIMESTAMP',
+          pullRequestRecord.prLandedTimestamp,
+        ),
+        _createStringQueryParameter(
+          'ORGANIZATION',
+          pullRequestRecord.organization,
+        ),
+        _createStringQueryParameter(
+          'REPOSITORY',
+          pullRequestRecord.repository,
+        ),
+        _createStringQueryParameter(
+          'AUTHOR',
+          pullRequestRecord.author,
+        ),
+        _createIntegerQueryParameter(
+          'PR_ID',
+          pullRequestRecord.prId,
+        ),
+        _createStringQueryParameter(
+          'PR_COMMIT',
+          pullRequestRecord.prCommit,
+        ),
+        _createStringQueryParameter(
+          'PR_REQUEST_TYPE',
+          pullRequestRecord.prRequestType,
+        ),
       ],
       useLegacySql: false,
     );
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Insert pull request $pullRequestRecord did not complete.');
+      throw BigQueryException(
+        'Insert pull request $pullRequestRecord did not complete.',
+      );
     }
 
     if (queryResponse.numDmlAffectedRows != null && int.parse(queryResponse.numDmlAffectedRows!) != 1) {
-      throw BigQueryException('There was an error inserting $pullRequestRecord into the table.');
+      throw BigQueryException(
+        'There was an error inserting $pullRequestRecord into the table.',
+      );
     }
   }
 
@@ -290,16 +376,22 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Get pull request by id $prId in repository $repository did not complete.');
+      throw BigQueryException(
+        'Get pull request by id $prId in repository $repository did not complete.',
+      );
     }
 
     List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
-      throw BigQueryException('Could not find an entry for pull request with id $prId in repository $repository.');
+      throw BigQueryException(
+        'Could not find an entry for pull request with id $prId in repository $repository.',
+      );
     }
 
     if (tableRows.length != 1) {
-      throw BigQueryException('More than one record was returned for pull request with id $prId in repository $repository.');
+      throw BigQueryException(
+        'More than one record was returned for pull request with id $prId in repository $repository.',
+      );
     }
 
     PullRequestRecord pullRequestRecord = PullRequestRecord();
@@ -332,32 +424,39 @@ class BigqueryService {
 
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
-      throw BigQueryException('Delete pull request with id $pullRequestId in repository $repository did not complete.');
+      throw BigQueryException(
+        'Delete pull request with id $pullRequestId in repository $repository did not complete.',
+      );
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
-      throw BigQueryException('Could not find pull request with id $pullRequestId in repository $repository to delete.');
+      throw BigQueryException(
+        'Could not find pull request with id $pullRequestId in repository $repository to delete.',
+      );
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
       throw BigQueryException(
-          'More than one row was deleted from the database for pull request with id $pullRequestId in repository $repository.');
+        'More than one row was deleted from the database for pull request with id $pullRequestId in repository $repository.',
+      );
     }
   }
 
   /// Create an int parameter for query substitution.
   QueryParameter _createIntegerQueryParameter(String name, int? value) {
     return QueryParameter(
-        name: name,
-        parameterType: QueryParameterType(type: 'INT64'),
-        parameterValue: QueryParameterValue(value: value.toString()));
+      name: name,
+      parameterType: QueryParameterType(type: 'INT64'),
+      parameterValue: QueryParameterValue(value: value.toString()),
+    );
   }
 
   /// Create a String parameter for query substitution.
   QueryParameter _createStringQueryParameter(String name, String? value) {
     return QueryParameter(
-        name: name,
-        parameterType: QueryParameterType(type: 'STRING'),
-        parameterValue: QueryParameterValue(value: value));
+      name: name,
+      parameterType: QueryParameterType(type: 'STRING'),
+      parameterValue: QueryParameterValue(value: value),
+    );
   }
 }

@@ -197,6 +197,11 @@ class ValidationService {
       );
 
       log.info(message);
+    } else {
+      log.info('Attempting to insert a merge request record into the database for $prNumber');
+      await insertPullRequestRecord(
+          config: config, pullRequest: messagePullRequest, pullRequestType: PullRequestType.merge,);
+      log.info('Record inserted for $prNumber successfully.');
     }
 
     log.info('Ack the processed message : $ackId.');
@@ -245,6 +250,11 @@ class ValidationService {
             labels: <String>['P1'],
           );
           log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+
+          log.info('Attempting to insert a revert request record into the database for $prNumber');
+          await insertPullRequestRecord(
+              config: config, pullRequest: messagePullRequest, pullRequestType: PullRequestType.revert,);
+          log.info('Record inserted for $prNumber successfully.');
         } on github.GitHubError catch (exception) {
           // We have merged but failed to create follow up issue.
           final String errorMessage = '''
@@ -343,12 +353,15 @@ Exception: ${exception.message}
     await githubService.createComment(repositorySlug, prNumber, message);
   }
 
-  Future<void> insertPullRequestRecord(
-      Config config, 
-      github.PullRequest pullRequest, 
-      PullRequestType pullRequestType,) async {
+  /// Insert a merged pull request record into the database.
+  Future<void> insertPullRequestRecord({
+    required Config config,
+    required github.PullRequest pullRequest,
+    required PullRequestType pullRequestType,
+  }) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
+    // We need the updated time fields for the merged request from github.
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
 
     // add a record for the pull request into our metrics tracking
