@@ -360,7 +360,7 @@ class _TaskGridState extends State<TaskGrid> {
       _taskOverlay = OverlayEntry(
         builder: (BuildContext context) => TaskOverlayEntry(
           position: (this.context.findRenderObject() as RenderBox)
-              .localToGlobal(localPosition!, ancestor: Overlay.of(context)!.context.findRenderObject()),
+              .localToGlobal(localPosition!, ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
           showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
           closeCallback: _closeOverlay,
@@ -368,7 +368,7 @@ class _TaskGridState extends State<TaskGrid> {
           commit: commit,
         ),
       );
-      Overlay.of(context)!.insert(_taskOverlay!);
+      Overlay.of(context).insert(_taskOverlay!);
     };
   }
 
