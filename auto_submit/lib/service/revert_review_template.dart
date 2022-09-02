@@ -23,8 +23,8 @@ Review request for Revert PR $repositorySlug#$revertPrNumber
 ''';
   }
 
-  // TODO (ricardoamador) add the step about adding the revert_review label
-  // back in once bot can respond to it.
+  // TODO(ricardoamador): add the step about adding the revert_review label
+  // back in once bot can respond to it, https://github.com/flutter/flutter/issues/110868
   /// Constructs the issues body.
   String _constructBody() {
     return '''
