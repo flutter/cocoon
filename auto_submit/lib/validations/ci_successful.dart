@@ -114,8 +114,13 @@ class CiSuccessful extends Validation {
   ///
   /// Failures will be added the set of overall failures.
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
-  bool validateStatuses(github.RepositorySlug slug, List<String> labelNames, List<ContextNode> statuses,
-      Set<FailureDetail> failures, bool allSuccess) {
+  bool validateStatuses(
+    github.RepositorySlug slug,
+    List<String> labelNames,
+    List<ContextNode> statuses,
+    Set<FailureDetail> failures,
+    bool allSuccess,
+  ) {
     final String overrideTreeStatusLabel = config.overrideTreeStatusLabel;
     log.info('Validating name: ${slug.name}, statuses: $statuses');
 
@@ -141,7 +146,11 @@ class CiSuccessful extends Validation {
   /// Failures will be added the set of overall failures.
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateCheckRuns(
-      github.RepositorySlug slug, List<github.CheckRun> checkRuns, Set<FailureDetail> failures, bool allSuccess) {
+    github.RepositorySlug slug,
+    List<github.CheckRun> checkRuns,
+    Set<FailureDetail> failures,
+    bool allSuccess,
+  ) {
     log.info('Validating name: ${slug.name}, checkRuns: $checkRuns');
 
     for (github.CheckRun checkRun in checkRuns) {

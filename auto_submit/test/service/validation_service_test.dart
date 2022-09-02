@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/validation_service.dart';
@@ -45,11 +47,16 @@ void main() {
     githubService.createCommentData = createCommentMock;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-    pubsub.publish('auto-submit-queue-sub', pullRequest);
+    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processPullRequest(
-        config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+      config: config,
+      result: queryResult,
+      messagePullRequest: pullRequest,
+      ackId: 'test',
+      pubsub: pubsub,
+    );
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
@@ -69,11 +76,16 @@ void main() {
       prNumber: 0,
       repoName: slug.name,
     );
-    pubsub.publish('auto-submit-queue-sub', pullRequest);
+    unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
     await validationService.processRevertRequest(
-        config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+      config: config,
+      result: queryResult,
+      messagePullRequest: pullRequest,
+      ackId: 'test',
+      pubsub: pubsub,
+    );
 
     expect(githubService.issueComment, isNotNull);
     expect(githubService.labelRemoved, true);
@@ -93,11 +105,12 @@ void main() {
       githubService.createCommentData = createCommentMock;
       final FakePubSub pubsub = FakePubSub();
       final PullRequest pullRequest = generatePullRequest(
-          prNumber: 0,
-          repoName: slug.name,
-          authorAssociation: 'OWNER',
-          labelName: 'revert',
-          body: 'Reverts flutter/flutter#1234');
+        prNumber: 0,
+        repoName: slug.name,
+        authorAssociation: 'OWNER',
+        labelName: 'revert',
+        body: 'Reverts flutter/flutter#1234',
+      );
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -110,11 +123,16 @@ void main() {
       );
       githubService.githubIssueMock = issue;
 
-      pubsub.publish('auto-submit-queue-sub', pullRequest);
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-          config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNull);
@@ -148,11 +166,16 @@ void main() {
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
-      pubsub.publish('auto-submit-queue-sub', pullRequest);
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-          config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNotNull);
@@ -170,8 +193,12 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       final FakePubSub pubsub = FakePubSub();
-      final PullRequest pullRequest =
-          generatePullRequest(prNumber: 0, repoName: slug.name, authorAssociation: 'OWNER', labelName: 'revert');
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        authorAssociation: 'OWNER',
+        labelName: 'revert',
+      );
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -179,11 +206,16 @@ void main() {
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
-      pubsub.publish('auto-submit-queue-sub', pullRequest);
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-          config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
@@ -204,11 +236,12 @@ void main() {
       githubService.useRealComment = true;
       final FakePubSub pubsub = FakePubSub();
       final PullRequest pullRequest = generatePullRequest(
-          prNumber: 0,
-          repoName: slug.name,
-          authorAssociation: 'OWNER',
-          labelName: 'revert',
-          body: 'Reverts flutter/flutter#1234');
+        prNumber: 0,
+        repoName: slug.name,
+        authorAssociation: 'OWNER',
+        labelName: 'revert',
+        body: 'Reverts flutter/flutter#1234',
+      );
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -216,11 +249,16 @@ void main() {
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
 
-      pubsub.publish('auto-submit-queue-sub', pullRequest);
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
 
       await validationService.processRevertRequest(
-          config: config, result: queryResult, messagePullRequest: pullRequest, ackId: 'test', pubsub: pubsub);
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
 
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNotNull);
