@@ -63,7 +63,7 @@ class _ErrorBrookWatcherState extends State<ErrorBrookWatcher> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: snackbarContent,
-        backgroundColor: Theme.of(context).errorColor,
+        backgroundColor: Theme.of(context).colorScheme.error,
         duration: ErrorBrookWatcher.errorSnackbarDuration,
       ),
     );
