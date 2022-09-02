@@ -23,6 +23,8 @@ Review request for Revert PR $repositorySlug#$revertPrNumber
 ''';
   }
 
+  // TODO (ricardoamador) add the step about adding the revert_review label 
+  // back in once bot can respond to it.
   /// Constructs the issues body.
   String _constructBody() {
     return '''
@@ -34,8 +36,7 @@ revert request listed above.
 
 Please do the following so that we may track this issue to completion:
 1. Add the reviewer of revert pull request as the assignee of this issue.
-2. Add the label 'revert_review' to this issue.
-3. Close only when the review has been completed.
+2. Close only when the review has been completed.
 
 
 DO NOT EDIT, REVERT METADATA
