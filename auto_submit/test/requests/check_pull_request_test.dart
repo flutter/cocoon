@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 // ignore_for_file: constant_identifier_names
+import 'dart:async';
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
@@ -106,7 +107,7 @@ void main() {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest1;
       for (int i = 0; i < 2; i++) {
-        pubsub.publish('auto-submit-queue-sub', pullRequest1);
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -129,7 +130,7 @@ void main() {
       githubService.pullRequestData = pullRequest1;
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 0, state: 'close'));
       for (int i = 0; i < 2; i++) {
-        pubsub.publish('auto-submit-queue-sub', pullRequest1);
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -149,7 +150,7 @@ void main() {
       int errorIndex = 0;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -184,7 +185,7 @@ void main() {
 
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -213,7 +214,7 @@ void main() {
     test('Merges unapproved PR from autoroller', () async {
       final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: rollorAuthor);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -251,7 +252,7 @@ void main() {
     test('Merges PR with failed tree status if override tree status label is provided', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, labelName: labelName);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -280,7 +281,7 @@ void main() {
     test('Merges a clean revert PR with in progress tests', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
       flutterRequest = PullRequestHelper(
@@ -309,7 +310,7 @@ void main() {
     test('Merges PR with successful checks on repo without tree status', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -338,7 +339,7 @@ void main() {
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = neutralCheckRunsMock;
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -358,7 +359,7 @@ void main() {
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = failedCheckRunsMock;
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -375,7 +376,7 @@ void main() {
     test('Removes the label for the PR with failed status', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -396,7 +397,7 @@ void main() {
     test('Removes the label if non member does not have at least 2 member reviews', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
 
@@ -417,7 +418,7 @@ void main() {
     test('Removes the label for the PR with null checks and statuses', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
 
       githubService.checkRunsData = emptyCheckRunsMock;
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -439,7 +440,7 @@ void main() {
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
       githubService.checkRunsData = inProgressCheckRunsMock;
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -460,7 +461,7 @@ void main() {
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
-        pubsub.publish(testTopic, pr);
+        unawaited(pubsub.publish(testTopic, pr));
       }
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(prNumber: 0);
@@ -472,7 +473,7 @@ void main() {
     test('Self review is disallowed', () async {
       PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
       githubService.pullRequestData = pullRequest;
-      pubsub.publish(testTopic, pullRequest);
+      unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       flutterRequest = PullRequestHelper(
         author: 'some_rando',
@@ -480,7 +481,10 @@ void main() {
         authorAssociation: 'MEMBER',
         reviews: <PullRequestReviewHelper>[
           const PullRequestReviewHelper(
-              authorName: 'some_rando', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+            authorName: 'some_rando',
+            state: ReviewState.APPROVED,
+            memberType: MemberType.MEMBER,
+          )
         ],
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
@@ -495,7 +499,7 @@ void main() {
     test('All messages are pulled', () async {
       for (int i = 0; i < 3; i++) {
         final PullRequest pullRequest = generatePullRequest(prNumber: i, repoName: cocoonRepo);
-        pubsub.publish('auto-submit-queue-sub', pullRequest);
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
