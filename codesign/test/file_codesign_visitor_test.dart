@@ -599,5 +599,134 @@ status: Invalid''',
         ),
       );
     });
+
+    test('upload notary retries upon failure', () async {
+      fileSystem.file('${tempDir.absolute.path}/temp').createSync();
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Error uploading file. 
+ Id: something that causes failure
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+        ),
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Successfully uploaded file. 
+ id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+        ),
+      ]);
+
+      final String uuid = codesignVisitor.uploadZipToNotary(
+        fileSystem.file('${tempDir.absolute.path}/temp'),
+        3,
+        0,
+      );
+      expect(uuid, '2efe2717-52ef-43a5-96dc-0797e4ca1041');
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(
+        messages,
+        contains('Failed to upload to the notary service with args: '
+            'xcrun notarytool submit ${tempDir.absolute.path}/temp '
+            '--apple-id abcd1234 --password abcd1234 --team-id abcd1234'),
+      );
+      expect(
+        messages,
+        contains('Trying again 2 more times...'),
+      );
+    });
+
+    test('upload notary throws exception after 3 default tries', () async {
+      fileSystem.file('${tempDir.absolute.path}/temp').createSync();
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Error uploading file. 
+ Id: something that causes failure
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+        ),
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Error uploading file. 
+ Id: something that causes failure
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+        ),
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Error uploading file. 
+ Id: something that causes failure
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+        ),
+      ]);
+
+      expect(
+        () => codesignVisitor.uploadZipToNotary(
+          fileSystem.file('${tempDir.absolute.path}/temp'),
+          3,
+          0,
+        ),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
   });
 }

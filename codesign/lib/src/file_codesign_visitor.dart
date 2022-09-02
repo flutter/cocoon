@@ -92,6 +92,7 @@ class FileCodesignVisitor {
 ''';
   static const Duration _notarizationTimerDuration = Duration(seconds: 45);
   static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
+  static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
   static const String fixItInstructions = '''
 Codesign test failed.
@@ -273,10 +274,6 @@ update these file paths accordingly.
     await completer.future;
   }
 
-  String uploadZipToNotary(File localFile, [int retryCount = 3]) {
-    throw UnimplementedError('will implement later');
-  }
-
   /// Make a request to the notary service to see if the notary job is finished.
   ///
   /// A return value of true means that notarization finished successfully,
@@ -318,5 +315,45 @@ update these file paths accordingly.
       return false;
     }
     throw CodesignException('Notarization failed with: $status\n$combinedOutput');
+  }
+
+  /// Upload artifact to Apple notary service.
+  String uploadZipToNotary(File localFile, [int retryCount = 3, int sleepTime = 1]) {
+    while (retryCount > 0) {
+      final List<String> args = <String>[
+        'xcrun',
+        'notarytool',
+        'submit',
+        localFile.absolute.path,
+        '--apple-id',
+        codesignAppstoreId,
+        '--password',
+        appSpecificPassword,
+        '--team-id',
+        codesignTeamId,
+      ];
+
+      log.info('uploading ${args.join(' ')}');
+      final io.ProcessResult result = processManager.runSync(args);
+
+      final String combinedOutput = (result.stdout as String) + (result.stderr as String);
+      final RegExpMatch? match;
+      match = _notarytoolRequestPattern.firstMatch(combinedOutput);
+
+      if (match == null) {
+        log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
+        log.warning('{combinedOutput.trim()}');
+        retryCount -= 1;
+        log.warning('Trying again $retryCount more time${retryCount > 1 ? 's' : ''}...');
+        io.sleep(Duration(seconds: sleepTime));
+        continue;
+      }
+
+      final String requestUuid = match.group(1)!;
+      log.info('RequestUUID for ${localFile.path} is: $requestUuid');
+
+      return requestUuid;
+    }
+    throw CodesignException('Failed to upload ${localFile.path} to the notary service');
   }
 }
