@@ -661,6 +661,52 @@ status: Invalid''',
       );
     });
 
+    test('upload notary prompts user if exit code is normal', () async {
+      fileSystem.file('${tempDir.absolute.path}/temp').createSync();
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '${tempDir.absolute.path}/temp',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''Error uploading file.
+ Id: something that causes failure
+ path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
+          exitCode: 0,
+        ),
+      ]);
+
+      expect(
+        () => codesignVisitor.uploadZipToNotary(
+          fileSystem.file('${tempDir.absolute.path}/temp'),
+          1,
+          0,
+        ),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(
+        messages,
+        contains('The upload to notary service completed normally, but the '
+            'output format does not match the current notary tool version. If '
+            'after inspecting the output below, you believe the process finished '
+            'successfully but was not detected, please contact fujino@'),
+      );
+    });
+
     test('upload notary throws exception after 3 default tries', () async {
       fileSystem.file('${tempDir.absolute.path}/temp').createSync();
       processManager.addCommands(<FakeCommand>[

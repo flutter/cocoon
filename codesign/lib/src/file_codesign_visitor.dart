@@ -341,6 +341,12 @@ update these file paths accordingly.
       match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
       if (match == null) {
+        if (result.exitCode >= 0 && result.exitCode <= 255) {
+          log.warning('The upload to notary service completed normally, but'
+              ' the output format does not match the current notary tool version.'
+              ' If after inspecting the output below, you believe the process finished '
+              'successfully but was not detected, please contact fujino@');
+        }
         log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
         log.warning('{combinedOutput.trim()}');
         retryCount -= 1;
