@@ -460,4 +460,144 @@ file_c''',
           ));
     });
   });
+
+  group('notarization tests: ', () {
+    setUp(() {
+      tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+      processManager = FakeProcessManager.list(<FakeCommand>[]);
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        codesignUserName: randomString,
+        appSpecificPassword: randomString,
+        codesignAppstoreId: randomString,
+        codesignTeamId: randomString,
+        codesignFilepaths: fakeFilepaths,
+        commitHash: randomString,
+        fileSystem: fileSystem,
+        processManager: processManager,
+        tempDir: tempDir,
+      );
+      codesignVisitor.directoriesVisited.clear();
+      records.clear();
+      log.onRecord.listen((LogRecord record) => records.add(record));
+    });
+
+    test('successful notarization check returns true', () async {
+      processManager.addCommands(<FakeCommand>[
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            randomString,
+            '--password',
+            randomString,
+            '--apple-id',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''createdDate: 2021-04-29T01:38:09.498Z
+id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
+name: OvernightTextEditor_11.6.8.zip
+status: Accepted''',
+        ),
+      ]);
+
+      expect(
+        codesignVisitor.checkNotaryJobFinished(randomString),
+        true,
+      );
+    });
+
+    test('wrong format (such as altool) check throws exception', () async {
+      processManager.addCommands(<FakeCommand>[
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            randomString,
+            '--password',
+            randomString,
+            '--apple-id',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''RequestUUID: 2EFE2717-52EF-43A5-96DC-0797E4CA1041
+Date: 2021-07-02 20:32:01 +0000
+Status: invalid
+LogFileURL: https://osxapps.itunes.apple.com/...
+Status Code: 2
+Status Message: Package Invalid''',
+        ),
+      ]);
+
+      expect(
+        () => codesignVisitor.checkNotaryJobFinished(randomString),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
+
+    test('in progress notarization check returns false', () async {
+      processManager.addCommands(<FakeCommand>[
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            randomString,
+            '--password',
+            randomString,
+            '--apple-id',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''createdDate: 2021-04-29T01:38:09.498Z
+id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
+name: OvernightTextEditor_11.6.8.zip
+status: In Progress''',
+        ),
+      ]);
+
+      expect(
+        codesignVisitor.checkNotaryJobFinished(randomString),
+        false,
+      );
+    });
+
+    test('invalid status check throws exception', () async {
+      processManager.addCommands(<FakeCommand>[
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            randomString,
+            '--password',
+            randomString,
+            '--apple-id',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: '''createdDate: 2021-04-29T01:38:09.498Z
+id: 2efe2717-52ef-43a5-96dc-0797e4ca1041
+name: OvernightTextEditor_11.6.8.zip
+status: Invalid''',
+        ),
+      ]);
+
+      expect(
+        () => codesignVisitor.checkNotaryJobFinished(randomString),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
+  });
 }
