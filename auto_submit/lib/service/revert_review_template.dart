@@ -23,7 +23,7 @@ Review request for Revert PR $repositorySlug#$revertPrNumber
 ''';
   }
 
-  // TODO (ricardoamador) add the step about adding the revert_review label 
+  // TODO (ricardoamador) add the step about adding the revert_review label
   // back in once bot can respond to it.
   /// Constructs the issues body.
   String _constructBody() {
