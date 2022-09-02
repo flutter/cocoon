@@ -200,7 +200,10 @@ class ValidationService {
     } else {
       log.info('Attempting to insert a merge request record into the database for $prNumber');
       await insertPullRequestRecord(
-          config: config, pullRequest: messagePullRequest, pullRequestType: PullRequestType.merge,);
+        config: config,
+        pullRequest: messagePullRequest,
+        pullRequestType: PullRequestType.merge,
+      );
       log.info('Record inserted for $prNumber successfully.');
     }
 
@@ -253,7 +256,10 @@ class ValidationService {
 
           log.info('Attempting to insert a revert request record into the database for $prNumber');
           await insertPullRequestRecord(
-              config: config, pullRequest: messagePullRequest, pullRequestType: PullRequestType.revert,);
+            config: config,
+            pullRequest: messagePullRequest,
+            pullRequestType: PullRequestType.revert,
+          );
           log.info('Record inserted for $prNumber successfully.');
         } on github.GitHubError catch (exception) {
           // We have merged but failed to create follow up issue.

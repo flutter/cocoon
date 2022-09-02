@@ -5,6 +5,6 @@
 class BigQueryException implements Exception {
   /// Create a custom exception for Big Query Errors.
   BigQueryException(this.cause);
-  
+
   final String cause;
 }
