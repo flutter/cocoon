@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/model/big_query_pull_request_record.dart';
+import 'package:auto_submit/model/pr_type.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
-import 'package:auto_submit/service/approver_service.dart';
+import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
@@ -23,6 +25,7 @@ import '../validations/change_requested.dart';
 import '../validations/conflicting.dart';
 import '../validations/empty_checks.dart';
 import '../validations/validation.dart';
+import 'approver_service.dart';
 
 /// Provides an extensible and standardized way to validate different aspects of
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
@@ -329,6 +332,32 @@ Exception: ${exception.message}
       required String message}) async {
     await githubService.removeLabel(repositorySlug, prNumber, prLabel);
     await githubService.createComment(repositorySlug, prNumber, message);
+  }
+
+  Future<void> insertPullRequestRecord(
+      Config config, github.PullRequest pullRequest, PullRequestType pullRequestType) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final GithubService gitHubService = await config.createGithubService(slug);
+    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+
+    // add a record for the pull request into our metrics tracking
+    PullRequestRecord pullRequestRecord = PullRequestRecord(
+      prCreatedTimestamp: currentPullRequest.createdAt!.millisecondsSinceEpoch,
+      prLandedTimestamp: currentPullRequest.closedAt!.millisecondsSinceEpoch,
+      organization: currentPullRequest.base!.repo!.slug().owner,
+      repository: currentPullRequest.base!.repo!.slug().name,
+      author: currentPullRequest.user!.login,
+      prId: currentPullRequest.number,
+      prCommit: currentPullRequest.head!.sha,
+      prRequestType: pullRequestType.getName,
+    );
+
+    try {
+      BigqueryService bigqueryService = await config.createBigQueryService();
+      await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
+    } catch (exception) {
+      log.severe(exception.toString());
+    }
   }
 }
 

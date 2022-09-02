@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/secrets.dart';
@@ -35,6 +36,7 @@ class FakeConfig extends Config {
   String? overrideTreeStatusLabelValue;
   String? webhookKey;
   int? kPubsubPullNumberValue;
+  BigqueryService? bigqueryService;
 
   @override
   int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;
@@ -72,4 +74,7 @@ class FakeConfig extends Config {
   Future<String> getFlutterGitHubBotToken() async {
     return 'not_a_real_token';
   }
+
+  @override
+  Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 }
