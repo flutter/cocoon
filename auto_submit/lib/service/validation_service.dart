@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pr_type.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
@@ -335,7 +336,9 @@ Exception: ${exception.message}
   }
 
   Future<void> insertPullRequestRecord(
-      Config config, github.PullRequest pullRequest, PullRequestType pullRequestType) async {
+      Config config, 
+      github.PullRequest pullRequest, 
+      PullRequestType pullRequestType,) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
@@ -355,8 +358,8 @@ Exception: ${exception.message}
     try {
       BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
-    } catch (exception) {
-      log.severe(exception.toString());
+    } on BigQueryException catch (exception) {
+      log.severe(exception.cause);
     }
   }
 }
