@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
@@ -304,26 +306,55 @@ Exception: ${exception.message}
       // errors.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
 
-      final graphql.QueryResult result = await client.mutate(
-        graphql.MutationOptions(
-          document: mergePullRequestMutation,
-          variables: <String, dynamic>{
-            'id': id,
-            'oid': sha,
-            'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
-          },
-        ),
-      );
-      if (result.hasException) {
-        final String message = 'Failed to merge pr#: $number with ${result.exception}';
+      bool mergeSuccessful = false;
+      int i = 1;
+      while (i <= Config.backoffAttempts) {
+        final graphql.QueryResult result = await client.mutate(
+          graphql.MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': id,
+              'oid': sha,
+              'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
+            },
+          ),
+        );
+
+        if (result.hasException) {
+          if (result.exception!.graphqlErrors.length == 1 &&
+              result.exception!.graphqlErrors.first.message
+                  .contains('Base branch was modified. Review and try the merge again')) {
+            log.info(
+                'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.');
+            final int durationMilliseconds = (Config.backOffBase ^ i) * Config.backOfMultiplier;
+            log.info('Reattempting merge of pr#: $number in $durationMilliseconds milliseconds.');
+            sleep(Duration(milliseconds: (Config.backOffBase ^ i) * Config.backOfMultiplier));
+          } else {
+            // Could not confirm exception message or there was more than one exception message.
+            final String message = 'Failed to merge pr#: $number with ${result.exception}';
+            log.severe(message);
+            return ProcessMergeResult(false, message);
+          }
+        } else {
+          // No exception was encountered.
+          mergeSuccessful = true;
+          break;
+        }
+        i++;
+      }
+
+      if (!mergeSuccessful) {
+        final String message = 'Failed to merge pr#: $number, merge attempts were exhausted.';
         log.severe(message);
         return ProcessMergeResult(false, message);
       }
     } catch (e) {
+      // Catch graphql client init exceptions.
       final String message = 'Failed to merge pr#: $number with $e';
       log.severe(message);
       return ProcessMergeResult(false, message);
     }
+
     return ProcessMergeResult.noMessage(true);
   }
 
