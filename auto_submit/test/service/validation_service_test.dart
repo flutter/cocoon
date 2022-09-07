@@ -273,7 +273,7 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(
               graphqlErrors: [
-                const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
+                const GraphQLError(message: 'Base branch was modified. Review and try the merge again'),
               ],
             ),
           );
@@ -320,8 +320,6 @@ void main() {
       // if the merge is successful we do not remove the label and we do not add a comment to the issue.
       expect(githubService.issueComment, isNotNull);
       expect(githubService.labelRemoved, true);
-      final IssueComment issueComment = githubService.issueComment!;
-      assert(issueComment.body!.contains('merge attempts were exhausted'));
       // We acknowledge the issue.
       assert(pubsub.messagesQueue.isEmpty);
     });

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-import 'dart:math';
+import 'dart:async';
 
+import 'package:auto_submit/exception/retryable_merge_exception.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
@@ -296,11 +296,7 @@ Exception: ${exception.message}
     required QueryResult queryResult,
     required github.PullRequest messagePullRequest,
   }) async {
-    final String id = queryResult.repository!.pullRequest!.id!;
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final PullRequest pullRequest = queryResult.repository!.pullRequest!;
-    final Commit commit = pullRequest.commits!.nodes!.single.commit!;
-    final String? sha = commit.oid;
     final int number = messagePullRequest.number!;
 
     try {
@@ -308,52 +304,25 @@ Exception: ${exception.message}
       // errors.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
 
-      bool mergeSuccessful = false;
-      int i = 1;
-      while (i <= Config.backoffAttempts) {
-        final graphql.QueryResult result = await client.mutate(
-          graphql.MutationOptions(
-            document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': id,
-              'oid': sha,
-              'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
-            },
-          ),
+      graphql.QueryResult? result;
+
+      await _runProcessMergeWithRetries(() async {
+        result = await _processMergeInternal(
+          client: client,
+          config: config,
+          queryResult: queryResult,
+          messagePullRequest: messagePullRequest,
         );
+      });
 
-        if (result.hasException) {
-          if (result.exception!.graphqlErrors.length == 1 &&
-              result.exception!.graphqlErrors.first.message
-                  .contains('Base branch was modified. Review and try the merge again')) {
-            log.info(
-              'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.',
-            );
-            final int durationMilliseconds = (pow(Config.backOffBase, i)) * Config.backOfMultiplier as int;
-            log.info('Reattempting merge of pr#: $number in $durationMilliseconds milliseconds.');
-            sleep(Duration(milliseconds: durationMilliseconds));
-          } else {
-            // Could not confirm exception message or there was more than one exception message.
-            final String message = 'Failed to merge pr#: $number with ${result.exception}';
-            log.severe(message);
-            return ProcessMergeResult(false, message);
-          }
-        } else {
-          // No exception was encountered.
-          mergeSuccessful = true;
-          break;
-        }
-        i++;
-      }
-
-      if (!mergeSuccessful) {
-        final String message = 'Failed to merge pr#: $number, merge attempts were exhausted.';
+      if (result != null && result!.hasException) {
+        final String message = 'Failed to merge pr#: $number with ${result!.exception}';
         log.severe(message);
         return ProcessMergeResult(false, message);
       }
     } catch (e) {
       // Catch graphql client init exceptions.
-      final String message = 'Failed to merge pr#: $number with $e';
+      final String message = 'Failed to merge pr#: $number with ${e.toString()}';
       log.severe(message);
       return ProcessMergeResult(false, message);
     }
@@ -382,4 +351,60 @@ class ProcessMergeResult {
 
   bool result = false;
   String? message;
+}
+
+/// Function signature that will be executed with retries.
+typedef RetryHandler = Function();
+
+/// Runs the internal processMerge with retries.
+Future<void> _runProcessMergeWithRetries(RetryHandler retryHandler, {RetryOptions? retryOptions}) {
+  final RetryOptions r = retryOptions ??
+      const RetryOptions(
+        delayFactor: Duration(milliseconds: Config.backOfMultiplier),
+        maxDelay: Duration(seconds: Config.maxDelaySeconds),
+        maxAttempts: Config.backoffAttempts,
+      );
+  return r.retry(
+    retryHandler,
+    retryIf: (Exception e) => e is RetryableMergeException,
+  );
+}
+
+/// Internal wrapper for the logic of merging a pull request into github.
+Future<graphql.QueryResult> _processMergeInternal({
+  required graphql.GraphQLClient client,
+  required Config config,
+  required QueryResult queryResult,
+  required github.PullRequest messagePullRequest,
+}) async {
+  final String id = queryResult.repository!.pullRequest!.id!;
+
+  final PullRequest pullRequest = queryResult.repository!.pullRequest!;
+  final Commit commit = pullRequest.commits!.nodes!.single.commit!;
+  final String? sha = commit.oid;
+  final int number = messagePullRequest.number!;
+
+  final graphql.QueryResult result = await client.mutate(
+    graphql.MutationOptions(
+      document: mergePullRequestMutation,
+      variables: <String, dynamic>{
+        'id': id,
+        'oid': sha,
+        'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
+      },
+    ),
+  );
+
+  // We have to make this check because mutate does not explicitely throw an
+  // exception, rather it wraps any exceptions encountered.
+  if (result.hasException) {
+    if (result.exception!.graphqlErrors.length == 1 &&
+        result.exception!.graphqlErrors.first.message
+            .contains('Base branch was modified. Review and try the merge again')) {
+      // This exception will bubble up if retries are exhausted.
+      throw RetryableMergeException(result.exception!.graphqlErrors.first.message, result.exception!.graphqlErrors);
+    }
+  }
+
+  return result;
 }
