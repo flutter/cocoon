@@ -335,18 +335,20 @@ update these file paths accordingly.
 
       log.info('uploading ${args.join(' ')}');
       final io.ProcessResult result = processManager.runSync(args);
+      if (result.exitCode < 0 || result.exitCode > 255) {
+        throw CodesignException(
+            'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}');
+      }
 
       final String combinedOutput = (result.stdout as String) + (result.stderr as String);
       final RegExpMatch? match;
       match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
       if (match == null) {
-        if (result.exitCode >= 0 && result.exitCode <= 255) {
-          log.warning('The upload to notary service completed normally, but'
-              ' the output format does not match the current notary tool version.'
-              ' If after inspecting the output below, you believe the process finished '
-              'successfully but was not detected, please contact fujino@');
-        }
+        log.warning('The upload to notary service completed normally, but'
+            ' the output format does not match the current notary tool version.'
+            ' If after inspecting the output below, you believe the process finished '
+            'successfully but was not detected, please contact fujino@');
         log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
         log.warning('{combinedOutput.trim()}');
         retryCount -= 1;
