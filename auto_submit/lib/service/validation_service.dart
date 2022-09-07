@@ -18,6 +18,7 @@ import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
+import 'package:retry/retry.dart';
 
 import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
@@ -330,7 +331,6 @@ Exception: ${exception.message}
             );
             final int durationMilliseconds = (pow(Config.backOffBase, i)) * Config.backOfMultiplier as int;
             log.info('Reattempting merge of pr#: $number in $durationMilliseconds milliseconds.');
-            print(durationMilliseconds);
             sleep(Duration(milliseconds: durationMilliseconds));
           } else {
             // Could not confirm exception message or there was more than one exception message.
