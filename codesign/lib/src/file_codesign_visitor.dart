@@ -335,7 +335,7 @@ update these file paths accordingly.
 
       log.info('uploading ${args.join(' ')}');
       final io.ProcessResult result = processManager.runSync(args);
-      if (result.exitCode < 0 || result.exitCode > 255) {
+      if (result.exitCode != 0) {
         throw CodesignException(
             'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}');
       }
