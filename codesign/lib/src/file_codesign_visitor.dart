@@ -345,10 +345,6 @@ update these file paths accordingly.
       match = _notarytoolRequestPattern.firstMatch(combinedOutput);
 
       if (match == null) {
-        log.warning('The upload to notary service completed normally, but'
-            ' the output format does not match the current notary tool version.'
-            ' If after inspecting the output below, you believe the process finished '
-            'successfully but was not detected, please contact fujino@');
         log.warning('Failed to upload to the notary service with args: ${args.join(' ')}');
         log.warning('{combinedOutput.trim()}');
         retryCount -= 1;
@@ -362,6 +358,10 @@ update these file paths accordingly.
 
       return requestUuid;
     }
+    log.warning('The upload to notary service failed after retries, and'
+        '  the output format does not match the current notary tool version.'
+        ' If after inspecting the output, you believe the process finished '
+        'successfully but was not detected, please contact flutter release engineers');
     throw CodesignException('Failed to upload ${localFile.path} to the notary service');
   }
 }

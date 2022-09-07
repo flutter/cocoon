@@ -657,13 +657,6 @@ status: Invalid''',
       );
       expect(
         messages,
-        contains('The upload to notary service completed normally, but'
-            ' the output format does not match the current notary tool version.'
-            ' If after inspecting the output below, you believe the process finished '
-            'successfully but was not detected, please contact fujino@'),
-      );
-      expect(
-        messages,
         contains('Trying again 2 more times...'),
       );
     });
@@ -687,7 +680,7 @@ status: Invalid''',
           stdout: '''Error uploading file.
  Id: something that causes failure
  path: /Users/flutter/Desktop/OvernightTextEditor_11.6.8.zip''',
-          exitCode: 256,
+          exitCode: -1,
         ),
       ]);
 
@@ -768,6 +761,17 @@ status: Invalid''',
         throwsA(
           isA<CodesignException>(),
         ),
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(
+        messages,
+        contains('The upload to notary service failed after retries, and'
+            '  the output format does not match the current notary tool version.'
+            ' If after inspecting the output, you believe the process finished '
+            'successfully but was not detected, please contact flutter release engineers'),
       );
     });
   });
