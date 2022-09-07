@@ -326,7 +326,8 @@ Exception: ${exception.message}
               result.exception!.graphqlErrors.first.message
                   .contains('Base branch was modified. Review and try the merge again')) {
             log.info(
-                'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.',);
+              'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.',
+            );
             final int durationMilliseconds = (pow(Config.backOffBase, i)) * Config.backOfMultiplier as int;
             log.info('Reattempting merge of pr#: $number in $durationMilliseconds milliseconds.');
             print(durationMilliseconds);

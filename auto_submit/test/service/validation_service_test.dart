@@ -271,9 +271,11 @@ void main() {
 
     test('Exhaust retries on merge on retryable error.', () async {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-            exception: OperationException(graphqlErrors: [
-              const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
-            ],),
+            exception: OperationException(
+              graphqlErrors: [
+                const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
+              ],
+            ),
           );
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
@@ -326,9 +328,11 @@ void main() {
 
     test('Do not retry merge on non retryable error.', () async {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
-            exception: OperationException(graphqlErrors: [
-              const GraphQLError(message: 'Branches have diverged. Request cannot be merged.'),
-            ],),
+            exception: OperationException(
+              graphqlErrors: [
+                const GraphQLError(message: 'Branches have diverged. Request cannot be merged.'),
+              ],
+            ),
           );
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
