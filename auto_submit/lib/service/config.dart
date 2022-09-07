@@ -34,7 +34,7 @@ class Config {
   static const String kRevertLabel = 'revert';
 
   static const int backOffBase = 2;
-  static const int backOfMultiplier = 100;
+  static const int backOfMultiplier = 50;
   static const int backoffAttempts = 5;
 
   final CacheProvider cacheProvider;

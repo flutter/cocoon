@@ -273,7 +273,7 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(graphqlErrors: [
               const GraphQLError(message: 'Base branch was modified. Review and try the merge again.'),
-            ]),
+            ],),
           );
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
@@ -328,7 +328,7 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(graphqlErrors: [
               const GraphQLError(message: 'Branches have diverged. Request cannot be merged.'),
-            ]),
+            ],),
           );
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,

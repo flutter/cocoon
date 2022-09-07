@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/approver_service.dart';
@@ -325,10 +326,11 @@ Exception: ${exception.message}
               result.exception!.graphqlErrors.first.message
                   .contains('Base branch was modified. Review and try the merge again')) {
             log.info(
-                'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.');
-            final int durationMilliseconds = (Config.backOffBase ^ i) * Config.backOfMultiplier;
+                'Retryable error "Base branch was modified. Review and try the merge again." has occurred when attempting to merge pull request pr# $number.',);
+            final int durationMilliseconds = (pow(Config.backOffBase, i)) * Config.backOfMultiplier as int;
             log.info('Reattempting merge of pr#: $number in $durationMilliseconds milliseconds.');
-            sleep(Duration(milliseconds: (Config.backOffBase ^ i) * Config.backOfMultiplier));
+            print(durationMilliseconds);
+            sleep(Duration(milliseconds: durationMilliseconds));
           } else {
             // Could not confirm exception message or there was more than one exception message.
             final String message = 'Failed to merge pr#: $number with ${result.exception}';
