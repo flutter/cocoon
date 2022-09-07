@@ -10,6 +10,7 @@ import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
@@ -270,6 +271,11 @@ void main() {
     });
 
     test('Exhaust retries on merge on retryable error.', () async {
+      validationService = ValidationService(
+        config,
+        retryOptions:
+            const RetryOptions(delayFactor: Duration(milliseconds: 50), maxDelay: Duration(seconds: 1), maxAttempts: 3),
+      );
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(
               graphqlErrors: [

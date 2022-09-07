@@ -32,7 +32,13 @@ import '../validations/validation.dart';
 /// a commit to ensure it is ready to land, it has been reviewed, and it has been
 /// tested. The expectation is that the list of validation will grow overtime.
 class ValidationService {
-  ValidationService(this.config) {
+  ValidationService(this.config, {RetryOptions? retryOptions})
+      : retryOptions = retryOptions ??
+            const RetryOptions(
+              delayFactor: Duration(milliseconds: Config.backOfMultiplier),
+              maxDelay: Duration(seconds: Config.maxDelaySeconds),
+              maxAttempts: Config.backoffAttempts,
+            ) {
     /// Validates a PR marked with the reverts label.
     revertValidation = Revert(config: config);
     approverService = ApproverService(config);
@@ -62,6 +68,7 @@ class ValidationService {
   ApproverService? approverService;
   final Config config;
   final Set<Validation> validations = <Validation>{};
+  final RetryOptions retryOptions;
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
@@ -306,14 +313,17 @@ Exception: ${exception.message}
 
       graphql.QueryResult? result;
 
-      await _runProcessMergeWithRetries(() async {
-        result = await _processMergeInternal(
-          client: client,
-          config: config,
-          queryResult: queryResult,
-          messagePullRequest: messagePullRequest,
-        );
-      });
+      await _runProcessMergeWithRetries(
+        () async {
+          result = await _processMergeInternal(
+            client: client,
+            config: config,
+            queryResult: queryResult,
+            messagePullRequest: messagePullRequest,
+          );
+        },
+        retryOptions: retryOptions,
+      );
 
       if (result != null && result!.hasException) {
         final String message = 'Failed to merge pr#: $number with ${result!.exception}';
