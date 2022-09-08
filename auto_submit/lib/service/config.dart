@@ -36,6 +36,10 @@ class Config {
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
 
+  static const int backOfMultiplier = 200;
+  static const int backoffAttempts = 3;
+  static const int maxDelaySeconds = 1;
+
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
   final SecretManager secretManager;

@@ -19,9 +19,16 @@ class FakeGraphQLClient implements GraphQLClient {
   final List<QueryOptions> queries = <QueryOptions>[];
   final List<MutationOptions> mutations = <MutationOptions>[];
 
+  // This allows us to simulate returning QueryResults in an order.
+  final List<QueryResult> mutationMap = <QueryResult>[];
+  bool useMutationMapOnMutate = false;
+
   @override
   Future<QueryResult<T>> mutate<T>(MutationOptions options) async {
     mutations.add(options);
+    if (useMutationMapOnMutate) {
+      return mutationMap.removeAt(0) as QueryResult<T>;
+    }
     return mutateResultForOptions(options) as QueryResult<T>;
   }
 
