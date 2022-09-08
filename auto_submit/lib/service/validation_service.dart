@@ -322,7 +322,7 @@ Exception: ${exception.message}
             messagePullRequest: messagePullRequest,
           );
         },
-        retryOptions: retryOptions,
+        retryOptions,
       );
 
       if (result != null && result!.hasException) {
@@ -367,13 +367,8 @@ class ProcessMergeResult {
 typedef RetryHandler = Function();
 
 /// Runs the internal processMerge with retries.
-Future<void> _runProcessMergeWithRetries(RetryHandler retryHandler, {RetryOptions? retryOptions}) {
-  final RetryOptions r = retryOptions ??
-      const RetryOptions(
-        delayFactor: Duration(milliseconds: Config.backOfMultiplier),
-        maxDelay: Duration(seconds: Config.maxDelaySeconds),
-        maxAttempts: Config.backoffAttempts,
-      );
+Future<void> _runProcessMergeWithRetries(RetryHandler retryHandler, RetryOptions retryOptions) {
+  final RetryOptions r = retryOptions;
   return r.retry(
     retryHandler,
     retryIf: (Exception e) => e is RetryableMergeException,
