@@ -274,7 +274,7 @@ void main() {
       validationService = ValidationService(
         config,
         retryOptions:
-            const RetryOptions(delayFactor: Duration(milliseconds: 50), maxDelay: Duration(seconds: 1), maxAttempts: 3),
+            const RetryOptions(delayFactor: Duration(milliseconds: 1), maxDelay: Duration(milliseconds: 1), maxAttempts: 1),
       );
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(

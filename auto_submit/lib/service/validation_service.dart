@@ -368,8 +368,7 @@ typedef RetryHandler = Function();
 
 /// Runs the internal processMerge with retries.
 Future<void> _runProcessMergeWithRetries(RetryHandler retryHandler, RetryOptions retryOptions) {
-  final RetryOptions r = retryOptions;
-  return r.retry(
+  return retryOptions.retry(
     retryHandler,
     retryIf: (Exception e) => e is RetryableMergeException,
   );
