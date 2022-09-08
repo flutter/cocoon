@@ -273,8 +273,8 @@ void main() {
     test('Exhaust retries on merge on retryable error.', () async {
       validationService = ValidationService(
         config,
-        retryOptions:
-            const RetryOptions(delayFactor: Duration(milliseconds: 1), maxDelay: Duration(milliseconds: 1), maxAttempts: 1),
+        retryOptions: const RetryOptions(
+            delayFactor: Duration(milliseconds: 1), maxDelay: Duration(milliseconds: 1), maxAttempts: 1),
       );
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(
