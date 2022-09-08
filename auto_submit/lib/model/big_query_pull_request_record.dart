@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
+
+part 'big_query_pull_request_record.g.dart';
+
+@JsonSerializable()
 class PullRequestRecord {
   PullRequestRecord({
     this.prCreatedTimestamp,
@@ -9,7 +14,7 @@ class PullRequestRecord {
     this.organization,
     this.repository,
     this.author,
-    this.prId,
+    this.prNumber,
     this.prCommit,
     this.prRequestType,
   });
@@ -19,7 +24,7 @@ class PullRequestRecord {
   String? organization;
   String? repository;
   String? author;
-  int? prId;
+  int? prNumber;
   String? prCommit;
   String? prRequestType;
 
@@ -32,36 +37,14 @@ class PullRequestRecord {
   "organization": "$organization",
   "repository": "$repository",
   "author": "$author",
-  "prId": $prId,
+  "prNumber": $prNumber,
   "prCommit": "$prCommit",
   "prRequestType": "$prRequestType"
 }
 """;
   }
 
-  static PullRequestRecord fromJson(Map<String, dynamic> json) {
-    return PullRequestRecord(
-      prCreatedTimestamp: json['prCreatedTimestamp'] as int,
-      prLandedTimestamp: json['prLandedTimestamp'] as int,
-      organization: json['organization'] as String,
-      repository: json['repository'] as String,
-      author: json['author'] as String,
-      prId: json['prId'] as int,
-      prCommit: json['prCommit'] as String,
-      prRequestType: json['prRequestType'] as String,
-    );
-  }
+  factory PullRequestRecord.fromJson(Map<String, dynamic> json) => _$PullRequestRecordFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'prCreatedTimestamp': prCreatedTimestamp,
-      'prLandedTimestamp': prLandedTimestamp,
-      'organization': organization,
-      'repository': repository,
-      'author': author,
-      'prId': prId,
-      'prCommit': prCommit,
-      'prRequestType': prRequestType,
-    };
-  }
+  Map<String, dynamic> toJson() => _$PullRequestRecordToJson(this);
 }

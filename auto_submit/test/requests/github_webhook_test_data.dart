@@ -108,6 +108,7 @@ PullRequest generatePullRequest({
         }
       ],
       "created_at": "2011-01-26T19:01:12Z",
+      "closed_at": "2011-01-26T19:10:12Z",
       "head": {
         "label": "octocat:new-topic",
         "ref": "new-topic",

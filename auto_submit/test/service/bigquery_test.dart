@@ -183,14 +183,17 @@ void main() {
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
-      prId: 345,
+      prNumber: 345,
       prCommit: 'ade456',
       prRequestType: 'merge',
     );
 
     bool hasError = false;
     try {
-      await service.insertPullRequestRecord(expectedProjectId, pullRequestRecord);
+      await service.insertPullRequestRecord(
+        projectId: expectedProjectId,
+        pullRequestRecord: pullRequestRecord,
+      );
     } on BigQueryException {
       hasError = true;
     }
@@ -211,13 +214,16 @@ void main() {
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
-      prId: 345,
+      prNumber: 345,
       prCommit: 'ade456',
       prRequestType: 'merge',
     );
 
     try {
-      await service.insertPullRequestRecord(expectedProjectId, pullRequestRecord);
+      await service.insertPullRequestRecord(
+        projectId: expectedProjectId,
+        pullRequestRecord: pullRequestRecord,
+      );
     } on BigQueryException catch (exception) {
       expect(exception.cause, 'Insert pull request $pullRequestRecord did not complete.');
       hasError = true;
@@ -239,13 +245,16 @@ void main() {
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
-      prId: 345,
+      prNumber: 345,
       prCommit: 'ade456',
       prRequestType: 'merge',
     );
 
     try {
-      await service.insertPullRequestRecord(expectedProjectId, pullRequestRecord);
+      await service.insertPullRequestRecord(
+        projectId: expectedProjectId,
+        pullRequestRecord: pullRequestRecord,
+      );
     } on BigQueryException catch (exception) {
       expect(exception.cause, 'There was an error inserting $pullRequestRecord into the table.');
       hasError = true;
@@ -260,14 +269,18 @@ void main() {
       );
     });
 
-    PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+    PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrNumber(
+      projectId: expectedProjectId,
+      prNumber: 345,
+      repository: 'cocoon',
+    );
     expect(pullRequestRecord, isNotNull);
     expect(pullRequestRecord.prCreatedTimestamp, equals(123456789));
     expect(pullRequestRecord.prLandedTimestamp, equals(234567890));
     expect(pullRequestRecord.organization, equals('flutter'));
     expect(pullRequestRecord.repository, equals('cocoon'));
     expect(pullRequestRecord.author, equals('ricardoamador'));
-    expect(pullRequestRecord.prId, 345);
+    expect(pullRequestRecord.prNumber, 345);
     expect(pullRequestRecord.prCommit, equals('ade456'));
     expect(pullRequestRecord.prRequestType, equals('merge'));
   });
@@ -279,10 +292,14 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+      await service.selectPullRequestRecordByPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
-      expect(exception.cause, 'Get pull request by id 345 in repository cocoon did not complete.');
+      expect(exception.cause, 'Get pull request by pr# 345 in repository cocoon did not complete.');
     }
     expect(hasError, isTrue);
   });
@@ -296,12 +313,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+      await service.selectPullRequestRecordByPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Could not find an entry for pull request with id 345 in repository cocoon.',
+        'Could not find an entry for pull request with pr# 345 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);
@@ -316,12 +337,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectPullRequestRecordByPrId(expectedProjectId, 345, 'cocoon');
+      await service.selectPullRequestRecordByPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'More than one record was returned for pull request with id 345 in repository cocoon.',
+        'More than one record was returned for pull request with pr# 345 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);
@@ -334,12 +359,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
+      await service.deletePullRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Delete pull request with id 345 in repository cocoon did not complete.',
+        'Delete pull request with pr# 345 in repository cocoon did not complete.',
       );
     }
     expect(hasError, isTrue);
@@ -354,12 +383,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
+      await service.deletePullRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Could not find pull request with id 345 in repository cocoon to delete.',
+        'Could not find pull request with pr# 345 in repository cocoon to delete.',
       );
     }
     expect(hasError, isTrue);
@@ -374,12 +407,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deletePullRequestRecord(expectedProjectId, 345, 'cocoon');
+      await service.deletePullRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 345,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'More than one row was deleted from the database for pull request with id 345 in repository cocoon.',
+        'More than one row was deleted from the database for pull request with pr# 345 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);
@@ -396,13 +433,13 @@ void main() {
       organization: 'flutter',
       repository: 'cocoon',
       revertingPrAuthor: 'ricardoamador',
-      revertingPrId: 1024,
+      revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
       revertingPrUrl: 'flutter/cocoon#1024',
       revertingPrCreatedTimestamp: 123456789,
       revertingPrLandedTimestamp: 123456999,
       originalPrAuthor: 'ricardoamador',
-      originalPrId: 1000,
+      originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
       originalPrCreatedTimestamp: 234567890,
       originalPrLandedTimestamp: 234567999,
@@ -410,7 +447,10 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.insertRevertRequest(expectedProjectId, revertRequestRecord);
+      await service.insertRevertRequest(
+        projectId: expectedProjectId,
+        revertRequestRecord: revertRequestRecord,
+      );
     } on BigQueryException {
       hasError = true;
     }
@@ -429,20 +469,23 @@ void main() {
       organization: 'flutter',
       repository: 'cocoon',
       revertingPrAuthor: 'ricardoamador',
-      revertingPrId: 1024,
+      revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
       revertingPrUrl: 'flutter/cocoon#1024',
       revertingPrCreatedTimestamp: 123456789,
       revertingPrLandedTimestamp: 123456999,
       originalPrAuthor: 'ricardoamador',
-      originalPrId: 1000,
+      originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
       originalPrCreatedTimestamp: 234567890,
       originalPrLandedTimestamp: 234567999,
     );
 
     try {
-      await service.insertRevertRequest(expectedProjectId, revertRequestRecord);
+      await service.insertRevertRequest(
+        projectId: expectedProjectId,
+        revertRequestRecord: revertRequestRecord,
+      );
     } on BigQueryException catch (e) {
       expect(e.cause, 'Insert revert request $revertRequestRecord did not complete.');
       hasError = true;
@@ -457,19 +500,22 @@ void main() {
       );
     });
 
-    RevertRequestRecord revertRequestRecord =
-        await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+    RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrNumber(
+      projectId: expectedProjectId,
+      prNumber: 2048,
+      repository: 'cocoon',
+    );
     expect(revertRequestRecord, isNotNull);
     expect(revertRequestRecord.organization, equals('flutter'));
     expect(revertRequestRecord.repository, equals('cocoon'));
     expect(revertRequestRecord.revertingPrAuthor, equals('ricardoamador'));
-    expect(revertRequestRecord.revertingPrId, equals(1024));
+    expect(revertRequestRecord.revertingPrNumber, equals(1024));
     expect(revertRequestRecord.revertingPrCommit, equals('123f124'));
     expect(revertRequestRecord.revertingPrUrl, equals('flutter/cocoon#1024'));
     expect(revertRequestRecord.revertingPrCreatedTimestamp, equals(123456789));
     expect(revertRequestRecord.revertingPrLandedTimestamp, equals(123456999));
     expect(revertRequestRecord.originalPrAuthor, equals('ricardoamador'));
-    expect(revertRequestRecord.originalPrId, equals(2048));
+    expect(revertRequestRecord.originalPrNumber, equals(2048));
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));
     expect(revertRequestRecord.originalPrUrl, equals('flutter/cocoon#2048'));
     expect(revertRequestRecord.originalPrCreatedTimestamp, equals(234567890));
@@ -485,10 +531,14 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+      await service.selectRevertRequestByRevertPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
-      expect(exception.cause, 'Get revert request by id 2048 in repository cocoon did not complete.');
+      expect(exception.cause, 'Get revert request with pr# 2048 in repository cocoon did not complete.');
     }
     expect(hasError, isTrue);
   });
@@ -502,12 +552,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+      await service.selectRevertRequestByRevertPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Could not find an entry for revert request with id 2048 in repository cocoon.',
+        'Could not find an entry for revert request with pr# 2048 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);
@@ -522,12 +576,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.selectRevertRequestByRevertPrId(expectedProjectId, 2048, 'cocoon');
+      await service.selectRevertRequestByRevertPrNumber(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'More than one record was returned for revert request with id 2048 in repository cocoon.',
+        'More than one record was returned for revert request with pr# 2048 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);
@@ -542,12 +600,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
+      await service.deleteRevertRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Delete revert request with id 2048 in repository cocoon did not complete.',
+        'Delete revert request with pr# 2048 in repository cocoon did not complete.',
       );
     }
     expect(hasError, isTrue);
@@ -562,12 +624,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
+      await service.deleteRevertRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'Could not find revert request with id 2048 in repository cocoon to delete.',
+        'Could not find revert request with pr# 2048 in repository cocoon to delete.',
       );
     }
     expect(hasError, isTrue);
@@ -582,12 +648,16 @@ void main() {
 
     bool hasError = false;
     try {
-      await service.deleteRevertRequestRecord(expectedProjectId, 2048, 'cocoon');
+      await service.deleteRevertRequestRecord(
+        projectId: expectedProjectId,
+        prNumber: 2048,
+        repository: 'cocoon',
+      );
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(
         exception.cause,
-        'More than one row was deleted from the database for revert request with id 2048 in repository cocoon.',
+        'More than one row was deleted from the database for revert request with pr# 2048 in repository cocoon.',
       );
     }
     expect(hasError, isTrue);

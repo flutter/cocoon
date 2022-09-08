@@ -16,19 +16,19 @@ const String selectRevertRequestDml = r'''
 SELECT organization,
        repository,
        reverting_pr_author,
-       reverting_pr_id,
+       reverting_pr_number,
        reverting_pr_commit,
        reverting_pr_url,
        reverting_pr_created_timestamp,
        reverting_pr_landed_timestamp,
        original_pr_author,
-       original_pr_id,
+       original_pr_number,
        original_pr_commit,
        original_pr_url,
        original_pr_created_timestamp,
        original_pr_landed_timestamp
 FROM `flutter-dashboard.revert.revert_requests`
-WHERE reverting_pr_id=@REVERTING_PR_ID AND repository=@REPOSITORY
+WHERE reverting_pr_number=@REVERTING_PR_NUMBER AND repository=@REPOSITORY
 ''';
 
 const String insertRevertRequestDml = r'''
@@ -36,13 +36,13 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   organization,
   repository,
   reverting_pr_author,
-  reverting_pr_id,
+  reverting_pr_number,
   reverting_pr_commit,
   reverting_pr_url,
   reverting_pr_created_timestamp,
   reverting_pr_landed_timestamp,
   original_pr_author,
-  original_pr_id,
+  original_pr_number,
   original_pr_commit,
   original_pr_url,
   original_pr_created_timestamp,
@@ -51,13 +51,13 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   @ORGANIZATION,
   @REPOSITORY,
   @REVERTING_PR_AUTHOR,
-  @REVERTING_PR_ID,
+  @REVERTING_PR_NUMBER,
   @REVERTING_PR_COMMIT,
   @REVERTING_PR_URL,
   @REVERTING_PR_CREATED_TIMESTAMP,
   @REVERTING_PR_LANDED_TIMESTAMP,
   @ORIGINAL_PR_AUTHOR,
-  @ORIGINAL_PR_ID,
+  @ORIGINAL_PR_NUMBER,
   @ORIGINAL_PR_COMMIT,
   @ORIGINAL_PR_URL,
   @ORIGINAL_PR_CREATED_TIMESTAMP,
@@ -67,7 +67,7 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
 
 const String deleteRevertRequestDml = r'''
 DELETE FROM `flutter-dashboard.revert.revert_requests`
-WHERE reverting_pr_id=@REVERTING_PR_ID AND repository=@REPOSITORY
+WHERE reverting_pr_number=@REVERTING_PR_NUMBER AND repository=@REPOSITORY
 ''';
 
 const String insertPullRequestDml = r'''
@@ -77,7 +77,7 @@ INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
   organization,
   repository,
   author,
-  pr_id,
+  pr_number,
   pr_commit,
   pr_request_type
 ) VALUES (
@@ -86,7 +86,7 @@ INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
   @ORGANIZATION,
   @REPOSITORY,
   @AUTHOR,
-  @PR_ID,
+  @PR_NUMBER,
   @PR_COMMIT,
   @PR_REQUEST_TYPE
 )
@@ -98,16 +98,16 @@ SELECT pr_created_timestamp,
        organization,
        repository,
        author,
-       pr_id,
+       pr_number,
        pr_commit,
        pr_request_type
 FROM `flutter-dashboard.autosubmit.pull_requests`
-WHERE pr_id=@PR_ID AND repository=@REPOSITORY
+WHERE pr_number=@PR_NUMBER AND repository=@REPOSITORY
 ''';
 
 const String deletePullRequestDml = r'''
 DELETE FROM `flutter-dashboard.autosubmit.pull_requests`
-WHERE pr_id=@PR_ID AND repository=@REPOSITORY
+WHERE pr_number=@PR_NUMBER AND repository=@REPOSITORY
 ''';
 
 class BigqueryService {
@@ -133,7 +133,10 @@ class BigqueryService {
   }
 
   /// Insert a new revert request into the database.
-  Future<void> insertRevertRequest(String projectId, RevertRequestRecord revertRequestRecord) async {
+  Future<void> insertRevertRequest({
+    required String projectId,
+    required RevertRequestRecord revertRequestRecord,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
     final QueryRequest queryRequest = QueryRequest(
@@ -152,8 +155,8 @@ class BigqueryService {
           revertRequestRecord.revertingPrAuthor,
         ),
         _createIntegerQueryParameter(
-          'REVERTING_PR_ID',
-          revertRequestRecord.revertingPrId!,
+          'REVERTING_PR_NUMBER',
+          revertRequestRecord.revertingPrNumber!,
         ),
         _createStringQueryParameter(
           'REVERTING_PR_COMMIT',
@@ -176,8 +179,8 @@ class BigqueryService {
           revertRequestRecord.originalPrAuthor,
         ),
         _createIntegerQueryParameter(
-          'ORIGINAL_PR_ID',
-          revertRequestRecord.originalPrId!,
+          'ORIGINAL_PR_NUMBER',
+          revertRequestRecord.originalPrNumber!,
         ),
         _createStringQueryParameter(
           'ORIGINAL_PR_COMMIT',
@@ -214,17 +217,17 @@ class BigqueryService {
   }
 
   /// Select a specific revert request from the database.
-  Future<RevertRequestRecord> selectRevertRequestByRevertPrId(
-    String projectId,
-    int revertPrId,
-    String repository,
-  ) async {
+  Future<RevertRequestRecord> selectRevertRequestByRevertPrNumber({
+    required String projectId,
+    required int prNumber,
+    required String repository,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
-    QueryRequest queryRequest = QueryRequest(
+    final QueryRequest queryRequest = QueryRequest(
       query: selectRevertRequestDml,
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId),
+        _createIntegerQueryParameter('REVERTING_PR_NUMBER', prNumber),
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -233,37 +236,37 @@ class BigqueryService {
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
-        'Get revert request by id $revertPrId in repository $repository did not complete.',
+        'Get revert request with pr# $prNumber in repository $repository did not complete.',
       );
     }
 
-    List<TableRow>? tableRows = queryResponse.rows;
+    final List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
       throw BigQueryException(
-        'Could not find an entry for revert request with id $revertPrId in repository $repository.',
+        'Could not find an entry for revert request with pr# $prNumber in repository $repository.',
       );
     }
 
     if (tableRows.length != 1) {
       throw BigQueryException(
-        'More than one record was returned for revert request with id $revertPrId in repository $repository.',
+        'More than one record was returned for revert request with pr# $prNumber in repository $repository.',
       );
     }
 
-    RevertRequestRecord revertRequestRecord = RevertRequestRecord();
-    TableRow tableRow = tableRows.first;
+    final RevertRequestRecord revertRequestRecord = RevertRequestRecord();
+    final TableRow tableRow = tableRows.first;
 
     revertRequestRecord
       ..organization = tableRow.f![0].v as String
       ..repository = tableRow.f![1].v as String
       ..revertingPrAuthor = tableRow.f![2].v as String
-      ..revertingPrId = int.parse(tableRow.f![3].v as String)
+      ..revertingPrNumber = int.parse(tableRow.f![3].v as String)
       ..revertingPrCommit = tableRow.f![4].v as String
       ..revertingPrUrl = tableRow.f![5].v as String
       ..revertingPrCreatedTimestamp = int.parse(tableRow.f![6].v as String)
       ..revertingPrLandedTimestamp = int.parse(tableRow.f![7].v as String)
       ..originalPrAuthor = tableRow.f![8].v as String
-      ..originalPrId = int.parse(tableRow.f![9].v as String)
+      ..originalPrNumber = int.parse(tableRow.f![9].v as String)
       ..originalPrCommit = tableRow.f![10].v as String
       ..originalPrUrl = tableRow.f![11].v as String
       ..originalPrCreatedTimestamp = int.parse(tableRow.f![12].v as String)
@@ -272,13 +275,17 @@ class BigqueryService {
     return revertRequestRecord;
   }
 
-  Future<void> deleteRevertRequestRecord(String projectId, int revertPrId, String repository) async {
+  Future<void> deleteRevertRequestRecord({
+    required String projectId,
+    required int prNumber,
+    required String repository,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
-    QueryRequest queryRequest = QueryRequest(
+    final QueryRequest queryRequest = QueryRequest(
       query: deleteRevertRequestDml,
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('REVERTING_PR_ID', revertPrId),
+        _createIntegerQueryParameter('REVERTING_PR_NUMBER', prNumber),
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -287,25 +294,28 @@ class BigqueryService {
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
-        'Delete revert request with id $revertPrId in repository $repository did not complete.',
+        'Delete revert request with pr# $prNumber in repository $repository did not complete.',
       );
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
       throw BigQueryException(
-        'Could not find revert request with id $revertPrId in repository $repository to delete.',
+        'Could not find revert request with pr# $prNumber in repository $repository to delete.',
       );
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
       throw BigQueryException(
-        'More than one row was deleted from the database for revert request with id $revertPrId in repository $repository.',
+        'More than one row was deleted from the database for revert request with pr# $prNumber in repository $repository.',
       );
     }
   }
 
   /// Insert a new pull request record into the database.
-  Future<void> insertPullRequestRecord(String projectId, PullRequestRecord pullRequestRecord) async {
+  Future<void> insertPullRequestRecord({
+    required String projectId,
+    required PullRequestRecord pullRequestRecord,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
     final QueryRequest queryRequest = QueryRequest(
@@ -332,8 +342,8 @@ class BigqueryService {
           pullRequestRecord.author,
         ),
         _createIntegerQueryParameter(
-          'PR_ID',
-          pullRequestRecord.prId,
+          'PR_NUBMER',
+          pullRequestRecord.prNumber,
         ),
         _createStringQueryParameter(
           'PR_COMMIT',
@@ -362,13 +372,17 @@ class BigqueryService {
   }
 
   /// Select a specific pull request form the database.
-  Future<PullRequestRecord> selectPullRequestRecordByPrId(String projectId, int prId, String repository) async {
+  Future<PullRequestRecord> selectPullRequestRecordByPrNumber({
+    required String projectId,
+    required int prNumber,
+    required String repository,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
     final QueryRequest queryRequest = QueryRequest(
       query: selectPullRequestDml,
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('PR_ID', prId),
+        _createIntegerQueryParameter('PR_NUMBER', prNumber),
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -377,25 +391,25 @@ class BigqueryService {
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
-        'Get pull request by id $prId in repository $repository did not complete.',
+        'Get pull request by pr# $prNumber in repository $repository did not complete.',
       );
     }
 
-    List<TableRow>? tableRows = queryResponse.rows;
+    final List<TableRow>? tableRows = queryResponse.rows;
     if (tableRows == null || tableRows.isEmpty) {
       throw BigQueryException(
-        'Could not find an entry for pull request with id $prId in repository $repository.',
+        'Could not find an entry for pull request with pr# $prNumber in repository $repository.',
       );
     }
 
     if (tableRows.length != 1) {
       throw BigQueryException(
-        'More than one record was returned for pull request with id $prId in repository $repository.',
+        'More than one record was returned for pull request with pr# $prNumber in repository $repository.',
       );
     }
 
-    PullRequestRecord pullRequestRecord = PullRequestRecord();
-    TableRow tableRow = tableRows.first;
+    final PullRequestRecord pullRequestRecord = PullRequestRecord();
+    final TableRow tableRow = tableRows.first;
 
     pullRequestRecord
       ..prCreatedTimestamp = int.parse(tableRow.f![0].v as String)
@@ -403,20 +417,24 @@ class BigqueryService {
       ..organization = tableRow.f![2].v as String
       ..repository = tableRow.f![3].v as String
       ..author = tableRow.f![4].v as String
-      ..prId = int.parse(tableRow.f![5].v as String)
+      ..prNumber = int.parse(tableRow.f![5].v as String)
       ..prCommit = tableRow.f![6].v as String
       ..prRequestType = tableRow.f![7].v as String;
 
     return pullRequestRecord;
   }
 
-  Future<void> deletePullRequestRecord(String projectId, int pullRequestId, String repository) async {
+  Future<void> deletePullRequestRecord({
+    required String projectId,
+    required int prNumber,
+    required String repository,
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
 
-    QueryRequest queryRequest = QueryRequest(
+    final QueryRequest queryRequest = QueryRequest(
       query: deletePullRequestDml,
       queryParameters: <QueryParameter>[
-        _createIntegerQueryParameter('PR_ID', pullRequestId),
+        _createIntegerQueryParameter('PR_NUMBER', prNumber),
         _createStringQueryParameter('REPOSITORY', repository),
       ],
       useLegacySql: false,
@@ -425,19 +443,19 @@ class BigqueryService {
     final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
-        'Delete pull request with id $pullRequestId in repository $repository did not complete.',
+        'Delete pull request with pr# $prNumber in repository $repository did not complete.',
       );
     }
 
     if (queryResponse.numDmlAffectedRows == null || int.parse(queryResponse.numDmlAffectedRows!) == 0) {
       throw BigQueryException(
-        'Could not find pull request with id $pullRequestId in repository $repository to delete.',
+        'Could not find pull request with pr# $prNumber in repository $repository to delete.',
       );
     }
 
     if (int.parse(queryResponse.numDmlAffectedRows!) != 1) {
       throw BigQueryException(
-        'More than one row was deleted from the database for pull request with id $pullRequestId in repository $repository.',
+        'More than one row was deleted from the database for pull request with pr# $prNumber in repository $repository.',
       );
     }
   }

@@ -2,12 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-enum PullRequestType {
-  merge(name: 'merge'),
-  rebase(name: 'rebase'),
+/// The type of the change in the pull request we have processed.
+enum PullRequestChangeType {
+  /// Merge is any submitted pull request change that does not undo previous changes.
+  merge(name: 'change'),
+
+  /// Revert is specifically for undoing changes.
   revert(name: 'revert');
 
-  const PullRequestType({required this.name});
+  const PullRequestChangeType({required this.name});
 
   final String name;
 

@@ -2,18 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
+
+part 'big_query_revert_request_record.g.dart';
+
+@JsonSerializable()
 class RevertRequestRecord {
   RevertRequestRecord({
     this.organization,
     this.repository,
     this.revertingPrAuthor,
-    this.revertingPrId,
+    this.revertingPrNumber,
     this.revertingPrCommit,
     this.revertingPrUrl,
     this.revertingPrCreatedTimestamp,
     this.revertingPrLandedTimestamp,
     this.originalPrAuthor,
-    this.originalPrId,
+    this.originalPrNumber,
     this.originalPrCommit,
     this.originalPrUrl,
     this.originalPrCreatedTimestamp,
@@ -24,14 +29,14 @@ class RevertRequestRecord {
   String? repository;
 
   String? revertingPrAuthor;
-  int? revertingPrId;
+  int? revertingPrNumber;
   String? revertingPrCommit;
   String? revertingPrUrl;
   int? revertingPrCreatedTimestamp;
   int? revertingPrLandedTimestamp;
 
   String? originalPrAuthor;
-  int? originalPrId;
+  int? originalPrNumber;
   String? originalPrCommit;
   String? originalPrUrl;
   int? originalPrCreatedTimestamp;
@@ -44,13 +49,13 @@ class RevertRequestRecord {
   "organization": "$organization",
   "repository": "$repository",
   "revertingPrAuthor": "$revertingPrAuthor",
-  "revertingPrId": $revertingPrId,
+  "revertingPrNumber": $revertingPrNumber,
   "revertingPrCommit": "$revertingPrCommit",
   "revertingPrUrl": "$revertingPrUrl",
   "revertingPrCreatedTimestamp": $revertingPrCreatedTimestamp,
   "revertingPrLandedTimestamp": $revertingPrLandedTimestamp,
   "originalPrAuthor": "$originalPrAuthor",
-  "originalPrId": $originalPrId,
+  "originalPrNumber": $originalPrNumber,
   "originalPrCommit": "$originalPrCommit",
   "originalPrUrl": "$originalPrUrl",
   "originalPrCreatedTimestamp": $originalPrCreatedTimestamp,
@@ -58,41 +63,7 @@ class RevertRequestRecord {
 }""";
   }
 
-  static RevertRequestRecord fromJson(Map<String, dynamic> json) {
-    return RevertRequestRecord(
-      organization: json['organization'] as String,
-      repository: json['repository'] as String,
-      revertingPrAuthor: json['revertingPrAuthor'] as String,
-      revertingPrId: json['revertingPrId'] as int,
-      revertingPrCommit: json['revertingPrCommit'] as String,
-      revertingPrUrl: json['revertingPrUrl'] as String,
-      revertingPrCreatedTimestamp: json['revertingPrCreatedTimestamp'] as int,
-      revertingPrLandedTimestamp: json['revertingPrLandedTimestamp'] as int,
-      originalPrAuthor: json['originalPrAuthor'] as String,
-      originalPrId: json['originalPrId'] as int,
-      originalPrCommit: json['originalPrCommit'] as String,
-      originalPrUrl: json['originalPrUrl'] as String,
-      originalPrCreatedTimestamp: json['originalPrCreatedTimestamp'] as int,
-      originalPrLandedTimestamp: json['originalPrLandedTimestamp'] as int,
-    );
-  }
+  factory RevertRequestRecord.fromJson(Map<String, dynamic> json) => _$RevertRequestRecordFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'orgianization': organization,
-      'repository': repository,
-      'revertingPrAuthor': revertingPrAuthor,
-      'revertingPrId': revertingPrId,
-      'revertingPrCommit': revertingPrCommit,
-      'revertingPrUrl': revertingPrUrl,
-      'revertingPrCreatedTimestamp': revertingPrCreatedTimestamp,
-      'revertingPrLandedTimestamp': revertingPrLandedTimestamp,
-      'originalPrAuthor': originalPrAuthor,
-      'originalPrId': originalPrId,
-      'originalPrCommit': originalPrCommit,
-      'originalPrUrl': originalPrUrl,
-      'originalPrCreatedTimestamp': originalPrCreatedTimestamp,
-      'originalPrLandedTimestamp': originalPrLandedTimestamp,
-    };
-  }
+  Map<String, dynamic> toJson() => _$RevertRequestRecordToJson(this);
 }

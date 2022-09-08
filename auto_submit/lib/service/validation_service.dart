@@ -209,13 +209,13 @@ class ValidationService {
 
       log.info(message);
     } else {
-      log.info('Attempting to insert a merge request record into the database for $prNumber');
+      log.info('Attempting to insert a pull request record into the database for $prNumber');
       await insertPullRequestRecord(
         config: config,
         pullRequest: messagePullRequest,
-        pullRequestType: PullRequestType.merge,
+        pullRequestType: PullRequestChangeType.merge,
       );
-      log.info('Record inserted for $prNumber successfully.');
+      log.info('Record inserted for change pr# $prNumber successfully.');
     }
 
     log.info('Ack the processed message : $ackId.');
@@ -262,6 +262,7 @@ class ValidationService {
             title: revertReviewTemplate.title!,
             body: revertReviewTemplate.body!,
             labels: <String>['P1'],
+            assignee: result.repository!.pullRequest!.author!.login!,
           );
           log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
 
@@ -269,9 +270,9 @@ class ValidationService {
           await insertPullRequestRecord(
             config: config,
             pullRequest: messagePullRequest,
-            pullRequestType: PullRequestType.revert,
+            pullRequestType: PullRequestChangeType.revert,
           );
-          log.info('Record inserted for $prNumber successfully.');
+          log.info('Record inserted for revert pr# $prNumber successfully.');
         } on github.GitHubError catch (exception) {
           // We have merged but failed to create follow up issue.
           final String errorMessage = '''
@@ -376,7 +377,7 @@ Exception: ${exception.message}
   Future<void> insertPullRequestRecord({
     required Config config,
     required github.PullRequest pullRequest,
-    required PullRequestType pullRequestType,
+    required PullRequestChangeType pullRequestType,
   }) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final GithubService gitHubService = await config.createGithubService(slug);
@@ -390,16 +391,19 @@ Exception: ${exception.message}
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
-      prId: currentPullRequest.number,
+      prNumber: currentPullRequest.number,
       prCommit: currentPullRequest.head!.sha,
       prRequestType: pullRequestType.getName,
     );
 
     try {
       BigqueryService bigqueryService = await config.createBigQueryService();
-      await bigqueryService.insertPullRequestRecord('flutter-dashboard', pullRequestRecord);
+      await bigqueryService.insertPullRequestRecord(
+        projectId: 'flutter-dashboard',
+        pullRequestRecord: pullRequestRecord,
+      );
     } on BigQueryException catch (exception) {
-      log.severe(exception.cause);
+      log.severe(exception.toString());
     }
   }
 }

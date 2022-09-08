@@ -7,4 +7,7 @@ class BigQueryException implements Exception {
   BigQueryException(this.cause);
 
   final String cause;
+
+  @override
+  String toString() => cause;
 }

@@ -38,9 +38,7 @@ Please do the following so that we may track this issue to completion:
 1. Add the reviewer of revert pull request as the assignee of this issue.
 2. Close only when the review has been completed.
 
-
-DO NOT EDIT, REVERT METADATA
-<!--
+<!-- DO NOT EDIT, REVERT METADATA
 {
   'originalPrLink': '$originalPrLink',
   'revertPrLink': '$repositorySlug#$revertPrNumber',

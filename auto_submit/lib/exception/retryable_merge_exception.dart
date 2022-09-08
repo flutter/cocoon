@@ -12,7 +12,5 @@ class RetryableMergeException implements Exception {
   final List<GraphQLError> graphQLErrors;
 
   @override
-  String toString() {
-    return cause;
-  }
+  String toString() => cause;
 }
