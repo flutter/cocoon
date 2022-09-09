@@ -408,20 +408,18 @@ class BigqueryService {
       );
     }
 
-    final PullRequestRecord pullRequestRecord = PullRequestRecord();
     final TableRow tableRow = tableRows.first;
 
-    pullRequestRecord
-      ..prCreatedTimestamp = int.parse(tableRow.f![0].v as String)
-      ..prLandedTimestamp = int.parse(tableRow.f![1].v as String)
-      ..organization = tableRow.f![2].v as String
-      ..repository = tableRow.f![3].v as String
-      ..author = tableRow.f![4].v as String
-      ..prNumber = int.parse(tableRow.f![5].v as String)
-      ..prCommit = tableRow.f![6].v as String
-      ..prRequestType = tableRow.f![7].v as String;
-
-    return pullRequestRecord;
+    return PullRequestRecord(
+      prCreatedTimestamp: int.parse(tableRow.f![0].v as String),
+      prLandedTimestamp: int.parse(tableRow.f![1].v as String),
+      organization: tableRow.f![2].v as String,
+      repository: tableRow.f![3].v as String,
+      author: tableRow.f![4].v as String,
+      prNumber: int.parse(tableRow.f![5].v as String),
+      prCommit: tableRow.f![6].v as String,
+      prRequestType: tableRow.f![7].v as String,
+    );
   }
 
   Future<void> deletePullRequestRecord({
