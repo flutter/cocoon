@@ -177,7 +177,7 @@ void main() {
       );
     });
 
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    PullRequestRecord pullRequestRecord = const PullRequestRecord(
       prCreatedTimestamp: 123456789,
       prLandedTimestamp: 234567890,
       organization: 'flutter',
@@ -208,7 +208,7 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    PullRequestRecord pullRequestRecord = const PullRequestRecord(
       prCreatedTimestamp: 123456789,
       prLandedTimestamp: 234567890,
       organization: 'flutter',
@@ -239,7 +239,7 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    PullRequestRecord pullRequestRecord = const PullRequestRecord(
       prCreatedTimestamp: 123456789,
       prLandedTimestamp: 234567890,
       organization: 'flutter',
