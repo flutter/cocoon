@@ -427,11 +427,11 @@ void main() {
     RevertRequestRecord revertRequestRecord = RevertRequestRecord(
       organization: 'flutter',
       repository: 'cocoon',
-      revertingPrAuthor: 'ricardoamador',
-      revertingPrNumber: 1024,
-      revertingPrCommit: '123f124',
-      revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
-      revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
+      author: 'ricardoamador',
+      prNumber: 1024,
+      prCommit: '123f124',
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
       originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
@@ -462,11 +462,11 @@ void main() {
     RevertRequestRecord revertRequestRecord = RevertRequestRecord(
       organization: 'flutter',
       repository: 'cocoon',
-      revertingPrAuthor: 'ricardoamador',
-      revertingPrNumber: 1024,
-      revertingPrCommit: '123f124',
-      revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
-      revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
+      author: 'ricardoamador',
+      prNumber: 1024,
+      prCommit: '123f124',
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
       originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
@@ -502,11 +502,11 @@ void main() {
     expect(revertRequestRecord, isNotNull);
     expect(revertRequestRecord.organization, equals('flutter'));
     expect(revertRequestRecord.repository, equals('cocoon'));
-    expect(revertRequestRecord.revertingPrAuthor, equals('ricardoamador'));
-    expect(revertRequestRecord.revertingPrNumber, equals(1024));
-    expect(revertRequestRecord.revertingPrCommit, equals('123f124'));
-    expect(revertRequestRecord.revertingPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456789)));
-    expect(revertRequestRecord.revertingPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456999)));
+    expect(revertRequestRecord.author, equals('ricardoamador'));
+    expect(revertRequestRecord.prNumber, equals(1024));
+    expect(revertRequestRecord.prCommit, equals('123f124'));
+    expect(revertRequestRecord.prCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456789)));
+    expect(revertRequestRecord.prLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456999)));
     expect(revertRequestRecord.originalPrAuthor, equals('ricardoamador'));
     expect(revertRequestRecord.originalPrNumber, equals(2048));
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));

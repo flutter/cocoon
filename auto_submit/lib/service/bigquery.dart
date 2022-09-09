@@ -146,23 +146,23 @@ class BigqueryService {
         ),
         _createStringQueryParameter(
           'REVERTING_PR_AUTHOR',
-          revertRequestRecord.revertingPrAuthor,
+          revertRequestRecord.author,
         ),
         _createIntegerQueryParameter(
           'REVERTING_PR_NUMBER',
-          revertRequestRecord.revertingPrNumber!,
+          revertRequestRecord.prNumber!,
         ),
         _createStringQueryParameter(
           'REVERTING_PR_COMMIT',
-          revertRequestRecord.revertingPrCommit,
+          revertRequestRecord.prCommit,
         ),
         _createIntegerQueryParameter(
           'REVERTING_PR_CREATED_TIMESTAMP',
-          revertRequestRecord.revertingPrCreatedTimestamp!.millisecondsSinceEpoch,
+          revertRequestRecord.prCreatedTimestamp!.millisecondsSinceEpoch,
         ),
         _createIntegerQueryParameter(
           'REVERTING_PR_LANDED_TIMESTAMP',
-          revertRequestRecord.revertingPrLandedTimestamp!.millisecondsSinceEpoch,
+          revertRequestRecord.prLandedTimestamp!.millisecondsSinceEpoch,
         ),
         _createStringQueryParameter(
           'ORIGINAL_PR_AUTHOR',
@@ -239,24 +239,22 @@ class BigqueryService {
       );
     }
 
-    final RevertRequestRecord revertRequestRecord = RevertRequestRecord();
     final TableRow tableRow = tableRows.first;
 
-    revertRequestRecord
-      ..organization = tableRow.f![0].v as String
-      ..repository = tableRow.f![1].v as String
-      ..revertingPrAuthor = tableRow.f![2].v as String
-      ..revertingPrNumber = int.parse(tableRow.f![3].v as String)
-      ..revertingPrCommit = tableRow.f![4].v as String
-      ..revertingPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![5].v as String))
-      ..revertingPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String))
-      ..originalPrAuthor = tableRow.f![7].v as String
-      ..originalPrNumber = int.parse(tableRow.f![8].v as String)
-      ..originalPrCommit = tableRow.f![9].v as String
-      ..originalPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![10].v as String))
-      ..originalPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![11].v as String));
-
-    return revertRequestRecord;
+    return RevertRequestRecord(
+      organization: tableRow.f![0].v as String,
+      repository: tableRow.f![1].v as String,
+      author: tableRow.f![2].v as String,
+      prNumber: int.parse(tableRow.f![3].v as String),
+      prCommit: tableRow.f![4].v as String,
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![5].v as String)),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String)),
+      originalPrAuthor: tableRow.f![7].v as String,
+      originalPrNumber: int.parse(tableRow.f![8].v as String),
+      originalPrCommit: tableRow.f![9].v as String,
+      originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![10].v as String)),
+      originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![11].v as String)),
+    );
   }
 
   Future<void> deleteRevertRequestRecord({

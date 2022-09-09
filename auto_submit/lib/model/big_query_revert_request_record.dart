@@ -10,15 +10,15 @@ import 'package:json_annotation/json_annotation.dart';
 part 'big_query_revert_request_record.g.dart';
 
 @JsonSerializable()
-class RevertRequestRecord {
-  RevertRequestRecord({
-    this.organization,
-    this.repository,
-    this.revertingPrAuthor,
-    this.revertingPrNumber,
-    this.revertingPrCommit,
-    this.revertingPrCreatedTimestamp,
-    this.revertingPrLandedTimestamp,
+class RevertRequestRecord extends PullRequestRecord {
+  const RevertRequestRecord({
+    super.organization,
+    super.repository,
+    super.author,
+    super.prNumber,
+    super.prCommit,
+    super.prCreatedTimestamp,
+    super.prLandedTimestamp,
     this.originalPrAuthor,
     this.originalPrNumber,
     this.originalPrCommit,
@@ -26,25 +26,17 @@ class RevertRequestRecord {
     this.originalPrLandedTimestamp,
   });
 
-  String? organization;
-  String? repository;
-
-  String? revertingPrAuthor;
-  int? revertingPrNumber;
-  String? revertingPrCommit;
-  DateTime? revertingPrCreatedTimestamp;
-  DateTime? revertingPrLandedTimestamp;
-
-  String? originalPrAuthor;
-  int? originalPrNumber;
-  String? originalPrCommit;
-  DateTime? originalPrCreatedTimestamp;
-  DateTime? originalPrLandedTimestamp;
+  final String? originalPrAuthor;
+  final int? originalPrNumber;
+  final String? originalPrCommit;
+  final DateTime? originalPrCreatedTimestamp;
+  final DateTime? originalPrLandedTimestamp;
 
   @override
   String toString() => jsonEncode(toJson());
 
   factory RevertRequestRecord.fromJson(Map<String, dynamic> json) => _$RevertRequestRecordFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$RevertRequestRecordToJson(this);
 }
