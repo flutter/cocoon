@@ -18,13 +18,11 @@ SELECT organization,
        reverting_pr_author,
        reverting_pr_number,
        reverting_pr_commit,
-       reverting_pr_url,
        reverting_pr_created_timestamp,
        reverting_pr_landed_timestamp,
        original_pr_author,
        original_pr_number,
        original_pr_commit,
-       original_pr_url,
        original_pr_created_timestamp,
        original_pr_landed_timestamp
 FROM `flutter-dashboard.revert.revert_requests`
@@ -38,13 +36,11 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   reverting_pr_author,
   reverting_pr_number,
   reverting_pr_commit,
-  reverting_pr_url,
   reverting_pr_created_timestamp,
   reverting_pr_landed_timestamp,
   original_pr_author,
   original_pr_number,
   original_pr_commit,
-  original_pr_url,
   original_pr_created_timestamp,
   original_pr_landed_timestamp
 ) VALUES (
@@ -53,13 +49,11 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   @REVERTING_PR_AUTHOR,
   @REVERTING_PR_NUMBER,
   @REVERTING_PR_COMMIT,
-  @REVERTING_PR_URL,
   @REVERTING_PR_CREATED_TIMESTAMP,
   @REVERTING_PR_LANDED_TIMESTAMP,
   @ORIGINAL_PR_AUTHOR,
   @ORIGINAL_PR_NUMBER,
   @ORIGINAL_PR_COMMIT,
-  @ORIGINAL_PR_URL,
   @ORIGINAL_PR_CREATED_TIMESTAMP,
   @ORIGINAL_PR_LANDED_TIMESTAMP
 )
@@ -162,10 +156,6 @@ class BigqueryService {
           'REVERTING_PR_COMMIT',
           revertRequestRecord.revertingPrCommit,
         ),
-        _createStringQueryParameter(
-          'REVERTING_PR_URL',
-          revertRequestRecord.revertingPrUrl,
-        ),
         _createIntegerQueryParameter(
           'REVERTING_PR_CREATED_TIMESTAMP',
           revertRequestRecord.revertingPrCreatedTimestamp!.millisecondsSinceEpoch,
@@ -185,10 +175,6 @@ class BigqueryService {
         _createStringQueryParameter(
           'ORIGINAL_PR_COMMIT',
           revertRequestRecord.originalPrCommit,
-        ),
-        _createStringQueryParameter(
-          'ORIGINAL_PR_URL',
-          revertRequestRecord.originalPrUrl,
         ),
         _createIntegerQueryParameter(
           'ORIGINAL_PR_CREATED_TIMESTAMP',
@@ -262,15 +248,13 @@ class BigqueryService {
       ..revertingPrAuthor = tableRow.f![2].v as String
       ..revertingPrNumber = int.parse(tableRow.f![3].v as String)
       ..revertingPrCommit = tableRow.f![4].v as String
-      ..revertingPrUrl = tableRow.f![5].v as String
-      ..revertingPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String))
-      ..revertingPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![7].v as String))
-      ..originalPrAuthor = tableRow.f![8].v as String
-      ..originalPrNumber = int.parse(tableRow.f![9].v as String)
-      ..originalPrCommit = tableRow.f![10].v as String
-      ..originalPrUrl = tableRow.f![11].v as String
-      ..originalPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![12].v as String))
-      ..originalPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![13].v as String));
+      ..revertingPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![5].v as String))
+      ..revertingPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String))
+      ..originalPrAuthor = tableRow.f![7].v as String
+      ..originalPrNumber = int.parse(tableRow.f![8].v as String)
+      ..originalPrCommit = tableRow.f![9].v as String
+      ..originalPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![10].v as String))
+      ..originalPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![11].v as String));
 
     return revertRequestRecord;
   }

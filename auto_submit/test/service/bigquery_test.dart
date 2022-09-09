@@ -25,13 +25,11 @@ const String revertRequestRecordResponse = '''
         { "v": "ricardoamador" },
         { "v": "1024" },
         { "v": "123f124" },
-        { "v": "flutter/cocoon#1024" },
         { "v": "123456789" },
         { "v": "123456999" },
         { "v": "ricardoamador" },
         { "v": "2048" },
         { "v": "ce345dc" },
-        { "v": "flutter/cocoon#2048" },
         { "v": "234567890" },
         { "v": "234567999" }
       ]
@@ -121,13 +119,11 @@ const String selectRevertRequestTooManyRowsResponse = '''
         { "v": "ricardoamador" },
         { "v": "1024" },
         { "v": "123f124" },
-        { "v": "flutter/cocoon#1024" },
         { "v": "123456789" },
         { "v": "123456999" },
         { "v": "ricardoamador" },
         { "v": "2048" },
         { "v": "ce345dc" },
-        { "v": "flutter/cocoon#2048" },
         { "v": "234567890" },
         { "v": "234567999" }
       ]
@@ -138,13 +134,11 @@ const String selectRevertRequestTooManyRowsResponse = '''
         { "v": "ricardoamador" },
         { "v": "1024" },
         { "v": "123f124" },
-        { "v": "flutter/cocoon#1024" },
         { "v": "123456789" },
         { "v": "123456999" },
         { "v": "ricardoamador" },
         { "v": "2048" },
         { "v": "ce345dc" },
-        { "v": "flutter/cocoon#2048" },
         { "v": "234567890" },
         { "v": "234567999" }
       ]
@@ -436,7 +430,6 @@ void main() {
       revertingPrAuthor: 'ricardoamador',
       revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
-      revertingPrUrl: 'flutter/cocoon#1024',
       revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
@@ -472,7 +465,6 @@ void main() {
       revertingPrAuthor: 'ricardoamador',
       revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
-      revertingPrUrl: 'flutter/cocoon#1024',
       revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
@@ -513,13 +505,11 @@ void main() {
     expect(revertRequestRecord.revertingPrAuthor, equals('ricardoamador'));
     expect(revertRequestRecord.revertingPrNumber, equals(1024));
     expect(revertRequestRecord.revertingPrCommit, equals('123f124'));
-    expect(revertRequestRecord.revertingPrUrl, equals('flutter/cocoon#1024'));
     expect(revertRequestRecord.revertingPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456789)));
     expect(revertRequestRecord.revertingPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456999)));
     expect(revertRequestRecord.originalPrAuthor, equals('ricardoamador'));
     expect(revertRequestRecord.originalPrNumber, equals(2048));
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));
-    expect(revertRequestRecord.originalPrUrl, equals('flutter/cocoon#2048'));
     expect(revertRequestRecord.originalPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567890)));
     expect(revertRequestRecord.originalPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567999)));
   });

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'big_query_revert_request_record.g.dart';
@@ -16,13 +17,11 @@ class RevertRequestRecord {
     this.revertingPrAuthor,
     this.revertingPrNumber,
     this.revertingPrCommit,
-    this.revertingPrUrl,
     this.revertingPrCreatedTimestamp,
     this.revertingPrLandedTimestamp,
     this.originalPrAuthor,
     this.originalPrNumber,
     this.originalPrCommit,
-    this.originalPrUrl,
     this.originalPrCreatedTimestamp,
     this.originalPrLandedTimestamp,
   });
@@ -33,14 +32,12 @@ class RevertRequestRecord {
   String? revertingPrAuthor;
   int? revertingPrNumber;
   String? revertingPrCommit;
-  String? revertingPrUrl;
   DateTime? revertingPrCreatedTimestamp;
   DateTime? revertingPrLandedTimestamp;
 
   String? originalPrAuthor;
   int? originalPrNumber;
   String? originalPrCommit;
-  String? originalPrUrl;
   DateTime? originalPrCreatedTimestamp;
   DateTime? originalPrLandedTimestamp;
 
