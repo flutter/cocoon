@@ -4,7 +4,6 @@
 
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
-import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
 
