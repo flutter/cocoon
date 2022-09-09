@@ -25,6 +25,15 @@ class RevertRequestRecord {
     this.originalPrLandedTimestamp,
   });
 
+  //   this.prCreatedTimestamp,
+  //   this.prLandedTimestamp,
+  //   this.organization,
+  //   this.repository,
+  //   this.author,
+  //   this.prNumber,
+  //   this.prCommit,
+  //   this.prRequestType,
+
   String? organization;
   String? repository;
 
