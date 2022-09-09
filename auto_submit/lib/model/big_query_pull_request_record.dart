@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -31,20 +33,7 @@ class PullRequestRecord {
   final String? prRequestType;
 
   @override
-  String toString() {
-    return """
-{
-  "prCreatedTimestamp": $prCreatedTimestamp,
-  "prLandedTimestamp": $prLandedTimestamp,
-  "organization": "$organization",
-  "repository": "$repository",
-  "author": "$author",
-  "prNumber": $prNumber,
-  "prCommit": "$prCommit",
-  "prRequestType": "$prRequestType"
-}
-""";
-  }
+  String toString() => jsonEncode(toJson());
 
   factory PullRequestRecord.fromJson(Map<String, dynamic> json) => _$PullRequestRecordFromJson(json);
 
