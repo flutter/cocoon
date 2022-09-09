@@ -4,7 +4,7 @@
 
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
-import 'package:auto_submit/model/pr_type.dart';
+import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
 
 import 'package:auto_submit/exception/retryable_merge_exception.dart';
@@ -210,10 +210,11 @@ class ValidationService {
       log.info(message);
     } else {
       log.info('Attempting to insert a pull request record into the database for $prNumber');
+
       await insertPullRequestRecord(
         config: config,
         pullRequest: messagePullRequest,
-        pullRequestType: PullRequestChangeType.merge,
+        pullRequestType: PullRequestChangeType.change,
       );
       log.info('Record inserted for change pr# $prNumber successfully.');
     }
@@ -393,7 +394,7 @@ Exception: ${exception.message}
       author: currentPullRequest.user!.login,
       prNumber: currentPullRequest.number,
       prCommit: currentPullRequest.head!.sha,
-      prRequestType: pullRequestType.getName,
+      prRequestType: pullRequestType.name,
     );
 
     try {

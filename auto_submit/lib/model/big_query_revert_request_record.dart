@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'big_query_revert_request_record.g.dart';
@@ -25,15 +27,6 @@ class RevertRequestRecord {
     this.originalPrLandedTimestamp,
   });
 
-  //   this.prCreatedTimestamp,
-  //   this.prLandedTimestamp,
-  //   this.organization,
-  //   this.repository,
-  //   this.author,
-  //   this.prNumber,
-  //   this.prCommit,
-  //   this.prRequestType,
-
   String? organization;
   String? repository;
 
@@ -52,25 +45,7 @@ class RevertRequestRecord {
   int? originalPrLandedTimestamp;
 
   @override
-  String toString() {
-    return """
-{
-  "organization": "$organization",
-  "repository": "$repository",
-  "revertingPrAuthor": "$revertingPrAuthor",
-  "revertingPrNumber": $revertingPrNumber,
-  "revertingPrCommit": "$revertingPrCommit",
-  "revertingPrUrl": "$revertingPrUrl",
-  "revertingPrCreatedTimestamp": $revertingPrCreatedTimestamp,
-  "revertingPrLandedTimestamp": $revertingPrLandedTimestamp,
-  "originalPrAuthor": "$originalPrAuthor",
-  "originalPrNumber": $originalPrNumber,
-  "originalPrCommit": "$originalPrCommit",
-  "originalPrUrl": "$originalPrUrl",
-  "originalPrCreatedTimestamp": $originalPrCreatedTimestamp,
-  "originalPrLandedTimestamp": $originalPrLandedTimestamp
-}""";
-  }
+  String toString() => jsonEncode(toJson());
 
   factory RevertRequestRecord.fromJson(Map<String, dynamic> json) => _$RevertRequestRecordFromJson(json);
 

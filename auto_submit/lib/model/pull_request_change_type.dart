@@ -5,14 +5,8 @@
 /// The type of the change in the pull request we have processed.
 enum PullRequestChangeType {
   /// Merge is any submitted pull request change that does not undo previous changes.
-  merge(name: 'change'),
+  change,
 
   /// Revert is specifically for undoing changes.
-  revert(name: 'revert');
-
-  const PullRequestChangeType({required this.name});
-
-  final String name;
-
-  String get getName => name;
+  revert,
 }
