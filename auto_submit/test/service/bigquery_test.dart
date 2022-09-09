@@ -177,9 +177,9 @@ void main() {
       );
     });
 
-    PullRequestRecord pullRequestRecord = const PullRequestRecord(
-      prCreatedTimestamp: 123456789,
-      prLandedTimestamp: 234567890,
+    PullRequestRecord pullRequestRecord = PullRequestRecord(
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
@@ -208,9 +208,9 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = const PullRequestRecord(
-      prCreatedTimestamp: 123456789,
-      prLandedTimestamp: 234567890,
+    PullRequestRecord pullRequestRecord = PullRequestRecord(
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
@@ -239,9 +239,9 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = const PullRequestRecord(
-      prCreatedTimestamp: 123456789,
-      prLandedTimestamp: 234567890,
+    PullRequestRecord pullRequestRecord = PullRequestRecord(
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
@@ -274,9 +274,10 @@ void main() {
       prNumber: 345,
       repository: 'cocoon',
     );
+
     expect(pullRequestRecord, isNotNull);
-    expect(pullRequestRecord.prCreatedTimestamp, equals(123456789));
-    expect(pullRequestRecord.prLandedTimestamp, equals(234567890));
+    expect(pullRequestRecord.prCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456789)));
+    expect(pullRequestRecord.prLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567890)));
     expect(pullRequestRecord.organization, equals('flutter'));
     expect(pullRequestRecord.repository, equals('cocoon'));
     expect(pullRequestRecord.author, equals('ricardoamador'));
@@ -436,13 +437,13 @@ void main() {
       revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
       revertingPrUrl: 'flutter/cocoon#1024',
-      revertingPrCreatedTimestamp: 123456789,
-      revertingPrLandedTimestamp: 123456999,
+      revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
       originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
-      originalPrCreatedTimestamp: 234567890,
-      originalPrLandedTimestamp: 234567999,
+      originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
+      originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567999),
     );
 
     bool hasError = false;
@@ -472,13 +473,13 @@ void main() {
       revertingPrNumber: 1024,
       revertingPrCommit: '123f124',
       revertingPrUrl: 'flutter/cocoon#1024',
-      revertingPrCreatedTimestamp: 123456789,
-      revertingPrLandedTimestamp: 123456999,
+      revertingPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
+      revertingPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456999),
       originalPrAuthor: 'ricardoamador',
       originalPrNumber: 1000,
       originalPrCommit: 'ce345dc',
-      originalPrCreatedTimestamp: 234567890,
-      originalPrLandedTimestamp: 234567999,
+      originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
+      originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567999),
     );
 
     try {
@@ -505,6 +506,7 @@ void main() {
       prNumber: 2048,
       repository: 'cocoon',
     );
+
     expect(revertRequestRecord, isNotNull);
     expect(revertRequestRecord.organization, equals('flutter'));
     expect(revertRequestRecord.repository, equals('cocoon'));
@@ -512,14 +514,14 @@ void main() {
     expect(revertRequestRecord.revertingPrNumber, equals(1024));
     expect(revertRequestRecord.revertingPrCommit, equals('123f124'));
     expect(revertRequestRecord.revertingPrUrl, equals('flutter/cocoon#1024'));
-    expect(revertRequestRecord.revertingPrCreatedTimestamp, equals(123456789));
-    expect(revertRequestRecord.revertingPrLandedTimestamp, equals(123456999));
+    expect(revertRequestRecord.revertingPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456789)));
+    expect(revertRequestRecord.revertingPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(123456999)));
     expect(revertRequestRecord.originalPrAuthor, equals('ricardoamador'));
     expect(revertRequestRecord.originalPrNumber, equals(2048));
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));
     expect(revertRequestRecord.originalPrUrl, equals('flutter/cocoon#2048'));
-    expect(revertRequestRecord.originalPrCreatedTimestamp, equals(234567890));
-    expect(revertRequestRecord.originalPrLandedTimestamp, equals(234567999));
+    expect(revertRequestRecord.originalPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567890)));
+    expect(revertRequestRecord.originalPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567999)));
   });
 
   test('Select revert request is unsuccessful with job did not complete error.', () async {

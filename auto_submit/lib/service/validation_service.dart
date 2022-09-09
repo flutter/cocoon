@@ -387,8 +387,8 @@ Exception: ${exception.message}
 
     // add a record for the pull request into our metrics tracking
     PullRequestRecord pullRequestRecord = PullRequestRecord(
-      prCreatedTimestamp: currentPullRequest.createdAt!.millisecondsSinceEpoch,
-      prLandedTimestamp: currentPullRequest.closedAt!.millisecondsSinceEpoch,
+      prCreatedTimestamp: currentPullRequest.createdAt!,
+      prLandedTimestamp: currentPullRequest.closedAt!,
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,

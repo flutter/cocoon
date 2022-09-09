@@ -34,15 +34,15 @@ class RevertRequestRecord {
   int? revertingPrNumber;
   String? revertingPrCommit;
   String? revertingPrUrl;
-  int? revertingPrCreatedTimestamp;
-  int? revertingPrLandedTimestamp;
+  DateTime? revertingPrCreatedTimestamp;
+  DateTime? revertingPrLandedTimestamp;
 
   String? originalPrAuthor;
   int? originalPrNumber;
   String? originalPrCommit;
   String? originalPrUrl;
-  int? originalPrCreatedTimestamp;
-  int? originalPrLandedTimestamp;
+  DateTime? originalPrCreatedTimestamp;
+  DateTime? originalPrLandedTimestamp;
 
   @override
   String toString() => jsonEncode(toJson());

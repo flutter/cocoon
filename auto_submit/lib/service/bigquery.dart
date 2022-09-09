@@ -168,11 +168,11 @@ class BigqueryService {
         ),
         _createIntegerQueryParameter(
           'REVERTING_PR_CREATED_TIMESTAMP',
-          revertRequestRecord.revertingPrCreatedTimestamp!,
+          revertRequestRecord.revertingPrCreatedTimestamp!.millisecondsSinceEpoch,
         ),
         _createIntegerQueryParameter(
           'REVERTING_PR_LANDED_TIMESTAMP',
-          revertRequestRecord.revertingPrLandedTimestamp!,
+          revertRequestRecord.revertingPrLandedTimestamp!.millisecondsSinceEpoch,
         ),
         _createStringQueryParameter(
           'ORIGINAL_PR_AUTHOR',
@@ -192,11 +192,11 @@ class BigqueryService {
         ),
         _createIntegerQueryParameter(
           'ORIGINAL_PR_CREATED_TIMESTAMP',
-          revertRequestRecord.originalPrCreatedTimestamp!,
+          revertRequestRecord.originalPrCreatedTimestamp!.millisecondsSinceEpoch,
         ),
         _createIntegerQueryParameter(
           'ORIGINAL_PR_LANDED_TIMESTAMP',
-          revertRequestRecord.originalPrLandedTimestamp!,
+          revertRequestRecord.originalPrLandedTimestamp!.millisecondsSinceEpoch,
         ),
       ],
       useLegacySql: false,
@@ -263,14 +263,14 @@ class BigqueryService {
       ..revertingPrNumber = int.parse(tableRow.f![3].v as String)
       ..revertingPrCommit = tableRow.f![4].v as String
       ..revertingPrUrl = tableRow.f![5].v as String
-      ..revertingPrCreatedTimestamp = int.parse(tableRow.f![6].v as String)
-      ..revertingPrLandedTimestamp = int.parse(tableRow.f![7].v as String)
+      ..revertingPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String))
+      ..revertingPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![7].v as String))
       ..originalPrAuthor = tableRow.f![8].v as String
       ..originalPrNumber = int.parse(tableRow.f![9].v as String)
       ..originalPrCommit = tableRow.f![10].v as String
       ..originalPrUrl = tableRow.f![11].v as String
-      ..originalPrCreatedTimestamp = int.parse(tableRow.f![12].v as String)
-      ..originalPrLandedTimestamp = int.parse(tableRow.f![13].v as String);
+      ..originalPrCreatedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![12].v as String))
+      ..originalPrLandedTimestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![13].v as String));
 
     return revertRequestRecord;
   }
@@ -323,11 +323,11 @@ class BigqueryService {
       queryParameters: <QueryParameter>[
         _createIntegerQueryParameter(
           'PR_CREATED_TIMESTAMP',
-          pullRequestRecord.prCreatedTimestamp,
+          pullRequestRecord.prCreatedTimestamp!.millisecondsSinceEpoch,
         ),
         _createIntegerQueryParameter(
           'PR_LANDED_TIMESTAMP',
-          pullRequestRecord.prLandedTimestamp,
+          pullRequestRecord.prLandedTimestamp!.millisecondsSinceEpoch,
         ),
         _createStringQueryParameter(
           'ORGANIZATION',
@@ -411,8 +411,8 @@ class BigqueryService {
     final TableRow tableRow = tableRows.first;
 
     return PullRequestRecord(
-      prCreatedTimestamp: int.parse(tableRow.f![0].v as String),
-      prLandedTimestamp: int.parse(tableRow.f![1].v as String),
+      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![0].v as String)),
+      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![1].v as String)),
       organization: tableRow.f![2].v as String,
       repository: tableRow.f![3].v as String,
       author: tableRow.f![4].v as String,

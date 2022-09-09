@@ -21,8 +21,8 @@ class PullRequestRecord {
     this.prRequestType,
   });
 
-  final int? prCreatedTimestamp;
-  final int? prLandedTimestamp;
+  final DateTime? prCreatedTimestamp;
+  final DateTime? prLandedTimestamp;
   final String? organization;
   final String? repository;
   final String? author;
