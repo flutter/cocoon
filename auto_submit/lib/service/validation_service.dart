@@ -4,6 +4,7 @@
 
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
+import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
 
@@ -387,14 +388,14 @@ Exception: ${exception.message}
 
     // add a record for the pull request into our metrics tracking
     PullRequestRecord pullRequestRecord = PullRequestRecord(
-      prCreatedTimestamp: currentPullRequest.createdAt!,
-      prLandedTimestamp: currentPullRequest.closedAt!,
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
       prNumber: currentPullRequest.number,
       prCommit: currentPullRequest.head!.sha,
       prRequestType: pullRequestType.name,
+      prCreatedTimestamp: currentPullRequest.createdAt!,
+      prLandedTimestamp: currentPullRequest.closedAt!,
     );
 
     try {

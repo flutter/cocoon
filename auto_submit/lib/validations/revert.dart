@@ -88,7 +88,7 @@ class Revert extends Validation {
 
   /// Split a reverts link on the '#' then the '/' to get the parts of the repo
   /// slug. It is assumed that the link has the format flutter/repo#id.
-  github.RepositorySlug _getSlugFromLink(String link) {
+  github.RepositorySlug getSlugFromLink(String link) {
     List<String> linkSplit = link.split('#');
     List<String> slugSplit = linkSplit.elementAt(0).split('/');
     return github.RepositorySlug(slugSplit.elementAt(0), slugSplit.elementAt(1));
@@ -96,7 +96,7 @@ class Revert extends Validation {
 
   /// Split a reverts link on the '#' to get the id part of the link.
   /// It is assumed that the link has the format flutter/repo#id.
-  int _getPullRequestIdFromLink(String link) {
+  int getPullRequestNumberFromLink(String link) {
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }
