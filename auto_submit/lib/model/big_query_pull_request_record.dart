@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 part 'big_query_pull_request_record.g.dart';
 
+@immutable
 @JsonSerializable()
 class PullRequestRecord {
-  PullRequestRecord({
+  const PullRequestRecord({
     this.prCreatedTimestamp,
     this.prLandedTimestamp,
     this.organization,
@@ -19,14 +21,14 @@ class PullRequestRecord {
     this.prRequestType,
   });
 
-  int? prCreatedTimestamp;
-  int? prLandedTimestamp;
-  String? organization;
-  String? repository;
-  String? author;
-  int? prNumber;
-  String? prCommit;
-  String? prRequestType;
+  final int? prCreatedTimestamp;
+  final int? prLandedTimestamp;
+  final String? organization;
+  final String? repository;
+  final String? author;
+  final int? prNumber;
+  final String? prCommit;
+  final String? prRequestType;
 
   @override
   String toString() {
