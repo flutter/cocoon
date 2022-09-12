@@ -41,7 +41,7 @@ dev_dependencies:
   mockito: ^5.2.0
   platform: ^3.1.0
   process: ^4.2.4
-  test: ^1.21.4
+  test: ^1.21.6
 
 builders:
   json_serializable: ^3.3.0
