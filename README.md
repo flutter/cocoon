@@ -9,6 +9,7 @@
 
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon/badge)](https://api.securityscorecards.dev/projects/github.com/flutter/cocoon)
+[![SLSA 2](https://slsa.dev/images/gh-badge-level2.svg)](https://slsa.dev)
 
 **Cocoon** is a Dart App Engine custom runtime (backend) with a frontend
 of Flutter apps (build and repository dashboard). Cocoon coordinates
