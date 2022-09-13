@@ -371,7 +371,7 @@ class BigqueryService {
           pullRequestRecord.author,
         ),
         _createIntegerQueryParameter(
-          'PR_NUBMER',
+          'PR_NUMBER',
           pullRequestRecord.prNumber,
         ),
         _createStringQueryParameter(

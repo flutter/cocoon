@@ -399,17 +399,21 @@ Exception: ${exception.message}
     // We need the updated time fields for the merged request from github.
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
 
+    log.info('Updated pull request info: ${currentPullRequest.toString()}');
+
     // add a record for the pull request into our metrics tracking
     PullRequestRecord pullRequestRecord = PullRequestRecord(
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
-      prNumber: currentPullRequest.number,
+      prNumber: pullRequest.number!,
       prCommit: currentPullRequest.head!.sha,
       prRequestType: pullRequestType.name,
       prCreatedTimestamp: currentPullRequest.createdAt!,
       prLandedTimestamp: currentPullRequest.closedAt!,
     );
+
+    log.info('Created pull request record: ${pullRequestRecord.toString()}');
 
     try {
       BigqueryService bigqueryService = await config.createBigQueryService();
@@ -419,7 +423,7 @@ Exception: ${exception.message}
       );
       log.info('Record inserted for pull request pr# ${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
-      log.severe(exception.toString());
+      log.severe('Unable to insert pull request record due to: ${exception.toString()}');
     }
   }
 
