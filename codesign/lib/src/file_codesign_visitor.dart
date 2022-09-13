@@ -35,6 +35,7 @@ class FileCodesignVisitor {
     required this.tempDir,
     required this.processManager,
     this.production = false,
+    this.notarizationTimerDuration = const Duration(seconds: 45),
   }) {
     entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
     remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
@@ -66,6 +67,7 @@ class FileCodesignVisitor {
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
   late final Directory codesignedZipsDir;
+  late final Duration notarizationTimerDuration;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
@@ -90,7 +92,6 @@ class FileCodesignVisitor {
     </dict>
 </plist>
 ''';
-  static const Duration _notarizationTimerDuration = Duration(seconds: 45);
   static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
@@ -124,6 +125,66 @@ update these file paths accordingly.
     await tempDir.delete(recursive: true);
   }
 
+  /// Retrieve eninge artifact from google cloud storage and kick start a
+  /// recursive visit of its contents.
+  ///
+  /// Invokes [visitDirectory] to recursively visit the contents of the remote
+  /// zip. Also downloads, notarizes and uploads the engine artifact.
+  Future<void> processRemoteZip({
+    required String artifactFilePath,
+    required Directory parentDirectory,
+  }) async {
+    final FileSystem fs = tempDir.fileSystem;
+
+    // namespace by hashcode otherwise there will be collisions
+    final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
+
+    // download the zip file
+    final File originalFile = await download(
+      remotePath: artifactFilePath,
+      localPath: remoteDownloadsDir.childFile(localFilePath).path,
+      commitHash: commitHash,
+      processManager: processManager,
+      tempDir: tempDir,
+    );
+
+    await unzip(
+      inputZip: originalFile,
+      outDir: parentDirectory,
+      processManager: processManager,
+    );
+
+    //extract entitlements file.
+    fileWithEntitlements = await parseEntitlements(parentDirectory, true);
+    fileWithoutEntitlements = await parseEntitlements(parentDirectory, false);
+    log.info('parsed binaries with entitlements are $fileWithEntitlements');
+    log.info('parsed binaries without entitlements are $fileWithEntitlements');
+
+    // recursively visit extracted files
+    await visitDirectory(directory: parentDirectory, entitlementParentPath: artifactFilePath);
+
+    final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
+
+    await zip(
+      inputDir: parentDirectory,
+      outputZip: codesignedFile,
+      processManager: processManager,
+    );
+
+    // notarize
+    await notarize(codesignedFile);
+
+    // we will only upload for production
+    if (production) {
+      await upload(
+        localPath: codesignedFile.path,
+        remotePath: artifactFilePath,
+        commitHash: commitHash,
+        processManager: processManager,
+      );
+    }
+  }
+
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
   Future<void> visitDirectory({
     required Directory directory,
@@ -142,6 +203,9 @@ update these file paths accordingly.
           directory: directory.childDirectory(entity.basename),
           entitlementParentPath: entitlementParentPath,
         );
+        continue;
+      }
+      if (entity.basename == 'entitlements.txt' || entity.basename == 'without_entitlements.txt') {
         continue;
       }
       final FileType childType = getFileType(
@@ -268,7 +332,7 @@ update these file paths accordingly.
 
     // check on results
     Timer.periodic(
-      _notarizationTimerDuration,
+      notarizationTimerDuration,
       callback,
     );
     await completer.future;

@@ -38,6 +38,7 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         tempDir: tempDir,
+        notarizationTimerDuration: const Duration(seconds: 0),
       );
       codesignVisitor.directoriesVisited.clear();
       records.clear();
@@ -244,6 +245,123 @@ void main() {
           contains(
               'The downloaded file is unzipped from ${tempDir.path}/remote_zip_4/folder_1/zip_1 to ${tempDir.path}/embedded_zip_${zipFileName.hashCode}'));
       expect(messages, contains('Visiting directory ${tempDir.absolute.path}/embedded_zip_${zipFileName.hashCode}'));
+    });
+
+    test('procesRemotezip triggers correct workflow', () async {
+      final String zipFileName = '${tempDir.path}/remote_zip_4/folder_1/zip_1';
+      fileSystem.file(zipFileName).createSync(recursive: true);
+      const String artifactFilePath = 'my/artifacts.zip';
+      final String artifactBaseName = tempDir.fileSystem.path.basename(artifactFilePath);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '$gsCloudBaseUrl/flutter/$randomString/$artifactFilePath',
+            '${tempDir.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName',
+          ],
+        ),
+        FakeCommand(
+          command: <String>[
+            'unzip',
+            '${tempDir.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName',
+            '-d',
+            '${tempDir.absolute.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName',
+          ],
+          onRun: () => fileSystem
+            ..file('${tempDir.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName/entitlements.txt')
+                .createSync(recursive: true)
+            ..file('${tempDir.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName/without_entitlements.txt')
+                .createSync(recursive: true),
+        ),
+        FakeCommand(
+          command: <String>[
+            'zip',
+            '--symlinks',
+            '--recurse-paths',
+            '/.tmp_rand0/conductor_codesignrand4/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
+            '.',
+            '--include',
+            '*',
+          ],
+        ),
+        FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'submit',
+            '/.tmp_rand0/conductor_codesignrand4/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
+            '--apple-id',
+            randomString,
+            '--password',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: 'id: $randomString',
+        ),
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            randomString,
+            '--password',
+            randomString,
+            '--apple-id',
+            randomString,
+            '--team-id',
+            randomString,
+          ],
+          stdout: 'status: Accepted',
+        ),
+      ]);
+
+      await codesignVisitor.processRemoteZip(
+        artifactFilePath: artifactFilePath,
+        parentDirectory: tempDir.childDirectory('remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
+      );
+      final Set<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
+      expect(
+        messages,
+        contains(
+            'The downloaded file is unzipped from ${tempDir.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName to ${tempDir.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
+      );
+      expect(
+        messages,
+        contains(
+            'Visiting directory ${tempDir.absolute.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
+      );
+      expect(
+        messages,
+        contains('parsed binaries with entitlements are {}'),
+      );
+      expect(
+        messages,
+        contains('parsed binaries without entitlements are {}'),
+      );
+      expect(
+        messages,
+        contains(
+            'uploading xcrun notarytool submit ${tempDir.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName --apple-id $randomString --password $randomString --team-id $randomString'),
+      );
+      expect(
+        messages,
+        contains(
+            'RequestUUID for ${tempDir.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName is: $randomString'),
+      );
+      expect(
+        messages,
+        contains(
+            'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString'),
+      );
+      expect(
+          messages,
+          contains(
+              'successfully notarized ${tempDir.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName'),);
     });
 
     test('throw exception when the same directory is visited', () async {

@@ -5,9 +5,44 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:file/file.dart';
 import 'package:process/process.dart';
 
 import 'log.dart';
+
+const String gsCloudBaseUrl = r'gs://flutter_infra_release';
+
+Future<void> upload({
+  required String localPath,
+  required String remotePath,
+  required String commitHash,
+  required ProcessManager processManager,
+}) async {
+  final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+  final ProcessResult result = await processManager.run(
+    <String>['gsutil', 'cp', localPath, fullRemotePath],
+  );
+  if (result.exitCode != 0) {
+    throw Exception('Failed to upload $localPath to $fullRemotePath');
+  }
+}
+
+Future<File> download({
+  required String remotePath,
+  required String localPath,
+  required String commitHash,
+  required ProcessManager processManager,
+  required Directory tempDir,
+}) async {
+  final String source = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+  final ProcessResult result = await processManager.run(
+    <String>['gsutil', 'cp', source, localPath],
+  );
+  if (result.exitCode != 0) {
+    throw CodesignException('Failed to download $source');
+  }
+  return tempDir.fileSystem.file(localPath);
+}
 
 enum FileType {
   folder,
