@@ -213,7 +213,7 @@ class BigqueryService {
           'REVIEW_ISSUE_LANDED_TIMESTAMP',
           (revertRequestRecord.reviewIssueLandedTimestamp != null)
               ? revertRequestRecord.reviewIssueLandedTimestamp!.millisecondsSinceEpoch
-              : null,
+              : 0,
         ),
       ],
       useLegacySql: false,
