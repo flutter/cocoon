@@ -359,9 +359,10 @@ void main() {
             'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString'),
       );
       expect(
-          messages,
-          contains(
-              'successfully notarized ${tempDir.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName'),);
+        messages,
+        contains(
+            'successfully notarized ${tempDir.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName'),
+      );
     });
 
     test('throw exception when the same directory is visited', () async {
