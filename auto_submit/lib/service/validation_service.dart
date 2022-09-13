@@ -265,33 +265,25 @@ class ValidationService {
             labels: <String>['P1'],
             assignee: result.repository!.pullRequest!.author!.login!,
           );
-          log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
+          log.info('Issue #${issue.id} was created to track the review for pr# $prNumber in ${slug.fullName}');
 
-          List<Future> futures = <Future>[];
-
-          log.info('Attempting to insert a revert pull request record into the database for $prNumber');
-          futures.add(
-            insertPullRequestRecord(
-              config: config,
-              pullRequest: messagePullRequest,
-              pullRequestType: PullRequestChangeType.revert,
-            ),
+          log.info('Attempting to insert a revert pull request record into the database for pr# $prNumber');
+          await insertPullRequestRecord(
+            config: config,
+            pullRequest: messagePullRequest,
+            pullRequestType: PullRequestChangeType.revert,
           );
 
-          log.info('Attempting to insert a revert tracking request record into the database for $prNumber');
-          futures.add(
-            insertRevertRequestRecord(
-              config: config,
-              revertPullRequest: messagePullRequest,
-              reviewIssue: issue,
-            ),
+          log.info('Attempting to insert a revert tracking request record into the database for pr# $prNumber');
+          await insertRevertRequestRecord(
+            config: config,
+            revertPullRequest: messagePullRequest,
+            reviewIssue: issue,
           );
-
-          await Future.wait(futures);
         } on github.GitHubError catch (exception) {
           // We have merged but failed to create follow up issue.
           final String errorMessage = '''
-An exception has occurred while attempting to create the follow up review issue for $prNumber.
+An exception has occurred while attempting to create the follow up review issue for pr# $prNumber.
 Please create a follow up issue to track a review for this pull request.
 Exception: ${exception.message}
 ''';
@@ -299,7 +291,7 @@ Exception: ${exception.message}
           await gitHubService.createComment(slug, prNumber, errorMessage);
         }
       } else {
-        final String message = 'revert label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
+        final String message = 'revert label is removed for ${slug.fullName}, pr#: $prNumber, ${processed.message}.';
 
         await removeLabelAndComment(
           githubService: gitHubService,
@@ -446,7 +438,7 @@ Exception: ${exception.message}
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
-      prNumber: currentPullRequest.number,
+      prNumber: revertPullRequest.number,
       prCommit: currentPullRequest.head!.sha,
       prCreatedTimestamp: currentPullRequest.createdAt,
       prLandedTimestamp: currentPullRequest.closedAt,
