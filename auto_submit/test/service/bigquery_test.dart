@@ -7,9 +7,6 @@ import 'dart:convert';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/big_query_revert_request_record.dart';
-import 'package:auto_submit/model/pull_request_change_type.dart';
-import 'package:auto_submit/service/access_client_provider.dart';
-import 'package:auto_submit/service/bigquery.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/expect.dart';
@@ -675,26 +672,4 @@ void main() {
     }
     expect(hasError, isTrue);
   });
-
-  // test('Running big query directly', () async {
-  //   AccessClientProvider accessClientProvider = AccessClientProvider();
-  //   BigqueryService bigqueryService = BigqueryService(accessClientProvider);
-
-  //   PullRequestRecord pullRequestRecord = PullRequestRecord(
-  //     prCreatedTimestamp: DateTime.now(),
-  //     prLandedTimestamp: DateTime.now(),
-  //     organization: 'flutter',
-  //     repository: 'cocoon',
-  //     author: 'ricardoamador',
-  //     prNumber: 1,
-  //     prCommit: 'fakehash',
-  //     prRequestType: PullRequestChangeType.change.name,
-  //   );
-
-  //   try {
-  //     await bigqueryService.insertPullRequestRecord(projectId: 'flutter-dashboard', pullRequestRecord: pullRequestRecord);
-  //   } on BigQueryException catch(e) {
-  //     print(e.cause);
-  //   }
-  // });
 }
