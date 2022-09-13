@@ -4,6 +4,7 @@
 
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
+import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
 
@@ -267,13 +268,27 @@ class ValidationService {
           );
           log.info('Issue #${issue.id} was created to track the review for $prNumber in ${slug.fullName}');
 
-          log.info('Attempting to insert a revert request record into the database for $prNumber');
-          await insertPullRequestRecord(
-            config: config,
-            pullRequest: messagePullRequest,
-            pullRequestType: PullRequestChangeType.revert,
+          List<Future> futures = <Future>[];
+
+          log.info('Attempting to insert a revert pull request record into the database for $prNumber');
+          futures.add(
+            insertPullRequestRecord(
+              config: config,
+              pullRequest: messagePullRequest,
+              pullRequestType: PullRequestChangeType.revert,
+            ),
           );
-          log.info('Record inserted for revert pr# $prNumber successfully.');
+
+          log.info('Attempting to insert a revert tracking request record into the database for $prNumber');
+          futures.add(
+            insertRevertRequestRecord(
+              config: config,
+              revertPullRequest: messagePullRequest,
+              reviewIssue: issue,
+            ),
+          );
+
+          await Future.wait(futures);
         } on github.GitHubError catch (exception) {
           // We have merged but failed to create follow up issue.
           final String errorMessage = '''
@@ -403,6 +418,52 @@ Exception: ${exception.message}
         projectId: 'flutter-dashboard',
         pullRequestRecord: pullRequestRecord,
       );
+      log.info('Record inserted for revert pull request pr# ${pullRequest.number} successfully.');
+    } on BigQueryException catch (exception) {
+      log.severe(exception.toString());
+    }
+  }
+
+  Future<void> insertRevertRequestRecord({
+    required Config config,
+    required github.PullRequest revertPullRequest,
+    required github.Issue reviewIssue,
+  }) async {
+    final github.RepositorySlug slug = revertPullRequest.base!.repo!.slug();
+    final GithubService gitHubService = await config.createGithubService(slug);
+    // Get the updated revert issue.
+    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, revertPullRequest.number!);
+    // Get the original pull request issue.
+    String originalPullRequestLink = revertValidation!.extractLinkFromText(revertPullRequest.body)!;
+    int originalPullRequestNumber = int.parse(originalPullRequestLink.split('#').elementAt(1));
+    // return int.parse(linkSplit.elementAt(1));
+    final github.PullRequest originalPullRequest = await gitHubService.getPullRequest(slug, originalPullRequestNumber);
+
+    RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+      organization: currentPullRequest.base!.repo!.slug().owner,
+      repository: currentPullRequest.base!.repo!.slug().name,
+      author: currentPullRequest.user!.login,
+      prNumber: currentPullRequest.number,
+      prCommit: currentPullRequest.head!.sha,
+      prCreatedTimestamp: currentPullRequest.createdAt,
+      prLandedTimestamp: currentPullRequest.closedAt,
+      originalPrAuthor: originalPullRequest.user!.login,
+      originalPrNumber: originalPullRequest.number,
+      originalPrCommit: originalPullRequest.head!.sha,
+      originalPrCreatedTimestamp: originalPullRequest.createdAt,
+      originalPrLandedTimestamp: originalPullRequest.closedAt,
+      reviewIssueAssignee: reviewIssue.assignee!.login,
+      reviewIssueNumber: reviewIssue.number,
+      reviewIssueCreatedTimestamp: reviewIssue.createdAt,
+    );
+
+    try {
+      BigqueryService bigqueryService = await config.createBigQueryService();
+      await bigqueryService.insertRevertRequestRecord(
+        projectId: 'flutter-dashboard',
+        revertRequestRecord: revertRequestRecord,
+      );
+      log.info('Record inserted for revert tracking request for pr# ${revertPullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
       log.severe(exception.toString());
     }

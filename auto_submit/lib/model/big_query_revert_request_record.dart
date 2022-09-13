@@ -24,6 +24,10 @@ class RevertRequestRecord extends PullRequestRecord {
     this.originalPrCommit,
     this.originalPrCreatedTimestamp,
     this.originalPrLandedTimestamp,
+    this.reviewIssueAssignee,
+    this.reviewIssueNumber,
+    this.reviewIssueCreatedTimestamp,
+    this.reviewIssueLandedTimestamp,
   });
 
   final String? originalPrAuthor;
@@ -31,6 +35,10 @@ class RevertRequestRecord extends PullRequestRecord {
   final String? originalPrCommit;
   final DateTime? originalPrCreatedTimestamp;
   final DateTime? originalPrLandedTimestamp;
+  final String? reviewIssueAssignee;
+  final int? reviewIssueNumber;
+  final DateTime? reviewIssueCreatedTimestamp;
+  final DateTime? reviewIssueLandedTimestamp;
 
   @override
   String toString() => jsonEncode(toJson());

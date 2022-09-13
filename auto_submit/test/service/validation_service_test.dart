@@ -139,6 +139,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
       githubService.pullRequestMock = pullRequest;
@@ -331,6 +333,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -386,6 +390,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -446,6 +452,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -517,6 +525,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
       githubService.pullRequestMock = pullRequest;

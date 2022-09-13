@@ -24,7 +24,11 @@ SELECT organization,
        original_pr_number,
        original_pr_commit,
        original_pr_created_timestamp,
-       original_pr_landed_timestamp
+       original_pr_landed_timestamp,
+       review_issue_assignee,
+       review_issue_number,
+       review_issue_created_timestamp,
+       review_issue_landed_timestamp
 FROM `flutter-dashboard.revert.revert_requests`
 WHERE reverting_pr_number=@REVERTING_PR_NUMBER AND repository=@REPOSITORY
 ''';
@@ -42,7 +46,11 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   original_pr_number,
   original_pr_commit,
   original_pr_created_timestamp,
-  original_pr_landed_timestamp
+  original_pr_landed_timestamp,
+  review_issue_assignee,
+  review_issue_number,
+  review_issue_created_timestamp,
+  review_issue_landed_timestamp
 ) VALUES (
   @ORGANIZATION,
   @REPOSITORY,
@@ -55,7 +63,11 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   @ORIGINAL_PR_NUMBER,
   @ORIGINAL_PR_COMMIT,
   @ORIGINAL_PR_CREATED_TIMESTAMP,
-  @ORIGINAL_PR_LANDED_TIMESTAMP
+  @ORIGINAL_PR_LANDED_TIMESTAMP,
+  @REVIEW_ISSUE_ASSIGNEE,
+  @REVIEW_ISSUE_NUMBER,
+  @REVIEW_ISSUE_CREATED_TIMESTAMP,
+  @REVIEW_ISSUE_LANDED_TIMESTAMP
 )
 ''';
 
@@ -127,7 +139,7 @@ class BigqueryService {
   }
 
   /// Insert a new revert request into the database.
-  Future<void> insertRevertRequest({
+  Future<void> insertRevertRequestRecord({
     required String projectId,
     required RevertRequestRecord revertRequestRecord,
   }) async {
@@ -183,6 +195,25 @@ class BigqueryService {
         _createIntegerQueryParameter(
           'ORIGINAL_PR_LANDED_TIMESTAMP',
           revertRequestRecord.originalPrLandedTimestamp!.millisecondsSinceEpoch,
+        ),
+        _createStringQueryParameter(
+          'REVIEW_ISSUE_ASSIGNEE',
+          revertRequestRecord.reviewIssueAssignee,
+        ),
+        _createIntegerQueryParameter(
+          'REVIEW_ISSUE_NUMBER',
+          revertRequestRecord.reviewIssueNumber,
+        ),
+        _createIntegerQueryParameter(
+          'REVIEW_ISSUE_CREATED_TIMESTAMP',
+          revertRequestRecord.reviewIssueCreatedTimestamp!.millisecondsSinceEpoch,
+        ),
+        // This could not possibly be landed at the time of entry into the database but we should check for null.
+        _createIntegerQueryParameter(
+          'REVIEW_ISSUE_LANDED_TIMESTAMP',
+          (revertRequestRecord.reviewIssueLandedTimestamp != null)
+              ? revertRequestRecord.reviewIssueLandedTimestamp!.millisecondsSinceEpoch
+              : null,
         ),
       ],
       useLegacySql: false,
@@ -247,13 +278,29 @@ class BigqueryService {
       author: tableRow.f![2].v as String,
       prNumber: int.parse(tableRow.f![3].v as String),
       prCommit: tableRow.f![4].v as String,
-      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![5].v as String)),
-      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String)),
+      prCreatedTimestamp: (tableRow.f![5].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![5].v as String))
+          : null,
+      prLandedTimestamp: (tableRow.f![6].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![6].v as String))
+          : null,
       originalPrAuthor: tableRow.f![7].v as String,
       originalPrNumber: int.parse(tableRow.f![8].v as String),
       originalPrCommit: tableRow.f![9].v as String,
-      originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![10].v as String)),
-      originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![11].v as String)),
+      originalPrCreatedTimestamp: (tableRow.f![10].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![10].v as String))
+          : null,
+      originalPrLandedTimestamp: (tableRow.f![11].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![11].v as String))
+          : null,
+      reviewIssueAssignee: tableRow.f![12].v as String,
+      reviewIssueNumber: int.parse(tableRow.f![13].v as String),
+      reviewIssueCreatedTimestamp: (tableRow.f![14].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![14].v as String))
+          : null,
+      reviewIssueLandedTimestamp: (tableRow.f![15].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![15].v as String))
+          : null,
     );
   }
 
@@ -393,8 +440,12 @@ class BigqueryService {
     final TableRow tableRow = tableRows.first;
 
     return PullRequestRecord(
-      prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![0].v as String)),
-      prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![1].v as String)),
+      prCreatedTimestamp: (tableRow.f![0].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![0].v as String))
+          : null,
+      prLandedTimestamp: (tableRow.f![1].v != null)
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![1].v as String))
+          : null,
       organization: tableRow.f![2].v as String,
       repository: tableRow.f![3].v as String,
       author: tableRow.f![4].v as String,

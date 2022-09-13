@@ -31,7 +31,11 @@ const String revertRequestRecordResponse = '''
         { "v": "2048" },
         { "v": "ce345dc" },
         { "v": "234567890" },
-        { "v": "234567999" }
+        { "v": "234567999" },
+        { "v": "ricardoamador" },
+        { "v": "11304" },
+        { "v": "1640979000000" },
+        { "v": null }
       ]
     }
   ]
@@ -437,11 +441,14 @@ void main() {
       originalPrCommit: 'ce345dc',
       originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567999),
+      reviewIssueAssignee: 'ricardoamador',
+      reviewIssueNumber: 11304,
+      reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(1640979000000),
     );
 
     bool hasError = false;
     try {
-      await service.insertRevertRequest(
+      await service.insertRevertRequestRecord(
         projectId: expectedProjectId,
         revertRequestRecord: revertRequestRecord,
       );
@@ -472,10 +479,13 @@ void main() {
       originalPrCommit: 'ce345dc',
       originalPrCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       originalPrLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567999),
+      reviewIssueAssignee: 'ricardoamador',
+      reviewIssueNumber: 11304,
+      reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(1640979000000),
     );
 
     try {
-      await service.insertRevertRequest(
+      await service.insertRevertRequestRecord(
         projectId: expectedProjectId,
         revertRequestRecord: revertRequestRecord,
       );
@@ -512,6 +522,14 @@ void main() {
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));
     expect(revertRequestRecord.originalPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567890)));
     expect(revertRequestRecord.originalPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567999)));
+    // { "v": "ricardoamador" },
+    //     { "v": "11304" },
+    //     { "v": "1640979000000" },
+    //     { "v": null },
+    expect(revertRequestRecord.reviewIssueAssignee, equals('ricardoamador'));
+    expect(revertRequestRecord.reviewIssueNumber, equals(11304));
+    expect(revertRequestRecord.reviewIssueCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(1640979000000)));
+    expect(revertRequestRecord.reviewIssueLandedTimestamp, isNull);
   });
 
   test('Select revert request is unsuccessful with job did not complete error.', () async {
