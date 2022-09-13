@@ -217,7 +217,6 @@ class ValidationService {
         pullRequest: messagePullRequest,
         pullRequestType: PullRequestChangeType.change,
       );
-      log.info('Record inserted for change pr# $prNumber successfully.');
     }
 
     log.info('Ack the processed message : $ackId.');
@@ -418,7 +417,7 @@ Exception: ${exception.message}
         projectId: 'flutter-dashboard',
         pullRequestRecord: pullRequestRecord,
       );
-      log.info('Record inserted for revert pull request pr# ${pullRequest.number} successfully.');
+      log.info('Record inserted for pull request pr# ${pullRequest.number} successfully.');
     } on BigQueryException catch (exception) {
       log.severe(exception.toString());
     }
