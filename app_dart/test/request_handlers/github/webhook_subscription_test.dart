@@ -2112,6 +2112,31 @@ void foo() {
       ));
     });
 
+    test('Packages does not comment for custom test driver', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/foo/tool/run_tests.dart',
+          PullRequestFile()..filename = 'packages/foo/run_tests.sh',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        Config.packagesSlug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Schedule tasks when pull request is closed and merged', () async {
       const int issueNumber = 123;
 

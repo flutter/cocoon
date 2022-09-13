@@ -470,7 +470,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !filename.endsWith('.cirrus.yml') &&
           !filename.contains('.ci/') &&
           !filename.contains('.github/') &&
-          !filename.endsWith('.md')) {
+          !filename.endsWith('.md') &&
+          // Custom package-specific test runners. These do not count as tests
+          // for the purposes of testing a change that otherwise needs tests,
+          // but since they are the driver for tests they don't need test
+          // coverage.
+          !filename.endsWith('tool/run_tests.dart') &&
+          !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
