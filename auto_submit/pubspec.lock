@@ -231,7 +231,7 @@ packages:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.1.0"
+    version: "9.2.0"
   googleapis_auth:
     dependency: "direct main"
     description:
