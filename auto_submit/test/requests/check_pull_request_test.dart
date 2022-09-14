@@ -4,18 +4,22 @@
 
 // ignore_for_file: constant_identifier_names
 import 'dart:async';
+import 'dart:convert';
 import 'package:auto_submit/service/config.dart';
 
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:graphql/client.dart' hide Request, Response;
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../service/bigquery_test.dart';
+import '../src/service/fake_bigquery_service.dart';
 import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/fake_authentication.dart';
@@ -35,6 +39,8 @@ void main() {
     late FakeCronAuthProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
     final FakeGithubService githubService = FakeGithubService();
+    late MockJobsResource jobsResource;
+    late FakeBigqueryService bigqueryService;
     late MockPullRequestsService pullRequests;
     final MockGitHub gitHub = MockGitHub();
     late FakePubSub pubsub;
@@ -93,10 +99,19 @@ void main() {
       githubService.successMergeData = successMergeMock;
       githubService.createCommentData = createCommentMock;
       githubService.commitData = commitMock;
+      jobsResource = MockJobsResource();
+      bigqueryService = FakeBigqueryService(jobsResource);
       config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
+      config.bigqueryService = bigqueryService;
       pullRequests = MockPullRequestsService();
       when(gitHub.pullRequests).thenReturn(pullRequests);
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(number: 123, state: 'open'));
+
+      when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
+        return Future<QueryResponse>.value(
+          QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>),
+        );
+      });
     });
 
     void verifyQueries(List<QueryOptions> expectedOptions) {
