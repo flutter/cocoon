@@ -10,6 +10,7 @@ import 'package:process/process.dart';
 
 import 'log.dart';
 
+/// Utility function to upload a file to google cloud.
 Future<void> uploadFunction({
   required String localPath,
   required String destinationUrl,
@@ -23,6 +24,7 @@ Future<void> uploadFunction({
   }
 }
 
+/// Utility function to download a file from google cloud.
 Future<File> downloadFunction({
   required String sourceUrl,
   required String localPath,
@@ -38,6 +40,7 @@ Future<File> downloadFunction({
   return rootDirectory.fileSystem.file(localPath);
 }
 
+/// Utility function class to handle upload/download of files from/to google cloud.
 class EngineArtifactTransfer {
   EngineArtifactTransfer({
     required this.gsCloudBaseUrl,
@@ -49,6 +52,7 @@ class EngineArtifactTransfer {
   Function uploadFunction;
   Function downloadFunction;
 
+  /// Wrapper function to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String localPath,
     required String remotePath,
@@ -65,6 +69,7 @@ class EngineArtifactTransfer {
     );
   }
 
+  /// Wrapper function to download flutter engine artifact from google cloud bucket.
   Future<File> downloadEngineArtifact({
     required String remotePath,
     required String localPath,
