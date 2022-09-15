@@ -182,7 +182,7 @@ void main() {
       ));
     });
 
-        test('Acts on opened against dev', () async {
+    test('Acts on opened against dev', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
