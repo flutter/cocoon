@@ -6,11 +6,13 @@ import 'dart:convert';
 
 import 'package:codesign/codesign.dart' as cs;
 import 'package:codesign/src/log.dart';
+import 'package:codesign/src/transfer_utils.dart';
 import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
+
 import './src/fake_process_manager.dart';
 
 Future<void> fakeUploadFunction({
@@ -259,8 +261,6 @@ void main() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       engineArtifactTransfer = EngineArtifactTransfer(
         gsCloudBaseUrl: r'gs://flutter_infra_release',
-        uploadFunction: uploadFunction,
-        downloadFunction: downloadFunction,
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -606,8 +606,6 @@ void main() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       engineArtifactTransfer = EngineArtifactTransfer(
         gsCloudBaseUrl: randomString,
-        uploadFunction: uploadFunction,
-        downloadFunction: downloadFunction,
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -710,8 +708,6 @@ file_c''',
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       engineArtifactTransfer = EngineArtifactTransfer(
         gsCloudBaseUrl: randomString,
-        uploadFunction: uploadFunction,
-        downloadFunction: downloadFunction,
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,

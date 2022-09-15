@@ -9,6 +9,7 @@ import 'package:file/file.dart';
 import 'package:process/process.dart';
 
 import 'log.dart';
+import 'transfer_utils.dart';
 import 'utils.dart';
 
 /// Statuses reported by Apple's Notary Server.
