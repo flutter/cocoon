@@ -548,15 +548,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    // Assume this PR should be based against config.defaultBranch.
-    body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
-    if (!await _alreadyCommented(gitHubClient, pr, body)) {
-      await gitHubClient.pullRequests.edit(
-        slug,
-        pr.number!,
-        base: Config.defaultBranch(slug),
-      );
-      await gitHubClient.issues.createComment(slug, pr.number!, body);
+    // For repos migrated to main, close PRs opened against master.
+    final bool isMaster = pr.base?.ref == 'master';
+    final bool isMigrated = defaultBranchName == 'main';
+    // PRs should never be open to "beta" or "stable."
+    final bool isReleaseChannelBranch = releaseChannels.contains(pr.base?.ref);
+    if ((isMaster && isMigrated) || isReleaseChannelBranch) {
+      body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
+        await gitHubClient.pullRequests.edit(
+          slug,
+          pr.number!,
+          base: Config.defaultBranch(slug),
+        );
+        await gitHubClient.issues.createComment(slug, pr.number!, body);
+      }
     }
   }
 
