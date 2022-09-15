@@ -69,6 +69,23 @@ targets:
        ["framework", "hostonly"]
    postsubmit_properties:
      - upload_metrics: "true"
+
+#
+# Devicelab example:
+# For tests that are located https://github.com/flutter/flutter/tree/master/dev/devicelab/bin/tasks:
+# 1) a `taskname` property is required, which should match the task name
+# 2) target name follows format of `<platform> <taskname>`
+# 3) update `tags` accordingly
+#
+# Here is the target config for a task named: `analyzer_benchmark.dart`.
+ - name: Linux_android analyzer_benchmark
+   recipe: devicelab/devicelab_drone
+   presubmit: false
+   timeout: 60
+   properties:
+     tags: >
+       ["devicelab", "android", "linux"]
+     task_name: analyzer_benchmark
 ```
 
 ### Adding new targets
