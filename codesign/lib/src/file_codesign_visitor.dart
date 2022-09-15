@@ -32,22 +32,24 @@ class FileCodesignVisitor {
     required this.codesignTeamId,
     required this.codesignFilepaths,
     required this.fileSystem,
-    required this.tempDir,
+    required this.rootDirectory,
     required this.processManager,
+    required this.engineArtifactTransfer,
     this.production = false,
-    this.notarizationTimerDuration = const Duration(seconds: 45),
+    this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
-    entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
-    codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
+    entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    remoteDownloadsDir = rootDirectory.childDirectory('downloads')..createSync();
+    codesignedZipsDir = rootDirectory.childDirectory('codesigned_zips')..createSync();
   }
 
   /// Temp [Directory] to download/extract files to.
   ///
   /// This file will be deleted if [validateAll] completes successfully.
-  final Directory tempDir;
+  final Directory rootDirectory;
   final FileSystem fileSystem;
   final ProcessManager processManager;
+  final EngineArtifactTransfer engineArtifactTransfer;
 
   final String commitHash;
   final String codesignCertName;
@@ -120,12 +122,12 @@ update these file paths accordingly.
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     await Future<void>.value(null);
-    log.info('Codesigned all binaries in ${tempDir.path}');
+    log.info('Codesigned all binaries in ${rootDirectory.path}');
 
-    await tempDir.delete(recursive: true);
+    await rootDirectory.delete(recursive: true);
   }
 
-  /// Retrieve eninge artifact from google cloud storage and kick start a
+  /// Retrieve engine artifact from google cloud storage and kick start a
   /// recursive visit of its contents.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
@@ -134,18 +136,18 @@ update these file paths accordingly.
     required String artifactFilePath,
     required Directory parentDirectory,
   }) async {
-    final FileSystem fs = tempDir.fileSystem;
+    final FileSystem fs = rootDirectory.fileSystem;
 
     // namespace by hashcode otherwise there will be collisions
     final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
 
     // download the zip file
-    final File originalFile = await download(
+    final File originalFile = await engineArtifactTransfer.downloadEngineArtifact(
       remotePath: artifactFilePath,
       localPath: remoteDownloadsDir.childFile(localFilePath).path,
       commitHash: commitHash,
       processManager: processManager,
-      tempDir: tempDir,
+      rootDirectory: rootDirectory,
     );
 
     await unzip(
@@ -174,15 +176,12 @@ update these file paths accordingly.
     // notarize
     await notarize(codesignedFile);
 
-    // we will only upload for production
-    if (production) {
-      await upload(
-        localPath: codesignedFile.path,
-        remotePath: artifactFilePath,
-        commitHash: commitHash,
-        processManager: processManager,
-      );
-    }
+    await engineArtifactTransfer.uploadEngineArtifact(
+      localPath: codesignedFile.path,
+      remotePath: artifactFilePath,
+      commitHash: commitHash,
+      processManager: processManager,
+    );
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
@@ -231,7 +230,7 @@ update these file paths accordingly.
   }) async {
     log.info('This embedded file is ${zipEntity.path} and entitlementParentPath is $entitlementParentPath');
     final String currentFileName = zipEntity.basename;
-    final Directory newDir = tempDir.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
+    final Directory newDir = rootDirectory.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
       inputZip: zipEntity,
       outDir: newDir,

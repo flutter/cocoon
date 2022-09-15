@@ -104,8 +104,13 @@ Future<void> main(List<String> args) async {
   }
 
   const FileSystem fileSystem = LocalFileSystem();
-  final Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
   const ProcessManager processManager = LocalProcessManager();
+  final Function optionalUploadFunction = production ? uploadFunction : () {};
+  final EngineArtifactTransfer engineArtifactTransfer = EngineArtifactTransfer(
+      gsCloudBaseUrl: r'gs://flutter_infra_release',
+      downloadFunction: downloadFunction,
+      uploadFunction: optionalUploadFunction);
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
@@ -116,8 +121,9 @@ Future<void> main(List<String> args) async {
     codesignTeamId: codesignTeamId,
     codesignFilepaths: codesignFilepaths,
     fileSystem: fileSystem,
-    tempDir: tempDir,
+    rootDirectory: rootDirectory,
     processManager: processManager,
     production: production,
+    engineArtifactTransfer: engineArtifactTransfer,
   ).validateAll();
 }

@@ -10,38 +10,78 @@ import 'package:process/process.dart';
 
 import 'log.dart';
 
-const String gsCloudBaseUrl = r'gs://flutter_infra_release';
-
-Future<void> upload({
+Future<void> uploadFunction({
   required String localPath,
-  required String remotePath,
-  required String commitHash,
+  required String destinationUrl,
   required ProcessManager processManager,
 }) async {
-  final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
   final ProcessResult result = await processManager.run(
-    <String>['gsutil', 'cp', localPath, fullRemotePath],
+    <String>['gsutil', 'cp', localPath, destinationUrl],
   );
   if (result.exitCode != 0) {
-    throw Exception('Failed to upload $localPath to $fullRemotePath');
+    throw Exception('Failed to upload $localPath to $destinationUrl');
   }
 }
 
-Future<File> download({
-  required String remotePath,
+Future<File> downloadFunction({
+  required String sourceUrl,
   required String localPath,
-  required String commitHash,
   required ProcessManager processManager,
-  required Directory tempDir,
+  required Directory rootDirectory,
 }) async {
-  final String source = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
   final ProcessResult result = await processManager.run(
-    <String>['gsutil', 'cp', source, localPath],
+    <String>['gsutil', 'cp', sourceUrl, localPath],
   );
   if (result.exitCode != 0) {
-    throw CodesignException('Failed to download $source');
+    throw CodesignException('Failed to download from $sourceUrl');
   }
-  return tempDir.fileSystem.file(localPath);
+  return rootDirectory.fileSystem.file(localPath);
+}
+
+class EngineArtifactTransfer {
+  EngineArtifactTransfer({
+    required this.gsCloudBaseUrl,
+    required this.uploadFunction,
+    required this.downloadFunction,
+  });
+
+  String gsCloudBaseUrl;
+  Function uploadFunction;
+  Function downloadFunction;
+
+  Future<void> uploadEngineArtifact({
+    required String localPath,
+    required String remotePath,
+    required String commitHash,
+    required ProcessManager processManager,
+    int exitCode = 0,
+  }) async {
+    final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+    return await uploadFunction(
+      localPath: localPath,
+      destinationUrl: fullRemotePath,
+      processManager: processManager,
+      exitCode: exitCode,
+    );
+  }
+
+  Future<File> downloadEngineArtifact({
+    required String remotePath,
+    required String localPath,
+    required String commitHash,
+    required ProcessManager processManager,
+    required Directory rootDirectory,
+    int exitCode = 0,
+  }) async {
+    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+    return await downloadFunction(
+      sourceUrl: sourceUrl,
+      localPath: localPath,
+      processManager: processManager,
+      rootDirectory: rootDirectory,
+      exitCode: exitCode,
+    );
+  }
 }
 
 enum FileType {
