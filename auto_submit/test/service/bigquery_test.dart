@@ -814,7 +814,7 @@ void main() {
     } on BigQueryException catch (exception) {
       hasError = true;
       expect(exception.cause,
-          'There was an error updating revert request record review issue landed timestamp with review issue number 2048.');
+          'There was an error updating revert request record review issue landed timestamp with review issue number 2048.',);
     }
 
     expect(hasError, isTrue);

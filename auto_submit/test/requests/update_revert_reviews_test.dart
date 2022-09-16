@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/requests/update_revert_reviews.dart';
-import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
