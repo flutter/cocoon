@@ -10,6 +10,7 @@ import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/readiness_check.dart';
+import 'package:auto_submit/requests/update_revert_reviews.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/secrets.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -47,6 +48,13 @@ Future<void> main() async {
         '/readiness_check',
         ReadinessCheck(
           config: config,
+        ).run,
+      )
+      ..get(
+        '/update-revert-reviews',
+        UpdateRevertReviews(
+          config: config,
+          cronAuthProvider: authProvider,
         ).run,
       );
     await serveHandler(router);

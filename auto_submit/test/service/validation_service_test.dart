@@ -51,7 +51,7 @@ void main() {
 
     when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
       );
     });
   });

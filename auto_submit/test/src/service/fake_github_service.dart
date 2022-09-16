@@ -228,4 +228,9 @@ class FakeGithubService implements GithubService {
     return revertFileNames.toSet().containsAll(currentFileNames) &&
         currentFileNames.toSet().containsAll(revertFileNames);
   }
+
+  @override
+  Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
+    return githubIssueMock!;
+  }
 }

@@ -35,7 +35,8 @@ const String revertRequestRecordResponse = '''
         { "v": "ricardoamador" },
         { "v": "11304" },
         { "v": "1640979000000" },
-        { "v": null }
+        { "v": "0" },
+        { "v": "" }
       ]
     }
   ]
@@ -67,14 +68,14 @@ const String successResponseNoRowsAffected = '''
 }
 ''';
 
-const String insertDeleteSuccessResponse = '''
+const String insertDeleteUpdateSuccessResponse = '''
 {
   "jobComplete": true,
   "numDmlAffectedRows": "1"
 }
 ''';
 
-const String insertDeleteSuccessTooManyRows = '''
+const String insertDeleteUpdateSuccessTooManyRows = '''
 {
   "jobComplete": true,
   "numDmlAffectedRows": "2"
@@ -157,6 +158,31 @@ const String errorResponse = '''
 }
 ''';
 
+const String selectReviewRequestRecordsResponse = '''
+{
+  "jobComplete": true,
+  "numDmlAffectedRows": "2",
+  "rows": [
+    { "f": [
+        { "v": "Keyonghan" },
+        { "v": "2048" },
+        { "v": "234567890" },
+        { "v": "0" },
+        { "v": "" }
+      ]
+    },
+    { "f": [
+        { "v": "caseyhillers" },
+        { "v": "2049" },
+        { "v": "234567890" },
+        { "v": "0" },
+        { "v": "" }
+      ]
+    }
+  ]
+}
+''';
+
 const String expectedProjectId = 'flutter-dashboard';
 
 void main() {
@@ -171,7 +197,7 @@ void main() {
   test('Insert pull request record is successful.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
       );
     });
 
@@ -400,7 +426,7 @@ void main() {
   test('Delete pull request record handles success but wrong number of affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessTooManyRows) as Map<dynamic, dynamic>),
       );
     });
 
@@ -424,7 +450,7 @@ void main() {
   test('Insert revert request record is successful.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessResponse) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
       );
     });
 
@@ -522,14 +548,11 @@ void main() {
     expect(revertRequestRecord.originalPrCommit, equals('ce345dc'));
     expect(revertRequestRecord.originalPrCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567890)));
     expect(revertRequestRecord.originalPrLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(234567999)));
-    // { "v": "ricardoamador" },
-    //     { "v": "11304" },
-    //     { "v": "1640979000000" },
-    //     { "v": null },
     expect(revertRequestRecord.reviewIssueAssignee, equals('ricardoamador'));
     expect(revertRequestRecord.reviewIssueNumber, equals(11304));
     expect(revertRequestRecord.reviewIssueCreatedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(1640979000000)));
-    expect(revertRequestRecord.reviewIssueLandedTimestamp, isNull);
+    expect(revertRequestRecord.reviewIssueLandedTimestamp, equals(DateTime.fromMillisecondsSinceEpoch(0)));
+    expect(revertRequestRecord.reviewIssueClosedBy, equals(''));
   });
 
   test('Select revert request is unsuccessful with job did not complete error.', () async {
@@ -652,7 +675,7 @@ void main() {
   test('Delete revert request record handles success but wrong number of affected rows.', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-        QueryResponse.fromJson(jsonDecode(insertDeleteSuccessTooManyRows) as Map<dynamic, dynamic>),
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessTooManyRows) as Map<dynamic, dynamic>),
       );
     });
 
@@ -670,6 +693,153 @@ void main() {
         'More than one row was deleted from the database for revert request with pr# 2048 in repository cocoon.',
       );
     }
+    expect(hasError, isTrue);
+  });
+
+  test('Select revert request review issues is successful with rows returned.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(selectReviewRequestRecordsResponse) as Map<dynamic, dynamic>),
+      );
+    });
+
+    List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+      projectId: expectedProjectId,
+    );
+
+    RevertRequestRecord keyongRecord = RevertRequestRecord(
+      reviewIssueAssignee: 'Keyonghan',
+      reviewIssueNumber: 2048,
+      reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
+      reviewIssueLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(0),
+      reviewIssueClosedBy: '',
+    );
+
+    RevertRequestRecord caseyRecord = RevertRequestRecord(
+      reviewIssueAssignee: 'caseyhillers',
+      reviewIssueNumber: 2049,
+      reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
+      reviewIssueLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(0),
+      reviewIssueClosedBy: '',
+    );
+
+    expect(revertRequestRecordReviewsList.length, 2);
+    for (RevertRequestRecord revertRequestRecord in revertRequestRecordReviewsList) {
+      if (revertRequestRecord.reviewIssueAssignee == keyongRecord.reviewIssueAssignee) {
+        expect(revertRequestRecord.reviewIssueAssignee, keyongRecord.reviewIssueAssignee);
+        expect(revertRequestRecord.reviewIssueNumber, keyongRecord.reviewIssueNumber);
+        expect(revertRequestRecord.reviewIssueCreatedTimestamp, keyongRecord.reviewIssueCreatedTimestamp);
+        expect(revertRequestRecord.reviewIssueLandedTimestamp, keyongRecord.reviewIssueLandedTimestamp);
+        expect(revertRequestRecord.reviewIssueClosedBy, keyongRecord.reviewIssueClosedBy);
+      } else if (revertRequestRecord.reviewIssueAssignee == caseyRecord.reviewIssueAssignee) {
+        expect(revertRequestRecord.reviewIssueAssignee, caseyRecord.reviewIssueAssignee);
+        expect(revertRequestRecord.reviewIssueNumber, caseyRecord.reviewIssueNumber);
+        expect(revertRequestRecord.reviewIssueCreatedTimestamp, caseyRecord.reviewIssueCreatedTimestamp);
+        expect(revertRequestRecord.reviewIssueLandedTimestamp, caseyRecord.reviewIssueLandedTimestamp);
+        expect(revertRequestRecord.reviewIssueClosedBy, caseyRecord.reviewIssueClosedBy);
+      }
+    }
+  });
+
+  test('Select revert request review issues is successful with zero rows returned.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(successResponseNoRowsAffected) as Map<dynamic, dynamic>),
+      );
+    });
+
+    List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+      projectId: expectedProjectId,
+    );
+
+    assert(revertRequestRecordReviewsList.isEmpty);
+  });
+
+  test('Select revert request review issues is not successful with job did not complete.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>),
+      );
+    });
+
+    bool hasError = false;
+    try {
+      await service.selectOpenReviewRequestIssueRecordsList(
+        projectId: expectedProjectId,
+      );
+    } on BigQueryException catch (exception) {
+      hasError = true;
+      expect(exception.cause, 'Get open review request issues records did not complete.');
+    }
+    expect(hasError, isTrue);
+  });
+
+  test('Update record is successful.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
+      );
+    });
+
+    bool hasError = false;
+    try {
+      await service.updateReviewRequestIssue(
+        projectId: expectedProjectId,
+        reviewIssueLandedTimestamp: DateTime.now(),
+        reviewIssueNumber: 2048,
+        reviewIssueClosedBy: 'ricardoamador',
+      );
+    } on BigQueryException {
+      hasError = true;
+    }
+
+    expect(hasError, isFalse);
+  });
+
+  test('Update revert request review record is successful but wrong number of rows is updated.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessTooManyRows) as Map<dynamic, dynamic>),
+      );
+    });
+
+    bool hasError = false;
+    try {
+      await service.updateReviewRequestIssue(
+        projectId: expectedProjectId,
+        reviewIssueLandedTimestamp: DateTime.now(),
+        reviewIssueNumber: 2048,
+        reviewIssueClosedBy: 'ricardoamador',
+      );
+    } on BigQueryException catch (exception) {
+      hasError = true;
+      expect(exception.cause,
+          'There was an error updating revert request record review issue landed timestamp with review issue number 2048.');
+    }
+
+    expect(hasError, isTrue);
+  });
+
+  test('Update revert request review record does not complete successfully.', () async {
+    when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(errorResponse) as Map<dynamic, dynamic>),
+      );
+    });
+
+    bool hasError = false;
+    try {
+      await service.updateReviewRequestIssue(
+        projectId: expectedProjectId,
+        reviewIssueLandedTimestamp: DateTime.now(),
+        reviewIssueNumber: 2048,
+        reviewIssueClosedBy: 'ricardoamador',
+      );
+    } on BigQueryException catch (exception) {
+      hasError = true;
+      expect(exception.cause, 'Update of review issue 2048 did not complete.');
+    }
+
     expect(hasError, isTrue);
   });
 }
