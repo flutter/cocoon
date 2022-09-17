@@ -59,6 +59,7 @@ class FileCodesignVisitor {
   final String codesignAppstoreId;
   final String codesignTeamId;
   final bool production;
+  final Duration notarizationTimerDuration;
 
   // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
@@ -70,7 +71,6 @@ class FileCodesignVisitor {
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
   late final Directory codesignedZipsDir;
-  late final Duration notarizationTimerDuration;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
