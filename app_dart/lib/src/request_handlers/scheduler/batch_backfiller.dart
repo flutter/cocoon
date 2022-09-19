@@ -80,7 +80,25 @@ class BatchBackfiller extends RequestHandler {
     log.fine('Backfilling ${backfill.length} builds');
     log.fine(backfill.map<String>((Tuple<Target, FullTask, int> tuple) => tuple.first.value.name));
 
-    // Create list of backfill requests.
+    // Update tasks status as in progress to avoid duplicate scheduling.
+    final List<Task> backfillTasks = backfill.map((Tuple<Target, FullTask, int> tuple) => tuple.second.task).toList();
+    try {
+      await datastore.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: backfillTasks);
+        await transaction.commit();
+        log.fine(
+            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
+      });
+      // Schedule all builds asynchronously.
+      // Schedule after db updates to avoid duplicate scheduling when db update fails.
+      await Future.wait<void>(backfileRequestList(backfill));
+    } catch (error) {
+      log.severe('Failed to update tasks when backfilling: $error');
+    }
+  }
+
+  // Create list of backfill requests.
+  List<Future<void>> backfileRequestList(List<Tuple<Target, FullTask, int>> backfill) {
     final List<Future<void>> futures = <Future<void>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
@@ -94,21 +112,7 @@ class BatchBackfiller extends RequestHandler {
         toBeScheduled: [toBeScheduled],
       ));
     }
-    // Schedule all builds asynchronously
-    await Future.wait<void>(futures);
-
-    // Update tasks status as in progress to avoid duplicate scheduling.
-    final List<Task> backfillTasks = backfill.map((Tuple<Target, FullTask, int> tuple) => tuple.second.task).toList();
-    try {
-      await datastore.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: backfillTasks);
-        await transaction.commit();
-        log.fine(
-            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
-      });
-    } catch (error) {
-      log.severe('Failed to update tasks when backfilling: $error');
-    }
+    return futures;
   }
 
   /// Returns priority for back filled targets.
