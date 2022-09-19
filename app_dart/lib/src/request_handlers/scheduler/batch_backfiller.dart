@@ -91,14 +91,14 @@ class BatchBackfiller extends RequestHandler {
       });
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
-      await Future.wait<void>(backfileRequestList(backfill));
+      await Future.wait<void>(backfillRequestList(backfill));
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
   }
 
   // Create list of backfill requests.
-  List<Future<void>> backfileRequestList(List<Tuple<Target, FullTask, int>> backfill) {
+  List<Future<void>> backfillRequestList(List<Tuple<Target, FullTask, int>> backfill) {
     final List<Future<void>> futures = <Future<void>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
