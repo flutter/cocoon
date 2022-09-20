@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:gcloud/datastore.dart' show Datastore, OrderDirection;
+import 'package:gcloud/datastore.dart' show Datastore, OrderDirection, DatastoreError;
 import 'package:gcloud/db.dart';
 
 /// Signature for a callback function that will be notified whenever a
@@ -39,12 +39,15 @@ class FakeDatastoreDB implements DatastoreDB {
     Map<Key<dynamic>, Model<dynamic>>? values,
     Map<Type, QueryCallback<Model<dynamic>>>? onQuery,
     this.onCommit,
+    this.commitException = false,
   })  : values = values ?? <Key<dynamic>, Model<dynamic>>{},
         onQuery = onQuery ?? <Type, QueryCallback<Model<dynamic>>>{};
 
   final Map<Key<dynamic>, Model<dynamic>> values;
   final Map<Type, QueryCallback<Model<dynamic>>> onQuery;
   CommitCallback? onCommit;
+  // Flag used in tests whether the transaction commit throws exception.
+  bool? commitException;
 
   /// Adds a [QueryCallback] to the set of callbacks that will be notified when
   /// queries are run.
@@ -236,6 +239,9 @@ class FakeTransaction implements Transaction {
 
   @override
   Future<dynamic> commit() async {
+    if (db.commitException!) {
+      throw DatastoreError();
+    }
     if (sealed) {
       throw StateError('Transaction sealed');
     }
