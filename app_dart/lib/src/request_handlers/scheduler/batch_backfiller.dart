@@ -97,7 +97,7 @@ class BatchBackfiller extends RequestHandler {
     }
   }
 
-  // Create list of backfill requests.
+  /// Creates a list of backfill requests.
   List<Future<void>> backfillRequestList(List<Tuple<Target, FullTask, int>> backfill) {
     final List<Future<void>> futures = <Future<void>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
