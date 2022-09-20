@@ -13,8 +13,8 @@ import 'package:shelf/shelf.dart';
 import '../service/log.dart';
 import '../server/authenticated_request_handler.dart';
 
-class UpdateRevertReviews extends AuthenticatedRequestHandler {
-  const UpdateRevertReviews({
+class UpdateRevertIssues extends AuthenticatedRequestHandler {
+  const UpdateRevertIssues({
     required super.config,
     required super.cronAuthProvider,
   });
