@@ -259,7 +259,7 @@ class ValidationService {
 
           final github.Issue issue = await gitHubService.createIssue(
             // Created issues are created and tracked within flutter/flutter.
-            slug: github.RepositorySlug('flutter', 'flutter'),
+            slug: github.RepositorySlug(Config.flutter, Config.flutter),
             title: revertReviewTemplate.title!,
             body: revertReviewTemplate.body!,
             labels: <String>['P1'],
@@ -410,7 +410,7 @@ Exception: ${exception.message}
     try {
       BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertPullRequestRecord(
-        projectId: 'flutter-dashboard',
+        projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
       );
       log.info('Record inserted for pull request pr# ${pullRequest.number} successfully.');
@@ -455,7 +455,7 @@ Exception: ${exception.message}
     try {
       BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertRevertRequestRecord(
-        projectId: 'flutter-dashboard',
+        projectId: Config.flutterGcpProjectId,
         revertRequestRecord: revertRequestRecord,
       );
       log.info('Record inserted for revert tracking request for pr# ${revertPullRequest.number} successfully.');

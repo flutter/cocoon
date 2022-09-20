@@ -51,7 +51,7 @@ Future<void> main() async {
         ).run,
       )
       ..get(
-        '/update-revert-reviews',
+        '/update-revert-issues',
         UpdateRevertReviews(
           config: config,
           cronAuthProvider: authProvider,

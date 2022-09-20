@@ -60,7 +60,7 @@ void main() {
   });
 
   group('Update issue tests.', () {
-    test('Close issue is not updated.', () async {
+    test('Open issue is not updated.', () async {
       User user = User(login: 'ricardoamador');
       Issue issue = Issue(
         user: user,
@@ -156,7 +156,7 @@ void main() {
   });
 
   group('Update closed revert review requests.', () {
-    test('All review requests are processed successfully', () async {
+    test('No reviews to update is successful.', () async {
       when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
         return Future<QueryResponse>.value(
           QueryResponse.fromJson(jsonDecode(emptyRowsResponse) as Map<dynamic, dynamic>),
@@ -168,9 +168,5 @@ void main() {
       String body = await response.readAsString(Encoding.getByName("UTF-8"));
       expect(body, equals('No open revert reviews to update.'));
     });
-
-    test('Updateable review requests are process successfully.', () async {});
-
-    test('No review requests to process is successful.', () async {});
   });
 }
