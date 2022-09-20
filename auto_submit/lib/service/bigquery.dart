@@ -34,8 +34,8 @@ FROM `flutter-dashboard.revert.revert_requests`
 WHERE reverting_pr_number=@REVERTING_PR_NUMBER AND repository=@REPOSITORY
 ''';
 
-/// Query to select all of the open revert review issues for update. Note that 
-/// the review_issue_landed_timestamp is 0 for open issues. 0 is the default 
+/// Query to select all of the open revert review issues for update. Note that
+/// the review_issue_landed_timestamp is 0 for open issues. 0 is the default
 /// value instead of null since it is safer to process.
 const String selectRevertRequestReviewIssuesDml = r'''
 SELECT review_issue_assignee,
@@ -332,8 +332,8 @@ class BigqueryService {
     );
   }
 
-  /// Query to select the open review issues for update. 
-  /// 
+  /// Query to select the open review issues for update.
+  ///
   /// Issues are open if the review_issue_landed_timestamp is equal to 0.
   Future<List<RevertRequestRecord>> selectOpenReviewRequestIssueRecordsList({
     required String projectId,
