@@ -662,7 +662,7 @@ void main() {
       final ScheduleBuildRequest scheduleBuildRequest =
           (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
       final Map<String, dynamic> properties = scheduleBuildRequest.properties!;
-      for (String key in Config.engineDefaultProperties.keys) {
+      for (String key in Config.defaultProperties.keys) {
         expect(properties.containsKey(key), true);
       }
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
