@@ -31,7 +31,8 @@ class UpdateRevertReviews extends AuthenticatedRequestHandler {
       return Response.ok('No open revert reviews to update.');
     }
 
-    final GithubService githubService = await config.createGithubService(RepositorySlug(Config.flutter, Config.flutter));
+    final GithubService githubService =
+        await config.createGithubService(RepositorySlug(Config.flutter, Config.flutter));
 
     for (RevertRequestRecord revertRequestRecord in revertRequestRecords) {
       await updateIssue(
