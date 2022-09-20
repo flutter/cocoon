@@ -589,7 +589,8 @@ class LuciBuildService {
             target: target,
             task: task,
             priority: kRerunPriority,
-            properties: commit.slug == Config.engineSlug ? Config.engineDefaultProperties : null,
+            properties:
+                commit.slug == Config.engineSlug || commit.slug == Config.flutterSlug ? Config.defaultProperties : null,
             tags: tags,
           ),
         ),
