@@ -24,6 +24,7 @@ class FakeConfig extends Config {
     this.overrideTreeStatusLabelValue,
     this.webhookKey,
     this.kPubsubPullNumberValue,
+    this.bigqueryService,
   }) : super(
           cacheProvider: Cache.inMemoryCacheProvider(4),
           secretManager: LocalSecretManager(),

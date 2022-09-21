@@ -28,9 +28,30 @@ SELECT organization,
        review_issue_assignee,
        review_issue_number,
        review_issue_created_timestamp,
-       review_issue_landed_timestamp
+       review_issue_landed_timestamp,
+       review_issue_closed_by
 FROM `flutter-dashboard.revert.revert_requests`
 WHERE reverting_pr_number=@REVERTING_PR_NUMBER AND repository=@REPOSITORY
+''';
+
+/// Query to select all of the open revert review issues for update. Note that
+/// the review_issue_landed_timestamp is 0 for open issues. 0 is the default
+/// value instead of null since it is safer to process.
+const String selectRevertRequestReviewIssuesDml = r'''
+SELECT review_issue_assignee,
+       review_issue_number,
+       review_issue_created_timestamp,
+       review_issue_landed_timestamp,
+       review_issue_closed_by
+FROM `flutter-dashboard.revert.revert_requests`
+WHERE review_issue_landed_timestamp=0
+''';
+
+const String updateRevertRequestRecordReviewDml = '''
+UPDATE `flutter-dashboard.revert.revert_requests`
+SET review_issue_landed_timestamp=@REVIEW_ISSUE_LANDED_TIMESTAMP,
+    review_issue_closed_by=@REVIEW_ISSUE_CLOSED_BY
+WHERE review_issue_number=@REVIEW_ISSUE_NUMBER
 ''';
 
 const String insertRevertRequestDml = r'''
@@ -50,7 +71,8 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   review_issue_assignee,
   review_issue_number,
   review_issue_created_timestamp,
-  review_issue_landed_timestamp
+  review_issue_landed_timestamp,
+  review_issue_closed_by
 ) VALUES (
   @ORGANIZATION,
   @REPOSITORY,
@@ -67,7 +89,8 @@ INSERT INTO `flutter-dashboard.revert.revert_requests` (
   @REVIEW_ISSUE_ASSIGNEE,
   @REVIEW_ISSUE_NUMBER,
   @REVIEW_ISSUE_CREATED_TIMESTAMP,
-  @REVIEW_ISSUE_LANDED_TIMESTAMP
+  @REVIEW_ISSUE_LANDED_TIMESTAMP,
+  @REVIEW_ISSUE_CLOSED_BY
 )
 ''';
 
@@ -215,6 +238,10 @@ class BigqueryService {
               ? revertRequestRecord.reviewIssueLandedTimestamp!.millisecondsSinceEpoch
               : 0,
         ),
+        _createStringQueryParameter(
+          'REVIEW_ISSUE_CLOSED_BY',
+          '',
+        ),
       ],
       useLegacySql: false,
     );
@@ -301,7 +328,92 @@ class BigqueryService {
       reviewIssueLandedTimestamp: (tableRow.f![15].v != null)
           ? DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![15].v as String))
           : null,
+      reviewIssueClosedBy: tableRow.f![16].v as String,
     );
+  }
+
+  /// Query to select the open review issues for update.
+  ///
+  /// Issues are open if the review_issue_landed_timestamp is equal to 0.
+  Future<List<RevertRequestRecord>> selectOpenReviewRequestIssueRecordsList({
+    required String projectId,
+  }) async {
+    final JobsResource jobsResource = await defaultJobs();
+
+    final QueryRequest queryRequest = QueryRequest(
+      query: selectRevertRequestReviewIssuesDml,
+      useLegacySql: false,
+    );
+
+    final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
+    if (!queryResponse.jobComplete!) {
+      throw BigQueryException(
+        'Get open review request issues records did not complete.',
+      );
+    }
+
+    final List<TableRow>? tableRows = queryResponse.rows;
+    if (tableRows == null || tableRows.isEmpty) {
+      return <RevertRequestRecord>[];
+    }
+
+    List<RevertRequestRecord> openReviewRequestIssues = [];
+    for (TableRow tableRow in tableRows) {
+      openReviewRequestIssues.add(
+        RevertRequestRecord(
+          reviewIssueAssignee: tableRow.f![0].v as String,
+          reviewIssueNumber: int.parse(tableRow.f![1].v as String),
+          reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![2].v as String)),
+          reviewIssueLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(tableRow.f![3].v as String)),
+          reviewIssueClosedBy: tableRow.f![4].v as String,
+        ),
+      );
+    }
+
+    return openReviewRequestIssues;
+  }
+
+  /// Query the database to update a revert review issue with the timestamp the
+  /// issue was closed at and the person who closed the issue.
+  Future<void> updateReviewRequestIssue({
+    required String projectId,
+    required DateTime reviewIssueLandedTimestamp,
+    required int reviewIssueNumber,
+    required String reviewIssueClosedBy,
+  }) async {
+    final JobsResource jobsResource = await defaultJobs();
+
+    final QueryRequest queryRequest = QueryRequest(
+      query: updateRevertRequestRecordReviewDml,
+      queryParameters: <QueryParameter>[
+        _createIntegerQueryParameter(
+          'REVIEW_ISSUE_LANDED_TIMESTAMP',
+          reviewIssueLandedTimestamp.millisecondsSinceEpoch,
+        ),
+        _createIntegerQueryParameter(
+          'REVIEW_ISSUE_NUMBER',
+          reviewIssueNumber,
+        ),
+        _createStringQueryParameter(
+          'REVIEW_ISSUE_CLOSED_BY',
+          reviewIssueClosedBy,
+        ),
+      ],
+      useLegacySql: false,
+    );
+
+    final QueryResponse queryResponse = await jobsResource.query(queryRequest, projectId);
+    if (!queryResponse.jobComplete!) {
+      throw BigQueryException(
+        'Update of review issue $reviewIssueNumber did not complete.',
+      );
+    }
+
+    if (queryResponse.numDmlAffectedRows != null && int.parse(queryResponse.numDmlAffectedRows!) != 1) {
+      throw BigQueryException(
+        'There was an error updating revert request record review issue landed timestamp with review issue number $reviewIssueNumber.',
+      );
+    }
   }
 
   Future<void> deleteRevertRequestRecord({

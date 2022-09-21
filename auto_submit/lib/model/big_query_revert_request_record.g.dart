@@ -33,6 +33,7 @@ RevertRequestRecord _$RevertRequestRecordFromJson(Map<String, dynamic> json) => 
       reviewIssueLandedTimestamp: json['review_issue_landed_timestamp'] == null
           ? null
           : DateTime.parse(json['review_issue_landed_timestamp'] as String),
+      reviewIssueClosedBy: json['review_issue_closed_by'] as String?,
     );
 
 Map<String, dynamic> _$RevertRequestRecordToJson(RevertRequestRecord instance) => <String, dynamic>{
@@ -52,4 +53,5 @@ Map<String, dynamic> _$RevertRequestRecordToJson(RevertRequestRecord instance) =
       'review_issue_number': instance.reviewIssueNumber,
       'review_issue_created_timestamp': instance.reviewIssueCreatedTimestamp?.toIso8601String(),
       'review_issue_landed_timestamp': instance.reviewIssueLandedTimestamp?.toIso8601String(),
+      'review_issue_closed_by': instance.reviewIssueClosedBy,
     };

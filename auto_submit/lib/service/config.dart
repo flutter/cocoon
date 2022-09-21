@@ -40,6 +40,9 @@ class Config {
   static const int backoffAttempts = 3;
   static const int maxDelaySeconds = 1;
 
+  static const String flutter = 'flutter';
+  static const String flutterGcpProjectId = 'flutter-dashboard';
+
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
   final SecretManager secretManager;
