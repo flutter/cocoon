@@ -22,7 +22,7 @@ dependencies:
   json_annotation: ^4.6.0
   meta: ^1.8.0
   neat_cache: ^2.0.2
-  shelf: ^1.3.2
+  shelf: ^1.4.0
   shelf_router: ^1.1.3
   crypto: ^3.0.2
   logging: ^1.0.2
