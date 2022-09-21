@@ -25,7 +25,7 @@ dependencies:
   gql: ^0.13.1
   graphql: ^5.1.1
   http: ^0.13.5
-  json_annotation: ^4.6.0
+  json_annotation: ^4.7.0
   mime: ^1.0.2
   neat_cache: ^2.0.2
   process_runner: ^4.1.2
