@@ -3,5 +3,5 @@
 // found in the LICENSE file.
 
 export 'src/file_codesign_visitor.dart';
-export 'src/transfer_utils.dart';
+export 'src/google_cloud_storage.dart';
 export 'src/utils.dart';

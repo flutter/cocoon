@@ -10,19 +10,10 @@ import 'package:process/process.dart';
 import './utils.dart';
 
 /// Utility function class to handle upload/download of files from/to google cloud.
-class EngineArtifactTransfer {
-  EngineArtifactTransfer({
-    required this.gsCloudBaseUrl,
-    this.uploadFunction,
-    this.downloadFunction,
-  }) {
-    uploadFunction ??= defaultUploadFunction;
-    downloadFunction ??= defaultDownloadFunction;
-  }
+class GoogleCloudStorage {
+  GoogleCloudStorage();
 
-  String gsCloudBaseUrl;
-  Function? uploadFunction;
-  Function? downloadFunction;
+  String gsCloudBaseUrl = r'gs://flutter_infra_release';
 
   /// Wrapper function to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
@@ -33,11 +24,10 @@ class EngineArtifactTransfer {
     int exitCode = 0,
   }) async {
     final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    return await uploadFunction!(
+    return await uploadFunction(
       localPath: localPath,
       destinationUrl: fullRemotePath,
       processManager: processManager,
-      exitCode: exitCode,
     );
   }
 
@@ -51,17 +41,16 @@ class EngineArtifactTransfer {
     int exitCode = 0,
   }) async {
     final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    return await downloadFunction!(
+    return await downloadFunction(
       sourceUrl: sourceUrl,
       localPath: localPath,
       processManager: processManager,
       rootDirectory: rootDirectory,
-      exitCode: exitCode,
     );
   }
 
   /// Utility function to upload a file to google cloud.
-  Future<void> defaultUploadFunction({
+  Future<void> uploadFunction({
     required String localPath,
     required String destinationUrl,
     required ProcessManager processManager,
@@ -75,7 +64,7 @@ class EngineArtifactTransfer {
   }
 
   /// Utility function to download a file from google cloud.
-  Future<File> defaultDownloadFunction({
+  Future<File> downloadFunction({
     required String sourceUrl,
     required String localPath,
     required ProcessManager processManager,

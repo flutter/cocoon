@@ -8,8 +8,8 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 
+import 'google_cloud_storage.dart';
 import 'log.dart';
-import 'transfer_utils.dart';
 import 'utils.dart';
 
 /// Statuses reported by Apple's Notary Server.
@@ -35,7 +35,7 @@ class FileCodesignVisitor {
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
-    required this.engineArtifactTransfer,
+    required this.googleCloudStorage,
     this.production = false,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -50,7 +50,7 @@ class FileCodesignVisitor {
   final Directory rootDirectory;
   final FileSystem fileSystem;
   final ProcessManager processManager;
-  final EngineArtifactTransfer engineArtifactTransfer;
+  final GoogleCloudStorage googleCloudStorage;
 
   final String commitHash;
   final String codesignCertName;
@@ -143,7 +143,7 @@ update these file paths accordingly.
     final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
 
     // download the zip file
-    final File originalFile = await engineArtifactTransfer.downloadEngineArtifact(
+    final File originalFile = await googleCloudStorage.downloadEngineArtifact(
       remotePath: artifactFilePath,
       localPath: remoteDownloadsDir.childFile(localFilePath).path,
       commitHash: commitHash,
@@ -177,7 +177,7 @@ update these file paths accordingly.
     // notarize
     await notarize(codesignedFile);
 
-    await engineArtifactTransfer.uploadEngineArtifact(
+    await googleCloudStorage.uploadEngineArtifact(
       localPath: codesignedFile.path,
       remotePath: artifactFilePath,
       commitHash: commitHash,

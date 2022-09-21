@@ -6,39 +6,14 @@ import 'dart:convert';
 
 import 'package:codesign/codesign.dart' as cs;
 import 'package:codesign/src/log.dart';
-import 'package:codesign/src/transfer_utils.dart';
 import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
+import './src/fake_google_cloud_storage.dart';
 import './src/fake_process_manager.dart';
-
-Future<void> fakeUploadFunction({
-  required String localPath,
-  required String destinationUrl,
-  required ProcessManager processManager,
-  int exitCode = 0,
-}) async {
-  if (exitCode != 0) {
-    throw CodesignException('Failed to upload $localPath to $destinationUrl');
-  }
-  return;
-}
-
-Future<File> fakeDownloadFunction({
-  required String sourceUrl,
-  required String localPath,
-  required ProcessManager processManager,
-  required Directory rootDirectory,
-  int exitCode = 0,
-}) async {
-  if (exitCode != 0) {
-    throw CodesignException('Failed to download from $sourceUrl');
-  }
-  return rootDirectory.fileSystem.file(localPath);
-}
 
 void main() {
   const String randomString = 'abcd1234';
@@ -47,19 +22,14 @@ void main() {
   final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
 
   late FakeProcessManager processManager;
-
-  late EngineArtifactTransfer engineArtifactTransfer;
+  late FakeGoogleCloudStorage googleCloudStorage;
   late cs.FileCodesignVisitor codesignVisitor;
   final List<LogRecord> records = <LogRecord>[];
 
-  group('test processRemoteZip, upload and download utilities', () {
+  group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      engineArtifactTransfer = EngineArtifactTransfer(
-        gsCloudBaseUrl: randomString,
-        downloadFunction: fakeDownloadFunction,
-        uploadFunction: fakeUploadFunction,
-      );
+      googleCloudStorage = FakeGoogleCloudStorage();
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -68,7 +38,7 @@ void main() {
         codesignTeamId: randomString,
         codesignFilepaths: fakeFilepaths,
         commitHash: randomString,
-        engineArtifactTransfer: engineArtifactTransfer,
+        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
@@ -81,7 +51,7 @@ void main() {
 
     test('download fails and upload succeeds throws exception', () async {
       expect(
-          () => engineArtifactTransfer.uploadEngineArtifact(
+          () => googleCloudStorage.uploadEngineArtifact(
                 remotePath: randomString,
                 localPath: randomString,
                 commitHash: randomString,
@@ -89,7 +59,7 @@ void main() {
               ),
           returnsNormally);
       expect(
-          () => engineArtifactTransfer.downloadEngineArtifact(
+          () => googleCloudStorage.downloadEngineArtifact(
               remotePath: randomString,
               localPath: randomString,
               commitHash: randomString,
@@ -103,7 +73,7 @@ void main() {
 
     test('download succeeds and upload fails throws exception', () async {
       expect(
-          () => engineArtifactTransfer.uploadEngineArtifact(
+          () => googleCloudStorage.uploadEngineArtifact(
                 remotePath: randomString,
                 localPath: randomString,
                 commitHash: randomString,
@@ -115,7 +85,7 @@ void main() {
           ));
 
       expect(
-          () => engineArtifactTransfer.downloadEngineArtifact(
+          () => googleCloudStorage.downloadEngineArtifact(
                 remotePath: randomString,
                 localPath: randomString,
                 commitHash: randomString,
@@ -127,7 +97,7 @@ void main() {
 
     test('download succeeds and upload succeeds returns normally', () async {
       expect(
-          () => engineArtifactTransfer.uploadEngineArtifact(
+          () => googleCloudStorage.uploadEngineArtifact(
                 remotePath: randomString,
                 localPath: randomString,
                 commitHash: randomString,
@@ -135,7 +105,7 @@ void main() {
               ),
           returnsNormally);
       expect(
-          () => engineArtifactTransfer.downloadEngineArtifact(
+          () => googleCloudStorage.downloadEngineArtifact(
                 remotePath: randomString,
                 localPath: randomString,
                 commitHash: randomString,
@@ -259,9 +229,7 @@ void main() {
   group('visit directory/zip api calls: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      engineArtifactTransfer = EngineArtifactTransfer(
-        gsCloudBaseUrl: r'gs://flutter_infra_release',
-      );
+      googleCloudStorage = FakeGoogleCloudStorage();
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -270,7 +238,7 @@ void main() {
         codesignTeamId: randomString,
         codesignFilepaths: fakeFilepaths,
         commitHash: randomString,
-        engineArtifactTransfer: engineArtifactTransfer,
+        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
@@ -604,9 +572,7 @@ void main() {
   group('parse entitlement configs: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      engineArtifactTransfer = EngineArtifactTransfer(
-        gsCloudBaseUrl: randomString,
-      );
+      googleCloudStorage = FakeGoogleCloudStorage();
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -615,7 +581,7 @@ void main() {
         codesignTeamId: randomString,
         codesignFilepaths: fakeFilepaths,
         commitHash: randomString,
-        engineArtifactTransfer: engineArtifactTransfer,
+        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
@@ -706,9 +672,7 @@ file_c''',
   group('notarization tests: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      engineArtifactTransfer = EngineArtifactTransfer(
-        gsCloudBaseUrl: randomString,
-      );
+      googleCloudStorage = FakeGoogleCloudStorage();
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -717,7 +681,7 @@ file_c''',
         codesignTeamId: randomString,
         codesignFilepaths: fakeFilepaths,
         commitHash: randomString,
-        engineArtifactTransfer: engineArtifactTransfer,
+        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
