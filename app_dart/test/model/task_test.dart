@@ -2,10 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -26,35 +24,6 @@ void main() {
     test('disallows illegal status', () {
       expect(() => generateTask(1, status: 'unknown'), throwsArgumentError);
       expect(() => generateTask(1)..status = 'unknown', throwsArgumentError);
-    });
-
-    test('creates a valid chromebot task', () {
-      final Key<String> commitKey = generateKey<String>(Commit, 'flutter/flutter/master/42');
-      const LuciBuilder builder = LuciBuilder(
-        name: 'builderAbc',
-        repo: 'flutter/flutter',
-        taskName: 'taskName',
-        flaky: false,
-      );
-      final Task task = Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder);
-      validateModel(task);
-      expect(task.name, 'taskName');
-      expect(task.builderName, 'builderAbc');
-      expect(task.createTimestamp, 123);
-      expect(task.isFlaky, false);
-      expect(task.requiredCapabilities, <String>['can-update-github']);
-      expect(task.timeoutInMinutes, 0);
-    });
-
-    test('flaky defaults to false', () {
-      final Key<String> commitKey = generateKey<String>(Commit, 'flutter/flutter/master/42');
-      const LuciBuilder builder = LuciBuilder(
-        name: 'builderAbc',
-        repo: 'flutter/flutter',
-        taskName: 'taskName',
-        flaky: null,
-      );
-      expect(Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder).isFlaky, isFalse);
     });
 
     group('updateFromBuild', () {

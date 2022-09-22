@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
@@ -54,7 +53,6 @@ class FakeConfig implements Config {
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
     this.supportedBranchesValue,
-    this.luciBuildersValue,
     this.supportedReposValue,
     this.batchSizeValue,
     FakeDatastoreDB? dbValue,
@@ -95,7 +93,6 @@ class FakeConfig implements Config {
   String? flutterGoldDraftChangeValue;
   String? flutterGoldStalePRValue;
   List<String>? supportedBranchesValue;
-  List<LuciBuilder>? luciBuildersValue;
   String? overrideTreeStatusLabelValue;
   Set<gh.RepositorySlug>? supportedReposValue;
 
