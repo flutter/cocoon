@@ -3,7 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/protos.dart' as pb;
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:test/test.dart';
+
+import '../../src/service/fake_scheduler.dart';
 
 void main() {
   group('enabledBranchesMatchesCurrentBranch', () {
@@ -47,6 +52,55 @@ void main() {
     validateUnPinnedVersion('[{"dependency": "some_sdk", "version": ""}]');
     validateUnPinnedVersion('[{"dependency": "another_sdk"}]');
     validateUnPinnedVersion('[{"dependency": "yet_another_sdk", "version": "latest"}]');
+  });
+
+  group('initialTargets', () {
+    test('targets without deps', () {
+      final CiYaml ciYaml = exampleConfig;
+      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+      final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+      expect(
+        initialTargetNames,
+        containsAll(
+          <String>[
+            'Linux A',
+            'Mac A',
+            'Windows A',
+          ],
+        ),
+      );
+    });
+
+    test('filter bringup targets on release branches', () {
+      final CiYaml ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: pb.SchedulerConfig(
+          enabledBranches: <String>[
+            Config.defaultBranch(Config.flutterSlug),
+          ],
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Linux A',
+            ),
+            pb.Target(
+              name: 'Mac A', // Should be ignored on release branches
+              bringup: true,
+            ),
+          ],
+        ),
+      );
+      final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+      final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+      expect(
+        initialTargetNames,
+        containsAll(
+          <String>[
+            'Linux A',
+          ],
+        ),
+      );
+    });
   });
 }
 

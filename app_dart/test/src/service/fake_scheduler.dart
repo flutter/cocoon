@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
@@ -55,10 +56,12 @@ class FakeScheduler extends Scheduler {
 }
 
 final CiYaml emptyConfig = CiYaml(
-  branch: 'master',
-  slug: RepositorySlug('flutter', 'flutter'),
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
   config: pb.SchedulerConfig(
-    enabledBranches: <String>['master'],
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
     targets: <pb.Target>[
       pb.Target(
         name: 'Linux A',
@@ -69,10 +72,10 @@ final CiYaml emptyConfig = CiYaml(
 );
 
 CiYaml exampleConfig = CiYaml(
-  slug: RepositorySlug('flutter', 'flutter'),
-  branch: 'master',
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
   config: pb.SchedulerConfig(enabledBranches: <String>[
-    'master'
+    Config.defaultBranch(Config.flutterSlug),
   ], targets: <pb.Target>[
     pb.Target(
       name: 'Linux A',
@@ -97,10 +100,10 @@ CiYaml exampleConfig = CiYaml(
 );
 
 CiYaml batchPolicyConfig = CiYaml(
-  slug: RepositorySlug('flutter', 'flutter'),
-  branch: 'master',
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
   config: pb.SchedulerConfig(enabledBranches: <String>[
-    'master'
+    Config.defaultBranch(Config.flutterSlug),
   ], targets: <pb.Target>[
     pb.Target(
       name: 'Linux_android A',
