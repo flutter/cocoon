@@ -9,67 +9,41 @@ import 'package:process/process.dart';
 
 import './utils.dart';
 
-/// Utility function class to handle upload/download of files from/to google cloud.
+/// A service to interact with google cloud storage through gsutil.
 class GoogleCloudStorage {
-  GoogleCloudStorage();
+  GoogleCloudStorage({
+    required this.processManager,
+    required this.rootDirectory,
+    required this.commitHash,
+  });
 
-  String gsCloudBaseUrl = r'gs://flutter_infra_release';
+  ProcessManager processManager;
+  Directory rootDirectory;
+  String commitHash;
+  String gsCloudBaseUrl = 'gs://flutter_infra_release';
 
-  /// Wrapper function to upload code signed flutter engine artifact to google cloud bucket.
+  /// Function to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String localPath,
     required String remotePath,
-    required String commitHash,
-    required ProcessManager processManager,
-    int exitCode = 0,
   }) async {
-    final String fullRemotePath = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    return await uploadFunction(
-      localPath: localPath,
-      destinationUrl: fullRemotePath,
-      processManager: processManager,
-    );
-  }
+    final String destinationUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
 
-  /// Wrapper function to download flutter engine artifact from google cloud bucket.
-  Future<File> downloadEngineArtifact({
-    required String remotePath,
-    required String localPath,
-    required String commitHash,
-    required ProcessManager processManager,
-    required Directory rootDirectory,
-    int exitCode = 0,
-  }) async {
-    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
-    return await downloadFunction(
-      sourceUrl: sourceUrl,
-      localPath: localPath,
-      processManager: processManager,
-      rootDirectory: rootDirectory,
-    );
-  }
-
-  /// Utility function to upload a file to google cloud.
-  Future<void> uploadFunction({
-    required String localPath,
-    required String destinationUrl,
-    required ProcessManager processManager,
-  }) async {
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', localPath, destinationUrl],
     );
+
     if (result.exitCode != 0) {
-      throw Exception('Failed to upload $localPath to $destinationUrl');
+      throw CodesignException('Failed to upload $localPath to $destinationUrl');
     }
   }
 
-  /// Utility function to download a file from google cloud.
-  Future<File> downloadFunction({
-    required String sourceUrl,
+  /// Function to download flutter engine artifact from google cloud bucket.
+  Future<File> downloadEngineArtifact({
+    required String remotePath,
     required String localPath,
-    required ProcessManager processManager,
-    required Directory rootDirectory,
   }) async {
+    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', sourceUrl, localPath],
     );

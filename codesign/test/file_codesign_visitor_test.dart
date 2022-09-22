@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:codesign/codesign.dart' as cs;
+import 'package:codesign/src/google_cloud_storage.dart';
 import 'package:codesign/src/log.dart';
 import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
@@ -12,7 +13,6 @@ import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
-import './src/fake_google_cloud_storage.dart';
 import './src/fake_process_manager.dart';
 
 void main() {
@@ -22,14 +22,18 @@ void main() {
   final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
 
   late FakeProcessManager processManager;
-  late FakeGoogleCloudStorage googleCloudStorage;
+  late GoogleCloudStorage googleCloudStorage;
   late cs.FileCodesignVisitor codesignVisitor;
   final List<LogRecord> records = <LogRecord>[];
 
   group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = FakeGoogleCloudStorage();
+      googleCloudStorage = GoogleCloudStorage(
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        commitHash: randomString,
+      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -50,69 +54,124 @@ void main() {
     });
 
     test('download fails and upload succeeds throws exception', () async {
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            randomString,
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+          ],
+          exitCode: 0,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.uploadEngineArtifact(
-                remotePath: randomString,
-                localPath: randomString,
-                commitHash: randomString,
-                processManager: processManager,
-              ),
-          returnsNormally);
+        () => googleCloudStorage.uploadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        returnsNormally,
+      );
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+            randomString,
+          ],
+          exitCode: -1,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.downloadEngineArtifact(
-              remotePath: randomString,
-              localPath: randomString,
-              commitHash: randomString,
-              rootDirectory: rootDirectory,
-              processManager: processManager,
-              exitCode: -1),
-          throwsA(
-            isA<CodesignException>(),
-          ));
+        () => googleCloudStorage.downloadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
     });
 
     test('download succeeds and upload fails throws exception', () async {
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+            randomString,
+          ],
+          exitCode: 0,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.uploadEngineArtifact(
-                remotePath: randomString,
-                localPath: randomString,
-                commitHash: randomString,
-                processManager: processManager,
-                exitCode: -1,
-              ),
-          throwsA(
-            isA<CodesignException>(),
-          ));
-
+        () => googleCloudStorage.downloadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        returnsNormally,
+      );
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            randomString,
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+          ],
+          exitCode: -1,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.downloadEngineArtifact(
-                remotePath: randomString,
-                localPath: randomString,
-                commitHash: randomString,
-                rootDirectory: rootDirectory,
-                processManager: processManager,
-              ),
-          returnsNormally);
+        () => googleCloudStorage.uploadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
     });
 
     test('download succeeds and upload succeeds returns normally', () async {
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+            randomString,
+          ],
+          exitCode: 0,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.uploadEngineArtifact(
-                remotePath: randomString,
-                localPath: randomString,
-                commitHash: randomString,
-                processManager: processManager,
-              ),
-          returnsNormally);
+        () => googleCloudStorage.downloadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        returnsNormally,
+      );
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            randomString,
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$randomString',
+          ],
+          exitCode: 0,
+        ),
+      ]);
       expect(
-          () => googleCloudStorage.downloadEngineArtifact(
-                remotePath: randomString,
-                localPath: randomString,
-                commitHash: randomString,
-                rootDirectory: rootDirectory,
-                processManager: processManager,
-              ),
-          returnsNormally);
+        () => googleCloudStorage.uploadEngineArtifact(
+          remotePath: randomString,
+          localPath: randomString,
+        ),
+        returnsNormally,
+      );
     });
 
     test('procesRemotezip triggers correct workflow', () async {
@@ -121,6 +180,14 @@ void main() {
       const String artifactFilePath = 'my/artifacts.zip';
       final String artifactBaseName = rootDirectory.fileSystem.path.basename(artifactFilePath);
       processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$artifactFilePath',
+            '${rootDirectory.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName',
+          ],
+        ),
         FakeCommand(
           command: <String>[
             'unzip',
@@ -174,6 +241,14 @@ void main() {
             randomString,
           ],
           stdout: 'status: Accepted',
+        ),
+        FakeCommand(
+          command: <String>[
+            'gsutil',
+            'cp',
+            '${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
+            '${googleCloudStorage.gsCloudBaseUrl}/flutter/$randomString/$artifactFilePath',
+          ],
         ),
       ]);
 
@@ -229,7 +304,11 @@ void main() {
   group('visit directory/zip api calls: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = FakeGoogleCloudStorage();
+      googleCloudStorage = GoogleCloudStorage(
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        commitHash: randomString,
+      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -572,7 +651,11 @@ void main() {
   group('parse entitlement configs: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = FakeGoogleCloudStorage();
+      googleCloudStorage = GoogleCloudStorage(
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        commitHash: randomString,
+      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
@@ -672,7 +755,11 @@ file_c''',
   group('notarization tests: ', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = FakeGoogleCloudStorage();
+      googleCloudStorage = GoogleCloudStorage(
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        commitHash: randomString,
+      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         codesignUserName: randomString,
