@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:file/file.dart';
 import 'package:process/process.dart';
 
 import 'log.dart';

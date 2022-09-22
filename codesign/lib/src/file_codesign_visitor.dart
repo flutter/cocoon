@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 
+import 'google_cloud_storage.dart';
 import 'log.dart';
 import 'utils.dart';
 
@@ -32,21 +33,24 @@ class FileCodesignVisitor {
     required this.codesignTeamId,
     required this.codesignFilepaths,
     required this.fileSystem,
-    required this.tempDir,
+    required this.rootDirectory,
     required this.processManager,
+    required this.googleCloudStorage,
     this.production = false,
+    this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
-    entitlementsFile = tempDir.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = tempDir.childDirectory('downloads')..createSync();
-    codesignedZipsDir = tempDir.childDirectory('codesigned_zips')..createSync();
+    entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
+    remoteDownloadsDir = rootDirectory.childDirectory('downloads')..createSync();
+    codesignedZipsDir = rootDirectory.childDirectory('codesigned_zips')..createSync();
   }
 
   /// Temp [Directory] to download/extract files to.
   ///
   /// This file will be deleted if [validateAll] completes successfully.
-  final Directory tempDir;
+  final Directory rootDirectory;
   final FileSystem fileSystem;
   final ProcessManager processManager;
+  final GoogleCloudStorage googleCloudStorage;
 
   final String commitHash;
   final String codesignCertName;
@@ -55,6 +59,7 @@ class FileCodesignVisitor {
   final String codesignAppstoreId;
   final String codesignTeamId;
   final bool production;
+  final Duration notarizationTimerDuration;
 
   // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
@@ -90,7 +95,6 @@ class FileCodesignVisitor {
     </dict>
 </plist>
 ''';
-  static const Duration _notarizationTimerDuration = Duration(seconds: 45);
   static final RegExp _notarytoolStatusCheckPattern = RegExp(r'[ ]*status: ([a-zA-z ]+)');
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
@@ -119,9 +123,61 @@ update these file paths accordingly.
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     await Future<void>.value(null);
-    log.info('Codesigned all binaries in ${tempDir.path}');
+    log.info('Codesigned all binaries in ${rootDirectory.path}');
 
-    await tempDir.delete(recursive: true);
+    await rootDirectory.delete(recursive: true);
+  }
+
+  /// Retrieve engine artifact from google cloud storage and kick start a
+  /// recursive visit of its contents.
+  ///
+  /// Invokes [visitDirectory] to recursively visit the contents of the remote
+  /// zip. Also downloads, notarizes and uploads the engine artifact.
+  Future<void> processRemoteZip({
+    required String artifactFilePath,
+    required Directory parentDirectory,
+  }) async {
+    final FileSystem fs = rootDirectory.fileSystem;
+
+    // namespace by hashcode otherwise there will be collisions
+    final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
+
+    // download the zip file
+    final File originalFile = await googleCloudStorage.downloadEngineArtifact(
+      from: artifactFilePath,
+      destination: remoteDownloadsDir.childFile(localFilePath).path,
+    );
+
+    await unzip(
+      inputZip: originalFile,
+      outDir: parentDirectory,
+      processManager: processManager,
+    );
+
+    //extract entitlements file.
+    fileWithEntitlements = await parseEntitlements(parentDirectory, true);
+    fileWithoutEntitlements = await parseEntitlements(parentDirectory, false);
+    log.info('parsed binaries with entitlements are $fileWithEntitlements');
+    log.info('parsed binaries without entitlements are $fileWithEntitlements');
+
+    // recursively visit extracted files
+    await visitDirectory(directory: parentDirectory, entitlementParentPath: artifactFilePath);
+
+    final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
+
+    await zip(
+      inputDir: parentDirectory,
+      outputZip: codesignedFile,
+      processManager: processManager,
+    );
+
+    // notarize
+    await notarize(codesignedFile);
+
+    await googleCloudStorage.uploadEngineArtifact(
+      from: codesignedFile.path,
+      destination: artifactFilePath,
+    );
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
@@ -142,6 +198,9 @@ update these file paths accordingly.
           directory: directory.childDirectory(entity.basename),
           entitlementParentPath: entitlementParentPath,
         );
+        continue;
+      }
+      if (entity.basename == 'entitlements.txt' || entity.basename == 'without_entitlements.txt') {
         continue;
       }
       final FileType childType = getFileType(
@@ -167,7 +226,7 @@ update these file paths accordingly.
   }) async {
     log.info('This embedded file is ${zipEntity.path} and entitlementParentPath is $entitlementParentPath');
     final String currentFileName = zipEntity.basename;
-    final Directory newDir = tempDir.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
+    final Directory newDir = rootDirectory.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
       inputZip: zipEntity,
       outDir: newDir,
@@ -268,7 +327,7 @@ update these file paths accordingly.
 
     // check on results
     Timer.periodic(
-      _notarizationTimerDuration,
+      notarizationTimerDuration,
       callback,
     );
     await completer.future;

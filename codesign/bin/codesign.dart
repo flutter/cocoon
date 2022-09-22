@@ -104,8 +104,13 @@ Future<void> main(List<String> args) async {
   }
 
   const FileSystem fileSystem = LocalFileSystem();
-  final Directory tempDir = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
   const ProcessManager processManager = LocalProcessManager();
+  final GoogleCloudStorage googleCloudStorage = GoogleCloudStorage(
+    processManager: processManager,
+    rootDirectory: rootDirectory,
+    commitHash: commit,
+  );
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
@@ -116,8 +121,9 @@ Future<void> main(List<String> args) async {
     codesignTeamId: codesignTeamId,
     codesignFilepaths: codesignFilepaths,
     fileSystem: fileSystem,
-    tempDir: tempDir,
+    rootDirectory: rootDirectory,
     processManager: processManager,
     production: production,
+    googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }
