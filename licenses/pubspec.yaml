@@ -9,5 +9,5 @@ dependencies:
   platform: ^3.1.0
 
 dev_dependencies:
-  mockito: ^5.3.1
+  mockito: ^5.3.2
   test_api: ^0.4.14
