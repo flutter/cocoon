@@ -41,6 +41,12 @@ void main() {
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
 
+  /// Name of an example release base branch name.
+  const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
+
+  /// Name of an example release head branch name.
+  const String kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
+
   setUp(() {
     request = FakeHttpRequest();
     db = FakeDatastoreDB();
@@ -138,6 +144,42 @@ void main() {
         issueNumber,
         argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
       )).called(1);
+    });
+
+    test('No action against candidate branches', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        baseRef: 'flutter-2.13-candidate.0',
+      );
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(pullRequestsService.edit(
+        Config.flutterSlug,
+        issueNumber,
+        base: kDefaultBranchName,
+      ));
+
+      verifyNever(issuesService.createComment(
+        Config.flutterSlug,
+        issueNumber,
+        argThat(contains('-> master')),
+      ));
     });
 
     test('Acts on opened against dev', () async {
@@ -2100,6 +2142,31 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/foo/lib/foo.dart',
           PullRequestFile()..filename = 'packages/foo/test/foo_test.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        Config.packagesSlug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Packages does not comment for custom test driver', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/foo/tool/run_tests.dart',
+          PullRequestFile()..filename = 'packages/foo/run_tests.sh',
         ]),
       );
 

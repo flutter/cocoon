@@ -2,14 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:graphql/client.dart';
-
-class RetryableMergeException implements Exception {
-  RetryableMergeException(this.cause, this.graphQLErrors);
+class BigQueryException implements Exception {
+  /// Create a custom exception for Big Query Errors.
+  BigQueryException(this.cause);
 
   final String cause;
-
-  final List<GraphQLError> graphQLErrors;
 
   @override
   String toString() => cause;

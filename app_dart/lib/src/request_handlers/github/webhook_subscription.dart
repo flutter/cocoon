@@ -470,7 +470,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           !filename.endsWith('.cirrus.yml') &&
           !filename.contains('.ci/') &&
           !filename.contains('.github/') &&
-          !filename.endsWith('.md')) {
+          !filename.endsWith('.md') &&
+          // Custom package-specific test runners. These do not count as tests
+          // for the purposes of testing a change that otherwise needs tests,
+          // but since they are the driver for tests they don't need test
+          // coverage.
+          !filename.endsWith('tool/run_tests.dart') &&
+          !filename.endsWith('run_tests.sh')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
       // See https://github.com/flutter/flutter/wiki/Plugin-Tests for discussion
@@ -542,15 +548,21 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    // Assume this PR should be based against config.defaultBranch.
-    body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
-    if (!await _alreadyCommented(gitHubClient, pr, body)) {
-      await gitHubClient.pullRequests.edit(
-        slug,
-        pr.number!,
-        base: Config.defaultBranch(slug),
-      );
-      await gitHubClient.issues.createComment(slug, pr.number!, body);
+    // For repos migrated to main, close PRs opened against master.
+    final bool isMaster = pr.base?.ref == 'master';
+    final bool isMigrated = defaultBranchName == 'main';
+    // PRs should never be open to "beta" or "stable."
+    final bool isReleaseChannelBranch = releaseChannels.contains(pr.base?.ref);
+    if ((isMaster && isMigrated) || isReleaseChannelBranch) {
+      body = _getWrongBaseComment(base: baseName, defaultBranch: defaultBranchName);
+      if (!await _alreadyCommented(gitHubClient, pr, body)) {
+        await gitHubClient.pullRequests.edit(
+          slug,
+          pr.number!,
+          base: Config.defaultBranch(slug),
+        );
+        await gitHubClient.issues.createComment(slug, pr.number!, body);
+      }
     }
   }
 

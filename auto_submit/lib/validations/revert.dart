@@ -47,7 +47,7 @@ class Revert extends Validation {
 
     github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     GithubService githubService = await config.createGithubService(repositorySlug);
-    int pullRequestId = _getPullRequestIdFromLink(revertLink);
+    int pullRequestId = _getPullRequestNumberFromLink(revertLink);
     github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
     bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
@@ -96,7 +96,7 @@ class Revert extends Validation {
 
   /// Split a reverts link on the '#' to get the id part of the link.
   /// It is assumed that the link has the format flutter/repo#id.
-  int _getPullRequestIdFromLink(String link) {
+  int _getPullRequestNumberFromLink(String link) {
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }

@@ -29,14 +29,6 @@ import 'logging.dart';
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
-/// Name of an example release base branch name.
-// TODO(chillers): Delete this as it's only used for tests.
-const String kReleaseBaseRef = 'flutter-2.12-candidate.4';
-
-/// Name of an example release head branch name.
-// TODO(chillers): Delete this as it's only used for tests.
-const String kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
-
 class Config {
   Config(this._db, this._cache);
 
@@ -83,8 +75,8 @@ class Config {
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
-  /// Engine default properties when rerunning a prod build.
-  static const Map<String, Object> engineDefaultProperties = <String, Object>{'force_upload': true};
+  /// Default properties when rerunning a prod build.
+  static const Map<String, Object> defaultProperties = <String, Object>{'force_upload': true};
 
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);

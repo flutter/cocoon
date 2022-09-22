@@ -114,11 +114,13 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
-    PullRequest pullRequest = pullRequestMock!;
+    PullRequest pullRequest;
     if (usePullRequestList && pullRequestMockList.isNotEmpty) {
       pullRequest = pullRequestMockList.removeAt(0)!;
     } else if (usePullRequestList && pullRequestMockList.isEmpty) {
       throw Exception('List is empty.');
+    } else {
+      pullRequest = pullRequestMock!;
     }
     return pullRequest;
   }
@@ -225,5 +227,10 @@ class FakeGithubService implements GithubService {
 
     return revertFileNames.toSet().containsAll(currentFileNames) &&
         currentFileNames.toSet().containsAll(revertFileNames);
+  }
+
+  @override
+  Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
+    return githubIssueMock!;
   }
 }

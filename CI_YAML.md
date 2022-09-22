@@ -35,6 +35,8 @@ targets:
 # name: A human readable string to uniquely identify this target.
 #       The first word indicates the platform this test will be run on. This should match
 #       to an existing platform under platform_properties.
+# recipes: LUCI recipes the target follows to run tests
+#          https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/
 # bringup: Whether this target is under active development and should not block the tree.
 #          If true, will not run in presubmit and will not block postsubmit.
 # presubmit: Whether to run this target on presubmit (defaults to true).
@@ -69,6 +71,23 @@ targets:
        ["framework", "hostonly"]
    postsubmit_properties:
      - upload_metrics: "true"
+
+#
+# Devicelab example:
+# For tests that are located https://github.com/flutter/flutter/tree/master/dev/devicelab/bin/tasks:
+# 1) target name follows format of `<platform> <taskname>`
+# 2) properties
+#    2.1) update `tags` based on hosts, devices, and tests type. These tags will be used for statistic analysis.
+#    2.2) a `taskname` property is required, which should match the task name
+#
+# Here is the target config for a task named: `analyzer_benchmark.dart`.
+ - name: Linux_android analyzer_benchmark
+   recipe: devicelab/devicelab_drone
+   presubmit: false
+   properties:
+     tags: >
+       ["devicelab", "android", "linux"]
+     task_name: analyzer_benchmark
 ```
 
 ### Adding new targets

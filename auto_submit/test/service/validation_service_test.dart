@@ -3,25 +3,30 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto hide PullRequest;
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
+import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../requests/github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_approver_service.dart';
+import '../src/service/fake_bigquery_service.dart';
 import '../src/service/fake_config.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/validations/fake_revert.dart';
 import '../utilities/utils.dart';
 import '../utilities/mocks.dart';
+import 'bigquery_test.dart';
 
 void main() {
   late ValidationService validationService;
@@ -30,12 +35,25 @@ void main() {
   late FakeGraphQLClient githubGraphQLClient;
   late RepositorySlug slug;
 
+  late MockJobsResource jobsResource;
+  late FakeBigqueryService bigqueryService;
+
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
     validationService = ValidationService(config);
     slug = RepositorySlug('flutter', 'cocoon');
+
+    jobsResource = MockJobsResource();
+    bigqueryService = FakeBigqueryService(jobsResource);
+    config.bigqueryService = bigqueryService;
+
+    when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
+      return Future<QueryResponse>.value(
+        QueryResponse.fromJson(jsonDecode(insertDeleteUpdateSuccessResponse) as Map<dynamic, dynamic>),
+      );
+    });
   });
 
   test('Removes label and post comment when no approval', () async {
@@ -121,8 +139,11 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
+      githubService.pullRequestMock = pullRequest;
 
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);
@@ -312,6 +333,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -367,6 +390,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -427,6 +452,8 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
 
@@ -498,8 +525,11 @@ void main() {
 
       final Issue issue = Issue(
         id: 1234,
+        assignee: User(login: 'keyonghan'),
+        createdAt: DateTime.now(),
       );
       githubService.githubIssueMock = issue;
+      githubService.pullRequestMock = pullRequest;
 
       unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
       final auto.QueryResult queryResult = createQueryResult(flutterRequest);

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
@@ -14,6 +15,8 @@ import 'package:neat_cache/neat_cache.dart';
 
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
+import 'access_client_provider.dart';
+import 'bigquery.dart';
 import 'github_service.dart';
 import 'log.dart';
 
@@ -36,6 +39,9 @@ class Config {
   static const int backOfMultiplier = 200;
   static const int backoffAttempts = 3;
   static const int maxDelaySeconds = 1;
+
+  static const String flutter = 'flutter';
+  static const String flutterGcpProjectId = 'flutter-dashboard';
 
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
@@ -111,6 +117,15 @@ class Config {
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
+  }
+
+  Future<BigqueryService> createBigQueryService() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider();
+    return BigqueryService(accessClientProvider);
+  }
+
+  Future<TabledataResource> createTabledataResourceApi() async {
+    return (await createBigQueryService()).defaultTabledata();
   }
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
