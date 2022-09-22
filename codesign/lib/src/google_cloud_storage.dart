@@ -17,39 +17,39 @@ class GoogleCloudStorage {
     required this.commitHash,
   });
 
-  ProcessManager processManager;
-  Directory rootDirectory;
-  String commitHash;
-  String gsCloudBaseUrl = 'gs://flutter_infra_release';
+  final ProcessManager processManager;
+  final Directory rootDirectory;
+  final String commitHash;
+  final String gsCloudBaseUrl = 'gs://flutter_infra_release';
 
-  /// Function to upload code signed flutter engine artifact to google cloud bucket.
+  /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
-    required String localPath,
-    required String remotePath,
+    required String from,
+    required String destination,
   }) async {
-    final String destinationUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+    final String destinationUrl = '$gsCloudBaseUrl/flutter/$commitHash/$destination';
 
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', localPath, destinationUrl],
+      <String>['gsutil', 'cp', from, destinationUrl],
     );
 
     if (result.exitCode != 0) {
-      throw CodesignException('Failed to upload $localPath to $destinationUrl');
+      throw CodesignException('Failed to upload $from to $destinationUrl');
     }
   }
 
-  /// Function to download flutter engine artifact from google cloud bucket.
+  /// Method to download flutter engine artifact from google cloud bucket.
   Future<File> downloadEngineArtifact({
-    required String remotePath,
-    required String localPath,
+    required String from,
+    required String destination,
   }) async {
-    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$remotePath';
+    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$from';
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', sourceUrl, localPath],
+      <String>['gsutil', 'cp', sourceUrl, destination],
     );
     if (result.exitCode != 0) {
       throw CodesignException('Failed to download from $sourceUrl');
     }
-    return rootDirectory.fileSystem.file(localPath);
+    return rootDirectory.fileSystem.file(destination);
   }
 }

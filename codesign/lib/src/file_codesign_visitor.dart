@@ -144,8 +144,8 @@ update these file paths accordingly.
 
     // download the zip file
     final File originalFile = await googleCloudStorage.downloadEngineArtifact(
-      remotePath: artifactFilePath,
-      localPath: remoteDownloadsDir.childFile(localFilePath).path,
+      from: artifactFilePath,
+      destination: remoteDownloadsDir.childFile(localFilePath).path,
     );
 
     await unzip(
@@ -175,8 +175,8 @@ update these file paths accordingly.
     await notarize(codesignedFile);
 
     await googleCloudStorage.uploadEngineArtifact(
-      localPath: codesignedFile.path,
-      remotePath: artifactFilePath,
+      from: codesignedFile.path,
+      destination: artifactFilePath,
     );
   }
 

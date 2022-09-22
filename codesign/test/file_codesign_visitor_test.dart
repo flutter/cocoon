@@ -67,8 +67,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         returnsNormally,
       );
@@ -85,8 +85,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -108,8 +108,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         returnsNormally,
       );
@@ -126,8 +126,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -149,8 +149,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         returnsNormally,
       );
@@ -167,8 +167,8 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
-          remotePath: randomString,
-          localPath: randomString,
+          from: randomString,
+          destination: randomString,
         ),
         returnsNormally,
       );
