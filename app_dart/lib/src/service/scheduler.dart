@@ -32,7 +32,6 @@ import 'config.dart';
 import 'datastore.dart';
 import 'github_checks_service.dart';
 import 'github_service.dart';
-import 'luci.dart';
 import 'luci_build_service.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
@@ -234,15 +233,6 @@ class Scheduler {
       branch: commit.branch!,
       totConfig: totCiYaml,
     );
-  }
-
-  /// Get all [LuciBuilder] run for [ciYaml].
-  Future<List<LuciBuilder>> getPostSubmitBuilders(CiYaml ciYaml) async {
-    final Iterable<Target> postsubmitLuciTargets =
-        ciYaml.postsubmitTargets.where((Target target) => target.value.scheduler == pb.SchedulerSystem.luci);
-    final List<LuciBuilder> builders =
-        postsubmitLuciTargets.map((Target target) => LuciBuilder.fromTarget(target)).toList();
-    return builders;
   }
 
   /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.

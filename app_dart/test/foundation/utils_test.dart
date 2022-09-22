@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/logging.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart' as http;
@@ -177,22 +176,6 @@ void main() {
         expect(twoSecondLinearBackoff(1), const Duration(seconds: 4));
         expect(twoSecondLinearBackoff(2), const Duration(seconds: 6));
         expect(twoSecondLinearBackoff(3), const Duration(seconds: 8));
-      });
-    });
-
-    group('repoNameForBuilder', () {
-      test('Builder config does not exist', () async {
-        final List<LuciBuilder> builders = <LuciBuilder>[];
-        final RepositorySlug? result = await repoNameForBuilder(builders, 'DoesNotExist');
-        expect(result, isNull);
-      });
-
-      test('Builder exists', () async {
-        final List<LuciBuilder> builders = <LuciBuilder>[
-          const LuciBuilder(name: 'Cocoon', repo: 'cocoon', flaky: false)
-        ];
-        final RepositorySlug result = (await repoNameForBuilder(builders, 'Cocoon'))!;
-        expect(result.fullName, equals('flutter/cocoon'));
       });
     });
 

@@ -16,7 +16,6 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
@@ -459,7 +458,6 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        config.luciBuildersValue = <LuciBuilder>[];
         final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
         expect(presubmitTargets.map((Target target) => target.value.name).toList(),
             containsAll(<String>['Linux A', 'Linux C']));
@@ -480,7 +478,6 @@ targets:
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        config.luciBuildersValue = <LuciBuilder>[];
         expect(scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
             throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
       });
