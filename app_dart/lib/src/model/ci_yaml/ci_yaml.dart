@@ -60,7 +60,13 @@ class CiYaml {
   /// This shouldn't be confused for targets that have the property named dependency, which is used by the
   /// flutter_deps recipe module on LUCI.
   List<Target> getInitialTargets(List<Target> targets) {
-    return targets.where((Target target) => target.value.dependencies.isEmpty).toList();
+    Iterable<Target> initialTargets = targets.where((Target target) => target.value.dependencies.isEmpty).toList();
+    if (branch != Config.defaultBranch(slug)) {
+      // Filter out bringup targets for release branches
+      initialTargets = initialTargets.where((Target target) => !target.value.bringup);
+    }
+
+    return initialTargets.toList();
   }
 
   Iterable<Target> get _targets => config.targets.map((pb.Target target) => Target(
