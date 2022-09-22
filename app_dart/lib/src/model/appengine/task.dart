@@ -7,7 +7,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
 import '../../service/logging.dart';
-import '../../service/luci.dart';
 import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
 import 'commit.dart';
@@ -49,28 +48,6 @@ class Task extends Model<int> {
     }
     parentKey = key?.parent;
     id = key?.id;
-  }
-
-  /// Construct [Task] from a [LuciBuilder].
-  factory Task.chromebot({
-    required Key<String> commitKey,
-    required int createTimestamp,
-    required LuciBuilder builder,
-  }) {
-    return Task(
-      attempts: 1,
-      builderName: builder.name,
-      commitKey: commitKey,
-      createTimestamp: createTimestamp,
-      isFlaky: builder.flaky ?? false,
-      key: commitKey.append(Task),
-      // The task name of a builder is what Cocoon uses for the name.
-      name: builder.taskName!,
-      requiredCapabilities: <String>['can-update-github'],
-      stageName: 'chromebot',
-      status: Task.statusNew,
-      timeoutInMinutes: 0,
-    );
   }
 
   /// Construct [Task] from a [Target].

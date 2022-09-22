@@ -20,7 +20,6 @@ import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
-import '../service/luci.dart';
 
 const String kCiYamlPath = '.ci.yaml';
 const String kTestOwnerPath = 'TESTOWNERS';
@@ -101,21 +100,6 @@ FutureOr<String> getUrl(
   } finally {
     client.close();
   }
-}
-
-Future<RepositorySlug?> repoNameForBuilder(List<LuciBuilder> builders, String builderName) async {
-  final LuciBuilder builderConfig = builders.firstWhere(
-    (LuciBuilder builder) => builder.name == builderName,
-    orElse: () => const LuciBuilder(repo: '', name: '', flaky: false),
-  );
-  final String repoName = builderConfig.repo!;
-  // If there is no builder config for the builderName then we
-  // return null. This is to allow the code calling this method
-  // to skip changes that depend on builder configurations.
-  if (repoName.isEmpty) {
-    return null;
-  }
-  return RepositorySlug('flutter', repoName);
 }
 
 /// Returns a LUCI [builder] list that covers changed [files].
