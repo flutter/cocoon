@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/revert_handler.dart';
 import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
@@ -267,6 +268,9 @@ Future<void> main() async {
 
       /// Handler for AppEngine to identify when dart server is ready to serve requests.
       '/readiness_check': ReadinessCheck(config: config),
+
+      /// Handler for AppEngine to identify when dart server is ready to serve requests.
+      '/revert': Revert(config: config),
     };
 
     return await runAppEngine((HttpRequest request) async {
