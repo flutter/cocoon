@@ -422,6 +422,21 @@ void main() {
         expect(await scheduler.processCheckRun(checkRunEvent), true);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
+
+      test('rerequested does not fail on empty pull request list', () async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'check_suite': <String, dynamic>{'id': 2},
+          });
+        });
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
+        );
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
     });
 
     group('presubmit', () {
