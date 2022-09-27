@@ -311,7 +311,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
         filename.startsWith('dev/devicelab/lib/tasks') ||
-        filename.startsWith('dev/devicelab/lib/tasks') ||
+        filename.startsWith('dev/benchmarks') ||
         objectiveCTestRegex.hasMatch(filename);
   }
 
