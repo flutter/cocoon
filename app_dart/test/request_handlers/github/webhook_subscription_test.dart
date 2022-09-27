@@ -1040,6 +1040,7 @@ void main() {
           PullRequestFile()..filename = 'dev/bots/test.dart',
           PullRequestFile()..filename = 'dev/devicelab/bin/tasks/analyzer_benchmark.dart',
           PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
+          PullRequestFile()..filename = 'dev/benchmarks/microbenchmarks/lib/foundation/all_elements_bench.dart',
         ]),
       );
 
