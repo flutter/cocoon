@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
+import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'logic/task_grid_filter.dart';
@@ -248,7 +249,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               padding: const EdgeInsets.only(top: 9.0),
               child: Center(
                 child: Text(
-                  buildState.currentBranch,
+                  truncate(buildState.currentBranch, 28),
                   style: theme.primaryTextTheme.bodyLarge,
                 ),
               ),
@@ -263,7 +264,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 padding: const EdgeInsets.only(top: 9.0),
                 child: Center(
                   child: Text(
-                    b.branch,
+                    truncate(b.branch, 28),
                     style: theme.primaryTextTheme.bodyLarge,
                   ),
                 ),

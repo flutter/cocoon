@@ -76,10 +76,15 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
           ..repository = repo
           ..branch = defaultBranches[repo]!,
       );
-      fakeBranches.add(
-        Branch()
-          ..repository = repo
-          ..branch = '$repo-release',
+      fakeBranches.addAll(
+        <Branch>[
+          Branch()
+            ..repository = repo
+            ..branch = '$repo-release',
+          Branch()
+            ..repository = repo
+            ..branch = '$repo-release-very-long-name-that-should-be-truncated',
+        ],
       );
     }
     return fakeBranches;
