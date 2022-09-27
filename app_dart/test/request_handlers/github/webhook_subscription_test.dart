@@ -1142,6 +1142,26 @@ void main() {
       ));
     });
 
+    test('Framework no comment if only analysis options changed', () async {
+      const int issueNumber = 123;
+      tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'analysis_options.yaml',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Framework no comment if only CODEOWNERS changed', () async {
       const int issueNumber = 123;
       tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
