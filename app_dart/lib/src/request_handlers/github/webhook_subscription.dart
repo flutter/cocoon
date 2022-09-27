@@ -312,15 +312,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// Returns true if changes to [filename] are exempt from the testing
   /// requirement, across repositories.
   bool _isTestExempt(String filename) {
-    return filename.contains('.ci.yaml')
-        || filename.contains('.cirrus.yml')
-        || filename.contains('analysis_options.yaml')
-        || filename.contains('AUTHORS')
-        || filename.contains('CODEOWNERS')
-        || filename.contains('pubspec.yaml')
+    return filename.contains('.ci.yaml') ||
+        filename.contains('.cirrus.yml') ||
+        filename.contains('analysis_options.yaml') ||
+        filename.contains('AUTHORS') ||
+        filename.contains('CODEOWNERS') ||
+        filename.contains('pubspec.yaml') ||
         // Exempt categories.
-        || filename.contains('.github/')
-        || filename.endsWith('.md');
+        filename.contains('.github/') ||
+        filename.endsWith('.md');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
