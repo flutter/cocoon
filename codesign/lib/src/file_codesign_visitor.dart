@@ -145,9 +145,8 @@ update these file paths accordingly.
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     List<String> artifactFilePaths = <String>[];
-
-    if (googleCloudStorage.optionalSwitch != null) {
-      artifactFilePaths = googleCloudStorage.optionalSwitch!;
+    if (googleCloudStorage.optionalSwitch.isNotEmpty) {
+      artifactFilePaths = googleCloudStorage.optionalSwitch;
     } else {
       artifactFilePaths = engineArtifactFilePaths;
     }
@@ -205,7 +204,7 @@ update these file paths accordingly.
     log.info('parsed binaries without entitlements are $fileWithEntitlements');
 
     // recursively visit extracted files
-    await visitDirectory(directory: parentDirectory, entitlementParentPath: artifactFilePath);
+    await visitDirectory(directory: parentDirectory, entitlementParentPath: "");
 
     final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
 
@@ -244,7 +243,7 @@ update these file paths accordingly.
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
-          entitlementParentPath: entitlementParentPath,
+          entitlementParentPath: joinEntitlementPaths(entitlementParentPath, entity.basename),
         );
         continue;
       }
@@ -282,7 +281,7 @@ update these file paths accordingly.
     );
 
     // the virtual file path is advanced by the name of the embedded zip
-    final String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
+    final String currentZipEntitlementPath = joinEntitlementPaths(entitlementParentPath, currentFileName);
     await visitDirectory(
       directory: newDir,
       entitlementParentPath: currentZipEntitlementPath,
@@ -302,7 +301,7 @@ update these file paths accordingly.
   /// with entitlements.
   Future<void> visitBinaryFile({required File binaryFile, required String entitlementParentPath}) async {
     final String currentFileName = binaryFile.basename;
-    final String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
+    final String entitlementCurrentPath = joinEntitlementPaths(entitlementParentPath, currentFileName);
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {

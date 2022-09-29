@@ -77,7 +77,7 @@ Future<void> main(List<String> args) async {
       help:
           'the list of binaries that are supported besides flutter engine binaries. e.g. ios-deploy.zip, libimobiledevice.zip, libplist.zip, libusbmuxd.zip, openssl.zip',
       allowed: ["ios-deploy.zip", "libimobiledevice.zip", "libplist.zip", "libusbmuxd.zip", "openssl.zip"],
-      defaultsTo: null,
+      defaultsTo: <String>[],
     )
     ..addFlag(
       kDryrunFlag,
@@ -95,7 +95,7 @@ Future<void> main(List<String> args) async {
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
-  final List<String>? optionalSwitch = argResults[kOptionalSwitch] as List<String>?;
+  final List<String> optionalSwitch = argResults[kOptionalSwitch] as List<String>;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 

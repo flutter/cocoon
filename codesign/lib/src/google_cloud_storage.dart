@@ -15,13 +15,13 @@ class GoogleCloudStorage {
     required this.processManager,
     required this.rootDirectory,
     required this.commitHash,
-    this.optionalSwitch,
+    required this.optionalSwitch,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
   final String commitHash;
-  final List<String>? optionalSwitch;
+  final List<String> optionalSwitch;
   final String bucketPrefix = 'gs://flutter_infra_release';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
@@ -30,7 +30,7 @@ class GoogleCloudStorage {
     required String destination,
   }) async {
     final String destinationUrl;
-    if (optionalSwitch == null) {
+    if (optionalSwitch.isEmpty) {
       destinationUrl = '$bucketPrefix/flutter/$commitHash/$destination';
     } else {
       final String rawName = destination.replaceAll(".zip", "");
@@ -52,7 +52,7 @@ class GoogleCloudStorage {
     required String destination,
   }) async {
     final String sourceUrl;
-    if (optionalSwitch == null) {
+    if (optionalSwitch.isEmpty) {
       sourceUrl = '$bucketPrefix/flutter/$commitHash/$from';
     } else {
       final String rawName = from.replaceAll(".zip", "");

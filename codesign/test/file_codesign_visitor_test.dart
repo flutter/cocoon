@@ -26,6 +26,16 @@ void main() {
 
   Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
 
+  group('test utils function to join virtual entitlement path: ', () {
+    test('omits slash for the first path', () async {
+      expect(joinEntitlementPaths("", randomString), randomString);
+    });
+
+    test('concat with slash', () async {
+      expect(joinEntitlementPaths(randomString, randomString), '$randomString/$randomString');
+    });
+  });
+
   group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
       processManager = FakeProcessManager.list(<FakeCommand>[]);
@@ -33,6 +43,7 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
         commitHash: randomString,
+        optionalSwitch: <String>[],
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -308,6 +319,7 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
         commitHash: randomString,
+        optionalSwitch: <String>[],
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -403,7 +415,7 @@ void main() {
       ]);
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
-        entitlementParentPath: 'a.zip',
+        entitlementParentPath: '',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
@@ -579,11 +591,11 @@ void main() {
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
-      codesignVisitor.fileWithEntitlements = <String>{'root/file_a'};
-      codesignVisitor.fileWithoutEntitlements = <String>{'root/file_b'};
+      codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
+      codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_5/file_b').createSync(recursive: true);
+        ..file('${rootDirectory.path}/remote_zip_5/folder_a/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_5/folder_b/file_b').createSync(recursive: true);
       final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
@@ -591,7 +603,7 @@ void main() {
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
           ],
           stdout: 'application/x-mach-binary',
         ),
@@ -601,7 +613,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
             '--timestamp',
             '--options=runtime',
             '--entitlements',
@@ -613,7 +625,7 @@ void main() {
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
           ],
           stdout: 'application/x-mach-binary',
         ),
@@ -623,7 +635,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
             '--timestamp',
             '--options=runtime',
           ],
@@ -637,12 +649,12 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/file_a'));
-      expect(messages, contains('the virtual entitlement path associated with file is root/file_a'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/folder_a/file_a'));
       expect(messages, contains('the decision to sign with entitlement is true'));
 
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/file_b'));
-      expect(messages, contains('the virtual entitlement path associated with file is root/file_b'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b'));
+      expect(messages, contains('the virtual entitlement path associated with file is root/folder_b/file_b'));
       expect(messages, contains('the decision to sign with entitlement is false'));
     });
   });
@@ -654,6 +666,7 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
         commitHash: randomString,
+        optionalSwitch: <String>[],
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -757,6 +770,7 @@ file_c''',
         processManager: processManager,
         rootDirectory: rootDirectory,
         commitHash: randomString,
+        optionalSwitch: <String>[],
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
