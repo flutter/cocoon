@@ -95,7 +95,7 @@ void main() {
       expect(response.statusCode, HttpStatus.ok);
       // 2. Empty message is returned as this was already processed
       expect(responseBody, '123 was already processed');
-      expect(await cache.getOrCreate(subscription.topicName, '123'), isNotNull);
+      expect(await cache.getOrCreate(subscription.subscriptionName, '123'), isNotNull);
     });
 
     test('ensure messages can be retried', () async {
@@ -121,7 +121,7 @@ class UnauthTest extends SubscriptionHandler {
           cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(authenticated: false),
-          topicName: 'unauth',
+          subscriptionName: 'unauth',
         );
 
   @override
@@ -135,7 +135,7 @@ class AuthTest extends SubscriptionHandler {
           cache: CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(),
-          topicName: 'auth',
+          subscriptionName: 'auth',
         );
 
   @override
@@ -149,7 +149,7 @@ class ErrorTest extends SubscriptionHandler {
           cache: cache ?? CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(),
-          topicName: 'error',
+          subscriptionName: 'error',
         );
 
   @override
@@ -163,7 +163,7 @@ class ReadMessageTest extends SubscriptionHandler {
           cache: cache ?? CacheService(inMemory: true),
           config: FakeConfig(),
           authProvider: FakeAuthenticationProvider(),
-          topicName: 'read',
+          subscriptionName: 'read',
         );
 
   @override

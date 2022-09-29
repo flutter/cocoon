@@ -13,7 +13,6 @@ import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
-import '../../service/branch_service.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/github_checks_service.dart';
@@ -56,9 +55,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    required this.branchService,
     super.authProvider,
-  }) : super(topicName: 'github-webhooks');
+  }) : super(subscriptionName: 'github-webhooks-sub');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
@@ -67,7 +65,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final GithubChecksService? githubChecksService;
 
   final DatastoreServiceProvider datastoreProvider;
-  final BranchService branchService;
 
   @override
   Future<Body> post() async {
@@ -89,13 +86,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
           throw InternalServerError('Failed to process $checkRunEvent');
-        }
-        break;
-      case 'create':
-        final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
-        await branchService.handleCreateRequest(createEvent);
-        if (createEvent.repository?.slug() == Config.flutterSlug) {
-          await branchService.branchFlutterRecipes(createEvent.ref!);
         }
         break;
     }

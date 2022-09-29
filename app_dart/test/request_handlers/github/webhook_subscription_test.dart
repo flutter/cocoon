@@ -33,7 +33,6 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
-  late MockBranchService branchService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -70,7 +69,6 @@ void main() {
       wrongHeadBranchPullRequestMessageValue: 'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue: '{{target_branch}} -> {{default_branch}}',
     );
-    branchService = MockBranchService();
     issuesService = MockIssuesService();
     when(issuesService.addLabelsToIssue(any, any, any)).thenAnswer((_) async => <IssueLabel>[]);
     when(issuesService.createComment(any, any, any)).thenAnswer((_) async => IssueComment());
@@ -107,7 +105,6 @@ void main() {
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
-      branchService: branchService,
     );
   });
 
@@ -2432,22 +2429,6 @@ void foo() {
 
         await tester.post(webhook);
       });
-    });
-  });
-
-  group('github webhook create branch event', () {
-    test('process create branch event', () async {
-      tester.message = generateCreateBranchMessage('flutter-2.12-candidate.4', Config.flutterSlug.fullName);
-      await tester.post(webhook);
-
-      verify(branchService.branchFlutterRecipes('flutter-2.12-candidate.4'));
-    });
-
-    test('do not create recipe branches on non-flutter/flutter branches', () async {
-      tester.message = generateCreateBranchMessage('flutter-2.12-candidate.4', Config.engineSlug.fullName);
-      await tester.post(webhook);
-
-      verifyNever(branchService.branchFlutterRecipes(any));
     });
   });
 

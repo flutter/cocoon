@@ -38,7 +38,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     required this.luciBuildService,
     required this.githubChecksService,
     AuthenticationProvider? authProvider,
-  }) : super(topicName: 'github-updater');
+  }) : super(subscriptionName: 'github-updater');
 
   final BuildBucketClient buildBucketClient;
   final LuciBuildService luciBuildService;
