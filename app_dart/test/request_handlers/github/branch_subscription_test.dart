@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/request_handlers/github/branch_subscription.dart';
+import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 
@@ -46,6 +47,13 @@ void main() {
     test('do not create recipe branches on non-flutter/flutter branches', () async {
       tester.message = generateCreateBranchMessage(kReleaseBaseRef, Config.engineSlug.fullName);
       await tester.post(webhook);
+
+      verifyNever(branchService.branchFlutterRecipes(any));
+    });
+
+    test('do not process non-create messages', () async {
+      tester.message = generateGithubWebhookMessage();
+      expect(await tester.post(webhook), Body.empty);
 
       verifyNever(branchService.branchFlutterRecipes(any));
     });
