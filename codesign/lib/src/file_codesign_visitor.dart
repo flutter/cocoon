@@ -31,12 +31,11 @@ class FileCodesignVisitor {
     required this.appSpecificPassword,
     required this.codesignAppstoreId,
     required this.codesignTeamId,
-    required this.codesignFilepaths,
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
     required this.googleCloudStorage,
-    this.production = false,
+    this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
     entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
@@ -58,7 +57,7 @@ class FileCodesignVisitor {
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
-  final bool production;
+  final bool dryrun;
   final Duration notarizationTimerDuration;
 
   // TODO(xilaizhang): add back utitlity in later splits
@@ -66,7 +65,6 @@ class FileCodesignVisitor {
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
-  List<String> codesignFilepaths;
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -120,9 +118,55 @@ If there are obsolete binaries in entitlements configuration files, please delet
 update these file paths accordingly.
 ''';
 
+  List<String> engineArtifactFilePaths = [
+    "android-arm-profile/darwin-x64.zip",
+    "android-arm-release/darwin-x64.zip",
+    "android-arm64-release/darwin-x64.zip",
+    "android-arm64-profile/darwin-x64.zip",
+    "android-x64-profile/darwin-x64.zip",
+    "android-x64-release/darwin-x64.zip",
+    "dart-sdk-darwin-arm64.zip",
+    "dart-sdk-darwin-x64.zip",
+    "darwin-x64/artifacts.zip",
+    "darwin-x64-profile/artifacts.zip",
+    "darwin-x64-release/artifacts.zip",
+    "darwin-x64/gen_snapshot.zip",
+    "darwin-x64-profile/gen_snapshot.zip",
+    "darwin-x64-release/gen_snapshot.zip",
+    "darwin-x64/font-subset.zip",
+    "darwin-x64/FlutterMacOS.framework.zip",
+    "darwin-x64-profile/FlutterMacOS.framework.zip",
+    "darwin-x64-release/FlutterMacOS.framework.zip",
+    "ios/artifacts.zip",
+    "ios-profile/artifacts.zip",
+    "ios-release/artifacts.zip",
+  ];
+
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    await Future<void>.value(null);
+    List<String> artifactFilePaths = <String>[];
+
+    if (googleCloudStorage.optionalSwitch != null) {
+      artifactFilePaths = googleCloudStorage.optionalSwitch!;
+    } else {
+      artifactFilePaths = engineArtifactFilePaths;
+    }
+
+    final Iterable<Future<void>> futures = artifactFilePaths.map((String artifactFilePath) {
+      final Directory outDir =
+          rootDirectory.childDirectory('remote_zip_${artifactFilePath.replaceAll("/", "_").replaceAll(".zip", "")}');
+      return processRemoteZip(artifactFilePath: artifactFilePath, parentDirectory: outDir);
+    });
+    await Future.wait(
+      futures,
+      eagerError: true,
+    );
+
+    if (dryrun) {
+      log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
+          ' google cloud storage, please use the --dryrun=false flag to run code signing script.'
+          ' thanks for understanding the security concerns!');
+    }
     log.info('Codesigned all binaries in ${rootDirectory.path}');
 
     await rootDirectory.delete(recursive: true);
@@ -174,10 +218,14 @@ update these file paths accordingly.
     // notarize
     await notarize(codesignedFile);
 
-    await googleCloudStorage.uploadEngineArtifact(
-      from: codesignedFile.path,
-      destination: artifactFilePath,
-    );
+    // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
+    // This would help prevent https://github.com/flutter/flutter/issues/104387
+    if (!dryrun) {
+      await googleCloudStorage.uploadEngineArtifact(
+        from: codesignedFile.path,
+        destination: artifactFilePath,
+      );
+    }
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.

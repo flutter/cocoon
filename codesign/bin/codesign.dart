@@ -14,31 +14,33 @@ import 'package:process/process.dart';
 /// Definitions of variables are included in help texts below.
 const String kHelpFlag = 'help';
 const String kCommitOption = 'commit';
-const String kProductionFlag = 'production';
+const String kDryrunFlag = 'dryrun';
 const String kCodesignCertNameOption = 'codesign-cert-name';
 const String kCodesignUserNameOption = 'codesign-username';
 const String kAppSpecificPasswordOption = 'app-specific-password';
 const String kCodesignAppStoreIdOption = 'codesign-appstore-id';
 const String kCodesignTeamIdOption = 'codesign-team-id';
 const String kCodesignFilepathOption = 'filepath';
+const String kOptionalSwitch = 'optional-switch';
 
 /// Perform Mac code signing based on file paths.
 ///
-/// If [kProductionFlag] is set to true, code signed artifacts will be uploaded
+/// If [kDryrunFlag] is set to false, code signed artifacts will be uploaded
 /// back to google cloud storage.
-/// Otherwise, nothing will be uploaded back for production. default value is
-/// false.
+/// Otherwise, nothing will be uploaded back for dry run. default value is
+/// true.
 ///
 /// For [kCommitOption], provides the engine commit to be code signed.
 ///
 /// For [kCodesignFilepathOption], provides the artifacts zip paths to be code signed.
 ///
+/// For [kOptionalSwitch], it is an optional parameter that you can supply to code sign binaries other than flutter engine binaries.
+/// The five options are: ios-deploy.zip, libimobiledevice.zip, libplist.zip, libusbmuxd.zip, openssl.zip.
+///
 /// Usage:
 /// ```shell
 /// dart run bin/main.dart --commit=$commitSha
-/// --filepath=darwin-x64/FlutterMacOS.framework.zip --filepath=ios/artifacts.zip
-/// --filepath=dart-sdk-darwin-arm64.zip
-/// ( add `--production` if this is intended for production)
+/// ( add `--dryrun` if this is intended for dryrun)
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -71,14 +73,15 @@ Future<void> main(List<String> args) async {
       help: 'the Flutter engine commit revision for which Google Cloud Storage binary artifacts should be codesigned.',
     )
     ..addMultiOption(
-      kCodesignFilepathOption,
-      help: 'The zip file paths to be codesigned. Pass this option multiple'
-          'times to codesign multiple zip files',
-      valueHelp: 'darwin-x64/font-subset.zip',
+      kOptionalSwitch,
+      help:
+          'the list of binaries that are supported besides flutter engine binaries. e.g. ios-deploy.zip, libimobiledevice.zip, libplist.zip, libusbmuxd.zip, openssl.zip',
+      allowed: ["ios-deploy.zip", "libimobiledevice.zip", "libplist.zip", "libusbmuxd.zip", "openssl.zip"],
+      defaultsTo: null,
     )
     ..addFlag(
-      kProductionFlag,
-      help: 'whether we are going to upload the artifacts back to GCS for production',
+      kDryrunFlag,
+      help: 'whether we are going to upload the artifacts back to GCS for dryrun',
     );
 
   final ArgResults argResults = parser.parse(args);
@@ -92,9 +95,9 @@ Future<void> main(List<String> args) async {
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
+  final List<String>? optionalSwitch = argResults[kOptionalSwitch] as List<String>?;
 
-  final List<String> codesignFilepaths = argResults[kCodesignFilepathOption]! as List<String>;
-  final bool production = argResults[kProductionFlag] as bool;
+  final bool dryrun = argResults[kDryrunFlag] as bool;
 
   if (!platform.isMacOS) {
     throw CodesignException(
@@ -110,6 +113,7 @@ Future<void> main(List<String> args) async {
     processManager: processManager,
     rootDirectory: rootDirectory,
     commitHash: commit,
+    optionalSwitch: optionalSwitch,
   );
 
   return FileCodesignVisitor(
@@ -119,11 +123,10 @@ Future<void> main(List<String> args) async {
     appSpecificPassword: appSpecificPassword,
     codesignAppstoreId: codesignAppstoreId,
     codesignTeamId: codesignTeamId,
-    codesignFilepaths: codesignFilepaths,
     fileSystem: fileSystem,
     rootDirectory: rootDirectory,
     processManager: processManager,
-    production: production,
+    dryrun: dryrun,
     googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }

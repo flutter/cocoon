@@ -15,19 +15,27 @@ class GoogleCloudStorage {
     required this.processManager,
     required this.rootDirectory,
     required this.commitHash,
+    this.optionalSwitch,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
   final String commitHash;
-  final String gsCloudBaseUrl = 'gs://flutter_infra_release';
+  final List<String>? optionalSwitch;
+  final String bucketPrefix = 'gs://flutter_infra_release';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
     required String destination,
   }) async {
-    final String destinationUrl = '$gsCloudBaseUrl/flutter/$commitHash/$destination';
+    final String destinationUrl;
+    if (optionalSwitch == null) {
+      destinationUrl = '$bucketPrefix/flutter/$commitHash/$destination';
+    } else {
+      final String rawName = destination.replaceAll(".zip", "");
+      destinationUrl = '$bucketPrefix/ios-usb-dependencies/$rawName/$commitHash/$destination';
+    }
 
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', from, destinationUrl],
@@ -43,7 +51,13 @@ class GoogleCloudStorage {
     required String from,
     required String destination,
   }) async {
-    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$from';
+    final String sourceUrl;
+    if (optionalSwitch == null) {
+      sourceUrl = '$bucketPrefix/flutter/$commitHash/$from';
+    } else {
+      final String rawName = from.replaceAll(".zip", "");
+      sourceUrl = '$bucketPrefix/ios-usb-dependencies/unsigned/$rawName/$commitHash/$from';
+    }
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', sourceUrl, destination],
     );
