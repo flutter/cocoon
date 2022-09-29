@@ -14,6 +14,8 @@ import '../../service/branch_service.dart';
 import '../../service/config.dart';
 import '../../service/logging.dart';
 
+const String kWebhookCreateEvent = 'create';
+
 /// Subscription for processing GitHub webhooks relating to branches.
 ///
 /// This subscription processes branch events on GitHub into Cocoon.
@@ -36,7 +38,7 @@ class GithubBranchWebhookSubscription extends SubscriptionHandler {
     }
 
     final pb.GithubWebhookMessage webhook = pb.GithubWebhookMessage.fromJson(message.data!);
-    if (webhook.event != 'create') {
+    if (webhook.event != kWebhookCreateEvent) {
       return Body.empty;
     }
 
