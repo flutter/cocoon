@@ -1235,10 +1235,10 @@ status: Invalid''',
             ' google cloud storage, please use the --dryrun=false flag to run code signing script.'
             ' thanks for understanding the security concerns!'),
       );
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
 
     test('upload optional switch artifacts when dryrun is true', () async {
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
@@ -1408,6 +1408,7 @@ status: Invalid''',
         messages,
         contains('Codesigned all binaries in ${rootDirectory.path}'),
       );
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
   });
 }
