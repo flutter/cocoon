@@ -33,6 +33,8 @@ class GoogleCloudStorage {
     if (optionalSwitch.isEmpty) {
       destinationUrl = '$bucketPrefix/flutter/$commitHash/$destination';
     } else {
+      // Remove .zip to obtain gcloud bucket path. For example, ios-deploy.zip
+      // is processed to obtain the path .../ios-deploy/$hash/ios-deploy.zip
       final String rawName = destination.replaceAll(".zip", "");
       destinationUrl = '$bucketPrefix/ios-usb-dependencies/$rawName/$commitHash/$destination';
     }
