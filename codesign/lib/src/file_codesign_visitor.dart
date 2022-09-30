@@ -204,7 +204,7 @@ update these file paths accordingly.
     log.info('parsed binaries without entitlements are $fileWithEntitlements');
 
     // recursively visit extracted files
-    await visitDirectory(directory: parentDirectory, entitlementParentPath: "");
+    await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
 
     final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
 
@@ -230,7 +230,7 @@ update these file paths accordingly.
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
   Future<void> visitDirectory({
     required Directory directory,
-    required String entitlementParentPath,
+    required String parentVirtualPath,
   }) async {
     log.info('Visiting directory ${directory.absolute.path}');
     if (directoriesVisited.contains(directory.absolute.path)) {
@@ -243,7 +243,7 @@ update these file paths accordingly.
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
-          entitlementParentPath: joinEntitlementPaths(entitlementParentPath, entity.basename),
+          parentVirtualPath: joinEntitlementPaths(parentVirtualPath, entity.basename),
         );
         continue;
       }
@@ -257,10 +257,10 @@ update these file paths accordingly.
       if (childType == FileType.zip) {
         await visitEmbeddedZip(
           zipEntity: entity,
-          entitlementParentPath: entitlementParentPath,
+          parentVirtualPath: parentVirtualPath,
         );
       } else if (childType == FileType.binary) {
-        await visitBinaryFile(binaryFile: entity as File, entitlementParentPath: entitlementParentPath);
+        await visitBinaryFile(binaryFile: entity as File, parentVirtualPath: parentVirtualPath);
       }
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
@@ -269,9 +269,9 @@ update these file paths accordingly.
   /// Unzip an [EmbeddedZip] and visit its children.
   Future<void> visitEmbeddedZip({
     required FileSystemEntity zipEntity,
-    required String entitlementParentPath,
+    required String parentVirtualPath,
   }) async {
-    log.info('This embedded file is ${zipEntity.path} and entitlementParentPath is $entitlementParentPath');
+    log.info('This embedded file is ${zipEntity.path} and parentVirtualPath is $parentVirtualPath');
     final String currentFileName = zipEntity.basename;
     final Directory newDir = rootDirectory.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
@@ -281,10 +281,10 @@ update these file paths accordingly.
     );
 
     // the virtual file path is advanced by the name of the embedded zip
-    final String currentZipEntitlementPath = joinEntitlementPaths(entitlementParentPath, currentFileName);
+    final String currentZipEntitlementPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
     await visitDirectory(
       directory: newDir,
-      entitlementParentPath: currentZipEntitlementPath,
+      parentVirtualPath: currentZipEntitlementPath,
     );
     await zipEntity.delete();
     await zip(
@@ -299,9 +299,9 @@ update these file paths accordingly.
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
-  Future<void> visitBinaryFile({required File binaryFile, required String entitlementParentPath}) async {
+  Future<void> visitBinaryFile({required File binaryFile, required String parentVirtualPath}) async {
     final String currentFileName = binaryFile.basename;
-    final String entitlementCurrentPath = joinEntitlementPaths(entitlementParentPath, currentFileName);
+    final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {

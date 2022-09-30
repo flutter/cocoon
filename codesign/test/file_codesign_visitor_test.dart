@@ -376,7 +376,7 @@ void main() {
       final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_0');
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
-        entitlementParentPath: 'a.zip',
+        parentVirtualPath: 'a.zip',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
@@ -415,7 +415,7 @@ void main() {
       ]);
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
-        entitlementParentPath: '',
+        parentVirtualPath: '',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
@@ -475,7 +475,7 @@ void main() {
 
       await codesignVisitor.visitEmbeddedZip(
         zipEntity: fileSystem.file('${rootDirectory.path}/remote_zip_2/zip_1'),
-        entitlementParentPath: 'a.zip',
+        parentVirtualPath: 'a.zip',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
@@ -527,7 +527,7 @@ void main() {
 
       await codesignVisitor.visitDirectory(
         directory: fileSystem.directory('${rootDirectory.path}/remote_zip_4'),
-        entitlementParentPath: 'a.zip',
+        parentVirtualPath: 'a.zip',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
@@ -568,7 +568,7 @@ void main() {
 
       await codesignVisitor.visitDirectory(
         directory: fileSystem.directory('${rootDirectory.path}/parent_1/child_1'),
-        entitlementParentPath: 'a.zip',
+        parentVirtualPath: 'a.zip',
       );
       List<String> warnings = records
           .where((LogRecord record) => record.level == Level.WARNING)
@@ -578,7 +578,7 @@ void main() {
 
       await codesignVisitor.visitDirectory(
         directory: fileSystem.directory('${rootDirectory.path}/parent_1'),
-        entitlementParentPath: 'a.zip',
+        parentVirtualPath: 'a.zip',
       );
       warnings = records
           .where((LogRecord record) => record.level == Level.WARNING)
@@ -643,7 +643,7 @@ void main() {
       ]);
       await codesignVisitor.visitDirectory(
         directory: testDirectory,
-        entitlementParentPath: 'root',
+        parentVirtualPath: 'root',
       );
       final List<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
