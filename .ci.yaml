@@ -60,7 +60,6 @@ targets:
       - .ci.yaml
 
   - name: Mac codesign
-    presubmit: false
     recipe: cocoon/cipd
     properties:
       add_recipes_cq: "true"
