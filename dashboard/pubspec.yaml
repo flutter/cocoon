@@ -26,12 +26,13 @@ dependencies:
   fixnum: ^1.0.0
   flutter:
     sdk: flutter
-  google_sign_in: ^5.4.1
+  google_sign_in: ^5.4.2
   http: ^0.13.4
   protobuf: ^2.0.1
   provider: ^6.0.2
-  url_launcher: ^6.1.5
+  url_launcher: ^6.1.6
   flutter_app_icons: ^0.0.8
+  truncate: ^3.0.1
 
 dev_dependencies:
   build_runner: ^2.2.1
@@ -40,7 +41,7 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.0.14
   path: ^1.8.1
-  url_launcher_platform_interface: ^2.1.0
+  url_launcher_platform_interface: ^2.1.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

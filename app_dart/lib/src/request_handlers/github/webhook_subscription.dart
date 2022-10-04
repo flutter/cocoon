@@ -13,7 +13,6 @@ import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
-import '../../service/branch_service.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
 import '../../service/github_checks_service.dart';
@@ -56,9 +55,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    required this.branchService,
     super.authProvider,
-  }) : super(topicName: 'github-webhooks');
+  }) : super(subscriptionName: 'github-webhooks-sub');
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
@@ -67,7 +65,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final GithubChecksService? githubChecksService;
 
   final DatastoreServiceProvider datastoreProvider;
-  final BranchService branchService;
 
   @override
   Future<Body> post() async {
@@ -89,13 +86,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
           throw InternalServerError('Failed to process $checkRunEvent');
-        }
-        break;
-      case 'create':
-        final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
-        await branchService.handleCreateRequest(createEvent);
-        if (createEvent.repository?.slug() == Config.flutterSlug) {
-          await branchService.branchFlutterRecipes(createEvent.ref!);
         }
         break;
     }
@@ -256,13 +246,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
       if (addedCode &&
-          !filename.contains('AUTHORS') &&
-          !filename.contains('pubspec.yaml') &&
-          !filename.contains('.ci.yaml') &&
-          !filename.contains('.cirrus.yml') &&
-          !filename.contains('.github') &&
-          !filename.endsWith('.md') &&
-          !filename.contains('CODEOWNERS') &&
+          !_isTestExempt(filename) &&
           !filename.startsWith('dev/bots/') &&
           !filename.endsWith('.gitignore')) {
         needsTests = !_allChangesAreCodeComments(file);
@@ -311,8 +295,22 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
         filename.startsWith('dev/devicelab/lib/tasks') ||
-        filename.startsWith('dev/devicelab/lib/tasks') ||
+        filename.startsWith('dev/benchmarks') ||
         objectiveCTestRegex.hasMatch(filename);
+  }
+
+  /// Returns true if changes to [filename] are exempt from the testing
+  /// requirement, across repositories.
+  bool _isTestExempt(String filename) {
+    return filename.contains('.ci.yaml') ||
+        filename.contains('.cirrus.yml') ||
+        filename.contains('analysis_options.yaml') ||
+        filename.contains('AUTHORS') ||
+        filename.contains('CODEOWNERS') ||
+        filename.contains('pubspec.yaml') ||
+        // Exempt categories.
+        filename.contains('.github/') ||
+        filename.endsWith('.md');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
@@ -463,14 +461,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
       if (addedCode &&
-          !filename.endsWith('AUTHORS') &&
-          !filename.endsWith('CODEOWNERS') &&
-          !filename.endsWith('pubspec.yaml') &&
-          !filename.endsWith('.ci.yaml') &&
-          !filename.endsWith('.cirrus.yml') &&
+          !_isTestExempt(filename) &&
           !filename.contains('.ci/') &&
-          !filename.contains('.github/') &&
-          !filename.endsWith('.md') &&
           // Custom package-specific test runners. These do not count as tests
           // for the purposes of testing a change that otherwise needs tests,
           // but since they are the driver for tests they don't need test

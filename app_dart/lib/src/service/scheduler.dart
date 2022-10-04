@@ -438,9 +438,12 @@ class Scheduler {
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          final github.PullRequest pullRequest = checkRunEvent.checkRun!.pullRequests!.single;
-          await triggerPresubmitTargets(pullRequest: pullRequest);
-          success = true;
+          // TODO(chillers): This is not rerunning the ci.yaml validation check. https://github.com/flutter/flutter/issues/100081
+          final List<github.PullRequest> pullRequests = checkRunEvent.checkRun!.pullRequests ?? <github.PullRequest>[];
+          for (github.PullRequest pullRequest in pullRequests) {
+            await triggerPresubmitTargets(pullRequest: pullRequest);
+            success = true;
+          }
         } else {
           success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
         }

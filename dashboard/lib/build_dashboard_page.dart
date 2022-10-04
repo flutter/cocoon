@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/model/branch.pb.dart';
 import 'package:provider/provider.dart';
+import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'logic/task_grid_filter.dart';
@@ -51,6 +52,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   /// The frontend will update default branches based on [defaultBranches]. This enables users to easily switch from
   /// master on one repo, to main for a different repo.
   String? branch;
+
+  /// Example branch for [truncate].
+  ///
+  /// Include the ellipsis to get the correct length that should be truncated at.
+  final String _exampleBranch = 'flutter-3.12-candidate.23...';
 
   @override
   void initState() {
@@ -248,7 +254,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               padding: const EdgeInsets.only(top: 9.0),
               child: Center(
                 child: Text(
-                  buildState.currentBranch,
+                  truncate(buildState.currentBranch, _exampleBranch.length),
                   style: theme.primaryTextTheme.bodyLarge,
                 ),
               ),
@@ -263,7 +269,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 padding: const EdgeInsets.only(top: 9.0),
                 child: Center(
                   child: Text(
-                    b.branch,
+                    truncate(b.branch, _exampleBranch.length),
                     style: theme.primaryTextTheme.bodyLarge,
                   ),
                 ),

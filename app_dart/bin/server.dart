@@ -73,10 +73,14 @@ Future<void> main() async {
         config: config,
         pubsub: const PubSub(),
       ),
-      '/api/github/webhook-subscription': GithubWebhookSubscription(
+      '/api/github/webhook-branch-subscription': GithubBranchWebhookSubscription(
         config: config,
         cache: cache,
         branchService: branchService,
+      ),
+      '/api/github/webhook-subscription': GithubWebhookSubscription(
+        config: config,
+        cache: cache,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),

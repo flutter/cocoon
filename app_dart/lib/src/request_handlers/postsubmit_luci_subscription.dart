@@ -35,7 +35,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.luciBuildService,
     required this.scheduler,
-  }) : super(topicName: 'luci-postsubmit');
+  }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
