@@ -514,12 +514,8 @@ Future<graphql.QueryResult> _processMergeInternal({
   // We have to make this check because mutate does not explicitely throw an
   // exception, rather it wraps any exceptions encountered.
   if (result.hasException) {
-    if (result.exception!.graphqlErrors.length == 1 &&
-        result.exception!.graphqlErrors.first.message
-            .contains('Base branch was modified. Review and try the merge again')) {
-      // This exception will bubble up if retries are exhausted.
-      throw RetryableMergeException(result.exception!.graphqlErrors.first.message, result.exception!.graphqlErrors);
-    }
+    // This exception will bubble up if retries are exhausted.
+    throw RetryableMergeException(result.exception!.graphqlErrors.first.message, result.exception!.graphqlErrors);
   }
 
   return result;
