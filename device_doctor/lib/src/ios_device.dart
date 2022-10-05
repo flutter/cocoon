@@ -41,9 +41,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
-    List<Device> discoveredDevices =
+    final List<Device> discoveredDevices =
         LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
-    stdout.write("ios devices discovered: $discoveredDevices");
+    stdout.write("ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}");
     return discoveredDevices;
   }
 
@@ -210,7 +210,7 @@ class IosDevice implements Device {
     processManager ??= LocalProcessManager();
     try {
       if (noRebootList.contains(deviceId)) {
-        stdout.write("No device to restart.");
+        stdout.write("Device not marked for reboot.");
         return true;
       }
       final String fullPathIdevicediagnostics =
@@ -243,7 +243,7 @@ class IosDevice implements Device {
 
     // Skip uninstalling process when no device is available or no application exists.
     if (result == 'No device found.' || result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
-      stdout.write("No device was found.");
+      stdout.write("No device was found or no application to uninstall exists.");
       return true;
     }
     final List<String> results = result.trim().split('\n');
