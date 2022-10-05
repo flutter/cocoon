@@ -13,7 +13,6 @@ import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
-import '../bin/codesign.dart';
 import './src/fake_process_manager.dart';
 
 void main() {
