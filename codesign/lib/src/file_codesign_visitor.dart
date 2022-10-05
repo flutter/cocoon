@@ -131,8 +131,7 @@ update these file paths accordingly.
 
     if (dryrun) {
       log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
-          ' google cloud storage, please use the --dryrun=false flag to run code signing script.'
-          ' thanks for understanding the security concerns!');
+          ' google cloud storage, please use the --dryrun=false flag to run code signing script.');
     }
     log.info('Codesigned all binaries in ${rootDirectory.path}');
 

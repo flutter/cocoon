@@ -1243,8 +1243,7 @@ status: Invalid''',
       expect(
         messages,
         contains('code signing dry run has completed, If you intend to upload the artifacts back to'
-            ' google cloud storage, please use the --dryrun=false flag to run code signing script.'
-            ' thanks for understanding the security concerns!'),
+            ' google cloud storage, please use the --dryrun=false flag to run code signing script.'),
       );
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
@@ -1412,8 +1411,7 @@ status: Invalid''',
       expect(
         messages,
         isNot(contains('code signing dry run has completed, If you intend to upload the artifacts back to'
-            ' google cloud storage, please use the --dryrun=false flag to run code signing script.'
-            ' thanks for understanding the security concerns!')),
+            ' google cloud storage, please use the --dryrun=false flag to run code signing script.')),
       );
       expect(
         messages,
