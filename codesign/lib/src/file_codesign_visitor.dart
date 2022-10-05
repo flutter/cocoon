@@ -25,7 +25,6 @@ enum NotaryStatus {
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor {
   FileCodesignVisitor({
-    required this.commitHash,
     required this.codesignCertName,
     required this.codesignUserName,
     required this.appSpecificPassword,
@@ -35,6 +34,7 @@ class FileCodesignVisitor {
     required this.rootDirectory,
     required this.processManager,
     required this.googleCloudStorage,
+    required this.filePaths,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -51,7 +51,6 @@ class FileCodesignVisitor {
   final ProcessManager processManager;
   final GoogleCloudStorage googleCloudStorage;
 
-  final String commitHash;
   final String codesignCertName;
   final String codesignUserName;
   final String appSpecificPassword;
@@ -60,11 +59,11 @@ class FileCodesignVisitor {
   final bool dryrun;
   final Duration notarizationTimerDuration;
 
-  // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
+  final List<String> filePaths;
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -144,14 +143,7 @@ update these file paths accordingly.
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    List<String> artifactFilePaths = <String>[];
-    if (googleCloudStorage.optionalSwitch.isNotEmpty) {
-      artifactFilePaths = googleCloudStorage.optionalSwitch;
-    } else {
-      artifactFilePaths = engineArtifactFilePaths;
-    }
-
-    final Iterable<Future<void>> futures = artifactFilePaths.map((String artifactFilePath) {
+    final Iterable<Future<void>> futures = filePaths.map((String artifactFilePath) {
       final Directory outDir =
           rootDirectory.childDirectory('remote_zip_${artifactFilePath.replaceAll("/", "_").replaceAll(".zip", "")}');
       return processRemoteZip(artifactFilePath: artifactFilePath, parentDirectory: outDir);

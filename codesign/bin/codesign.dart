@@ -13,7 +13,6 @@ import 'package:process/process.dart';
 
 /// Definitions of variables are included in help texts below.
 const String kHelpFlag = 'help';
-const String kCommitOption = 'commit';
 const String kDryrunFlag = 'dryrun';
 const String kCodesignCertNameOption = 'codesign-cert-name';
 const String kCodesignUserNameOption = 'codesign-username';
@@ -21,7 +20,8 @@ const String kAppSpecificPasswordOption = 'app-specific-password';
 const String kCodesignAppStoreIdOption = 'codesign-appstore-id';
 const String kCodesignTeamIdOption = 'codesign-team-id';
 const String kCodesignFilepathOption = 'filepath';
-const String kOptionalSwitch = 'optional-switch';
+const String kGCloudDownloadPattern = 'google-cloud-download-pattern';
+const String kGCloudUploadPattern = 'google-cloud-upload-pattern';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -30,17 +30,17 @@ const String kOptionalSwitch = 'optional-switch';
 /// Otherwise, nothing will be uploaded back for dry run. default value is
 /// true.
 ///
-/// For [kCommitOption], provides the engine commit to be code signed.
+/// For [kCodesignFilepathOption], supply the filepaths of binaries to be codesigned.
+/// e.g. supply `--filepath=darwin-x86/artifacts.zip --ios-release/artifacts.zip` if you would like to codesign darwin-x86/artifacts.zip and ios-release/artifacts.zip
 ///
-/// For [kCodesignFilepathOption], provides the artifacts zip paths to be code signed.
-///
-/// For [kOptionalSwitch], it is an optional parameter that you can supply to code sign binaries other than flutter engine binaries.
-/// The five options are: ios-deploy.zip, libimobiledevice.zip, libplist.zip, libusbmuxd.zip, openssl.zip.
+/// For [kGCloudDownloadPattern], it is a required parameter to specify the google cloud bucket prefix of the artifacts stored in google cloud.
+/// Artifacts stored with this bucket prefix path are downloaded from google cloud and codesigned.
+/// For [kGCloudUploadPattern], it is a required parameter to specify the google cloud bucket prefix for the code signed artifacts to be uploaded to.
+/// Code signed artifacts are uploaded to google cloud under this bucket prefix.
 ///
 /// Usage:
 /// ```shell
-/// dart run bin/main.dart --commit=$commitSha
-/// ( add `--dryrun` if this is intended for dryrun)
+/// dart run bin/main.dart --commit=$commitSha [--dryrun]
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -69,14 +69,32 @@ Future<void> main(List<String> args) async {
       help: 'Team-id is used by notary service for xcode version 13+.',
     )
     ..addOption(
-      kCommitOption,
-      help: 'the Flutter engine commit revision for which Google Cloud Storage binary artifacts should be codesigned.',
+      kGCloudDownloadPattern,
+      help: 'A required pattern to specify the google cloud bucket prefix of the artifacts stored in google cloud. '
+          'In a pattern, the word ARTIFACTRAWNAME will get replaced to the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced to the artifact path\n'
+          'For example, to code sign ios usb dependency artifacts ios-deploy.zip and libplist.zip, supply the pattern\n'
+          '`--google-cloud-download-pattern = ios-usb-dependencies/unsigned/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n,'
+          'and supply file path to be `--filepath = ios-deploy.zip --filepath = libplist.zip`\n'
+          'when the program runs and signs ios-deploy.zip, the pattern will get auto replaced into ios-usb-dependencies/unsigned/ios-deploy/<commitHash>/ios-deploy.zip'
+          'As another example, to code sign engine artifact darwin-x64/artifacts.zip, supply the pattern\n'
+          '`--google-cloud-download-pattern = flutter/<commitHash>/FILEPATH`\n,'
+          'and supply file path to be `--filepath = darwin-x64/artifacts.zip`\n'
+          'when the program runs and signs darwin-x64/artifacts.zip, the pattern will get auto replaced into flutter/<commitHash>/darwin-x64/artifacts.zip',
+    )
+    ..addOption(
+      kGCloudUploadPattern,
+      help:
+          'A required pattern to specify the google cloud bucket prefix for the code signed artifacts to be uploaded to. \n'
+          'In a pattern, the word ARTIFACTRAWNAME will get replaced to the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced to the artifact path\n'
+          'For example, to upload an ios usb dependency artifact, supply the pattern\n'
+          '`--google-cloud-upload-pattern = ios-usb-dependencies/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n'
+          'and supply file path to be something like `--filepath = libimobiledevice.zip --filepath = openssl.zip` depending on user needs\n'
+          'when the program runs and uploads libimobiledevice.zip, the pattern will get auto replaced into ios-usb-dependencies/libimobiledevice/<commitHash>/libimobiledevice.zip',
     )
     ..addMultiOption(
-      kOptionalSwitch,
-      help:
-          'the list of binaries that are supported besides flutter engine binaries. e.g. ios-deploy.zip, libimobiledevice.zip, libplist.zip, libusbmuxd.zip, openssl.zip',
-      allowed: ["ios-deploy.zip", "libimobiledevice.zip", "libplist.zip", "libusbmuxd.zip", "openssl.zip"],
+      kCodesignFilepathOption,
+      help: 'the list of file paths of binaries to be codesigned. \n'
+          'e.g. supply `--filepath=darwin-x86/artifacts.zip --ios-release/artifacts.zip` if you would like to codesign darwin-x86/artifacts.zip and ios-release/artifacts.zip',
       defaultsTo: <String>[],
     )
     ..addFlag(
@@ -88,14 +106,15 @@ Future<void> main(List<String> args) async {
 
   const Platform platform = LocalPlatform();
 
-  final String commit = getValueFromEnvOrArgs(kCommitOption, argResults, platform.environment)!;
   final String codesignCertName = getValueFromEnvOrArgs(kCodesignCertNameOption, argResults, platform.environment)!;
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
   final String appSpecificPassword =
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
-  final List<String> optionalSwitch = argResults[kOptionalSwitch] as List<String>;
+  final String gCloudDownloadPattern = getValueFromEnvOrArgs(kGCloudDownloadPattern, argResults, platform.environment)!;
+  final String gCloudUploadPattern = getValueFromEnvOrArgs(kGCloudUploadPattern, argResults, platform.environment)!;
+  final List<String> filePaths = argResults[kCodesignFilepathOption] as List<String>;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
@@ -112,14 +131,13 @@ Future<void> main(List<String> args) async {
   final GoogleCloudStorage googleCloudStorage = GoogleCloudStorage(
     processManager: processManager,
     rootDirectory: rootDirectory,
-    commitHash: commit,
-    optionalSwitch: optionalSwitch,
+    gCloudDownloadPattern: gCloudDownloadPattern,
+    gCloudUploadPattern: gCloudUploadPattern,
   );
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
     codesignUserName: codesignUserName,
-    commitHash: commit,
     appSpecificPassword: appSpecificPassword,
     codesignAppstoreId: codesignAppstoreId,
     codesignTeamId: codesignTeamId,
@@ -127,6 +145,7 @@ Future<void> main(List<String> args) async {
     rootDirectory: rootDirectory,
     processManager: processManager,
     dryrun: dryrun,
+    filePaths: filePaths,
     googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }

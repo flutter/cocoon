@@ -14,30 +14,27 @@ class GoogleCloudStorage {
   GoogleCloudStorage({
     required this.processManager,
     required this.rootDirectory,
-    required this.commitHash,
-    required this.optionalSwitch,
+    required this.gCloudDownloadPattern,
+    required this.gCloudUploadPattern,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
-  final String commitHash;
-  final List<String> optionalSwitch;
+  final String gCloudDownloadPattern;
+  final String gCloudUploadPattern;
   final String bucketPrefix = 'gs://flutter_infra_release';
+  final String artifactRawnameStub = 'ARTIFACTRAWNAME';
+  final String filepathStub = 'FILEPATH';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
     required String destination,
   }) async {
-    final String destinationUrl;
-    if (optionalSwitch.isEmpty) {
-      destinationUrl = '$bucketPrefix/flutter/$commitHash/$destination';
-    } else {
-      // Remove .zip to obtain gcloud bucket path. For example, ios-deploy.zip
-      // is processed to obtain the path .../ios-deploy/$hash/ios-deploy.zip
-      final String rawName = destination.replaceAll(".zip", "");
-      destinationUrl = '$bucketPrefix/ios-usb-dependencies/$rawName/$commitHash/$destination';
-    }
+    final String artifactRawname = destination.split('/').last.replaceAll(".zip", "");
+    final String destinationUrl = '$bucketPrefix/$gCloudUploadPattern'
+        .replaceAll(artifactRawnameStub, artifactRawname)
+        .replaceAll(filepathStub, destination);
 
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', from, destinationUrl],
@@ -53,13 +50,11 @@ class GoogleCloudStorage {
     required String from,
     required String destination,
   }) async {
-    final String sourceUrl;
-    if (optionalSwitch.isEmpty) {
-      sourceUrl = '$bucketPrefix/flutter/$commitHash/$from';
-    } else {
-      final String rawName = from.replaceAll(".zip", "");
-      sourceUrl = '$bucketPrefix/ios-usb-dependencies/unsigned/$rawName/$commitHash/$from';
-    }
+    final String artifactRawname = from.split('/').last.replaceAll(".zip", "");
+    final String sourceUrl = '$bucketPrefix/$gCloudDownloadPattern'
+        .replaceAll(artifactRawnameStub, artifactRawname)
+        .replaceAll(filepathStub, from);
+
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', sourceUrl, destination],
     );
