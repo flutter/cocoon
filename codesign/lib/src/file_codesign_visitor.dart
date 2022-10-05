@@ -117,30 +117,6 @@ If there are obsolete binaries in entitlements configuration files, please delet
 update these file paths accordingly.
 ''';
 
-  List<String> engineArtifactFilePaths = [
-    "android-arm-profile/darwin-x64.zip",
-    "android-arm-release/darwin-x64.zip",
-    "android-arm64-release/darwin-x64.zip",
-    "android-arm64-profile/darwin-x64.zip",
-    "android-x64-profile/darwin-x64.zip",
-    "android-x64-release/darwin-x64.zip",
-    "dart-sdk-darwin-arm64.zip",
-    "dart-sdk-darwin-x64.zip",
-    "darwin-x64/artifacts.zip",
-    "darwin-x64-profile/artifacts.zip",
-    "darwin-x64-release/artifacts.zip",
-    "darwin-x64/gen_snapshot.zip",
-    "darwin-x64-profile/gen_snapshot.zip",
-    "darwin-x64-release/gen_snapshot.zip",
-    "darwin-x64/font-subset.zip",
-    "darwin-x64/FlutterMacOS.framework.zip",
-    "darwin-x64-profile/FlutterMacOS.framework.zip",
-    "darwin-x64-release/FlutterMacOS.framework.zip",
-    "ios/artifacts.zip",
-    "ios-profile/artifacts.zip",
-    "ios-release/artifacts.zip",
-  ];
-
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
     final Iterable<Future<void>> futures = filePaths.map((String artifactFilePath) {
