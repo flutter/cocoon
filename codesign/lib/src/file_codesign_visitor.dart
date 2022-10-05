@@ -181,12 +181,12 @@ update these file paths accordingly.
       processManager: processManager,
     );
 
-    // notarize
-    await notarize(codesignedFile);
-
     // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
     // This would help prevent https://github.com/flutter/flutter/issues/104387
     if (!dryrun) {
+      // notarize
+      await notarize(codesignedFile);
+
       await googleCloudStorage.uploadEngineArtifact(
         from: codesignedFile.path,
         destination: artifactFilePath,
@@ -280,6 +280,10 @@ update these file paths accordingly.
     log.info('signing file at path ${binaryFile.absolute.path}');
     log.info('the virtual entitlement path associated with file is $entitlementCurrentPath');
     log.info('the decision to sign with entitlement is ${fileWithEntitlements.contains(entitlementCurrentPath)}');
+    fileConsumed.add(entitlementCurrentPath);
+    if (dryrun) {
+      return;
+    }
     final List<String> args = <String>[
       'codesign',
       '-f', // force
@@ -301,7 +305,6 @@ update these file paths accordingly.
         'stderr:\n${(result.stderr as String).trim()}',
       );
     }
-    fileConsumed.add(entitlementCurrentPath);
   }
 
   /// Extract entitlements configurations from downloaded zip files.

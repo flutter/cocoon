@@ -591,6 +591,20 @@ void main() {
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        codesignUserName: randomString,
+        appSpecificPassword: randomString,
+        codesignAppstoreId: randomString,
+        codesignTeamId: randomString,
+        googleCloudStorage: googleCloudStorage,
+        fileSystem: fileSystem,
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        filePaths: [randomString],
+        dryrun: false,
+        notarizationTimerDuration: const Duration(seconds: 0),
+      );
       codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
       codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
       fileSystem
