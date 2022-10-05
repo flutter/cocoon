@@ -27,7 +27,6 @@ targets:
       add_recipes_cq: "true"
 
   - name: Linux device_doctor
-    postsubmit: false
     recipe: cocoon/cipd
     properties:
       add_recipes_cq: "true"
@@ -38,7 +37,6 @@ targets:
       - .ci.yaml
 
   - name: Mac device_doctor
-    postsubmit: false
     recipe: cocoon/cipd
     properties:
       add_recipes_cq: "true"
@@ -49,7 +47,6 @@ targets:
       - .ci.yaml
 
   - name: Windows device_doctor
-    postsubmit: false
     recipe: cocoon/cipd
     properties:
       add_recipes_cq: "true"
