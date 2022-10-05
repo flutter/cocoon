@@ -71,7 +71,7 @@ Future<void> main(List<String> args) async {
     ..addOption(
       kGCloudDownloadPattern,
       help: 'A required pattern to specify the google cloud bucket prefix of the artifacts stored in google cloud. '
-          'In a pattern, the word ARTIFACTRAWNAME will get replaced to the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced to the artifact path\n'
+          'In a pattern, the word ARTIFACTRAWNAME will get replaced by the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced by the artifact path\n'
           'For example, to code sign ios usb dependency artifacts ios-deploy.zip and libplist.zip, supply the pattern\n'
           '`--google-cloud-download-pattern = ios-usb-dependencies/unsigned/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n,'
           'and supply file path to be `--filepath = ios-deploy.zip --filepath = libplist.zip`\n'
@@ -85,7 +85,7 @@ Future<void> main(List<String> args) async {
       kGCloudUploadPattern,
       help:
           'A required pattern to specify the google cloud bucket prefix for the code signed artifacts to be uploaded to. \n'
-          'In a pattern, the word ARTIFACTRAWNAME will get replaced to the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced to the artifact path\n'
+          'In a pattern, the word ARTIFACTRAWNAME will get replaced by the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced by the artifact path\n'
           'For example, to upload an ios usb dependency artifact, supply the pattern\n'
           '`--google-cloud-upload-pattern = ios-usb-dependencies/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n'
           'and supply file path to be something like `--filepath = libimobiledevice.zip --filepath = openssl.zip` depending on user needs\n'
