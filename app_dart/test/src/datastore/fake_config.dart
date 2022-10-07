@@ -55,6 +55,7 @@ class FakeConfig implements Config {
     this.supportedBranchesValue,
     this.supportedReposValue,
     this.batchSizeValue,
+    this.githubRequestDelayValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -95,6 +96,7 @@ class FakeConfig implements Config {
   List<String>? supportedBranchesValue;
   String? overrideTreeStatusLabelValue;
   Set<gh.RepositorySlug>? supportedReposValue;
+  Duration? githubRequestDelayValue;
 
   @override
   Future<gh.GitHub> createGitHubClient({gh.PullRequest? pullRequest, gh.RepositorySlug? slug}) async => githubClient!;
@@ -122,6 +124,9 @@ class FakeConfig implements Config {
 
   @override
   FakeDatastoreDB get db => dbValue;
+
+  @override
+  Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue!;
