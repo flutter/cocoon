@@ -37,8 +37,12 @@ class Config {
   static const String kRevertLabel = 'revert';
 
   static const int backOfMultiplier = 200;
-  static const int backoffAttempts = 3;
+  static const int backoffAttempts = 5;
   static const int maxDelaySeconds = 1;
+
+  static const int backOfMultiplierCheckWait = 500;
+  static const int backoffAttemptsCheckWait = 5;
+  static const int maxDelaySecondsCheckWait = 5;
 
   static const String flutter = 'flutter';
   static const String flutterGcpProjectId = 'flutter-dashboard';

@@ -7,11 +7,12 @@ import 'dart:convert';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
+import 'package:retry/retry.dart';
+import 'package:test/test.dart';
 
 import 'revert_test_data.dart';
 
 import 'package:auto_submit/validations/revert.dart';
-import 'package:test/scaffolding.dart';
 
 import '../utilities/mocks.dart';
 import '../src/service/fake_config.dart';
@@ -20,13 +21,14 @@ import '../src/service/fake_graphql_client.dart';
 
 void main() {
   late FakeConfig config;
-  FakeGithubService githubService = FakeGithubService();
+  late FakeGithubService githubService; // = FakeGithubService();
   late FakeGraphQLClient githubGraphQLClient;
   MockGitHub gitHub = MockGitHub();
   late Revert revert;
 
   /// Setup objects needed across test groups.
   setUp(() {
+    githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
     revert = Revert(config: config);
@@ -142,6 +144,40 @@ void main() {
       );
     });
 
+    test('Validation returns on checkRun that has not completed.', () async {
+      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+
+      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      githubService.pullRequestData = originalPullRequest;
+
+      // code gets the original file list then the current file list.
+      githubService.usePullRequestFilesList = true;
+      githubService.pullRequestFilesMockList.add(originalPullRequestFilesJson);
+      githubService.pullRequestFilesMockList.add(revertPullRequestFilesJson);
+
+      // Need to set the mock checkRuns for required CheckRun validation
+      githubService.checkRunsData = ciyamlCheckRunNotComplete;
+
+      revert = Revert(
+        config: config,
+        retryOptions: const RetryOptions(
+          delayFactor: Duration.zero,
+          maxDelay: Duration.zero,
+          maxAttempts: 1,
+        ),
+      );
+      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+
+      expect(validationResult.result, isFalse);
+      expect(validationResult.action, Action.IGNORE_TEMPORARILY);
+      expect(validationResult.message, 'Some of the required checks did not complete in time.');
+    });
+
     test('Validation fails on pull request file lists not matching.', () async {
       Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
@@ -157,6 +193,9 @@ void main() {
       githubService.usePullRequestFilesList = true;
       githubService.pullRequestFilesMockList.add(originalPullRequestFilesSubsetJson);
       githubService.pullRequestFilesMockList.add(revertPullRequestFilesJson);
+
+      // Need to set the mock checkRuns for required CheckRun validation
+      githubService.checkRunsData = ciyamlCheckRun;
 
       ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
@@ -182,6 +221,9 @@ void main() {
       githubService.usePullRequestFilesList = true;
       githubService.pullRequestFilesMockList.add(originalPullRequestFilesJson);
       githubService.pullRequestFilesMockList.add(revertPullRequestFilesJson);
+
+      // Need to set the mock checkRuns for required CheckRun validation
+      githubService.checkRunsData = ciyamlCheckRun;
 
       ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(validationResult.result);

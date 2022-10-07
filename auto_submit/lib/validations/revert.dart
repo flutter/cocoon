@@ -2,25 +2,38 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/exception/retryable_checkrun_exception.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
+import 'package:retry/retry.dart';
 
 import '../service/log.dart';
 
 class Revert extends Validation {
   Revert({
     required super.config,
-  });
+    RetryOptions? retryOptions,
+  }) : retryOptions = retryOptions ??
+            const RetryOptions(
+              delayFactor: Duration(milliseconds: Config.backOfMultiplierCheckWait),
+              maxDelay: Duration(seconds: Config.maxDelaySecondsCheckWait),
+              maxAttempts: Config.backoffAttemptsCheckWait,
+            );
 
   static const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
+  final RetryOptions retryOptions;
 
   @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
+    final auto.Commit commit = pullRequest.commits!.nodes!.single.commit!;
+    String? sha = commit.oid;
 
     if (!isValidAuthor(author, authorAssociation)) {
       String message = 'The author $author does not have permissions to make this request.';
@@ -47,6 +60,22 @@ class Revert extends Validation {
 
     github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     GithubService githubService = await config.createGithubService(repositorySlug);
+
+    bool requiredChecksCompleted = await waitForRequiredChecks(
+      githubService: githubService,
+      slug: repositorySlug,
+      sha: sha!,
+      checkNames: requiredCheckRuns,
+    );
+
+    if (!requiredChecksCompleted) {
+      return ValidationResult(
+        false,
+        Action.IGNORE_TEMPORARILY,
+        'Some of the required checks did not complete in time.',
+      );
+    }
+
     int pullRequestId = _getPullRequestNumberFromLink(revertLink);
     github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
@@ -99,5 +128,69 @@ class Revert extends Validation {
   int _getPullRequestNumberFromLink(String link) {
     List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
+  }
+
+  /// Wait for the required checks to complete.
+  Future<bool> waitForRequiredChecks({
+    required GithubService githubService,
+    required github.RepositorySlug slug,
+    required String sha,
+    required List<String> checkNames,
+  }) async {
+    List<github.CheckRun> targetCheckRuns = [];
+    for (var element in checkNames) {
+      targetCheckRuns.addAll(await githubService.getCheckRunsFiltered(
+        slug: slug,
+        ref: sha,
+        checkName: element,
+      ),);
+    }
+
+    bool checksCompleted = true;
+
+    try {
+      for (github.CheckRun checkRun in targetCheckRuns) {
+        await _waitForRequiredCheckRunsWithRetries(
+          () async {
+            await _verifyCheckRunCompleted(
+              slug,
+              githubService,
+              checkRun,
+            );
+          },
+          retryOptions,
+        );
+      }
+    } catch (e) {
+      log.warning('Required check has not completed in time. ${e.toString()}');
+      checksCompleted = false;
+    }
+
+    return checksCompleted;
+  }
+}
+
+/// Function signature that will be executed with retries.
+typedef RetryHandler = Function();
+
+/// Runs the internal verify checks runs function with retries.
+Future<void> _waitForRequiredCheckRunsWithRetries(RetryHandler retryHandler, RetryOptions retryOptions) {
+  return retryOptions.retry(
+    retryHandler,
+    retryIf: (Exception e) => e is RetryableCheckRunException,
+  );
+}
+
+/// Simple function to wait on completed checkRuns with retries.
+Future<void> _verifyCheckRunCompleted(
+    github.RepositorySlug slug, GithubService githubService, github.CheckRun targetCheckRun,) async {
+  List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
+    slug: slug,
+    ref: targetCheckRun.headSha!,
+    checkName: targetCheckRun.name,
+  );
+
+  if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
+    throw RetryableCheckRunException('${targetCheckRun.name} has not yet completed.');
   }
 }
