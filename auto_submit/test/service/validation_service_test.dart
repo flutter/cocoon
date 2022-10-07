@@ -42,7 +42,10 @@ void main() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-    validationService = ValidationService(config);
+    validationService = ValidationService(
+      config,
+      retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
+    );
     slug = RepositorySlug('flutter', 'cocoon');
 
     jobsResource = MockJobsResource();
@@ -291,12 +294,58 @@ void main() {
       assert(pubsub.messagesQueue.isEmpty);
     });
 
+    test('Revert returns on in process required checkRuns.', () async {
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
+      final PullRequestHelper flutterRequest = PullRequestHelper(
+        prNumber: 0,
+        lastCommitHash: oid,
+        reviews: <PullRequestReviewHelper>[],
+      );
+
+      githubService.checkRunsData = inProgressCheckRunsMock;
+      githubService.createCommentData = createCommentMock;
+      githubService.throwOnCreateIssue = true;
+      githubService.useRealComment = true;
+      final FakePubSub pubsub = FakePubSub();
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        authorAssociation: 'OWNER',
+        labelName: 'revert',
+        body: 'Reverts flutter/flutter#1234',
+      );
+
+      final FakeRevert fakeRevert = FakeRevert(config: config);
+      fakeRevert.validationResult =
+          ValidationResult(false, Action.IGNORE_TEMPORARILY, 'Some of the required checks did not complete in time.');
+      validationService.revertValidation = fakeRevert;
+      final FakeApproverService fakeApproverService = FakeApproverService(config);
+      validationService.approverService = fakeApproverService;
+
+      unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+      final auto.QueryResult queryResult = createQueryResult(flutterRequest);
+
+      await validationService.processRevertRequest(
+        config: config,
+        result: queryResult,
+        messagePullRequest: pullRequest,
+        ackId: 'test',
+        pubsub: pubsub,
+      );
+
+      // if the merge is successful we do not remove the label and we do not add a comment to the issue.
+      expect(githubService.issueComment, isNull);
+      expect(githubService.labelRemoved, false);
+      // We acknowledge the issue.
+      assert(pubsub.messagesQueue.isNotEmpty);
+    });
+
     test('Exhaust retries on merge on retryable error.', () async {
       validationService = ValidationService(
         config,
         retryOptions: const RetryOptions(
-          delayFactor: Duration(milliseconds: 1),
-          maxDelay: Duration(milliseconds: 1),
+          delayFactor: Duration.zero,
+          maxDelay: Duration.zero,
           maxAttempts: 1,
         ),
       );
@@ -481,8 +530,7 @@ void main() {
     test('Merge fails the first time but then succeeds after retry.', () async {
       validationService = ValidationService(
         config,
-        retryOptions:
-            const RetryOptions(delayFactor: Duration(milliseconds: 50), maxDelay: Duration(seconds: 1), maxAttempts: 3),
+        retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 3),
       );
 
       // Create a result that will trigger a retry.

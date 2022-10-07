@@ -510,3 +510,42 @@ const String originalPullRequestFilesSubsetJson = """
     }
   ]
 """;
+
+const String ciyamlCheckRun = '''
+{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 8752872923,
+      "name": "ci.yaml validation",
+      "head_sha": "60612a38d705d00a234e0aabba08247fc0dda1ac",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2022-10-06T20:50:57Z",
+      "completed_at": "2022-10-06T20:51:40Z",
+      "check_suite": {
+        "id": 8654966141
+      }
+    }
+  ]
+}
+''';
+
+const String ciyamlCheckRunNotComplete = '''
+{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 8752872923,
+      "name": "ci.yaml validation",
+      "head_sha": "60612a38d705d00a234e0aabba08247fc0dda1ac",
+      "status": "in_progress",
+      "started_at": "2022-10-06T20:50:57Z",
+      "completed_at": "2022-10-06T20:51:40Z",
+      "check_suite": {
+        "id": 8654966141
+      }
+    }
+  ]
+}
+''';
