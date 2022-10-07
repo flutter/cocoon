@@ -21,7 +21,7 @@ import '../src/service/fake_graphql_client.dart';
 
 void main() {
   late FakeConfig config;
-  late FakeGithubService githubService; // = FakeGithubService();
+  late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
   MockGitHub gitHub = MockGitHub();
   late Revert revert;
