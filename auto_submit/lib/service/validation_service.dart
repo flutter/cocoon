@@ -38,12 +38,7 @@ import 'approver_service.dart';
 /// tested. The expectation is that the list of validation will grow overtime.
 class ValidationService {
   ValidationService(this.config, {RetryOptions? retryOptions})
-      : retryOptions = retryOptions ??
-            const RetryOptions(
-              delayFactor: Duration(milliseconds: Config.backOfMultiplier),
-              maxDelay: Duration(seconds: Config.maxDelaySeconds),
-              maxAttempts: Config.backoffAttempts,
-            ) {
+      : retryOptions = retryOptions ?? Config.mergeRetryOptions {
     /// Validates a PR marked with the reverts label.
     revertValidation = Revert(config: config);
     approverService = ApproverService(config);
@@ -344,7 +339,7 @@ Exception: ${exception.message}
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
       graphql.QueryResult? result;
 
-      await _runProcessMergeWithRetries(
+      await retryOptions.retry(
         () async {
           result = await _processMergeInternal(
             client: client,
@@ -353,7 +348,7 @@ Exception: ${exception.message}
             messagePullRequest: messagePullRequest,
           );
         },
-        retryOptions,
+        retryIf: (Exception e) => e is RetryableMergeException,
       );
 
       if (result != null && result!.hasException) {
@@ -480,14 +475,6 @@ class ProcessMergeResult {
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();
-
-/// Runs the internal processMerge with retries.
-Future<void> _runProcessMergeWithRetries(RetryHandler retryHandler, RetryOptions retryOptions) {
-  return retryOptions.retry(
-    retryHandler,
-    retryIf: (Exception e) => e is RetryableMergeException,
-  );
-}
 
 /// Internal wrapper for the logic of merging a pull request into github.
 Future<graphql.QueryResult> _processMergeInternal({

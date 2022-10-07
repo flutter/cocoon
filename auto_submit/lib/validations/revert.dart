@@ -17,12 +17,7 @@ class Revert extends Validation {
   Revert({
     required super.config,
     RetryOptions? retryOptions,
-  }) : retryOptions = retryOptions ??
-            const RetryOptions(
-              delayFactor: Duration(milliseconds: Config.backOfMultiplierCheckWait),
-              maxDelay: Duration(seconds: Config.maxDelaySecondsCheckWait),
-              maxAttempts: Config.backoffAttemptsCheckWait,
-            );
+  }) : retryOptions = retryOptions ?? Config.requiredChecksRetryOptions;
 
   static const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
   final RetryOptions retryOptions;
@@ -65,7 +60,7 @@ class Revert extends Validation {
       githubService: githubService,
       slug: repositorySlug,
       sha: sha!,
-      checkNames: requiredCheckRuns,
+      checkNames: requiredCheckRunsMapping[repositorySlug.name]!,
     );
 
     if (!requiredChecksCompleted) {
@@ -130,7 +125,8 @@ class Revert extends Validation {
     return int.parse(linkSplit.elementAt(1));
   }
 
-  /// Wait for the required checks to complete.
+  /// Wait for the required checks to complete, and if repository has no checks
+  /// true is returned.
   Future<bool> waitForRequiredChecks({
     required GithubService githubService,
     required github.RepositorySlug slug,
@@ -152,7 +148,7 @@ class Revert extends Validation {
 
     try {
       for (github.CheckRun checkRun in targetCheckRuns) {
-        await _waitForRequiredCheckRunsWithRetries(
+        await retryOptions.retry(
           () async {
             await _verifyCheckRunCompleted(
               slug,
@@ -160,7 +156,7 @@ class Revert extends Validation {
               checkRun,
             );
           },
-          retryOptions,
+          retryIf: (Exception e) => e is RetryableCheckRunException,
         );
       }
     } catch (e) {
@@ -174,14 +170,6 @@ class Revert extends Validation {
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();
-
-/// Runs the internal verify checks runs function with retries.
-Future<void> _waitForRequiredCheckRunsWithRetries(RetryHandler retryHandler, RetryOptions retryOptions) {
-  return retryOptions.retry(
-    retryHandler,
-    retryIf: (Exception e) => e is RetryableCheckRunException,
-  );
-}
 
 /// Simple function to wait on completed checkRuns with retries.
 Future<void> _verifyCheckRunCompleted(
