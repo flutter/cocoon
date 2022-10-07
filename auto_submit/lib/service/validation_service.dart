@@ -303,10 +303,6 @@ Exception: ${exception.message}
 
         log.info(message);
       }
-    } else if (!revertValidationResult.result && revertValidationResult.action == Action.IGNORE_TEMPORARILY) {
-      // if required check runs have not completed process again.
-      log.info('Some of the required checks have not completed. Requeueing.');
-      return;
     } else {
       // since we do not temporarily ignore anything with a revert request we
       // know we will report the error and remove the label.
@@ -342,6 +338,7 @@ Exception: ${exception.message}
       // The createGitHubGraphQLClient can throw Exception on github permissions
       // errors.
       final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
+
       graphql.QueryResult? result;
 
       await _runProcessMergeWithRetries(

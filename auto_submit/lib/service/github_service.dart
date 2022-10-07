@@ -24,24 +24,6 @@ class GithubService {
     return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
   }
 
-  Future<List<CheckRun>> getCheckRunsFiltered({
-    required RepositorySlug slug,
-    required String ref,
-    String? checkName,
-    CheckRunStatus? status,
-    CheckRunFilter? filter,
-  }) async {
-    return await github.checks.checkRuns
-        .listCheckRunsForRef(
-          slug,
-          ref: ref,
-          checkName: checkName,
-          status: status,
-          filter: filter,
-        )
-        .toList();
-  }
-
   /// Fetches the specified commit.
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return await github.repositories.getCommit(slug, sha);

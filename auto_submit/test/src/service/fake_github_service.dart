@@ -107,27 +107,6 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<List<CheckRun>> getCheckRunsFiltered({
-    required RepositorySlug slug,
-    required String ref,
-    String? checkName,
-    CheckRunStatus? status,
-    CheckRunFilter? filter,
-  }) async {
-    List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
-    if (checkName != null) {
-      List<CheckRun> checkRunsFilteredByName = [];
-      for (CheckRun checkRun in checkRuns) {
-        if (checkRun.name == checkName) {
-          checkRunsFilteredByName.add(checkRun);
-        }
-      }
-      return checkRunsFilteredByName;
-    }
-    return checkRuns;
-  }
-
-  @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
     return commit;
