@@ -9,7 +9,6 @@ import 'package:github/github.dart' as gh;
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
@@ -46,17 +45,14 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   Future<void> _vacuumRepository(gh.RepositorySlug slug, {DatastoreService? datastore}) async {
     final GithubService githubService = await config.createGithubService(slug);
-    final List<Branch> branches = (await config.getBranches(slug)).toList();
-    for (Branch branch in branches) {
-      final List<Commit> commits =
-          await _vacuumBranch(slug, branch, datastore: datastore, githubService: githubService);
-      await scheduler.addCommits(commits);
-    }
+    final List<Commit> commits =
+        await _vacuumBranch(slug, Config.defaultBranch(slug), datastore: datastore, githubService: githubService);
+    await scheduler.addCommits(commits);
   }
 
   Future<List<Commit>> _vacuumBranch(
     gh.RepositorySlug slug,
-    Branch branch, {
+    String branch, {
     DatastoreService? datastore,
     required GithubService githubService,
   }) async {
@@ -66,7 +62,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     final DateTime queryBefore = DateTime.now().subtract(const Duration(minutes: 3));
     try {
       log.fine('Listing commit for slug: $slug branch: $branch and msSinceEpoch: ${queryAfter.millisecondsSinceEpoch}');
-      commits = await githubService.listCommits(slug, branch.name, queryAfter.millisecondsSinceEpoch);
+      commits = await githubService.listCommits(slug, branch, queryAfter.millisecondsSinceEpoch);
       log.fine('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
@@ -78,15 +74,10 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
       log.severe('$error');
     }
 
-    // For release branches, only look at the latest commit.
-    if (branch.name != Config.defaultBranch(slug) && commits.isNotEmpty) {
-      commits = <gh.RepositoryCommit>[commits.last];
-    }
-
-    return _toDatastoreCommit(slug, commits, datastore, branch.name);
+    return _toDatastoreCommit(slug, commits, datastore, branch);
   }
 
-  /// Convert [RepositoryCommit] to Cocoon's [Commit] format.
+  /// Convert [gh.RepositoryCommit] to Cocoon's [Commit] format.
   Future<List<Commit>> _toDatastoreCommit(
       gh.RepositorySlug slug, List<gh.RepositoryCommit> commits, DatastoreService? datastore, String branch) async {
     final List<Commit> recentCommits = <Commit>[];
