@@ -42,7 +42,10 @@ void main() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
-    validationService = ValidationService(config);
+    validationService = ValidationService(
+      config,
+      retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
+    );
     slug = RepositorySlug('flutter', 'cocoon');
 
     jobsResource = MockJobsResource();

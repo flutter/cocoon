@@ -31,7 +31,10 @@ void main() {
     githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
-    revert = Revert(config: config);
+    revert = Revert(
+      config: config,
+      retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
+    );
   });
 
   group('Author validation tests.', () {
