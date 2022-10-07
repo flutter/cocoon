@@ -139,11 +139,13 @@ class Revert extends Validation {
   }) async {
     List<github.CheckRun> targetCheckRuns = [];
     for (var element in checkNames) {
-      targetCheckRuns.addAll(await githubService.getCheckRunsFiltered(
-        slug: slug,
-        ref: sha,
-        checkName: element,
-      ),);
+      targetCheckRuns.addAll(
+        await githubService.getCheckRunsFiltered(
+          slug: slug,
+          ref: sha,
+          checkName: element,
+        ),
+      );
     }
 
     bool checksCompleted = true;
@@ -183,7 +185,10 @@ Future<void> _waitForRequiredCheckRunsWithRetries(RetryHandler retryHandler, Ret
 
 /// Simple function to wait on completed checkRuns with retries.
 Future<void> _verifyCheckRunCompleted(
-    github.RepositorySlug slug, GithubService githubService, github.CheckRun targetCheckRun,) async {
+  github.RepositorySlug slug,
+  GithubService githubService,
+  github.CheckRun targetCheckRun,
+) async {
   List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
     slug: slug,
     ref: targetCheckRun.headSha!,
