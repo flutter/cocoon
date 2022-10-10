@@ -75,7 +75,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       kTestOwnerPath,
     );
     for (final _BuilderInfo info in eligibleBuilders) {
-      final BuilderType type = getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap);
+      final BuilderType type = getTypeForBuilder(info.name, ciYaml); //loadYaml(ciContent) as YamlMap);
       final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);

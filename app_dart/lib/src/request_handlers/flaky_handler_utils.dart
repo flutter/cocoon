@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:core';
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:github/github.dart';
-import 'package:yaml/yaml.dart';
 
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
@@ -418,11 +418,12 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String? builderName, YamlMap ci) {
-  final List<dynamic>? tags = _getTags(builderName, ci);
+BuilderType getTypeForBuilder(String? builderName, CiYaml ciYaml) {
+  final List<dynamic>? tags = _getTags(builderName, ciYaml);
   if (tags == null) {
     return BuilderType.unknown;
   }
+
   bool hasFrameworkTag = false;
   bool hasHostOnlyTag = false;
   // If tags contain 'shard', it must be a shard test.
@@ -446,16 +447,11 @@ BuilderType getTypeForBuilder(String? builderName, YamlMap ci) {
   return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
 }
 
-List<dynamic>? _getTags(String? builderName, YamlMap ci) {
-  final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
-  final YamlMap? target = targets.firstWhere(
-    (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
-    orElse: () => null,
-  ) as YamlMap?;
-  if (target == null) {
-    return null;
-  }
-  return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>?;
+List<dynamic>? _getTags(String? builderName, CiYaml ciYaml) {
+  List<Target> allTargets = ciYaml.presubmitTargets;
+  allTargets.addAll(ciYaml.postsubmitTargets);
+  Target target = allTargets.firstWhere((element) => element.value.name == builderName);
+  return jsonDecode(target.value.properties[kCiYamlTargetTagsKey] as String) as List<dynamic>?;
 }
 
 String _getTestNameFromBuilderName(String builderName) {
