@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 import '../service/bigquery.dart';
@@ -450,7 +451,10 @@ BuilderType getTypeForBuilder(String? builderName, CiYaml ciYaml) {
 List<dynamic>? _getTags(String? builderName, CiYaml ciYaml) {
   List<Target> allTargets = ciYaml.presubmitTargets;
   allTargets.addAll(ciYaml.postsubmitTargets);
-  Target target = allTargets.firstWhere((element) => element.value.name == builderName);
+  Target? target = allTargets.firstWhereOrNull((element) => element.value.name == builderName);
+  if (target == null) {
+    return null;
+  }
   return jsonDecode(target.value.properties[kCiYamlTargetTagsKey] as String) as List<dynamic>?;
 }
 
