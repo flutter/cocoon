@@ -12,6 +12,7 @@ import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:retry/retry.dart';
 
 import '../foundation/providers.dart';
 import '../service/secrets.dart';
@@ -36,9 +37,17 @@ class Config {
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
 
-  static const int backOfMultiplier = 200;
-  static const int backoffAttempts = 3;
-  static const int maxDelaySeconds = 1;
+  static const RetryOptions mergeRetryOptions = RetryOptions(
+    delayFactor: Duration(milliseconds: 200),
+    maxDelay: Duration(seconds: 1),
+    maxAttempts: 5,
+  );
+
+  static const RetryOptions requiredChecksRetryOptions = RetryOptions(
+    delayFactor: Duration(milliseconds: 500),
+    maxDelay: Duration(seconds: 5),
+    maxAttempts: 5,
+  );
 
   static const String flutter = 'flutter';
   static const String flutterGcpProjectId = 'flutter-dashboard';
