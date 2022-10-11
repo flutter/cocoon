@@ -74,6 +74,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       slug,
       kTestOwnerPath,
     );
+
     for (final _BuilderInfo info in eligibleBuilders) {
       final BuilderType type = getTypeForBuilder(info.name, ciYaml);
       final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);
@@ -152,7 +153,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         continue;
       }
 
-      //TODO: https://github.com/flutter/flutter/issues/113232
+      //TODO (ricardoamador): Refactor this so we don't need to parse the entire yaml looking for commented issues, https://github.com/flutter/flutter/issues/113232
       int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder')) + 1;
       while (builderLineNumber < lines.length && !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {

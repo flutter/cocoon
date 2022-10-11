@@ -296,8 +296,8 @@ Future<Issue> fileFlakyIssue({
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-TestOwnership getTestOwnership(String builderName, BuilderType type, String testOwnersContent) {
-  final String testName = _getTestNameFromBuilderName(builderName);
+TestOwnership getTestOwnership(String targetName, BuilderType type, String testOwnersContent) {
+  final String testName = _getTestNameFromTargetName(targetName);
   String? owner;
   Team? team;
   switch (type) {
@@ -419,9 +419,9 @@ TestOwnership getTestOwnership(String builderName, BuilderType type, String test
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String? builderName, CiYaml ciYaml) {
-  final List<dynamic>? tags = _getTags(builderName, ciYaml);
-  if (tags == null) {
+BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml) {
+  final List<String>? tags = _getTags(targetName, ciYaml);
+  if (tags == null || tags.isEmpty) {
     return BuilderType.unknown;
   }
 
@@ -432,7 +432,7 @@ BuilderType getTypeForBuilder(String? builderName, CiYaml ciYaml) {
   // If tags contain 'firebaselab`, it must be a firebase tests.
   // Otherwise, it is framework host only test if its tags contain both
   // 'framework' and 'hostonly'.
-  for (dynamic tag in tags) {
+  for (String tag in tags) {
     if (tag == kCiYamlTargetTagsFirebaselab) {
       return BuilderType.firebaselab;
     } else if (tag == kCiYamlTargetTagsShard) {
@@ -448,19 +448,19 @@ BuilderType getTypeForBuilder(String? builderName, CiYaml ciYaml) {
   return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
 }
 
-List<dynamic>? _getTags(String? builderName, CiYaml ciYaml) {
+List<String>? _getTags(String? targetName, CiYaml ciYaml) {
   List<Target> allTargets = ciYaml.presubmitTargets;
   allTargets.addAll(ciYaml.postsubmitTargets);
-  Target? target = allTargets.firstWhereOrNull((element) => element.value.name == builderName);
+  Target? target = allTargets.firstWhereOrNull((element) => element.value.name == targetName);
   if (target == null) {
     return null;
   }
-  return jsonDecode(target.value.properties[kCiYamlTargetTagsKey] as String) as List<dynamic>?;
+  return target.getTags;
 }
 
-String _getTestNameFromBuilderName(String builderName) {
+String _getTestNameFromTargetName(String targetName) {
   // The builder names is in the format '<platform> <test name>'.
-  final List<String> words = builderName.split(' ');
+  final List<String> words = targetName.split(' ');
   return words.length < 2 ? words[0] : words[1];
 }
 
