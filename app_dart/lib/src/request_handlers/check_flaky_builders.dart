@@ -82,6 +82,9 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
       if (_shouldDeflake(builderRecords)) {
         await _deflakyPullRequest(gitHub, slug, info: info, ciContent: ciContent, testOwnership: testOwnership);
+        // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
+        // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
+        await Future.delayed(config.githubRequestDelay);
       } else if (_shouldFileIssue(builderRecords, info)) {
         final BuilderDetail builderDetail = BuilderDetail(
           statistic: stagingBuilderStatisticList

@@ -271,6 +271,9 @@ class Config {
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
+  // Delay between consecutive GitHub deflake request calls.
+  Duration get githubRequestDelay => const Duration(seconds: 1);
+
   // Repository status context for github status.
   String get flutterBuild => 'flutter-build';
 
