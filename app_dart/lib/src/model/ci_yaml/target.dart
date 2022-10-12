@@ -92,7 +92,7 @@ class Target {
   /// Get the tags from the defined properties in the ci.
   ///
   /// Return an empty list if no tags are found.
-  List<String>? get getTags {
+  List<String> get getTags {
     Map<String, Object> properties = getProperties();
     return (properties.containsKey('tags')) ? (properties['tags'] as List).map((e) => e as String).toList() : [];
   }
