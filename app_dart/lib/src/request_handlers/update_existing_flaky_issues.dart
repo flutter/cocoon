@@ -28,26 +28,34 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   const UpdateExistingFlakyIssue({
     required super.config,
     required super.authenticationProvider,
+    @visibleForTesting this.ciYaml,
   });
 
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
+
+  final CiYaml? ciYaml;
 
   @override
   Future<Body> get() async {
     final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
-    final YamlMap? ci = loadYaml(await gitHub.getFileContent(
-      slug,
-      kCiYamlPath,
-    )) as YamlMap?;
-    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
-      slug: slug,
-      branch: Config.defaultBranch(slug),
-      config: unCheckedSchedulerConfig,
-    );
+
+    CiYaml? localCiYaml = ciYaml;
+    if (localCiYaml == null) { 
+      final YamlMap? ci = loadYaml(await gitHub.getFileContent(
+        slug,
+        kCiYamlPath,
+      )) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      localCiYaml = CiYaml(
+        slug: slug,
+        branch: Config.defaultBranch(slug),
+        config: unCheckedSchedulerConfig,
+      );
+    }
+
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
     final List<BuilderStatistic> stagingBuilderStatisticList =
@@ -56,7 +64,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
-      ciYaml,
+      localCiYaml,
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,

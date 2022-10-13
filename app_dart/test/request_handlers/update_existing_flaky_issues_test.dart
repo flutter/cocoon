@@ -5,6 +5,8 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
+import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -57,13 +59,87 @@ void main() {
       });
 
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
-        return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
-      });
+      // when(mockRepositoriesService.getContents(
+      //   captureAny,
+      //   kCiYamlPath,
+      // )).thenAnswer((Invocation invocation) {
+      //   return Future<RepositoryContents>.value(
+      //       RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
+      // });
+
+      final CiYaml testCiYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: pb.SchedulerConfig(
+          enabledBranches: <String>[
+            Config.defaultBranch(Config.flutterSlug),
+          ],
+          targets: <pb.Target>[
+            pb.Target(
+              name: 'Mac_android android_semantics_integration_test',
+              scheduler: pb.SchedulerSystem.luci,
+              presubmit: false,
+              properties: <String, String>{
+                'tags': jsonEncode(['devicelab'])
+              },
+            ),
+            pb.Target(
+              name: 'Mac_android ignore_myflakiness',
+              scheduler: pb.SchedulerSystem.luci,
+              presubmit: false,
+              properties: <String, String>{
+                'ignore_flakiness': 'true',
+                'tags': jsonEncode(['devicelab']),
+              }
+            ),
+            pb.Target(
+              name: 'Linux ci_yaml flutter roller',
+              scheduler: pb.SchedulerSystem.luci,
+              bringup: true,
+              timeout: 30,
+              runIf: ['.ci.yaml'],
+              recipe: 'infra/ci_yaml',
+              properties: <String, String> {
+                'tags': jsonEncode(["framework", "hostonly", "shard"]),
+              },
+
+            ),
+            pb.Target(
+              name: 'Mac build_tests_1_4',
+              scheduler: pb.SchedulerSystem.luci,
+              recipe: 'flutter/flutter_drone',
+              timeout: 60,
+              properties: <String, String> {
+                'add_recipes_cq': 'true',
+                'shard': 'build_tests',
+                'subshard': '1_4',
+                'tags': jsonEncode(["framework", "hostonly", "shard"]),
+                'dependencies': jsonEncode([
+                  {
+                    'dependency': 'android_sdk', 'version': 'version:29.0',
+                  },
+                  {
+                    'dependency': 'chrome_and_driver', 'version': 'version:84',
+                  },
+                  {
+                    'dependency': 'xcode', 'version': '13a233',
+                  },
+                  {
+                    'dependency': 'open_jdk', 'version': '11',
+                  },
+                  {
+                    'dependency': 'gems', 'version': 'v3.3.14',
+                  },
+                  {
+                    'dependency': 'goldctl', 'version': 'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
+                  },
+                ]),
+              },
+            ),
+          ],
+        ),
+      );
+
       // when gets the content of TESTOWNERS
       when(mockRepositoriesService.getContents(
         captureAny,
@@ -87,6 +163,7 @@ void main() {
       handler = UpdateExistingFlakyIssue(
         config: config,
         authenticationProvider: auth,
+        ciYaml: testCiYaml,
       );
     });
 
@@ -326,6 +403,7 @@ void main() {
       )).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
+
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
