@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/service/config.dart';
 
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 
-
 const String expectedSemanticsIntegrationTestIssueComment = '''
 [prod pool] current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
 One recent flaky example for a same commit: https://ci.chromium.org/ui/p/flutter/builders/prod/Mac_android%20android_semantics_integration_test/103
@@ -225,14 +224,13 @@ final CiYaml testCiYaml = CiYaml(
         },
       ),
       pb.Target(
-        name: 'Mac_android ignore_myflakiness',
-        scheduler: pb.SchedulerSystem.luci,
-        presubmit: false,
-        properties: <String, String>{
-          'ignore_flakiness': 'true',
-          'tags': jsonEncode(['devicelab']),
-        }
-      ),
+          name: 'Mac_android ignore_myflakiness',
+          scheduler: pb.SchedulerSystem.luci,
+          presubmit: false,
+          properties: <String, String>{
+            'ignore_flakiness': 'true',
+            'tags': jsonEncode(['devicelab']),
+          }),
       pb.Target(
         name: 'Linux ci_yaml flutter roller',
         scheduler: pb.SchedulerSystem.luci,
@@ -240,39 +238,44 @@ final CiYaml testCiYaml = CiYaml(
         timeout: 30,
         runIf: ['.ci.yaml'],
         recipe: 'infra/ci_yaml',
-        properties: <String, String> {
+        properties: <String, String>{
           'tags': jsonEncode(["framework", "hostonly", "shard"]),
         },
-
       ),
       pb.Target(
         name: 'Mac build_tests_1_4',
         scheduler: pb.SchedulerSystem.luci,
         recipe: 'flutter/flutter_drone',
         timeout: 60,
-        properties: <String, String> {
+        properties: <String, String>{
           'add_recipes_cq': 'true',
           'shard': 'build_tests',
           'subshard': '1_4',
           'tags': jsonEncode(["framework", "hostonly", "shard"]),
           'dependencies': jsonEncode([
             {
-              'dependency': 'android_sdk', 'version': 'version:29.0',
+              'dependency': 'android_sdk',
+              'version': 'version:29.0',
             },
             {
-              'dependency': 'chrome_and_driver', 'version': 'version:84',
+              'dependency': 'chrome_and_driver',
+              'version': 'version:84',
             },
             {
-              'dependency': 'xcode', 'version': '13a233',
+              'dependency': 'xcode',
+              'version': '13a233',
             },
             {
-              'dependency': 'open_jdk', 'version': '11',
+              'dependency': 'open_jdk',
+              'version': '11',
             },
             {
-              'dependency': 'gems', 'version': 'v3.3.14',
+              'dependency': 'gems',
+              'version': 'v3.3.14',
             },
             {
-              'dependency': 'goldctl', 'version': 'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
+              'dependency': 'goldctl',
+              'version': 'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
             },
           ]),
         },
