@@ -43,7 +43,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final BigqueryService bigquery = await config.createBigQueryService();
 
     CiYaml? localCiYaml = ciYaml;
-    if (localCiYaml == null) { 
+    if (localCiYaml == null) {
       final YamlMap? ci = loadYaml(await gitHub.getFileContent(
         slug,
         kCiYamlPath,
