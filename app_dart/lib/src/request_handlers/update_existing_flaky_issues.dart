@@ -28,26 +28,34 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   const UpdateExistingFlakyIssue({
     required super.config,
     required super.authenticationProvider,
+    @visibleForTesting this.ciYaml,
   });
 
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
+
+  final CiYaml? ciYaml;
 
   @override
   Future<Body> get() async {
     final RepositorySlug slug = Config.flutterSlug;
     final GithubService gitHub = config.createGithubServiceWithToken(await config.githubOAuthToken);
     final BigqueryService bigquery = await config.createBigQueryService();
-    final YamlMap? ci = loadYaml(await gitHub.getFileContent(
-      slug,
-      kCiYamlPath,
-    )) as YamlMap?;
-    final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
-    final CiYaml ciYaml = CiYaml(
-      slug: slug,
-      branch: Config.defaultBranch(slug),
-      config: unCheckedSchedulerConfig,
-    );
+
+    CiYaml? localCiYaml = ciYaml;
+    if (localCiYaml == null) {
+      final YamlMap? ci = loadYaml(await gitHub.getFileContent(
+        slug,
+        kCiYamlPath,
+      )) as YamlMap?;
+      final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      localCiYaml = CiYaml(
+        slug: slug,
+        branch: Config.defaultBranch(slug),
+        config: unCheckedSchedulerConfig,
+      );
+    }
+
     final List<BuilderStatistic> prodBuilderStatisticList =
         await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'prod');
     final List<BuilderStatistic> stagingBuilderStatisticList =
@@ -56,7 +64,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
-      ciYaml,
+      localCiYaml,
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
@@ -79,6 +87,7 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required Bucket bucket,
     required BuilderStatistic statistic,
     required Issue existingIssue,
+    required CiYaml ciYaml,
   }) async {
     if (DateTime.now().difference(existingIssue.createdAt!) < const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
@@ -88,17 +97,12 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     await gitHub.createComment(slug, issueNumber: existingIssue.number, body: updateBuilder.issueUpdateComment);
     await gitHub.replaceLabelsForIssue(slug, issueNumber: existingIssue.number, labels: updateBuilder.issueLabels);
     if (existingIssue.assignee == null && !updateBuilder.isBelow) {
-      final String ciContent = await gitHub.getFileContent(
-        slug,
-        kCiYamlPath,
-      );
       final String testOwnerContent = await gitHub.getFileContent(
         slug,
         kTestOwnerPath,
       );
-      final String? testOwner = getTestOwnership(
-              statistic.name, getTypeForBuilder(statistic.name, loadYaml(ciContent) as YamlMap), testOwnerContent)
-          .owner;
+      final String? testOwner =
+          getTestOwnership(statistic.name, getTypeForBuilder(statistic.name, ciYaml), testOwnerContent).owner;
       if (testOwner != null) {
         await gitHub.assignIssue(slug, issueNumber: existingIssue.number, assignee: testOwner);
       }
@@ -133,8 +137,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           builderFlakyMap.containsKey(statistic.name) &&
           // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
-        await _addCommentToExistingIssue(gitHub, slug,
-            bucket: Bucket.prod, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
+        await _addCommentToExistingIssue(
+          gitHub,
+          slug,
+          bucket: Bucket.prod,
+          statistic: statistic,
+          existingIssue: nameToExistingIssue[statistic.name]!,
+          ciYaml: ciYaml,
+        );
       }
     }
     // For all staging builder stats, updates any existing flaky bug.
@@ -143,8 +153,14 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           builderFlakyMap[statistic.name] == true &&
           // ignore: iterable_contains_unrelated_type
           !ignoreFlakyMap.containsKey(statistic.name)) {
-        await _addCommentToExistingIssue(gitHub, slug,
-            bucket: Bucket.staging, statistic: statistic, existingIssue: nameToExistingIssue[statistic.name]!);
+        await _addCommentToExistingIssue(
+          gitHub,
+          slug,
+          bucket: Bucket.staging,
+          statistic: statistic,
+          existingIssue: nameToExistingIssue[statistic.name]!,
+          ciYaml: ciYaml,
+        );
       }
     }
   }
