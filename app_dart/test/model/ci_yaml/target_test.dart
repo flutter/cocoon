@@ -105,6 +105,34 @@ void main() {
         });
       });
 
+      test('tags are parsed from within properties', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Linux_build_test',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'android_sdk': 'abc',
+          },
+          properties: <String, String>{'xcode': '12abc', 'tags': '["devicelab", "android", "linux"]'},
+        );
+        expect(target.getTags, ['devicelab', 'android', 'linux']);
+      });
+
+      test('we do not blow up if tags are not present', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Linux_build_test',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'android_sdk': 'abc',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+          },
+        );
+        expect(target.getTags, []);
+      });
+
       test('platform properties with xcode', () {
         final Target target = generateTarget(
           1,

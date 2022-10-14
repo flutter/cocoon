@@ -165,14 +165,21 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent) {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
-  final pb.SchedulerConfig schedulerConfig = CiYaml(
+  final CiYaml ciYamlFromProto = CiYaml(
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),
     config: unCheckedSchedulerConfig,
-  ).config;
+  );
+
+  final pb.SchedulerConfig schedulerConfig = ciYamlFromProto.config;
+
   for (pb.Target target in schedulerConfig.targets) {
     final String builder = target.name;
-    final String? owner = getTestOwnership(builder, getTypeForBuilder(builder, ciYaml!), testOwnersContent).owner;
+    final String? owner = getTestOwnership(
+      builder,
+      getTypeForBuilder(builder, ciYamlFromProto),
+      testOwnersContent,
+    ).owner;
     print('$builder: $owner');
     if (owner == null) {
       noOwnerBuilders.add(builder);
