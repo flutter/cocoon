@@ -186,13 +186,13 @@ void main() {
             'gsutil',
             'cp',
             '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$randomString',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
@@ -205,7 +205,7 @@ void main() {
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '.',
             '--include',
             '*',
@@ -216,7 +216,7 @@ void main() {
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '--apple-id',
             randomString,
             '--password',
@@ -245,7 +245,7 @@ void main() {
           command: <String>[
             'gsutil',
             'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$randomString',
           ],
         ),
@@ -259,7 +259,7 @@ void main() {
       expect(
         messages,
         contains(
-            'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact to ${rootDirectory.path}/single_artifact'),
+            'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact.zip to ${rootDirectory.path}/single_artifact'),
       );
       expect(
         messages,
@@ -276,11 +276,12 @@ void main() {
       expect(
         messages,
         contains(
-            'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact --apple-id $randomString --password $randomString --team-id $randomString'),
+            'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip --apple-id $randomString --password $randomString --team-id $randomString'),
       );
       expect(
         messages,
-        contains('RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact is: $randomString'),
+        contains(
+            'RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip is: $randomString'),
       );
       expect(
         messages,
@@ -289,7 +290,7 @@ void main() {
       );
       expect(
         messages,
-        contains('successfully notarized ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact'),
+        contains('successfully notarized ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip'),
       );
     });
   });
@@ -1106,13 +1107,13 @@ status: Invalid''',
             'gsutil',
             'cp',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact'
           ],
@@ -1125,7 +1126,7 @@ status: Invalid''',
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '.',
             '--include',
             '*'
@@ -1182,13 +1183,13 @@ status: Invalid''',
             'gsutil',
             'cp',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact'
           ],
@@ -1201,7 +1202,7 @@ status: Invalid''',
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '.',
             '--include',
             '*'
@@ -1212,7 +1213,7 @@ status: Invalid''',
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '--apple-id',
             randomString,
             '--password',
@@ -1241,7 +1242,7 @@ status: Invalid''',
           command: <String>[
             'gsutil',
             'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
           ],
         ),
