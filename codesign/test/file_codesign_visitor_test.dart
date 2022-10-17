@@ -313,7 +313,7 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        notarizationTimerDuration: const Duration(seconds: 0),
+        notarizationTimerDuration: Duration.zero,
       );
       codesignVisitor.directoriesVisited.clear();
       records.clear();

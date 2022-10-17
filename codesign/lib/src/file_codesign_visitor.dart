@@ -172,7 +172,6 @@ update these file paths accordingly.
     // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
     // This would help prevent https://github.com/flutter/flutter/issues/104387
     if (!dryrun) {
-      // notarize
       await notarize(codesignedFile);
 
       await googleCloudStorage.uploadEngineArtifact(
