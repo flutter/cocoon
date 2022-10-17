@@ -5,9 +5,8 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:cocoon_service/ci_yaml.dart';
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
+import 'package:yaml/yaml.dart';
 
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
@@ -296,8 +295,8 @@ Future<Issue> fileFlakyIssue({
 }
 
 /// Looks up the owner of a builder in TESTOWNERS file.
-TestOwnership getTestOwnership(String targetName, BuilderType type, String testOwnersContent) {
-  final String testName = _getTestNameFromTargetName(targetName);
+TestOwnership getTestOwnership(String builderName, BuilderType type, String testOwnersContent) {
+  final String testName = _getTestNameFromBuilderName(builderName);
   String? owner;
   Team? team;
   switch (type) {
@@ -419,12 +418,11 @@ TestOwnership getTestOwnership(String targetName, BuilderType type, String testO
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
 /// ci.yaml.
-BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml) {
-  final List<String>? tags = _getTags(targetName, ciYaml);
-  if (tags == null || tags.isEmpty) {
+BuilderType getTypeForBuilder(String? builderName, YamlMap ci) {
+  final List<dynamic>? tags = _getTags(builderName, ci);
+  if (tags == null) {
     return BuilderType.unknown;
   }
-
   bool hasFrameworkTag = false;
   bool hasHostOnlyTag = false;
   // If tags contain 'shard', it must be a shard test.
@@ -432,7 +430,7 @@ BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml) {
   // If tags contain 'firebaselab`, it must be a firebase tests.
   // Otherwise, it is framework host only test if its tags contain both
   // 'framework' and 'hostonly'.
-  for (String tag in tags) {
+  for (dynamic tag in tags) {
     if (tag == kCiYamlTargetTagsFirebaselab) {
       return BuilderType.firebaselab;
     } else if (tag == kCiYamlTargetTagsShard) {
@@ -448,19 +446,21 @@ BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml) {
   return hasFrameworkTag && hasHostOnlyTag ? BuilderType.frameworkHostOnly : BuilderType.unknown;
 }
 
-List<String>? _getTags(String? targetName, CiYaml ciYaml) {
-  List<Target> allTargets = ciYaml.presubmitTargets;
-  allTargets.addAll(ciYaml.postsubmitTargets);
-  Target? target = allTargets.firstWhereOrNull((element) => element.value.name == targetName);
+List<dynamic>? _getTags(String? builderName, YamlMap ci) {
+  final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
+  final YamlMap? target = targets.firstWhere(
+    (dynamic element) => element[kCiYamlTargetNameKey] == builderName,
+    orElse: () => null,
+  ) as YamlMap?;
   if (target == null) {
     return null;
   }
-  return target.getTags;
+  return jsonDecode(target[kCiYamlPropertiesKey][kCiYamlTargetTagsKey] as String) as List<dynamic>?;
 }
 
-String _getTestNameFromTargetName(String targetName) {
+String _getTestNameFromBuilderName(String builderName) {
   // The builder names is in the format '<platform> <test name>'.
-  final List<String> words = targetName.split(' ');
+  final List<String> words = builderName.split(' ');
   return words.length < 2 ? words[0] : words[1];
 }
 

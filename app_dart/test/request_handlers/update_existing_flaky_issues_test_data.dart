@@ -4,11 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
-import 'package:cocoon_service/src/service/config.dart';
-
-import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 
 const String expectedSemanticsIntegrationTestIssueComment = '''
 [prod pool] current flaky ratio for the past (up to) 100 commits is 50.00%. Flaky number: 3; total number: 10.
@@ -207,82 +203,66 @@ https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml_flutter
 Please follow https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
 
-final CiYaml testCiYaml = CiYaml(
-  slug: Config.flutterSlug,
-  branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(
-    enabledBranches: <String>[
-      Config.defaultBranch(Config.flutterSlug),
-    ],
-    targets: <pb.Target>[
-      pb.Target(
-        name: 'Mac_android android_semantics_integration_test',
-        scheduler: pb.SchedulerSystem.luci,
-        presubmit: false,
-        properties: <String, String>{
-          'tags': jsonEncode(['devicelab'])
-        },
-      ),
-      pb.Target(
-          name: 'Mac_android ignore_myflakiness',
-          scheduler: pb.SchedulerSystem.luci,
-          presubmit: false,
-          properties: <String, String>{
-            'ignore_flakiness': 'true',
-            'tags': jsonEncode(['devicelab']),
-          }),
-      pb.Target(
-        name: 'Linux ci_yaml flutter roller',
-        scheduler: pb.SchedulerSystem.luci,
-        bringup: true,
-        timeout: 30,
-        runIf: ['.ci.yaml'],
-        recipe: 'infra/ci_yaml',
-        properties: <String, String>{
-          'tags': jsonEncode(["framework", "hostonly", "shard"]),
-        },
-      ),
-      pb.Target(
-        name: 'Mac build_tests_1_4',
-        scheduler: pb.SchedulerSystem.luci,
-        recipe: 'flutter/flutter_drone',
-        timeout: 60,
-        properties: <String, String>{
-          'add_recipes_cq': 'true',
-          'shard': 'build_tests',
-          'subshard': '1_4',
-          'tags': jsonEncode(["framework", "hostonly", "shard"]),
-          'dependencies': jsonEncode([
-            {
-              'dependency': 'android_sdk',
-              'version': 'version:29.0',
-            },
-            {
-              'dependency': 'chrome_and_driver',
-              'version': 'version:84',
-            },
-            {
-              'dependency': 'xcode',
-              'version': '13a233',
-            },
-            {
-              'dependency': 'open_jdk',
-              'version': '11',
-            },
-            {
-              'dependency': 'gems',
-              'version': 'v3.3.14',
-            },
-            {
-              'dependency': 'goldctl',
-              'version': 'git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603',
-            },
-          ]),
-        },
-      ),
-    ],
-  ),
-);
+const String ciYamlContent = '''
+# Describes the targets run in continuous integration environment.
+#
+# Flutter infra uses this file to generate a checklist of tasks to be performed
+# for every commit.
+#
+# More information at:
+#  * https://github.com/flutter/cocoon/blob/master/scheduler/README.md
+enabled_branches:
+  - master
+
+targets:
+  - name: Mac_android android_semantics_integration_test
+    builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      tags: >
+        ["devicelab"]
+
+  - name: Mac_android ignore_myflakiness
+    builder: Mac_android android_semantics_integration_test
+    presubmit: false
+    scheduler: luci
+    properties:
+      ignore_flakiness: "true"
+      tags: >
+        ["devicelab"]
+
+  - name: Linux ci_yaml flutter roller
+    recipe: infra/ci_yaml
+    bringup: true # TODO(chillers): https://github.com/flutter/flutter/issues/93225
+    timeout: 30
+    properties:
+      tags: >
+        ["framework","hostonly","shard"]
+    scheduler: luci
+    runIf:
+      - .ci.yaml
+
+  - name: Mac build_tests_1_4
+    recipe: flutter/flutter_drone
+    timeout: 60
+    properties:
+      add_recipes_cq: "true"
+      dependencies: >-
+        [
+          {"dependency": "android_sdk", "version": "version:29.0"},
+          {"dependency": "chrome_and_driver", "version": "version:84"},
+          {"dependency": "open_jdk", "version": "11"},
+          {"dependency": "xcode", "version": "13a233"},
+          {"dependency": "gems", "version": "v3.3.14"},
+          {"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}
+        ]
+      shard: build_tests
+      subshard: "1_4"
+      tags: >
+        ["framework","hostonly","shard"]
+    scheduler: luci
+''';
 
 const String testOwnersContent = '''
 
