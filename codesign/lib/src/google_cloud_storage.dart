@@ -14,27 +14,20 @@ class GoogleCloudStorage {
   GoogleCloudStorage({
     required this.processManager,
     required this.rootDirectory,
-    required this.gCloudDownloadPattern,
-    required this.gCloudUploadPattern,
+    required this.gCloudDownloadUploadPath,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
-  final String gCloudDownloadPattern;
-  final String gCloudUploadPattern;
+  final String gCloudDownloadUploadPath;
   final String bucketPrefix = 'gs://flutter_infra_release';
-  final String artifactRawnameStub = 'ARTIFACTRAWNAME';
-  final String filepathStub = 'FILEPATH';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
-    required String destination,
   }) async {
-    final String artifactRawname = destination.split('/').last.replaceAll(".zip", "");
-    final String destinationUrl = '$bucketPrefix/$gCloudUploadPattern'
-        .replaceAll(artifactRawnameStub, artifactRawname)
-        .replaceAll(filepathStub, destination);
+    final String gCloudUploadPath = gCloudDownloadUploadPath.split("#").last;
+    final String destinationUrl = '$bucketPrefix/$gCloudUploadPath';
 
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', from, destinationUrl],
@@ -47,13 +40,10 @@ class GoogleCloudStorage {
 
   /// Method to download flutter engine artifact from google cloud bucket.
   Future<File> downloadEngineArtifact({
-    required String from,
     required String destination,
   }) async {
-    final String artifactRawname = from.split('/').last.replaceAll(".zip", "");
-    final String sourceUrl = '$bucketPrefix/$gCloudDownloadPattern'
-        .replaceAll(artifactRawnameStub, artifactRawname)
-        .replaceAll(filepathStub, from);
+    final String gCloudDownloadPath = gCloudDownloadUploadPath.split("#").first;
+    final String sourceUrl = '$bucketPrefix/$gCloudDownloadPath';
 
     final ProcessResult result = await processManager.run(
       <String>['gsutil', 'cp', sourceUrl, destination],

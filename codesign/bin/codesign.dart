@@ -19,9 +19,7 @@ const String kCodesignUserNameOption = 'codesign-username';
 const String kAppSpecificPasswordOption = 'app-specific-password';
 const String kCodesignAppStoreIdOption = 'codesign-appstore-id';
 const String kCodesignTeamIdOption = 'codesign-team-id';
-const String kCodesignFilepathOption = 'filepath';
-const String kGCloudDownloadPattern = 'google-cloud-download-pattern';
-const String kGCloudUploadPattern = 'google-cloud-upload-pattern';
+const String kGCloudDownloadUploadPathOption = 'google-cloud-download-upload-path';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -30,17 +28,16 @@ const String kGCloudUploadPattern = 'google-cloud-upload-pattern';
 /// Otherwise, nothing will be uploaded back for dry run. default value is
 /// true.
 ///
-/// For [kCodesignFilepathOption], supply the filepaths of binaries to be codesigned.
-/// e.g. supply `--filepath=darwin-x86/artifacts.zip --ios-release/artifacts.zip` if you would like to codesign darwin-x86/artifacts.zip and ios-release/artifacts.zip
-///
-/// For [kGCloudDownloadPattern], it is a required parameter to specify the google cloud bucket prefix of the artifacts stored in google cloud.
-/// Artifacts stored with this bucket prefix path are downloaded from google cloud and codesigned.
-/// For [kGCloudUploadPattern], it is a required parameter to specify the google cloud bucket prefix for the code signed artifacts to be uploaded to.
-/// Code signed artifacts are uploaded to google cloud under this bucket prefix.
+/// For [kGCloudDownloadUploadPathOption], it is a required parameter to specify the google cloud bucket paths.
+/// This path is a single string concatenated by a '#' sign, the path before the '#' sign should be (1) google cloud bucket prefix to download the remote artifacts,
+/// and the path after the '#' sign should be (2) the cloud bucket prefix to upload codesigned artifact to.
+/// For example, supply '--google-cloud-download-upload-path=ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip#ios-usb-dependencies/libimobiledevice/<commit>/libimobiledevice.zip',
+/// and code sign app will download the artifact at 'ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip', and upload signed artifact back to
+/// 'ios-usb-dependencies/libimobiledevice/<commit>/libimobiledevice.zip'.
 ///
 /// Usage:
 /// ```shell
-/// dart run bin/main.dart --commit=$commitSha [--dryrun]
+/// dart run bin/codesign.dart [--dryrun] --google-cloud-download-upload-path=flutter/<commit>/android-arm-profile/artifacts.zip#flutter/<commit>/android-arm-profile/artifacts.zip
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -69,33 +66,12 @@ Future<void> main(List<String> args) async {
       help: 'Team-id is used by notary service for xcode version 13+.',
     )
     ..addOption(
-      kGCloudDownloadPattern,
-      help: 'A required pattern to specify the google cloud bucket prefix of the artifacts stored in google cloud. '
-          'In a pattern, the word ARTIFACTRAWNAME will get replaced by the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced by the artifact path\n'
-          'For example, to code sign ios usb dependency artifacts ios-deploy.zip and libplist.zip, supply the pattern\n'
-          '`--google-cloud-download-pattern = ios-usb-dependencies/unsigned/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n,'
-          'and supply file path to be `--filepath = ios-deploy.zip --filepath = libplist.zip`\n'
-          'when the program runs and signs ios-deploy.zip, the pattern will get auto replaced into ios-usb-dependencies/unsigned/ios-deploy/<commitHash>/ios-deploy.zip'
-          'As another example, to code sign engine artifact darwin-x64/artifacts.zip, supply the pattern\n'
-          '`--google-cloud-download-pattern = flutter/<commitHash>/FILEPATH`\n,'
-          'and supply file path to be `--filepath = darwin-x64/artifacts.zip`\n'
-          'when the program runs and signs darwin-x64/artifacts.zip, the pattern will get auto replaced into flutter/<commitHash>/darwin-x64/artifacts.zip',
-    )
-    ..addOption(
-      kGCloudUploadPattern,
+      kGCloudDownloadUploadPathOption,
       help:
-          'A required pattern to specify the google cloud bucket prefix for the code signed artifacts to be uploaded to. \n'
-          'In a pattern, the word ARTIFACTRAWNAME will get replaced by the raw name of artifact without suffix or prefix, the word FILEPATH will get replaced by the artifact path\n'
-          'For example, to upload an ios usb dependency artifact, supply the pattern\n'
-          '`--google-cloud-upload-pattern = ios-usb-dependencies/ARTIFACTRAWNAME/<commitHash>/FILEPATH`\n'
-          'and supply file path to be something like `--filepath = libimobiledevice.zip --filepath = openssl.zip` depending on user needs\n'
-          'when the program runs and uploads libimobiledevice.zip, the pattern will get auto replaced into ios-usb-dependencies/libimobiledevice/<commitHash>/libimobiledevice.zip',
-    )
-    ..addMultiOption(
-      kCodesignFilepathOption,
-      help: 'the list of file paths of binaries to be codesigned. \n'
-          'e.g. supply `--filepath=darwin-x86/artifacts.zip --ios-release/artifacts.zip` if you would like to codesign darwin-x86/artifacts.zip and ios-release/artifacts.zip',
-      defaultsTo: <String>[],
+          'A path concatenated by the google cloud bucket path to download the artifact from, and the google cloud bucket path to upload the artifact to. Deliminated by "#". \n'
+          'e.g. supply `--google-cloud-download-upload-path=flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip#flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
+          ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip to be downloaded from \n'
+          ' and has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
     )
     ..addFlag(
       kDryrunFlag,
@@ -112,9 +88,8 @@ Future<void> main(List<String> args) async {
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
-  final String gCloudDownloadPattern = getValueFromEnvOrArgs(kGCloudDownloadPattern, argResults, platform.environment)!;
-  final String gCloudUploadPattern = getValueFromEnvOrArgs(kGCloudUploadPattern, argResults, platform.environment)!;
-  final List<String> filePaths = argResults[kCodesignFilepathOption] as List<String>;
+  final String gCloudDownloadUploadPath =
+      getValueFromEnvOrArgs(kGCloudDownloadUploadPathOption, argResults, platform.environment)!;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
@@ -131,8 +106,7 @@ Future<void> main(List<String> args) async {
   final GoogleCloudStorage googleCloudStorage = GoogleCloudStorage(
     processManager: processManager,
     rootDirectory: rootDirectory,
-    gCloudDownloadPattern: gCloudDownloadPattern,
-    gCloudUploadPattern: gCloudUploadPattern,
+    gCloudDownloadUploadPath: gCloudDownloadUploadPath,
   );
 
   return FileCodesignVisitor(
@@ -145,7 +119,6 @@ Future<void> main(List<String> args) async {
     rootDirectory: rootDirectory,
     processManager: processManager,
     dryrun: dryrun,
-    filePaths: filePaths,
     googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }

@@ -34,7 +34,6 @@ class FileCodesignVisitor {
     required this.rootDirectory,
     required this.processManager,
     required this.googleCloudStorage,
-    required this.filePaths,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -63,7 +62,6 @@ class FileCodesignVisitor {
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
-  final List<String> filePaths;
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -119,15 +117,7 @@ update these file paths accordingly.
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    final Iterable<Future<void>> futures = filePaths.map((String artifactFilePath) {
-      final Directory outDir =
-          rootDirectory.childDirectory('remote_zip_${artifactFilePath.replaceAll("/", "_").replaceAll(".zip", "")}');
-      return processRemoteZip(artifactFilePath: artifactFilePath, parentDirectory: outDir);
-    });
-    await Future.wait(
-      futures,
-      eagerError: true,
-    );
+    await processRemoteZip();
 
     if (dryrun) {
       log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
@@ -143,20 +133,18 @@ update these file paths accordingly.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
   /// zip. Also downloads, notarizes and uploads the engine artifact.
-  Future<void> processRemoteZip({
-    required String artifactFilePath,
-    required Directory parentDirectory,
-  }) async {
-    final FileSystem fs = rootDirectory.fileSystem;
-
-    // namespace by hashcode otherwise there will be collisions
-    final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
+  Future<void> processRemoteZip() async {
+    // Name of the downloaded artifact.
+    // There won't be collisions since we are only signing one artifact at a time now
+    const String localFilePath = 'remote_artifact.zip';
 
     // download the zip file
     final File originalFile = await googleCloudStorage.downloadEngineArtifact(
-      from: artifactFilePath,
       destination: remoteDownloadsDir.childFile(localFilePath).path,
     );
+
+    // This is the starting directory of the unzipped artifact.
+    final Directory parentDirectory = rootDirectory.childDirectory('single_artifact');
 
     await unzip(
       inputZip: originalFile,
@@ -189,7 +177,6 @@ update these file paths accordingly.
 
       await googleCloudStorage.uploadEngineArtifact(
         from: codesignedFile.path,
-        destination: artifactFilePath,
       );
     }
   }

@@ -42,8 +42,7 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadPattern: 'flutter/$randomString/FILEPATH',
-        gCloudUploadPattern: 'flutter/$randomString/FILEPATH',
+        gCloudDownloadUploadPath: 'flutter/$randomString/$randomString#flutter/$randomString/$randomString',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -56,7 +55,6 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
-        filePaths: [randomString],
         dryrun: false,
       );
       codesignVisitor.directoriesVisited.clear();
@@ -79,7 +77,6 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
-          destination: randomString,
         ),
         returnsNormally,
       );
@@ -96,7 +93,6 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          from: randomString,
           destination: randomString,
         ),
         throwsA(
@@ -119,7 +115,6 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          from: randomString,
           destination: randomString,
         ),
         returnsNormally,
@@ -138,7 +133,6 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
-          destination: randomString,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -160,7 +154,6 @@ void main() {
       ]);
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
-          from: randomString,
           destination: randomString,
         ),
         returnsNormally,
@@ -179,7 +172,6 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
-          destination: randomString,
         ),
         returnsNormally,
       );
@@ -188,36 +180,32 @@ void main() {
     test('procesRemotezip triggers correct workflow', () async {
       final String zipFileName = '${rootDirectory.path}/remote_zip_4/folder_1/zip_1';
       fileSystem.file(zipFileName).createSync(recursive: true);
-      const String artifactFilePath = 'my/artifacts.zip';
-      final String artifactBaseName = rootDirectory.fileSystem.path.basename(artifactFilePath);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
             'gsutil',
             'cp',
-            '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$artifactFilePath',
-            '${rootDirectory.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName',
+            '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$randomString',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
             '-d',
-            '${rootDirectory.absolute.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName',
+            '${rootDirectory.absolute.path}/single_artifact',
           ],
           onRun: () => fileSystem
-            ..file('${rootDirectory.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName/entitlements.txt')
-                .createSync(recursive: true)
-            ..file('${rootDirectory.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName/without_entitlements.txt')
-                .createSync(recursive: true),
+            ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
+            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '.',
             '--include',
             '*',
@@ -228,7 +216,7 @@ void main() {
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '--apple-id',
             randomString,
             '--password',
@@ -257,16 +245,13 @@ void main() {
           command: <String>[
             'gsutil',
             'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName',
-            '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$artifactFilePath',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
+            '${googleCloudStorage.bucketPrefix}/flutter/$randomString/$randomString',
           ],
         ),
       ]);
 
-      await codesignVisitor.processRemoteZip(
-        artifactFilePath: artifactFilePath,
-        parentDirectory: rootDirectory.childDirectory('remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
-      );
+      await codesignVisitor.processRemoteZip();
       final Set<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
@@ -274,12 +259,11 @@ void main() {
       expect(
         messages,
         contains(
-            'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/${artifactFilePath.hashCode}_$artifactBaseName to ${rootDirectory.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
+            'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact to ${rootDirectory.path}/single_artifact'),
       );
       expect(
         messages,
-        contains(
-            'Visiting directory ${rootDirectory.absolute.path}/remote_zip_${artifactFilePath.hashCode}_$artifactBaseName'),
+        contains('Visiting directory ${rootDirectory.absolute.path}/single_artifact'),
       );
       expect(
         messages,
@@ -292,12 +276,11 @@ void main() {
       expect(
         messages,
         contains(
-            'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName --apple-id $randomString --password $randomString --team-id $randomString'),
+            'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact --apple-id $randomString --password $randomString --team-id $randomString'),
       );
       expect(
         messages,
-        contains(
-            'RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName is: $randomString'),
+        contains('RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact is: $randomString'),
       );
       expect(
         messages,
@@ -306,8 +289,7 @@ void main() {
       );
       expect(
         messages,
-        contains(
-            'successfully notarized ${rootDirectory.absolute.path}/codesigned_zips/${artifactFilePath.hashCode}_$artifactBaseName'),
+        contains('successfully notarized ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact'),
       );
     });
   });
@@ -318,8 +300,7 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadPattern: 'flutter/$randomString/FILEPATH',
-        gCloudUploadPattern: 'flutter/$randomString/FILEPATH',
+        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -331,7 +312,6 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        filePaths: [randomString],
         notarizationTimerDuration: const Duration(seconds: 0),
       );
       codesignVisitor.directoriesVisited.clear();
@@ -601,7 +581,6 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        filePaths: [randomString],
         dryrun: false,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
@@ -679,8 +658,7 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadPattern: 'flutter/$randomString/FILEPATH',
-        gCloudUploadPattern: 'flutter/$randomString/FILEPATH',
+        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -688,7 +666,6 @@ void main() {
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
-        filePaths: [randomString],
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -783,8 +760,7 @@ file_c''',
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadPattern: 'flutter/$randomString/FILEPATH',
-        gCloudUploadPattern: 'flutter/$randomString/FILEPATH',
+        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -792,7 +768,6 @@ file_c''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
-        filePaths: [randomString],
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -1104,8 +1079,8 @@ status: Invalid''',
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadPattern: 'ios-usb-dependencies/unsigned/ARTIFACTRAWNAME/$randomString/FILEPATH',
-        gCloudUploadPattern: 'ios-usb-dependencies/ARTIFACTRAWNAME/$randomString/FILEPATH',
+        gCloudDownloadUploadPath:
+            'ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip#ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -1113,7 +1088,6 @@ status: Invalid''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
-        filePaths: ['libimobiledevice.zip', 'libusbmuxd.zip'],
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -1132,57 +1106,26 @@ status: Invalid''',
             'gsutil',
             'cp',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libusbmuxd/abcd1234/libusbmuxd.zip',
-            '${rootDirectory.absolute.path}/downloads/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
             '-d',
-            '${rootDirectory.absolute.path}/remote_zip_libimobiledevice'
+            '${rootDirectory.absolute.path}/single_artifact'
           ],
           onRun: () => fileSystem
-            ..file('${rootDirectory.path}/remote_zip_libimobiledevice/entitlements.txt').createSync(recursive: true)
-            ..file('${rootDirectory.path}/remote_zip_libimobiledevice/without_entitlements.txt')
-                .createSync(recursive: true),
-        ),
-        FakeCommand(
-          command: <String>[
-            'unzip',
-            '${rootDirectory.absolute.path}/downloads/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
-            '-d',
-            '${rootDirectory.absolute.path}/remote_zip_libusbmuxd'
-          ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/remote_zip_libusbmuxd/entitlements.txt').createSync(recursive: true)
-            ..file('${rootDirectory.path}/remote_zip_libusbmuxd/without_entitlements.txt').createSync(recursive: true),
+            ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
+            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
-            '.',
-            '--include',
-            '*'
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
-            'zip',
-            '--symlinks',
-            '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '.',
             '--include',
             '*'
@@ -1193,7 +1136,7 @@ status: Invalid''',
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_zip',
             '--apple-id',
             randomString,
             '--password',
@@ -1202,36 +1145,6 @@ status: Invalid''',
             randomString,
           ],
           stdout: 'id: $randomString',
-        ),
-        FakeCommand(
-          command: <String>[
-            'xcrun',
-            'notarytool',
-            'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
-            '--apple-id',
-            randomString,
-            '--password',
-            randomString,
-            '--team-id',
-            randomString,
-          ],
-          stdout: 'id: $randomString',
-        ),
-        const FakeCommand(
-          command: <String>[
-            'xcrun',
-            'notarytool',
-            'info',
-            randomString,
-            '--password',
-            randomString,
-            '--apple-id',
-            randomString,
-            '--team-id',
-            randomString,
-          ],
-          stdout: 'status: Accepted',
         ),
         const FakeCommand(
           command: <String>[
@@ -1269,57 +1182,26 @@ status: Invalid''',
             'gsutil',
             'cp',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/unsigned/libusbmuxd/abcd1234/libusbmuxd.zip',
-            '${rootDirectory.absolute.path}/downloads/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
           ],
         ),
         FakeCommand(
           command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
+            '${rootDirectory.absolute.path}/downloads/remote_artifact',
             '-d',
-            '${rootDirectory.absolute.path}/remote_zip_libimobiledevice'
+            '${rootDirectory.absolute.path}/single_artifact'
           ],
           onRun: () => fileSystem
-            ..file('${rootDirectory.path}/remote_zip_libimobiledevice/entitlements.txt').createSync(recursive: true)
-            ..file('${rootDirectory.path}/remote_zip_libimobiledevice/without_entitlements.txt')
-                .createSync(recursive: true),
-        ),
-        FakeCommand(
-          command: <String>[
-            'unzip',
-            '${rootDirectory.absolute.path}/downloads/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
-            '-d',
-            '${rootDirectory.absolute.path}/remote_zip_libusbmuxd'
-          ],
-          onRun: () => fileSystem
-            ..file('${rootDirectory.path}/remote_zip_libusbmuxd/entitlements.txt').createSync(recursive: true)
-            ..file('${rootDirectory.path}/remote_zip_libusbmuxd/without_entitlements.txt').createSync(recursive: true),
+            ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
+            ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
-            '.',
-            '--include',
-            '*'
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
-            'zip',
-            '--symlinks',
-            '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '.',
             '--include',
             '*'
@@ -1330,22 +1212,7 @@ status: Invalid''',
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
-            '--apple-id',
-            randomString,
-            '--password',
-            randomString,
-            '--team-id',
-            randomString,
-          ],
-          stdout: 'id: $randomString',
-        ),
-        FakeCommand(
-          command: <String>[
-            'xcrun',
-            'notarytool',
-            'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '--apple-id',
             randomString,
             '--password',
@@ -1374,31 +1241,8 @@ status: Invalid''',
           command: <String>[
             'gsutil',
             'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libimobiledevice.zip".hashCode}_libimobiledevice.zip',
+            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact',
             '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
-          ],
-        ),
-        const FakeCommand(
-          command: <String>[
-            'xcrun',
-            'notarytool',
-            'info',
-            randomString,
-            '--password',
-            randomString,
-            '--apple-id',
-            randomString,
-            '--team-id',
-            randomString,
-          ],
-          stdout: 'status: Accepted',
-        ),
-        FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/${"libusbmuxd.zip".hashCode}_libusbmuxd.zip',
-            '${googleCloudStorage.bucketPrefix}/ios-usb-dependencies/libusbmuxd/$randomString/libusbmuxd.zip',
           ],
         ),
       ]);
@@ -1408,7 +1252,6 @@ status: Invalid''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
-        filePaths: ['libimobiledevice.zip', 'libusbmuxd.zip'],
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
