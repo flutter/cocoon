@@ -56,6 +56,14 @@ void main() {
         return const Stream<Issue>.empty();
       });
 
+      // when gets the content of .ci.yaml
+      when(mockRepositoriesService.getContents(
+        captureAny,
+        kCiYamlPath,
+      )).thenAnswer((Invocation invocation) {
+        return Future<RepositoryContents>.value(
+            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
+      });
       // when gets the content of TESTOWNERS
       when(mockRepositoriesService.getContents(
         captureAny,
@@ -79,7 +87,6 @@ void main() {
       handler = UpdateExistingFlakyIssue(
         config: config,
         authenticationProvider: auth,
-        ciYaml: testCiYaml,
       );
     });
 
@@ -319,7 +326,6 @@ void main() {
       )).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
-
       final Map<String, dynamic> result = await utf8.decoder
           .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
           .transform(json.decoder)
