@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
 /// then the bot tries to rebase it
