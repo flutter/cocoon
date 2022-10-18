@@ -75,13 +75,8 @@ class CiYaml {
         slug: slug,
       ));
 
-  List<Target> get targets => config.targets
-      .map((pb.Target target) => Target(
-            schedulerConfig: config,
-            value: target,
-            slug: slug,
-          ))
-      .toList();
+  /// Get an unfiltered list of all [targets] that are found in the ci.yaml file.
+  List<Target> get targets => _targets.toList();
 
   /// Filter [targets] to only those that are expected to run for [branch].
   ///

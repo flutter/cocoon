@@ -449,19 +449,16 @@ BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml, {bool unfiltere
 }
 
 List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTargets = false}) {
-  List<Target> allTargets;
+  final Set<Target> allUniqueTargets = {};
   if (!unfilteredTargets) {
-    allTargets = ciYaml.presubmitTargets;
-    allTargets.addAll(ciYaml.postsubmitTargets);
+    allUniqueTargets.addAll(ciYaml.presubmitTargets);
+    allUniqueTargets.addAll(ciYaml.postsubmitTargets);
   } else {
-    allTargets = ciYaml.targets;
+    allUniqueTargets.addAll(ciYaml.targets);
   }
 
-  Target? target = allTargets.firstWhereOrNull((element) => element.value.name == targetName);
-  if (target == null) {
-    return null;
-  }
-  return target.getTags;
+  final Target? target = allUniqueTargets.firstWhereOrNull((element) => element.value.name == targetName);
+  return target?.getTags;
 }
 
 String _getTestNameFromTargetName(String targetName) {
