@@ -75,6 +75,12 @@ class CiYaml {
         slug: slug,
       ));
 
+  List<Target> get targets => config.targets.map((pb.Target target) => Target(
+        schedulerConfig: config,
+        value: target,
+        slug: slug,
+      )).toList();
+
   /// Filter [targets] to only those that are expected to run for [branch].
   ///
   /// A [Target] is expected to run if:

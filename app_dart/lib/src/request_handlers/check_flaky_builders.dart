@@ -74,8 +74,9 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       slug,
       kTestOwnerPath,
     );
+
     for (final _BuilderInfo info in eligibleBuilders) {
-      final BuilderType type = getTypeForBuilder(info.name, loadYaml(ciContent) as YamlMap);
+      final BuilderType type = getTypeForBuilder(info.name, ciYaml);
       final TestOwnership testOwnership = getTestOwnership(info.name!, type, testOwnerContent);
       final List<BuilderRecord> builderRecords =
           await bigquery.listRecentBuildRecordsForBuilder(kBigQueryProjectId, builder: info.name, limit: kRecordNumber);
@@ -154,6 +155,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       if (nameToExistingPRs.containsKey(builder)) {
         continue;
       }
+
+      //TODO (ricardoamador): Refactor this so we don't need to parse the entire yaml looking for commented issues, https://github.com/flutter/flutter/issues/113232
       int builderLineNumber = lines.indexWhere((String line) => line.contains('name: $builder')) + 1;
       while (builderLineNumber < lines.length && !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
