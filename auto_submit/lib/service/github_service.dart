@@ -154,7 +154,7 @@ class GithubService {
   /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
   bool validateFileSetsAreEqual(
-      List<PullRequestFile> revertRequestFileList, List<PullRequestFile> originalRequestFileList) {
+      List<PullRequestFile> revertRequestFileList, List<PullRequestFile> originalRequestFileList,) {
     if (revertRequestFileList.length != originalRequestFileList.length) {
       return false;
     }
