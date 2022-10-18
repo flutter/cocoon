@@ -88,7 +88,6 @@ void main() {
     });
 
     test('Link extraction from description returns null', () {
-      // input, expected
       Map<String, String> tests = <String, String>{};
       tests['Revert flutter/cocoon#123456'] = '';
       tests['revert flutter/cocoon#123456'] = '';
