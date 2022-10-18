@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
 /// then the bot tries to rebase it
@@ -148,26 +149,44 @@ class GithubService {
     List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
     List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
 
-    return _validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
+    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
   }
 
   /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
-  bool _validateFileSetsAreEqual(
-    List<PullRequestFile> revertPullRequestFiles,
-    List<PullRequestFile> currentPullRequestFiles,
-  ) {
-    List<String?> revertFileNames = [];
-    List<String?> currentFileNames = [];
+  bool validateFileSetsAreEqual(List<PullRequestFile> changeList1, List<PullRequestFile> changeList2) {
+    if (changeList1.length != changeList2.length) {
+      return false;
+    }
 
-    for (PullRequestFile element in revertPullRequestFiles) {
+    final List<String?> revertFileNames = [];
+    final List<String?> currentFileNames = [];
+
+    for (PullRequestFile element in changeList1) {
       revertFileNames.add(element.filename);
     }
-    for (PullRequestFile element in currentPullRequestFiles) {
+    for (PullRequestFile element in changeList2) {
       currentFileNames.add(element.filename);
     }
 
-    return revertFileNames.toSet().containsAll(currentFileNames) &&
-        currentFileNames.toSet().containsAll(revertFileNames);
+    // At this point we know the file lists have the same amount of files but not the same files.
+    if (!revertFileNames.toSet().containsAll(currentFileNames) ||
+        !currentFileNames.toSet().containsAll(revertFileNames)) {
+      return false;
+    }
+
+    // At this point all the files are the same so we can iterate over one list to
+    // compare changes.
+    for (PullRequestFile pullRequestFile in changeList1) {
+      PullRequestFile pullRequestFileChangeList2 =
+          changeList2.firstWhere((element) => element.filename == pullRequestFile.filename);
+      if (pullRequestFile.changesCount != pullRequestFileChangeList2.changesCount ||
+          pullRequestFile.additionsCount != pullRequestFileChangeList2.deletionsCount ||
+          pullRequestFile.deletionsCount != pullRequestFileChangeList2.additionsCount) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

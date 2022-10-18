@@ -102,10 +102,13 @@ class Revert extends Validation {
     if (bodyText == null) {
       return null;
     }
-    final RegExp regExp = RegExp(r'^[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)$', multiLine: true);
+    final RegExp regExp = RegExp(r'[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)', multiLine: true);
     Iterable<RegExpMatch> matches = regExp.allMatches(bodyText);
-    if (matches.isNotEmpty) {
+
+    if (matches.isNotEmpty && matches.length == 1) {
       return matches.elementAt(0).group(1);
+    } else if (matches.isNotEmpty && matches.length != 1) {
+      log.warning('Detected more than 1 revert link. Cannot process more than one link.');
     }
     return null;
   }

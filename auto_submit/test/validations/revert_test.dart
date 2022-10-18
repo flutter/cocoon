@@ -79,6 +79,12 @@ void main() {
 
       Some other notes in the description a developer might add.
       And another note."""] = 'flutter/cocoon#123456';
+      tests['Pull request Reverts flutter/flutter#12334 is happening continuously.'] = 'flutter/flutter#12334';
+      tests['Reverts reverts flutter/flutter#9876'] = 'flutter/flutter#9876';
+      tests["""Some junk reverts flutter/cocoon#4563 is happening continuously.
+      Some other tests in the description that someone might add.
+      """] = 'flutter/cocoon#4563';
+      tests['This some text to add flavor before reverts flutter/flutter#8888.'] = 'flutter/flutter#8888';
 
       tests.forEach((key, value) {
         String? linkFound = revert.extractLinkFromText(key);
@@ -93,6 +99,15 @@ void main() {
       tests['revert flutter/cocoon#123456'] = '';
       tests['Reverts flutter/cocoon#'] = '';
       tests['Reverts flutter123'] = '';
+      // We should not allow processing of more than one link as this can be cause
+      // suspicion of other non revert changes in the pull request.
+      tests["""Reverts flutter/flutter#12345
+      Reverts flutter/flutter#34543"""] = '';
+      tests["""This some text to add flavor before reverts flutter/flutter#8888.
+      Also please reverts flutter/flutter#7678.
+      And reverts flutter/flutter#8763.
+      """] = '';
+      tests['This is some text flutter/flutter#456...44'] = '';
 
       tests.forEach((key, value) {
         String? linkFound = revert.extractLinkFromText(key);
