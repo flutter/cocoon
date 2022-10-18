@@ -14,19 +14,17 @@ class GoogleCloudStorage {
   GoogleCloudStorage({
     required this.processManager,
     required this.rootDirectory,
-    required this.gCloudDownloadUploadPath,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
-  final String gCloudDownloadUploadPath;
   final String bucketPrefix = 'gs://flutter_infra_release';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
+    required String gCloudUploadPath,
   }) async {
-    final String gCloudUploadPath = gCloudDownloadUploadPath.split("#").last;
     final String destinationUrl = '$bucketPrefix/$gCloudUploadPath';
 
     final ProcessResult result = await processManager.run(
@@ -41,8 +39,8 @@ class GoogleCloudStorage {
   /// Method to download flutter engine artifact from google cloud bucket.
   Future<File> downloadEngineArtifact({
     required String destination,
+    required String gCloudDownloadPath,
   }) async {
-    final String gCloudDownloadPath = gCloudDownloadUploadPath.split("#").first;
     final String sourceUrl = '$bucketPrefix/$gCloudDownloadPath';
 
     final ProcessResult result = await processManager.run(

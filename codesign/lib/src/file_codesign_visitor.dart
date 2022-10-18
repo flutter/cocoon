@@ -33,6 +33,8 @@ class FileCodesignVisitor {
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
+    required this.gCloudDownloadPath,
+    required this.gCloudUploadPath,
     required this.googleCloudStorage,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
@@ -55,6 +57,8 @@ class FileCodesignVisitor {
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
+  final String gCloudDownloadPath;
+  final String gCloudUploadPath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
 
@@ -141,6 +145,7 @@ update these file paths accordingly.
     // download the zip file
     final File originalFile = await googleCloudStorage.downloadEngineArtifact(
       destination: remoteDownloadsDir.childFile(localFilePath).path,
+      gCloudDownloadPath: gCloudDownloadPath,
     );
 
     // This is the starting directory of the unzipped artifact.
@@ -176,6 +181,7 @@ update these file paths accordingly.
 
       await googleCloudStorage.uploadEngineArtifact(
         from: codesignedFile.path,
+        gCloudUploadPath: gCloudUploadPath,
       );
     }
   }

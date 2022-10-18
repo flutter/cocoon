@@ -42,7 +42,6 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadUploadPath: 'flutter/$randomString/$randomString#flutter/$randomString/$randomString',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -54,6 +53,8 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
+        gCloudDownloadPath: 'flutter/$randomString/$randomString',
+        gCloudUploadPath: 'flutter/$randomString/$randomString',
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );
@@ -77,6 +78,7 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
+          gCloudUploadPath: codesignVisitor.gCloudUploadPath,
         ),
         returnsNormally,
       );
@@ -94,6 +96,7 @@ void main() {
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
           destination: randomString,
+          gCloudDownloadPath: codesignVisitor.gCloudDownloadPath,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -116,6 +119,7 @@ void main() {
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
           destination: randomString,
+          gCloudDownloadPath: codesignVisitor.gCloudDownloadPath,
         ),
         returnsNormally,
       );
@@ -133,6 +137,7 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
+          gCloudUploadPath: codesignVisitor.gCloudUploadPath,
         ),
         throwsA(
           isA<CodesignException>(),
@@ -155,6 +160,7 @@ void main() {
       expect(
         () => googleCloudStorage.downloadEngineArtifact(
           destination: randomString,
+          gCloudDownloadPath: codesignVisitor.gCloudDownloadPath,
         ),
         returnsNormally,
       );
@@ -172,6 +178,7 @@ void main() {
       expect(
         () => googleCloudStorage.uploadEngineArtifact(
           from: randomString,
+          gCloudUploadPath: codesignVisitor.gCloudUploadPath,
         ),
         returnsNormally,
       );
@@ -301,7 +308,6 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -313,6 +319,8 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
+        gCloudDownloadPath: 'flutter/$randomString/FILEPATH',
+        gCloudUploadPath: 'flutter/$randomString/FILEPATH',
         notarizationTimerDuration: Duration.zero,
       );
       codesignVisitor.directoriesVisited.clear();
@@ -582,6 +590,8 @@ void main() {
         fileSystem: fileSystem,
         processManager: processManager,
         rootDirectory: rootDirectory,
+        gCloudDownloadPath: 'flutter/$randomString/FILEPATH',
+        gCloudUploadPath: 'flutter/$randomString/FILEPATH',
         dryrun: false,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
@@ -659,7 +669,6 @@ void main() {
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -667,6 +676,8 @@ void main() {
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
+        gCloudDownloadPath: 'flutter/$randomString/FILEPATH',
+        gCloudUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -761,7 +772,6 @@ file_c''',
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadUploadPath: 'flutter/$randomString/FILEPATH#flutter/$randomString/FILEPATH',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -769,6 +779,8 @@ file_c''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
+        gCloudDownloadPath: 'flutter/$randomString/FILEPATH',
+        gCloudUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -1080,8 +1092,6 @@ status: Invalid''',
       googleCloudStorage = GoogleCloudStorage(
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gCloudDownloadUploadPath:
-            'ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip#ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -1089,6 +1099,8 @@ status: Invalid''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
+        gCloudDownloadPath: 'ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
+        gCloudUploadPath: 'ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
@@ -1253,6 +1265,8 @@ status: Invalid''',
         appSpecificPassword: randomString,
         codesignAppstoreId: randomString,
         codesignTeamId: randomString,
+        gCloudDownloadPath: 'ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
+        gCloudUploadPath: 'ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         processManager: processManager,
