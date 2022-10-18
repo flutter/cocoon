@@ -165,7 +165,7 @@ List<String> validateOwnership(String ciYamlContent, String testOwnersContent, {
   final List<String> noOwnerBuilders = <String>[];
   final YamlMap? ciYaml = loadYaml(ciYamlContent) as YamlMap?;
   final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
-  
+
   final CiYaml ciYamlFromProto = CiYaml(
     slug: Config.flutterSlug,
     branch: Config.defaultBranch(Config.flutterSlug),

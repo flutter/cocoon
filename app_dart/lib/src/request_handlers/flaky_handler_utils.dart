@@ -414,7 +414,7 @@ TestOwnership getTestOwnership(String targetName, BuilderType type, String testO
       team = Team.unknown;
       break;
   }
-  return TestOwnership(owner, team); 
+  return TestOwnership(owner, team);
 }
 
 /// Gets the [BuilderType] of the builder by looking up the information in the
@@ -449,7 +449,6 @@ BuilderType getTypeForBuilder(String? targetName, CiYaml ciYaml, {bool unfiltere
 }
 
 List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTargets = false}) {
-
   List<Target> allTargets;
   if (!unfilteredTargets) {
     allTargets = ciYaml.presubmitTargets;
