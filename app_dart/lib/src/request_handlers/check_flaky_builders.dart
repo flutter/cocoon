@@ -68,8 +68,6 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     );
     final List<_BuilderInfo> eligibleBuilders =
         await _getEligibleFlakyBuilders(gitHub, slug, content: ciContent, ciYaml: ciYaml);
-    final List<BuilderStatistic> stagingBuilderStatisticList =
-        await bigquery.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging');
     final String testOwnerContent = await gitHub.getFileContent(
       slug,
       kTestOwnerPath,
