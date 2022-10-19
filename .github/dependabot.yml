@@ -77,6 +77,14 @@ updates:
       - "team: infra"
       - "autosubmit"
   - package-ecosystem: "docker"
+    directory: "/release"
+    schedule:
+      interval: "daily"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
+  - package-ecosystem: "docker"
     directory: "/auto_submit"
     schedule:
       interval: "daily"
