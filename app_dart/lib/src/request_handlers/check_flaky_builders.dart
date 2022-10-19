@@ -84,34 +84,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
         // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
         await Future.delayed(config.githubRequestDelay);
-      } else if (_shouldFileIssue(builderRecords, info)) {
-        final BuilderDetail builderDetail = BuilderDetail(
-          statistic: stagingBuilderStatisticList
-              .where((BuilderStatistic builderStatistic) => builderStatistic.name == info.name)
-              .single,
-          existingIssue: null,
-          existingPullRequest: null,
-          isMarkedFlaky: true,
-          type: type,
-          ownership: testOwnership,
-        );
-        await fileFlakyIssue(builderDetail: builderDetail, gitHub: gitHub, slug: slug, bringup: true);
       }
     }
     return Body.forJson(const <String, dynamic>{
       'Status': 'success',
     });
-  }
-
-  /// A new issue should be filed for staging builders if
-  ///   1) there is any flake in recent runs
-  ///   2) there is no open flaky bug tracking the flake
-  bool _shouldFileIssue(List<BuilderRecord> builderRecords, _BuilderInfo info) {
-    final bool noExistingOpenIssue = info.existingIssue == null ||
-        info.existingIssue != null &&
-            info.existingIssue!.isClosed &&
-            DateTime.now().difference(info.existingIssue!.closedAt!) > const Duration(days: kGracePeriodForClosedFlake);
-    return noExistingOpenIssue && builderRecords.any((BuilderRecord record) => record.isFlaky);
   }
 
   /// A builder should be deflaked if satisfying three conditions.
