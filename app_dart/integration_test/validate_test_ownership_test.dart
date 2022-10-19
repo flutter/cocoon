@@ -13,8 +13,9 @@ import 'package:test/test.dart';
 import 'common.dart';
 
 /// List of supported repositories with TESTOWNERS.
-final List<SupportedConfig> configs =
-    <SupportedConfig>[SupportedConfig(RepositorySlug('flutter', 'flutter')),];
+final List<SupportedConfig> configs = <SupportedConfig>[
+  SupportedConfig(RepositorySlug('flutter', 'flutter')),
+];
 
 Future<void> main() async {
   for (final SupportedConfig config in configs) {
