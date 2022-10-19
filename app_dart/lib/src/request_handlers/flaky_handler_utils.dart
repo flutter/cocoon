@@ -458,7 +458,7 @@ List<String>? _getTags(String? targetName, CiYaml ciYaml, {bool unfilteredTarget
   }
 
   final Target? target = allUniqueTargets.firstWhereOrNull((element) => element.value.name == targetName);
-  return target?.getTags;
+  return target?.tags;
 }
 
 String _getTestNameFromTargetName(String targetName) {

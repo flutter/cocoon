@@ -115,7 +115,7 @@ void main() {
           },
           properties: <String, String>{'xcode': '12abc', 'tags': '["devicelab", "android", "linux"]'},
         );
-        expect(target.getTags, ['devicelab', 'android', 'linux']);
+        expect(target.tags, ['devicelab', 'android', 'linux']);
       });
 
       test('we do not blow up if tags are not present', () {
@@ -130,7 +130,7 @@ void main() {
             'xcode': '12abc',
           },
         );
-        expect(target.getTags, []);
+        expect(target.tags, []);
       });
 
       test('platform properties with xcode', () {

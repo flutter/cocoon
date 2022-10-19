@@ -51,8 +51,9 @@ Future<void> main() async {
 
       final int exitCode = await process.exitCode;
       if (exitCode != 0) {
-        // ignore: avoid_function_literals_in_foreach_calls
-        error.forEach((element) => print(element));
+        for (String line in error) {
+          print(line);
+        }
         fail('An error has occurred.');
       }
     });
