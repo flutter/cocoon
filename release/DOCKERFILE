@@ -1,4 +1,4 @@
-FROM ubuntu:bionic@sha256:eb1392bbdde63147bc2b4ff1a4053dcfe6d15e4dfd3cce29e9b9f52a4f88bc74
+FROM ubuntu:bionic@sha256:40b84b75884ff39e4cac4bf62cb9678227b1fbf9dbe3f67ef2a6b073aa4bb529
 RUN apt update
 RUN apt install -y git
 RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
