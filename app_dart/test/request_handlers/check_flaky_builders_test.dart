@@ -9,7 +9,6 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:collection/src/equality.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -391,67 +390,6 @@ void main() {
 
       // Verify pr is not created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
-
-      expect(result['Status'], 'success');
-    });
-
-    test('Do not create pr but do create issue if the records have flaky runs and there is no open issue', () async {
-      // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
-        return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFlaky);
-      });
-      // When get issue
-      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(
-          state: 'closed',
-          htmlUrl: existingIssueURL,
-          closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake + 1)),
-        ));
-      });
-      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue());
-      });
-      // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
-          .thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(stagingSemanticsIntegrationTestResponse);
-      });
-
-      CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind((await tester.get<Body>(handler)).serialize() as Stream<List<int>>)
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
-
-      // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), kBigQueryProjectId);
-      expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
-      expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
-
-      // Verify it gets the correct issue.
-      captured = verify(mockIssuesService.get(captureAny, captureAny)).captured;
-      expect(captured.length, 2);
-      expect(captured[0], Config.flutterSlug);
-      expect(captured[1] as int?, existingIssueNumber);
-
-      // Verify pr is not created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
-
-      // Verify issue is created correctly.
-      captured = verify(mockIssuesService.create(captureAny, captureAny)).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), Config.flutterSlug.toString());
-      expect(captured[1], isA<IssueRequest>());
-      final IssueRequest issueRequest = captured[1] as IssueRequest;
-      expect(issueRequest.assignee, expectedSemanticsIntegrationTestOwner);
-      expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestLabels), isTrue);
-      expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
 
       expect(result['Status'], 'success');
     });

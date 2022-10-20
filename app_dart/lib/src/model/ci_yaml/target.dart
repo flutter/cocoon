@@ -89,6 +89,19 @@ class Target {
     return BatchPolicy();
   }
 
+  /// Get the tags from the defined properties in the ci.
+  ///
+  /// Return an empty list if no tags are found.
+  List<String> get tags {
+    Map<String, Object> properties = getProperties();
+    return (properties.containsKey('tags')) ? (properties['tags'] as List).map((e) => e as String).toList() : [];
+  }
+
+  String get getTestName {
+    final List<String> words = value.name.split(' ');
+    return words.length < 2 ? words[0] : words[1];
+  }
+
   /// Gets the assembled properties for this [pb.Target].
   ///
   /// Target properties are prioritized in:
@@ -127,6 +140,8 @@ class Target {
     if (mergedProperties.containsKey('xcode')) {
       final Object xcodeVersion = <String, Object>{
         'sdk_version': mergedProperties['xcode']!,
+        if (mergedProperties.containsKey('cleanup_xcode_cache'))
+          'cleanup_cache': mergedProperties['cleanup_xcode_cache']!
       };
 
       if (iosPlatforms.contains(getPlatform())) {

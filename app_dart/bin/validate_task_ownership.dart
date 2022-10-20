@@ -28,7 +28,7 @@ Future<List<String>> remoteCheck(String repo, String ref) async {
     ref: ref,
   );
 
-  final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent);
+  final List<String> noOwnerBuilders = validateOwnership(ciYamlContent, testOwnersContent, unfilteredTargets: true);
   return noOwnerBuilders;
 }
 
@@ -42,7 +42,7 @@ List<String> localCheck(String ciYamlPath, String testOwnersPath) {
     io.exit(1);
   }
   final List<String> noOwnerBuilders =
-      validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync());
+      validateOwnership(ciYamlFile.readAsStringSync(), testOwnersFile.readAsStringSync(), unfilteredTargets: true);
   return noOwnerBuilders;
 }
 
