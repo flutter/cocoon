@@ -151,6 +151,21 @@ void main() {
         });
       });
 
+      test('platform properties with xcode and clean_cache', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{'xcode': '12abc', 'cleanup_xcode_cache': 'true'},
+        );
+        expect(target.getProperties(), <String, Object>{
+          'xcode': '12abc',
+          'cleanup_xcode_cache': true,
+          'dependencies': <String>[],
+          '\$flutter/devicelab_osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
+          'bringup': false,
+        });
+      });
+
       test('platform properties with runtime_versions', () {
         final Target target = generateTarget(
           1,

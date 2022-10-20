@@ -140,6 +140,8 @@ class Target {
     if (mergedProperties.containsKey('xcode')) {
       final Object xcodeVersion = <String, Object>{
         'sdk_version': mergedProperties['xcode']!,
+        if (mergedProperties.containsKey('cleanup_xcode_cache'))
+          'cleanup_cache': mergedProperties['cleanup_xcode_cache']!
       };
 
       if (iosPlatforms.contains(getPlatform())) {
