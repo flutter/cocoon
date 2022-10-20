@@ -123,7 +123,7 @@ void main() {
         });
       });
 
-      test('platform properties with xcode', () {
+      test('platform properties with xcode and clean_cache', () {
         final Target target = generateTarget(
           1,
           platform: 'Mac_ios',
