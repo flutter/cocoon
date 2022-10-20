@@ -130,7 +130,7 @@ class Target {
       };
 
       if (mergedProperties.containsKey('cleanup_xcode_cache')) {
-        (xcodeVersion as Map)['cleanup_xcode_cache'] = mergedProperties['cleanup_xcode_cache']!;
+        (xcodeVersion as Map)['cleanup_cache'] = mergedProperties['cleanup_xcode_cache']!;
       }
 
       if (iosPlatforms.contains(getPlatform())) {
