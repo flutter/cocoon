@@ -129,6 +129,10 @@ class Target {
         'sdk_version': mergedProperties['xcode']!,
       };
 
+      if (mergedProperties.containsKey('cleanup_xcode_cache')) {
+        (xcodeVersion as Map)['cleanup_xcode_cache'] = mergedProperties['cleanup_xcode_cache']!;
+      }
+
       if (iosPlatforms.contains(getPlatform())) {
         mergedProperties['\$flutter/devicelab_osx_sdk'] = xcodeVersion;
       } else {
