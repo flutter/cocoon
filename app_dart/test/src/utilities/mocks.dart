@@ -55,18 +55,6 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
 }) async =>
     FakeAuthClient(baseClient ?? MockClient((_) => throw const InternalServerError('Test did not set up HttpClient')));
 
-const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
-  MockSpec<Cache<Uint8List>>(),
-  MockSpec<GitHub>(
-    fallbackGenerators: <Symbol, Function>{
-      #postJSON: postJsonShim,
-    },
-  ),
-  // MockSpec<GerritService>(fallbackGenerators: <Symbol, Function>{
-  //   #authClientProvider: authClientProviderShim,
-  // }),
-];
-
 @GenerateMocks(
   <Type>[
     AccessClientProvider,
@@ -92,7 +80,14 @@ const List<MockSpec<dynamic>> _mocks = <MockSpec<dynamic>>[
     TabledataResource,
     UsersService,
   ],
-  customMocks: _mocks,
+  customMocks: <MockSpec<dynamic>>[
+    MockSpec<Cache<Uint8List>>(),
+    MockSpec<GitHub>(
+      fallbackGenerators: <Symbol, Function>{
+        #postJSON: postJsonShim,
+      },
+    ),
+  ],
 )
 void main() {}
 
