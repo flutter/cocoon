@@ -263,12 +263,12 @@ void main() {
       );
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> _getBatchResponse() async {
+      Future<BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
         fail('Marking a draft ready for review should not trigger new builds');
       }
 
-      fakeBuildBucketClient.batchResponse = _getBatchResponse;
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
       await tester.post(webhook);
 
@@ -285,7 +285,7 @@ void main() {
       );
       bool batchRequestCalled = false;
 
-      Future<BatchResponse> _getBatchResponse() async {
+      Future<BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
         return BatchResponse(
           responses: <Response>[
@@ -307,7 +307,7 @@ void main() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = _getBatchResponse;
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
       await tester.post(webhook);
 
@@ -2307,7 +2307,7 @@ void foo() {
     test('When synchronized, cancels existing builds and schedules new ones', () async {
       const int issueNumber = 12345;
       bool batchRequestCalled = false;
-      Future<BatchResponse> _getBatchResponse() async {
+      Future<BatchResponse> getBatchResponse() async {
         batchRequestCalled = true;
         return BatchResponse(
           responses: <Response>[
@@ -2329,7 +2329,7 @@ void foo() {
         );
       }
 
-      fakeBuildBucketClient.batchResponse = _getBatchResponse;
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
       tester.message = generateGithubWebhookMessage(
         action: 'synchronize',
@@ -2346,7 +2346,7 @@ void foo() {
     group('BuildBucket', () {
       const int issueNumber = 123;
 
-      Future<void> _testActions(String action) async {
+      Future<void> testActions(String action) async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -2379,27 +2379,27 @@ void foo() {
       }
 
       test('Edited Action works properly', () async {
-        await _testActions('edited');
+        await testActions('edited');
       });
 
       test('Opened Action works properly', () async {
-        await _testActions('opened');
+        await testActions('opened');
       });
 
       test('Ready_for_review Action works properly', () async {
-        await _testActions('ready_for_review');
+        await testActions('ready_for_review');
       });
 
       test('Reopened Action works properly', () async {
-        await _testActions('reopened');
+        await testActions('reopened');
       });
 
       test('Labeled Action works properly', () async {
-        await _testActions('labeled');
+        await testActions('labeled');
       });
 
       test('Synchronize Action works properly', () async {
-        await _testActions('synchronize');
+        await testActions('synchronize');
       });
 
       test('Comments on PR but does not schedule builds for unmergeable PRs', () async {

@@ -367,13 +367,13 @@ class Config {
     );
 
     final String token = await githubOAuthToken;
-    final AuthLink _authLink = AuthLink(
+    final AuthLink authLink = AuthLink(
       getToken: () async => 'Bearer $token',
     );
 
     return GraphQLClient(
       cache: GraphQLCache(),
-      link: _authLink.concat(httpLink),
+      link: authLink.concat(httpLink),
     );
   }
 

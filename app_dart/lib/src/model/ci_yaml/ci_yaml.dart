@@ -193,7 +193,7 @@ class CiYaml {
 
   void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
-      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }
@@ -226,7 +226,7 @@ class DependencyValidator {
     }
 
     if (exceptions.isNotEmpty) {
-      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }
