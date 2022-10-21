@@ -32,7 +32,7 @@ void main() {
       fs.file('build/web/$dartMapFileName').writeAsStringSync('[{}]');
     });
 
-    Future<String> _decodeHandlerBody(Body body) {
+    Future<String> decodeHandlerBody(Body body) {
       return utf8.decoder.bind(body.serialize() as Stream<List<int>>).first;
     }
 
@@ -47,7 +47,7 @@ void main() {
 
       final Body body = await tester.get(staticFileHandler);
       expect(body, isNotNull);
-      final String response = await _decodeHandlerBody(body);
+      final String response = await decodeHandlerBody(body);
       expect(response, indexFileContent);
     });
 
@@ -56,7 +56,7 @@ void main() {
 
       final Body body = await tester.get(staticFileHandler);
       expect(body, isNotNull);
-      final String response = await _decodeHandlerBody(body);
+      final String response = await decodeHandlerBody(body);
       expect(response, '[{}]');
     });
 
@@ -66,7 +66,7 @@ void main() {
 
       final Body body = await tester.get(staticFileHandler);
       expect(body, isNotNull);
-      final String response = await _decodeHandlerBody(body);
+      final String response = await decodeHandlerBody(body);
       expect(response, 'abc');
     });
   });

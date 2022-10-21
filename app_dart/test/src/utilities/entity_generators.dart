@@ -31,7 +31,7 @@ Commit generateCommit(
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/$repo/$branch/' + (sha ?? '$i'),
+        'flutter/$repo/$branch/${sha ?? '$i'}',
       ),
     );
 
