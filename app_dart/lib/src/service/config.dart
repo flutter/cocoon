@@ -49,6 +49,14 @@ class Config {
         pluginsSlug,
       };
 
+  /// List of Github postsubmit supported repos.
+  ///
+  /// This adds support for check runs to the repo.
+  Set<gh.RepositorySlug> get postsubmitSupportedRepos => <gh.RepositorySlug>{
+        packagesSlug,
+        pluginsSlug,
+      };
+
   /// List of Cirrus supported repos.
   static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
@@ -416,5 +424,9 @@ class Config {
 
   bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
     return supportedRepos.contains(slug);
+  }
+
+  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
+    return postsubmitSupportedRepos.contains(slug);
   }
 }
