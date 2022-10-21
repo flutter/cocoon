@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/merge_method.dart';
 import 'package:github/github.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
@@ -127,6 +128,34 @@ class GithubService {
       body: GitHubJson.encode({'expected_head_sha': headSha}),
     );
     return response.statusCode == StatusCodes.ACCEPTED;
+  }
+
+  Future<int> mergePullRequest(
+      RepositorySlug slug, 
+      int number, {
+      String? commitMessage, 
+      MergeMethod? mergeMethod,
+      String? requestSha,}) async {
+
+    // Recommended Accept header when making a merge request.
+    Map<String, String>? headers = <String, String>{};
+    headers['Accept'] = 'application/vnd.github+json';
+
+    mergeMethod ??= MergeMethod.merge;
+
+    dynamic body = GitHubJson.encode('''{
+        "commit_message": "$commitMessage",
+        "merge_method": "${mergeMethod.name}"
+      }''');
+
+     final response = await github.request(
+        'PUT', 
+        '/repos/${slug.fullName}/pulls/$number/merge',
+        headers: headers,
+        body: body,
+      );
+
+      return response.statusCode;
   }
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.

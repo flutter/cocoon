@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/service/merge_method.dart';
 import 'package:github/github.dart';
 import 'package:shelf/src/response.dart';
 
@@ -275,5 +276,11 @@ class FakeGithubService implements GithubService {
   @override
   Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
     return githubIssueMock!;
+  }
+  
+  @override
+  Future<int> mergePullRequest(RepositorySlug slug, int number, {String? commitMessage, MergeMethod? mergeMethod, String? requestSha}) {
+    // TODO: implement mergePullRequest
+    throw UnimplementedError();
   }
 }

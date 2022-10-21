@@ -15,6 +15,7 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
+import 'package:auto_submit/service/merge_method.dart';
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/revert_review_template.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
@@ -237,10 +238,17 @@ class ValidationService {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
-      final ProcessMergeResult processed = await processMerge(
-        config: config,
-        queryResult: result,
-        messagePullRequest: messagePullRequest,
+      // final ProcessMergeResult processed = await processMerge(
+      //   config: config,
+      //   queryResult: result,
+      //   messagePullRequest: messagePullRequest,
+      // );
+
+      final ProcessMergeResult processed = await _processMergeExperiment(
+        gitHubService,
+        slug,
+        prNumber,
+        mergeMethod: MergeMethod.squash,
       );
 
       if (processed.result) {
@@ -463,6 +471,22 @@ Exception: ${exception.message}
   }
 }
 
+Future<ProcessMergeResult> _processMergeExperiment(
+      GithubService githubService,
+      github.RepositorySlug slug, 
+      int number, {
+      String? commitMessage, 
+      MergeMethod? mergeMethod,
+      String? requestSha,}) async {
+    int statusCode = await githubService.mergePullRequest(
+        slug, number, commitMessage: commitMessage, mergeMethod: MergeMethod.squash,);
+
+    if (statusCode == github.StatusCodes.OK) {
+      return ProcessMergeResult.noMessage(true);
+    } else {
+      return ProcessMergeResult(false, "Merge request return code: $statusCode");   
+    }
+ }
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
 class ProcessMergeResult {
