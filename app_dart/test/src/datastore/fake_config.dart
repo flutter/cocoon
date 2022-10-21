@@ -52,6 +52,7 @@ class FakeConfig implements Config {
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
+    this.postsubmitSupportedReposValue,
     this.supportedBranchesValue,
     this.supportedReposValue,
     this.batchSizeValue,
@@ -96,6 +97,7 @@ class FakeConfig implements Config {
   List<String>? supportedBranchesValue;
   String? overrideTreeStatusLabelValue;
   Set<gh.RepositorySlug>? supportedReposValue;
+  Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
 
   @override
@@ -231,6 +233,14 @@ class FakeConfig implements Config {
   }
 
   @override
+  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
+    return <gh.RepositorySlug>[
+      Config.packagesSlug,
+      Config.pluginsSlug,
+    ].contains(slug);
+  }
+
+  @override
   Future<String> generateGithubToken(gh.RepositorySlug slug) {
     throw UnimplementedError();
   }
@@ -266,6 +276,10 @@ class FakeConfig implements Config {
 
   @override
   Set<gh.RepositorySlug> get supportedRepos => supportedReposValue ?? <gh.RepositorySlug>{Config.flutterSlug};
+
+  @override
+  Set<gh.RepositorySlug> get postsubmitSupportedRepos =>
+      postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug};
 
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {

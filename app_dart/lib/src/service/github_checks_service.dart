@@ -101,7 +101,7 @@ class GithubChecksService {
     // If status has completed with failure then provide more details.
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
-          await luciBuildService.getTryBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+          await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
       output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
     }
     log.fine('Updating check run with output: [$output]');

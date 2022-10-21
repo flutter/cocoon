@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -17,6 +18,7 @@ import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
+import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
@@ -24,13 +26,16 @@ void main() {
   late FakeConfig config;
   late FakeHttpRequest request;
   late SubscriptionTester tester;
+  late MockGithubChecksService mockGithubChecksService;
 
   setUp(() async {
     config = FakeConfig(maxLuciTaskRetriesValue: 3);
+    mockGithubChecksService = MockGithubChecksService();
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
+      githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
       luciBuildService: FakeLuciBuildService(config: config),
       scheduler: FakeScheduler(
@@ -144,5 +149,25 @@ void main() {
     expect(task.status, Task.statusNew);
     expect(await tester.post(handler), Body.empty);
     expect(task.status, Task.statusInProgress);
+  });
+
+  test('Requests with repo_owner and repo_name update checks', () async {
+    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      parent: commit,
+    );
+    config.db.values[task.key] = task;
+
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      builderName: 'Linux Packages',
+      userData:
+          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"packages\\"}',
+    );
+    await tester.post(handler);
+    verify(mockGithubChecksService.updateCheckStatus(any, any, any)).called(1);
   });
 }
