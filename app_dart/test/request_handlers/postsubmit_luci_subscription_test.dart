@@ -164,6 +164,7 @@ void main() {
       'COMPLETED',
       result: 'SUCCESS',
       builderName: 'Linux Packages',
+      // Use escaped string to mock json decoded ones.
       userData:
           '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"packages\\"}',
     );
