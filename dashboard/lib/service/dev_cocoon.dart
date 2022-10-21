@@ -165,7 +165,7 @@ class DevelopmentCocoonService implements CocoonService {
     for (int index = 0; index < 25; index += 1) {
       final int commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
       final math.Random random = math.Random(commitTimestamp);
-      final Commit commit = _createFakeCommit(commitTimestamp, random, repo);
+      final Commit commit = _createFakeCommit(commitTimestamp, random, repo, _commits[index]);
       final CommitStatus status = CommitStatus()
         ..branch = defaultBranches[repo]!
         ..commit = commit
@@ -178,8 +178,92 @@ class DevelopmentCocoonService implements CocoonService {
   final List<String> _authors = <String>['alice', 'bob', 'charlie', 'dobb', 'eli', 'fred'];
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
   final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
+  final List<String> _commits = <String>[
+    '2d22b5e85f986f3fa2cf1bfaf085905c2182c270',
+    '2fd76f920a38e4384248173d05ee482d5aeaf4c5',
+    '77238bc7bf35489df03bc00ce2b2231a1afe6b06',
+    '01d87b7a802e6ea388a066e773b1af3dace44053',
+    '754039ae0cc524db1052da0f22c9275e32fe4f54',
+    '1f5e006a398fa5d0e59f78cd5071e2532d2fe438',
+    'a798b24044d567df62b8693b179932a8364c8dd8',
+    '4389a8a3dbe1ed4c6a643641e95d7759f2158d9e',
+    'c05e886884ec9adff2f43b87dbcb02e3507d971b',
+    'a2acc46447cdfcd6628a897dea27ff64849bfc99',
+    'd31d67ffb38fbd09ecf0a11ad5f6fd433cec9c9f',
+    'e303d2c71c956c9c1eb7bf81473aac20d756eb75',
+    '789f6bb335fe31de5d9c6adbab2fc169030a057f',
+    'c97f0670658e04f096a3e57b20fa8241306ffcaa', 
+    'e8e31198861b5f53f04900bdf9a54e8bf6b7d597',
+    '434a0a7d3c4c3bc633e06de7707ef590c54c20c3',
+    'e7fca29b3f0408c7c1726e270a5aba0e28e74090', 
+    'dd6f94d8573a77506a122899a0592a956ac57bec', 
+    'cb19ec23d79b9d422f577722e5a14253fdcaea71',
+    '4cb8c6498aedfd2ff0f89e34eb5da993a77392bd',
+    'de892884aa089f22aced4d19a71b6a1d521c8db6',
+    '214470ceb026525fa225d52dfe7d27db2c4ddf31',
+    'e0f4628b4379286c433bab020b9e193fdc437d05',
+    'be5975cb0b7fcad7ab2c3122a8df3d541befdeab',
+    '06f7ab60d4914e00b342f098e1ef3e43e501b469',
+    'e1005bea192673e54faa0c769d9f0fb7439a09b4',
+    'e22d7f6bf2e1e1969dd963d39ad32c756fb0f20e',
+    'f4b4b20bb27cbbd1c42eee7b17ce39c5819dc818',
+    'd717ed969b6a477499eb3cf823c78dbe654ca709',
+    '6a8d6a42b4c9f4b72caf0a3b808e50909686a2b7',
+    'afaa9bfa5d26ab419f791d5ca97d602ec52a30a5',
+    'f553212d9bfbc6e70c0d6a4ac3fe71208bb77ca1',
+    'c35f8b79f4a5103603ceaaa14d1df3857a166fa1',
+    '46447341838d480966926d0b32771e281af1c885',
+    '4e3330081d4e0a3e109cf1cfb514072a90b999d7',
+    '4199ef93c3184c29362520ea5292d854a8728494',
+    'a0538938974c60cb9249acf8f0588c3df3c0e4b1',
+    '49cac0b6c1e0d7d1d04865c328c8cbe5c8e0cda2',
+    '97e3cc6295515f8292f5f57868506c70446594c3',
+    'c94e577ef3b0ab48255633c63f0143d9e3eab6f8',
+    '17d9af726fb6e4a4a8cc4f1becfc11dc9d4db96c',
+    '4af6ec81ad538e3da23ee88cba65ed8687a72ea3',
+    '69cb45166d2f4f61069e1f1a975dab3f48bed832',
+    'ae227082570f75b614bb29593911ada5137654ad',
+    '882b9fa44962df0b80d9a25b2553796bd4eba2ff',
+    'e1f5c4c7178c34ce561c493b558df7450995a60c',
+    '56d7272cd497c73502ec5a09bdf69b4c7ecbfd74',
+    '36a99b302f7348848ec477ce867a8b78656d9c6c',
+    '48be7a01565289f44c2c9d4ff1436800c52acf75',
+    '422cb82e01ee0192256a05217102f45f2f74551d',
+    'f8744d10460abae3d75e92336b3bb264bb78cc8c',
+    '5000f246c8c568547c551b11e4b72acd0179e73c',
+    '52c09522b288766a42900aa73f77216907d16b23',
+    '61adb59fc097335b45b23fc884a78362b71a3e9b',
+    'b81c3c58e5a6c45bc8728024068291a7e5f19c1a',
+    'dec394e5401b62024ed71253e900c25a06eb46f9',
+    'fbe142d2cb60fb981521cfe72961642d69db8784',
+    '24a9c4557e0366945c179433fab8434c2c8ee59f',
+    'ccc28f607ae11fe79c39c42d88798c19b1388af9',
+    'd4d5ca665e56063fdd37d42d2192c64151915454',
+    '4273fc07c3e8a36726087becdf331f7d63fc7e66',
+    '5e0380895cc8e34a6a58f238b7fd33b9e0f027fe',
+    '146908e48a8a9f92f59fae86a7a4ff28c0ce9109',
+    '2779a449026423bc0f50a10eead2d9f3720b825c',
+    'ff9b954908341360ffb39f5eee2857172a29c0e5',
+    'b00b6d146c4f4af1d28260a3f28abd15f0105221',
+    '4ffd03df44741d73877a0848935eea0d6cbfc1e9',
+    'c2c5b73aaae2583cc235319e53200e0e15cda438',
+    'b7b370faf46f4c682827fbb3967e1ef117b3b0d1',
+    'bc6c9ac81e5909408518568729c2c3a147402928',
+    'ba1aa77c5bc5fe545b245f2b1883af3dfeeae6c0',
+    '97a7060a7e28ab1d13cb2f4ca90be624b417168e', 
+    '3df1da69ffcb4e00cf13c65c9f0497a56413e5e9',
+    'ebb13b4ed0cb41814839d4084c064e62526b2ec0', 
+    '70b9d50722307f0f45ceed01d421d6a425e95291',
+    '3f81ca7b73f21ca9b449c147942fbe4fcd31450d',
+    '86d490939df232966dc6ba363ebc0baaac364701',
+    '6ba51f3f61025543d66e59c2c1ae3d1b37d5d8d6',
+    'b728942e1c9a9046c1a5c8d8a25a644d0db7160c',
+    '920819252a398c0e3da9b6017b110ee047c1748e',
+    'd7c114d803b1365ea3a975c9600fc8cfd9efb9d4',
+    '792aa82143bb12e97f396cb2a462ad617dbd22bc',
+  ];
 
-  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo) {
+  Commit _createFakeCommit(int commitTimestamp, math.Random random, String repo, String commitSha) {
     final int author = random.nextInt(_authors.length);
     final int message = commitTimestamp % 37 + author;
     final int messageInc = _messagePrimes[message % _messagePrimes.length];
@@ -189,7 +273,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
       ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
       ..repository = 'flutter/$repo'
-      ..sha = commitTimestamp.hashCode.toRadixString(16).padRight(32, '0')
+      ..sha = commitSha
       ..timestamp = Int64(commitTimestamp)
       ..branch = 'master';
   }
