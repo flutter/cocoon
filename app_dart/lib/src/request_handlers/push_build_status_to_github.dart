@@ -62,7 +62,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       if (update.status != status) {
         log.fine('Updating status of ${slug.fullName}#${pr.number} from ${update.status} to $status');
         final CreateStatus request = CreateStatus(status);
-        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/${slug.name}/console';
+        request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build?repo=${slug.name}';
         request.context = 'luci-${slug.name}';
         if (status != GithubBuildStatusUpdate.statusSuccess) {
           request.description = config.flutterBuildDescription;

@@ -59,9 +59,9 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
-    final AuthenticationProvider _authProvider = authProvider ?? PubsubAuthenticationProvider(config: config);
+    final AuthenticationProvider auth = authProvider ?? PubsubAuthenticationProvider(config: config);
     try {
-      authContext = await _authProvider.authenticate(request);
+      authContext = await auth.authenticate(request);
     } on Unauthenticated catch (error) {
       final HttpResponse response = request.response;
       response

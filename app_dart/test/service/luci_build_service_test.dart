@@ -408,6 +408,7 @@ void main() {
       service = LuciBuildService(
         config: FakeConfig(),
         buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
     });
@@ -460,6 +461,52 @@ void main() {
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
           'debian-10.12');
+    });
+
+    test('schedule postsubmit builds with correct userData for checkRuns', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final Commit commit = generateCommit(0, repo: 'packages');
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(builders: [
+          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+        ]);
+      });
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
+        generateTarget(1,
+            properties: <String, String>{
+              'os': 'debian-10.12',
+            },
+            slug: RepositorySlug('flutter', 'packages')),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'prod');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/flutter/master/1',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages'
+      });
     });
 
     test('Skip non-existing builder', () async {
