@@ -103,6 +103,7 @@ Future<void> main() async {
         config: config,
         luciBuildService: luciBuildService,
         scheduler: scheduler,
+        githubChecksService: githubChecksService,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(
         config: config,

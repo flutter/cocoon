@@ -18,7 +18,7 @@ packages:
     source: hosted
     version: "47.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: analyzer
       sha256: "690e335554a8385bc9d787117d9eb52c0c03ee207a607e593de3c9d71b1cfe80"
@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "3.3.2"
   args:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: args
       sha256: b003c3098049a51720352d219b0bb5f219b60fbfb68e7a4748139a06a5676515
@@ -245,10 +245,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_lints
-      sha256: b543301ad291598523947dc534aaddc5aaad597b709d2426d3a0e0d44c5cb493
+      sha256: aeb0b80a8b3709709c9cc496cdc027c5b3216796bc0af0ce1007eaf24464fd4c
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.4"
+    version: "2.0.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -301,66 +301,66 @@ packages:
     dependency: "direct main"
     description:
       name: gql
-      sha256: "60e808fb52bcb3e79a8f7f1078a518413fbb5991da27371f3719513ac0646043"
+      sha256: "11fa39353e8a69ec9d3c32bd133054593129c99564be18461c1b3ce212966373"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.1"
+    version: "0.14.1-alpha+1661890990239"
   gql_dedupe_link:
     dependency: transitive
     description:
       name: gql_dedupe_link
-      sha256: "5c9e8a9204040a8eda3a1d871bbdfadc14a9c8a91f3013e02ba31aeba7d83fca"
+      sha256: "024aa836258fdc67a25ae4547c3bafbea10c4948f925c6d6d6fd77c8e8dcbfb1"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   gql_error_link:
     dependency: transitive
     description:
       name: gql_error_link
-      sha256: "7cf06f36586bf095cd0669447746a31a16b8bcdee282d52ab8524c42e9342141"
+      sha256: a80b1f5f858798bc3ede38910e4c262d99755bffccb55d146c364bfeb8fa8350
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.2.3"
   gql_exec:
     dependency: transitive
     description:
       name: gql_exec
-      sha256: e7e6053611b40f5daafb56ab6e7c2dc755c6535d91572b3acf80f0b2cd56dea5
+      sha256: "983b702593eba382a5c518d30678b86798bf20fbf1b03affb8b10a418439160e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.4.1"
   gql_http_link:
     dependency: transitive
     description:
       name: gql_http_link
-      sha256: "304e1686d95d8dad7e19800ff9233c1c67d05d28d7ac9e7a8d665f5a0a829491"
+      sha256: "101232d7fd5a3524974c05d26bb3c247a3d35c5b4a8806a361accf841a8e942e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.2"
+    version: "0.4.4+1"
   gql_link:
     dependency: transitive
     description:
       name: gql_link
-      sha256: "87bb87fb01f2db5e8e99bef3230192d940a0d7a0065df4ad87d88426c5d39ed0"
+      sha256: "50c36e7462530361859e6a34bb84885b3091a1906846494295c5ea947019d854"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.2"
+    version: "0.5.1-alpha+1660256327632"
   gql_transform_link:
     dependency: transitive
     description:
       name: gql_transform_link
-      sha256: "232f3b893a01bdb5d871ac6a682919b82ea732c04312a2f47ee114c8599d5d5e"
+      sha256: b532c777b5d1d7147d4ae5cc27fcd57bfcddb47a09e102c7b4a2e98fcc162737
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.2.3-alpha+1660256327655"
   graphql:
     dependency: "direct main"
     description:
       name: graphql
-      sha256: "7fa7da84ca86e83ad5fda9f410bd90077cc53f8d836b1c6ce9e1c98c502f4f15"
+      sha256: f4a91622de5f77e8df785e48286de57fed2efd8e8898d035409de07e530efc0d
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.1"
+    version: "5.1.2-beta.5"
   graphs:
     dependency: transitive
     description:
@@ -370,7 +370,7 @@ packages:
     source: hosted
     version: "2.1.0"
   grpc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: grpc
       sha256: "3e8e04c6277059b66d67951143842097e52bbf3f2c6fca2e67d3607b48d5c3ab"
@@ -453,12 +453,12 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: a2c3d198cb5ea2e179926622d433331d8b58374ab8f29cdda6e863bd62fd369c
+      sha256: "5e4a9cd06d447758280a8ac2405101e0e2094d2a1dbdd3756aec3fe7775ba593"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "2.0.1"
   logging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logging
       sha256: c0bbfe94d46aedf9b8b3e695cf3bd48c8e14b35e3b2c639e0aa7755d589ba946
@@ -474,7 +474,7 @@ packages:
     source: hosted
     version: "0.12.12"
   meta:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: meta
       sha256: "6c268b42ed578a53088d834796959e4a1814b5e9e164f147f580a386e5decf42"
@@ -493,10 +493,10 @@ packages:
     dependency: "direct dev"
     description:
       name: mockito
-      sha256: c3454a63ae0e880c7c9dd2dcae2dd7df103cb491889333fd0a50560de803dc78
+      sha256: "2a8a17b82b1bde04d514e75d90d634a0ac23f6cb4991f6098009dd56836aeafe"
       url: "https://pub.dev"
     source: hosted
-    version: "5.3.0"
+    version: "5.3.2"
   neat_cache:
     dependency: "direct main"
     description:
@@ -517,10 +517,10 @@ packages:
     dependency: transitive
     description:
       name: normalize
-      sha256: "7d9b3cf6cc2366a858ca0b75c9f1a99d9dd69ac5aa7dbda01f0cf800a26687b2"
+      sha256: baf8caf2d8b745af5737cca6c24f7fe3cf3158897fdbcde9a909b9c8d3e2e5af
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0+1"
+    version: "0.7.2"
   package_config:
     dependency: transitive
     description:
@@ -530,7 +530,7 @@ packages:
     source: hosted
     version: "2.1.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: db9d4f58c908a4ba5953fcee2ae317c94889433e5024c27ce74a37f94267945b
@@ -562,7 +562,7 @@ packages:
     source: hosted
     version: "1.5.1"
   process:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: process
       sha256: "53fd8db9cec1d37b0574e12f07520d582019cb6c44abf5479a01505099a34a09"
@@ -826,7 +826,7 @@ packages:
     source: hosted
     version: "1.2.0"
   yaml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: yaml
       sha256: "23812a9b125b48d4007117254bca50abb6c712352927eece9e155207b1db2370"
@@ -834,4 +834,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.18.0 <4.0.0"
+  dart: ">=2.19.0-0 <4.0.0"

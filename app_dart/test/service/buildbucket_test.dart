@@ -43,7 +43,7 @@ void main() {
       mockAccessTokenProvider = MockAccessTokenService();
     });
 
-    Future<T> _httpTest<R extends JsonBody, T>(
+    Future<T> httpTest<R extends JsonBody, T>(
       R request,
       String response,
       String urlPrefix,
@@ -105,7 +105,7 @@ void main() {
         },
       );
 
-      final Build build = await _httpTest<ScheduleBuildRequest, Build>(
+      final Build build = await httpTest<ScheduleBuildRequest, Build>(
         request,
         buildJson,
         'builds',
@@ -128,7 +128,7 @@ void main() {
         summaryMarkdown: 'Because I felt like it.',
       );
 
-      final Build build = await _httpTest<CancelBuildRequest, Build>(
+      final Build build = await httpTest<CancelBuildRequest, Build>(
         request,
         buildJson,
         'builds',
@@ -158,7 +158,7 @@ void main() {
         ))
       ]);
 
-      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
+      final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
         'builds',
@@ -183,7 +183,7 @@ void main() {
         ))
       ]);
 
-      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
+      final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
         'builds',
@@ -200,7 +200,7 @@ void main() {
         id: '1234',
       );
 
-      final Build build = await _httpTest<GetBuildRequest, Build>(
+      final Build build = await httpTest<GetBuildRequest, Build>(
         request,
         buildJson,
         'builds',
@@ -221,7 +221,7 @@ void main() {
         ),
       );
 
-      final SearchBuildsResponse response = await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
+      final SearchBuildsResponse response = await httpTest<SearchBuildsRequest, SearchBuildsResponse>(
         request,
         searchJson,
         'builds',
@@ -236,7 +236,7 @@ void main() {
     test('ListBuilders', () async {
       const ListBuildersRequest request = ListBuildersRequest(project: 'test');
 
-      final ListBuildersResponse listBuildersResponse = await _httpTest<ListBuildersRequest, ListBuildersResponse>(
+      final ListBuildersResponse listBuildersResponse = await httpTest<ListBuildersRequest, ListBuildersResponse>(
         request,
         builderJson,
         'builders',

@@ -280,7 +280,7 @@ void main() {
     // CommitStatus (row) filters
     await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 101);
     await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 101);
-    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 101);
+    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'), 4, 101);
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {

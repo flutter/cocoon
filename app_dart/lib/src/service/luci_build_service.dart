@@ -390,7 +390,7 @@ class LuciBuildService {
 
   /// Gets [Build] using its [id] and passing the additional
   /// fields to be populated in the response.
-  Future<Build> getTryBuildById(String? id, {String? fields}) async {
+  Future<Build> getBuildById(String? id, {String? fields}) async {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
   }
@@ -429,7 +429,7 @@ class LuciBuildService {
       if (!availableBuilderSet.contains(tuple.first.value.name)) {
         continue;
       }
-      final ScheduleBuildRequest scheduleBuildRequest = _createPostsubmitScheduleBuild(
+      final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: tuple.first,
         task: tuple.second,
@@ -499,14 +499,14 @@ class LuciBuildService {
   /// Creates a [ScheduleBuildRequest] for [target] and [task] against [commit].
   ///
   /// By default, build [priority] is increased for release branches.
-  ScheduleBuildRequest _createPostsubmitScheduleBuild({
+  Future<ScheduleBuildRequest> _createPostsubmitScheduleBuild({
     required Commit commit,
     required Target target,
     required Task task,
     Map<String, Object>? properties,
     Map<String, List<String>>? tags,
     int priority = kDefaultPriority,
-  }) {
+  }) async {
     tags ??= <String, List<String>>{};
     tags.addAll(<String, List<String>>{
       'buildset': <String>[
@@ -521,10 +521,13 @@ class LuciBuildService {
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
-    final Map<String, String> rawUserData = <String, String>{
+    final Map<String, dynamic> rawUserData = <String, dynamic>{
       'commit_key': commitKey,
       'task_key': taskKey,
     };
+
+    await createPostsubmitCheckRun(commit, target, rawUserData);
+
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
@@ -559,6 +562,29 @@ class LuciBuildService {
     );
   }
 
+  /// Creates postsubmit check runs for supported repositories.
+  Future<void> createPostsubmitCheckRun(
+    Commit commit,
+    Target target,
+    Map<String, dynamic> rawUserData,
+  ) async {
+    if (!config.githubPostsubmitSupportedRepo(commit.slug)) {
+      return;
+    }
+    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+      config,
+      target.slug,
+      commit.sha!,
+      target.value.name,
+    );
+    rawUserData['check_run_id'] = checkRun.id;
+    rawUserData['commit_sha'] = commit.sha;
+    rawUserData['commit_branch'] = commit.branch;
+    rawUserData['builder_name'] = target.value.name;
+    rawUserData['repo_owner'] = target.slug.owner;
+    rawUserData['repo_name'] = target.slug.name;
+  }
+
   /// Check to auto-rerun TOT test failures.
   ///
   /// A builder will be retried if:
@@ -584,7 +610,7 @@ class LuciBuildService {
     final BatchRequest request = BatchRequest(
       requests: <Request>[
         Request(
-          scheduleBuild: _createPostsubmitScheduleBuild(
+          scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
             task: task,
