@@ -248,6 +248,7 @@ class ValidationService {
         gitHubService,
         slug,
         prNumber,
+        commitMessage: 'Merging revert with http squash and merge',
         mergeMethod: MergeMethod.squash,
       );
 
@@ -472,21 +473,27 @@ Exception: ${exception.message}
 }
 
 Future<ProcessMergeResult> _processMergeExperiment(
-      GithubService githubService,
-      github.RepositorySlug slug, 
-      int number, {
-      String? commitMessage, 
-      MergeMethod? mergeMethod,
-      String? requestSha,}) async {
-    int statusCode = await githubService.mergePullRequest(
-        slug, number, commitMessage: commitMessage, mergeMethod: MergeMethod.squash,);
+  GithubService githubService,
+  github.RepositorySlug slug,
+  int number, {
+  String? commitMessage,
+  MergeMethod? mergeMethod,
+  String? requestSha,
+}) async {
+  int statusCode = await githubService.mergePullRequest(
+    slug,
+    number,
+    commitMessage: commitMessage,
+    mergeMethod: MergeMethod.squash,
+  );
 
-    if (statusCode == github.StatusCodes.OK) {
-      return ProcessMergeResult.noMessage(true);
-    } else {
-      return ProcessMergeResult(false, "Merge request return code: $statusCode");   
-    }
- }
+  if (statusCode == github.StatusCodes.OK) {
+    return ProcessMergeResult.noMessage(true);
+  } else {
+    return ProcessMergeResult(false, "Merge request return code: $statusCode");
+  }
+}
+
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
 class ProcessMergeResult {

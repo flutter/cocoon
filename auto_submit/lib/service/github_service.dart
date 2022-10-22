@@ -131,31 +131,30 @@ class GithubService {
   }
 
   Future<int> mergePullRequest(
-      RepositorySlug slug, 
-      int number, {
-      String? commitMessage, 
-      MergeMethod? mergeMethod,
-      String? requestSha,}) async {
-
+    RepositorySlug slug,
+    int number, {
+    String? commitMessage,
+    MergeMethod? mergeMethod,
+    String? requestSha,
+  }) async {
     // Recommended Accept header when making a merge request.
     Map<String, String>? headers = <String, String>{};
     headers['Accept'] = 'application/vnd.github+json';
 
     mergeMethod ??= MergeMethod.merge;
 
-    dynamic body = GitHubJson.encode('''{
-        "commit_message": "$commitMessage",
-        "merge_method": "${mergeMethod.name}"
-      }''');
+    dynamic body = GitHubJson.encode({"commit_message": "$commitMessage", "merge_method": mergeMethod.name});
 
-     final response = await github.request(
-        'PUT', 
-        '/repos/${slug.fullName}/pulls/$number/merge',
-        headers: headers,
-        body: body,
-      );
+    final response = await github.request(
+      'PUT',
+      '/repos/${slug.fullName}/pulls/$number/merge',
+      headers: headers,
+      body: body,
+    );
 
-      return response.statusCode;
+    log.info('Response from github ${response.body}');
+
+    return response.statusCode;
   }
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.

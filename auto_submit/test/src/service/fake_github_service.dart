@@ -277,9 +277,10 @@ class FakeGithubService implements GithubService {
   Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
     return githubIssueMock!;
   }
-  
+
   @override
-  Future<int> mergePullRequest(RepositorySlug slug, int number, {String? commitMessage, MergeMethod? mergeMethod, String? requestSha}) {
+  Future<int> mergePullRequest(RepositorySlug slug, int number,
+      {String? commitMessage, MergeMethod? mergeMethod, String? requestSha}) {
     // TODO: implement mergePullRequest
     throw UnimplementedError();
   }
