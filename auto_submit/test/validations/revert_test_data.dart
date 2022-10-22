@@ -168,79 +168,154 @@ const String revertPullRequestJson = """
 const String revertPullRequestFilesJson = """
   [
     {
-      "filename": "dashboard/analysis_options.yaml"
+      "filename": "dashboard/analysis_options.yaml",
+      "additions": 0,
+      "deletions": 1,
+      "changes": 1
     },
     {
-      "filename": "dashboard/lib/build_dashboard_page.dart"
+      "filename": "dashboard/lib/build_dashboard_page.dart",
+      "additions": 35,
+      "deletions": 45,
+      "changes": 80
     },
     {
-      "filename": "dashboard/lib/index_page.dart"
+      "filename": "dashboard/lib/index_page.dart",
+      "additions": 10,
+      "deletions": 12,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/logic/brooks.dart"
+      "filename": "dashboard/lib/logic/brooks.dart",
+      "additions": 18,
+      "deletions": 20,
+      "changes": 38
     },
     {
-      "filename": "dashboard/lib/logic/links.dart"
+      "filename": "dashboard/lib/logic/links.dart",
+      "additions": 15,
+      "deletions": 18,
+      "changes": 33
     },
     {
-      "filename": "dashboard/lib/logic/task_grid_filter.dart"
+      "filename": "dashboard/lib/logic/task_grid_filter.dart",
+      "additions": 4,
+      "deletions": 12,
+      "changes": 16
     },
     {
-      "filename": "dashboard/lib/main.dart"
+      "filename": "dashboard/lib/main.dart",
+      "additions": 6,
+      "deletions": 7,
+      "changes": 13
     },
     {
-      "filename": "dashboard/lib/service/appengine_cocoon.dart"
+      "filename": "dashboard/lib/service/appengine_cocoon.dart",
+      "additions": 16,
+      "deletions": 23,
+      "changes": 39
     },
     {
-      "filename": "dashboard/lib/service/dev_cocoon.dart"
+      "filename": "dashboard/lib/service/dev_cocoon.dart",
+      "additions": 8,
+      "deletions": 15,
+      "changes": 23
     },
     {
-      "filename": "dashboard/lib/widgets/lattice.dart"
+      "filename": "dashboard/lib/widgets/lattice.dart",
+      "additions": 18,
+      "deletions": 22,
+      "changes": 40
     },
     {
-      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart"
+      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart",
+      "additions": 4,
+      "deletions": 5,
+      "changes": 9
     },
     {
-      "filename": "dashboard/lib/widgets/sign_in_button.dart"
+      "filename": "dashboard/lib/widgets/sign_in_button.dart",
+      "additions": 10,
+      "deletions": 12,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/widgets/task_grid.dart"
+      "filename": "dashboard/lib/widgets/task_grid.dart",
+      "additions": 13,
+      "deletions": 17,
+      "changes": 30
     },
     {
-      "filename": "dashboard/lib/widgets/task_overlay.dart"
+      "filename": "dashboard/lib/widgets/task_overlay.dart",
+      "additions": 2,
+      "deletions": 3,
+      "changes": 5
     },
     {
-      "filename": "dashboard/pubspec.lock"
+      "filename": "dashboard/pubspec.lock",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
     },
     {
-      "filename": "dashboard/test/build_dashboard_page_test.dart"
+      "filename": "dashboard/test/build_dashboard_page_test.dart",
+      "additions": 21,
+      "deletions": 33,
+      "changes": 54
     },
     {
-      "filename": "dashboard/test/index_page_test.dart"
+      "filename": "dashboard/test/index_page_test.dart",
+      "additions": 4,
+      "deletions": 7,
+      "changes": 11
     },
     {
-      "filename": "dashboard/test/logic/qualified_task_test.dart"
+      "filename": "dashboard/test/logic/qualified_task_test.dart",
+      "additions": 9,
+      "deletions": 16,
+      "changes": 25
     },
     {
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
+      "additions": 11,
+      "deletions": 18,
+      "changes": 29
     },
     {
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
+      "additions": 74,
+      "deletions": 112,
+      "changes": 186
     },
     {
-      "filename": "dashboard/test/service/google_authentication_test.dart"
+      "filename": "dashboard/test/service/google_authentication_test.dart",
+      "additions": 2,
+      "deletions": 4,
+      "changes": 6
     },
     {
-      "filename": "dashboard/test/state/build_test.dart"
+      "filename": "dashboard/test/state/build_test.dart",
+      "additions": 20,
+      "deletions": 31,
+      "changes": 51
     },
     {
-      "filename": "dashboard/test/utils/fake_build.dart"
+      "filename": "dashboard/test/utils/fake_build.dart",
+      "additions": 6,
+      "deletions": 10,
+      "changes": 16
     },
     {
-      "filename": "dashboard/test/utils/golden.dart"
+      "filename": "dashboard/test/utils/golden.dart",
+      "additions": 4,
+      "deletions": 6,
+      "changes": 10
     },
     {
-      "filename": "dashboard/test/widgets/accessibility_test.dart"
+      "filename": "dashboard/test/widgets/accessibility_test.dart",
+      "additions": 14,
+      "deletions": 22,
+      "changes": 36
     }
   ]
 """;
@@ -360,79 +435,154 @@ const String originalPullRequestJson = """
 const String originalPullRequestFilesJson = """
   [
     {
-      "filename": "dashboard/analysis_options.yaml"
+      "filename": "dashboard/analysis_options.yaml",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1
     },
     {
-      "filename": "dashboard/lib/build_dashboard_page.dart"
+      "filename": "dashboard/lib/build_dashboard_page.dart",
+      "additions": 45,
+      "deletions": 35,
+      "changes": 80
     },
     {
-      "filename": "dashboard/lib/index_page.dart"
+      "filename": "dashboard/lib/index_page.dart",
+      "additions": 12,
+      "deletions": 10,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/logic/brooks.dart"
+      "filename": "dashboard/lib/logic/brooks.dart",
+      "additions": 20,
+      "deletions": 18,
+      "changes": 38
     },
     {
-      "filename": "dashboard/lib/logic/links.dart"
+      "filename": "dashboard/lib/logic/links.dart",
+      "additions": 18,
+      "deletions": 15,
+      "changes": 33
     },
     {
-      "filename": "dashboard/lib/logic/task_grid_filter.dart"
+      "filename": "dashboard/lib/logic/task_grid_filter.dart",
+      "additions": 12,
+      "deletions": 4,
+      "changes": 16
     },
     {
-      "filename": "dashboard/lib/main.dart"
+      "filename": "dashboard/lib/main.dart",
+      "additions": 7,
+      "deletions": 6,
+      "changes": 13
     },
     {
-      "filename": "dashboard/lib/service/appengine_cocoon.dart"
+      "filename": "dashboard/lib/service/appengine_cocoon.dart",
+      "additions": 23,
+      "deletions": 16,
+      "changes": 39
     },
     {
-      "filename": "dashboard/lib/service/dev_cocoon.dart"
+      "filename": "dashboard/lib/service/dev_cocoon.dart",
+      "additions": 15,
+      "deletions": 8,
+      "changes": 23
     },
     {
-      "filename": "dashboard/lib/widgets/lattice.dart"
+      "filename": "dashboard/lib/widgets/lattice.dart",
+      "additions": 22,
+      "deletions": 18,
+      "changes": 40
     },
     {
-      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart"
+      "filename": "dashboard/lib/widgets/luci_task_attempt_summary.dart",
+      "additions": 5,
+      "deletions": 4,
+      "changes": 9
     },
     {
-      "filename": "dashboard/lib/widgets/sign_in_button.dart"
+      "filename": "dashboard/lib/widgets/sign_in_button.dart",
+      "additions": 12,
+      "deletions": 10,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/widgets/task_grid.dart"
+      "filename": "dashboard/lib/widgets/task_grid.dart",
+      "additions": 17,
+      "deletions": 13,
+      "changes": 30
     },
     {
-      "filename": "dashboard/lib/widgets/task_overlay.dart"
+      "filename": "dashboard/lib/widgets/task_overlay.dart",
+      "additions": 3,
+      "deletions": 2,
+      "changes": 5
     },
     {
-      "filename": "dashboard/pubspec.lock"
+      "filename": "dashboard/pubspec.lock",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
     },
     {
-      "filename": "dashboard/test/build_dashboard_page_test.dart"
+      "filename": "dashboard/test/build_dashboard_page_test.dart",
+      "additions": 33,
+      "deletions": 21,
+      "changes": 54
     },
     {
-      "filename": "dashboard/test/index_page_test.dart"
+      "filename": "dashboard/test/index_page_test.dart",
+      "additions": 7,
+      "deletions": 4,
+      "changes": 11
     },
     {
-      "filename": "dashboard/test/logic/qualified_task_test.dart"
+      "filename": "dashboard/test/logic/qualified_task_test.dart",
+      "additions": 16,
+      "deletions": 9,
+      "changes": 25
     },
     {
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
+      "additions": 18,
+      "deletions": 11,
+      "changes": 29
     },
     {
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
+      "additions": 112,
+      "deletions": 74,
+      "changes": 186
     },
     {
-      "filename": "dashboard/test/service/google_authentication_test.dart"
+      "filename": "dashboard/test/service/google_authentication_test.dart",
+      "additions": 4,
+      "deletions": 2,
+      "changes": 6
     },
     {
-      "filename": "dashboard/test/state/build_test.dart"
+      "filename": "dashboard/test/state/build_test.dart",
+      "additions": 31,
+      "deletions": 20,
+      "changes": 51
     },
     {
-      "filename": "dashboard/test/utils/fake_build.dart"
+      "filename": "dashboard/test/utils/fake_build.dart",
+      "additions": 10,
+      "deletions": 6,
+      "changes": 16
     },
     {
-      "filename": "dashboard/test/utils/golden.dart"
+      "filename": "dashboard/test/utils/golden.dart",
+      "additions": 6,
+      "deletions": 4,
+      "changes": 10
     },
     {
-      "filename": "dashboard/test/widgets/accessibility_test.dart"
+      "filename": "dashboard/test/widgets/accessibility_test.dart",
+      "additions": 22,
+      "deletions": 14,
+      "changes": 36
     }
   ]
 """;
@@ -440,73 +590,181 @@ const String originalPullRequestFilesJson = """
 const String originalPullRequestFilesSubsetJson = """
   [
     {
-      "filename": "dashboard/analysis_options.yaml"
+      "filename": "dashboard/analysis_options.yaml",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1
     },
     {
-      "filename": "dashboard/lib/build_dashboard_page.dart"
+      "filename": "dashboard/lib/build_dashboard_page.dart",
+      "additions": 45,
+      "deletions": 35,
+      "changes": 80
     },
     {
-      "filename": "dashboard/lib/index_page.dart"
+      "filename": "dashboard/lib/index_page.dart",
+      "additions": 12,
+      "deletions": 10,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/logic/brooks.dart"
+      "filename": "dashboard/lib/logic/brooks.dart",
+      "additions": 20,
+      "deletions": 18,
+      "changes": 38
     },
     {
-      "filename": "dashboard/lib/logic/links.dart"
+      "filename": "dashboard/lib/logic/links.dart",
+      "additions": 18,
+      "deletions": 15,
+      "changes": 33
     },
     {
-      "filename": "dashboard/lib/logic/task_grid_filter.dart"
+      "filename": "dashboard/lib/logic/task_grid_filter.dart",
+      "additions": 12,
+      "deletions": 4,
+      "changes": 16
     },
     {
-      "filename": "dashboard/lib/service/appengine_cocoon.dart"
+      "filename": "dashboard/lib/service/appengine_cocoon.dart",
+      "additions": 23,
+      "deletions": 16,
+      "changes": 39
     },
     {
-      "filename": "dashboard/lib/service/dev_cocoon.dart"
+      "filename": "dashboard/lib/service/dev_cocoon.dart",
+      "additions": 15,
+      "deletions": 8,
+      "changes": 23
     },
     {
-      "filename": "dashboard/lib/widgets/lattice.dart"
+      "filename": "dashboard/lib/widgets/lattice.dart",
+      "additions": 22,
+      "deletions": 18,
+      "changes": 40
     },
     {
-      "filename": "dashboard/lib/widgets/sign_in_button.dart"
+       "filename": "dashboard/lib/widgets/sign_in_button.dart",
+      "additions": 12,
+      "deletions": 10,
+      "changes": 22
     },
     {
-      "filename": "dashboard/lib/widgets/task_grid.dart"
+      "filename": "dashboard/lib/widgets/task_grid.dart",
+      "additions": 17,
+      "deletions": 13,
+      "changes": 30
     },
     {
-      "filename": "dashboard/lib/widgets/task_overlay.dart"
+      "filename": "dashboard/lib/widgets/task_overlay.dart",
+      "additions": 3,
+      "deletions": 2,
+      "changes": 5
     },
     {
-      "filename": "dashboard/pubspec.lock"
+      "filename": "dashboard/pubspec.lock",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
     },
     {
-      "filename": "dashboard/test/build_dashboard_page_test.dart"
+      "filename": "dashboard/test/build_dashboard_page_test.dart",
+      "additions": 33,
+      "deletions": 21,
+      "changes": 54
     },
     {
-      "filename": "dashboard/test/index_page_test.dart"
+      "filename": "dashboard/test/index_page_test.dart",
+      "additions": 7,
+      "deletions": 4,
+      "changes": 11
     },
     {
-      "filename": "dashboard/test/logic/qualified_task_test.dart"
+      "filename": "dashboard/test/logic/qualified_task_test.dart",
+      "additions": 16,
+      "deletions": 9,
+      "changes": 25
     },
     {
-      "filename": "dashboard/test/logic/task_grid_filter_test.dart"
+      "filename": "dashboard/test/logic/task_grid_filter_test.dart",
+      "additions": 18,
+      "deletions": 11,
+      "changes": 29
     },
     {
-      "filename": "dashboard/test/service/appengine_cocoon_test.dart"
+      "filename": "dashboard/test/service/appengine_cocoon_test.dart",
+      "additions": 112,
+      "deletions": 74,
+      "changes": 186
     },
     {
-      "filename": "dashboard/test/service/google_authentication_test.dart"
+      "filename": "dashboard/test/service/google_authentication_test.dart",
+      "additions": 4,
+      "deletions": 2,
+      "changes": 6
     },
     {
-      "filename": "dashboard/test/state/build_test.dart"
+      "filename": "dashboard/test/state/build_test.dart",
+      "additions": 31,
+      "deletions": 20,
+      "changes": 51
     },
     {
-      "filename": "dashboard/test/utils/fake_build.dart"
+      "filename": "dashboard/test/utils/fake_build.dart",
+      "additions": 10,
+      "deletions": 6,
+      "changes": 16
     },
     {
-      "filename": "dashboard/test/utils/golden.dart"
+      "filename": "dashboard/test/utils/golden.dart",
+      "additions": 6,
+      "deletions": 4,
+      "changes": 10
     },
     {
-      "filename": "dashboard/test/widgets/accessibility_test.dart"
+      "filename": "dashboard/test/widgets/accessibility_test.dart",
+      "additions": 22,
+      "deletions": 14,
+      "changes": 36
     }
   ]
 """;
+
+const String ciyamlCheckRun = '''
+{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 8752872923,
+      "name": "ci.yaml validation",
+      "head_sha": "60612a38d705d00a234e0aabba08247fc0dda1ac",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2022-10-06T20:50:57Z",
+      "completed_at": "2022-10-06T20:51:40Z",
+      "check_suite": {
+        "id": 8654966141
+      }
+    }
+  ]
+}
+''';
+
+const String ciyamlCheckRunNotComplete = '''
+{
+  "total_count": 1,
+  "check_runs": [
+    {
+      "id": 8752872923,
+      "name": "ci.yaml validation",
+      "head_sha": "60612a38d705d00a234e0aabba08247fc0dda1ac",
+      "status": "in_progress",
+      "started_at": "2022-10-06T20:50:57Z",
+      "completed_at": "2022-10-06T20:51:40Z",
+      "check_suite": {
+        "id": 8654966141
+      }
+    }
+  ]
+}
+''';

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
@@ -30,7 +31,7 @@ Commit generateCommit(
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/$repo/$branch/' + (sha ?? '$i'),
+        'flutter/$repo/$branch/${sha ?? '$i'}',
       ),
     );
 

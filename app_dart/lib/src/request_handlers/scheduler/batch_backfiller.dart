@@ -70,10 +70,10 @@ class BatchBackfiller extends RequestHandler {
       if (target.schedulerPolicy is! BatchPolicy) {
         continue;
       }
-      final FullTask? _backfill = _backfillTask(target, taskColumn);
+      final FullTask? backfillTask = _backfillTask(target, taskColumn);
       final int priority = backfillPriority(taskColumn.map((e) => e.task).toList(), BatchPolicy.kBatchSize);
-      if (_backfill != null) {
-        backfill.add(Tuple<Target, FullTask, int>(target, _backfill, priority));
+      if (backfillTask != null) {
+        backfill.add(Tuple<Target, FullTask, int>(target, backfillTask, priority));
       }
     }
 

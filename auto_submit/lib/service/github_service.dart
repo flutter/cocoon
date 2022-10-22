@@ -24,6 +24,24 @@ class GithubService {
     return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
   }
 
+  Future<List<CheckRun>> getCheckRunsFiltered({
+    required RepositorySlug slug,
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    return await github.checks.checkRuns
+        .listCheckRunsForRef(
+          slug,
+          ref: ref,
+          checkName: checkName,
+          status: status,
+          filter: filter,
+        )
+        .toList();
+  }
+
   /// Fetches the specified commit.
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return await github.repositories.getCommit(slug, sha);
@@ -127,29 +145,50 @@ class GithubService {
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
-    List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
-    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+    final List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
 
-    return _validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
+    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
   }
 
   /// Validate that each pull request has the same number of files and that the
   /// file names match. This must be the case in order to process the revert.
-  bool _validateFileSetsAreEqual(
-    List<PullRequestFile> revertPullRequestFiles,
-    List<PullRequestFile> currentPullRequestFiles,
+  bool validateFileSetsAreEqual(
+    List<PullRequestFile> revertRequestFileList,
+    List<PullRequestFile> originalRequestFileList,
   ) {
-    List<String?> revertFileNames = [];
-    List<String?> currentFileNames = [];
+    if (revertRequestFileList.length != originalRequestFileList.length) {
+      return false;
+    }
 
-    for (PullRequestFile element in revertPullRequestFiles) {
+    final List<String?> revertFileNames = [];
+    final List<String?> originalFileNames = [];
+
+    for (PullRequestFile element in revertRequestFileList) {
       revertFileNames.add(element.filename);
     }
-    for (PullRequestFile element in currentPullRequestFiles) {
-      currentFileNames.add(element.filename);
+    for (PullRequestFile element in originalRequestFileList) {
+      originalFileNames.add(element.filename);
     }
 
-    return revertFileNames.toSet().containsAll(currentFileNames) &&
-        currentFileNames.toSet().containsAll(revertFileNames);
+    // At this point we know the file lists have the same amount of files but not the same files.
+    if (!revertFileNames.toSet().containsAll(originalFileNames) ||
+        !originalFileNames.toSet().containsAll(revertFileNames)) {
+      return false;
+    }
+
+    // At this point all the files are the same so we can iterate over one list to
+    // compare changes.
+    for (PullRequestFile revertRequestFile in revertRequestFileList) {
+      final PullRequestFile originalRequestFile =
+          originalRequestFileList.firstWhere((element) => element.filename == revertRequestFile.filename);
+      if (revertRequestFile.changesCount != originalRequestFile.changesCount ||
+          revertRequestFile.additionsCount != originalRequestFile.deletionsCount ||
+          revertRequestFile.deletionsCount != originalRequestFile.additionsCount) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

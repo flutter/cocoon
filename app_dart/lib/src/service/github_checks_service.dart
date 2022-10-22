@@ -101,7 +101,7 @@ class GithubChecksService {
     // If status has completed with failure then provide more details.
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
-          await luciBuildService.getTryBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
+          await luciBuildService.getBuildById(buildPushMessage.build!.id, fields: 'id,builder,summaryMarkdown');
       output = github.CheckRunOutput(title: checkRun.name!, summary: getGithubSummary(build.summaryMarkdown));
     }
     log.fine('Updating check run with output: [$output]');
@@ -121,7 +121,7 @@ class GithubChecksService {
   /// reference from github check run page.
   String getGithubSummary(String? summary) {
     if (summary == null) {
-      return kGithubSummary + 'Empty summaryMarkdown';
+      return '${kGithubSummary}Empty summaryMarkdown';
     }
     // This is an imposed GitHub limit
     const int checkSummaryLimit = 65535;
@@ -129,9 +129,10 @@ class GithubChecksService {
     const int checkSummaryBufferLimit = checkSummaryLimit - 10000 - kGithubSummary.length;
     // Return the last [checkSummaryBufferLimit] characters as they are likely the most relevant.
     if (summary.length > checkSummaryBufferLimit) {
-      summary = '[TRUNCATED...] ' + summary.substring(summary.length - checkSummaryBufferLimit);
+      final String truncatedSummary = summary.substring(summary.length - checkSummaryBufferLimit);
+      summary = '[TRUNCATED...] $truncatedSummary';
     }
-    return kGithubSummary + summary;
+    return '$kGithubSummary$summary';
   }
 
   /// Transforms a [push_message.Result] to a [github.CheckRunConclusion].

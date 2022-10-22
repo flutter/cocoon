@@ -172,7 +172,7 @@ void main() {
 
     test('LookupByValue', () async {
       config.db.values[commit.key] = commit;
-      final Commit? expected = await datastoreService.lookupByValue(commit.key);
+      final Commit expected = await datastoreService.lookupByValue(commit.key);
       expect(expected, equals(commit));
     });
 

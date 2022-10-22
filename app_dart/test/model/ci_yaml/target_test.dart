@@ -105,6 +105,34 @@ void main() {
         });
       });
 
+      test('tags are parsed from within properties', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Linux_build_test',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'android_sdk': 'abc',
+          },
+          properties: <String, String>{'xcode': '12abc', 'tags': '["devicelab", "android", "linux"]'},
+        );
+        expect(target.tags, ['devicelab', 'android', 'linux']);
+      });
+
+      test('we do not blow up if tags are not present', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Linux_build_test',
+          platformProperties: <String, String>{
+            // This should be overrided by the target specific property
+            'android_sdk': 'abc',
+          },
+          properties: <String, String>{
+            'xcode': '12abc',
+          },
+        );
+        expect(target.tags, []);
+      });
+
       test('platform properties with xcode', () {
         final Target target = generateTarget(
           1,
@@ -120,6 +148,21 @@ void main() {
             'sdk_version': '12abc',
           },
           'xcode': '12abc',
+        });
+      });
+
+      test('platform properties with xcode and clean_cache', () {
+        final Target target = generateTarget(
+          1,
+          platform: 'Mac_ios',
+          platformProperties: <String, String>{'xcode': '12abc', 'cleanup_xcode_cache': 'true'},
+        );
+        expect(target.getProperties(), <String, Object>{
+          'xcode': '12abc',
+          'cleanup_xcode_cache': true,
+          'dependencies': <String>[],
+          '\$flutter/devicelab_osx_sdk': <String, Object>{'sdk_version': '12abc', 'cleanup_cache': true},
+          'bringup': false,
         });
       });
 

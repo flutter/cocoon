@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
@@ -17,6 +18,7 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
+import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
@@ -35,11 +37,13 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     required this.luciBuildService,
     required this.scheduler,
-  }) : super(topicName: 'luci-postsubmit');
+    required this.githubChecksService,
+  }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
   final Scheduler scheduler;
+  final GithubChecksService githubChecksService;
 
   @override
   Future<Body> post() async {
@@ -69,6 +73,22 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
     } on FormatException {
       userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
+    }
+
+    if (userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
+      // Message is coming from a github checks api (postsubmit) enabled repo. We need to
+      // create the slug from the data in the message and send the check status
+      // update.
+
+      RepositorySlug slug = RepositorySlug(
+        userData['repo_owner'] as String,
+        userData['repo_name'] as String,
+      );
+      await githubChecksService.updateCheckStatus(
+        buildPushMessage,
+        luciBuildService,
+        slug,
+      );
     }
 
     final String? rawTaskKey = userData['task_key'] as String?;

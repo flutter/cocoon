@@ -107,6 +107,27 @@ class FakeGithubService implements GithubService {
   }
 
   @override
+  Future<List<CheckRun>> getCheckRunsFiltered({
+    required RepositorySlug slug,
+    required String ref,
+    String? checkName,
+    CheckRunStatus? status,
+    CheckRunFilter? filter,
+  }) async {
+    List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
+    if (checkName != null) {
+      List<CheckRun> checkRunsFilteredByName = [];
+      for (CheckRun checkRun in checkRuns) {
+        if (checkRun.name == checkName) {
+          checkRunsFilteredByName.add(checkRun);
+        }
+      }
+      return checkRunsFilteredByName;
+    }
+    return checkRuns;
+  }
+
+  @override
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     final RepositoryCommit commit = RepositoryCommit.fromJson(jsonDecode(commitMock!) as Map<String, dynamic>);
     return commit;
@@ -208,25 +229,47 @@ class FakeGithubService implements GithubService {
     List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
     List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
 
-    return _validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
+    return validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
   }
 
-  bool _validateFileSetsAreEqual(
-    List<PullRequestFile> revertPullRequestFiles,
-    List<PullRequestFile> currentPullRequestFiles,
+  @override
+  bool validateFileSetsAreEqual(
+    List<PullRequestFile> changeList1,
+    List<PullRequestFile> changeList2,
   ) {
-    List<String?> revertFileNames = [];
-    List<String?> currentFileNames = [];
+    if (changeList1.length != changeList2.length) {
+      return false;
+    }
 
-    for (var element in revertPullRequestFiles) {
+    final List<String?> revertFileNames = [];
+    final List<String?> currentFileNames = [];
+
+    for (PullRequestFile element in changeList1) {
       revertFileNames.add(element.filename);
     }
-    for (var element in currentPullRequestFiles) {
+    for (PullRequestFile element in changeList2) {
       currentFileNames.add(element.filename);
     }
 
-    return revertFileNames.toSet().containsAll(currentFileNames) &&
-        currentFileNames.toSet().containsAll(revertFileNames);
+    // At this point we know the file lists have the same amount of files but not the same files.
+    if (!revertFileNames.toSet().containsAll(currentFileNames) ||
+        !currentFileNames.toSet().containsAll(revertFileNames)) {
+      return false;
+    }
+
+    // At this point all the files are the same so we can iterate over one list to
+    // compare changes.
+    for (PullRequestFile pullRequestFile in changeList1) {
+      PullRequestFile pullRequestFileChangeList2 =
+          changeList2.firstWhere((element) => element.filename == pullRequestFile.filename);
+      if (pullRequestFile.changesCount != pullRequestFileChangeList2.changesCount ||
+          pullRequestFile.additionsCount != pullRequestFileChangeList2.deletionsCount ||
+          pullRequestFile.deletionsCount != pullRequestFileChangeList2.additionsCount) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override

@@ -75,6 +75,9 @@ class CiYaml {
         slug: slug,
       ));
 
+  /// Get an unfiltered list of all [targets] that are found in the ci.yaml file.
+  List<Target> get targets => _targets.toList();
+
   /// Filter [targets] to only those that are expected to run for [branch].
   ///
   /// A [Target] is expected to run if:
@@ -190,7 +193,7 @@ class CiYaml {
 
   void _checkExceptions(List<String> exceptions) {
     if (exceptions.isNotEmpty) {
-      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }
@@ -223,7 +226,7 @@ class DependencyValidator {
     }
 
     if (exceptions.isNotEmpty) {
-      final String fullException = exceptions.reduce((String exception, _) => exception + '\n');
+      final String fullException = exceptions.reduce((String exception, _) => '$exception\n');
       throw FormatException(fullException);
     }
   }

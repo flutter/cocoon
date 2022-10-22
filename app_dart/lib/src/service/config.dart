@@ -49,6 +49,14 @@ class Config {
         pluginsSlug,
       };
 
+  /// List of Github postsubmit supported repos.
+  ///
+  /// This adds support for check runs to the repo.
+  Set<gh.RepositorySlug> get postsubmitSupportedRepos => <gh.RepositorySlug>{
+        packagesSlug,
+        pluginsSlug,
+      };
+
   /// List of Cirrus supported repos.
   static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
@@ -271,6 +279,9 @@ class Config {
   // Default number of commits to return for benchmark dashboard.
   int /*!*/ get maxRecords => 50;
 
+  // Delay between consecutive GitHub deflake request calls.
+  Duration get githubRequestDelay => const Duration(seconds: 1);
+
   // Repository status context for github status.
   String get flutterBuild => 'flutter-build';
 
@@ -364,13 +375,13 @@ class Config {
     );
 
     final String token = await githubOAuthToken;
-    final AuthLink _authLink = AuthLink(
+    final AuthLink authLink = AuthLink(
       getToken: () async => 'Bearer $token',
     );
 
     return GraphQLClient(
       cache: GraphQLCache(),
-      link: _authLink.concat(httpLink),
+      link: authLink.concat(httpLink),
     );
   }
 
@@ -413,5 +424,9 @@ class Config {
 
   bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
     return supportedRepos.contains(slug);
+  }
+
+  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
+    return postsubmitSupportedRepos.contains(slug);
   }
 }

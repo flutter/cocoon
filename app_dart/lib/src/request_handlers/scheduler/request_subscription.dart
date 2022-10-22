@@ -32,7 +32,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     required this.buildBucketClient,
     super.authProvider,
     this.retryOptions = Config.schedulerRetry,
-  }) : super(topicName: 'scheduler-requests');
+  }) : super(subscriptionName: 'scheduler-requests');
 
   final BuildBucketClient buildBucketClient;
 

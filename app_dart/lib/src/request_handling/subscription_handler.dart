@@ -31,7 +31,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     required this.cache,
     required super.config,
     this.authProvider,
-    required this.topicName,
+    required this.subscriptionName,
   });
 
   final CacheService cache;
@@ -39,8 +39,8 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// Service responsible for authenticating this [HttpRequest].
   final AuthenticationProvider? authProvider;
 
-  /// Unique identifier of the PubSub in this cloud project.
-  final String topicName;
+  /// Unique identifier of the PubSub subscription in this cloud project.
+  final String subscriptionName;
 
   /// The authentication context associated with the HTTP request.
   ///
@@ -59,9 +59,9 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
-    final AuthenticationProvider _authProvider = authProvider ?? PubsubAuthenticationProvider(config: config);
+    final AuthenticationProvider auth = authProvider ?? PubsubAuthenticationProvider(config: config);
     try {
-      authContext = await _authProvider.authenticate(request);
+      authContext = await auth.authenticate(request);
     } on Unauthenticated catch (error) {
       final HttpResponse response = request.response;
       response
@@ -109,7 +109,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
     final String messageId = envelope.message!.messageId!;
 
-    final Uint8List? messageLock = await cache.getOrCreate(topicName, messageId);
+    final Uint8List? messageLock = await cache.getOrCreate(subscriptionName, messageId);
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
       final HttpResponse response = request.response
@@ -123,7 +123,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     // Create a write lock in the cache to ensure requests are only processed once
     final Uint8List lockValue = Uint8List.fromList('l'.codeUnits);
     await cache.set(
-      topicName,
+      subscriptionName,
       messageId,
       lockValue,
       ttl: const Duration(days: 1),
@@ -135,7 +135,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
         request,
         onError: (_) async {
           log.warning('Failed to process $message');
-          await cache.purge(topicName, messageId);
+          await cache.purge(subscriptionName, messageId);
           log.info('Purged write lock from cache');
         },
       ),
