@@ -18,36 +18,31 @@ class GoogleCloudStorage {
 
   final ProcessManager processManager;
   final Directory rootDirectory;
-  final String bucketPrefix = 'gs://flutter_infra_release';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
-    required String gCloudUploadPath,
+    required String destination,
   }) async {
-    final String destinationUrl = '$bucketPrefix/$gCloudUploadPath';
-
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', from, destinationUrl],
+      <String>['gsutil', 'cp', from, destination],
     );
 
     if (result.exitCode != 0) {
-      throw CodesignException('Failed to upload $from to $destinationUrl');
+      throw CodesignException('Failed to upload $from to $destination');
     }
   }
 
   /// Method to download flutter engine artifact from google cloud bucket.
   Future<File> downloadEngineArtifact({
+    required String from,
     required String destination,
-    required String gCloudDownloadPath,
   }) async {
-    final String sourceUrl = '$bucketPrefix/$gCloudDownloadPath';
-
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', sourceUrl, destination],
+      <String>['gsutil', 'cp', from, destination],
     );
     if (result.exitCode != 0) {
-      throw CodesignException('Failed to download from $sourceUrl');
+      throw CodesignException('Failed to download from $from');
     }
     return rootDirectory.fileSystem.file(destination);
   }

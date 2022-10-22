@@ -19,8 +19,8 @@ const String kCodesignUserNameOption = 'codesign-username';
 const String kAppSpecificPasswordOption = 'app-specific-password';
 const String kCodesignAppStoreIdOption = 'codesign-appstore-id';
 const String kCodesignTeamIdOption = 'codesign-team-id';
-const String kGCloudDownloadPathOption = 'google-cloud-download-path';
-const String kGCloudUploadPathOption = 'google-cloud-upload-path';
+const String kGcsDownloadPathOption = 'gcs-download-path';
+const String kGcsUploadPathOption = 'gcs-upload-path';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -29,16 +29,16 @@ const String kGCloudUploadPathOption = 'google-cloud-upload-path';
 /// Otherwise, nothing will be uploaded back for dry run. default value is
 /// true.
 ///
-/// For [kGCloudDownloadPathOption] and [kGCloudUploadPathOption], they are required parameter to specify the google cloud bucket paths.
-/// [kGCloudDownloadPathOption] is the google cloud bucket prefix to download the remote artifacts,
-/// [kGCloudUploadPathOption] is the cloud bucket prefix to upload codesigned artifact to.
-/// For example, supply '--google-cloud-download-path=ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip',
-/// and code sign app will download the artifact at 'ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip'
+/// For [kGcsDownloadPathOption] and [kGcsUploadPathOption], they are required parameter to specify the google cloud bucket paths.
+/// [kGcsDownloadPathOption] is the google cloud bucket prefix to download the remote artifacts,
+/// [kGcsUploadPathOption] is the cloud bucket prefix to upload codesigned artifact to.
+/// For example, supply '--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip',
+/// and code sign app will download the artifact at 'flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip' on google cloud storage
 ///
 /// Usage:
 /// ```shell
-/// dart run bin/codesign.dart [--dryrun] --google-cloud-download-path=flutter/<commit>/android-arm-profile/artifacts.zip
-/// --google-cloud-upload-path=flutter/<commit>/android-arm-profile/artifacts.zip
+/// dart run bin/codesign.dart [--dryrun] --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
+/// --gcs-upload-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -67,15 +67,15 @@ Future<void> main(List<String> args) async {
       help: 'Team-id is used by notary service for xcode version 13+.',
     )
     ..addOption(
-      kGCloudDownloadPathOption,
+      kGcsDownloadPathOption,
       help: 'The google cloud bucket path to download the artifact from\n'
-          'e.g. supply `--google-cloud-download-path=flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip`'
+          'e.g. supply `--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip`'
           ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip to be downloaded from \n',
     )
     ..addOption(
-      kGCloudUploadPathOption,
+      kGcsUploadPathOption,
       help: 'The google cloud bucket path to upload the artifact to. \n'
-          'e.g. supply `--google-cloud-upload-path=flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
+          'e.g. supply `--gcs-upload-path=gs://flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
           ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
     )
     ..addFlag(
@@ -93,8 +93,8 @@ Future<void> main(List<String> args) async {
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
-  final String gCloudDownloadPath = getValueFromEnvOrArgs(kGCloudDownloadPathOption, argResults, platform.environment)!;
-  final String gCloudUploadPath = getValueFromEnvOrArgs(kGCloudUploadPathOption, argResults, platform.environment)!;
+  final String gCloudDownloadPath = getValueFromEnvOrArgs(kGcsDownloadPathOption, argResults, platform.environment)!;
+  final String gCloudUploadPath = getValueFromEnvOrArgs(kGcsUploadPathOption, argResults, platform.environment)!;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
@@ -123,8 +123,8 @@ Future<void> main(List<String> args) async {
     rootDirectory: rootDirectory,
     processManager: processManager,
     dryrun: dryrun,
-    gCloudDownloadPath: gCloudDownloadPath,
-    gCloudUploadPath: gCloudUploadPath,
+    gcsDownloadPath: gCloudDownloadPath,
+    gcsUploadPath: gCloudUploadPath,
     googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }
