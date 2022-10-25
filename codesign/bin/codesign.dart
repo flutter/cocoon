@@ -24,10 +24,12 @@ const String kGcsUploadPathOption = 'gcs-upload-path';
 
 /// Perform Mac code signing based on file paths.
 ///
-/// If [kDryrunFlag] is set to false, code signed artifacts will be uploaded
-/// back to google cloud storage.
-/// Otherwise, nothing will be uploaded back for dry run. default value is
-/// true.
+/// By default, if a user does not specify a dryrun flag, or selects dryrun
+/// mode by providing the `--dryrun` flag, then [kDryrunFlag] is set to true.
+/// In this case, code signed artifacts are not uploaded back to google cloud storage.
+/// On the other hand, if a user provides the flag `--no-dryrun`, [kDryrunFlag]
+/// will be set to false, and code signed artifacts will be uploaded back to
+/// google cloud storage.
 ///
 /// For [kGcsDownloadPathOption] and [kGcsUploadPathOption], they are required parameter to specify the google cloud bucket paths.
 /// [kGcsDownloadPathOption] is the google cloud bucket prefix to download the remote artifacts,
@@ -37,7 +39,7 @@ const String kGcsUploadPathOption = 'gcs-upload-path';
 ///
 /// Usage:
 /// ```shell
-/// dart run bin/codesign.dart [--dryrun] --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
+/// dart run bin/codesign.dart --[no-]dryrun --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// --gcs-upload-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// ```
 Future<void> main(List<String> args) async {
@@ -80,6 +82,7 @@ Future<void> main(List<String> args) async {
     )
     ..addFlag(
       kDryrunFlag,
+      defaultsTo: true,
       help: 'whether we are going to upload the artifacts back to GCS for dryrun',
     );
 
