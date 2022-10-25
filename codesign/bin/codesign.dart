@@ -13,32 +13,32 @@ import 'package:process/process.dart';
 
 /// Definitions of variables are included in help texts below.
 const String kHelpFlag = 'help';
-const String kCommitOption = 'commit';
-const String kProductionFlag = 'production';
+const String kDryrunFlag = 'dryrun';
 const String kCodesignCertNameOption = 'codesign-cert-name';
 const String kCodesignUserNameOption = 'codesign-username';
 const String kAppSpecificPasswordOption = 'app-specific-password';
 const String kCodesignAppStoreIdOption = 'codesign-appstore-id';
 const String kCodesignTeamIdOption = 'codesign-team-id';
-const String kCodesignFilepathOption = 'filepath';
+const String kGcsDownloadPathOption = 'gcs-download-path';
+const String kGcsUploadPathOption = 'gcs-upload-path';
 
 /// Perform Mac code signing based on file paths.
 ///
-/// If [kProductionFlag] is set to true, code signed artifacts will be uploaded
+/// If [kDryrunFlag] is set to false, code signed artifacts will be uploaded
 /// back to google cloud storage.
-/// Otherwise, nothing will be uploaded back for production. default value is
-/// false.
+/// Otherwise, nothing will be uploaded back for dry run. default value is
+/// true.
 ///
-/// For [kCommitOption], provides the engine commit to be code signed.
-///
-/// For [kCodesignFilepathOption], provides the artifacts zip paths to be code signed.
+/// For [kGcsDownloadPathOption] and [kGcsUploadPathOption], they are required parameter to specify the google cloud bucket paths.
+/// [kGcsDownloadPathOption] is the google cloud bucket prefix to download the remote artifacts,
+/// [kGcsUploadPathOption] is the cloud bucket prefix to upload codesigned artifact to.
+/// For example, supply '--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip',
+/// and code sign app will download the artifact at 'flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip' on google cloud storage
 ///
 /// Usage:
 /// ```shell
-/// dart run bin/main.dart --commit=$commitSha
-/// --filepath=darwin-x64/FlutterMacOS.framework.zip --filepath=ios/artifacts.zip
-/// --filepath=dart-sdk-darwin-arm64.zip
-/// ( add `--production` if this is intended for production)
+/// dart run bin/codesign.dart [--dryrun] --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
+/// --gcs-upload-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -67,34 +67,36 @@ Future<void> main(List<String> args) async {
       help: 'Team-id is used by notary service for xcode version 13+.',
     )
     ..addOption(
-      kCommitOption,
-      help: 'the Flutter engine commit revision for which Google Cloud Storage binary artifacts should be codesigned.',
+      kGcsDownloadPathOption,
+      help: 'The google cloud bucket path to download the artifact from\n'
+          'e.g. supply `--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip`'
+          ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip to be downloaded from \n',
     )
-    ..addMultiOption(
-      kCodesignFilepathOption,
-      help: 'The zip file paths to be codesigned. Pass this option multiple'
-          'times to codesign multiple zip files',
-      valueHelp: 'darwin-x64/font-subset.zip',
+    ..addOption(
+      kGcsUploadPathOption,
+      help: 'The google cloud bucket path to upload the artifact to. \n'
+          'e.g. supply `--gcs-upload-path=gs://flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
+          ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
     )
     ..addFlag(
-      kProductionFlag,
-      help: 'whether we are going to upload the artifacts back to GCS for production',
+      kDryrunFlag,
+      help: 'whether we are going to upload the artifacts back to GCS for dryrun',
     );
 
   final ArgResults argResults = parser.parse(args);
 
   const Platform platform = LocalPlatform();
 
-  final String commit = getValueFromEnvOrArgs(kCommitOption, argResults, platform.environment)!;
   final String codesignCertName = getValueFromEnvOrArgs(kCodesignCertNameOption, argResults, platform.environment)!;
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
   final String appSpecificPassword =
       getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
   final String codesignAppstoreId = getValueFromEnvOrArgs(kCodesignAppStoreIdOption, argResults, platform.environment)!;
   final String codesignTeamId = getValueFromEnvOrArgs(kCodesignTeamIdOption, argResults, platform.environment)!;
+  final String gCloudDownloadPath = getValueFromEnvOrArgs(kGcsDownloadPathOption, argResults, platform.environment)!;
+  final String gCloudUploadPath = getValueFromEnvOrArgs(kGcsUploadPathOption, argResults, platform.environment)!;
 
-  final List<String> codesignFilepaths = argResults[kCodesignFilepathOption]! as List<String>;
-  final bool production = argResults[kProductionFlag] as bool;
+  final bool dryrun = argResults[kDryrunFlag] as bool;
 
   if (!platform.isMacOS) {
     throw CodesignException(
@@ -109,21 +111,20 @@ Future<void> main(List<String> args) async {
   final GoogleCloudStorage googleCloudStorage = GoogleCloudStorage(
     processManager: processManager,
     rootDirectory: rootDirectory,
-    commitHash: commit,
   );
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
     codesignUserName: codesignUserName,
-    commitHash: commit,
     appSpecificPassword: appSpecificPassword,
     codesignAppstoreId: codesignAppstoreId,
     codesignTeamId: codesignTeamId,
-    codesignFilepaths: codesignFilepaths,
     fileSystem: fileSystem,
     rootDirectory: rootDirectory,
     processManager: processManager,
-    production: production,
+    dryrun: dryrun,
+    gcsDownloadPath: gCloudDownloadPath,
+    gcsUploadPath: gCloudUploadPath,
     googleCloudStorage: googleCloudStorage,
   ).validateAll();
 }
