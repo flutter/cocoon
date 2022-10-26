@@ -124,3 +124,11 @@ String? getValueFromEnvOrArgs(
   throw CodesignException('Expected either the CLI arg --$name or the environment variable $envName '
       'to be provided!');
 }
+
+String joinEntitlementPaths(String entitlementParentPath, String pathToJoin) {
+  if (entitlementParentPath == "") {
+    return pathToJoin;
+  } else {
+    return '$entitlementParentPath/$pathToJoin';
+  }
+}

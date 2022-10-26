@@ -14,27 +14,22 @@ class GoogleCloudStorage {
   GoogleCloudStorage({
     required this.processManager,
     required this.rootDirectory,
-    required this.commitHash,
   });
 
   final ProcessManager processManager;
   final Directory rootDirectory;
-  final String commitHash;
-  final String gsCloudBaseUrl = 'gs://flutter_infra_release';
 
   /// Method to upload code signed flutter engine artifact to google cloud bucket.
   Future<void> uploadEngineArtifact({
     required String from,
     required String destination,
   }) async {
-    final String destinationUrl = '$gsCloudBaseUrl/flutter/$commitHash/$destination';
-
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', from, destinationUrl],
+      <String>['gsutil', 'cp', from, destination],
     );
 
     if (result.exitCode != 0) {
-      throw CodesignException('Failed to upload $from to $destinationUrl');
+      throw CodesignException('Failed to upload $from to $destination');
     }
   }
 
@@ -43,12 +38,11 @@ class GoogleCloudStorage {
     required String from,
     required String destination,
   }) async {
-    final String sourceUrl = '$gsCloudBaseUrl/flutter/$commitHash/$from';
     final ProcessResult result = await processManager.run(
-      <String>['gsutil', 'cp', sourceUrl, destination],
+      <String>['gsutil', 'cp', from, destination],
     );
     if (result.exitCode != 0) {
-      throw CodesignException('Failed to download from $sourceUrl');
+      throw CodesignException('Failed to download from $from');
     }
     return rootDirectory.fileSystem.file(destination);
   }
