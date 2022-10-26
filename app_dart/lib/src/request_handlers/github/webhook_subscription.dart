@@ -416,7 +416,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           filename.endsWith('.m') ||
           filename.endsWith('.java') ||
           filename.endsWith('.cc')) {
-        needsTests = true;
+        needsTests = !_allChangesAreCodeComments(file);
       }
 
       if (kEngineTestRegExp.hasMatch(filename)) {
