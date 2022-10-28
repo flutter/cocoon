@@ -480,11 +480,13 @@ Future<ProcessMergeResult> _processMergeExperiment(
   MergeMethod? mergeMethod,
   String? requestSha,
 }) async {
+  
   int statusCode = await githubService.mergePullRequest(
     slug,
     number,
     commitMessage: commitMessage,
     mergeMethod: MergeMethod.squash,
+    requestSha: requestSha,
   );
 
   if (statusCode == github.StatusCodes.OK) {

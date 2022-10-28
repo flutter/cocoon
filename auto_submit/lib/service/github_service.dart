@@ -134,22 +134,27 @@ class GithubService {
     RepositorySlug slug,
     int number, {
     String? commitMessage,
-    MergeMethod? mergeMethod,
+    MergeMethod mergeMethod = MergeMethod.merge,
     String? requestSha,
   }) async {
     // Recommended Accept header when making a merge request.
     Map<String, String>? headers = <String, String>{};
     headers['Accept'] = 'application/vnd.github+json';
 
-    mergeMethod ??= MergeMethod.merge;
-
-    dynamic body = GitHubJson.encode({"commit_message": "$commitMessage", "merge_method": mergeMethod.name});
+    final Map<String, dynamic> json = <String, dynamic>{};
+    if (commitMessage != null) {
+      json['commit_message'] = commitMessage;
+    }
+    if (requestSha != null) {
+       json['sha'] = requestSha;
+    }
+    json['merge_method'] = mergeMethod;
 
     final response = await github.request(
       'PUT',
       '/repos/${slug.fullName}/pulls/$number/merge',
       headers: headers,
-      body: body,
+      body: GitHubJson.encode(json),
     );
 
     log.info('Response from github ${response.body}');
