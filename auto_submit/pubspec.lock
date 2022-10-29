@@ -346,13 +346,13 @@ packages:
     source: hosted
     version: "2.2.0"
   grpc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: grpc
-      sha256: a73c16e4f6a4a819be892bb2c73cc1d0b00e36095f69b0738cc91a733e3d27ba
+      sha256: "3e8e04c6277059b66d67951143842097e52bbf3f2c6fca2e67d3607b48d5c3ab"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.0.2"
   hive:
     dependency: transitive
     description:
