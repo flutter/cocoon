@@ -18,6 +18,7 @@ const String kCodesignCertNameOption = 'CODESIGN-CERT-NAME';
 const String kCodesignUserNameOption = 'CODESIGN-USERNAME';
 const String kGcsDownloadPathOption = 'GCS-DOWNLOAD-PATH';
 const String kGcsUploadPathOption = 'GCS-UPLOAD-PATH';
+const String kCredentialsPathOption = 'PASSWORD-FILE-PATH';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -33,6 +34,14 @@ const String kGcsUploadPathOption = 'GCS-UPLOAD-PATH';
 /// [kGcsUploadPathOption] is the cloud bucket prefix to upload codesigned artifact to.
 /// For example, supply '--GCS-DOWNLOAD-PATH=gs://flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip',
 /// and code sign app will download the artifact at 'flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip' on google cloud storage
+///
+/// For [kCredentialsPathOption], this is the file path of the password file in file system. The password file stores sensitive passwords.
+/// sensitive passwords include <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>.
+/// For example, if a user supplies --PASSWORD-FILE-PATH=/tmp/passwords.txt, then we would be expecting a password file located at /tmp/passwords.txt.
+/// The password file should provide the password value for each of the password name, deliminated by a single colon. The content of a password file would look similar to:
+/// CODESIGN-APPSTORE-ID:123
+/// CODESIGN-TEAM-ID:456
+/// APP-SPECIFIC-PASSWORD:789
 ///
 /// Usage:
 /// ```shell
@@ -65,6 +74,11 @@ Future<void> main(List<String> args) async {
           'e.g. supply `--GCS-UPLOAD-PATH=gs://flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
           ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
     )
+    ..addOption(
+      kCredentialsPathOption,
+      help: 'The file path of the password file in file system. The password file stores sensitive passwords.\n'
+          'sensitive passwords include <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD> \n',
+    )
     ..addFlag(
       kDryrunFlag,
       defaultsTo: true,
@@ -79,6 +93,7 @@ Future<void> main(List<String> args) async {
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
   final String gCloudDownloadPath = getValueFromEnvOrArgs(kGcsDownloadPathOption, argResults, platform.environment)!;
   final String gCloudUploadPath = getValueFromEnvOrArgs(kGcsUploadPathOption, argResults, platform.environment)!;
+  final String passwordsFilePath = getValueFromEnvOrArgs(kCredentialsPathOption, argResults, platform.environment)!;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
@@ -102,6 +117,7 @@ Future<void> main(List<String> args) async {
     codesignUserName: codesignUserName,
     fileSystem: fileSystem,
     rootDirectory: rootDirectory,
+    passwordsFilePath: passwordsFilePath,
     processManager: processManager,
     dryrun: dryrun,
     gcsDownloadPath: gCloudDownloadPath,

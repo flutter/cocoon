@@ -17,6 +17,7 @@ import './src/fake_process_manager.dart';
 
 void main() {
   const String randomString = 'abcd1234';
+  const String passwordsFilePath = '/tmp/passwords.txt';
   final MemoryFileSystem fileSystem = MemoryFileSystem.test();
   final List<LogRecord> records = <LogRecord>[];
 
@@ -38,6 +39,7 @@ void main() {
         codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
@@ -51,7 +53,7 @@ void main() {
     });
 
     test('incorrectly formatted password file throws exception', () async {
-      fileSystem.file('/tmp/passwords.txt')
+      fileSystem.file(passwordsFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''file_a
@@ -64,7 +66,7 @@ file_c''',
       expect(
         () async {
           await codesignVisitor.readPasswords(fileSystem);
-          fileSystem.file('/tmp/passwords.txt').deleteSync();
+          fileSystem.file(passwordsFilePath).deleteSync();
         },
         throwsA(
           isA<CodesignException>(),
@@ -73,7 +75,7 @@ file_c''',
     });
 
     test('unknown password name throws an exception', () async {
-      fileSystem.file('/tmp/passwords.txt')
+      fileSystem.file(passwordsFilePath)
         ..createSync(recursive: true, exclusive: true)
         ..writeAsStringSync(
           '''dart:dart''',
@@ -84,7 +86,7 @@ file_c''',
       expect(
         () async {
           await codesignVisitor.readPasswords(fileSystem);
-          await fileSystem.file('/tmp/passwords.txt').delete();
+          await fileSystem.file(passwordsFilePath).delete();
         },
         throwsA(
           isA<CodesignException>(),
@@ -93,7 +95,7 @@ file_c''',
     });
 
     test('lacking any of the required passwords throws exception', () async {
-      fileSystem.file('/tmp/passwords.txt')
+      fileSystem.file(passwordsFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync(
           '''CODESIGN-TEAM-ID:123
@@ -105,7 +107,7 @@ CODESIGN-APPSTORE-ID:123''',
       expect(
         () async {
           await codesignVisitor.readPasswords(fileSystem);
-          await fileSystem.file('/tmp/passwords.txt').delete();
+          await fileSystem.file(passwordsFilePath).delete();
         },
         throwsA(
           isA<CodesignException>(),
@@ -114,7 +116,7 @@ CODESIGN-APPSTORE-ID:123''',
     });
 
     test('providing all required passwords returns normally', () async {
-      fileSystem.file('/tmp/passwords.txt')
+      fileSystem.file(passwordsFilePath)
         ..createSync(recursive: true, exclusive: true)
         ..writeAsStringSync(
           '''CODESIGN-APPSTORE-ID:123
@@ -126,7 +128,7 @@ APP-SPECIFIC-PASSWORD:123''',
 
       expect(() async {
         await codesignVisitor.readPasswords(fileSystem);
-        await fileSystem.file('/tmp/passwords.txt').delete();
+        await fileSystem.file(passwordsFilePath).delete();
       }, returnsNormally);
     });
   });
@@ -153,6 +155,7 @@ APP-SPECIFIC-PASSWORD:123''',
         codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
@@ -419,6 +422,7 @@ APP-SPECIFIC-PASSWORD:123''',
         codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'gs://flutter/$randomString/FILEPATH',
@@ -690,6 +694,7 @@ APP-SPECIFIC-PASSWORD:123''',
         codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
@@ -782,6 +787,7 @@ APP-SPECIFIC-PASSWORD:123''',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
@@ -885,6 +891,7 @@ file_c''',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
@@ -1205,6 +1212,7 @@ status: Invalid''',
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
@@ -1215,7 +1223,7 @@ status: Invalid''',
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
-      fileSystem.file('/tmp/passwords.txt')
+      fileSystem.file(passwordsFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('''CODESIGN-APPSTORE-ID:$randomString
 CODESIGN-TEAM-ID:$randomString
@@ -1376,6 +1384,7 @@ APP-SPECIFIC-PASSWORD:$randomString''');
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        passwordsFilePath: passwordsFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),

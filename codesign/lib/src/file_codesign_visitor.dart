@@ -33,6 +33,7 @@ class FileCodesignVisitor {
     required this.gcsDownloadPath,
     required this.gcsUploadPath,
     required this.googleCloudStorage,
+    required this.passwordsFilePath,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -53,6 +54,7 @@ class FileCodesignVisitor {
   final String codesignUserName;
   final String gcsDownloadPath;
   final String gcsUploadPath;
+  final String passwordsFilePath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
 
@@ -127,9 +129,13 @@ update these file paths accordingly.
 
   /// Extract credentials needed for code sign app.
   ///
-  /// Assume the passwords exist with the file path /tmp/passwords.txt.
+  /// Credentials are stored in a file located at [passwordsFilePath].
+  /// The password file should provide the password value for each of the password name, deliminated by a single colon.
+  /// The content of a password file would look similar to:
+  /// CODESIGN-APPSTORE-ID:123
+  /// CODESIGN-TEAM-ID:456
+  /// APP-SPECIFIC-PASSWORD:789
   Future<void> readPasswords(FileSystem fileSystem) async {
-    String passwordsFilePath = '/tmp/passwords.txt';
     if (!(await fileSystem.file(passwordsFilePath).exists())) {
       throw CodesignException('$passwordsFilePath not found \n'
           'make sure you have provided codesign credentials in a file \n');
