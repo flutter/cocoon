@@ -45,7 +45,7 @@ Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   }
 
   writeNotNull('attributes', instance.attributes);
-  val['data'] = _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson);
+  writeNotNull('data', _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson));
   writeNotNull('messageId', instance.messageId);
   return val;
 }
