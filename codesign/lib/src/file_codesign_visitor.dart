@@ -27,9 +27,6 @@ class FileCodesignVisitor {
   FileCodesignVisitor({
     required this.codesignCertName,
     required this.codesignUserName,
-    required this.appSpecificPassword,
-    required this.codesignAppstoreId,
-    required this.codesignTeamId,
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
@@ -54,18 +51,27 @@ class FileCodesignVisitor {
 
   final String codesignCertName;
   final String codesignUserName;
-  final String appSpecificPassword;
-  final String codesignAppstoreId;
-  final String codesignTeamId;
   final String gcsDownloadPath;
   final String gcsUploadPath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
 
+  // 'Apple developer account email used for authentication with notary service.'
+  late String codesignAppstoreId;
+  // Unique password of the apple developer account.'
+  late String appSpecificPassword;
+  // Team-id is used by notary service for xcode version 13+.
+  late String codesignTeamId;
+
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
+  Map<String, String> availablePasswords = {
+    'CODESIGN-APPSTORE-ID': '',
+    'CODESIGN-TEAM-ID': '',
+    'APP-SPECIFIC-PASSWORD': ''
+  };
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -119,8 +125,47 @@ If there are obsolete binaries in entitlements configuration files, please delet
 update these file paths accordingly.
 ''';
 
+  /// Extract credentials needed for code sign app.
+  ///
+  /// Assume the passwords exist with the file path /tmp/passwords.txt.
+  Future<void> readPasswords(FileSystem fileSystem) async {
+    String passwordsFilePath = '/tmp/passwords.txt';
+    if (!(await fileSystem.file(passwordsFilePath).exists())) {
+      throw CodesignException('$passwordsFilePath not found \n'
+          'make sure you have provided codesign credentials in a file \n');
+    }
+
+    final List<String> passwordslines = <String>[];
+    passwordslines.addAll(await fileSystem.file(passwordsFilePath).readAsLines());
+    for (String passwordsline in passwordslines) {
+      List<String> parsedPasswordLine = passwordsline.split(":");
+      if (parsedPasswordLine.length != 2) {
+        throw CodesignException('$passwordsFilePath is not correctly formatted. \n'
+            'please double check formatting \n');
+      }
+      String passwordName = parsedPasswordLine[0];
+      String passwordValue = parsedPasswordLine[1];
+      if (!availablePasswords.containsKey(passwordName)) {
+        throw CodesignException('$passwordName is not a password we can process. \n'
+            'please double check passwords.txt \n');
+      }
+      availablePasswords[passwordName] = passwordValue;
+    }
+
+    if (availablePasswords.containsValue('')) {
+      throw CodesignException('certian passwords are missing. \n'
+          'make sure you have provided <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>');
+    }
+
+    codesignAppstoreId = availablePasswords['CODESIGN-APPSTORE-ID']!;
+    codesignTeamId = availablePasswords['CODESIGN-TEAM-ID']!;
+    appSpecificPassword = availablePasswords['APP-SPECIFIC-PASSWORD']!;
+    return;
+  }
+
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
+    await readPasswords(fileSystem);
     await processRemoteZip();
 
     if (dryrun) {
