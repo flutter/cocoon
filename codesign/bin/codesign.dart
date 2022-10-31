@@ -18,7 +18,9 @@ const String kCodesignCertNameOption = 'CODESIGN-CERT-NAME';
 const String kCodesignUserNameOption = 'CODESIGN-USERNAME';
 const String kGcsDownloadPathOption = 'gcs-download-path';
 const String kGcsUploadPathOption = 'gcs-upload-path';
-const String kCredentialsPathOption = 'password-file-path';
+const String kAppSpecificPasswordOption = 'app-specific-password-file-path';
+const String kCodesignAppstoreIDOption = 'codesign-appstore-id-file-path';
+const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 
 /// Perform Mac code signing based on file paths.
 ///
@@ -38,20 +40,27 @@ const String kCredentialsPathOption = 'password-file-path';
 /// 'flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip'
 /// on google cloud storage
 ///
-/// For [kCredentialsPathOption], this is the file path of the password file in file system.
-/// The password file stores sensitive passwords.
+/// For [kAppSpecificPasswordOption], [kCodesignAppstoreIDOption] and [kCodesignTeamIDOption],
+/// they are file paths of the password files in the file system.
+/// Each of the file paths stores a single line of sensitive password.
 /// sensitive passwords include <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>.
-/// For example, if a user supplies --password-file-path=/tmp/passwords.txt,
+/// For example, if a user supplies --app-specific-password-file-path=/tmp/passwords.txt,
 /// then we would be expecting a password file located at /tmp/passwords.txt.
-/// The password file should provide the password value for each of the password name, deliminated by a single colon.
+/// The password file should contain the password name APP-SPECIFIC-PASSWORD and its value, deliminated by a single colon.
 /// The content of a password file would look similar to:
-/// CODESIGN-APPSTORE-ID:123
-/// CODESIGN-TEAM-ID:456
 /// APP-SPECIFIC-PASSWORD:789
+///
+/// [kCodesignCertNameOption] and [kCodesignUserNameOption] are public information. For codesigning flutter artifacts,
+/// a user can provide values for these two variables as shown in the example below.
 ///
 /// Usage:
 /// ```shell
 /// dart run bin/codesign.dart --[no-]dryrun
+/// --CODESIGN-CERT-NAME="FLUTTER.IO LLC"
+/// --CODESIGN_USERNAME=stores@flutter.io
+/// --codesign-team-id-file-path=/a/b/c.txt
+/// --codesign-appstore-id-file-path=/a/b/b.txt
+/// --app-specific-password-file-path=/a/b/a.txt
 /// --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// --gcs-upload-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
 /// ```
@@ -82,9 +91,19 @@ Future<void> main(List<String> args) async {
           ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
     )
     ..addOption(
-      kCredentialsPathOption,
-      help: 'The file path of the password file in file system. The password file stores sensitive passwords.\n'
-          'sensitive passwords include <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD> \n',
+      kAppSpecificPasswordOption,
+      help:
+          'The file path of a password file in file system. The password file stores the sensitive password <APP-SPECIFIC-PASSWORD> \n',
+    )
+    ..addOption(
+      kCodesignAppstoreIDOption,
+      help:
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN-APPSTORE-ID> \n',
+    )
+    ..addOption(
+      kCodesignTeamIDOption,
+      help:
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN-TEAM-ID> \n',
     )
     ..addFlag(
       kDryrunFlag,
@@ -100,7 +119,11 @@ Future<void> main(List<String> args) async {
   final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
   final String gCloudDownloadPath = getValueFromEnvOrArgs(kGcsDownloadPathOption, argResults, platform.environment)!;
   final String gCloudUploadPath = getValueFromEnvOrArgs(kGcsUploadPathOption, argResults, platform.environment)!;
-  final String passwordsFilePath = getValueFromEnvOrArgs(kCredentialsPathOption, argResults, platform.environment)!;
+  final String appSpecificPasswordFilePath =
+      getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
+  final String codesignAppstoreIDFilePath =
+      getValueFromEnvOrArgs(kCodesignAppstoreIDOption, argResults, platform.environment)!;
+  final String codesignTeamIDFilePath = getValueFromEnvOrArgs(kCodesignTeamIDOption, argResults, platform.environment)!;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
@@ -124,7 +147,9 @@ Future<void> main(List<String> args) async {
     codesignUserName: codesignUserName,
     fileSystem: fileSystem,
     rootDirectory: rootDirectory,
-    passwordsFilePath: passwordsFilePath,
+    appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+    codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+    codesignTeamIDFilePath: codesignTeamIDFilePath,
     processManager: processManager,
     dryrun: dryrun,
     gcsDownloadPath: gCloudDownloadPath,

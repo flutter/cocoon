@@ -33,7 +33,9 @@ class FileCodesignVisitor {
     required this.gcsDownloadPath,
     required this.gcsUploadPath,
     required this.googleCloudStorage,
-    required this.passwordsFilePath,
+    required this.appSpecificPasswordFilePath,
+    required this.codesignAppstoreIDFilePath,
+    required this.codesignTeamIDFilePath,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -54,7 +56,9 @@ class FileCodesignVisitor {
   final String codesignUserName;
   final String gcsDownloadPath;
   final String gcsUploadPath;
-  final String passwordsFilePath;
+  final String appSpecificPasswordFilePath;
+  final String codesignAppstoreIDFilePath;
+  final String codesignTeamIDFilePath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
 
@@ -127,51 +131,50 @@ If there are obsolete binaries in entitlements configuration files, please delet
 update these file paths accordingly.
 ''';
 
-  /// Extract credentials needed for code sign app.
+  /// Read a single line of password stored at [passwordFilePath].
   ///
-  /// Credentials are stored in a file located at [passwordsFilePath].
-  /// The password file should provide the password value for each of the password name, deliminated by a single colon.
+  /// The password file should provide the password name and value, deliminated by a single colon.
   /// The content of a password file would look similar to:
   /// CODESIGN-APPSTORE-ID:123
-  /// CODESIGN-TEAM-ID:456
-  /// APP-SPECIFIC-PASSWORD:789
-  Future<void> readPasswords(FileSystem fileSystem) async {
-    if (!(await fileSystem.file(passwordsFilePath).exists())) {
-      throw CodesignException('$passwordsFilePath not found \n'
+  Future<void> readPassword(String passwordFilePath) async {
+    if (!(await fileSystem.file(passwordFilePath).exists())) {
+      throw CodesignException('$passwordFilePath not found \n'
           'make sure you have provided codesign credentials in a file \n');
     }
 
-    final List<String> passwordslines = <String>[];
-    passwordslines.addAll(await fileSystem.file(passwordsFilePath).readAsLines());
-    for (String passwordsline in passwordslines) {
-      List<String> parsedPasswordLine = passwordsline.split(":");
-      if (parsedPasswordLine.length != 2) {
-        throw CodesignException('$passwordsFilePath is not correctly formatted. \n'
-            'please double check formatting \n');
-      }
-      String passwordName = parsedPasswordLine[0];
-      String passwordValue = parsedPasswordLine[1];
-      if (!availablePasswords.containsKey(passwordName)) {
-        throw CodesignException('$passwordName is not a password we can process. \n'
-            'please double check passwords.txt \n');
-      }
-      availablePasswords[passwordName] = passwordValue;
+    String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
+    List<String> parsedPasswordLine = passwordLine.split(":");
+    if (parsedPasswordLine.length != 2) {
+      throw CodesignException('$passwordFilePath is not correctly formatted. \n'
+          'please double check formatting \n');
     }
-
-    if (availablePasswords.containsValue('')) {
-      throw CodesignException('certian passwords are missing. \n'
-          'make sure you have provided <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>');
+    String passwordName = parsedPasswordLine[0];
+    String passwordValue = parsedPasswordLine[1];
+    if (!availablePasswords.containsKey(passwordName)) {
+      throw CodesignException('$passwordName is not a password we can process. \n'
+          'please double check passwords.txt \n');
     }
-
-    codesignAppstoreId = availablePasswords['CODESIGN-APPSTORE-ID']!;
-    codesignTeamId = availablePasswords['CODESIGN-TEAM-ID']!;
-    appSpecificPassword = availablePasswords['APP-SPECIFIC-PASSWORD']!;
+    availablePasswords[passwordName] = passwordValue;
     return;
   }
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    await readPasswords(fileSystem);
+    for (String passwordFilePath in [
+      codesignAppstoreIDFilePath,
+      codesignTeamIDFilePath,
+      appSpecificPasswordFilePath,
+    ]) {
+      await readPassword(passwordFilePath);
+    }
+    if (availablePasswords.containsValue('')) {
+      throw CodesignException('certian passwords are missing. \n'
+          'make sure you have provided <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>');
+    }
+    codesignAppstoreId = availablePasswords['CODESIGN-APPSTORE-ID']!;
+    codesignTeamId = availablePasswords['CODESIGN-TEAM-ID']!;
+    appSpecificPassword = availablePasswords['APP-SPECIFIC-PASSWORD']!;
+
     await processRemoteZip();
 
     if (dryrun) {
