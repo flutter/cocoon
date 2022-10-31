@@ -4789,20 +4789,20 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         returnValue: _i17.Future<bool>.value(false),
       ) as _i17.Future<bool>);
   @override
-  _i17.Future<_i9.Build> getTryBuildById(
+  _i17.Future<_i9.Build> getBuildById(
     String? id, {
     String? fields,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getTryBuildById,
+          #getBuildById,
           [id],
           {#fields: fields},
         ),
         returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
           this,
           Invocation.method(
-            #getTryBuildById,
+            #getBuildById,
             [id],
             {#fields: fields},
           ),
@@ -4837,6 +4837,24 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
             #commit: commit,
             #toBeScheduled: toBeScheduled,
           },
+        ),
+        returnValue: _i17.Future<void>.value(),
+        returnValueForMissingStub: _i17.Future<void>.value(),
+      ) as _i17.Future<void>);
+  @override
+  _i17.Future<void> createPostsubmitCheckRun(
+    _i34.Commit? commit,
+    _i32.Target? target,
+    Map<String, dynamic>? rawUserData,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #createPostsubmitCheckRun,
+          [
+            commit,
+            target,
+            rawUserData,
+          ],
         ),
         returnValue: _i17.Future<void>.value(),
         returnValueForMissingStub: _i17.Future<void>.value(),
