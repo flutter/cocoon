@@ -38,7 +38,6 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
@@ -156,7 +155,6 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
@@ -425,7 +423,6 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
@@ -699,7 +696,6 @@ void main() {
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
@@ -792,7 +788,6 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
@@ -898,7 +893,6 @@ file_c''',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
@@ -1221,7 +1215,6 @@ status: Invalid''',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
@@ -1399,7 +1392,6 @@ status: Invalid''',
       ]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
         gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
