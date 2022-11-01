@@ -8,8 +8,6 @@ import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
 
-import 'package:auto_submit/exception/retryable_merge_exception.dart';
-import 'package:auto_submit/requests/check_pull_request_queries.dart';
 import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -24,6 +22,7 @@ import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
 
+import '../exception/retryable_exception.dart';
 import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
 import '../validations/approval.dart';
@@ -351,7 +350,7 @@ Exception: ${exception.message}
             github.MergeMethod.squash,
           );
         },
-        retryIf: (Exception e) => e is RetryableMergeException,
+        retryIf: (Exception e) => e is RetryableException,
       );
 
       if (result != null && !result!.merged!) {
@@ -497,7 +496,7 @@ Future<github.PullRequestMerge> _processMergeInternal(
   );
 
   if (pullRequestMerge.merged == null || !pullRequestMerge.merged!) {
-    throw RetryableMergeException("Pull request could not be merged: ${pullRequestMerge.message}");
+    throw RetryableException("Pull request could not be merged: ${pullRequestMerge.message}");
   }
 
   return pullRequestMerge;

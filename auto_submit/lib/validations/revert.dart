@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/exception/retryable_checkrun_exception.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -11,6 +10,7 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
+import '../exception/retryable_exception.dart';
 import '../service/log.dart';
 
 class Revert extends Validation {
@@ -159,7 +159,7 @@ class Revert extends Validation {
               checkRun,
             );
           },
-          retryIf: (Exception e) => e is RetryableCheckRunException,
+          retryIf: (Exception e) => e is RetryableException,
         );
       }
     } catch (e) {
@@ -187,6 +187,6 @@ Future<void> _verifyCheckRunCompleted(
   );
 
   if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
-    throw RetryableCheckRunException('${targetCheckRun.name} has not yet completed.');
+    throw RetryableException('${targetCheckRun.name} has not yet completed.');
   }
 }
