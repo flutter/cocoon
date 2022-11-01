@@ -125,8 +125,8 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       githubService.mergeRequestMock = PullRequestMerge(
-        merged: true, 
-        sha: 'sha', 
+        merged: true,
+        sha: 'sha',
         message: 'Pull Request successfully merged',
       );
 
@@ -264,8 +264,8 @@ void main() {
       githubService.throwOnCreateIssue = true;
       githubService.useRealComment = true;
       githubService.mergeRequestMock = PullRequestMerge(
-        merged: true, 
-        sha: 'sha', 
+        merged: true,
+        sha: 'sha',
         message: 'Pull Request successfully merged',
       );
 
@@ -546,8 +546,10 @@ void main() {
       );
 
       githubService.useMergeRequestMockList = true;
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: false, message: 'Unable to merge pull request.'));
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: true, sha: 'sha', message: 'Pull Request successfully merged'));
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: false, message: 'Unable to merge pull request.'));
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: true, sha: 'sha', message: 'Pull Request successfully merged'));
 
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,

@@ -482,13 +482,13 @@ typedef RetryHandler = Function();
 Future<github.PullRequestMerge> _processMergeInternal(
   GithubService githubService,
   github.RepositorySlug slug,
-  int number, 
+  int number,
   github.MergeMethod mergeMethod, {
   String? commitMessage,
   String? requestSha,
 }) async {
   github.PullRequestMerge pullRequestMerge = await githubService.mergePullRequest(
-    slug, 
+    slug,
     number,
     commitMessage: commitMessage,
     mergeMethod: mergeMethod,

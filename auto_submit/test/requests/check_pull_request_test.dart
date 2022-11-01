@@ -38,7 +38,7 @@ void main() {
     late FakeConfig config;
     late FakeCronAuthProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
-    late FakeGithubService githubService; 
+    late FakeGithubService githubService;
     late MockJobsResource jobsResource;
     late FakeBigqueryService bigqueryService;
     late MockPullRequestsService pullRequests;
@@ -162,7 +162,7 @@ void main() {
       final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
 
       githubService.pullRequestData = pullRequest1;
-      
+
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -174,15 +174,17 @@ void main() {
         lastCommitHash: oid,
       );
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
-      
+
       githubService.useMergeRequestMockList = true;
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: false, message: 'Unable to merge pull request'));
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: true, sha: 'sha', message: 'Pull request merged successfully'));
-      
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: false, message: 'Unable to merge pull request'));
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: true, sha: 'sha', message: 'Pull request merged successfully'));
+
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
-      
+
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       // this is the test.
@@ -215,15 +217,17 @@ void main() {
       verifyQueries(expectedOptions);
 
       githubService.useMergeRequestMockList = true;
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully'));
-      githubService.pullRequestMergeMockList.add(PullRequestMerge(merged: true, sha: 'sha2', message: 'Pull request merged successfully'));
-      
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully'));
+      githubService.pullRequestMergeMockList
+          .add(PullRequestMerge(merged: true, sha: 'sha2', message: 'Pull request merged successfully'));
+
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
-      
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -253,7 +257,8 @@ void main() {
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
-      githubService.mergeRequestMock = PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
 
@@ -282,7 +287,8 @@ void main() {
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
-      githubService.mergeRequestMock = PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
 
@@ -311,7 +317,8 @@ void main() {
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
 
-      githubService.mergeRequestMock = PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
 
@@ -337,7 +344,8 @@ void main() {
       Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 
-      githubService.mergeRequestMock = PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
 
       githubService.verifyMergePullRequests(expectedMergeRequestMap);
 

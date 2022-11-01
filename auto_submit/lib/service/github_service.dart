@@ -137,7 +137,7 @@ class GithubService {
     String? requestSha,
   }) async {
     return await github.pullRequests.merge(
-      slug, 
+      slug,
       number,
       message: commitMessage,
       mergeMethod: mergeMethod,

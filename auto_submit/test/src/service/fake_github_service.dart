@@ -40,6 +40,7 @@ class FakeGithubService implements GithubService {
   bool trackMergeRequestCalls = false;
   PullRequestMerge? mergeRequestMock;
   List<PullRequestMerge> pullRequestMergeMockList = [];
+
   /// map to track pull request calls using pull number and repository slug.
   Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
 
@@ -284,12 +285,17 @@ class FakeGithubService implements GithubService {
     return githubIssueMock!;
   }
 
-  /// If useMergeRequestMockList is true then we will return elements from that 
+  /// If useMergeRequestMockList is true then we will return elements from that
   /// list until it is empty. The developer should track the number of times this
   /// method is called as managing an empty list is not done here.
   @override
-  Future<PullRequestMerge> mergePullRequest(RepositorySlug slug, int number,
-      {String? commitMessage, MergeMethod? mergeMethod, String? requestSha,}) async {
+  Future<PullRequestMerge> mergePullRequest(
+    RepositorySlug slug,
+    int number, {
+    String? commitMessage,
+    MergeMethod? mergeMethod,
+    String? requestSha,
+  }) async {
     verifyPullRequestMergeCallMap[number] = slug;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
@@ -300,7 +306,7 @@ class FakeGithubService implements GithubService {
 
   void verifyMergePullRequests(Map<int, RepositorySlug> expected) {
     assert(verifyPullRequestMergeCallMap.length == expected.length);
-    verifyPullRequestMergeCallMap.forEach((key, value) { 
+    verifyPullRequestMergeCallMap.forEach((key, value) {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
