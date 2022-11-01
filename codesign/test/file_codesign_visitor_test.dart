@@ -97,6 +97,11 @@ void main() {
     });
 
     test('lacking required passwords throws exception', () async {
+      codesignVisitor.availablePasswords = {
+        'CODESIGN-APPSTORE-ID': '',
+        'CODESIGN-TEAM-ID': '',
+        'APP-SPECIFIC-PASSWORD': ''
+      };
       fileSystem.file(codesignAppstoreIDFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync(
