@@ -444,7 +444,7 @@ Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
   }
 
   writeNotNull('pubsubTopic', instance.pubsubTopic);
-  val['userData'] = _$JsonConverterToJson<String, String>(instance.userData, const Base64Converter().toJson);
+  writeNotNull('userData', _$JsonConverterToJson<String, String>(instance.userData, const Base64Converter().toJson));
   return val;
 }
 
