@@ -15,7 +15,6 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/service/merge_method.dart';
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/service/revert_review_template.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
@@ -190,8 +189,12 @@ class ValidationService {
     }
 
     // If we got to this point it means we are ready to submit the PR.
-    final ProcessMergeResult processed =
-        await processMerge(config: config, queryResult: result, messagePullRequest: messagePullRequest);
+    final ProcessMergeResult processed = await processMerge(
+      githubService: gitHubService,
+      config: config,
+      queryResult: result,
+      messagePullRequest: messagePullRequest,
+    );
 
     if (!processed.result) {
       final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
@@ -238,18 +241,11 @@ class ValidationService {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
-      // final ProcessMergeResult processed = await processMerge(
-      //   config: config,
-      //   queryResult: result,
-      //   messagePullRequest: messagePullRequest,
-      // );
-
-      final ProcessMergeResult processed = await _processMergeExperiment(
-        gitHubService,
-        slug,
-        prNumber,
-        commitMessage: 'Merging revert with http squash and merge',
-        mergeMethod: MergeMethod.squash,
+      final ProcessMergeResult processed = await processMerge(
+        githubService: gitHubService,
+        config: config,
+        queryResult: result,
+        messagePullRequest: messagePullRequest,
       );
 
       if (processed.result) {
@@ -335,6 +331,7 @@ Exception: ${exception.message}
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<ProcessMergeResult> processMerge({
+    required GithubService githubService,
     required Config config,
     required QueryResult queryResult,
     required github.PullRequest messagePullRequest,
@@ -343,25 +340,22 @@ Exception: ${exception.message}
     final int number = messagePullRequest.number!;
 
     try {
-      // The createGitHubGraphQLClient can throw Exception on github permissions
-      // errors.
-      final graphql.GraphQLClient client = await config.createGitHubGraphQLClient(slug);
-      graphql.QueryResult? result;
+      github.PullRequestMerge? result;
 
       await retryOptions.retry(
         () async {
           result = await _processMergeInternal(
-            client: client,
-            config: config,
-            queryResult: queryResult,
-            messagePullRequest: messagePullRequest,
+            githubService,
+            slug,
+            number,
+            github.MergeMethod.squash,
           );
         },
         retryIf: (Exception e) => e is RetryableMergeException,
       );
 
-      if (result != null && result!.hasException) {
-        final String message = 'Failed to merge pr#: $number with ${result!.exception}';
+      if (result != null && !result!.merged!) {
+        final String message = 'Failed to merge pr#: $number with ${result!.message}';
         log.severe(message);
         return ProcessMergeResult(false, message);
       }
@@ -472,30 +466,6 @@ Exception: ${exception.message}
   }
 }
 
-Future<ProcessMergeResult> _processMergeExperiment(
-  GithubService githubService,
-  github.RepositorySlug slug,
-  int number, {
-  String? commitMessage,
-  MergeMethod? mergeMethod,
-  String? requestSha,
-}) async {
-  
-  int statusCode = await githubService.mergePullRequest(
-    slug,
-    number,
-    commitMessage: commitMessage,
-    mergeMethod: MergeMethod.squash,
-    requestSha: requestSha,
-  );
-
-  if (statusCode == github.StatusCodes.OK) {
-    return ProcessMergeResult.noMessage(true);
-  } else {
-    return ProcessMergeResult(false, "Merge request return code: $statusCode");
-  }
-}
-
 /// Small wrapper class to allow us to capture and create a comment in the PR with
 /// the issue that caused the merge failure.
 class ProcessMergeResult {
@@ -510,36 +480,25 @@ class ProcessMergeResult {
 typedef RetryHandler = Function();
 
 /// Internal wrapper for the logic of merging a pull request into github.
-Future<graphql.QueryResult> _processMergeInternal({
-  required graphql.GraphQLClient client,
-  required Config config,
-  required QueryResult queryResult,
-  required github.PullRequest messagePullRequest,
+Future<github.PullRequestMerge> _processMergeInternal(
+  GithubService githubService,
+  github.RepositorySlug slug,
+  int number, 
+  github.MergeMethod mergeMethod, {
+  String? commitMessage,
+  String? requestSha,
 }) async {
-  final String id = queryResult.repository!.pullRequest!.id!;
-
-  final PullRequest pullRequest = queryResult.repository!.pullRequest!;
-  final Commit commit = pullRequest.commits!.nodes!.single.commit!;
-  final String? sha = commit.oid;
-  final int number = messagePullRequest.number!;
-
-  final graphql.QueryResult result = await client.mutate(
-    graphql.MutationOptions(
-      document: mergePullRequestMutation,
-      variables: <String, dynamic>{
-        'id': id,
-        'oid': sha,
-        'title': '${queryResult.repository!.pullRequest!.title} (#$number)',
-      },
-    ),
+  github.PullRequestMerge pullRequestMerge = await githubService.mergePullRequest(
+    slug, 
+    number,
+    commitMessage: commitMessage,
+    mergeMethod: mergeMethod,
+    requestSha: requestSha,
   );
 
-  // We have to make this check because mutate does not explicitely throw an
-  // exception, rather it wraps any exceptions encountered.
-  if (result.hasException) {
-    // This exception will bubble up if retries are exhausted.
-    throw RetryableMergeException(result.exception!.graphqlErrors.first.message, result.exception!.graphqlErrors);
+  if (pullRequestMerge.merged == null || !pullRequestMerge.merged!) {
+    throw RetryableMergeException("Pull request could not be merged: ${pullRequestMerge.message}");
   }
 
-  return result;
+  return pullRequestMerge;
 }

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'package:auto_submit/service/log.dart';
-import 'package:auto_submit/service/merge_method.dart';
 import 'package:github/github.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
@@ -130,36 +129,20 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
-  Future<int> mergePullRequest(
+  Future<PullRequestMerge> mergePullRequest(
     RepositorySlug slug,
     int number, {
     String? commitMessage,
     MergeMethod mergeMethod = MergeMethod.merge,
     String? requestSha,
   }) async {
-    // Recommended Accept header when making a merge request.
-    Map<String, String>? headers = <String, String>{};
-    headers['Accept'] = 'application/vnd.github+json';
-
-    final Map<String, dynamic> json = <String, dynamic>{};
-    if (commitMessage != null) {
-      json['commit_message'] = commitMessage;
-    }
-    if (requestSha != null) {
-       json['sha'] = requestSha;
-    }
-    json['merge_method'] = mergeMethod;
-
-    final response = await github.request(
-      'PUT',
-      '/repos/${slug.fullName}/pulls/$number/merge',
-      headers: headers,
-      body: GitHubJson.encode(json),
+    return await github.pullRequests.merge(
+      slug, 
+      number,
+      message: commitMessage,
+      mergeMethod: mergeMethod,
+      requestSha: requestSha,
     );
-
-    log.info('Response from github ${response.body}');
-
-    return response.statusCode;
   }
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
@@ -169,7 +152,7 @@ class GithubService {
     final RepositoryCommit totCommit = await getCommit(slug, 'HEAD');
     final GitHubComparison comparison = await compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
     if (comparison.behindBy! >= _kBehindToT) {
-      log.info('The current branch behinds by ${comparison.behindBy} commits.');
+      log.info('The current branch is behind by ${comparison.behindBy} commits.');
       final String headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
