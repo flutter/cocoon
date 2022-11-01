@@ -14,8 +14,8 @@ import 'package:process/process.dart';
 /// Definitions of variables are included in help texts below.
 const String kHelpFlag = 'help';
 const String kDryrunFlag = 'dryrun';
-const String kCodesignCertNameOption = 'CODESIGN-CERT-NAME';
-const String kCodesignUserNameOption = 'CODESIGN-USERNAME';
+const String kCodesignCertNameOption = 'codesign-cert-name';
+const String kCodesignUserNameOption = 'codesign-username';
 const String kGcsDownloadPathOption = 'gcs-download-path';
 const String kGcsUploadPathOption = 'gcs-upload-path';
 const String kAppSpecificPasswordOption = 'app-specific-password-file-path';
@@ -56,8 +56,8 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// Usage:
 /// ```shell
 /// dart run bin/codesign.dart --[no-]dryrun
-/// --CODESIGN-CERT-NAME="FLUTTER.IO LLC"
-/// --CODESIGN_USERNAME=stores@flutter.io
+/// --codesign-cert-name="FLUTTER.IO LLC"
+/// --codesign-username=stores@flutter.io
 /// --codesign-team-id-file-path=/a/b/c.txt
 /// --codesign-appstore-id-file-path=/a/b/b.txt
 /// --app-specific-password-file-path=/a/b/a.txt
@@ -115,15 +115,13 @@ Future<void> main(List<String> args) async {
 
   const Platform platform = LocalPlatform();
 
-  final String codesignCertName = getValueFromEnvOrArgs(kCodesignCertNameOption, argResults, platform.environment)!;
-  final String codesignUserName = getValueFromEnvOrArgs(kCodesignUserNameOption, argResults, platform.environment)!;
-  final String gCloudDownloadPath = getValueFromEnvOrArgs(kGcsDownloadPathOption, argResults, platform.environment)!;
-  final String gCloudUploadPath = getValueFromEnvOrArgs(kGcsUploadPathOption, argResults, platform.environment)!;
-  final String appSpecificPasswordFilePath =
-      getValueFromEnvOrArgs(kAppSpecificPasswordOption, argResults, platform.environment)!;
-  final String codesignAppstoreIDFilePath =
-      getValueFromEnvOrArgs(kCodesignAppstoreIDOption, argResults, platform.environment)!;
-  final String codesignTeamIDFilePath = getValueFromEnvOrArgs(kCodesignTeamIDOption, argResults, platform.environment)!;
+  final String codesignCertName = getValueFromArgs(kCodesignCertNameOption, argResults)!;
+  final String codesignUserName = getValueFromArgs(kCodesignUserNameOption, argResults)!;
+  final String gCloudDownloadPath = getValueFromArgs(kGcsDownloadPathOption, argResults)!;
+  final String gCloudUploadPath = getValueFromArgs(kGcsUploadPathOption, argResults)!;
+  final String appSpecificPasswordFilePath = getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
+  final String codesignAppstoreIDFilePath = getValueFromArgs(kCodesignAppstoreIDOption, argResults)!;
+  final String codesignTeamIDFilePath = getValueFromArgs(kCodesignTeamIDOption, argResults)!;
 
   final bool dryrun = argResults[kDryrunFlag] as bool;
 
