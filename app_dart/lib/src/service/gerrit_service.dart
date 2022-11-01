@@ -108,7 +108,7 @@ class GerritService {
     final http.Client client = RetryClient(
       authClient,
       when: (http.BaseResponse response) => _responseIsAcceptable(response) == false,
-      delay: (int attempt) => retryDelay ?? const Duration(seconds: 3) * attempt,
+      delay: (int attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
     );
     final http.Response response = await client.put(
       url,

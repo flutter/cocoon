@@ -27,7 +27,7 @@ class BranchService {
   BranchService({
     required this.config,
     required this.gerritService,
-    this.retryOptions = const RetryOptions(),
+    this.retryOptions = const RetryOptions(maxAttempts: 3),
   });
 
   final Config config;

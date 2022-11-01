@@ -25,18 +25,18 @@ enum NotaryStatus {
 /// Codesign and notarize all files within a [RemoteArchive].
 class FileCodesignVisitor {
   FileCodesignVisitor({
-    required this.commitHash,
     required this.codesignCertName,
     required this.codesignUserName,
     required this.appSpecificPassword,
     required this.codesignAppstoreId,
     required this.codesignTeamId,
-    required this.codesignFilepaths,
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
+    required this.gcsDownloadPath,
+    required this.gcsUploadPath,
     required this.googleCloudStorage,
-    this.production = false,
+    this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
     entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
@@ -52,21 +52,20 @@ class FileCodesignVisitor {
   final ProcessManager processManager;
   final GoogleCloudStorage googleCloudStorage;
 
-  final String commitHash;
   final String codesignCertName;
   final String codesignUserName;
   final String appSpecificPassword;
   final String codesignAppstoreId;
   final String codesignTeamId;
-  final bool production;
+  final String gcsDownloadPath;
+  final String gcsUploadPath;
+  final bool dryrun;
   final Duration notarizationTimerDuration;
 
-  // TODO(xilaizhang): add back utitlity in later splits
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
-  List<String> codesignFilepaths;
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -122,7 +121,12 @@ update these file paths accordingly.
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    await Future<void>.value(null);
+    await processRemoteZip();
+
+    if (dryrun) {
+      log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
+          ' google cloud storage, please use the --dryrun=false flag to run code signing script.');
+    }
     log.info('Codesigned all binaries in ${rootDirectory.path}');
 
     await rootDirectory.delete(recursive: true);
@@ -133,20 +137,19 @@ update these file paths accordingly.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
   /// zip. Also downloads, notarizes and uploads the engine artifact.
-  Future<void> processRemoteZip({
-    required String artifactFilePath,
-    required Directory parentDirectory,
-  }) async {
-    final FileSystem fs = rootDirectory.fileSystem;
-
-    // namespace by hashcode otherwise there will be collisions
-    final String localFilePath = '${artifactFilePath.hashCode}_${fs.path.basename(artifactFilePath)}';
+  Future<void> processRemoteZip() async {
+    // Name of the downloaded artifact.
+    // There won't be collisions since we are only signing one artifact at a time now
+    const String localFilePath = 'remote_artifact.zip';
 
     // download the zip file
     final File originalFile = await googleCloudStorage.downloadEngineArtifact(
-      from: artifactFilePath,
+      from: gcsDownloadPath,
       destination: remoteDownloadsDir.childFile(localFilePath).path,
     );
+
+    // This is the starting directory of the unzipped artifact.
+    final Directory parentDirectory = rootDirectory.childDirectory('single_artifact');
 
     await unzip(
       inputZip: originalFile,
@@ -161,7 +164,7 @@ update these file paths accordingly.
     log.info('parsed binaries without entitlements are $fileWithEntitlements');
 
     // recursively visit extracted files
-    await visitDirectory(directory: parentDirectory, entitlementParentPath: artifactFilePath);
+    await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
 
     final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
 
@@ -171,19 +174,22 @@ update these file paths accordingly.
       processManager: processManager,
     );
 
-    // notarize
-    await notarize(codesignedFile);
+    // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
+    // This would help prevent https://github.com/flutter/flutter/issues/104387
+    if (!dryrun) {
+      await notarize(codesignedFile);
 
-    await googleCloudStorage.uploadEngineArtifact(
-      from: codesignedFile.path,
-      destination: artifactFilePath,
-    );
+      await googleCloudStorage.uploadEngineArtifact(
+        from: codesignedFile.path,
+        destination: gcsUploadPath,
+      );
+    }
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
   Future<void> visitDirectory({
     required Directory directory,
-    required String entitlementParentPath,
+    required String parentVirtualPath,
   }) async {
     log.info('Visiting directory ${directory.absolute.path}');
     if (directoriesVisited.contains(directory.absolute.path)) {
@@ -196,7 +202,7 @@ update these file paths accordingly.
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
-          entitlementParentPath: entitlementParentPath,
+          parentVirtualPath: joinEntitlementPaths(parentVirtualPath, entity.basename),
         );
         continue;
       }
@@ -210,10 +216,10 @@ update these file paths accordingly.
       if (childType == FileType.zip) {
         await visitEmbeddedZip(
           zipEntity: entity,
-          entitlementParentPath: entitlementParentPath,
+          parentVirtualPath: parentVirtualPath,
         );
       } else if (childType == FileType.binary) {
-        await visitBinaryFile(binaryFile: entity as File, entitlementParentPath: entitlementParentPath);
+        await visitBinaryFile(binaryFile: entity as File, parentVirtualPath: parentVirtualPath);
       }
       log.info('Child file of directory ${directory.basename} is ${entity.basename}');
     }
@@ -222,9 +228,9 @@ update these file paths accordingly.
   /// Unzip an [EmbeddedZip] and visit its children.
   Future<void> visitEmbeddedZip({
     required FileSystemEntity zipEntity,
-    required String entitlementParentPath,
+    required String parentVirtualPath,
   }) async {
-    log.info('This embedded file is ${zipEntity.path} and entitlementParentPath is $entitlementParentPath');
+    log.info('This embedded file is ${zipEntity.path} and parentVirtualPath is $parentVirtualPath');
     final String currentFileName = zipEntity.basename;
     final Directory newDir = rootDirectory.childDirectory('embedded_zip_${zipEntity.absolute.path.hashCode}');
     await unzip(
@@ -234,10 +240,10 @@ update these file paths accordingly.
     );
 
     // the virtual file path is advanced by the name of the embedded zip
-    final String currentZipEntitlementPath = '$entitlementParentPath/$currentFileName';
+    final String currentZipEntitlementPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
     await visitDirectory(
       directory: newDir,
-      entitlementParentPath: currentZipEntitlementPath,
+      parentVirtualPath: currentZipEntitlementPath,
     );
     await zipEntity.delete();
     await zip(
@@ -252,9 +258,9 @@ update these file paths accordingly.
   /// At this stage, the virtual [entitlementCurrentPath] accumulated through the recursive visit, is compared
   /// against the paths extracted from [fileWithEntitlements], to help determine if this file should be signed
   /// with entitlements.
-  Future<void> visitBinaryFile({required File binaryFile, required String entitlementParentPath}) async {
+  Future<void> visitBinaryFile({required File binaryFile, required String parentVirtualPath}) async {
     final String currentFileName = binaryFile.basename;
-    final String entitlementCurrentPath = '$entitlementParentPath/$currentFileName';
+    final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
@@ -266,6 +272,10 @@ update these file paths accordingly.
     log.info('signing file at path ${binaryFile.absolute.path}');
     log.info('the virtual entitlement path associated with file is $entitlementCurrentPath');
     log.info('the decision to sign with entitlement is ${fileWithEntitlements.contains(entitlementCurrentPath)}');
+    fileConsumed.add(entitlementCurrentPath);
+    if (dryrun) {
+      return;
+    }
     final List<String> args = <String>[
       'codesign',
       '-f', // force
@@ -287,7 +297,6 @@ update these file paths accordingly.
         'stderr:\n${(result.stderr as String).trim()}',
       );
     }
-    fileConsumed.add(entitlementCurrentPath);
   }
 
   /// Extract entitlements configurations from downloaded zip files.

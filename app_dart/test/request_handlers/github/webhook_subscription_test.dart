@@ -1610,6 +1610,46 @@ void foo() {
       ));
     });
 
+    test('Engine does not comment for comment-only changes', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+      const String patch = '''
+@@ -128,7 +128,7 @@
+
+/// Insert interesting comment here.
+///
+-/// More details here, but some of them are wrong.
++/// These are the right details!
+void foo() {
+  int bar = 0;
+  String baz = '';
+''';
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'flutter/lib/ui/foo.dart'
+            ..additionsCount = 1
+            ..deletionsCount = 1
+            ..changesCount = 2
+            ..patch = patch,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        Config.engineSlug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
 
