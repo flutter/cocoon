@@ -15,7 +15,6 @@ import 'package:process/process.dart';
 const String kHelpFlag = 'help';
 const String kDryrunFlag = 'dryrun';
 const String kCodesignCertNameOption = 'codesign-cert-name';
-const String kCodesignUserNameOption = 'codesign-username';
 const String kGcsDownloadPathOption = 'gcs-download-path';
 const String kGcsUploadPathOption = 'gcs-upload-path';
 const String kAppSpecificPasswordOption = 'app-specific-password-file-path';
@@ -50,14 +49,13 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// The content of a password file would look similar to:
 /// APP-SPECIFIC-PASSWORD:789
 ///
-/// [kCodesignCertNameOption] and [kCodesignUserNameOption] are public information. For codesigning flutter artifacts,
-/// a user can provide values for these two variables as shown in the example below.
+/// [kCodesignCertNameOption] is public information. For codesigning flutter artifacts,
+/// a user can provide values for this variable as shown in the example below.
 ///
 /// Usage:
 /// ```shell
 /// dart run bin/codesign.dart --[no-]dryrun
 /// --codesign-cert-name="FLUTTER.IO LLC"
-/// --codesign-username=stores@flutter.io
 /// --codesign-team-id-file-path=/a/b/c.txt
 /// --codesign-appstore-id-file-path=/a/b/b.txt
 /// --app-specific-password-file-path=/a/b/a.txt
@@ -116,7 +114,6 @@ Future<void> main(List<String> args) async {
   const Platform platform = LocalPlatform();
 
   final String codesignCertName = getValueFromArgs(kCodesignCertNameOption, argResults)!;
-  final String codesignUserName = getValueFromArgs(kCodesignUserNameOption, argResults)!;
   final String gCloudDownloadPath = getValueFromArgs(kGcsDownloadPathOption, argResults)!;
   final String gCloudUploadPath = getValueFromArgs(kGcsUploadPathOption, argResults)!;
   final String appSpecificPasswordFilePath = getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
@@ -142,7 +139,6 @@ Future<void> main(List<String> args) async {
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
-    codesignUserName: codesignUserName,
     fileSystem: fileSystem,
     rootDirectory: rootDirectory,
     appSpecificPasswordFilePath: appSpecificPasswordFilePath,

@@ -26,7 +26,6 @@ enum NotaryStatus {
 class FileCodesignVisitor {
   FileCodesignVisitor({
     required this.codesignCertName,
-    required this.codesignUserName,
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
@@ -53,7 +52,6 @@ class FileCodesignVisitor {
   final GoogleCloudStorage googleCloudStorage;
 
   final String codesignCertName;
-  final String codesignUserName;
   final String gcsDownloadPath;
   final String gcsUploadPath;
   final String appSpecificPasswordFilePath;
