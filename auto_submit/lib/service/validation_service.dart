@@ -497,7 +497,7 @@ Future<github.PullRequestMerge> _processMergeInternal({
     requestSha: requestSha,
   );
 
-  if (pullRequestMerge.merged != true) {
+  if (pullRequestMerge.merged == null || !pullRequestMerge.merged!) {
     throw RetryableException("Pull request could not be merged: ${pullRequestMerge.message}");
   }
 
