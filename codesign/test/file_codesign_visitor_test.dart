@@ -17,6 +17,9 @@ import './src/fake_process_manager.dart';
 
 void main() {
   const String randomString = 'abcd1234';
+  const String appSpecificPasswordFilePath = '/tmp/passwords.txt';
+  const String codesignAppstoreIDFilePath = '/tmp/appID.txt';
+  const String codesignTeamIDFilePath = '/tmp/teamID.txt';
   final MemoryFileSystem fileSystem = MemoryFileSystem.test();
   final List<LogRecord> records = <LogRecord>[];
 
@@ -25,6 +28,113 @@ void main() {
   late cs.FileCodesignVisitor codesignVisitor;
 
   Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+
+  group('test reading in passwords: ', () {
+    setUp(() {
+      processManager = FakeProcessManager.list(<FakeCommand>[]);
+      googleCloudStorage = GoogleCloudStorage(
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+      );
+      codesignVisitor = cs.FileCodesignVisitor(
+        codesignCertName: randomString,
+        googleCloudStorage: googleCloudStorage,
+        fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
+        processManager: processManager,
+        rootDirectory: rootDirectory,
+        gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
+        gcsUploadPath: 'gs://flutter/$randomString/$randomString',
+        notarizationTimerDuration: const Duration(seconds: 0),
+        dryrun: false,
+      );
+      codesignVisitor.directoriesVisited.clear();
+      records.clear();
+      log.onRecord.listen((LogRecord record) => records.add(record));
+    });
+
+    test('incorrectly formatted password file throws exception', () async {
+      fileSystem.file(appSpecificPasswordFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          'file_a',
+          mode: FileMode.write,
+          encoding: utf8,
+        );
+
+      expect(
+        () async {
+          await codesignVisitor.readPassword(appSpecificPasswordFilePath);
+          fileSystem.file(appSpecificPasswordFilePath).deleteSync();
+        },
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
+
+    test('unknown password name throws an exception', () async {
+      fileSystem.file(codesignTeamIDFilePath)
+        ..createSync(recursive: true, exclusive: true)
+        ..writeAsStringSync(
+          'dart:dart',
+          mode: FileMode.write,
+          encoding: utf8,
+        );
+
+      expect(
+        () async {
+          await codesignVisitor.readPassword(codesignTeamIDFilePath);
+          await fileSystem.file(codesignTeamIDFilePath).delete();
+        },
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
+
+    test('lacking required passwords throws exception', () async {
+      codesignVisitor.availablePasswords = {
+        'CODESIGN_APPSTORE_ID': '',
+        'CODESIGN_TEAM_ID': '',
+        'APP-SPECIFIC-PASSWORD': ''
+      };
+      fileSystem.file(codesignAppstoreIDFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          'CODESIGN_APPSTORE_ID:123',
+          mode: FileMode.write,
+          encoding: utf8,
+        );
+
+      expect(
+        () async {
+          await codesignVisitor.validateAll();
+          await fileSystem.file(codesignAppstoreIDFilePath).delete();
+        },
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
+    });
+
+    test('providing correctly formatted password returns normally', () async {
+      fileSystem.file(appSpecificPasswordFilePath)
+        ..createSync(recursive: true, exclusive: true)
+        ..writeAsStringSync(
+          'APP_SPECIFIC_PASSWORD:123',
+          mode: FileMode.write,
+          encoding: utf8,
+        );
+
+      expect(() async {
+        await codesignVisitor.readPassword(appSpecificPasswordFilePath);
+        await fileSystem.file(appSpecificPasswordFilePath).delete();
+      }, returnsNormally);
+    });
+  });
 
   group('test utils function to join virtual entitlement path: ', () {
     test('omits slash for the first path', () async {
@@ -45,12 +155,11 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
@@ -58,6 +167,9 @@ void main() {
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
@@ -311,18 +423,20 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'gs://flutter/$randomString/FILEPATH',
         gcsUploadPath: 'gs://flutter/$randomString/FILEPATH',
         notarizationTimerDuration: Duration.zero,
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
@@ -582,12 +696,11 @@ void main() {
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
@@ -595,6 +708,9 @@ void main() {
         dryrun: false,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
       codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
       fileSystem
@@ -672,17 +788,19 @@ void main() {
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
@@ -775,17 +893,19 @@ file_c''',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         gcsDownloadPath: 'flutter/$randomString/FILEPATH',
         gcsUploadPath: 'flutter/$randomString/FILEPATH',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
@@ -1095,21 +1215,32 @@ status: Invalid''',
       );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       records.clear();
       log.onRecord.listen((LogRecord record) => records.add(record));
+      fileSystem.file(codesignAppstoreIDFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('CODESIGN_APPSTORE_ID:$randomString');
+      fileSystem.file(codesignTeamIDFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('CODESIGN_TEAM_ID:$randomString');
+      fileSystem.file(appSpecificPasswordFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('APP_SPECIFIC_PASSWORD:$randomString');
     });
 
     test('codesign optional switches artifacts when dryrun is false', () async {
@@ -1261,19 +1392,21 @@ status: Invalid''',
       ]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        codesignUserName: randomString,
-        appSpecificPassword: randomString,
-        codesignAppstoreId: randomString,
-        codesignTeamId: randomString,
         gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
         gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
         googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
+        appSpecificPasswordFilePath: appSpecificPasswordFilePath,
+        codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );
+      codesignVisitor.appSpecificPassword = randomString;
+      codesignVisitor.codesignAppstoreId = randomString;
+      codesignVisitor.codesignTeamId = randomString;
       codesignVisitor.directoriesVisited.clear();
       await codesignVisitor.validateAll();
       final Set<String> messages = records
