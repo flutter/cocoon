@@ -26,16 +26,15 @@ enum NotaryStatus {
 class FileCodesignVisitor {
   FileCodesignVisitor({
     required this.codesignCertName,
-    required this.codesignUserName,
-    required this.appSpecificPassword,
-    required this.codesignAppstoreId,
-    required this.codesignTeamId,
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
     required this.gcsDownloadPath,
     required this.gcsUploadPath,
     required this.googleCloudStorage,
+    required this.appSpecificPasswordFilePath,
+    required this.codesignAppstoreIDFilePath,
+    required this.codesignTeamIDFilePath,
     this.dryrun = true,
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
@@ -53,19 +52,30 @@ class FileCodesignVisitor {
   final GoogleCloudStorage googleCloudStorage;
 
   final String codesignCertName;
-  final String codesignUserName;
-  final String appSpecificPassword;
-  final String codesignAppstoreId;
-  final String codesignTeamId;
   final String gcsDownloadPath;
   final String gcsUploadPath;
+  final String appSpecificPasswordFilePath;
+  final String codesignAppstoreIDFilePath;
+  final String codesignTeamIDFilePath;
   final bool dryrun;
   final Duration notarizationTimerDuration;
+
+  // 'Apple developer account email used for authentication with notary service.'
+  late String codesignAppstoreId;
+  // Unique password of the apple developer account.'
+  late String appSpecificPassword;
+  // Team-id is used by notary service for xcode version 13+.
+  late String codesignTeamId;
 
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
+  Map<String, String> availablePasswords = {
+    'CODESIGN_APPSTORE_ID': '',
+    'CODESIGN_TEAM_ID': '',
+    'APP_SPECIFIC_PASSWORD': ''
+  };
 
   late final File entitlementsFile;
   late final Directory remoteDownloadsDir;
@@ -119,8 +129,50 @@ If there are obsolete binaries in entitlements configuration files, please delet
 update these file paths accordingly.
 ''';
 
+  /// Read a single line of password stored at [passwordFilePath].
+  ///
+  /// The password file should provide the password name and value, deliminated by a single colon.
+  /// The content of a password file would look similar to:
+  /// CODESIGN_APPSTORE_ID:123
+  Future<void> readPassword(String passwordFilePath) async {
+    if (!(await fileSystem.file(passwordFilePath).exists())) {
+      throw CodesignException('$passwordFilePath not found \n'
+          'make sure you have provided codesign credentials in a file \n');
+    }
+
+    String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
+    List<String> parsedPasswordLine = passwordLine.split(":");
+    if (parsedPasswordLine.length != 2) {
+      throw CodesignException('$passwordFilePath is not correctly formatted. \n'
+          'please double check formatting \n');
+    }
+    String passwordName = parsedPasswordLine[0];
+    String passwordValue = parsedPasswordLine[1];
+    if (!availablePasswords.containsKey(passwordName)) {
+      throw CodesignException('$passwordName is not a password we can process. \n'
+          'please double check passwords.txt \n');
+    }
+    availablePasswords[passwordName] = passwordValue;
+    return;
+  }
+
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
+    for (String passwordFilePath in [
+      codesignAppstoreIDFilePath,
+      codesignTeamIDFilePath,
+      appSpecificPasswordFilePath,
+    ]) {
+      await readPassword(passwordFilePath);
+    }
+    if (availablePasswords.containsValue('')) {
+      throw CodesignException('certian passwords are missing. \n'
+          'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
+    }
+    codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
+    codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
+    appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
+
     await processRemoteZip();
 
     if (dryrun) {
