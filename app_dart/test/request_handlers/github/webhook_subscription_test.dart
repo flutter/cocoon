@@ -751,6 +751,42 @@ void main() {
       ));
     });
 
+    test('Framework does not label PR with no tests label if file is test exempt', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
+      ));
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Framework labels PRs, comment if no tests including hit_test.dart file', () async {
       const int issueNumber = 123;
 
