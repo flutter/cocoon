@@ -72,9 +72,9 @@ class FileCodesignVisitor {
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
   Map<String, String> availablePasswords = {
-    'CODESIGN-APPSTORE-ID': '',
-    'CODESIGN-TEAM-ID': '',
-    'APP-SPECIFIC-PASSWORD': ''
+    'CODESIGN_APPSTORE_ID': '',
+    'CODESIGN_TEAM_ID': '',
+    'APP_SPECIFIC_PASSWORD': ''
   };
 
   late final File entitlementsFile;
@@ -133,7 +133,7 @@ update these file paths accordingly.
   ///
   /// The password file should provide the password name and value, deliminated by a single colon.
   /// The content of a password file would look similar to:
-  /// CODESIGN-APPSTORE-ID:123
+  /// CODESIGN_APPSTORE_ID:123
   Future<void> readPassword(String passwordFilePath) async {
     if (!(await fileSystem.file(passwordFilePath).exists())) {
       throw CodesignException('$passwordFilePath not found \n'
@@ -167,11 +167,11 @@ update these file paths accordingly.
     }
     if (availablePasswords.containsValue('')) {
       throw CodesignException('certian passwords are missing. \n'
-          'make sure you have provided <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>');
+          'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
     }
-    codesignAppstoreId = availablePasswords['CODESIGN-APPSTORE-ID']!;
-    codesignTeamId = availablePasswords['CODESIGN-TEAM-ID']!;
-    appSpecificPassword = availablePasswords['APP-SPECIFIC-PASSWORD']!;
+    codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
+    codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
+    appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
 
     await processRemoteZip();
 

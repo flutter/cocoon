@@ -42,7 +42,7 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// For [kAppSpecificPasswordOption], [kCodesignAppstoreIDOption] and [kCodesignTeamIDOption],
 /// they are file paths of the password files in the file system.
 /// Each of the file paths stores a single line of sensitive password.
-/// sensitive passwords include <CODESIGN-APPSTORE-ID>, <CODESIGN-TEAM-ID>, and <APP-SPECIFIC-PASSWORD>.
+/// sensitive passwords include <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>.
 /// For example, if a user supplies --app-specific-password-file-path=/tmp/passwords.txt,
 /// then we would be expecting a password file located at /tmp/passwords.txt.
 /// The password file should contain the password name APP-SPECIFIC-PASSWORD and its value, deliminated by a single colon.
@@ -96,12 +96,12 @@ Future<void> main(List<String> args) async {
     ..addOption(
       kCodesignAppstoreIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN-APPSTORE-ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_APPSTORE_ID> \n',
     )
     ..addOption(
       kCodesignTeamIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN-TEAM-ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_TEAM_ID> \n',
     )
     ..addFlag(
       kDryrunFlag,
