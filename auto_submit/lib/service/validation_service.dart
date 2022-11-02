@@ -349,6 +349,7 @@ Exception: ${exception.message}
             githubService: githubService,
             slug: slug,
             number: number,
+            // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
             mergeMethod: github.MergeMethod.squash,
           );
         },
