@@ -310,7 +310,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
         filename.contains('.github/') ||
-        filename.endsWith('.md');
+        filename.endsWith('.md') ||
+        // Exempt paths.
+        filename.startsWith('dev/devicelab/lib/versions/gallery.dart');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
