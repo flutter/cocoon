@@ -4,7 +4,7 @@
 
 /// General exception for retryable error catching.
 class RetryableException implements Exception {
-  RetryableException(this.cause);
+  const RetryableException(this.cause);
 
   final String cause;
 

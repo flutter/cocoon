@@ -286,8 +286,10 @@ class FakeGithubService implements GithubService {
   }
 
   /// If useMergeRequestMockList is true then we will return elements from that
-  /// list until it is empty. The developer should track the number of times this
-  /// method is called as managing an empty list is not done here.
+  /// list until it is empty.
+  ///
+  /// The developer should track the number of times this method is called as
+  /// managing an empty list is not done here.
   @override
   Future<PullRequestMerge> mergePullRequest(
     RepositorySlug slug,

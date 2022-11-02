@@ -208,7 +208,7 @@ class ValidationService {
 
       log.info(message);
     } else {
-      log.info('Pull Request #$prNumber was merged successfully!');
+      log.info('Pull Request ${slug.fullName}#$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
 
       await insertPullRequestRecord(
@@ -249,7 +249,7 @@ class ValidationService {
       );
 
       if (processed.result) {
-        log.info('Revert request #$prNumber was merged successfully.');
+        log.info('Revert request ${slug.fullName}#$prNumber was merged successfully.');
         try {
           final RevertReviewTemplate revertReviewTemplate = RevertReviewTemplate(
             repositorySlug: slug.fullName,
@@ -346,10 +346,10 @@ Exception: ${exception.message}
       await retryOptions.retry(
         () async {
           result = await _processMergeInternal(
-            githubService,
-            slug,
-            number,
-            github.MergeMethod.squash,
+            githubService: githubService,
+            slug: slug,
+            number: number,
+            mergeMethod: github.MergeMethod.squash,
           );
         },
         retryIf: (Exception e) => e is RetryableException,
@@ -481,11 +481,11 @@ class ProcessMergeResult {
 typedef RetryHandler = Function();
 
 /// Internal wrapper for the logic of merging a pull request into github.
-Future<github.PullRequestMerge> _processMergeInternal(
-  GithubService githubService,
-  github.RepositorySlug slug,
-  int number,
-  github.MergeMethod mergeMethod, {
+Future<github.PullRequestMerge> _processMergeInternal({
+  required GithubService githubService,
+  required github.RepositorySlug slug,
+  required int number,
+  required github.MergeMethod mergeMethod,
   String? commitMessage,
   String? requestSha,
 }) async {
@@ -497,7 +497,7 @@ Future<github.PullRequestMerge> _processMergeInternal(
     requestSha: requestSha,
   );
 
-  if (pullRequestMerge.merged == null || !pullRequestMerge.merged!) {
+  if (pullRequestMerge.merged != true) {
     throw RetryableException("Pull request could not be merged: ${pullRequestMerge.message}");
   }
 

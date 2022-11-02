@@ -709,7 +709,7 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: "03dbf5cb87d56394ffe951eef93893b43624240aa8dd16f6f063ee01fcb22aee"
+      sha256: a5fcd2d25eeadbb6589e80198a47d6a464ba3e2049da473943b8af9797900c2d
       url: "https://pub.dev"
     source: hosted
     version: "1.22.0"
@@ -717,7 +717,7 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: c9aba3b3dbfe8878845dfab5fa096eb8de7b62231baeeb1cea8e3ee81ca8c6d8
+      sha256: ad540f65f92caa91bf21dfc8ffb8c589d6e4dc0c2267818b4cc2792857706206
       url: "https://pub.dev"
     source: hosted
     version: "0.4.16"
@@ -725,7 +725,7 @@ packages:
     dependency: transitive
     description:
       name: test_core
-      sha256: f99f8a4c093d6c5adbe100494ccc259ec69c8f86eb769d661e5af18f9b6b9375
+      sha256: "0ef9755ec6d746951ba0aabe62f874b707690b5ede0fecc818b138fcc9b14888"
       url: "https://pub.dev"
     source: hosted
     version: "0.4.20"

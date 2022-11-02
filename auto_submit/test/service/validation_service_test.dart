@@ -542,14 +542,27 @@ void main() {
     test('Merge fails the first time but then succeeds after retry.', () async {
       validationService = ValidationService(
         config,
-        retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 3),
+        retryOptions: const RetryOptions(
+          delayFactor: Duration.zero,
+          maxDelay: Duration.zero,
+          maxAttempts: 3,
+        ),
       );
 
       githubService.useMergeRequestMockList = true;
-      githubService.pullRequestMergeMockList
-          .add(PullRequestMerge(merged: false, message: 'Unable to merge pull request.'));
-      githubService.pullRequestMergeMockList
-          .add(PullRequestMerge(merged: true, sha: 'sha', message: 'Pull Request successfully merged'));
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: false,
+          message: 'Unable to merge pull request.',
+        ),
+      );
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: true,
+          sha: 'sha',
+          message: 'Pull Request successfully merged',
+        ),
+      );
 
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
