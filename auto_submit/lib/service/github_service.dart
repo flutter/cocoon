@@ -129,6 +129,8 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
+  /// Merges a pull request according to the MergeMethod type. Current supported
+  /// merge method types are merge, rebase and squash.
   Future<PullRequestMerge> mergePullRequest(
     RepositorySlug slug,
     int number, {

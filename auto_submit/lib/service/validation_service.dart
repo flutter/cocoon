@@ -489,7 +489,7 @@ Future<github.PullRequestMerge> _processMergeInternal(
   String? commitMessage,
   String? requestSha,
 }) async {
-  github.PullRequestMerge pullRequestMerge = await githubService.mergePullRequest(
+  final github.PullRequestMerge pullRequestMerge = await githubService.mergePullRequest(
     slug,
     number,
     commitMessage: commitMessage,
