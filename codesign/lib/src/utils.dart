@@ -89,39 +89,22 @@ class CodesignException implements Exception {
   String toString() => 'Exception: $message';
 }
 
-/// Translate CLI arg names to env variable names.
+/// Return the command line argument by parsing [argResults].
 ///
-/// For example, 'state-file' -> 'STATE_FILE'.
-String fromArgToEnvName(String argName) {
-  return argName.toUpperCase().replaceAll('-', '_');
-}
-
-/// Either return the value from [env] or fall back to [argResults].
-///
-/// If the key does not exist in either the environment or CLI args, throws a
-/// [ConductorException].
-///
-/// The environment is favored over CLI args since the latter can have a default
-/// value, which the environment should be able to override.
-String? getValueFromEnvOrArgs(
+/// If the key does not exist in CLI args, throws a [CodesignException].
+String? getValueFromArgs(
   String name,
-  ArgResults argResults,
-  Map<String, String> env, {
+  ArgResults argResults, {
   bool allowNull = false,
 }) {
-  final String envName = fromArgToEnvName(name);
-  if (env[envName] != null) {
-    return env[envName];
-  }
   final String? argValue = argResults[name] as String?;
   if (argValue != null) {
     return argValue;
   }
-
   if (allowNull) {
     return null;
   }
-  throw CodesignException('Expected either the CLI arg --$name or the environment variable $envName '
+  throw CodesignException('Expected either the CLI arg --$name '
       'to be provided!');
 }
 
