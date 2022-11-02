@@ -208,6 +208,7 @@ class ValidationService {
 
       log.info(message);
     } else {
+      log.info('Pull Request #$prNumber was merged successfully!');
       log.info('Attempting to insert a pull request record into the database for $prNumber');
 
       await insertPullRequestRecord(
@@ -248,6 +249,7 @@ class ValidationService {
       );
 
       if (processed.result) {
+        log.info('Revert request #$prNumber was merged successfully.');
         try {
           final RevertReviewTemplate revertReviewTemplate = RevertReviewTemplate(
             repositorySlug: slug.fullName,
