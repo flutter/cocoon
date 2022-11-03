@@ -66,9 +66,9 @@ class FakeProcess extends Fake implements Process {
         _err = err,
         _out = out;
 
-  int _exitCode;
-  List<List<int>>? _err;
-  List<List<int>>? _out;
+  final int _exitCode;
+  final List<List<int>>? _err;
+  final List<List<int>>? _out;
 
   @override
   Future<int> get exitCode => Future.value(_exitCode);

@@ -36,6 +36,14 @@ class FakeGithubService implements GithubService {
   String? pullRequestFilesJsonMock;
   Issue? githubIssueMock;
 
+  bool useMergeRequestMockList = false;
+  bool trackMergeRequestCalls = false;
+  PullRequestMerge? mergeRequestMock;
+  List<PullRequestMerge> pullRequestMergeMockList = [];
+
+  /// map to track pull request calls using pull number and repository slug.
+  Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
+
   bool throwOnCreateIssue = false;
 
   /// Setting either of these flags to true will pop the front element from the
@@ -275,5 +283,34 @@ class FakeGithubService implements GithubService {
   @override
   Future<Issue> getIssue({required RepositorySlug slug, required int issueNumber}) async {
     return githubIssueMock!;
+  }
+
+  /// If useMergeRequestMockList is true then we will return elements from that
+  /// list until it is empty.
+  ///
+  /// The developer should track the number of times this method is called as
+  /// managing an empty list is not done here.
+  @override
+  Future<PullRequestMerge> mergePullRequest(
+    RepositorySlug slug,
+    int number, {
+    String? commitMessage,
+    MergeMethod? mergeMethod,
+    String? requestSha,
+  }) async {
+    verifyPullRequestMergeCallMap[number] = slug;
+    if (useMergeRequestMockList) {
+      return pullRequestMergeMockList.removeAt(0);
+    } else {
+      return mergeRequestMock!;
+    }
+  }
+
+  void verifyMergePullRequests(Map<int, RepositorySlug> expected) {
+    assert(verifyPullRequestMergeCallMap.length == expected.length);
+    verifyPullRequestMergeCallMap.forEach((key, value) {
+      assert(expected.containsKey(key));
+      assert(expected[key] == value);
+    });
   }
 }
