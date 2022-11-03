@@ -133,14 +133,14 @@ update these file paths accordingly.
           'make sure you have provided codesign credentials in a file \n');
     }
 
-    String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
-    List<String> parsedPasswordLine = passwordLine.split(":");
+    final String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
+    final List<String> parsedPasswordLine = passwordLine.split(":");
     if (parsedPasswordLine.length != 2) {
       throw CodesignException('$passwordFilePath is not correctly formatted. \n'
           'please double check formatting \n');
     }
-    String passwordName = parsedPasswordLine[0];
-    String passwordValue = parsedPasswordLine[1];
+    final String passwordName = parsedPasswordLine[0];
+    final String passwordValue = parsedPasswordLine[1];
     if (!availablePasswords.containsKey(passwordName)) {
       throw CodesignException('$passwordName is not a password we can process. \n'
           'please double check passwords.txt \n');
@@ -166,7 +166,7 @@ update these file paths accordingly.
     codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
     appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
 
-    String? codesignedFilePath = await processRemoteZip();
+    final String? codesignedFilePath = await processRemoteZip();
 
     if (codesignedFilePath != null) {
       log.info('code signing dry run has completed, If you have uploaded the artifacts back to'
@@ -231,7 +231,8 @@ update these file paths accordingly.
     log.info('Visiting directory ${directory.absolute.path}');
     if (directoriesVisited.contains(directory.absolute.path)) {
       log.warning(
-          'Warning! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}');
+        'Warning! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}',
+      );
     }
     directoriesVisited.add(directory.absolute.path);
     final List<FileSystemEntity> entities = await directory.list().toList();
@@ -442,7 +443,8 @@ update these file paths accordingly.
       final io.ProcessResult result = processManager.runSync(args);
       if (result.exitCode != 0) {
         throw CodesignException(
-            'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}');
+          'Command "${args.join(' ')}" failed with exit code ${result.exitCode}\nStdout: ${result.stdout}\nStderr: ${result.stderr}',
+        );
       }
 
       final String combinedOutput = (result.stdout as String) + (result.stderr as String);

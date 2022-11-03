@@ -23,7 +23,7 @@ void main() {
       output = '123 abc';
       when(processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']))
           .thenAnswer((_) => ProcessResult(1, 0, output, 'def'));
-      List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
+      final List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
       expect(processes, equals(<String>['123']));
     });
 
@@ -31,7 +31,7 @@ void main() {
       output = '123 abc\n 456 abc\n 789 def';
       when(processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']))
           .thenAnswer((_) => ProcessResult(1, 0, output, 'def'));
-      List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
+      final List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
       expect(processes, equals(<String>['123', '456']));
     });
 
@@ -39,7 +39,7 @@ void main() {
       output = '123 def';
       when(processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']))
           .thenAnswer((_) => ProcessResult(1, 0, output, 'def'));
-      List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
+      final List<String> processes = runningProcessesOnWindows('abc', processManager: processManager);
       expect(processes, equals(<String>[]));
     });
   });

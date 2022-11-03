@@ -28,12 +28,15 @@ class SubscriptionTester extends RequestHandlerTester {
   @protected
   Future<T> run<T extends Body>(Future<T> Function() callback) {
     return super.run<T>(() {
-      return runZoned<Future<T>>(() {
-        return callback();
-      }, zoneValues: <RequestKey<dynamic>, Object>{
-        ApiKey.authContext: context,
-        PubSubKey.message: message,
-      });
+      return runZoned<Future<T>>(
+        () {
+          return callback();
+        },
+        zoneValues: <RequestKey<dynamic>, Object>{
+          ApiKey.authContext: context,
+          PubSubKey.message: message,
+        },
+      );
     });
   }
 }

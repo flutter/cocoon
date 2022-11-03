@@ -140,9 +140,11 @@ class _FakeProcess implements io.Process {
     if (_stderr == '') {
       stderr = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
-      stderr = Stream<List<int>>.fromFuture(exitCode.then((_) {
-        return Future<List<int>>(() => utf8.encode(_stderr));
-      }));
+      stderr = Stream<List<int>>.fromFuture(
+        exitCode.then((_) {
+          return Future<List<int>>(() => utf8.encode(_stderr));
+        }),
+      );
     } else {
       stderr = Stream<List<int>>.value(utf8.encode(_stderr));
     }
@@ -150,9 +152,11 @@ class _FakeProcess implements io.Process {
     if (_stdout == '') {
       stdout = const Stream<List<int>>.empty();
     } else if (outputFollowsExit) {
-      stdout = Stream<List<int>>.fromFuture(exitCode.then((_) {
-        return Future<List<int>>(() => utf8.encode(_stdout));
-      }));
+      stdout = Stream<List<int>>.fromFuture(
+        exitCode.then((_) {
+          return Future<List<int>>(() => utf8.encode(_stdout));
+        }),
+      );
     } else {
       stdout = Stream<List<int>>.value(utf8.encode(_stdout));
     }
@@ -390,9 +394,12 @@ class _SequenceProcessManager extends FakeProcessManager {
     Map<String, String>? environment,
     Encoding? encoding,
   ) {
-    expect(_commands, isNotEmpty,
-        reason: 'ProcessManager was told to execute $command (in $workingDirectory) '
-            'but the FakeProcessManager.list expected no more processes.');
+    expect(
+      _commands,
+      isNotEmpty,
+      reason: 'ProcessManager was told to execute $command (in $workingDirectory) '
+          'but the FakeProcessManager.list expected no more processes.',
+    );
     _commands.first._matches(command, workingDirectory, environment, encoding);
     return _commands.removeAt(0);
   }
@@ -433,6 +440,7 @@ class _HasNoRemainingExpectations extends Matcher {
   ) {
     final FakeProcessManager fakeProcessManager = item as FakeProcessManager;
     return description.add(
-        'has remaining expectations:\n${fakeProcessManager._remainingExpectations.map((FakeCommand command) => command.command).join('\n')}');
+      'has remaining expectations:\n${fakeProcessManager._remainingExpectations.map((FakeCommand command) => command.command).join('\n')}',
+    );
   }
 }

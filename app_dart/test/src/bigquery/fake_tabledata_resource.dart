@@ -13,15 +13,27 @@ class FakeTabledataResource implements TabledataResource {
   List<TableDataInsertAllRequestRows>? rows;
   @override
   Future<TableDataInsertAllResponse> insertAll(
-      TableDataInsertAllRequest request, String projectId, String datasetId, String tableId,
-      {String? $fields}) async {
+    TableDataInsertAllRequest request,
+    String projectId,
+    String datasetId,
+    String tableId, {
+    String? $fields,
+  }) async {
     rows = request.rows;
     return TableDataInsertAllResponse.fromJson(<String, String>{});
   }
 
   @override
-  Future<TableDataList> list(String projectId, String datasetId, String tableId,
-      {int? maxResults, String? selectedFields, String? startIndex, String? pageToken, String? $fields}) async {
+  Future<TableDataList> list(
+    String projectId,
+    String datasetId,
+    String tableId, {
+    int? maxResults,
+    String? selectedFields,
+    String? startIndex,
+    String? pageToken,
+    String? $fields,
+  }) async {
     final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
     for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows!) {
       final dynamic value = tableDataInsertAllRequestRows.json;

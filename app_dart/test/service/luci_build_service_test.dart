@@ -139,10 +139,12 @@ void main() {
 
     test('with one rpc call', () async {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-        return const ListBuildersResponse(builders: [
-          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
-          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
-        ]);
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
+          ],
+        );
       });
       final Set<String> builders = await service.getAvailableBuilderSet();
       expect(builders.length, 2);
@@ -154,15 +156,20 @@ void main() {
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         retries++;
         if (retries == 0) {
-          return const ListBuildersResponse(builders: [
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
-          ], nextPageToken: 'token');
+          return const ListBuildersResponse(
+            builders: [
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test1')),
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test2')),
+            ],
+            nextPageToken: 'token',
+          );
         } else if (retries == 1) {
-          return const ListBuildersResponse(builders: [
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test3')),
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test4')),
-          ]);
+          return const ListBuildersResponse(
+            builders: [
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test3')),
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'test4')),
+            ],
+          );
         } else {
           return const ListBuildersResponse(builders: []);
         }
@@ -319,9 +326,11 @@ void main() {
         targets: targets,
       );
       expect(
-          records.where((LogRecord record) =>
-              record.message.contains('Linux 1 has already been scheduled for this pull request')),
-          hasLength(1));
+        records.where(
+          (LogRecord record) => record.message.contains('Linux 1 has already been scheduled for this pull request'),
+        ),
+        hasLength(1),
+      );
     });
 
     test('try to schedule builds already passed', () async {
@@ -345,9 +354,11 @@ void main() {
         targets: targets,
       );
       expect(
-          records.where((LogRecord record) =>
-              record.message.contains('Linux 1 has already been scheduled for this pull request')),
-          hasLength(1));
+        records.where(
+          (LogRecord record) => record.message.contains('Linux 1 has already been scheduled for this pull request'),
+        ),
+        hasLength(1),
+      );
     });
     test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -385,19 +396,21 @@ void main() {
         );
       });
       await expectLater(
-          service.scheduleTryBuilds(
-            pullRequest: pullRequest,
-            targets: <Target>[],
-          ),
-          throwsA(isA<InternalServerError>()));
+        service.scheduleTryBuilds(
+          pullRequest: pullRequest,
+          targets: <Target>[],
+        ),
+        throwsA(isA<InternalServerError>()),
+      );
     });
     test('Try to schedule build on a unsupported repo', () async {
       expect(
-          () async => await service.scheduleTryBuilds(
-                targets: targets,
-                pullRequest: generatePullRequest(repo: 'nonsupported'),
-              ),
-          throwsA(const TypeMatcher<BadRequestException>()));
+        () async => await service.scheduleTryBuilds(
+          targets: targets,
+          pullRequest: generatePullRequest(repo: 'nonsupported'),
+        ),
+        throwsA(const TypeMatcher<BadRequestException>()),
+      );
     });
   });
 
@@ -416,14 +429,19 @@ void main() {
     test('schedule postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-        return const ListBuildersResponse(builders: [
-          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
-        ]);
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
       });
       final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(1, properties: <String, String>{
-          'os': 'debian-10.12',
-        }),
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+        ),
         generateTask(1),
         LuciBuildService.kDefaultPriority,
       );
@@ -459,8 +477,10 @@ void main() {
         'cipdVersion': 'refs/heads/master',
       });
       expect(scheduleBuild.dimensions, isNotEmpty);
-      expect(scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
-          'debian-10.12');
+      expect(
+        scheduleBuild.dimensions!.singleWhere((RequestedDimension dimension) => dimension.key == 'os').value,
+        'debian-10.12',
+      );
     });
 
     test('schedule postsubmit builds with correct userData for checkRuns', () async {
@@ -468,16 +488,20 @@ void main() {
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       final Commit commit = generateCommit(0, repo: 'packages');
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-        return const ListBuildersResponse(builders: [
-          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
-        ]);
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
       });
       final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
-        generateTarget(1,
-            properties: <String, String>{
-              'os': 'debian-10.12',
-            },
-            slug: RepositorySlug('flutter', 'packages')),
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          slug: RepositorySlug('flutter', 'packages'),
+        ),
         generateTask(1),
         LuciBuildService.kDefaultPriority,
       );
@@ -512,21 +536,29 @@ void main() {
     test('Skip non-existing builder', () async {
       final Commit commit = generateCommit(0);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-        return const ListBuildersResponse(builders: [
-          BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
-        ]);
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 2')),
+          ],
+        );
       });
       final Tuple<Target, Task, int> toBeScheduled1 = Tuple<Target, Task, int>(
-        generateTarget(1, properties: <String, String>{
-          'os': 'debian-10.12',
-        }),
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+        ),
         generateTask(1),
         LuciBuildService.kDefaultPriority,
       );
       final Tuple<Target, Task, int> toBeScheduled2 = Tuple<Target, Task, int>(
-        generateTarget(2, properties: <String, String>{
-          'os': 'debian-10.12',
-        }),
+        generateTarget(
+          2,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+        ),
         generateTask(1),
         LuciBuildService.kDefaultPriority,
       );
@@ -584,16 +616,19 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest, 'new builds');
-      expect(verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
-          json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
+      expect(
+        verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
+        json.decode('{"id": "998", "summaryMarkdown": "new builds"}'),
+      );
     });
     test('Cancel builds from unsuported repo', () async {
       expect(
-          () async => await service.cancelBuilds(
-                generatePullRequest(repo: 'notsupported'),
-                'new builds',
-              ),
-          throwsA(const TypeMatcher<BadRequestException>()));
+        () async => await service.cancelBuilds(
+          generatePullRequest(repo: 'notsupported'),
+          'new builds',
+        ),
+        throwsA(const TypeMatcher<BadRequestException>()),
+      );
     });
   });
 
@@ -649,12 +684,14 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
-      final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
-        'COMPLETED',
-        result: 'FAILURE',
-        builderName: 'Linux Host Engine',
-        userData: '{}',
-      )) as Map<String, dynamic>;
+      final Map<String, dynamic> json = jsonDecode(
+        buildPushMessageString(
+          'COMPLETED',
+          result: 'FAILURE',
+          builderName: 'Linux Host Engine',
+          userData: '{}',
+        ),
+      ) as Map<String, dynamic>;
       buildPushMessage = push_message.BuildPushMessage.fromJson(json);
     });
 

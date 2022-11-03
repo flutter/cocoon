@@ -125,8 +125,10 @@ Stream<File> _allFiles(String workingDirectory, String? extension, {required int
       pending.addAll(entity.listSync());
     }
   }
-  assert(matches >= minimumMatches,
-      'Expected to find at least $minimumMatches files with extension ".$extension" in "$workingDirectory", but only found $matches.');
+  assert(
+    matches >= minimumMatches,
+    'Expected to find at least $minimumMatches files with extension ".$extension" in "$workingDirectory", but only found $matches.',
+  );
 }
 
 class EvalResult {

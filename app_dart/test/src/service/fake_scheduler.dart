@@ -74,42 +74,48 @@ final CiYaml emptyConfig = CiYaml(
 CiYaml exampleConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(enabledBranches: <String>[
-    Config.defaultBranch(Config.flutterSlug),
-  ], targets: <pb.Target>[
-    pb.Target(
-      name: 'Linux A',
-      scheduler: pb.SchedulerSystem.luci,
-    ),
-    pb.Target(
-      name: 'Mac A',
-      scheduler: pb.SchedulerSystem.luci,
-    ),
-    pb.Target(
-      name: 'Windows A',
-      scheduler: pb.SchedulerSystem.luci,
-    ),
-    pb.Target(
-      bringup: false,
-      name: 'Google Internal Roll',
-      presubmit: false,
-      postsubmit: true,
-      scheduler: pb.SchedulerSystem.google_internal,
-    ),
-  ]),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux A',
+        scheduler: pb.SchedulerSystem.luci,
+      ),
+      pb.Target(
+        name: 'Mac A',
+        scheduler: pb.SchedulerSystem.luci,
+      ),
+      pb.Target(
+        name: 'Windows A',
+        scheduler: pb.SchedulerSystem.luci,
+      ),
+      pb.Target(
+        bringup: false,
+        name: 'Google Internal Roll',
+        presubmit: false,
+        postsubmit: true,
+        scheduler: pb.SchedulerSystem.google_internal,
+      ),
+    ],
+  ),
 );
 
 CiYaml batchPolicyConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
-  config: pb.SchedulerConfig(enabledBranches: <String>[
-    Config.defaultBranch(Config.flutterSlug),
-  ], targets: <pb.Target>[
-    pb.Target(
-      name: 'Linux_android A',
-    ),
-    pb.Target(
-      name: 'Linux_android B',
-    ),
-  ]),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux_android A',
+      ),
+      pb.Target(
+        name: 'Linux_android B',
+      ),
+    ],
+  ),
 );

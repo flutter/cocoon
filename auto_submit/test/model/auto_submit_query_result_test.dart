@@ -16,12 +16,12 @@ void main() {
     });
 
     test('repository values', () async {
-      Repository repository = queryResult.repository!;
+      final Repository repository = queryResult.repository!;
       expect(repository.pullRequest, isNotNull);
     });
 
     test('pullRequest values', () async {
-      PullRequest pullRequest = queryResult.repository!.pullRequest!;
+      final PullRequest pullRequest = queryResult.repository!.pullRequest!;
       expect(pullRequest.author, isNotNull);
       expect(pullRequest.authorAssociation, 'MEMBER');
       expect(pullRequest.commits, isNotNull);
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('Author values', () async {
-      Author author = queryResult.repository!.pullRequest!.author!;
+      final Author author = queryResult.repository!.pullRequest!.author!;
       expect(author.login, 'author1');
     });
 
@@ -48,7 +48,7 @@ void main() {
     test('Commits values', () async {
       final Commits commits = queryResult.repository!.pullRequest!.commits!;
       expect(commits.nodes, isNotNull);
-      CommitNode commitNode = commits.nodes!.first;
+      final CommitNode commitNode = commits.nodes!.first;
       expect(commitNode.commit, isNotNull);
       expect(commitNode.commit!.abbreviatedOid, '4009ecc');
       expect(commitNode.commit!.oid, '4009ecc0b6dbf5cb19cb97472147063e7368ec10');

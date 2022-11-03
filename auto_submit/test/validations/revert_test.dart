@@ -23,7 +23,7 @@ void main() {
   late FakeConfig config;
   late FakeGithubService githubService;
   late FakeGraphQLClient githubGraphQLClient;
-  MockGitHub gitHub = MockGitHub();
+  final MockGitHub gitHub = MockGitHub();
   late Revert revert;
 
   /// Setup objects needed across test groups.
@@ -39,24 +39,24 @@ void main() {
 
   group('Author validation tests.', () {
     test('Validate author association member is valid.', () {
-      String authorAssociation = 'MEMBER';
+      const String authorAssociation = 'MEMBER';
       assert(revert.isValidAuthor('octocat', authorAssociation));
     });
 
     test('Validate author association owner is valid.', () {
-      String authorAssociation = 'OWNER';
+      const String authorAssociation = 'OWNER';
       assert(revert.isValidAuthor('octocat', authorAssociation));
     });
 
     test('Validate author dependabot is valid.', () {
-      String author = 'dependabot';
-      String authorAssociation = 'NON_MEMBER';
+      const String author = 'dependabot';
+      const String authorAssociation = 'NON_MEMBER';
       assert(revert.isValidAuthor(author, authorAssociation));
     });
 
     test('Validate autoroller account is valid.', () {
-      String author = 'engine-flutter-autoroll';
-      String authorAssociation = 'CONTRIBUTOR';
+      const String author = 'engine-flutter-autoroll';
+      const String authorAssociation = 'CONTRIBUTOR';
       assert(revert.isValidAuthor(author, authorAssociation));
     });
   });
@@ -64,7 +64,7 @@ void main() {
   group('Pattern matching for revert text link', () {
     test('Link extraction from description is successful.', () {
       // input, expected
-      Map<String, String> tests = <String, String>{};
+      final Map<String, String> tests = <String, String>{};
       tests['Reverts flutter/cocoon#123456'] = 'flutter/cocoon#123456';
       tests['Reverts    flutter/cocoon#123456'] = 'flutter/cocoon#123456';
       tests['Reverts flutter/flutter-intellij#123456'] = 'flutter/flutter-intellij#123456';
@@ -87,14 +87,14 @@ void main() {
       tests['This some text to add flavor before reverts flutter/flutter#8888.'] = 'flutter/flutter#8888';
 
       tests.forEach((key, value) {
-        String? linkFound = revert.extractLinkFromText(key);
+        final String? linkFound = revert.extractLinkFromText(key);
         assert(linkFound != null);
         assert(linkFound == value);
       });
     });
 
     test('Link extraction from description returns null', () {
-      Map<String, String> tests = <String, String>{};
+      final Map<String, String> tests = <String, String>{};
       tests['Revert flutter/cocoon#123456'] = '';
       tests['revert flutter/cocoon#123456'] = '';
       tests['Reverts flutter/cocoon#'] = '';
@@ -110,7 +110,7 @@ void main() {
       tests['This is some text flutter/flutter#456...44'] = '';
 
       tests.forEach((key, value) {
-        String? linkFound = revert.extractLinkFromText(key);
+        final String? linkFound = revert.extractLinkFromText(key);
         assert(linkFound == null);
       });
     });
@@ -118,26 +118,26 @@ void main() {
 
   group('Validate Pull Requests.', () {
     test('Validation fails on author validation, returns error.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.authorAssociation = 'CONTRIBUTOR';
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryContributorJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
       assert(validationResult.message.contains(RegExp(r'The author.*does not have permissions to make this request.')));
     });
 
     test('Validation fails on merge conflict flag.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = false;
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
       assert(
@@ -147,13 +147,13 @@ void main() {
     });
 
     test('Validation fails on malformed reverts link in the pr body.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.body = 'Reverting flutter/cocoon#1234';
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
       assert(
@@ -163,14 +163,15 @@ void main() {
     });
 
     test('Validation returns on checkRun that has not completed.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 
       // code gets the original file list then the current file list.
@@ -189,7 +190,7 @@ void main() {
           maxAttempts: 1,
         ),
       );
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
 
       expect(validationResult.result, isFalse);
       expect(validationResult.action, Action.IGNORE_TEMPORARILY);
@@ -197,14 +198,15 @@ void main() {
     });
 
     test('Validation fails on pull request file lists not matching.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 
       // code gets the original file list then the current file list.
@@ -215,7 +217,7 @@ void main() {
       // Need to set the mock checkRuns for required CheckRun validation
       githubService.checkRunsData = ciyamlCheckRun;
 
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
       assert(
@@ -225,14 +227,15 @@ void main() {
     });
 
     test('Validation is successful.', () async {
-      Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
-      github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 
       // code gets the original file list then the current file list.
@@ -243,7 +246,7 @@ void main() {
       // Need to set the mock checkRuns for required CheckRun validation
       githubService.checkRunsData = ciyamlCheckRun;
 
-      ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(validationResult.result);
       assert(validationResult.message == 'Revert request has been verified and will be queued for merge.');
     });

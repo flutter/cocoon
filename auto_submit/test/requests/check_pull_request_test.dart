@@ -38,7 +38,7 @@ void main() {
     late FakeConfig config;
     late FakeCronAuthProvider auth;
     late FakeGraphQLClient githubGraphQLClient;
-    final FakeGithubService githubService = FakeGithubService();
+    late FakeGithubService githubService;
     late MockJobsResource jobsResource;
     late FakeBigqueryService bigqueryService;
     late MockPullRequestsService pullRequests;
@@ -60,6 +60,7 @@ void main() {
       auth = FakeCronAuthProvider();
       pubsub = FakePubSub();
       expectedOptions = <QueryOptions>[];
+      githubService = FakeGithubService();
 
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
 
@@ -127,16 +128,14 @@ void main() {
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
       cocoonRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', cocoonRepo);
+
       await checkPullRequest.get();
 
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest1.number!.toString(), pullRequest1.number!.toString()),
-          ),
-        ],
-      );
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       expect(0, pubsub.messagesQueue.length);
     });
 
@@ -161,8 +160,9 @@ void main() {
     test('Merge exception is handled correctly', () async {
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+
       githubService.pullRequestData = pullRequest1;
-      int errorIndex = 0;
+
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -174,13 +174,26 @@ void main() {
         lastCommitHash: oid,
       );
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
-      githubGraphQLClient.mutateResultForOptions = (_) {
-        if (errorIndex == 0) {
-          errorIndex++;
-          throw const GraphQLError(message: 'error');
-        }
-        return createQueryResult(cocoonRequest);
-      };
+
+      githubService.useMergeRequestMockList = true;
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: false,
+          message: 'Unable to merge pull request',
+        ),
+      );
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: true,
+          sha: 'sha',
+          message: 'Pull request merged successfully',
+        ),
+      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+      expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
+
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       // this is the test.
@@ -204,6 +217,7 @@ void main() {
       }
 
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
+
       flutterRequest = PullRequestHelper(prNumber: 0, lastCommitHash: oid);
       cocoonRequest = PullRequestHelper(prNumber: 1, lastCommitHash: oid);
 
@@ -211,18 +225,29 @@ void main() {
       expectedOptions.add(flutterOption);
       expectedOptions.add(cocoonOption);
       verifyQueries(expectedOptions);
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest1.number!.toString(), pullRequest1.number!.toString()),
-          ),
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest2.number!.toString(), pullRequest2.number!.toString()),
-          ),
-        ],
+
+      githubService.useMergeRequestMockList = true;
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: true,
+          sha: 'sha1',
+          message: 'Pull request merged successfully',
+        ),
       );
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: true,
+          sha: 'sha2',
+          message: 'Pull request merged successfully',
+        ),
+      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+      expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
+
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
@@ -244,28 +269,24 @@ void main() {
         reviews: const <PullRequestReviewHelper>[],
         lastCommitHash: oid,
       );
-      cocoonRequest = PullRequestHelper(
-        prNumber: 1,
-        author: 'dependabot',
-        reviews: const <PullRequestReviewHelper>[],
-      );
 
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
-          ),
-        ],
-      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0, labelName: labelName);
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, labelName: labelName);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
@@ -282,19 +303,20 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
-          ),
-        ],
-      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);
@@ -311,19 +333,20 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(flutterOption);
       verifyQueries(expectedOptions);
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables(pullRequest.number!.toString(), pullRequest.number!.toString()),
-          ),
-        ],
-      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
+
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      final PullRequest pullRequest = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
@@ -337,20 +360,21 @@ void main() {
       await checkPullRequest.get();
       expectedOptions.add(cocoonOption);
       verifyQueries(expectedOptions);
-      githubGraphQLClient.verifyMutations(
-        <MutationOptions>[
-          MutationOptions(
-            document: mergePullRequestMutation,
-            variables: getMergePullRequestVariables('0', pullRequest.number!.toString()),
-          ),
-        ],
-      );
+
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
+
+      githubService.mergeRequestMock =
+          PullRequestMerge(merged: true, sha: 'sha1', message: 'Pull request merged successfully');
+
+      githubService.verifyMergePullRequests(expectedMergeRequestMap);
+
       assert(pubsub.messagesQueue.isEmpty);
     });
 
     test('Merges PR with neutral status checkrun', () async {
-      PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -369,8 +393,8 @@ void main() {
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -389,7 +413,7 @@ void main() {
     });
 
     test('Removes the label for the PR with failed status', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
@@ -410,7 +434,7 @@ void main() {
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, authorAssociation: '');
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
@@ -431,7 +455,7 @@ void main() {
     });
 
     test('Removes the label for the PR with null checks and statuses', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
@@ -450,8 +474,8 @@ void main() {
     });
 
     test('Does not merge PR with in progress checks', () async {
-      PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
-      PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
+      final PullRequest pullRequest2 = generatePullRequest(prNumber: 1, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -470,8 +494,8 @@ void main() {
     });
 
     test('Does not merge PR if no autosubmit label any more', () async {
-      PullRequest pullRequest1 = generatePullRequest(prNumber: 0, autosubmitLabel: noAutosubmitLabel);
-      PullRequest pullRequest2 =
+      final PullRequest pullRequest1 = generatePullRequest(prNumber: 0, autosubmitLabel: noAutosubmitLabel);
+      final PullRequest pullRequest2 =
           generatePullRequest(prNumber: 1, autosubmitLabel: noAutosubmitLabel, repoName: cocoonRepo);
       githubService.pullRequestData = pullRequest1;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
@@ -486,7 +510,7 @@ void main() {
     });
 
     test('Self review is disallowed', () async {
-      PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
+      final PullRequest pullRequest = generatePullRequest(prNumber: 0, author: 'some_rando');
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(config: config, pubsub: pubsub, cronAuthProvider: auth);

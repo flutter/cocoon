@@ -58,7 +58,8 @@ void main() {
     // When queries flaky data from BigQuery.
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(jobNotCompleteResponse) as Map<dynamic, dynamic>));
+        QueryResponse.fromJson(jsonDecode(jobNotCompleteResponse) as Map<dynamic, dynamic>),
+      );
     });
     bool hasError = false;
     try {
@@ -74,7 +75,8 @@ void main() {
     // When queries flaky data from BigQuery.
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>));
+        QueryResponse.fromJson(jsonDecode(semanticsIntegrationTestResponse) as Map<dynamic, dynamic>),
+      );
     });
     final List<BuilderStatistic> statisticList = await service.listBuilderStatistic(expectedProjectId);
     expect(statisticList.length, 1);
@@ -95,7 +97,8 @@ void main() {
   test('return empty build list when bigquery returns no rows', () async {
     when(jobsResource.query(captureAny, expectedProjectId)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(
-          QueryResponse.fromJson(jsonDecode(noRecordsResponse) as Map<dynamic, dynamic>));
+        QueryResponse.fromJson(jsonDecode(noRecordsResponse) as Map<dynamic, dynamic>),
+      );
     });
     final List<BuilderRecord> records =
         await service.listRecentBuildRecordsForBuilder(expectedProjectId, builder: 'test', limit: 10);

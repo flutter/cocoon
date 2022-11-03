@@ -894,7 +894,8 @@ PushMessage generateCreateBranchMessage(String branchName, String repository, {b
 }
 
 CreateEvent generateCreateBranchEvent(String branchName, String repository, {bool forked = false}) =>
-    CreateEvent.fromJson(jsonDecode('''
+    CreateEvent.fromJson(
+      jsonDecode('''
 {
   "ref": "$branchName",
   "ref_type": "branch",
@@ -1015,4 +1016,5 @@ CreateEvent generateCreateBranchEvent(String branchName, String repository, {boo
     "type": "User",
     "site_admin": false
   }
-}''') as Map<String, dynamic>);
+}''') as Map<String, dynamic>,
+    );

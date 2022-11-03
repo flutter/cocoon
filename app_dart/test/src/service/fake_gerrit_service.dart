@@ -16,8 +16,9 @@ class FakeGerritService extends GerritService {
     this.branchesValue = _defaultBranches,
     this.commitsValue,
   }) : super(
-            httpClient:
-                MockClient((_) => throw const InternalServerError('FakeGerritService tried to make an http request')));
+          httpClient:
+              MockClient((_) => throw const InternalServerError('FakeGerritService tried to make an http request')),
+        );
 
   List<String> branchesValue;
   static const List<String> _defaultBranches = <String>['main'];

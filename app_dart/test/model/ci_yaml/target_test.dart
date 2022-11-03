@@ -370,8 +370,10 @@ void main() {
       });
 
       test('non-cocoon scheduler targets return omit policy', () {
-        expect(generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicy,
-            isA<OmitPolicy>());
+        expect(
+          generateTarget(1, platform: 'Linux_android', schedulerSystem: pb.SchedulerSystem.luci).schedulerPolicy,
+          isA<OmitPolicy>(),
+        );
       });
 
       test('vm cocoon targets return batch policy', () {

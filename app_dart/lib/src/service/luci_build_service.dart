@@ -95,21 +95,25 @@ class LuciBuildService {
     String bucket,
     Map<String, List<String>> tags,
   ) async {
-    final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
-      Request(
-        searchBuilds: SearchBuildsRequest(
-          predicate: BuildPredicate(
-            builderId: BuilderId(
-              project: 'flutter',
-              bucket: bucket,
-              builder: builderName,
+    final BatchResponse batch = await buildBucketClient.batch(
+      BatchRequest(
+        requests: <Request>[
+          Request(
+            searchBuilds: SearchBuildsRequest(
+              predicate: BuildPredicate(
+                builderId: BuilderId(
+                  project: 'flutter',
+                  bucket: bucket,
+                  builder: builderName,
+                ),
+                tags: tags,
+              ),
+              fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
             ),
-            tags: tags,
           ),
-          fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status,builds.*.input.properties',
-        ),
+        ],
       ),
-    ]));
+    );
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
@@ -121,42 +125,46 @@ class LuciBuildService {
   Future<Map<String?, Build?>> tryBuildsForPullRequest(
     github.PullRequest pullRequest,
   ) async {
-    final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
-      // Builds created by Cocoon
-      Request(
-        searchBuilds: SearchBuildsRequest(
-          predicate: BuildPredicate(
-            builderId: const BuilderId(
-              project: 'flutter',
-              bucket: 'try',
+    final BatchResponse batch = await buildBucketClient.batch(
+      BatchRequest(
+        requests: <Request>[
+          // Builds created by Cocoon
+          Request(
+            searchBuilds: SearchBuildsRequest(
+              predicate: BuildPredicate(
+                builderId: const BuilderId(
+                  project: 'flutter',
+                  bucket: 'try',
+                ),
+                createdBy: 'cocoon',
+                tags: <String, List<String>>{
+                  'buildset': <String>['pr/git/${pullRequest.number}'],
+                  'github_link': <String>[
+                    'https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'
+                  ],
+                  'user_agent': const <String>['flutter-cocoon'],
+                },
+              ),
             ),
-            createdBy: 'cocoon',
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/${pullRequest.number}'],
-              'github_link': <String>[
-                'https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'
-              ],
-              'user_agent': const <String>['flutter-cocoon'],
-            },
           ),
-        ),
-      ),
-      // Builds created by recipe (via swarming create task)
-      Request(
-        searchBuilds: SearchBuildsRequest(
-          predicate: BuildPredicate(
-            builderId: const BuilderId(
-              project: 'flutter',
-              bucket: 'try',
+          // Builds created by recipe (via swarming create task)
+          Request(
+            searchBuilds: SearchBuildsRequest(
+              predicate: BuildPredicate(
+                builderId: const BuilderId(
+                  project: 'flutter',
+                  bucket: 'try',
+                ),
+                tags: <String, List<String>>{
+                  'buildset': <String>['pr/git/${pullRequest.number}'],
+                  'user_agent': const <String>['recipe'],
+                },
+              ),
             ),
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/${pullRequest.number}'],
-              'user_agent': const <String>['recipe'],
-            },
           ),
-        ),
+        ],
       ),
-    ]));
+    );
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
@@ -193,8 +201,10 @@ class LuciBuildService {
     }
 
     final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
-    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where((Build? build) =>
-        build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success);
+    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where(
+      (Build? build) =>
+          build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success,
+    );
     final List<Target> targetsToSchedule = <Target>[];
     for (Target target in targets) {
       if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
@@ -243,26 +253,29 @@ class LuciBuildService {
         userData['builder_name'] = target.value.name;
       }
 
-      Map<String, List<String>> tags = <String, List<String>>{
+      final Map<String, List<String>> tags = <String, List<String>>{
         'github_checkrun': <String>[checkRun.id.toString()],
       };
 
-      Map<String, Object> properties = target.getProperties();
+      final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
-      requests.add(Request(
+      requests.add(
+        Request(
           scheduleBuild: _createPresubmitScheduleBuild(
-        slug: slug,
-        sha: pullRequest.head!.sha!,
-        //Use target.value.name here otherwise tests will die due to null checkRun.name.
-        checkName: target.value.name,
-        pullRequestNumber: pullRequest.number!,
-        cipdVersion: cipdVersion,
-        userData: userData,
-        properties: properties,
-        tags: tags,
-        dimensions: target.getDimensions(),
-      )));
+            slug: slug,
+            sha: pullRequest.head!.sha!,
+            //Use target.value.name here otherwise tests will die due to null checkRun.name.
+            checkName: target.value.name,
+            pullRequestNumber: pullRequest.number!,
+            cipdVersion: cipdVersion,
+            userData: userData,
+            properties: properties,
+            tags: tags,
+            dimensions: target.getDimensions(),
+          ),
+        ),
+      );
     }
 
     final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
@@ -323,24 +336,26 @@ class LuciBuildService {
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
     final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
-    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-      builderId: BuilderId(
-        project: buildPushMessage.build!.project,
-        bucket: bucketName,
-        builder: builderName,
+    await buildBucketClient.scheduleBuild(
+      ScheduleBuildRequest(
+        builderId: BuilderId(
+          project: buildPushMessage.build!.project,
+          bucket: bucketName,
+          builder: builderName,
+        ),
+        tags: <String, List<String>>{
+          'buildset': buildPushMessage.build!.tagsByName('buildset'),
+          'user_agent': buildPushMessage.build!.tagsByName('user_agent'),
+          'github_link': buildPushMessage.build!.tagsByName('github_link'),
+        },
+        properties:
+            (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
+        notify: NotificationConfig(
+          pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+          userData: json.encode(userData),
+        ),
       ),
-      tags: <String, List<String>>{
-        'buildset': buildPushMessage.build!.tagsByName('buildset'),
-        'user_agent': buildPushMessage.build!.tagsByName('user_agent'),
-        'github_link': buildPushMessage.build!.tagsByName('github_link'),
-      },
-      properties:
-          (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
-      notify: NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: json.encode(userData),
-      ),
-    ));
+    );
     return true;
   }
 
@@ -368,18 +383,19 @@ class LuciBuildService {
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
 
-    Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-    Map<String, dynamic>? properties = build.input!.properties;
+    final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+    final Map<String, dynamic>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
-    ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-        slug: slug,
-        sha: sha,
-        checkName: checkName,
-        pullRequestNumber: prNumber,
-        cipdVersion: cipdVersion,
-        properties: properties,
-        userData: userData);
+    final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+      slug: slug,
+      sha: sha,
+      checkName: checkName,
+      pullRequestNumber: prNumber,
+      cipdVersion: cipdVersion,
+      properties: properties,
+      userData: userData,
+    );
 
     final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
 
@@ -400,7 +416,7 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
-    Set<String> availableBuilderSet = <String>{};
+    final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
       final ListBuildersResponse listBuildersResponse =
@@ -480,8 +496,9 @@ class LuciBuildService {
     processedTags['cipd_version'] = <String>[cipdVersion];
 
     final NotificationConfig notificationConfig = NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-        userData: base64Encode(json.encode(processedUserData).codeUnits));
+      pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+      userData: base64Encode(json.encode(processedUserData).codeUnits),
+    );
 
     final Map<String, dynamic> exec = <String, dynamic>{'cipdVersion': cipdVersion};
 

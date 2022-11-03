@@ -252,7 +252,7 @@ packages:
       name: shelf_web_socket
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   source_map_stack_trace:
     dependency: transitive
     description:

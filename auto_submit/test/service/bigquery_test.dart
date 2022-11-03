@@ -201,7 +201,7 @@ void main() {
       );
     });
 
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final PullRequestRecord pullRequestRecord = PullRequestRecord(
       prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
@@ -232,7 +232,7 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final PullRequestRecord pullRequestRecord = PullRequestRecord(
       prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
@@ -263,7 +263,7 @@ void main() {
     });
 
     bool hasError = false;
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final PullRequestRecord pullRequestRecord = PullRequestRecord(
       prCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(123456789),
       prLandedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
       organization: 'flutter',
@@ -293,7 +293,7 @@ void main() {
       );
     });
 
-    PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrNumber(
+    final PullRequestRecord pullRequestRecord = await service.selectPullRequestRecordByPrNumber(
       projectId: expectedProjectId,
       prNumber: 345,
       repository: 'cocoon',
@@ -454,7 +454,7 @@ void main() {
       );
     });
 
-    RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+    final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
@@ -492,7 +492,7 @@ void main() {
     });
 
     bool hasError = false;
-    RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+    final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
       organization: 'flutter',
       repository: 'cocoon',
       author: 'ricardoamador',
@@ -529,7 +529,7 @@ void main() {
       );
     });
 
-    RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrNumber(
+    final RevertRequestRecord revertRequestRecord = await service.selectRevertRequestByRevertPrNumber(
       projectId: expectedProjectId,
       prNumber: 2048,
       repository: 'cocoon',
@@ -703,11 +703,12 @@ void main() {
       );
     });
 
-    List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+    final List<RevertRequestRecord> revertRequestRecordReviewsList =
+        await service.selectOpenReviewRequestIssueRecordsList(
       projectId: expectedProjectId,
     );
 
-    RevertRequestRecord keyongRecord = RevertRequestRecord(
+    final RevertRequestRecord keyongRecord = RevertRequestRecord(
       reviewIssueAssignee: 'Keyonghan',
       reviewIssueNumber: 2048,
       reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
@@ -715,7 +716,7 @@ void main() {
       reviewIssueClosedBy: '',
     );
 
-    RevertRequestRecord caseyRecord = RevertRequestRecord(
+    final RevertRequestRecord caseyRecord = RevertRequestRecord(
       reviewIssueAssignee: 'caseyhillers',
       reviewIssueNumber: 2049,
       reviewIssueCreatedTimestamp: DateTime.fromMillisecondsSinceEpoch(234567890),
@@ -748,7 +749,8 @@ void main() {
       );
     });
 
-    List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+    final List<RevertRequestRecord> revertRequestRecordReviewsList =
+        await service.selectOpenReviewRequestIssueRecordsList(
       projectId: expectedProjectId,
     );
 

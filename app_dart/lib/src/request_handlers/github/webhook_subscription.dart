@@ -160,7 +160,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     final RepositorySlug slug = pullRequestEvent.repository!.slug();
 
     log.info(
-        'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
+      'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
+    );
 
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
@@ -310,7 +311,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
         filename.contains('.github/') ||
-        filename.endsWith('.md');
+        filename.endsWith('.md') ||
+        // Exempt paths.
+        filename.startsWith('dev/devicelab/lib/versions/gallery.dart');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.

@@ -39,46 +39,49 @@ abstract class RequestHandler<T extends Body> {
     HttpRequest request, {
     Future<void> Function(HttpStatusException)? onError,
   }) {
-    return runZoned<Future<void>>(() async {
-      final HttpResponse response = request.response;
-      try {
+    return runZoned<Future<void>>(
+      () async {
+        final HttpResponse response = request.response;
         try {
-          T body;
-          switch (request.method) {
-            case 'GET':
-              body = await get();
-              break;
-            case 'POST':
-              body = await post();
-              break;
-            default:
-              throw MethodNotAllowed(request.method);
+          try {
+            T body;
+            switch (request.method) {
+              case 'GET':
+                body = await get();
+                break;
+              case 'POST':
+                body = await post();
+                break;
+              default:
+                throw MethodNotAllowed(request.method);
+            }
+            await _respond(body: body);
+            httpClient?.close();
+            return;
+          } on HttpStatusException {
+            rethrow;
+          } catch (error, stackTrace) {
+            log.severe('$error\n$stackTrace');
+            throw InternalServerError('$error\n$stackTrace');
           }
-          await _respond(body: body);
-          httpClient?.close();
+        } on HttpStatusException catch (error) {
+          if (onError != null) {
+            await onError(error);
+          }
+          response
+            ..statusCode = error.statusCode
+            ..write(error.message);
+          await response.flush();
+          await response.close();
           return;
-        } on HttpStatusException {
-          rethrow;
-        } catch (error, stackTrace) {
-          log.severe('$error\n$stackTrace');
-          throw InternalServerError('$error\n$stackTrace');
         }
-      } on HttpStatusException catch (error) {
-        if (onError != null) {
-          await onError(error);
-        }
-        response
-          ..statusCode = error.statusCode
-          ..write(error.message);
-        await response.flush();
-        await response.close();
-        return;
-      }
-    }, zoneValues: <RequestKey<dynamic>, Object>{
-      RequestKey.request: request,
-      RequestKey.response: request.response,
-      RequestKey.httpClient: httpClient ?? http.Client(),
-    });
+      },
+      zoneValues: <RequestKey<dynamic>, Object>{
+        RequestKey.request: request,
+        RequestKey.response: request.response,
+        RequestKey.httpClient: httpClient ?? http.Client(),
+      },
+    );
   }
 
   /// Responds (using [response]) with the specified [status] and optional

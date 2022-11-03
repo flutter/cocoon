@@ -115,10 +115,14 @@ void main() {
       });
 
       test('only if pull request is for the default branch', () async {
-        when(pullRequestsService.list(any)).thenAnswer((_) => Stream<PullRequest>.value(generatePullRequest(
+        when(pullRequestsService.list(any)).thenAnswer(
+          (_) => Stream<PullRequest>.value(
+            generatePullRequest(
               id: 1,
               branch: 'flutter-2.15-candidate.3',
-            )));
+            ),
+          ),
+        );
         buildStatusService.cumulativeStatus = BuildStatus.success();
         await tester.get<Body>(handler);
         verifyNever(repositoriesService.createStatus(any, any, any));

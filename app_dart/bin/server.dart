@@ -274,34 +274,38 @@ Future<void> main() async {
       '/readiness_check': ReadinessCheck(config: config),
     };
 
-    return await runAppEngine((HttpRequest request) async {
-      if (handlers.containsKey(request.uri.path)) {
-        final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
-        await handler.service(request);
-      } else {
-        /// Requests with query parameters and anchors need to be trimmed to get the file path.
-        // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
-        final int queryIndex = request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
-        final int anchorIndex =
-            request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
+    return await runAppEngine(
+      (HttpRequest request) async {
+        if (handlers.containsKey(request.uri.path)) {
+          final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
+          await handler.service(request);
+        } else {
+          /// Requests with query parameters and anchors need to be trimmed to get the file path.
+          // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
+          final int queryIndex =
+              request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
+          final int anchorIndex =
+              request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
 
-        /// Trim to the first instance of an anchor or query.
-        final int trimIndex = min(queryIndex, anchorIndex);
-        final String filePath = request.uri.path.substring(0, trimIndex);
+          /// Trim to the first instance of an anchor or query.
+          final int trimIndex = min(queryIndex, anchorIndex);
+          final String filePath = request.uri.path.substring(0, trimIndex);
 
-        const Map<String, String> redirects = <String, String>{
-          '/build.html': '/#/build',
-        };
-        if (redirects.containsKey(filePath)) {
-          request.response.statusCode = HttpStatus.permanentRedirect;
-          return await request.response.redirect(Uri.parse(redirects[filePath]!));
+          const Map<String, String> redirects = <String, String>{
+            '/build.html': '/#/build',
+          };
+          if (redirects.containsKey(filePath)) {
+            request.response.statusCode = HttpStatus.permanentRedirect;
+            return await request.response.redirect(Uri.parse(redirects[filePath]!));
+          }
+
+          await StaticFileHandler(filePath, config: config).service(request);
         }
-
-        await StaticFileHandler(filePath, config: config).service(request);
-      }
-    }, onAcceptingConnections: (InternetAddress address, int port) {
-      final String host = address.isLoopback ? 'localhost' : address.host;
-      print('Serving requests at http://$host:$port/');
-    });
+      },
+      onAcceptingConnections: (InternetAddress address, int port) {
+        final String host = address.isLoopback ? 'localhost' : address.host;
+        print('Serving requests at http://$host:$port/');
+      },
+    );
   });
 }

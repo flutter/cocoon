@@ -60,14 +60,14 @@ void main() {
 
   test('Merges branch', () async {
     when(mockGitHubComparison.behindBy).thenReturn(10);
-    PullRequest pullRequest = generatePullRequest();
+    final PullRequest pullRequest = generatePullRequest();
     await githubService.autoMergeBranch(pullRequest);
     verify(mockResponse.statusCode).called(1);
   });
 
   test('Does not merge branch', () async {
     when(mockGitHubComparison.behindBy).thenReturn(9);
-    PullRequest pullRequest = generatePullRequest();
+    final PullRequest pullRequest = generatePullRequest();
     await githubService.autoMergeBranch(pullRequest);
     verifyNever(mockResponse.statusCode);
   });

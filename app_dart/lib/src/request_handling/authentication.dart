@@ -105,13 +105,15 @@ class AuthenticationProvider {
     final String? idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final http.Client client = httpClientProvider();
     try {
-      final http.Response verifyTokenResponse = await client.get(Uri.https(
-        'oauth2.googleapis.com',
-        '/tokeninfo',
-        <String, String?>{
-          tokenType: idTokenFromHeader,
-        },
-      ));
+      final http.Response verifyTokenResponse = await client.get(
+        Uri.https(
+          'oauth2.googleapis.com',
+          '/tokeninfo',
+          <String, String?>{
+            tokenType: idTokenFromHeader,
+          },
+        ),
+      );
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why

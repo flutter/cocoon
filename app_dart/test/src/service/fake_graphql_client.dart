@@ -89,8 +89,11 @@ class FakeGraphQLClient implements GraphQLClient {
   }
 
   @override
-  Future<QueryResult<T>> fetchMore<T>(FetchMoreOptions fetchMoreOptions,
-      {required QueryOptions<T> originalOptions, required QueryResult<T> previousResult}) {
+  Future<QueryResult<T>> fetchMore<T>(
+    FetchMoreOptions fetchMoreOptions, {
+    required QueryOptions<T> originalOptions,
+    required QueryResult<T> previousResult,
+  }) {
     throw UnimplementedError();
   }
 

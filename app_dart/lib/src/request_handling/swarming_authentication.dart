@@ -69,19 +69,23 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   /// if they belong to a LUCI prod service account.
   ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
-  Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
-      {required ClientContext clientContext}) async {
+  Future<AuthenticatedContext> authenticateAccessToken(
+    String accessToken, {
+    required ClientContext clientContext,
+  }) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final Client client = httpClientProvider();
     try {
       log.fine('Sending token request to Google OAuth');
-      final Response verifyTokenResponse = await client.get(Uri.https(
-        'oauth2.googleapis.com',
-        '/tokeninfo',
-        <String, String>{
-          'access_token': accessToken,
-        },
-      ));
+      final Response verifyTokenResponse = await client.get(
+        Uri.https(
+          'oauth2.googleapis.com',
+          '/tokeninfo',
+          <String, String>{
+            'access_token': accessToken,
+          },
+        ),
+      );
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why

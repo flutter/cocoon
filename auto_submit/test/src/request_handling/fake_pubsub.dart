@@ -27,7 +27,7 @@ class FakePubSub extends PubSub {
   @override
   Future<PullResponse> pull(String subscription, int maxMessages) async {
     // The list will be empty if there are no more messages available in the backlog.
-    List<ReceivedMessage> receivedMessages = <ReceivedMessage>[];
+    final List<ReceivedMessage> receivedMessages = <ReceivedMessage>[];
     iteration++;
     if (messagesQueue.isNotEmpty) {
       int i = iteration * messageSize;

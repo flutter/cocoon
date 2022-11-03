@@ -27,13 +27,13 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// mode by providing the `--dryrun` flag, then [kDryrunFlag] is set to true,
 /// a quick sanity check is performed and the notarization process is skipped.
 /// On the other hand, if a user provides the flag `--no-dryrun`, [kDryrunFlag]
-/// will be set to false, and code signed artifacts will go through the notarization 
+/// will be set to false, and code signed artifacts will go through the notarization
 /// process.
 ///
-/// For [kInputZipPathOption] and [kOutputZipPathOption], they are required parameter to specify the 
-/// input and output locations. 
-/// The codesign app will take the zip file located at the input location [kInputZipPathOption], and 
-/// put codesigned zip at [kOutputZipPathOption]. The work of downloading and uploading the zip 
+/// For [kInputZipPathOption] and [kOutputZipPathOption], they are required parameter to specify the
+/// input and output locations.
+/// The codesign app will take the zip file located at the input location [kInputZipPathOption], and
+/// put codesigned zip at [kOutputZipPathOption]. The work of downloading and uploading the zip
 /// artifacts is delegated to recipe.
 /// For example, supply
 /// '--input-zip-file-path=/tmp/input.zip',
@@ -65,12 +65,16 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addFlag(kHelpFlag, help: 'Prints usage info.', callback: (bool value) {
-      if (value) {
-        stdout.write('${parser.usage}\n');
-        exit(1);
-      }
-    })
+    ..addFlag(
+      kHelpFlag,
+      help: 'Prints usage info.',
+      callback: (bool value) {
+        if (value) {
+          stdout.write('${parser.usage}\n');
+          exit(1);
+        }
+      },
+    )
     ..addOption(
       kCodesignCertNameOption,
       help: 'The name of the codesign certificate to be used when codesigning.'

@@ -105,7 +105,8 @@ class FakeBuildBucketClient extends BuildBucketClient {
                 project: 'flutter',
                 builder: 'builder_abc',
               ),
-              summaryMarkdown: request.summaryMarkdown);
+              summaryMarkdown: request.summaryMarkdown,
+            );
 
   @override
   Future<Build> getBuild(
@@ -127,20 +128,22 @@ class FakeBuildBucketClient extends BuildBucketClient {
   }) async =>
       (listBuildersResponse != null)
           ? await listBuildersResponse!
-          : const ListBuildersResponse(builders: <BuilderItem>[
-              BuilderItem(
-                id: BuilderId(
-                  bucket: 'prod',
-                  project: 'flutter',
-                  builder: 'Linux_android A',
+          : const ListBuildersResponse(
+              builders: <BuilderItem>[
+                BuilderItem(
+                  id: BuilderId(
+                    bucket: 'prod',
+                    project: 'flutter',
+                    builder: 'Linux_android A',
+                  ),
                 ),
-              ),
-              BuilderItem(
-                id: BuilderId(
-                  bucket: 'prod',
-                  project: 'flutter',
-                  builder: 'Linux_android B',
-                ),
-              )
-            ]);
+                BuilderItem(
+                  id: BuilderId(
+                    bucket: 'prod',
+                    project: 'flutter',
+                    builder: 'Linux_android B',
+                  ),
+                )
+              ],
+            );
 }

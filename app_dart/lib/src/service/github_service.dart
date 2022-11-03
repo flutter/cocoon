@@ -70,9 +70,10 @@ class GithubService {
         ..commit = (GitCommit()
           ..message = commit['commit']['message'] as String?
           ..committer = (GitCommitUser(
-              commit['commit']['author']['name'] as String?,
-              commit['commit']['author']['email'] as String?,
-              DateTime.parse(commit['commit']['author']['date'] as String))));
+            commit['commit']['author']['name'] as String?,
+            commit['commit']['author']['email'] as String?,
+            DateTime.parse(commit['commit']['author']['date'] as String),
+          )));
     }).toList();
   }
 
@@ -217,8 +218,11 @@ class GithubService {
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
-    final Response response = await github.request('PUT', '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: GitHubJson.encode(labels));
+    final Response response = await github.request(
+      'PUT',
+      '/repos/${slug.fullName}/issues/$issueNumber/labels',
+      body: GitHubJson.encode(labels),
+    );
     final List<dynamic> body = jsonDecode(response.body) as List<dynamic>;
     return body.map((dynamic it) => IssueLabel.fromJson(it as Map<String, dynamic>)).toList();
   }

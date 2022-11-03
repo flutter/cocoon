@@ -97,23 +97,30 @@ abc_test.sh @ghi @flutter/framework
         const String expectedHtml = 'https://someurl';
         // when gets existing marks flaky prs.
         when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
-          return Stream<PullRequest>.value(PullRequest(
-            htmlUrl: expectedHtml,
-            body: '''
+          return Stream<PullRequest>.value(
+            PullRequest(
+              htmlUrl: expectedHtml,
+              body: '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
   "name"
 }
 -->''',
-          ));
+            ),
+          );
         });
         when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
         final FakeConfig config = FakeConfig(
           githubService: GithubService(mockGitHubClient),
         );
-        expect(() => getExistingPRs(config.githubService!, Config.flutterSlug), throwsA(predicate<String>((String e) {
-          return e.contains('Unable to parse body of $expectedHtml');
-        })));
+        expect(
+          () => getExistingPRs(config.githubService!, Config.flutterSlug),
+          throwsA(
+            predicate<String>((String e) {
+              return e.contains('Unable to parse body of $expectedHtml');
+            }),
+          ),
+        );
       });
 
       test('handles PRs with empty body message', () async {
@@ -121,9 +128,11 @@ abc_test.sh @ghi @flutter/framework
         final MockPullRequestsService mockPullRequestsService = MockPullRequestsService();
         const String expectedHtml = 'https://someurl';
         when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
-          return Stream<PullRequest>.value(PullRequest(
-            htmlUrl: expectedHtml,
-          ));
+          return Stream<PullRequest>.value(
+            PullRequest(
+              htmlUrl: expectedHtml,
+            ),
+          );
         });
         when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
         final FakeConfig config = FakeConfig(

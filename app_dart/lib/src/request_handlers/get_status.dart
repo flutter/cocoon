@@ -52,7 +52,8 @@ class GetStatus extends RequestHandler<Body> {
           slug: slug,
         )
         .map<SerializableCommitStatus>(
-            (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
+          (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)),
+        )
         .toList();
 
     return Body.forJson(<String, dynamic>{
@@ -69,8 +70,10 @@ class GetStatus extends RequestHandler<Body> {
 
     if (encodedLastCommitKey != null) {
       final Key<String> ownerKey = keyHelper.decode(encodedLastCommitKey) as Key<String>;
-      final Commit commit = await datastore.db.lookupValue<Commit>(ownerKey,
-          orElse: () => throw NotFoundException('Failed to find commit with key $ownerKey'));
+      final Commit commit = await datastore.db.lookupValue<Commit>(
+        ownerKey,
+        orElse: () => throw NotFoundException('Failed to find commit with key $ownerKey'),
+      );
 
       lastCommitTimestamp = commit.timestamp!;
     }

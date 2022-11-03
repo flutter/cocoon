@@ -116,7 +116,6 @@ void main() {
 
   group('Processing revert reqeuests.', () {
     test('Merge valid revert request, issue created and message is acknowledged.', () async {
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
@@ -125,6 +124,12 @@ void main() {
 
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: 'sha',
+        message: 'Pull Request successfully merged',
+      );
+
       final FakePubSub pubsub = FakePubSub();
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -248,7 +253,6 @@ void main() {
     });
 
     test('Fail to create follow up review issue, comment is added and message is acknowledged.', () async {
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult();
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
@@ -259,6 +263,12 @@ void main() {
       githubService.createCommentData = createCommentMock;
       githubService.throwOnCreateIssue = true;
       githubService.useRealComment = true;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: 'sha',
+        message: 'Pull Request successfully merged',
+      );
+
       final FakePubSub pubsub = FakePubSub();
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
@@ -349,6 +359,7 @@ void main() {
           maxAttempts: 1,
         ),
       );
+
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => createFakeQueryResult(
             exception: OperationException(
               graphqlErrors: [
@@ -356,6 +367,7 @@ void main() {
               ],
             ),
           );
+
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
@@ -530,22 +542,27 @@ void main() {
     test('Merge fails the first time but then succeeds after retry.', () async {
       validationService = ValidationService(
         config,
-        retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 3),
-      );
-
-      // Create a result that will trigger a retry.
-      QueryResult queryResultException = createFakeQueryResult(
-        exception: OperationException(
-          graphqlErrors: [
-            const GraphQLError(message: 'Base branch was modified. Review and try the merge again'),
-          ],
+        retryOptions: const RetryOptions(
+          delayFactor: Duration.zero,
+          maxDelay: Duration.zero,
+          maxAttempts: 3,
         ),
       );
 
-      QueryResult queryResultSuccess = createFakeQueryResult();
-      githubGraphQLClient.useMutationMapOnMutate = true;
-      githubGraphQLClient.mutationMap.add(queryResultException);
-      githubGraphQLClient.mutationMap.add(queryResultSuccess);
+      githubService.useMergeRequestMockList = true;
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: false,
+          message: 'Unable to merge pull request.',
+        ),
+      );
+      githubService.pullRequestMergeMockList.add(
+        PullRequestMerge(
+          merged: true,
+          sha: 'sha',
+          message: 'Pull Request successfully merged',
+        ),
+      );
 
       final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
@@ -556,6 +573,7 @@ void main() {
       githubService.checkRunsData = checkRunsMock;
       githubService.createCommentData = createCommentMock;
       githubService.useRealComment = true;
+
       final FakePubSub pubsub = FakePubSub();
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,

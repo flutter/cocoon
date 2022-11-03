@@ -33,7 +33,7 @@ void main() {
     late MockRepositoriesService mockRepositoriesService;
     final MockProcessManager processManager = MockProcessManager();
 
-    String stdoutResult = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main';
+    const String stdoutResult = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main';
     const String testBranchSha = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa';
 
     Future<T?> decodeHandlerBody<T>() async {
@@ -61,7 +61,7 @@ void main() {
       );
 
       const String id = 'flutter/flutter/main';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
         key: branchKey,
@@ -73,14 +73,18 @@ void main() {
     test('should not retrieve branches older than 2 months', () async {
       expect(db.values.values.whereType<Branch>().length, 1);
       when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
-        return Future<RepositoryCommit>.value(RepositoryCommit(
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
             sha: testBranchSha,
             commit: GitCommit(
-                committer: GitCommitUser(
-              'dash',
-              'dash@google.com',
-              DateTime.now().subtract(const Duration(days: 90)),
-            ))));
+              committer: GitCommitUser(
+                'dash',
+                'dash@google.com',
+                DateTime.now().subtract(const Duration(days: 90)),
+              ),
+            ),
+          ),
+        );
       });
 
       final List<dynamic> result = (await decodeHandlerBody())!;
@@ -92,18 +96,22 @@ void main() {
 
       // a recent commit is added for each of the 6 repos
       when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
-        return Future<RepositoryCommit>.value(RepositoryCommit(
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
             sha: testBranchSha,
             commit: GitCommit(
-                committer: GitCommitUser(
-              'dash',
-              'dash@google.com',
-              DateTime.now(),
-            ))));
+              committer: GitCommitUser(
+                'dash',
+                'dash@google.com',
+                DateTime.now(),
+              ),
+            ),
+          ),
+        );
       });
 
       final List<dynamic> result = (await decodeHandlerBody())!;
-      List<String> repos = [];
+      final List<String> repos = [];
       for (dynamic k in result) {
         repos.add('${k['branch']['repository']}/${k['branch']['branch']}');
       }
@@ -116,14 +124,18 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 1);
 
       when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
-        return Future<RepositoryCommit>.value(RepositoryCommit(
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
             sha: testBranchSha,
             commit: GitCommit(
-                committer: GitCommitUser(
-              'dash',
-              'dash@google.com',
-              DateTime.tryParse('2020-05-15T15:20:56Z'),
-            ))));
+              committer: GitCommitUser(
+                'dash',
+                'dash@google.com',
+                DateTime.tryParse('2020-05-15T15:20:56Z'),
+              ),
+            ),
+          ),
+        );
       });
 
       final List<dynamic> result = (await decodeHandlerBody())!;
@@ -135,14 +147,18 @@ void main() {
       when(processManager.runSync(any)).thenAnswer((Invocation invocation) => ProcessResult(1, -1, stdoutResult, ''));
 
       when(mockRepositoriesService.getCommit(any, any)).thenAnswer((Invocation invocation) {
-        return Future<RepositoryCommit>.value(RepositoryCommit(
+        return Future<RepositoryCommit>.value(
+          RepositoryCommit(
             sha: testBranchSha,
             commit: GitCommit(
-                committer: GitCommitUser(
-              'dash',
-              'dash@google.com',
-              DateTime.tryParse('2020-05-15T15:20:56Z'),
-            ))));
+              committer: GitCommitUser(
+                'dash',
+                'dash@google.com',
+                DateTime.tryParse('2020-05-15T15:20:56Z'),
+              ),
+            ),
+          ),
+        );
       });
 
       expect(() => decodeHandlerBody<List<dynamic>>(), throwsA(const TypeMatcher<FormatException>()));

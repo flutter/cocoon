@@ -130,17 +130,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(pullRequestsService.edit(
-        Config.flutterSlug,
-        issueNumber,
-        state: 'closed',
-      )).called(1);
+      verify(
+        pullRequestsService.edit(
+          Config.flutterSlug,
+          issueNumber,
+          state: 'closed',
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
+        ),
+      ).called(1);
     });
 
     test('No action against candidate branches', () async {
@@ -166,17 +170,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(pullRequestsService.edit(
-        Config.flutterSlug,
-        issueNumber,
-        base: kDefaultBranchName,
-      ));
+      verifyNever(
+        pullRequestsService.edit(
+          Config.flutterSlug,
+          issueNumber,
+          base: kDefaultBranchName,
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains('-> master')),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains('-> master')),
+        ),
+      );
     });
 
     test('Acts on opened against dev', () async {
@@ -202,17 +210,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(pullRequestsService.edit(
-        Config.flutterSlug,
-        issueNumber,
-        base: kDefaultBranchName,
-      )).called(1);
+      verify(
+        pullRequestsService.edit(
+          Config.flutterSlug,
+          issueNumber,
+          base: kDefaultBranchName,
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains('dev -> master')),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains('dev -> master')),
+        ),
+      ).called(1);
     });
 
     test('Acts on opened against master when default is main', () async {
@@ -239,17 +251,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(pullRequestsService.edit(
-        Config.engineSlug,
-        issueNumber,
-        base: 'main',
-      )).called(1);
+      verify(
+        pullRequestsService.edit(
+          Config.engineSlug,
+          issueNumber,
+          base: 'main',
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains('master -> main')),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains('master -> main')),
+        ),
+      ).called(1);
     });
 
     // We already schedule checks when a draft is opened, don't need to re-test
@@ -337,32 +353,42 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(pullRequestsService.edit(
-        Config.flutterSlug,
-        issueNumber,
-        base: kDefaultBranchName,
-      ));
+      verifyNever(
+        pullRequestsService.edit(
+          Config.flutterSlug,
+          issueNumber,
+          base: kDefaultBranchName,
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.wrongBaseBranchPullRequestMessage)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.wrongBaseBranchPullRequestMessage)),
+        ),
+      );
     });
 
     group('getLabelsForFrameworkPath', () {
       test('Only the team label is applied to pubspec.yaml', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_tools/pubspec.yaml'),
-            <String>{'team'});
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_tools/pubspec.yaml'),
+          <String>{'team'},
+        );
       });
 
       test('Tool label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_tools/hot_reload.dart'),
-            contains('tool'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath(
-                'packages/fuchsia_remote_debug_protocol/hot_reload.dart'),
-            contains('tool'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_tools/hot_reload.dart'),
+          contains('tool'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath(
+            'packages/fuchsia_remote_debug_protocol/hot_reload.dart',
+          ),
+          contains('tool'),
+        );
       });
 
       test('iOS label applied', () {
@@ -377,151 +403,225 @@ void main() {
       });
 
       test('Framework label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/widget.dart'),
-            contains('framework'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'),
-            contains('framework'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'),
-            contains('framework'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
-            contains('framework'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
-            contains('framework'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/widget.dart'),
+          contains('framework'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'),
+          contains('framework'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'),
+          contains('framework'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+          contains('framework'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+          contains('framework'),
+        );
       });
 
       test('Material label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/material/design.dart'),
-            contains('f: material design'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/material/design.dart'),
+          contains('f: material design'),
+        );
       });
 
       test('Cupertino label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/cupertino/design.dart'),
-            contains('f: cupertino'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/cupertino/design.dart'),
+          contains('f: cupertino'),
+        );
       });
 
       test('i18n label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_localizations/allo.dart'),
-            contains('a: internationalization'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_localizations/allo.dart'),
+          contains('a: internationalization'),
+        );
       });
 
       test('Tests label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'),
-            contains('a: tests'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'),
-            contains('a: tests'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
-            contains('a: tests'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
-            contains('a: tests'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'),
+          contains('a: tests'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'),
+          contains('a: tests'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+          contains('a: tests'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+          contains('a: tests'),
+        );
       });
 
       test('a11y label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/semantics/voiceover.dart'),
-            contains('a: accessibility'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/accessibility/voiceover.dart'),
-            contains('a: accessibility'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/semantics/voiceover.dart'),
+          contains('a: accessibility'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('foo/bar/baz/accessibility/voiceover.dart'),
+          contains('a: accessibility'),
+        );
       });
 
       test('Examples label applied', () {
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('d: examples'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'),
+          contains('d: examples'),
+        );
       });
 
       test('API Docs label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('examples/api/bar/baz.dart'),
-            <String>['d: examples', 'team', 'd: api docs', 'documentation']);
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('examples/api/bar/baz.dart'),
+          <String>['d: examples', 'team', 'd: api docs', 'documentation'],
+        );
       });
 
       test('Gallery label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('examples/flutter_gallery/lib/gallery.dart'),
-            contains('team: gallery'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('examples/flutter_gallery/lib/gallery.dart'),
+          contains('team: gallery'),
+        );
       });
 
       test('Team label applied', () {
         expect(GithubWebhookSubscription.getLabelsForFrameworkPath('dev/foo/bar/baz.dart'), contains('team'));
         expect(GithubWebhookSubscription.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('team'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
-            contains('team'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
-            contains('team'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'),
-            contains('team'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens/lib/flutter_goldens.dart'),
+          contains('team'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter_goldens_client/lib/skia_client.dart'),
+          contains('team'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'),
+          contains('team'),
+        );
         expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes'), contains('team'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'),
-            contains('team'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'),
+          contains('team'),
+        );
       });
 
       test('tech-debt label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'),
-            contains('tech-debt'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes'), contains('tech-debt'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'),
-            contains('tech-debt'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/fix_data.yaml'),
+          contains('tech-debt'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes'),
+          contains('tech-debt'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/test_fixes/material.expect'),
+          contains('tech-debt'),
+        );
       });
 
       test('gestures label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/gestures'),
-            contains('f: gestures'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/gestures'),
+          contains('f: gestures'),
+        );
       });
 
       test('focus label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_node.dart'),
-            contains('f: focus'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_scope.dart'),
-            contains('f: focus'));
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_manager.dart'),
-            contains('f: focus'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_node.dart'),
+          contains('f: focus'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_scope.dart'),
+          contains('f: focus'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/focus_manager.dart'),
+          contains('f: focus'),
+        );
       });
 
       test('routes label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/router.dart'),
-            contains('f: routes'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/routes.dart'),
-            contains('f: routes'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/navigator.dart'),
-            contains('f: routes'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/router.dart'),
+          contains('f: routes'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/routes.dart'),
+          contains('f: routes'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/navigator.dart'),
+          contains('f: routes'),
+        );
       });
 
       test('text input label applied', () {
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath(
-                'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart'),
-            contains('a: text input'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath(
+            'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart',
+          ),
+          contains('a: text input'),
+        );
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath(
-                'packages/flutter/lib/src/widgets/text_editing_action.dart'),
-            contains('a: text input'));
+          GithubWebhookSubscription.getLabelsForFrameworkPath(
+            'packages/flutter/lib/src/widgets/text_editing_action.dart',
+          ),
+          contains('a: text input'),
+        );
       });
 
       test('animation label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/animation'),
-            contains('a: animation'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/animation'),
+          contains('a: animation'),
+        );
       });
 
       test('scrolling label applied', () {
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/sliver.dart'),
-            contains('f: scrolling'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/material/scrollbar.dart'),
-            contains('f: scrolling'));
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/rendering/viewport.dart'),
-            contains('f: scrolling'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/widgets/sliver.dart'),
+          contains('f: scrolling'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/material/scrollbar.dart'),
+          contains('f: scrolling'),
+        );
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/flutter/lib/src/rendering/viewport.dart'),
+          contains('f: scrolling'),
+        );
       });
 
       test('integration_test label is/isn\'t applied', () {
         // Label does not apply to integration tests outside of the
         // integration_test package.
         expect(
-            GithubWebhookSubscription.getLabelsForFrameworkPath(
-                'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart'),
-            <String>{'team', 'a: text input'});
+          GithubWebhookSubscription.getLabelsForFrameworkPath(
+            'dev/integration_tests/web_e2e_tests/test_driver/text_editing_integration.dart',
+          ),
+          <String>{'team', 'a: text input'},
+        );
         // Label applies to integration_test package
-        expect(GithubWebhookSubscription.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
-            contains('integration_test'));
+        expect(
+          GithubWebhookSubscription.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
+          contains('integration_test'),
+        );
       });
     });
 
@@ -531,43 +631,59 @@ void main() {
       });
 
       test('platform-android applied for Android embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/android/RIsForRhubarbPie.java'),
-            contains('platform-android'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/android/RIsForRhubarbPie.java'),
+          contains('platform-android'),
+        );
       });
 
       test('platform-ios and platform-macos applied for common Darwin code', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/common/ThinkDifferent.mm'),
-            containsAll(<String>['platform-ios', 'platform-macos']));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/common/ThinkDifferent.mm'),
+          containsAll(<String>['platform-ios', 'platform-macos']),
+        );
       });
 
       test('platform-ios and platform-ios applied for iOS embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/ios/BackButton.mm'),
-            contains('platform-ios'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/ios/BackButton.mm'),
+          contains('platform-ios'),
+        );
       });
 
       test('platform-macos applied for macOS embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/macos/PhysicalEscapeKey.mm'),
-            contains('platform-macos'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/darwin/macos/PhysicalEscapeKey.mm'),
+          contains('platform-macos'),
+        );
       });
 
       test('platform-fuchsia applied for fuchsia embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/fuchsia/spell_checker.cc'),
-            contains('platform-fuchsia'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/fuchsia/spell_checker.cc'),
+          contains('platform-fuchsia'),
+        );
       });
 
       test('platform-linux applied for linux embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/linux/systemd_integration.cc'),
-            contains('platform-linux'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/linux/systemd_integration.cc'),
+          contains('platform-linux'),
+        );
       });
 
       test('platform-windows applied for windows embedder', () {
-        expect(GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/windows/start_menu.cc'),
-            contains('platform-windows'));
+        expect(
+          GithubWebhookSubscription.getLabelsForEnginePath('shell/platform/windows/start_menu.cc'),
+          contains('platform-windows'),
+        );
       });
 
       test('platform-web applied for web paths', () {
         expect(
-            GithubWebhookSubscription.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
+          GithubWebhookSubscription.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'),
+          contains('platform-web'),
+        );
         expect(GithubWebhookSubscription.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
       });
     });
@@ -654,21 +770,25 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.flutterSlug,
-        issueNumber,
-        <String>['framework'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.flutterSlug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
     });
 
     group("Auto-roller accounts do not label Framework PR with test label or comment.", () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'skia-flutter-autoroll',
         'dependabot',
       };
@@ -699,17 +819,21 @@ void main() {
 
           await tester.post(webhook);
 
-          verify(issuesService.addLabelsToIssue(
-            slug,
-            issueNumber,
-            <String>['framework'],
-          )).called(1);
+          verify(
+            issuesService.addLabelsToIssue(
+              slug,
+              issueNumber,
+              <String>['framework'],
+            ),
+          ).called(1);
 
-          verifyNever(issuesService.createComment(
-            slug,
-            issueNumber,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              issueNumber,
+              argThat(contains(config.missingTestsPullRequestMessageValue)),
+            ),
+          );
         });
       }
     });
@@ -738,17 +862,61 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['framework'],
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Framework does not label PR with no tests label if file is test exempt', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      );
+
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels PRs, comment if no tests including hit_test.dart file', () async {
@@ -777,17 +945,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['framework', 'f: gestures'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework', 'f: gestures'],
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
     });
 
     test('Framework labels PRs, no dart files', () async {
@@ -807,17 +979,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['framework'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          any,
+        ),
+      );
     });
 
     test('Framework labels PRs, no comment if tests', () async {
@@ -846,29 +1022,33 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>[
-          'framework',
-          'a: accessibility',
-          'tool',
-          'a: tests',
-          'd: examples',
-          'team',
-          'team: gallery',
-          'engine',
-          'f: cupertino',
-          'f: material design',
-          'a: internationalization',
-        ],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>[
+            'framework',
+            'a: accessibility',
+            'tool',
+            'a: tests',
+            'd: examples',
+            'team',
+            'team: gallery',
+            'engine',
+            'f: cupertino',
+            'f: material design',
+            'a: internationalization',
+          ],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels dart fix PRs, no comment if tests', () async {
@@ -889,17 +1069,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['team', 'tech-debt', 'framework', 'f: material design'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['team', 'tech-debt', 'framework', 'f: material design'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels bot PR, no comment', () async {
@@ -921,17 +1105,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['tool', 'framework', 'a: tests', 'team', 'tech-debt', 'team: flakes'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels deletion only PR, no test request', () async {
@@ -955,18 +1143,22 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['framework'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      ).called(1);
 
       // The PR here is only deleting code, so no test comment.
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('PR with additions and deletions is commented and labeled', () async {
@@ -990,17 +1182,21 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['framework'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
     });
 
     test('Framework no comment if code has only devicelab test', () async {
@@ -1021,11 +1217,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only dev bots or devicelab changed', () async {
@@ -1043,11 +1241,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only .gitignore changed', () async {
@@ -1063,11 +1263,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        any,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          any,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no test comment if Objective-C test changed', () async {
@@ -1086,11 +1288,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only AUTHORS changed', () async {
@@ -1108,11 +1312,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only ci.yaml and cirrus.yml changed', () async {
@@ -1133,11 +1339,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only analysis options changed', () async {
@@ -1153,11 +1361,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only CODEOWNERS changed', () async {
@@ -1173,11 +1383,13 @@ void main() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework no comment if only comments changed', () async {
@@ -1210,11 +1422,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels PRs, no comment if tests (dev/bots/test.dart)', () async {
@@ -1238,11 +1452,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels PRs, no comment if tests (dev/bots/analyze.dart)', () async {
@@ -1267,11 +1483,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Framework labels PRs, apply label but no comment when rolling engine version', () async {
@@ -1296,17 +1514,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.flutterSlug,
-        issueNumber,
-        <String>['engine'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.flutterSlug,
+          issueNumber,
+          <String>['engine'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Engine labels PRs, comment and labels if no tests', () async {
@@ -1333,27 +1555,33 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['platform-ios'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['platform-ios'],
+        ),
+      ).called(1);
 
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          slug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['needs tests'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          slug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      ).called(1);
     });
 
     group("Auto-roller accounts do not label Engine PR with test label or comment.", () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',
       };
@@ -1383,23 +1611,29 @@ void foo() {
 
           await tester.post(webhook);
 
-          verify(issuesService.addLabelsToIssue(
-            Config.engineSlug,
-            issueNumber,
-            <String>['platform-ios'],
-          )).called(1);
+          verify(
+            issuesService.addLabelsToIssue(
+              Config.engineSlug,
+              issueNumber,
+              <String>['platform-ios'],
+            ),
+          ).called(1);
 
-          verifyNever(issuesService.createComment(
-            Config.engineSlug,
-            issueNumber,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              Config.engineSlug,
+              issueNumber,
+              argThat(contains(config.missingTestsPullRequestMessageValue)),
+            ),
+          );
 
-          verifyNever(issuesService.addLabelsToIssue(
-            Config.engineSlug,
-            issueNumber,
-            <String>['needs tests'],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              Config.engineSlug,
+              issueNumber,
+              <String>['needs tests'],
+            ),
+          );
         });
       }
     });
@@ -1428,23 +1662,29 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        <String>['platform-ios'],
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>['platform-ios'],
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        <String>['needs tests'],
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      );
     });
 
     test('Engine labels PRs, no code files', () async {
@@ -1465,17 +1705,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
     });
 
     test('Engine labels PRs, no comment if Java tests', () async {
@@ -1496,19 +1740,23 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        <String>[
-          'platform-android',
-        ],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>[
+            'platform-android',
+          ],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Engine labels PRs, no comment if cc tests', () async {
@@ -1529,17 +1777,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Engine labels PRs, no comment if cc becnhmarks', () async {
@@ -1560,17 +1812,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          any,
+        ),
+      );
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Engine labels PRs, no comments if pr is for release branches', () async {
@@ -1597,17 +1853,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.engineSlug,
-        issueNumber,
-        <String>['platform-ios'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.engineSlug,
+          issueNumber,
+          <String>['platform-ios'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Engine does not comment for comment-only changes', () async {
@@ -1643,11 +1903,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.engineSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('No labels when only pubspec.yaml changes', () async {
@@ -1667,17 +1929,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.flutterSlug,
-        issueNumber,
-        <String>['team'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.flutterSlug,
+          issueNumber,
+          <String>['team'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins comments and labels if no tests and no patch info', () async {
@@ -1703,21 +1969,25 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.pluginsSlug,
-        issueNumber,
-        <String>['needs tests'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.pluginsSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      ).called(1);
     });
 
     group('Plugins does not comment and label if author is an autoroller account.', () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'engine-flutter-autoroll',
         'skia-flutter-autoroll',
         'dependabot',
@@ -1748,17 +2018,21 @@ void foo() {
 
           await tester.post(webhook);
 
-          verifyNever(issuesService.createComment(
-            Config.pluginsSlug,
-            issueNumber,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              Config.pluginsSlug,
+              issueNumber,
+              argThat(contains(config.missingTestsPullRequestMessageValue)),
+            ),
+          );
 
-          verifyNever(issuesService.addLabelsToIssue(
-            Config.pluginsSlug,
-            issueNumber,
-            <String>['needs tests'],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              Config.pluginsSlug,
+              issueNumber,
+              <String>['needs tests'],
+            ),
+          );
         });
       }
     });
@@ -1787,17 +2061,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.pluginsSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.pluginsSlug,
+          issueNumber,
+          any,
+        ),
+      );
     });
 
     test('Plugins comments and labels for code change', () async {
@@ -1841,17 +2119,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.pluginsSlug,
-        issueNumber,
-        <String>['needs tests'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.pluginsSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      ).called(1);
     });
 
     test('Plugins comments and labels for code removal with comment addition', () async {
@@ -1893,17 +2175,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.pluginsSlug,
-        issueNumber,
-        <String>['needs tests'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.pluginsSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      ).called(1);
     });
 
     test('Plugins does not comment for comment-only changes', () async {
@@ -1939,11 +2225,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if Dart tests', () async {
@@ -1963,11 +2251,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if Android unit tests', () async {
@@ -1987,11 +2277,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if Android UI tests', () async {
@@ -2011,11 +2303,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if iOS/macOS unit tests', () async {
@@ -2035,11 +2329,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if iOS/macOS UI tests', () async {
@@ -2059,11 +2355,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if Windows tests', () async {
@@ -2083,11 +2381,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Plugins does not comment if Linux tests', () async {
@@ -2107,11 +2407,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.pluginsSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Packages comments and labels if no tests', () async {
@@ -2136,17 +2438,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.createComment(
-        Config.packagesSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      )).called(1);
+      verify(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.packagesSlug,
-        issueNumber,
-        <String>['needs tests'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.packagesSlug,
+          issueNumber,
+          <String>['needs tests'],
+        ),
+      ).called(1);
     });
 
     test('Packages do not comment or label if pr is for release branches', () async {
@@ -2174,17 +2480,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.packagesSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
 
-      verifyNever(issuesService.addLabelsToIssue(
-        Config.packagesSlug,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.addLabelsToIssue(
+          Config.packagesSlug,
+          issueNumber,
+          any,
+        ),
+      );
     });
 
     test('Packages does not comment if Dart tests', () async {
@@ -2205,11 +2515,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.packagesSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Packages does not comment for custom test driver', () async {
@@ -2230,11 +2542,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.packagesSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.packagesSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Schedule tasks when pull request is closed and merged', () async {
@@ -2260,18 +2574,21 @@ void foo() {
         isDraft: true,
       );
 
-      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        ),
+      );
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Will not spawn comments if they have already been made.', () async {
@@ -2296,17 +2613,21 @@ void foo() {
 
       await tester.post(webhook);
 
-      verify(issuesService.addLabelsToIssue(
-        Config.flutterSlug,
-        issueNumber,
-        <String>['framework'],
-      )).called(1);
+      verify(
+        issuesService.addLabelsToIssue(
+          Config.flutterSlug,
+          issueNumber,
+          <String>['framework'],
+        ),
+      ).called(1);
 
-      verifyNever(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        argThat(contains(config.missingTestsPullRequestMessageValue)),
-      ));
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
     });
 
     test('Skips labeling or commenting on autorolls', () async {
@@ -2320,11 +2641,13 @@ void foo() {
 
       await tester.post(webhook);
 
-      verifyNever(issuesService.createComment(
-        any,
-        issueNumber,
-        any,
-      ));
+      verifyNever(
+        issuesService.createComment(
+          any,
+          issueNumber,
+          any,
+        ),
+      );
     });
 
     test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
@@ -2337,11 +2660,13 @@ void foo() {
       );
 
       await tester.post(webhook);
-      verify(issuesService.createComment(
-        Config.flutterSlug,
-        issueNumber,
-        config.mergeConflictPullRequestMessage,
-      ));
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          config.mergeConflictPullRequestMessage,
+        ),
+      );
     });
 
     test('When synchronized, cancels existing builds and schedules new ones', () async {
@@ -2451,11 +2776,13 @@ void foo() {
           mergeable: false,
         );
         await tester.post(webhook);
-        verify(issuesService.createComment(
-          Config.flutterSlug,
-          issueNumber,
-          config.mergeConflictPullRequestMessage,
-        ));
+        verify(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            config.mergeConflictPullRequestMessage,
+          ),
+        );
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {

@@ -28,12 +28,12 @@ class CiSuccessful extends Validation {
   /// Implements the CI build/tests validations.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     bool allSuccess = true;
-    github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final PullRequest pullRequest = result.repository!.pullRequest!;
-    Set<FailureDetail> failures = <FailureDetail>{};
+    final Set<FailureDetail> failures = <FailureDetail>{};
 
-    List<ContextNode> statuses = <ContextNode>[];
-    Commit commit = pullRequest.commits!.nodes!.single.commit!;
+    final List<ContextNode> statuses = <ContextNode>[];
+    final Commit commit = pullRequest.commits!.nodes!.single.commit!;
 
     // Recently most of the repositories have migrated away of using the status
     // APIs and for those repos commit.status is null.
@@ -60,7 +60,7 @@ class CiSuccessful extends Validation {
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
 
-    List<github.CheckRun> checkRuns = <github.CheckRun>[];
+    final List<github.CheckRun> checkRuns = <github.CheckRun>[];
     if (messagePullRequest.head != null && sha != null) {
       checkRuns.addAll(await gitHubService.getCheckRuns(slug, sha));
     }
@@ -79,7 +79,8 @@ class CiSuccessful extends Validation {
             'issues identified (or deflake) before re-applying this label.');
       }
     }
-    Action action = labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
+    final Action action =
+        labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 

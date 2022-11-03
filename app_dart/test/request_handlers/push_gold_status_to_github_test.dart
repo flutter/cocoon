@@ -160,7 +160,12 @@ void main() {
       });
 
       GithubGoldStatusUpdate newStatusUpdate(
-          RepositorySlug slug, PullRequest pr, String statusUpdate, String sha, String description) {
+        RepositorySlug slug,
+        PullRequest pr,
+        String statusUpdate,
+        String sha,
+        String description,
+      ) {
         return GithubGoldStatusUpdate(
           key: db.emptyKey.append(GithubGoldStatusUpdate, id: pr.number),
           status: statusUpdate,
@@ -219,31 +224,39 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            flutterPr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-          verifyNever(issuesService.addLabelsToIssue(
-            engineSlug,
-            enginePr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              flutterPr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              engineSlug,
+              enginePr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            flutterPr.number!,
-            argThat(contains(config.flutterGoldCommentID(flutterPr))),
-          ));
-          verifyNever(issuesService.createComment(
-            engineSlug,
-            enginePr.number!,
-            argThat(contains(config.flutterGoldCommentID(enginePr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              flutterPr.number!,
+              argThat(contains(config.flutterGoldCommentID(flutterPr))),
+            ),
+          );
+          verifyNever(
+            issuesService.createComment(
+              engineSlug,
+              enginePr.number!,
+              argThat(contains(config.flutterGoldCommentID(enginePr))),
+            ),
+          );
         });
 
         test('if there are no framework tests for this PR, exclude web builds', () async {
@@ -260,19 +273,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('same commit, checks running, last status running', () async {
@@ -301,19 +318,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('same commit, checks complete, last status complete', () async {
@@ -342,19 +363,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
@@ -435,31 +460,39 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-          verifyNever(issuesService.addLabelsToIssue(
-            engineSlug,
-            enginePr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              engineSlug,
+              enginePr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
-          verifyNever(issuesService.createComment(
-            engineSlug,
-            enginePr.number!,
-            argThat(contains(config.flutterGoldCommentID(enginePr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+          verifyNever(
+            issuesService.createComment(
+              engineSlug,
+              enginePr.number!,
+              argThat(contains(config.flutterGoldCommentID(enginePr))),
+            ),
+          );
         });
 
         test('does nothing for branches not staged to land on main/master', () async {
@@ -481,19 +514,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('does not post for draft PRs, does not query Gold', () async {
@@ -515,19 +552,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            any,
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              any,
+            ),
+          );
         });
 
         test('does not post for draft PRs, does not query Gold', () async {
@@ -549,19 +590,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            any,
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              any,
+            ),
+          );
         });
 
         test('does not post for stale PRs, does not query Gold, stale comment', () async {
@@ -591,19 +636,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels, should comment to update
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verify(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldStalePRValue)),
-          )).called(1);
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldStalePRValue)),
+            ),
+          ).called(1);
         });
 
         test('will only comment once on stale PRs', () async {
@@ -633,19 +682,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            any,
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              any,
+            ),
+          );
         });
 
         test('will not fire off stale warning for non-framework PRs', () async {
@@ -675,19 +728,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            any,
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              any,
+            ),
+          );
         });
       });
 
@@ -723,31 +780,39 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            flutterPr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-          verifyNever(issuesService.addLabelsToIssue(
-            engineSlug,
-            enginePr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              flutterPr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              engineSlug,
+              enginePr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            flutterPr.number!,
-            argThat(contains(config.flutterGoldCommentID(flutterPr))),
-          ));
-          verifyNever(issuesService.createComment(
-            engineSlug,
-            enginePr.number!,
-            argThat(contains(config.flutterGoldCommentID(enginePr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              flutterPr.number!,
+              argThat(contains(config.flutterGoldCommentID(flutterPr))),
+            ),
+          );
+          verifyNever(
+            issuesService.createComment(
+              engineSlug,
+              enginePr.number!,
+              argThat(contains(config.flutterGoldCommentID(enginePr))),
+            ),
+          );
         });
 
         test('new commit, checks complete, no changes detected', () async {
@@ -792,19 +857,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not label or comment
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('new commit, checks complete, change detected, should comment', () async {
@@ -856,19 +925,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should label and comment
-          verify(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          )).called(1);
+          verify(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          ).called(1);
 
-          verify(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          )).called(1);
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
         });
 
         test('same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
@@ -921,19 +994,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should apply labels and make comment
-          verify(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          )).called(1);
+          verify(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          ).called(1);
 
-          verify(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          )).called(1);
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
         });
 
         test('uses shorter comment after first comment to reduce noise', () async {
@@ -985,29 +1062,37 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should apply labels and make comment
-          verify(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          )).called(1);
+          verify(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          ).called(1);
 
-          verify(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldFollowUpAlertValue)),
-          )).called(1);
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldInitialAlertValue)),
-          ));
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldAlertConstantValue)),
-          ));
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldFollowUpAlertValue)),
+            ),
+          ).called(1);
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldInitialAlertValue)),
+            ),
+          );
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldAlertConstantValue)),
+            ),
+          );
         });
 
         test('same commit, checks complete, new status, should not comment', () async {
@@ -1059,19 +1144,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not label or comment
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
 
         test('will inform contributor of unresolved check for ATF draft status', () async {
@@ -1099,19 +1188,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verify(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldDraftChangeValue)),
-          )).called(1);
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldDraftChangeValue)),
+            ),
+          ).called(1);
         });
 
         test('will only inform contributor of unresolved check for ATF draft status once', () async {
@@ -1139,19 +1232,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldDraftChangeValue)),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldDraftChangeValue)),
+            ),
+          );
         });
 
         test('delivers pending state for failing checks, does not query Gold', () async {
@@ -1174,19 +1271,23 @@ void main() {
           expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
           // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number!,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
+          verifyNever(
+            issuesService.addLabelsToIssue(
+              slug,
+              pr.number!,
+              <String>[
+                kGoldenFileLabel,
+              ],
+            ),
+          );
 
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         });
       });
 
@@ -1198,7 +1299,12 @@ void main() {
           followUpPR,
         ];
         final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
-            slug, completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue!);
+          slug,
+          completedPR,
+          GithubGoldStatusUpdate.statusCompleted,
+          'abc',
+          config.flutterGoldSuccessValue!,
+        );
         final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(slug, followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
@@ -1279,19 +1385,23 @@ void main() {
         expect(records.where((LogRecord record) => record.level == Level.SEVERE), isEmpty);
 
         // Should not apply labels or make comments
-        verifyNever(issuesService.addLabelsToIssue(
-          slug,
-          pr.number!,
-          <String>[
-            kGoldenFileLabel,
-          ],
-        ));
+        verifyNever(
+          issuesService.addLabelsToIssue(
+            slug,
+            pr.number!,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ),
+        );
 
-        verifyNever(issuesService.createComment(
-          slug,
-          pr.number!,
-          argThat(contains(config.flutterGoldCommentID(pr))),
-        ));
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
       });
 
       test('uses the correct Gold endpoint to get status', () async {

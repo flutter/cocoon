@@ -22,7 +22,7 @@ void main() {
     });
 
     test('succeeds for App Engine cronjobs', () async {
-      Map<String, String> header = {'X-Appengine-Cron': 'true'};
+      final Map<String, String> header = {'X-Appengine-Cron': 'true'};
       request = Request('POST', Uri.parse('http://localhost/'), headers: header);
       final bool result = await auth.authenticate(request);
       expect(result, true);

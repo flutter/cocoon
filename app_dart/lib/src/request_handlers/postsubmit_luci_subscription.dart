@@ -80,7 +80,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       // create the slug from the data in the message and send the check status
       // update.
 
-      RepositorySlug slug = RepositorySlug(
+      final RepositorySlug slug = RepositorySlug(
         userData['repo_owner'] as String,
         userData['repo_name'] as String,
       );
