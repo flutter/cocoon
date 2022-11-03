@@ -169,7 +169,8 @@ void main() {
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      final Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 
@@ -203,7 +204,8 @@ void main() {
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      final Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 
@@ -231,7 +233,8 @@ void main() {
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
 
-      final Map<String, dynamic> originalPullRequestJsonMap = jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
+      final Map<String, dynamic> originalPullRequestJsonMap =
+          jsonDecode(originalPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest originalPullRequest = github.PullRequest.fromJson(originalPullRequestJsonMap);
       githubService.pullRequestData = originalPullRequest;
 

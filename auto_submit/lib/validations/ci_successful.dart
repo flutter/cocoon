@@ -79,7 +79,8 @@ class CiSuccessful extends Validation {
             'issues identified (or deflake) before re-applying this label.');
       }
     }
-    final Action action = labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
+    final Action action =
+        labelNames.contains(config.overrideTreeStatusLabel) ? Action.IGNORE_FAILURE : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 

@@ -74,7 +74,8 @@ class Revert extends Validation {
     final int pullRequestId = _getPullRequestNumberFromLink(revertLink);
     final github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
-    final bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
+    final bool requestsMatch =
+        await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
 
     if (requestsMatch) {
       return ValidationResult(

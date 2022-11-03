@@ -118,7 +118,8 @@ void main() {
       final gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
       final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
       final gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
-      final gh.Branch candidateBranchTwo = generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
+      final gh.Branch candidateBranchTwo =
+          generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
       final gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
 
       when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {

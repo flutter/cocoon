@@ -703,7 +703,8 @@ void main() {
       );
     });
 
-    final List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+    final List<RevertRequestRecord> revertRequestRecordReviewsList =
+        await service.selectOpenReviewRequestIssueRecordsList(
       projectId: expectedProjectId,
     );
 
@@ -748,7 +749,8 @@ void main() {
       );
     });
 
-    final List<RevertRequestRecord> revertRequestRecordReviewsList = await service.selectOpenReviewRequestIssueRecordsList(
+    final List<RevertRequestRecord> revertRequestRecordReviewsList =
+        await service.selectOpenReviewRequestIssueRecordsList(
       projectId: expectedProjectId,
     );
 
