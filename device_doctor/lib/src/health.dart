@@ -30,7 +30,7 @@ Future<HealthCheckResult> closeIosDialog({
 
   // Runs the single XCUITest in infra-dialog.
   await inDirectory(dialogDir, () async {
-    List<String> command =
+    final List<String> command =
         'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination -quiet id=$deviceId test'
             .split(' ');
     // By default the above command relies on automatic code signing, while on devicelab machines
@@ -41,8 +41,8 @@ Future<HealthCheckResult> closeIosDialog({
       command.add("DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
       command.add("PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
     }
-    Process proc = await pm.start(command, workingDirectory: dialogDir.path);
-    int exitCode = await proc.exitCode;
+    final Process proc = await pm.start(command, workingDirectory: dialogDir.path);
+    final int exitCode = await proc.exitCode;
     if (exitCode != 0) {
       fail('Command "$command" failed with exit code $exitCode.');
     }
@@ -64,7 +64,7 @@ class HealthCheckResult {
 
   @override
   String toString() {
-    StringBuffer buf = StringBuffer(name);
+    final StringBuffer buf = StringBuffer(name);
     buf.writeln(succeeded ? 'succeeded' : 'failed');
     if (details != null && details!.trim().isNotEmpty) {
       buf.writeln();
@@ -89,7 +89,7 @@ Future<Map<String, Map<String, dynamic>>> healthcheck(Map<String, List<HealthChe
     healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{'status': true, 'details': null};
   }
   for (String deviceID in deviceChecks.keys) {
-    List<HealthCheckResult> checks = deviceChecks[deviceID]!;
+    final List<HealthCheckResult> checks = deviceChecks[deviceID]!;
     for (HealthCheckResult healthCheckResult in checks) {
       final Map<String, dynamic> healthCheckResultMap = <String, dynamic>{
         'status': healthCheckResult.succeeded,

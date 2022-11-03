@@ -68,12 +68,12 @@ class UpdateBranches extends RequestHandler<Body> {
   }
 
   Future<void> _updateBranchesForAllRepos(Config config, DatastoreService datastore) async {
-    DateTime timeNow = DateTime.now();
+    final DateTime timeNow = DateTime.now();
 
     processManager ??= const LocalProcessManager();
     final Set<RepositorySlug> slugs = config.supportedRepos;
     for (RepositorySlug slug in slugs) {
-      ProcessResult result =
+      final ProcessResult result =
           processManager!.runSync(['git', 'ls-remote', '--heads', 'git@github.com:flutter/${slug.name}']);
       // https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499- only a exit code of 0 is good for windows
       // for mac or linux, exit code in the range 0 to 255 is good
@@ -81,9 +81,9 @@ class UpdateBranches extends RequestHandler<Body> {
           ((Platform.isMacOS || Platform.isLinux) && result.exitCode < 0)) {
         throw const FormatException('returned exit code from git ls-remote is bad');
       }
-      List<String> shaAndName = (result.stdout as String).trim().split(RegExp(' |\t|\r?\n'));
-      List<String> branchShas = [];
-      List<String> branchNames = [];
+      final List<String> shaAndName = (result.stdout as String).trim().split(RegExp(' |\t|\r?\n'));
+      final List<String> branchShas = [];
+      final List<String> branchNames = [];
       for (int i = 0; i < shaAndName.length; i += 2) {
         branchShas.add(shaAndName[i]);
         branchNames.add(shaAndName[i + 1].replaceAll('refs/heads/', ''));
@@ -96,10 +96,10 @@ class UpdateBranches extends RequestHandler<Body> {
 
   Future<void> _updateBranchesForRepo(List<String> branchShas, List<String> branchNames, GitHub github,
       RepositorySlug slug, DatastoreService datastore, DateTime timeNow) async {
-    List<md.Branch> updatedBranches = [];
+    final List<md.Branch> updatedBranches = [];
     for (int i = 0; i < branchShas.length; i += 1) {
       final RepositoryCommit branchCommit = await github.repositories.getCommit(slug, branchShas[i]);
-      int lastUpdate = branchCommit.commit!.committer!.date!.millisecondsSinceEpoch;
+      final int lastUpdate = branchCommit.commit!.committer!.date!.millisecondsSinceEpoch;
       if (lastUpdate > timeNow.subtract(kActiveBranchActivityPeriod).millisecondsSinceEpoch) {
         final String id = '${slug.fullName}/${branchNames[i]}';
         final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);

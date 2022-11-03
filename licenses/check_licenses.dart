@@ -24,7 +24,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> run(List<String> arguments) async {
-  String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
+  final String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
   print('$clock Root path: $cocoonPath');
   print('$clock Licenses...');
   await verifyNoMissingLicense(cocoonPath);

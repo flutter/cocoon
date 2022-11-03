@@ -122,7 +122,7 @@ class BranchService {
     required GithubService githubService,
     required gh.RepositorySlug slug,
   }) async {
-    List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
+    final List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
     final String latestCandidateBranch = await _getLatestCandidateBranch(
       github: githubService.github,
       slug: slug,
@@ -175,18 +175,18 @@ class BranchService {
     required List<gh.Branch> branches,
   }) async {
     final RegExp candidateBranchName = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
+    final List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
     devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
-    String devBranchName = devBranches.take(1).single.name!;
+    final String devBranchName = devBranches.take(1).single.name!;
     return devBranchName;
   }
 
   /// Helper function to convert candidate branch versions to numbers for comparison.
   int _versionSum(String tagOrBranchName) {
-    List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
+    final List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
     int versionSum = 0;
     for (String digit in digits) {
-      int? d = int.tryParse(digit);
+      final int? d = int.tryParse(digit);
       if (d == null) {
         continue;
       }

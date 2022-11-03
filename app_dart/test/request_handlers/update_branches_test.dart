@@ -33,7 +33,7 @@ void main() {
     late MockRepositoriesService mockRepositoriesService;
     final MockProcessManager processManager = MockProcessManager();
 
-    String stdoutResult = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main';
+    const String stdoutResult = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa refs/heads/main';
     const String testBranchSha = '72fe8a9ec3af4d76097f09a9c01bf31c62a942aa';
 
     Future<T?> decodeHandlerBody<T>() async {
@@ -61,7 +61,7 @@ void main() {
       );
 
       const String id = 'flutter/flutter/main';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
         key: branchKey,
@@ -103,7 +103,7 @@ void main() {
       });
 
       final List<dynamic> result = (await decodeHandlerBody())!;
-      List<String> repos = [];
+      final List<String> repos = [];
       for (dynamic k in result) {
         repos.add('${k['branch']['repository']}/${k['branch']['branch']}');
       }

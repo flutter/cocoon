@@ -50,7 +50,7 @@ Directory dir(String thePath,
 }
 
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
-  String previousCwd = path.current;
+  final String previousCwd = path.current;
   try {
     cd(directory);
     return await action();
@@ -95,12 +95,12 @@ Future<String> eval(String executable, List<String> arguments,
     bool canFail = false,
     bool silent = false,
     ProcessManager? processManager = const LocalProcessManager()}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
+  final Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
-  String output = await utf8.decodeStream(proc.stdout);
-  int exitCode = await proc.exitCode;
+  final String output = await utf8.decodeStream(proc.stdout);
+  final int exitCode = await proc.exitCode;
 
   if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
 

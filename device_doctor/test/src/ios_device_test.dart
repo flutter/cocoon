@@ -31,17 +31,17 @@ void main() {
     test('deviceDiscovery', () async {
       deviceDiscovery.outputs = <dynamic>[''];
       expect(await deviceDiscovery.discoverDevices(), isEmpty);
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       deviceDiscovery.outputs = <dynamic>[sb.toString()];
-      List<Device> devices = await deviceDiscovery.discoverDevices();
+      final List<Device> devices = await deviceDiscovery.discoverDevices();
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('abcdefg'));
     });
 
     test('checkDevices without device', () async {
       deviceDiscovery.outputs = <dynamic>[''];
-      Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices();
+      final Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices();
       await expectLater(results.keys.length, 0);
     });
 
@@ -89,7 +89,7 @@ void main() {
       process = FakeProcess(0);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
     });
 
@@ -97,40 +97,40 @@ void main() {
       process = FakeProcess(1);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.keychainUnlockCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kKeychainUnlockCheckKey);
       expect(healthCheckResult.details, 'Executable ${kUnlockLoginKeychain} failed with exit code 1.');
     });
 
     test('Cert check - success', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
       sb.writeln('1 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
     });
 
     test('Cert check - failure without target certificate', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       sb.writeln('hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
     test('Cert check - failure with multiple certificates', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
 
       sb.writeln('1) opqrst "uvwxyz"');
@@ -139,21 +139,21 @@ void main() {
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
     test('Cert check - failure with revoked certificates', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)" (CSSMERR_TP_CERT_REVOKED)');
       sb.writeln('1 valid identities found');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
@@ -163,31 +163,31 @@ void main() {
       process = FakeProcess(1);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kCertCheckKey);
       expect(healthCheckResult.details, 'Executable security failed with exit code 1.');
     });
 
     test('Device pair check - success', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('SUCCESS: Validated pairing with device abcdefg-hijklmn');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
     });
 
     test('Device pair check - failure', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('abcdefg');
       output = <List<int>>[utf8.encode(sb.toString())];
       process = FakeProcess(0, out: output);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDevicePairCheckKey);
       expect(healthCheckResult.details, sb.toString().trim());
@@ -197,7 +197,7 @@ void main() {
       process = FakeProcess(1);
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.devicePairCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDevicePairCheckKey);
       expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
@@ -209,12 +209,12 @@ void main() {
       List<List<int>> lsOutput;
       List<List<int>> securityOutput;
       test('success', () async {
-        String fileName = 'abcdefg';
+        const String fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
 
-        String deviceID = 'deviceId';
-        String profileContent = '''<array>
+        const String deviceID = 'deviceId';
+        const String profileContent = '''<array>
         <string>test1</string>
         <string>$deviceID</string>
         <string>test2</string>
@@ -236,19 +236,19 @@ void main() {
         ], workingDirectory: anyNamed('workingDirectory')))
             .thenAnswer((_) => Future.value(securityProcess));
 
-        HealthCheckResult healthCheckResult =
+        final HealthCheckResult healthCheckResult =
             await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
         expect(healthCheckResult.succeeded, true);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
       });
 
       test('deviceId does not exist', () async {
-        String fileName = 'abcdefg';
+        const String fileName = 'abcdefg';
         lsOutput = <List<int>>[utf8.encode(fileName)];
         lsProcess = FakeProcess(0, out: lsOutput);
 
-        String deviceID = 'deviceId';
-        String profileContent = '''<array>
+        const String deviceID = 'deviceId';
+        const String profileContent = '''<array>
         <string>test1</string>
         <string>test2</string>
         </array>
@@ -269,7 +269,7 @@ void main() {
         ], workingDirectory: anyNamed('workingDirectory')))
             .thenAnswer((_) => Future.value(securityProcess));
 
-        HealthCheckResult healthCheckResult =
+        final HealthCheckResult healthCheckResult =
             await deviceDiscovery.deviceProvisioningProfileCheck(deviceID, processManager: processManager);
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kDeviceProvisioningProfileCheckKey);
@@ -281,7 +281,7 @@ void main() {
       Process process;
       List<List<int>> output;
       test('battery level is okay', () async {
-        String batteryLevel = '100';
+        const String batteryLevel = '100';
         output = <List<int>>[utf8.encode(batteryLevel)];
         process = FakeProcess(0, out: output);
 
@@ -290,13 +290,13 @@ void main() {
                 workingDirectory: anyNamed('workingDirectory')))
             .thenAnswer((_) => Future.value(process));
 
-        HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        final HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
         expect(healthCheckResult.succeeded, true);
         expect(healthCheckResult.name, kBatteryLevelCheckKey);
       });
 
       test('battery level is below minLevel', () async {
-        String batteryLevel = '10';
+        const String batteryLevel = '10';
         output = <List<int>>[utf8.encode(batteryLevel)];
         process = FakeProcess(0, out: output);
 
@@ -305,7 +305,7 @@ void main() {
                 workingDirectory: anyNamed('workingDirectory')))
             .thenAnswer((_) => Future.value(process));
 
-        HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+        final HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
         expect(healthCheckResult.succeeded, false);
         expect(healthCheckResult.name, kBatteryLevelCheckKey);
         expect(healthCheckResult.details, 'Battery level ($batteryLevel) is below 15');
@@ -447,7 +447,7 @@ void main() {
         jkl, mno, pqr
         ''';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
-      Process process_uninstall = FakeProcess(0);
+      final Process process_uninstall = FakeProcess(0);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(whichProcess));
       when(processManager.start(<Object>[ideviceinstallerPath, '-l'], workingDirectory: anyNamed('workingDirectory')))
@@ -482,7 +482,7 @@ void main() {
           .thenAnswer((_) => Future.value(processWhichIdeviceID));
       when(processManager.start(<String>['/test/idevice_id', '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processIdeviceID));
-      String deviceId = await deviceDiscovery.deviceListOutput(processManager: processManager);
+      final String deviceId = await deviceDiscovery.deviceListOutput(processManager: processManager);
       expect(deviceId, 'abc');
     });
   });

@@ -252,7 +252,7 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
     return schedulerConfig.writeToBuffer();
   }
 

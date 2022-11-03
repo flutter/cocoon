@@ -239,7 +239,7 @@ targets:
     late CiYaml? totConfig;
 
     setUp(() {
-      YamlMap? totYaml = loadYaml('''
+      final YamlMap? totYaml = loadYaml('''
 enabled_branches:
   - master
 targets:

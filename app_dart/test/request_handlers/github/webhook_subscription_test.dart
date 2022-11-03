@@ -668,7 +668,7 @@ void main() {
     });
 
     group("Auto-roller accounts do not label Framework PR with test label or comment.", () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'skia-flutter-autoroll',
         'dependabot',
       };
@@ -1389,7 +1389,7 @@ void foo() {
     });
 
     group("Auto-roller accounts do not label Engine PR with test label or comment.", () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',
       };
@@ -1753,7 +1753,7 @@ void foo() {
     });
 
     group('Plugins does not comment and label if author is an autoroller account.', () {
-      Set<String> inputs = {
+      final Set<String> inputs = {
         'engine-flutter-autoroll',
         'skia-flutter-autoroll',
         'dependabot',

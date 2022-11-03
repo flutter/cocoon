@@ -30,7 +30,7 @@ void main() {
     });
 
     test('deviceDiscovery no retries', () async {
-      StringBuffer sb = StringBuffer();
+      final StringBuffer sb = StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       output = <List<int>>[utf8.encode(sb.toString())];
@@ -38,7 +38,7 @@ void main() {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      List<Device> devices = await deviceDiscovery.discoverDevices(
+      final List<Device> devices = await deviceDiscovery.discoverDevices(
           retryDuration: const Duration(seconds: 0), processManager: processManager);
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('ZY223JQNMR'));
@@ -87,7 +87,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(property_process));
 
-      Map<String, String> deviceProperties = await deviceDiscovery
+      final Map<String, String> deviceProperties = await deviceDiscovery
           .getDeviceProperties(AndroidDevice(deviceId: 'ZY223JQNMR'), processManager: processManager);
 
       const Map<String, String> expectedProperties = <String, String>{
@@ -117,7 +117,7 @@ void main() {
               .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
     });
@@ -128,7 +128,7 @@ void main() {
               .start(<Object>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
@@ -153,7 +153,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
     });
@@ -165,7 +165,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
       expect(healthCheckResult.details, 'developer mode is off');
@@ -178,7 +178,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenSaverCheckKey);
     });
@@ -190,7 +190,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenSaverCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenSaverCheckKey);
       expect(healthCheckResult.details, 'Screensaver is on');
@@ -202,7 +202,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.developerModeCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kDeveloperModeCheckKey);
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
@@ -231,7 +231,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenOnCheckKey);
     });
@@ -247,7 +247,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenOnCheckKey);
       expect(healthCheckResult.details, 'screen is off');
@@ -260,7 +260,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenOnCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenOnCheckKey);
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
@@ -285,7 +285,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kScreenRotationCheckKey);
     });
@@ -297,7 +297,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.screenRotationCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kScreenRotationCheckKey);
       expect(healthCheckResult.details, 'Screen rotation is enabled');
@@ -381,7 +381,7 @@ void main() {
       when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kKillAdbServerCheckKey);
     });
@@ -391,7 +391,7 @@ void main() {
       when(processManager.start(<Object>['adb', 'kill-server'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.killAdbServerCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kKillAdbServerCheckKey);
       expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
@@ -420,7 +420,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kBatteryLevelCheckKey);
     });
@@ -436,7 +436,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await deviceDiscovery.batteryLevelCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kBatteryLevelCheckKey);
       expect(healthCheckResult.details, 'Battery level (10) is below 15');
@@ -464,7 +464,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult =
+      final HealthCheckResult healthCheckResult =
           await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
       expect(healthCheckResult.name, kBatteryTemperatureCheckKey);
@@ -480,7 +480,7 @@ void main() {
               workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
-      HealthCheckResult healthCheckResult =
+      final HealthCheckResult healthCheckResult =
           await deviceDiscovery.batteryTemperatureCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kBatteryTemperatureCheckKey);

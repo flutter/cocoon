@@ -243,11 +243,11 @@ class LuciBuildService {
         userData['builder_name'] = target.value.name;
       }
 
-      Map<String, List<String>> tags = <String, List<String>>{
+      final Map<String, List<String>> tags = <String, List<String>>{
         'github_checkrun': <String>[checkRun.id.toString()],
       };
 
-      Map<String, Object> properties = target.getProperties();
+      final Map<String, Object> properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
 
       requests.add(Request(
@@ -368,11 +368,11 @@ class LuciBuildService {
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
 
-    Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-    Map<String, dynamic>? properties = build.input!.properties;
+    final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+    final Map<String, dynamic>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
-    ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+    final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
         slug: slug,
         sha: sha,
         checkName: checkName,
@@ -400,7 +400,7 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
-    Set<String> availableBuilderSet = <String>{};
+    final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
       final ListBuildersResponse listBuildersResponse =

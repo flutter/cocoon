@@ -211,13 +211,13 @@ class DependencyValidator {
     final List<String> exceptions = <String>[];
 
     /// Decoded will contain a list of maps for the dependencies found.
-    List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
+    final List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
 
     for (Map<String, dynamic> depMap in decoded) {
       if (!depMap.containsKey('version')) {
         exceptions.add('ERROR: dependency ${depMap['dependency']} must have a version.');
       } else {
-        String version = depMap['version'] as String;
+        final String version = depMap['version'] as String;
         if (version.isEmpty || version == 'latest') {
           exceptions
               .add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');

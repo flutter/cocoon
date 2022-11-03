@@ -41,7 +41,7 @@ class GetReleaseBranches extends RequestHandler<Body> {
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient(slug: Config.flutterSlug);
     final GithubService githubService = GithubService(github);
-    List<Map<String, String>> branchNames =
+    final List<Map<String, String>> branchNames =
         await branchService.getReleaseBranches(githubService: githubService, slug: Config.flutterSlug);
     return Body.forJson(branchNames);
   }

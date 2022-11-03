@@ -159,7 +159,7 @@ class XCDevice {
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
-    Map<String, Object?>? error = map['error'] as Map<String, Object?>?;
+    final Map<String, Object?>? error = map['error'] as Map<String, Object?>?;
     // We should only specifically pattern match on known fatal errors, and
     // ignore the rest.
     bool validError = false;

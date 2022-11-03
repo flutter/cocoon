@@ -45,13 +45,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager? processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
-    RetryOptions r = RetryOptions(
+    final RetryOptions r = RetryOptions(
       maxAttempts: 3,
       delayFactor: retryDuration,
     );
     return await r.retry(
       () async {
-        String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
+        final String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
         return result.trim().split('\n');
       },
       retryIf: (Exception e) => e is TimeoutException,
@@ -71,8 +71,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<List<AndroidDevice>> discoverDevices(
       {Duration retryDuration = const Duration(seconds: 10), ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
-    List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
-    List<String> results = <String>[];
+    final List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
+    final List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
       if (line.startsWith('* daemon ')) continue;
@@ -80,10 +80,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       if (line.startsWith('List of devices')) continue;
 
       if (_kDeviceRegex.hasMatch(line)) {
-        Match? match = _kDeviceRegex.firstMatch(line);
+        final Match? match = _kDeviceRegex.firstMatch(line);
 
-        String? deviceID = match?[1];
-        String? deviceState = match?[2];
+        final String? deviceID = match?[1];
+        final String? deviceState = match?[2];
 
         if (!const ['unauthorized', 'offline'].contains(deviceState)) {
           results.add(deviceID!);

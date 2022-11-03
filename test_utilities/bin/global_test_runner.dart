@@ -9,19 +9,19 @@ import "package:path/path.dart";
 
 // Runs all the configured tests for cocoon repo.
 Future<Null> main(List<String> rawArgs) async {
-  ArgParser argParser = ArgParser()..addOption('tests-file', abbr: 't', defaultsTo: '../tests.yaml');
-  ArgResults args = argParser.parse(rawArgs);
+  final ArgParser argParser = ArgParser()..addOption('tests-file', abbr: 't', defaultsTo: '../tests.yaml');
+  final ArgResults args = argParser.parse(rawArgs);
 
   // Load tests yaml file.
-  File file = File(args['tests-file']);
-  var doc = loadYaml(file.readAsStringSync());
+  final File file = File(args['tests-file']);
+  final doc = loadYaml(file.readAsStringSync());
   // Execute the tests
-  String baseDir = normalize(join(dirname(Platform.script.toFilePath()), '..', '..'));
-  String prepareScriptPath = join(baseDir, 'test_utilities', 'bin', 'prepare_environment.sh');
+  final String baseDir = normalize(join(dirname(Platform.script.toFilePath()), '..', '..'));
+  final String prepareScriptPath = join(baseDir, 'test_utilities', 'bin', 'prepare_environment.sh');
   await runShellCommand(<String>[prepareScriptPath], 'prepare environment');
   doc['tasks'].forEach((task) async {
-    String scriptPath = join(baseDir, task['script']);
-    String taskPath = join(baseDir, task['task']);
+    final String scriptPath = join(baseDir, task['script']);
+    final String taskPath = join(baseDir, task['task']);
     await runShellCommand(<String>[scriptPath, taskPath], task['task']);
   });
 }
