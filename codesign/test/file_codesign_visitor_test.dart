@@ -40,8 +40,8 @@ void main() {
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        inputZipPath: randomString,
-        outputZipPath: randomString,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );

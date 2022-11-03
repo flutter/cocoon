@@ -83,32 +83,32 @@ Future<void> main(List<String> args) async {
     ..addOption(
       kInputZipPathOption,
       help:
-          'File path to the unsigned artifact zip file. The artifact should have been pre-fetched from gcs bucket through recipe \n',
+          'File path to the unsigned artifact zip file. The artifact should have been pre-fetched from gcs bucket through recipe.',
     )
     ..addOption(
       kOutputZipPathOption,
       help: 'File path to store codesigned artifact zip file.'
-          ' The recipe will take codesigned zip from this location and upload back to gcs bucket \n',
+          ' The recipe will take codesigned zip from this location and upload back to gcs bucket.',
     )
     ..addOption(
       kAppSpecificPasswordOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <APP-SPECIFIC-PASSWORD> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <APP-SPECIFIC-PASSWORD>.',
     )
     ..addOption(
       kCodesignAppstoreIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_APPSTORE_ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_APPSTORE_ID>.',
     )
     ..addOption(
       kCodesignTeamIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_TEAM_ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_TEAM_ID>.',
     )
     ..addFlag(
       kDryrunFlag,
       defaultsTo: true,
-      help: 'whether we are going to skip the notarization process',
+      help: 'whether we are going to skip the notarization process.',
     );
 
   final ArgResults argResults = parser.parse(args);
