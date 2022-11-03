@@ -82,13 +82,11 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       kInputZipPathOption,
-      help:
-          'File path to the unsigned artifact zip file. The artifact should have been pre-fetched from gcs bucket through recipe.',
+      help: 'File path to the unsigned artifact zip file.',
     )
     ..addOption(
       kOutputZipPathOption,
-      help: 'File path to store codesigned artifact zip file.'
-          ' The recipe will take codesigned zip from this location and upload back to gcs bucket.',
+      help: 'File path to codesigned artifact zip file for output.',
     )
     ..addOption(
       kAppSpecificPasswordOption,

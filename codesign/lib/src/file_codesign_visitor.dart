@@ -151,41 +151,46 @@ update these file paths accordingly.
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    for (String passwordFilePath in [
-      codesignAppstoreIDFilePath,
-      codesignTeamIDFilePath,
-      appSpecificPasswordFilePath,
-    ]) {
-      await readPassword(passwordFilePath);
-    }
-    if (availablePasswords.containsValue('')) {
-      throw CodesignException('certian passwords are missing. \n'
-          'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
-    }
-    codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
-    codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
-    appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
-
-    final String? codesignedFilePath = await processRemoteZip();
-
-    if (codesignedFilePath != null) {
-      log.info('code signing dry run has completed, If you have uploaded the artifacts back to'
-          ' google cloud storage, please delete the folder $codesignedFilePath and $inputZipPath');
-    }
-    log.info('Codesign completed. Codesigned zip is located at ${rootDirectory.path}');
-
-    rootDirectory.list(recursive: true).listen((FileSystemEntity file) async {
-      if (file is File && file.path != codesignedFilePath) {
-        await file.delete();
+    // The value of codesignedFilePath is used in the cleanup process in the finally block.
+    String? codesignedFilePath;
+    try {
+      for (String passwordFilePath in [
+        codesignAppstoreIDFilePath,
+        codesignTeamIDFilePath,
+        appSpecificPasswordFilePath,
+      ]) {
+        await readPassword(passwordFilePath);
       }
-    });
+      if (availablePasswords.containsValue('')) {
+        throw CodesignException('certian passwords are missing. \n'
+            'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
+      }
+      codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
+      codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
+      appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
+      codesignedFilePath = await processRemoteZip();
+      log.info('Codesign completed. Codesigned zip is located at $codesignedFilePath.'
+          'If you have uploaded the artifacts back to google cloud storage, please delete'
+          ' the folder $codesignedFilePath and $inputZipPath.');
+      if (dryrun) {
+        log.info('code signing dry run has completed, this is a quick sanity check without'
+            'going through the notary service. To run the full codesign process, use --no-dryrun flag.');
+      }
+    } finally {
+      rootDirectory.list(recursive: true).listen((FileSystemEntity file) async {
+        if (file is File && file.path != codesignedFilePath) {
+          await file.delete();
+        }
+      });
+    }
   }
 
-  /// Retrieve engine artifact from google cloud storage and kick start a
+  /// Process engine artifacts from [inputZipPath] and kick start a
   /// recursive visit of its contents.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
-  /// zip. Also downloads, notarizes and uploads the engine artifact.
+  /// zip. Notarizes the engine artifact if [dryrun] is false.
+  /// Returns null as result if [dryrun] is true.
   Future<String?> processRemoteZip() async {
     // download the zip file
     final File originalFile = rootDirectory.fileSystem.file(inputZipPath);

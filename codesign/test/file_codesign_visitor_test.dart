@@ -1157,10 +1157,8 @@ status: Invalid''',
           .toList();
       expect(
         messages,
-        isNot(
-          contains('code signing dry run has completed, If you have uploaded the artifacts back to'
-              ' google cloud storage, please delete the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}'),
-        ),
+        contains('code signing dry run has completed, this is a quick sanity check without'
+            'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
       );
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
@@ -1244,12 +1242,16 @@ status: Invalid''',
           .toSet();
       expect(
         messages,
-        contains('code signing dry run has completed, If you have uploaded the artifacts back to'
-            ' google cloud storage, please delete the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}'),
+        contains('Codesign completed. Codesigned zip is located at ${codesignVisitor.outputZipPath}.'
+            'If you have uploaded the artifacts back to google cloud storage, please delete'
+            ' the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}.'),
       );
       expect(
         messages,
-        contains('Codesign completed. Codesigned zip is located at ${rootDirectory.path}'),
+        isNot(
+          contains('code signing dry run has completed, this is a quick sanity check without'
+              'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
+        ),
       );
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
