@@ -50,7 +50,7 @@ void main() {
     });
 
     test('does not backfill on completed task column', () async {
-      List<Task> allGreen = <Task>[
+      final List<Task> allGreen = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(3, name: 'Linux_android A', status: Task.statusSucceeded),
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('does not backfill when there is a running task', () async {
-      List<Task> middleTaskInProgress = <Task>[
+      final List<Task> middleTaskInProgress = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
         generateTask(2, name: 'Linux_android A', status: Task.statusInProgress),
         generateTask(3, name: 'Linux_android A', status: Task.statusNew),
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('backfills latest task', () async {
-      List<Task> allGray = <Task>[
+      final List<Task> allGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
         generateTask(2, name: 'Linux_android A', status: Task.statusNew),
         generateTask(3, name: 'Linux_android A', status: Task.statusNew),
@@ -86,7 +86,7 @@ void main() {
     });
 
     test('backfills earlier failed task with higher priority', () async {
-      List<Task> allGray = <Task>[
+      final List<Task> allGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusNew),
         generateTask(2, name: 'Linux_android A', status: Task.statusNew),
         generateTask(3, name: 'Linux_android A', status: Task.statusFailed),
@@ -100,7 +100,7 @@ void main() {
     });
 
     test('backfills older task', () async {
-      List<Task> oldestGray = <Task>[
+      final List<Task> oldestGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(3, name: 'Linux_android A', status: Task.statusNew),
@@ -111,7 +111,7 @@ void main() {
     });
 
     test('updates task as in-progress after backfilling', () async {
-      List<Task> oldestGray = <Task>[
+      final List<Task> oldestGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(3, name: 'Linux_android A', status: Task.statusNew),
@@ -127,7 +127,7 @@ void main() {
 
     test('skip scheduling builds if datastore commit fails', () async {
       db.commitException = true;
-      List<Task> oldestGray = <Task>[
+      final List<Task> oldestGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(3, name: 'Linux_android A', status: Task.statusNew),
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('backfills only column A when B does need backfill', () async {
-      List<Task> scheduleA = <Task>[
+      final List<Task> scheduleA = <Task>[
         // Linux_android A
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),
@@ -156,7 +156,7 @@ void main() {
     });
 
     test('backfills both column A and B', () async {
-      List<Task> scheduleA = <Task>[
+      final List<Task> scheduleA = <Task>[
         // Linux_android A
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android A', status: Task.statusSucceeded),

@@ -36,14 +36,16 @@ void main() {
     mockGitHub = MockGitHub();
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'flutter');
-    final PostExpectation<Future<http.Response>> whenGithubRequest = when(mockGitHub.request(
-      'GET',
-      '/repos/${slug.owner}/${slug.name}/commits',
-      headers: anyNamed('headers'),
-      params: anyNamed('params'),
-      body: anyNamed('body'),
-      statusCode: anyNamed('statusCode'),
-    ));
+    final PostExpectation<Future<http.Response>> whenGithubRequest = when(
+      mockGitHub.request(
+        'GET',
+        '/repos/${slug.owner}/${slug.name}/commits',
+        headers: anyNamed('headers'),
+        params: anyNamed('params'),
+        body: anyNamed('body'),
+        statusCode: anyNamed('statusCode'),
+      ),
+    );
     whenGithubRequest.thenAnswer((_) async {
       final List<dynamic> data = <dynamic>[];
       for (String sha in shas) {

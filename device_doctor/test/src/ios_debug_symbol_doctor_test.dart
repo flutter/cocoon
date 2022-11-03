@@ -110,12 +110,13 @@ Future<void> main() async {
       });
       expect(result, isTrue);
       expect(
-          logger.logs[Level.INFO],
-          containsAllInOrder(<String>[
-            'Launching Xcode...',
-            'Waiting for 300 seconds',
-            'Waited for 300 seconds, now killing Xcode',
-          ]));
+        logger.logs[Level.INFO],
+        containsAllInOrder(<String>[
+          'Launching Xcode...',
+          'Waiting for 300 seconds',
+          'Waited for 300 seconds, now killing Xcode',
+        ]),
+      );
     });
   });
 }

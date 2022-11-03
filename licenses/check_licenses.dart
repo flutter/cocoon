@@ -24,7 +24,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> run(List<String> arguments) async {
-  String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
+  final String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
   print('$clock Root path: $cocoonPath');
   print('$clock Licenses...');
   await verifyNoMissingLicense(cocoonPath);
@@ -40,37 +40,93 @@ String _generateLicense(String prefix) {
 Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums = true}) async {
   final int? overrideMinimumMatches = checkMinimums ? null : 0;
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'dart', overrideMinimumMatches ?? 2000, _generateLicense('// '));
+    workingDirectory,
+    'dart',
+    overrideMinimumMatches ?? 2000,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'java', overrideMinimumMatches ?? 39, _generateLicense('// '));
+    workingDirectory,
+    'java',
+    overrideMinimumMatches ?? 39,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'h', overrideMinimumMatches ?? 30, _generateLicense('// '));
+    workingDirectory,
+    'h',
+    overrideMinimumMatches ?? 30,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'm', overrideMinimumMatches ?? 30, _generateLicense('// '));
+    workingDirectory,
+    'm',
+    overrideMinimumMatches ?? 30,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'swift', overrideMinimumMatches ?? 10, _generateLicense('// '));
+    workingDirectory,
+    'swift',
+    overrideMinimumMatches ?? 10,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'gradle', overrideMinimumMatches ?? 100, _generateLicense('// '));
+    workingDirectory,
+    'gradle',
+    overrideMinimumMatches ?? 100,
+    _generateLicense('// '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'gn', overrideMinimumMatches ?? 0, _generateLicense('# '));
+    workingDirectory,
+    'gn',
+    overrideMinimumMatches ?? 0,
+    _generateLicense('# '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'Dockerfile', overrideMinimumMatches ?? 1, _generateLicense('# '));
+    workingDirectory,
+    'Dockerfile',
+    overrideMinimumMatches ?? 1,
+    _generateLicense('# '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'sh', overrideMinimumMatches ?? 1, '#!/bin/bash\n' + _generateLicense('# '));
+    workingDirectory,
+    'sh',
+    overrideMinimumMatches ?? 1,
+    '#!/bin/bash\n' + _generateLicense('# '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'bat', overrideMinimumMatches ?? 1, _generateLicense(':: '));
+    workingDirectory,
+    'bat',
+    overrideMinimumMatches ?? 1,
+    _generateLicense(':: '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'ps1', overrideMinimumMatches ?? 1, _generateLicense('# '));
+    workingDirectory,
+    'ps1',
+    overrideMinimumMatches ?? 1,
+    _generateLicense('# '),
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'html', overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->',
-      trailingBlank: false);
+    workingDirectory,
+    'html',
+    overrideMinimumMatches ?? 1,
+    '<!-- ${_generateLicense('')} -->',
+    trailingBlank: false,
+  );
   await _verifyNoMissingLicenseForExtension(
-      workingDirectory, 'xml', overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->');
+    workingDirectory,
+    'xml',
+    overrideMinimumMatches ?? 1,
+    '<!-- ${_generateLicense('')} -->',
+  );
 }
 
 Future<void> _verifyNoMissingLicenseForExtension(
-    String workingDirectory, String extension, int minimumMatches, String license,
-    {bool trailingBlank = true}) async {
+  String workingDirectory,
+  String extension,
+  int minimumMatches,
+  String license, {
+  bool trailingBlank = true,
+}) async {
   assert(!license.endsWith('\n'));
   final String licensePattern = license + '\n' + (trailingBlank ? '\n' : '');
   final List<String> errors = <String>[];
@@ -129,8 +185,10 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {required in
       pending.addAll(entity.listSync());
     }
   }
-  assert(matches >= minimumMatches,
-      'Expected to find at least $minimumMatches files with extension ".$extension" in "$workingDirectory", but only found $matches.');
+  assert(
+    matches >= minimumMatches,
+    'Expected to find at least $minimumMatches files with extension ".$extension" in "$workingDirectory", but only found $matches.',
+  );
 }
 
 bool _isPartOfAppTemplate(Directory directory) {

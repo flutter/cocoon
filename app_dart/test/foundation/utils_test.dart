@@ -153,17 +153,18 @@ void main() {
         final List<LogRecord> records = <LogRecord>[];
         log.onRecord.listen((LogRecord record) => records.add(record));
         await expectLater(
-            githubFileContent(
-              RepositorySlug('flutter', 'cocoon'),
-              'branches.txt',
-              httpClientProvider: () => branchHttpClient,
-              retryOptions: const RetryOptions(
-                maxAttempts: 3,
-                delayFactor: Duration.zero,
-                maxDelay: Duration.zero,
-              ),
+          githubFileContent(
+            RepositorySlug('flutter', 'cocoon'),
+            'branches.txt',
+            httpClientProvider: () => branchHttpClient,
+            retryOptions: const RetryOptions(
+              maxAttempts: 3,
+              delayFactor: Duration.zero,
+              maxDelay: Duration.zero,
             ),
-            throwsA(isA<HttpException>()));
+          ),
+          throwsA(isA<HttpException>()),
+        );
         // It will request from GitHub 3 times, fallback to GoB, then fail.
         expect(retry, 6);
         expect(records.where((LogRecord record) => record.level == Level.WARNING), isNotEmpty);

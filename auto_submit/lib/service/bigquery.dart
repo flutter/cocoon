@@ -357,7 +357,7 @@ class BigqueryService {
       return <RevertRequestRecord>[];
     }
 
-    List<RevertRequestRecord> openReviewRequestIssues = [];
+    final List<RevertRequestRecord> openReviewRequestIssues = [];
     for (TableRow tableRow in tableRows) {
       openReviewRequestIssues.add(
         RevertRequestRecord(

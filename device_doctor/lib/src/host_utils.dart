@@ -37,7 +37,7 @@ Future<bool> killAllRunningProcessesOnWindows(String processName, {ProcessManage
 List<String> runningProcessesOnWindows(String processName, {ProcessManager? processManager}) {
   processManager ??= LocalProcessManager();
   final ProcessResult result = processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
-  List<String> pids = <String>[];
+  final List<String> pids = <String>[];
   if (result.exitCode == 0) {
     final String stdoutResult = result.stdout as String;
     for (String rawProcess in stdoutResult.split('\n')) {

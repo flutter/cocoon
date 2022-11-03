@@ -45,13 +45,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager? processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
-    RetryOptions r = RetryOptions(
+    final RetryOptions r = RetryOptions(
       maxAttempts: 3,
       delayFactor: retryDuration,
     );
     return await r.retry(
       () async {
-        String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
+        final String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
         return result.trim().split('\n');
       },
       retryIf: (Exception e) => e is TimeoutException,
@@ -68,11 +68,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<List<AndroidDevice>> discoverDevices(
-      {Duration retryDuration = const Duration(seconds: 10), ProcessManager? processManager}) async {
+  Future<List<AndroidDevice>> discoverDevices({
+    Duration retryDuration = const Duration(seconds: 10),
+    ProcessManager? processManager,
+  }) async {
     processManager ??= LocalProcessManager();
-    List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
-    List<String> results = <String>[];
+    final List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
+    final List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
       if (line.startsWith('* daemon ')) continue;
@@ -80,10 +82,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       if (line.startsWith('List of devices')) continue;
 
       if (_kDeviceRegex.hasMatch(line)) {
-        Match? match = _kDeviceRegex.firstMatch(line);
+        final Match? match = _kDeviceRegex.firstMatch(line);
 
-        String? deviceID = match?[1];
-        String? deviceState = match?[2];
+        final String? deviceID = match?[1];
+        final String? deviceState = match?[2];
 
         if (!const ['unauthorized', 'offline'].contains(deviceState)) {
           results.add(deviceID!);
@@ -150,8 +152,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     final Map<String, String> deviceProperties = <String, String>{};
     final Map<String, String> propertyMap = <String, String>{};
     LineSplitter.split(
-            await eval('adb', <String>['-s', device.deviceId!, 'shell', 'getprop'], processManager: processManager))
-        .forEach((String property) {
+      await eval('adb', <String>['-s', device.deviceId!, 'shell', 'getprop'], processManager: processManager),
+    ).forEach((String property) {
       final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
 
       /// Deal with entries spanning only one line.
@@ -203,8 +205,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval(
-          'adb', <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
-          processManager: processManager);
+        'adb',
+        <String>['shell', 'dumpsys', 'power', '|', 'grep', 'mHoldingDisplaySuspendBlocker'],
+        processManager: processManager,
+      );
       if (result.trim() == 'mHoldingDisplaySuspendBlocker=true') {
         healthCheckResult = HealthCheckResult.success(kScreenOnCheckKey);
       } else {
@@ -242,8 +246,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval(
-          'adb', <String>['shell', 'settings', 'get', 'global', 'development_settings_enabled'],
-          processManager: processManager);
+        'adb',
+        <String>['shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+        processManager: processManager,
+      );
       // The output of `development_settings_enabled` is `1` when developer mode is on.
       if (result == '1') {
         healthCheckResult = HealthCheckResult.success(kDeveloperModeCheckKey);
@@ -262,8 +268,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> screenRotationCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval('adb', <String>['shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
-          processManager: processManager);
+      final String result = await eval(
+        'adb',
+        <String>['shell', 'settings', 'get', 'system', 'accelerometer_rotation'],
+        processManager: processManager,
+      );
       // The output of `screensaver_enabled` is `0` when screensaver mode is off.
       if (result == '0') {
         healthCheckResult = HealthCheckResult.success(kScreenRotationCheckKey);
@@ -282,8 +291,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> screenSaverCheck({ProcessManager? processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result = await eval('adb', <String>['shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
-          processManager: processManager);
+      final String result = await eval(
+        'adb',
+        <String>['shell', 'settings', 'get', 'secure', 'screensaver_enabled'],
+        processManager: processManager,
+      );
       // The output of `screensaver_enabled` is `0` when screensaver mode is off.
       if (result == '0') {
         healthCheckResult = HealthCheckResult.success(kScreenSaverCheckKey);
@@ -303,8 +315,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       // The battery level returns two rows. For example:
       //   level: 100
       //   mod level: -1
-      final String levelResults = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
-          processManager: processManager);
+      final String levelResults = await eval(
+        'adb',
+        <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'level'],
+        processManager: processManager,
+      );
       final RegExp levelRegExp = RegExp('level: (?<level>.+)');
       final RegExpMatch? match = levelRegExp.firstMatch(levelResults);
       final int level = int.parse(match!.namedGroup('level')!);
@@ -327,14 +342,19 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       // The battery temperature returns one row. For example:
       //  temperature: 240
       // It means 24°C.
-      final String tempResult = await eval('adb', <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
-          processManager: processManager);
+      final String tempResult = await eval(
+        'adb',
+        <String>['shell', 'dumpsys', 'battery', '|', 'grep', 'temperature'],
+        processManager: processManager,
+      );
       final RegExp? tempRegExp = RegExp('temperature: (?<temperature>.+)');
       final RegExpMatch match = tempRegExp!.firstMatch(tempResult)!;
       final int temperature = int.parse(match.namedGroup('temperature')!);
       if (temperature > _kBatteryMaxTemperatureInCelsius * 10) {
-        healthCheckResult = HealthCheckResult.failure(kBatteryTemperatureCheckKey,
-            'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C');
+        healthCheckResult = HealthCheckResult.failure(
+          kBatteryTemperatureCheckKey,
+          'Battery temperature (${(temperature * 0.1).toInt()}°C) is over $_kBatteryMaxTemperatureInCelsius°C',
+        );
       } else {
         healthCheckResult = HealthCheckResult.success(kBatteryTemperatureCheckKey);
       }
@@ -373,8 +393,12 @@ class AndroidDevice implements Device {
   Future<bool> killProcesses({ProcessManager? processManager}) async {
     processManager ??= LocalProcessManager();
     String result;
-    result = await eval('adb', <String>['shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
-        canFail: true, processManager: processManager);
+    result = await eval(
+      'adb',
+      <String>['shell', 'dumpsys', 'activity', '|', 'grep', 'top-activity'],
+      canFail: true,
+      processManager: processManager,
+    );
 
     // Skip uninstalling process when no device is available or no application exists.
     if (result == 'adb: no devices/emulators found' || result.isEmpty) {

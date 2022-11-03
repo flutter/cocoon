@@ -168,10 +168,12 @@ class Scheduler {
   Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
-      futures.add(luciBuildService.schedulePostsubmitBuilds(
-        commit: commit,
-        toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
-      ));
+      futures.add(
+        luciBuildService.schedulePostsubmitBuilds(
+          commit: commit,
+          toBeScheduled: toBeScheduled.sublist(i, min(i + config.batchSize, toBeScheduled.length)),
+        ),
+      );
     }
     await Future.wait<void>(futures);
   }
@@ -252,7 +254,7 @@ class Scheduler {
       retryOptions: retryOptions,
     );
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-    pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+    final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
     return schedulerConfig.writeToBuffer();
   }
 
@@ -338,7 +340,8 @@ class Scheduler {
       );
     }
     log.info(
-        'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}');
+      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug ${pullRequest.base!.repo!.slug()}}',
+    );
   }
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
@@ -402,8 +405,10 @@ class Scheduler {
       ciYaml = await getCiYaml(commit);
     }
 
-    final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where((Target target) =>
-        target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon);
+    final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
+      (Target target) =>
+          target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
+    );
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
       return presubmitTargets.toList();

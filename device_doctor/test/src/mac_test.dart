@@ -29,7 +29,7 @@ void main() {
           .thenAnswer((_) => Future.value(process));
       output = <List<int>>[utf8.encode('swarming')];
       process = FakeProcess(0, out: output);
-      HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, true);
     });
 
@@ -37,7 +37,7 @@ void main() {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       process = FakeProcess(1);
-      HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kUserAutoLoginCheckKey);
       expect(healthCheckResult.details, 'Executable defaults failed with exit code 1.');
@@ -48,7 +48,7 @@ void main() {
           .thenAnswer((_) => Future.value(process));
       output = <List<int>>[utf8.encode('test')];
       process = FakeProcess(0, out: output);
-      HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
+      final HealthCheckResult healthCheckResult = await userAutoLoginCheck(processManager: processManager);
       expect(healthCheckResult.succeeded, false);
       expect(healthCheckResult.name, kUserAutoLoginCheckKey);
       expect(healthCheckResult.details, 'swarming user is not setup for auto login');

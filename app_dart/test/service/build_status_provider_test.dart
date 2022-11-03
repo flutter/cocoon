@@ -201,11 +201,12 @@ void main() {
         db.values[commit2.key] = commit2;
 
         final Task task1 = Task(
-            key: commit1.key.append(Task, id: 1),
-            commitKey: commit1.key,
-            name: 'task1',
-            status: Task.statusSucceeded,
-            stageName: 'stage1');
+          key: commit1.key.append(Task, id: 1),
+          commitKey: commit1.key,
+          name: 'task1',
+          status: Task.statusSucceeded,
+          stageName: 'stage1',
+        );
 
         db.values[task1.key] = task1;
 

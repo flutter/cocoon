@@ -74,9 +74,9 @@ CirrusResult getFirstBuildResult(
   }
   final Map<String, dynamic> searchBuild = searchBuilds.first as Map<String, dynamic>;
   tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
-  String? id = searchBuild['id'] as String?;
+  final String? id = searchBuild['id'] as String?;
   log.info('Cirrus searchBuild id for flutter/$name, commit: $sha: $id');
-  String? branch = searchBuild['branch'] as String?;
+  final String? branch = searchBuild['branch'] as String?;
   return CirrusResult(id, branch, tasks);
 }
 

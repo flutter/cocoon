@@ -47,50 +47,57 @@ Future<void> main() async {
       }
     });
 
-    test('validate enabled branches of $config', () async {
-      final String configContent = await githubFileContent(
-        config.slug,
-        kCiYamlPath,
-        httpClientProvider: () => http.Client(),
-        ref: config.branch,
-      );
-      final YamlMap configYaml = loadYaml(configContent) as YamlMap;
-      final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+    test(
+      'validate enabled branches of $config',
+      () async {
+        final String configContent = await githubFileContent(
+          config.slug,
+          kCiYamlPath,
+          httpClientProvider: () => http.Client(),
+          ref: config.branch,
+        );
+        final YamlMap configYaml = loadYaml(configContent) as YamlMap;
+        final pb.SchedulerConfig schedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
 
-      final List<String> githubBranches = getBranchesForRepository(config.slug);
+        final List<String> githubBranches = getBranchesForRepository(config.slug);
 
-      final Map<String, bool> validEnabledBranches = <String, bool>{};
-      // Add config wide enabled branches
-      for (String enabledBranch in schedulerConfig.enabledBranches) {
-        validEnabledBranches[enabledBranch] = false;
-      }
-      // Add all target specific enabled branches
-      for (pb.Target target in schedulerConfig.targets) {
-        for (String enabledBranch in target.enabledBranches) {
+        final Map<String, bool> validEnabledBranches = <String, bool>{};
+        // Add config wide enabled branches
+        for (String enabledBranch in schedulerConfig.enabledBranches) {
           validEnabledBranches[enabledBranch] = false;
         }
-      }
-
-      // N^2 scan to verify all enabled branch patterns match an exist branch on the repo.
-      for (String enabledBranch in validEnabledBranches.keys) {
-        for (String githubBranch in githubBranches) {
-          if (CiYaml.enabledBranchesMatchesCurrentBranch(<String>[enabledBranch], githubBranch)) {
-            validEnabledBranches[enabledBranch] = true;
+        // Add all target specific enabled branches
+        for (pb.Target target in schedulerConfig.targets) {
+          for (String enabledBranch in target.enabledBranches) {
+            validEnabledBranches[enabledBranch] = false;
           }
         }
-      }
 
-      if (config.slug.name == 'engine') {
-        print(githubBranches);
-        print(validEnabledBranches);
-      }
+        // N^2 scan to verify all enabled branch patterns match an exist branch on the repo.
+        for (String enabledBranch in validEnabledBranches.keys) {
+          for (String githubBranch in githubBranches) {
+            if (CiYaml.enabledBranchesMatchesCurrentBranch(<String>[enabledBranch], githubBranch)) {
+              validEnabledBranches[enabledBranch] = true;
+            }
+          }
+        }
 
-      // Verify the enabled branches
-      for (String enabledBranch in validEnabledBranches.keys) {
-        expect(validEnabledBranches[enabledBranch], isTrue,
-            reason: '$enabledBranch does not match to a branch in ${config.slug.fullName}');
-      }
-    }, skip: config.slug.name == 'flutter');
+        if (config.slug.name == 'engine') {
+          print(githubBranches);
+          print(validEnabledBranches);
+        }
+
+        // Verify the enabled branches
+        for (String enabledBranch in validEnabledBranches.keys) {
+          expect(
+            validEnabledBranches[enabledBranch],
+            isTrue,
+            reason: '$enabledBranch does not match to a branch in ${config.slug.fullName}',
+          );
+        }
+      },
+      skip: config.slug.name == 'flutter',
+    );
   }
 }
 

@@ -54,8 +54,9 @@ class GetBranches extends RequestHandler<Body> {
 
     final List<Branch> branches = await datastore
         .queryBranches()
-        .where((Branch b) =>
-            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds)
+        .where(
+          (Branch b) => DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds,
+        )
         .toList();
     return Body.forJson(branches);
   }

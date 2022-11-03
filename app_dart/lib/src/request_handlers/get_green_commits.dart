@@ -69,8 +69,10 @@ class GetGreenCommits extends RequestHandler<Body> {
   }
 
   bool everyNonFlakyTaskSucceed(CommitStatus status) {
-    return status.stages.every((Stage stage) => stage.tasks
-        .where((Task task) => !task.isFlaky!)
-        .every((Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded));
+    return status.stages.every(
+      (Stage stage) => stage.tasks
+          .where((Task task) => !task.isFlaky!)
+          .every((Task nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded),
+    );
   }
 }

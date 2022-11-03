@@ -23,14 +23,14 @@ class Approval extends Validation {
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
     final List<ReviewNode> reviews = pullRequest.reviews!.nodes!;
-    bool approved = config.rollerAccounts.contains(author) ||
+    final bool approved = config.rollerAccounts.contains(author) ||
         _checkApproval(
           author,
           authorAssociation,
           reviews,
         );
 
-    String message = '- Please get at least one approved review if you are already '
+    const String message = '- Please get at least one approved review if you are already '
         'a member or two member reviews if you are not a member before re-applying this '
         'label. __Reviewers__: If you left a comment approving, please use '
         'the "approve" review action instead.';

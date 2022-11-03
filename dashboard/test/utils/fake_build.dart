@@ -69,7 +69,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   List<Branch> get branches {
-    List<Branch> fakeBranches = <Branch>[];
+    final List<Branch> fakeBranches = <Branch>[];
     for (String repo in ['flutter', 'engine', 'cocoon']) {
       fakeBranches.add(
         Branch()

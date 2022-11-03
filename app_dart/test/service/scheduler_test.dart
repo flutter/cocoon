@@ -145,17 +145,18 @@ void main() {
         String repo = 'flutter',
       }) {
         return List<Commit>.generate(
-            shas.length,
-            (int index) => Commit(
-                  author: 'Username',
-                  authorAvatarUrl: 'http://example.org/avatar.jpg',
-                  branch: 'master',
-                  key: db.emptyKey.append(Commit, id: 'flutter/$repo/master/${shas[index]}'),
-                  message: 'commit message',
-                  repository: 'flutter/$repo',
-                  sha: shas[index],
-                  timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
-                ));
+          shas.length,
+          (int index) => Commit(
+            author: 'Username',
+            authorAvatarUrl: 'http://example.org/avatar.jpg',
+            branch: 'master',
+            key: db.emptyKey.append(Commit, id: 'flutter/$repo/master/${shas[index]}'),
+            message: 'commit message',
+            repository: 'flutter/$repo',
+            sha: shas[index],
+            timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
+          ),
+        );
       }
 
       test('succeeds when GitHub returns no commits', () async {
@@ -230,9 +231,12 @@ void main() {
 
       test('schedules cocoon based targets', () async {
         final MockLuciBuildService luciBuildService = MockLuciBuildService();
-        when(luciBuildService.schedulePostsubmitBuilds(
-                commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
-            .thenAnswer((_) => Future<void>.value());
+        when(
+          luciBuildService.schedulePostsubmitBuilds(
+            commit: anyNamed('commit'),
+            toBeScheduled: captureAnyNamed('toBeScheduled'),
+          ),
+        ).thenAnswer((_) => Future<void>.value());
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
@@ -246,9 +250,12 @@ void main() {
         );
 
         await scheduler.addCommits(createCommitList(<String>['1']));
-        final List<dynamic> captured = verify(luciBuildService.schedulePostsubmitBuilds(
-                commit: anyNamed('commit'), toBeScheduled: captureAnyNamed('toBeScheduled')))
-            .captured;
+        final List<dynamic> captured = verify(
+          luciBuildService.schedulePostsubmitBuilds(
+            commit: anyNamed('commit'),
+            toBeScheduled: captureAnyNamed('toBeScheduled'),
+          ),
+        ).captured;
         final List<dynamic> toBeScheduled = captured.first as List<dynamic>;
         expect(toBeScheduled.length, 2);
         final Iterable<Tuple<Target, Task, int>> tuples =
@@ -270,10 +277,12 @@ void main() {
           pubsub: pubsub,
         );
         when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-          return const ListBuildersResponse(builders: [
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
-            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
-          ]);
+          return const ListBuildersResponse(
+            builders: [
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux A')),
+              BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux runIf')),
+            ],
+          );
         });
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
@@ -379,13 +388,15 @@ void main() {
 
     group('process check run', () {
       test('rerequested ci.yaml check retriggers presubmit', () async {
-        when(mockGithubChecksUtil.createCheckRun(
-          any,
-          any,
-          any,
-          any,
-          output: anyNamed('output'),
-        )).thenAnswer((_) async {
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
@@ -397,13 +408,15 @@ void main() {
         checkRunEventJson['check_run']['name'] = Scheduler.kCiYamlCheckName;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkRunEventJson);
         expect(await scheduler.processCheckRun(checkRunEvent), true);
-        verify(mockGithubChecksUtil.createCheckRun(
-          any,
-          any,
-          any,
-          Scheduler.kCiYamlCheckName,
-          output: anyNamed('output'),
-        ));
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Scheduler.kCiYamlCheckName,
+            output: anyNamed('output'),
+          ),
+        );
         // Verfies Linux A was created
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
@@ -443,7 +456,8 @@ void main() {
       test('gets only enabled .ci.yaml builds', () async {
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+            return http.Response(
+              '''
 enabled_branches:
   - master
 targets:
@@ -469,46 +483,58 @@ targets:
     enabled_branches:
       - master
     presubmit: true
-          ''', 200);
+          ''',
+              200,
+            );
           }
           throw Exception('Failed to find ${request.url.path}');
         });
         final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
-        expect(presubmitTargets.map((Target target) => target.value.name).toList(),
-            containsAll(<String>['Linux A', 'Linux C']));
+        expect(
+          presubmitTargets.map((Target target) => target.value.name).toList(),
+          containsAll(<String>['Linux A', 'Linux C']),
+        );
       });
 
       test('checks for release branches', () async {
         const String branch = 'flutter-1.24-candidate.1';
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+            return http.Response(
+              '''
 enabled_branches:
   - master
 targets:
   - name: Linux A
     presubmit: true
     scheduler: luci
-          ''', 200);
+          ''',
+              200,
+            );
           }
           throw Exception('Failed to find ${request.url.path}');
         });
-        expect(scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
-            throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))));
+        expect(
+          scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
+          throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))),
+        );
       });
 
       test('checks for release branch regex', () async {
         const String branch = 'flutter-1.24-candidate.1';
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+            return http.Response(
+              '''
 enabled_branches:
   - main
   - flutter-\\d+.\\d+-candidate.\\d+
 targets:
   - name: Linux A
     scheduler: luci
-          ''', 200);
+          ''',
+              200,
+            );
           }
           throw Exception('Failed to find ${request.url.path}');
         });
@@ -524,8 +550,9 @@ targets:
           <dynamic>[
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-                title: Scheduler.kCiYamlCheckName,
-                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+              title: Scheduler.kCiYamlCheckName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             'Linux A',
             null,
             // Linux runIf is not run as this is for tip of tree and the files weren't affected
@@ -564,8 +591,9 @@ targets:
           <dynamic>[
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-                title: Scheduler.kCiYamlCheckName,
-                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+              title: Scheduler.kCiYamlCheckName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             'Linux A',
             null,
             // runIf requires a diff in dev, so an error will cause it to be triggered
@@ -586,8 +614,9 @@ targets:
           <dynamic>[
             Scheduler.kCiYamlCheckName,
             const CheckRunOutput(
-                title: Scheduler.kCiYamlCheckName,
-                summary: 'If this check is stuck pending, push an empty commit to retrigger the checks'),
+              title: Scheduler.kCiYamlCheckName,
+              summary: 'If this check is stuck pending, push an empty commit to retrigger the checks',
+            ),
             'Linux A',
             null,
             'Linux runIf',
@@ -601,12 +630,18 @@ targets:
             .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
-                    status: captureAnyNamed('status'),
-                    conclusion: captureAnyNamed('conclusion'),
-                    output: anyNamed('output')))
-                .captured,
-            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success]);
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              output: anyNamed('output'),
+            ),
+          ).captured,
+          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.success],
+        );
       });
 
       test('ci.yaml validation fails with empty config', () async {
@@ -618,30 +653,43 @@ targets:
         });
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
-                    status: captureAnyNamed('status'),
-                    conclusion: captureAnyNamed('conclusion'),
-                    output: anyNamed('output')))
-                .captured,
-            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure]);
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              output: anyNamed('output'),
+            ),
+          ).captured,
+          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+        );
       });
 
       test('ci.yaml validation fails on not enabled branch', () async {
         final PullRequest pullRequest = generatePullRequest(branch: 'not-valid');
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
-                    status: captureAnyNamed('status'),
-                    conclusion: captureAnyNamed('conclusion'),
-                    output: anyNamed('output')))
-                .captured,
-            <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure]);
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: captureAnyNamed('status'),
+              conclusion: captureAnyNamed('conclusion'),
+              output: anyNamed('output'),
+            ),
+          ).captured,
+          <dynamic>[CheckRunStatus.completed, CheckRunConclusion.failure],
+        );
       });
 
       test('ci.yaml validation fails with config with unknown dependencies', () async {
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
-            return http.Response('''
+            return http.Response(
+              '''
 enabled_branches:
   - master
 targets:
@@ -649,18 +697,26 @@ targets:
     builder: Linux A
     dependencies:
       - B
-          ''', 200);
+          ''',
+              200,
+            );
           }
           throw Exception('Failed to find ${request.url.path}');
         });
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-            verify(mockGithubChecksUtil.updateCheckRun(any, any, any,
-                    status: anyNamed('status'), conclusion: anyNamed('conclusion'), output: captureAnyNamed('output')))
-                .captured
-                .first
-                .text,
-            'FormatException: ERROR: A depends on B which does not exist');
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: anyNamed('conclusion'),
+              output: captureAnyNamed('output'),
+            ),
+          ).captured.first.text,
+          'FormatException: ERROR: A depends on B which does not exist',
+        );
       });
 
       test('retries only triggers failed builds only', () async {
@@ -683,21 +739,23 @@ targets:
             pubsub: pubsub,
           ),
         );
-        when(mockBuildbucket.batch(any)).thenAnswer((_) async => BatchResponse(
-              responses: <Response>[
-                Response(
-                  searchBuilds: SearchBuildsResponse(
-                    builds: <Build>[
-                      generateBuild(1000, name: 'Linux', bucket: 'try'),
-                      generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
-                      generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
-                      generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
-                      generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure)
-                    ],
-                  ),
+        when(mockBuildbucket.batch(any)).thenAnswer(
+          (_) async => BatchResponse(
+            responses: <Response>[
+              Response(
+                searchBuilds: SearchBuildsResponse(
+                  builds: <Build>[
+                    generateBuild(1000, name: 'Linux', bucket: 'try'),
+                    generateBuild(2000, name: 'Linux Coverage', bucket: 'try'),
+                    generateBuild(3000, name: 'Mac', bucket: 'try', status: Status.scheduled),
+                    generateBuild(4000, name: 'Windows', bucket: 'try', status: Status.started),
+                    generateBuild(5000, name: 'Linux A', bucket: 'try', status: Status.failure)
+                  ],
                 ),
-              ],
-            ));
+              ),
+            ],
+          ),
+        );
         when(mockBuildbucket.scheduleBuild(any))
             .thenAnswer((_) async => generateBuild(5001, name: 'Linux A', bucket: 'try', status: Status.scheduled));
         // Only Linux A should be retried

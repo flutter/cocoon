@@ -129,10 +129,13 @@ void main() {
           encoding: utf8,
         );
 
-      expect(() async {
-        await codesignVisitor.readPassword(appSpecificPasswordFilePath);
-        await fileSystem.file(appSpecificPasswordFilePath).delete();
-      }, returnsNormally);
+      expect(
+        () async {
+          await codesignVisitor.readPassword(appSpecificPasswordFilePath);
+          await fileSystem.file(appSpecificPasswordFilePath).delete();
+        },
+        returnsNormally,
+      );
     });
   });
 
@@ -378,7 +381,8 @@ void main() {
       expect(
         messages,
         contains(
-            'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact.zip to ${rootDirectory.path}/single_artifact'),
+          'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact.zip to ${rootDirectory.path}/single_artifact',
+        ),
       );
       expect(
         messages,
@@ -395,17 +399,20 @@ void main() {
       expect(
         messages,
         contains(
-            'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip --apple-id $randomString --password $randomString --team-id $randomString'),
+          'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip --apple-id $randomString --password $randomString --team-id $randomString',
+        ),
       );
       expect(
         messages,
         contains(
-            'RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip is: $randomString'),
+          'RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip is: $randomString',
+        ),
       );
       expect(
         messages,
         contains(
-            'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString'),
+          'checking notary status with xcrun notarytool info $randomString --password $randomString --apple-id $randomString --team-id $randomString',
+        ),
       );
       expect(
         messages,
@@ -535,15 +542,16 @@ void main() {
       fileSystem.file(zipFileName).createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
-            command: <String>[
-              'unzip',
-              '${rootDirectory.absolute.path}/remote_zip_2/zip_1',
-              '-d',
-              '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
-            ],
-            onRun: () => fileSystem
-              ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1').createSync(recursive: true)
-              ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2').createSync(recursive: true)),
+          command: <String>[
+            'unzip',
+            '${rootDirectory.absolute.path}/remote_zip_2/zip_1',
+            '-d',
+            '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
+          ],
+          onRun: () => fileSystem
+            ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1').createSync(recursive: true)
+            ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2').createSync(recursive: true),
+        ),
         FakeCommand(
           command: <String>[
             'file',
@@ -585,9 +593,11 @@ void main() {
           .map((LogRecord record) => record.message)
           .toList();
       expect(
-          messages,
-          contains(
-              'The downloaded file is unzipped from ${rootDirectory.path}/remote_zip_2/zip_1 to ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}'));
+        messages,
+        contains(
+          'The downloaded file is unzipped from ${rootDirectory.path}/remote_zip_2/zip_1 to ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
+        ),
+      );
       expect(messages, contains('Visiting directory ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}'));
       expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_1'));
       expect(messages, contains('Child file of directory embedded_zip_${zipFileName.hashCode} is file_2'));
@@ -617,15 +627,17 @@ void main() {
               .directory('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}')
               .createSync(recursive: true),
         ),
-        FakeCommand(command: <String>[
-          'zip',
-          '--symlinks',
-          '--recurse-paths',
-          '${rootDirectory.absolute.path}/remote_zip_4/folder_1/zip_1',
-          '.',
-          '--include',
-          '*'
-        ]),
+        FakeCommand(
+          command: <String>[
+            'zip',
+            '--symlinks',
+            '--recurse-paths',
+            '${rootDirectory.absolute.path}/remote_zip_4/folder_1/zip_1',
+            '.',
+            '--include',
+            '*'
+          ],
+        ),
       ]);
 
       await codesignVisitor.visitDirectory(
@@ -639,11 +651,15 @@ void main() {
       expect(messages, contains('Visiting directory ${rootDirectory.absolute.path}/remote_zip_4'));
       expect(messages, contains('Visiting directory ${rootDirectory.absolute.path}/remote_zip_4/folder_1'));
       expect(
-          messages,
-          contains(
-              'The downloaded file is unzipped from ${rootDirectory.path}/remote_zip_4/folder_1/zip_1 to ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}'));
+        messages,
+        contains(
+          'The downloaded file is unzipped from ${rootDirectory.path}/remote_zip_4/folder_1/zip_1 to ${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
+        ),
+      );
       expect(
-          messages, contains('Visiting directory ${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}'));
+        messages,
+        contains('Visiting directory ${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}'),
+      );
     });
 
     test('throw exception when the same directory is visited', () async {
@@ -688,9 +704,11 @@ void main() {
           .map((LogRecord record) => record.message)
           .toList();
       expect(
-          warnings,
-          contains(
-              'Warning! You are visiting a directory that has been visited before, the directory is ${rootDirectory.path}/parent_1/child_1'));
+        warnings,
+        contains(
+          'Warning! You are visiting a directory that has been visited before, the directory is ${rootDirectory.path}/parent_1/child_1',
+        ),
+      );
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
@@ -835,19 +853,21 @@ file_e''',
       );
       expect(fileWithEntitlements.length, 3);
       expect(
-          fileWithEntitlements,
-          containsAll(<String>[
-            'file_a',
-            'file_b',
-            'file_c',
-          ]));
+        fileWithEntitlements,
+        containsAll(<String>[
+          'file_a',
+          'file_b',
+          'file_c',
+        ]),
+      );
       expect(fileWithoutEntitlements.length, 2);
       expect(
-          fileWithoutEntitlements,
-          containsAll(<String>[
-            'file_d',
-            'file_e',
-          ]));
+        fileWithoutEntitlements,
+        containsAll(<String>[
+          'file_d',
+          'file_e',
+        ]),
+      );
     });
 
     test('throw exception when configuration file is missing', () async {
@@ -867,20 +887,22 @@ file_c''',
       );
       expect(fileWithEntitlements.length, 3);
       expect(
-          fileWithEntitlements,
-          containsAll(<String>[
-            'file_a',
-            'file_b',
-            'file_c',
-          ]));
+        fileWithEntitlements,
+        containsAll(<String>[
+          'file_a',
+          'file_b',
+          'file_c',
+        ]),
+      );
       expect(
-          () => codesignVisitor.parseEntitlements(
-                fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement_2'),
-                false,
-              ),
-          throwsA(
-            isA<CodesignException>(),
-          ));
+        () => codesignVisitor.parseEntitlements(
+          fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement_2'),
+          false,
+        ),
+        throwsA(
+          isA<CodesignException>(),
+        ),
+      );
     });
   });
 
@@ -1415,8 +1437,10 @@ status: Invalid''',
           .toSet();
       expect(
         messages,
-        isNot(contains('code signing dry run has completed, If you intend to upload the artifacts back to'
-            ' google cloud storage, please use the --dryrun=false flag to run code signing script.')),
+        isNot(
+          contains('code signing dry run has completed, If you intend to upload the artifacts back to'
+              ' google cloud storage, please use the --dryrun=false flag to run code signing script.'),
+        ),
       );
       expect(
         messages,

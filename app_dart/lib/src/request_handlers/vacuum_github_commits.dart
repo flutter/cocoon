@@ -67,8 +67,10 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
       commits = commits
-          .where((gh.RepositoryCommit commit) =>
-              commit.commit!.committer!.date!.millisecondsSinceEpoch < queryBefore.millisecondsSinceEpoch)
+          .where(
+            (gh.RepositoryCommit commit) =>
+                commit.commit!.committer!.date!.millisecondsSinceEpoch < queryBefore.millisecondsSinceEpoch,
+          )
           .toList();
     } on gh.GitHubError catch (error) {
       log.severe('$error');
@@ -79,23 +81,29 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   /// Convert [gh.RepositoryCommit] to Cocoon's [Commit] format.
   Future<List<Commit>> _toDatastoreCommit(
-      gh.RepositorySlug slug, List<gh.RepositoryCommit> commits, DatastoreService? datastore, String branch) async {
+    gh.RepositorySlug slug,
+    List<gh.RepositoryCommit> commits,
+    DatastoreService? datastore,
+    String branch,
+  ) async {
     final List<Commit> recentCommits = <Commit>[];
     for (gh.RepositoryCommit commit in commits) {
       final String id = '${slug.fullName}/$branch/${commit.sha}';
       final Key<String> key = datastore!.db.emptyKey.append<String>(Commit, id: id);
-      recentCommits.add(Commit(
-        key: key,
-        timestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
-        repository: slug.fullName,
-        sha: commit.sha!,
-        author: commit.author!.login!,
-        authorAvatarUrl: commit.author!.avatarUrl!,
-        // The field has a size of 1500 we need to ensure the commit message
-        // is at most 1500 chars long.
-        message: truncate(commit.commit!.message!, 1490, omission: '...'),
-        branch: branch,
-      ));
+      recentCommits.add(
+        Commit(
+          key: key,
+          timestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
+          repository: slug.fullName,
+          sha: commit.sha!,
+          author: commit.author!.login!,
+          authorAvatarUrl: commit.author!.avatarUrl!,
+          // The field has a size of 1500 we need to ensure the commit message
+          // is at most 1500 chars long.
+          message: truncate(commit.commit!.message!, 1490, omission: '...'),
+          branch: branch,
+        ),
+      );
     }
     return recentCommits;
   }

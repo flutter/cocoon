@@ -31,12 +31,15 @@ void main() {
             log.fine(line);
           },
         );
-        runZoned<dynamic>(() {
-          return ss.fork(() {
-            ss.register(#appengine.logging, log);
-            return handler.service(request);
-          });
-        }, zoneSpecification: spec);
+        runZoned<dynamic>(
+          () {
+            return ss.fork(() {
+              ss.register(#appengine.logging, log);
+              return handler.service(request);
+            });
+          },
+          zoneSpecification: spec,
+        );
       });
     });
 

@@ -35,11 +35,15 @@ class FakeBuildStatusService implements BuildStatusService {
     }
     commitStatuses!.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp!.compareTo(b.commit.timestamp!));
 
-    return Stream<CommitStatus>.fromIterable(commitStatuses!.where((CommitStatus commitStatus) =>
-        ((commitStatus.commit.timestamp == null || timestamp == null)
-            ? true
-            : commitStatus.commit.timestamp! < timestamp) &&
-        commitStatus.commit.branch == branch));
+    return Stream<CommitStatus>.fromIterable(
+      commitStatuses!.where(
+        (CommitStatus commitStatus) =>
+            ((commitStatus.commit.timestamp == null || timestamp == null)
+                ? true
+                : commitStatus.commit.timestamp! < timestamp) &&
+            commitStatus.commit.branch == branch,
+      ),
+    );
   }
 
   @override

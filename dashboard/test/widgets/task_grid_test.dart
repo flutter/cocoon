@@ -588,7 +588,7 @@ void main() {
   });
 
   testWidgets('TaskGrid shows icon for isTestFlaky tasks with multiple attempts', (WidgetTester tester) async {
-    Task taskA3 = Task()
+    final Task taskA3 = Task()
       ..stageName = 'A'
       ..builderName = '1'
       ..name = 'A'
@@ -596,7 +596,7 @@ void main() {
       ..attempts = 3
       ..isTestFlaky = true;
 
-    Task taskB1 = Task()
+    final Task taskB1 = Task()
       ..stageName = 'B'
       ..builderName = '2'
       ..name = 'B'
@@ -635,9 +635,9 @@ void main() {
     // check the order of the items. The flaky should be to the left and first.
     expect(find.byType(TaskGrid).first, findsAtLeastNWidgets(1));
 
-    LatticeScrollView latticeScrollView = tester.firstWidget(find.byType(LatticeScrollView));
-    List<List<LatticeCell>> cells = latticeScrollView.cells;
-    List<LatticeCell> myCells = cells.first;
+    final LatticeScrollView latticeScrollView = tester.firstWidget(find.byType(LatticeScrollView));
+    final List<List<LatticeCell>> cells = latticeScrollView.cells;
+    final List<LatticeCell> myCells = cells.first;
     expect(myCells.length, 3);
     myCells.removeAt(0); // the first element is the github author box.
     expect(myCells[0].taskName, 'A');

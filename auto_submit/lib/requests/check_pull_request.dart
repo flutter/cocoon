@@ -44,7 +44,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       return Response.ok('No messages are pulled.');
     }
     log.info('Processing ${messageList.length} messages');
-    ValidationService validationService = ValidationService(config);
+    final ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {

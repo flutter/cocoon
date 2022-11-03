@@ -24,16 +24,16 @@ void main() {
   late FakeConfig config;
   FakeGithubService githubService = FakeGithubService();
   late FakeGraphQLClient githubGraphQLClient;
-  MockGitHub gitHub = MockGitHub();
+  final MockGitHub gitHub = MockGitHub();
   late github.RepositorySlug slug;
   late Set<FailureDetail> failures;
 
   List<ContextNode> getContextNodeListFromJson(final String repositoryStatuses) {
-    List<ContextNode> contextNodeList = [];
+    final List<ContextNode> contextNodeList = [];
 
-    Map<String, dynamic> contextNodeMap = jsonDecode(repositoryStatuses) as Map<String, dynamic>;
+    final Map<String, dynamic> contextNodeMap = jsonDecode(repositoryStatuses) as Map<String, dynamic>;
 
-    dynamic statuses = contextNodeMap['statuses'];
+    final dynamic statuses = contextNodeMap['statuses'];
     for (Map<String, dynamic> map in statuses) {
       contextNodeList.add(ContextNode.fromJson(map));
     }
@@ -60,7 +60,7 @@ void main() {
     test('ValidateCheckRuns no failures for skipped conclusion.', () {
       githubService.checkRunsData = skippedCheckRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
@@ -71,7 +71,7 @@ void main() {
     test('ValidateCheckRuns no failures for successful conclusion.', () {
       githubService.checkRunsData = checkRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
@@ -82,7 +82,7 @@ void main() {
     test('ValidateCheckRuns no failure for status completed and neutral conclusion.', () {
       githubService.checkRunsData = neutralCheckRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
@@ -93,7 +93,7 @@ void main() {
     test('ValidateCheckRuns failure detected on status completed no neutral conclusion.', () {
       githubService.checkRunsData = failedCheckRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
@@ -105,7 +105,7 @@ void main() {
     test('ValidateCheckRuns succes with multiple successful check runs.', () {
       githubService.checkRunsData = multipleCheckRunsMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isTrue);
@@ -116,7 +116,7 @@ void main() {
     test('ValidateCheckRuns failed with multiple check runs.', () {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
@@ -130,7 +130,7 @@ void main() {
       /// does not cause failure is a candidate to be temporarily ignored.
       githubService.checkRunsData = inprogressAndNotFailedCheckRunMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
@@ -141,7 +141,7 @@ void main() {
     test('ValidateCheckRuns allSuccess false is preserved.', () {
       githubService.checkRunsData = multipleCheckRunsWithFailureMock;
       final Future<List<github.CheckRun>> checkRunFuture = githubService.getCheckRuns(slug, 'ref');
-      bool allSuccess = false;
+      const bool allSuccess = false;
 
       checkRunFuture.then((checkRuns) {
         expect(ciSuccessful.validateCheckRuns(slug, checkRuns, failures, allSuccess), isFalse);
@@ -154,7 +154,7 @@ void main() {
   group('validateStatuses', () {
     test('Validate successful statuses show as successful.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesMock);
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
@@ -164,7 +164,7 @@ void main() {
 
     test('Validate statuses that are not successful but do not cause failure.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('warning: land on red to fix tree breakage');
@@ -177,7 +177,7 @@ void main() {
 
     test('Validate failure statuses do not cause failure with not in authors control.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -190,7 +190,7 @@ void main() {
 
     test('Validate failure statuses cause failures with not in authors control.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
-      bool allSuccess = true;
+      const bool allSuccess = true;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -204,7 +204,7 @@ void main() {
 
     test('Validate failure statuses cause failures and preserves false allSuccess.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
-      bool allSuccess = false;
+      const bool allSuccess = false;
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
@@ -225,7 +225,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -236,7 +236,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, true);
     });
 
@@ -246,7 +246,7 @@ void main() {
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
+      final bool treeStatusFlag = ciSuccessful.treeStatusCheck(slug, contextNodeList);
       expect(treeStatusFlag, false);
     });
   });
@@ -373,7 +373,7 @@ void main() {
     });
 
     test('returns correct message when validation fails', () async {
-      PullRequestHelper flutterRequest = PullRequestHelper(
+      final PullRequestHelper flutterRequest = PullRequestHelper(
         prNumber: 0,
         lastCommitHash: oid,
         reviews: <PullRequestReviewHelper>[],
@@ -381,7 +381,7 @@ void main() {
 
       githubService.checkRunsData = failedCheckRunsMock;
       final github.PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
-      QueryResult queryResult = createQueryResult(flutterRequest);
+      final QueryResult queryResult = createQueryResult(flutterRequest);
 
       final ValidationResult validationResult = await ciSuccessful.validate(queryResult, pullRequest);
 

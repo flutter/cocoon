@@ -41,9 +41,11 @@ void main() {
         Uint8List.fromList('123'.codeUnits),
       );
 
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        FlushCache.cacheKeyParam: cacheKey,
-      });
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          FlushCache.cacheKeyParam: cacheKey,
+        },
+      );
       await tester.get(handler);
 
       expect(await cache.getOrCreate(Config.configCacheName, cacheKey), null);
@@ -54,9 +56,11 @@ void main() {
     });
 
     test('raises error if cache key does not exist', () async {
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        FlushCache.cacheKeyParam: 'abc',
-      });
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          FlushCache.cacheKeyParam: 'abc',
+        },
+      );
       expect(tester.get(handler), throwsA(isA<NotFoundException>()));
     });
   });

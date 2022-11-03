@@ -64,14 +64,16 @@ void main() {
         'Key': config.keyHelper.encode(task.key),
       };
 
-      when(mockLuciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
-        task: anyNamed('task'),
-        target: anyNamed('target'),
-        tags: anyNamed('tags'),
-        ignoreChecks: true,
-      )).thenAnswer((_) async => true);
+      when(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: true,
+        ),
+      ).thenAnswer((_) async => true);
     });
     test('Schedule new task', () async {
       config.db.values[task.key] = task;
@@ -108,14 +110,16 @@ void main() {
     });
 
     test('Fails if task is not rerun', () async {
-      when(mockLuciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
-        task: anyNamed('task'),
-        target: anyNamed('target'),
-        tags: anyNamed('tags'),
-        ignoreChecks: true,
-      )).thenAnswer((_) async => false);
+      when(
+        mockLuciBuildService.checkRerunBuilder(
+          commit: anyNamed('commit'),
+          datastore: anyNamed('datastore'),
+          task: anyNamed('task'),
+          target: anyNamed('target'),
+          tags: anyNamed('tags'),
+          ignoreChecks: true,
+        ),
+      ).thenAnswer((_) async => false);
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
       expect(() => tester.post(handler), throwsA(isA<InternalServerError>()));

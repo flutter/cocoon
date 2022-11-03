@@ -87,7 +87,8 @@ class BatchBackfiller extends RequestHandler {
         transaction.queueMutations(inserts: backfillTasks);
         await transaction.commit();
         log.fine(
-            'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.');
+          'Updated ${backfillTasks.length} tasks: ${backfillTasks.map((e) => e.name).toList()} when backfilling.',
+        );
       });
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
@@ -107,10 +108,12 @@ class BatchBackfiller extends RequestHandler {
         tuple.second.task,
         tuple.third,
       );
-      futures.add(scheduler.luciBuildService.schedulePostsubmitBuilds(
-        commit: tuple.second.commit,
-        toBeScheduled: [toBeScheduled],
-      ));
+      futures.add(
+        scheduler.luciBuildService.schedulePostsubmitBuilds(
+          commit: tuple.second.commit,
+          toBeScheduled: [toBeScheduled],
+        ),
+      );
     }
     return futures;
   }

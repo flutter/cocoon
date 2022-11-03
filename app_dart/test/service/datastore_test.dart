@@ -201,10 +201,13 @@ void main() {
     test('retriesOnGrpcError', () async {
       final Counter counter = Counter();
       try {
-        await runTransactionWithRetries(() async {
-          counter.increase();
-          throw GrpcError.aborted();
-        }, retryOptions: retryOptions);
+        await runTransactionWithRetries(
+          () async {
+            counter.increase();
+            throw GrpcError.aborted();
+          },
+          retryOptions: retryOptions,
+        );
       } catch (e) {
         expect(e, isA<GrpcError>());
       }
@@ -213,10 +216,13 @@ void main() {
     test('retriesTransactionAbortedError', () async {
       final Counter counter = Counter();
       try {
-        await runTransactionWithRetries(() async {
-          counter.increase();
-          throw gcloud_datastore.TransactionAbortedError();
-        }, retryOptions: retryOptions);
+        await runTransactionWithRetries(
+          () async {
+            counter.increase();
+            throw gcloud_datastore.TransactionAbortedError();
+          },
+          retryOptions: retryOptions,
+        );
       } catch (e) {
         expect(e, isA<gcloud_datastore.TransactionAbortedError>());
       }
@@ -224,9 +230,12 @@ void main() {
     });
     test('DoesNotRetryOnSuccess', () async {
       final Counter counter = Counter();
-      await runTransactionWithRetries(() async {
-        counter.increase();
-      }, retryOptions: retryOptions);
+      await runTransactionWithRetries(
+        () async {
+          counter.increase();
+        },
+        retryOptions: retryOptions,
+      );
       expect(counter.value(), equals(1));
     });
   });

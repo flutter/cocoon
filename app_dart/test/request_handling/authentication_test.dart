@@ -77,11 +77,12 @@ void main() {
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
         await expectLater(
-            auth.authenticateToken(
-              token,
-              clientContext: FakeClientContext(),
-            ),
-            throwsA(isA<Unauthenticated>()));
+          auth.authenticateToken(
+            token,
+            clientContext: FakeClientContext(),
+          ),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
 
       test('fails if tokenInfo returns invalid JSON', () async {
@@ -100,11 +101,12 @@ void main() {
         );
         config.oauthClientIdValue = 'expected-client-id';
         await expectLater(
-            auth.authenticateToken(
-              token,
-              clientContext: FakeClientContext(),
-            ),
-            throwsA(isA<Unauthenticated>()));
+          auth.authenticateToken(
+            token,
+            clientContext: FakeClientContext(),
+          ),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
 
       test('allows different aud for gcloud tokens with google accounts', () async {
@@ -115,11 +117,12 @@ void main() {
         );
         config.oauthClientIdValue = 'expected-client-id';
         await expectLater(
-            auth.authenticateToken(
-              token,
-              clientContext: FakeClientContext(),
-            ),
-            throwsA(isA<Unauthenticated>()));
+          auth.authenticateToken(
+            token,
+            clientContext: FakeClientContext(),
+          ),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
 
       test('succeeds for google.com auth user', () async {
@@ -142,11 +145,12 @@ void main() {
             TokenInfo(audience: 'client-id', hostedDomain: 'gmail.com', email: 'abc@gmail.com', issued: DateTime.now());
         config.oauthClientIdValue = 'client-id';
         await expectLater(
-            auth.authenticateToken(
-              token,
-              clientContext: FakeClientContext(),
-            ),
-            throwsA(isA<Unauthenticated>()));
+          auth.authenticateToken(
+            token,
+            clientContext: FakeClientContext(),
+          ),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
 
       test('succeeds for allowed non-Google auth users', () async {

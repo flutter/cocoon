@@ -17,8 +17,10 @@ Future<HealthCheckResult> userAutoLoginCheck({ProcessManager? processManager}) a
   HealthCheckResult healthCheckResult;
   try {
     final String user = await eval(
-        'defaults', <String>['read', '/Library/Preferences/com.apple.loginwindow', 'autoLoginUser'],
-        processManager: processManager);
+      'defaults',
+      <String>['read', '/Library/Preferences/com.apple.loginwindow', 'autoLoginUser'],
+      processManager: processManager,
+    );
     // User `swarming` is expected setup for Mac bot auto login.
     if (user == 'swarming') {
       healthCheckResult = HealthCheckResult.success(kUserAutoLoginCheckKey);

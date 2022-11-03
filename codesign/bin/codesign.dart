@@ -65,12 +65,16 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addFlag(kHelpFlag, help: 'Prints usage info.', callback: (bool value) {
-      if (value) {
-        stdout.write('${parser.usage}\n');
-        exit(1);
-      }
-    })
+    ..addFlag(
+      kHelpFlag,
+      help: 'Prints usage info.',
+      callback: (bool value) {
+        if (value) {
+          stdout.write('${parser.usage}\n');
+          exit(1);
+        }
+      },
+    )
     ..addOption(
       kCodesignCertNameOption,
       help: 'The name of the codesign certificate to be used when codesigning.'
