@@ -8,7 +8,6 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 
-import 'google_cloud_storage.dart';
 import 'log.dart';
 import 'utils.dart';
 
@@ -29,9 +28,8 @@ class FileCodesignVisitor {
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
-    required this.gcsDownloadPath,
-    required this.gcsUploadPath,
-    required this.googleCloudStorage,
+    required this.inputZipPath,
+    required this.outputZipPath,
     required this.appSpecificPasswordFilePath,
     required this.codesignAppstoreIDFilePath,
     required this.codesignTeamIDFilePath,
@@ -39,8 +37,6 @@ class FileCodesignVisitor {
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
     entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = rootDirectory.childDirectory('downloads')..createSync();
-    codesignedZipsDir = rootDirectory.childDirectory('codesigned_zips')..createSync();
   }
 
   /// Temp [Directory] to download/extract files to.
@@ -49,11 +45,10 @@ class FileCodesignVisitor {
   final Directory rootDirectory;
   final FileSystem fileSystem;
   final ProcessManager processManager;
-  final GoogleCloudStorage googleCloudStorage;
 
   final String codesignCertName;
-  final String gcsDownloadPath;
-  final String gcsUploadPath;
+  final String inputZipPath;
+  final String outputZipPath;
   final String appSpecificPasswordFilePath;
   final String codesignAppstoreIDFilePath;
   final String codesignTeamIDFilePath;
@@ -78,8 +73,6 @@ class FileCodesignVisitor {
   };
 
   late final File entitlementsFile;
-  late final Directory remoteDownloadsDir;
-  late final Directory codesignedZipsDir;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
@@ -173,15 +166,19 @@ update these file paths accordingly.
     codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
     appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
 
-    await processRemoteZip();
+    String? codesignedFilePath = await processRemoteZip();
 
-    if (dryrun) {
-      log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
-          ' google cloud storage, please use the --dryrun=false flag to run code signing script.');
+    if (codesignedFilePath != null) {
+      log.info('code signing dry run has completed, If you have uploaded the artifacts back to'
+          ' google cloud storage, please delete the folder $codesignedFilePath and $inputZipPath');
     }
-    log.info('Codesigned all binaries in ${rootDirectory.path}');
+    log.info('Codesign completed. Codesigned zip is located at ${rootDirectory.path}');
 
-    await rootDirectory.delete(recursive: true);
+    rootDirectory.list(recursive: true).listen((FileSystemEntity file) async {
+      if (file is File && file.path != codesignedFilePath) {
+        await file.delete();
+      }
+    });
   }
 
   /// Retrieve engine artifact from google cloud storage and kick start a
@@ -189,16 +186,9 @@ update these file paths accordingly.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
   /// zip. Also downloads, notarizes and uploads the engine artifact.
-  Future<void> processRemoteZip() async {
-    // Name of the downloaded artifact.
-    // There won't be collisions since we are only signing one artifact at a time now
-    const String localFilePath = 'remote_artifact.zip';
-
+  Future<String?> processRemoteZip() async {
     // download the zip file
-    final File originalFile = await googleCloudStorage.downloadEngineArtifact(
-      from: gcsDownloadPath,
-      destination: remoteDownloadsDir.childFile(localFilePath).path,
-    );
+    final File originalFile = rootDirectory.fileSystem.file(inputZipPath);
 
     // This is the starting directory of the unzipped artifact.
     final Directory parentDirectory = rootDirectory.childDirectory('single_artifact');
@@ -218,24 +208,19 @@ update these file paths accordingly.
     // recursively visit extracted files
     await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
 
-    final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
-
     await zip(
       inputDir: parentDirectory,
-      outputZip: codesignedFile,
+      outputZipPath: outputZipPath,
       processManager: processManager,
     );
 
-    // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
-    // This would help prevent https://github.com/flutter/flutter/issues/104387
+    // `dryrun` flag defaults to true to save time for a faster sanity check
     if (!dryrun) {
-      await notarize(codesignedFile);
+      await notarize(fileSystem.file(outputZipPath));
 
-      await googleCloudStorage.uploadEngineArtifact(
-        from: codesignedFile.path,
-        destination: gcsUploadPath,
-      );
+      return outputZipPath;
     }
+    return null;
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
@@ -300,7 +285,7 @@ update these file paths accordingly.
     await zipEntity.delete();
     await zip(
       inputDir: newDir,
-      outputZip: zipEntity,
+      outputZipPath: zipEntity.absolute.path,
       processManager: processManager,
     );
   }

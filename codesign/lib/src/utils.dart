@@ -48,7 +48,7 @@ Future<void> unzip({
 
 Future<void> zip({
   required Directory inputDir,
-  required FileSystemEntity outputZip,
+  required String outputZipPath,
   required ProcessManager processManager,
 }) async {
   await processManager.run(
@@ -56,7 +56,7 @@ Future<void> zip({
       'zip',
       '--symlinks',
       '--recurse-paths',
-      outputZip.absolute.path,
+      outputZipPath,
       // use '.' so that the full absolute path is not encoded into the zip file
       '.',
       '--include',
