@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:yaml/yaml.dart';
@@ -27,14 +28,16 @@ Future<Null> main(List<String> rawArgs) async {
 }
 
 void runShellCommand(List<String> args, String taskName) async {
-  Process.run('sh', args).then((result) {
-    stdout.writeln('.. stdout ..');
-    stdout.writeln(result.stdout);
-    stdout.writeln('.. stderr ..');
-    stderr.writeln(result.stderr);
-    if (result.exitCode != 0) {
-      stderr.writeln('There were failures running tests from $taskName');
-      exit(result.exitCode);
-    }
-  });
+  unawaited(
+    Process.run('sh', args).then((result) {
+      stdout.writeln('.. stdout ..');
+      stdout.writeln(result.stdout);
+      stdout.writeln('.. stderr ..');
+      stderr.writeln(result.stderr);
+      if (result.exitCode != 0) {
+        stderr.writeln('There were failures running tests from $taskName');
+        exit(result.exitCode);
+      }
+    }),
+  );
 }

@@ -119,20 +119,22 @@ class RecoverCommand extends Command<bool> {
       dashboardXcWorkspace.path,
     ]);
 
-    xcodeFuture.then((io.ProcessResult result) {
-      logger.info('Open closed...');
-      final String stdout = result.stdout.trim();
-      if (stdout.isNotEmpty) {
-        logger.info('stdout from `open`:\n$stdout\n');
-      }
-      final String stderr = result.stderr.trim();
-      if (stderr.isNotEmpty) {
-        logger.info('stderr from `open`:\n$stderr\n');
-      }
-      if (result.exitCode != 0) {
-        throw Exception('Failed opening Xcode!');
-      }
-    });
+    unawaited(
+      xcodeFuture.then((io.ProcessResult result) {
+        logger.info('Open closed...');
+        final String stdout = result.stdout.trim();
+        if (stdout.isNotEmpty) {
+          logger.info('stdout from `open`:\n$stdout\n');
+        }
+        final String stderr = result.stderr.trim();
+        if (stderr.isNotEmpty) {
+          logger.info('stderr from `open`:\n$stderr\n');
+        }
+        if (result.exitCode != 0) {
+          throw Exception('Failed opening Xcode!');
+        }
+      }),
+    );
 
     logger.info('Waiting for $timeoutSeconds seconds');
     await Future.delayed(timeout);
