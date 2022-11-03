@@ -88,8 +88,11 @@ class BranchService {
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
   Future<void> branchFlutterRecipes(String branch) async {
     final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
-    if ((await gerritService.branches('${recipesSlug.owner}-review.googlesource.com', recipesSlug.name,
-            filterRegex: branch))
+    if ((await gerritService.branches(
+      '${recipesSlug.owner}-review.googlesource.com',
+      recipesSlug.name,
+      filterRegex: branch,
+    ))
         .contains(branch)) {
       // subString is a regex, and can return multiple matches
       log.warning('$branch already exists for $recipesSlug');

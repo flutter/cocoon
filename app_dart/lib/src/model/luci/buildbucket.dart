@@ -56,10 +56,12 @@ class Request extends JsonBody {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
-  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
+  }) : assert(
+          (getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
+              (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
+              (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
+              (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null),
+        );
 
   /// Creates a [Request] object from JSON.
   static Request fromJson(Map<String, dynamic> json) => _$RequestFromJson(json);
@@ -122,7 +124,8 @@ class Response extends JsonBody {
     this.cancelBuild,
     this.error,
   }) : assert(
-            getBuild != null || searchBuilds != null || scheduleBuild != null || cancelBuild != null || error != null);
+          getBuild != null || searchBuilds != null || scheduleBuild != null || cancelBuild != null || error != null,
+        );
 
   /// Creates a [Response] from JSON.
   static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
@@ -170,8 +173,10 @@ class GetBuildRequest extends JsonBody {
     this.builderId,
     this.buildNumber,
     this.fields,
-  }) : assert((id == null && builderId != null && buildNumber != null) ||
-            (id != null && builderId == null && buildNumber == null));
+  }) : assert(
+          (id == null && builderId != null && buildNumber != null) ||
+              (id != null && builderId == null && buildNumber == null),
+        );
 
   /// Creates a [GetBuildRequest] from JSON.
   static GetBuildRequest fromJson(Map<String, dynamic> json) => _$GetBuildRequestFromJson(json);

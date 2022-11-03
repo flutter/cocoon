@@ -22,8 +22,10 @@ class MockProcessManager extends Mock implements ProcessManager {
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
   }) {
-    return super.noSuchMethod(Invocation.method(#start, [command], {#workingDirectory: workingDirectory}),
-        returnValue: Future<Process>.value(FakeProcess(0)));
+    return super.noSuchMethod(
+      Invocation.method(#start, [command], {#workingDirectory: workingDirectory}),
+      returnValue: Future<Process>.value(FakeProcess(0)),
+    );
   }
 
   @override
@@ -55,14 +57,15 @@ class MockProcessManager extends Mock implements ProcessManager {
 }
 
 class FakeProcess extends Fake implements Process {
-  FakeProcess(int exitCode,
-      {List<List<int>>? err = const [
-        <int>[1, 2, 3]
-      ],
-      List<List<int>>? out = const [
-        <int>[1, 2, 3]
-      ]})
-      : _exitCode = exitCode,
+  FakeProcess(
+    int exitCode, {
+    List<List<int>>? err = const [
+      <int>[1, 2, 3]
+    ],
+    List<List<int>>? out = const [
+      <int>[1, 2, 3]
+    ],
+  })  : _exitCode = exitCode,
         _err = err,
         _out = out;
 

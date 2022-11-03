@@ -96,9 +96,12 @@ void main() {
       final Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
-      when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processM1));
+      when(
+        processManager.start(
+          <String>['which', '$kM1BrewBinPath/ideviceinstaller'],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(processM1));
 
       final String result = await getMacBinaryPath('ideviceinstaller', processManager: processManager);
       expect(result, '$kM1BrewBinPath/ideviceinstaller');
@@ -120,9 +123,12 @@ void main() {
       final Process processDefault = FakeProcess(1, out: <List<int>>[]);
       when(processManager.start(<String>['which', 'ideviceinstaller'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(processDefault));
-      when(processManager.start(<String>['which', '$kM1BrewBinPath/ideviceinstaller'],
-              workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(processM1));
+      when(
+        processManager.start(
+          <String>['which', '$kM1BrewBinPath/ideviceinstaller'],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(processM1));
 
       expect(
         getMacBinaryPath('ideviceinstaller', processManager: processManager),

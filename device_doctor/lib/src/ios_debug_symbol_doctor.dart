@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -117,6 +118,7 @@ class RecoverCommand extends Command<bool> {
       '-W', // Wait for the opened application (Xcode) to close
       dashboardXcWorkspace.path,
     ]);
+
     xcodeFuture.then((io.ProcessResult result) {
       logger.info('Open closed...');
       final String stdout = result.stdout.trim();
@@ -131,6 +133,7 @@ class RecoverCommand extends Command<bool> {
         throw Exception('Failed opening Xcode!');
       }
     });
+
     logger.info('Waiting for $timeoutSeconds seconds');
     await Future.delayed(timeout);
     logger.info('Waited for $timeoutSeconds seconds, now killing Xcode');

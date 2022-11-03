@@ -133,18 +133,20 @@ class KeyHelper {
       path.insert(0, current);
     }
     return Path()
-      ..element.addAll(path.map<Path_Element>((Key<dynamic> key) {
-        final Path_Element element = Path_Element();
-        if (key.type != null) {
-          element.type = types.containsKey(key.type) ? types[key.type!]!.name! : key.type.toString();
-        }
-        final Object? id = key.id;
-        if (id is String) {
-          element.name = id;
-        } else if (id is int) {
-          element.id = Int64(id);
-        }
-        return element;
-      }));
+      ..element.addAll(
+        path.map<Path_Element>((Key<dynamic> key) {
+          final Path_Element element = Path_Element();
+          if (key.type != null) {
+            element.type = types.containsKey(key.type) ? types[key.type!]!.name! : key.type.toString();
+          }
+          final Object? id = key.id;
+          if (id is String) {
+            element.name = id;
+          } else if (id is int) {
+            element.id = Int64(id);
+          }
+          return element;
+        }),
+      );
   }
 }

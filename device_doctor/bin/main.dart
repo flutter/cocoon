@@ -38,22 +38,34 @@ File? _output;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addFlag('$helpFlag', help: 'Prints usage info.', abbr: 'h', callback: (bool value) {
-      if (value) {
-        stdout.write('${parser.usage}\n');
-        exit(1);
-      }
-    })
-    ..addOption('$actionFlag', help: 'Supported actions.', allowed: supportedOptions, allowedHelp: {
-      'healthcheck': 'Check device health status.',
-      'recovery': 'Clean up and reboot device.',
-      'properties': 'Return device properties/dimensions.'
-    })
+    ..addFlag(
+      '$helpFlag',
+      help: 'Prints usage info.',
+      abbr: 'h',
+      callback: (bool value) {
+        if (value) {
+          stdout.write('${parser.usage}\n');
+          exit(1);
+        }
+      },
+    )
+    ..addOption(
+      '$actionFlag',
+      help: 'Supported actions.',
+      allowed: supportedOptions,
+      allowedHelp: {
+        'healthcheck': 'Check device health status.',
+        'recovery': 'Clean up and reboot device.',
+        'properties': 'Return device properties/dimensions.'
+      },
+    )
     ..addOption('$outputFlag', help: 'Path to the output file')
-    ..addOption('$deviceOSFlag',
-        help: 'Supported device OS.',
-        allowed: supportedDeviceOS,
-        allowedHelp: {'android': 'Available for linux, mac, and windows.', 'ios': 'Available for mac.'});
+    ..addOption(
+      '$deviceOSFlag',
+      help: 'Supported device OS.',
+      allowed: supportedDeviceOS,
+      allowedHelp: {'android': 'Available for linux, mac, and windows.', 'ios': 'Available for mac.'},
+    );
 
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];

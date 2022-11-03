@@ -100,8 +100,10 @@ void main() {
       await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 2);
-      expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
-          containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']));
+      expect(
+        db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
+        containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']),
+      );
     });
   });
 
@@ -155,15 +157,19 @@ void main() {
 
     test('does not create branch that already exists', () async {
       gerritService.branchesValue = <String>[branch];
-      expect(() async => branchService.branchFlutterRecipes(branch),
-          throwsExceptionWith<BadRequestException>('$branch already exists'));
+      expect(
+        () async => branchService.branchFlutterRecipes(branch),
+        throwsExceptionWith<BadRequestException>('$branch already exists'),
+      );
     });
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
       githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[];
-      expect(() async => branchService.branchFlutterRecipes(branch),
-          throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
+      expect(
+        () async => branchService.branchFlutterRecipes(branch),
+        throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'),
+      );
     });
 
     test('creates branch', () async {

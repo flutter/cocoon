@@ -141,22 +141,25 @@ void main() {
     });
 
     test('BatchBuildRequest', () async {
-      const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(
+      const BatchRequest request = BatchRequest(
+        requests: <Request>[
+          Request(
             scheduleBuild: ScheduleBuildRequest(
-          builderId: builderId,
-          experimental: Trinary.yes,
-          tags: <String, List<String>>{
-            'user_agent': <String>['flutter_cocoon'],
-            'flutter_pr': <String>['true', '1'],
-            'cipd_version': <String>['/refs/heads/main'],
-          },
-          properties: <String, String>{
-            'git_url': 'https://github.com/flutter/flutter',
-            'git_ref': 'refs/pull/1/head',
-          },
-        ))
-      ]);
+              builderId: builderId,
+              experimental: Trinary.yes,
+              tags: <String, List<String>>{
+                'user_agent': <String>['flutter_cocoon'],
+                'flutter_pr': <String>['true', '1'],
+                'cipd_version': <String>['/refs/heads/main'],
+              },
+              properties: <String, String>{
+                'git_url': 'https://github.com/flutter/flutter',
+                'git_ref': 'refs/pull/1/head',
+              },
+            ),
+          )
+        ],
+      );
 
       final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
         request,
@@ -175,13 +178,16 @@ void main() {
     });
 
     test('Batch', () async {
-      const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(
+      const BatchRequest request = BatchRequest(
+        requests: <Request>[
+          Request(
             getBuild: GetBuildRequest(
-          builderId: builderId,
-          buildNumber: 123,
-        ))
-      ]);
+              builderId: builderId,
+              buildNumber: 123,
+            ),
+          )
+        ],
+      );
 
       final BatchResponse response = await httpTest<BatchRequest, BatchResponse>(
         request,

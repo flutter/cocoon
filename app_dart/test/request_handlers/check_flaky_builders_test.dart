@@ -64,20 +64,26 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))),
+        );
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kTestOwnerPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kTestOwnerPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))),
+        );
       });
       // when gets existing marks flaky prs.
       when(mockPullRequestsService.list(captureAny)).thenAnswer((Invocation invocation) {
@@ -98,16 +104,18 @@ void main() {
         return Future<CurrentUser>.value(result);
       });
       // when assigns pull request reviewer.
-      when(mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
-        captureAny,
-        statusCode: captureAnyNamed('statusCode'),
-        fail: captureAnyNamed('fail'),
-        headers: captureAnyNamed('headers'),
-        params: captureAnyNamed('params'),
-        convert: captureAnyNamed('convert'),
-        body: captureAnyNamed('body'),
-        preview: captureAnyNamed('preview'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+          captureAny,
+          statusCode: captureAnyNamed('statusCode'),
+          fail: captureAnyNamed('fail'),
+          headers: captureAnyNamed('headers'),
+          params: captureAnyNamed('params'),
+          convert: captureAnyNamed('convert'),
+          body: captureAnyNamed('body'),
+          preview: captureAnyNamed('preview'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<PullRequest>.value(PullRequest());
       });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
@@ -129,9 +137,13 @@ void main() {
 
     test('Can create pr if the flaky test is no longer flaky with a closed issue', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When queries flaky data from BigQuery.
@@ -167,9 +179,13 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .captured;
+      List<dynamic> captured = verify(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
@@ -232,17 +248,24 @@ void main() {
 
     test('Can create pr if the flaky test is no longer flaky without an issue', () async {
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentNoIssue))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentNoIssue))),
+        );
       });
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When queries flaky data from BigQuery.
@@ -274,9 +297,13 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .captured;
+      List<dynamic> captured = verify(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
@@ -336,12 +363,15 @@ void main() {
 
     test('Do not create PR if the builder is in the ignored list', () async {
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentFlakyInIgnoreList))),
+        );
       });
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
@@ -362,9 +392,13 @@ void main() {
 
     test('Do not create pr if the issue is still open', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When queries flaky data from BigQuery.
@@ -397,18 +431,24 @@ void main() {
     test('Do not create pr and do not create issue if the records have flaky runs and there is an open issue',
         () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFlaky);
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(
-          state: 'closed',
-          htmlUrl: existingIssueURL,
-          closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
-        ));
+        return Future<Issue>.value(
+          Issue(
+            state: 'closed',
+            htmlUrl: existingIssueURL,
+            closedAt: DateTime.now().subtract(const Duration(days: kGracePeriodForClosedFlake - 1)),
+          ),
+        );
       });
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
@@ -435,10 +475,12 @@ void main() {
         () async {
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(
-          state: 'open',
-          htmlUrl: existingIssueURL,
-        ));
+        return Future<Issue>.value(
+          Issue(
+            state: 'open',
+            htmlUrl: existingIssueURL,
+          ),
+        );
       });
       // When queries flaky data from BigQuery.
       when(mockBigqueryService.listBuilderStatistic(kBigQueryProjectId, bucket: 'staging'))
@@ -463,9 +505,13 @@ void main() {
 
     test('Do not create pr if the records have failed runs', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsFailed);
       });
       // When queries flaky data from BigQuery.
@@ -475,8 +521,13 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(
-            state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
+        return Future<Issue>.value(
+          Issue(
+            state: 'closed',
+            htmlUrl: existingIssueURL,
+            closedAt: DateTime.now().subtract(const Duration(days: 50)),
+          ),
+        );
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsFailed.length;
@@ -486,9 +537,13 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .captured;
+      List<dynamic> captured = verify(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);
@@ -508,9 +563,13 @@ void main() {
 
     test('Do not create pr if there is an open one', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When queries flaky data from BigQuery.
@@ -541,9 +600,13 @@ void main() {
 
     test('Do not create pr if not enough records', () async {
       // When queries flaky data from BigQuery.
-      when(mockBigqueryService.listRecentBuildRecordsForBuilder(kBigQueryProjectId,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .thenAnswer((Invocation invocation) {
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderRecord>>.value(semanticsIntegrationTestRecordsAllPassed);
       });
       // When queries flaky data from BigQuery.
@@ -553,8 +616,13 @@ void main() {
       });
       // When get issue
       when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(Issue(
-            state: 'closed', htmlUrl: existingIssueURL, closedAt: DateTime.now().subtract(const Duration(days: 50))));
+        return Future<Issue>.value(
+          Issue(
+            state: 'closed',
+            htmlUrl: existingIssueURL,
+            closedAt: DateTime.now().subtract(const Duration(days: 50)),
+          ),
+        );
       });
 
       CheckFlakyBuilders.kRecordNumber = semanticsIntegrationTestRecordsAllPassed.length + 1;
@@ -564,9 +632,13 @@ void main() {
           .single as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      List<dynamic> captured = verify(mockBigqueryService.listRecentBuildRecordsForBuilder(captureAny,
-              builder: captureAnyNamed('builder'), limit: captureAnyNamed('limit')))
-          .captured;
+      List<dynamic> captured = verify(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(captured[1] as String?, expectedSemanticsIntegrationTestBuilderName);

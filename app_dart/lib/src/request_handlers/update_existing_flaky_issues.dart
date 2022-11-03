@@ -44,10 +44,12 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
 
     CiYaml? localCiYaml = ciYaml;
     if (localCiYaml == null) {
-      final YamlMap? ci = loadYaml(await gitHub.getFileContent(
-        slug,
-        kCiYamlPath,
-      )) as YamlMap?;
+      final YamlMap? ci = loadYaml(
+        await gitHub.getFileContent(
+          slug,
+          kCiYamlPath,
+        ),
+      ) as YamlMap?;
       final pb.SchedulerConfig unCheckedSchedulerConfig = pb.SchedulerConfig()..mergeFromProto3Json(ci);
       localCiYaml = CiYaml(
         slug: slug,

@@ -37,13 +37,15 @@ void main() {
 
     for (String allowedAccount in Config.allowedPubsubServiceAccounts) {
       test('auth succeeds for $allowedAccount', () async {
-        httpClient = MockClient((_) async => http.Response(
-              _generateTokenResponse(allowedAccount),
-              HttpStatus.ok,
-              headers: <String, String>{
-                HttpHeaders.contentTypeHeader: 'application/json',
-              },
-            ));
+        httpClient = MockClient(
+          (_) async => http.Response(
+            _generateTokenResponse(allowedAccount),
+            HttpStatus.ok,
+            headers: <String, String>{
+              HttpHeaders.contentTypeHeader: 'application/json',
+            },
+          ),
+        );
         auth = PubsubAuthenticationProvider(
           config: config,
           clientContextProvider: () => clientContext,
@@ -58,13 +60,15 @@ void main() {
     }
 
     test('auth fails with unauthorized service account', () async {
-      httpClient = MockClient((_) async => http.Response(
-            _generateTokenResponse('unauthorized@gmail.com'),
-            HttpStatus.ok,
-            headers: <String, String>{
-              HttpHeaders.contentTypeHeader: 'application/json',
-            },
-          ));
+      httpClient = MockClient(
+        (_) async => http.Response(
+          _generateTokenResponse('unauthorized@gmail.com'),
+          HttpStatus.ok,
+          headers: <String, String>{
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        ),
+      );
       auth = PubsubAuthenticationProvider(
         config: config,
         clientContextProvider: () => clientContext,
@@ -77,13 +81,15 @@ void main() {
     });
 
     test('auth fails with invalid token', () async {
-      httpClient = MockClient((_) async => http.Response(
-            'Invalid token',
-            HttpStatus.unauthorized,
-            headers: <String, String>{
-              HttpHeaders.contentTypeHeader: 'application/json',
-            },
-          ));
+      httpClient = MockClient(
+        (_) async => http.Response(
+          'Invalid token',
+          HttpStatus.unauthorized,
+          headers: <String, String>{
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        ),
+      );
       auth = PubsubAuthenticationProvider(
         config: config,
         clientContextProvider: () => clientContext,
@@ -96,16 +102,18 @@ void main() {
     });
 
     test('auth fails with expired token', () async {
-      httpClient = MockClient((_) async => http.Response(
-            _generateTokenResponse(
-              Config.allowedPubsubServiceAccounts.first,
-              expiresIn: -1,
-            ),
-            HttpStatus.ok,
-            headers: <String, String>{
-              HttpHeaders.contentTypeHeader: 'application/json',
-            },
-          ));
+      httpClient = MockClient(
+        (_) async => http.Response(
+          _generateTokenResponse(
+            Config.allowedPubsubServiceAccounts.first,
+            expiresIn: -1,
+          ),
+          HttpStatus.ok,
+          headers: <String, String>{
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        ),
+      );
       auth = PubsubAuthenticationProvider(
         config: config,
         clientContextProvider: () => clientContext,

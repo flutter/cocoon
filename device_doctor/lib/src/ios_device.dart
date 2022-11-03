@@ -93,16 +93,23 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     HealthCheckResult healthCheckResult;
     try {
       final String? homeDir = Platform.environment['HOME'];
-      final String profile = await eval('ls', <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
-          processManager: processManager);
+      final String profile = await eval(
+        'ls',
+        <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
+        processManager: processManager,
+      );
       final String provisionFileContent = await eval(
-          'security', <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
-          processManager: processManager);
+        'security',
+        <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
+        processManager: processManager,
+      );
       if (provisionFileContent.contains(deviceId!)) {
         healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(
-            kDeviceProvisioningProfileCheckKey, 'device does not exist in the provisioning profile');
+          kDeviceProvisioningProfileCheckKey,
+          'device does not exist in the provisioning profile',
+        );
       }
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kDeviceProvisioningProfileCheckKey, error.toString());
@@ -127,8 +134,10 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     HealthCheckResult healthCheckResult;
     try {
       final String batteryCheckResult = await eval(
-          'ideviceinfo', <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
-          processManager: processManager);
+        'ideviceinfo',
+        <String>['-q', 'com.apple.mobile.battery', '-k', 'BatteryCurrentCapacity'],
+        processManager: processManager,
+      );
       final int level = int.parse(batteryCheckResult.isEmpty ? '0' : batteryCheckResult);
       if (level < _kBatteryMinLevel) {
         healthCheckResult =

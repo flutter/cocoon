@@ -108,8 +108,11 @@ class BigqueryService {
   ///
   /// See getBuilderStatisticQuery to get the detail information about the table
   /// schema
-  Future<List<BuilderStatistic>> listBuilderStatistic(String projectId,
-      {int limit = 100, String bucket = 'prod'}) async {
+  Future<List<BuilderStatistic>> listBuilderStatistic(
+    String projectId, {
+    int limit = 100,
+    String bucket = 'prod',
+  }) async {
     final JobsResource jobsResource = await defaultJobs();
     final QueryRequest query = QueryRequest.fromJson(<String, Object>{
       'query': bucket == 'staging' ? getStagingBuilderStatisticQuery : getBuilderStatisticQuery,
@@ -135,16 +138,18 @@ class BigqueryService {
       List<String>? succeededBuilds = (row.f![4].v as String?)?.split(', ');
       succeededBuilds?.sort();
       succeededBuilds = succeededBuilds?.reversed.toList();
-      result.add(BuilderStatistic(
-        name: builder,
-        flakyRate: double.parse(row.f![7].v as String),
-        flakyBuilds: flakyBuilds ?? const <String>[],
-        succeededBuilds: succeededBuilds ?? const <String>[],
-        recentCommit: row.f![5].v as String?,
-        flakyBuildOfRecentCommit: row.f![6].v as String?,
-        flakyNumber: int.parse(row.f![1].v as String),
-        totalNumber: int.parse(row.f![2].v as String),
-      ));
+      result.add(
+        BuilderStatistic(
+          name: builder,
+          flakyRate: double.parse(row.f![7].v as String),
+          flakyBuilds: flakyBuilds ?? const <String>[],
+          succeededBuilds: succeededBuilds ?? const <String>[],
+          recentCommit: row.f![5].v as String?,
+          flakyBuildOfRecentCommit: row.f![6].v as String?,
+          flakyNumber: int.parse(row.f![1].v as String),
+          totalNumber: int.parse(row.f![2].v as String),
+        ),
+      );
     }
     return result;
   }
@@ -186,11 +191,13 @@ class BigqueryService {
       return result;
     }
     for (final TableRow row in response.rows!) {
-      result.add(BuilderRecord(
-        commit: row.f![0].v as String,
-        isFlaky: row.f![1].v as String != '0',
-        isFailed: row.f![2].v as String != '0',
-      ));
+      result.add(
+        BuilderRecord(
+          commit: row.f![0].v as String,
+          isFlaky: row.f![1].v as String != '0',
+          isFailed: row.f![2].v as String != '0',
+        ),
+      );
     }
     return result;
   }

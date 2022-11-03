@@ -62,12 +62,13 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         gitHub,
         slug,
         builderDetail: BuilderDetail(
-            statistic: statistic,
-            existingIssue: nameToExistingIssue[statistic.name],
-            existingPullRequest: nameToExistingPR[statistic.name],
-            isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci!),
-            type: type,
-            ownership: getTestOwnership(statistic.name, type, testOwnerContent)),
+          statistic: statistic,
+          existingIssue: nameToExistingIssue[statistic.name],
+          existingPullRequest: nameToExistingPR[statistic.name],
+          isMarkedFlaky: _getIsMarkedFlaky(statistic.name, ci!),
+          type: type,
+          ownership: getTestOwnership(statistic.name, type, testOwnerContent),
+        ),
       );
     }
     return Body.forJson(const <String, dynamic>{
@@ -95,28 +96,31 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       return;
     }
     final String modifiedContent = _marksBuildFlakyInContent(
-        await gitHub.getFileContent(
-          slug,
-          kCiYamlPath,
-        ),
-        builderDetail.statistic.name,
-        issue.htmlUrl);
+      await gitHub.getFileContent(
+        slug,
+        kCiYamlPath,
+      ),
+      builderDetail.statistic.name,
+      issue.htmlUrl,
+    );
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final PullRequestBuilder prBuilder =
         PullRequestBuilder(statistic: builderDetail.statistic, ownership: builderDetail.ownership, issue: issue);
-    final PullRequest pullRequest = await gitHub.createPullRequest(slug,
-        title: prBuilder.pullRequestTitle,
-        body: prBuilder.pullRequestBody,
-        commitMessage: prBuilder.pullRequestTitle,
-        baseRef: masterRef,
-        entries: <CreateGitTreeEntry>[
-          CreateGitTreeEntry(
-            kCiYamlPath,
-            kModifyMode,
-            kModifyType,
-            content: modifiedContent,
-          )
-        ]);
+    final PullRequest pullRequest = await gitHub.createPullRequest(
+      slug,
+      title: prBuilder.pullRequestTitle,
+      body: prBuilder.pullRequestBody,
+      commitMessage: prBuilder.pullRequestTitle,
+      baseRef: masterRef,
+      entries: <CreateGitTreeEntry>[
+        CreateGitTreeEntry(
+          kCiYamlPath,
+          kModifyMode,
+          kModifyType,
+          content: modifiedContent,
+        )
+      ],
+    );
     await gitHub.assignReviewer(slug, reviewer: prBuilder.pullRequestReviewer, pullRequestNumber: pullRequest.number);
   }
 

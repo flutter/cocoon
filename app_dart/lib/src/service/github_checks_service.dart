@@ -40,7 +40,10 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#create-a-check-suite
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
   Future<void> handleCheckSuite(
-      github.PullRequest pullRequest, CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
+    github.PullRequest pullRequest,
+    CheckSuiteEvent checkSuiteEvent,
+    Scheduler scheduler,
+  ) async {
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.

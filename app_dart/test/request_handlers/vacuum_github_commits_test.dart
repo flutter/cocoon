@@ -45,21 +45,24 @@ void main() {
         final GitCommit gitCommit = GitCommit()
           ..message = 'commit message'
           ..committer = committer;
-        commits.add(RepositoryCommit()
-          ..sha = sha
-          ..author = author
-          ..commit = gitCommit);
+        commits.add(
+          RepositoryCommit()
+            ..sha = sha
+            ..author = author
+            ..commit = gitCommit,
+        );
       }
       return commits;
     }
 
     Commit shaToCommit(String sha, String branch, RepositorySlug slug) {
       return Commit(
-          key: db.emptyKey.append(Commit, id: '${slug.fullName}/$branch/$sha'),
-          repository: slug.fullName,
-          sha: sha,
-          branch: branch,
-          timestamp: int.parse(sha));
+        key: db.emptyKey.append(Commit, id: '${slug.fullName}/$branch/$sha'),
+        repository: slug.fullName,
+        sha: sha,
+        branch: branch,
+        timestamp: int.parse(sha),
+      );
     }
 
     setUp(() {

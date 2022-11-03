@@ -199,9 +199,9 @@ class BuildState extends ChangeNotifier {
           _isTreeBuilding = response.data!.buildStatus == EnumBuildStatus.success;
           _failingTasks = response.data!.failingTasks;
           if (_isTreeBuilding == false) {
-            flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png');
+            unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon-failure.png'));
           } else {
-            flutterAppIconsPlugin.setIcon(icon: 'favicon.png');
+            unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon.png'));
           }
           notifyListeners();
         }

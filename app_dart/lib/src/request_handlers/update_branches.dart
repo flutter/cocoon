@@ -61,8 +61,10 @@ class UpdateBranches extends RequestHandler<Body> {
 
     final List<md.Branch> branches = await datastore
         .queryBranches()
-        .where((md.Branch b) =>
-            DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivityPeriod.inMilliseconds)
+        .where(
+          (md.Branch b) =>
+              DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivityPeriod.inMilliseconds,
+        )
         .toList();
     return Body.forJson(branches);
   }
@@ -94,8 +96,14 @@ class UpdateBranches extends RequestHandler<Body> {
     return;
   }
 
-  Future<void> _updateBranchesForRepo(List<String> branchShas, List<String> branchNames, GitHub github,
-      RepositorySlug slug, DatastoreService datastore, DateTime timeNow) async {
+  Future<void> _updateBranchesForRepo(
+    List<String> branchShas,
+    List<String> branchNames,
+    GitHub github,
+    RepositorySlug slug,
+    DatastoreService datastore,
+    DateTime timeNow,
+  ) async {
     final List<md.Branch> updatedBranches = [];
     for (int i = 0; i < branchShas.length; i += 1) {
       final RepositoryCommit branchCommit = await github.repositories.getCommit(slug, branchShas[i]);

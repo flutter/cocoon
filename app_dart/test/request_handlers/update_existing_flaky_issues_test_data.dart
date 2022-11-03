@@ -224,13 +224,14 @@ final CiYaml testCiYaml = CiYaml(
         },
       ),
       pb.Target(
-          name: 'Mac_android ignore_myflakiness',
-          scheduler: pb.SchedulerSystem.luci,
-          presubmit: false,
-          properties: <String, String>{
-            'ignore_flakiness': 'true',
-            'tags': jsonEncode(['devicelab']),
-          }),
+        name: 'Mac_android ignore_myflakiness',
+        scheduler: pb.SchedulerSystem.luci,
+        presubmit: false,
+        properties: <String, String>{
+          'ignore_flakiness': 'true',
+          'tags': jsonEncode(['devicelab']),
+        },
+      ),
       pb.Target(
         name: 'Linux ci_yaml flutter roller',
         scheduler: pb.SchedulerSystem.luci,

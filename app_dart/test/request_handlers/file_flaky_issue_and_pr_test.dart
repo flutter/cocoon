@@ -63,20 +63,26 @@ void main() {
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContent))),
+        );
       });
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kTestOwnerPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kTestOwnerPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))),
+        );
       });
       when(mockIssuesService.create(any, any)).thenAnswer((_) async => Issue());
       // when gets existing flaky issues.
@@ -103,16 +109,18 @@ void main() {
         return Future<CurrentUser>.value(result);
       });
       // when assigns pull request reviewer.
-      when(mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
-        captureAny,
-        statusCode: captureAnyNamed('statusCode'),
-        fail: captureAnyNamed('fail'),
-        headers: captureAnyNamed('headers'),
-        params: captureAnyNamed('params'),
-        convert: captureAnyNamed('convert'),
-        body: captureAnyNamed('body'),
-        preview: captureAnyNamed('preview'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.postJSON<Map<String, dynamic>, PullRequest>(
+          captureAny,
+          statusCode: captureAnyNamed('statusCode'),
+          fail: captureAnyNamed('fail'),
+          headers: captureAnyNamed('headers'),
+          params: captureAnyNamed('params'),
+          convert: captureAnyNamed('convert'),
+          body: captureAnyNamed('body'),
+          preview: captureAnyNamed('preview'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<PullRequest>.value(PullRequest());
       });
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
@@ -172,8 +180,10 @@ void main() {
       expect(issueRequest.title, expectedSemanticsIntegrationTestResponseTitle);
       expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
       expect(issueRequest.assignee, expectedSemanticsIntegrationTestResponseAssignee);
-      expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestResponseLabels),
-          isTrue);
+      expect(
+        const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestResponseLabels),
+        isTrue,
+      );
 
       // Verify tree is created correctly.
       captured = verify(mockGitService.createTree(captureAny, captureAny)).captured;
@@ -351,7 +361,9 @@ void main() {
           .thenAnswer((Invocation invocation) {
         return Stream<Issue>.fromIterable(<Issue>[
           Issue(
-              title: expectedSemanticsIntegrationTestResponseTitle, body: expectedSemanticsIntegrationTestResponseBody)
+            title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
+          )
         ]);
       });
       // When creates git tree
@@ -471,8 +483,10 @@ void main() {
       expect(issueRequest.title, expectedSemanticsIntegrationTestResponseTitle);
       expect(issueRequest.body, expectedSemanticsIntegrationTestResponseBody);
       expect(issueRequest.assignee, expectedSemanticsIntegrationTestResponseAssignee);
-      expect(const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestResponseLabels),
-          isTrue);
+      expect(
+        const ListEquality<String>().equals(issueRequest.labels, expectedSemanticsIntegrationTestResponseLabels),
+        isTrue,
+      );
 
       expect(result['Status'], 'success');
     });
@@ -483,12 +497,15 @@ void main() {
         return Future<List<BuilderStatistic>>.value(semanticsIntegrationTestResponse);
       });
       // when gets the content of .ci.yaml
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kCiYamlPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kCiYamlPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky))),
+        );
       });
 
       final Map<String, dynamic> result = await utf8.decoder

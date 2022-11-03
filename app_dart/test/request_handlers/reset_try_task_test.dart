@@ -53,16 +53,20 @@ void main() {
     });
 
     test('Empty repo', () async {
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        'pr': '123',
-      });
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          'pr': '123',
+        },
+      );
       expect(() => tester.get(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Empty pr', () async {
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        'repo': 'flutter',
-      });
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          'repo': 'flutter',
+        },
+      );
       expect(() => tester.get(handler), throwsA(isA<BadRequestException>()));
     });
 
@@ -74,10 +78,12 @@ void main() {
           'check_suite': <String, dynamic>{'id': 2},
         });
       });
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        ResetTryTask.kRepoParam: 'flutter',
-        ResetTryTask.kPullRequestNumberParam: '123',
-      });
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          ResetTryTask.kRepoParam: 'flutter',
+          ResetTryTask.kPullRequestNumberParam: '123',
+        },
+      );
       expect(await tester.get(handler), Body.empty);
     });
 

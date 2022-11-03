@@ -146,13 +146,16 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
       }
     }
 
-    await runZoned<Future<void>>(() async {
-      await super.service(request);
-    }, zoneValues: <ApiKey<dynamic>, Object?>{
-      ApiKey.authContext: context,
-      ApiKey.requestBody: Uint8List.fromList(body),
-      ApiKey.requestData: requestData,
-    });
+    await runZoned<Future<void>>(
+      () async {
+        await super.service(request);
+      },
+      zoneValues: <ApiKey<dynamic>, Object?>{
+        ApiKey.authContext: context,
+        ApiKey.requestBody: Uint8List.fromList(body),
+        ApiKey.requestData: requestData,
+      },
+    );
   }
 }
 

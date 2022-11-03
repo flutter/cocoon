@@ -33,11 +33,13 @@ void main() {
     test('succeeded with code signing overwrite', () async {
       final Process proc = FakeProcess(0);
       when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
-      final platform.Platform pl = platform.FakePlatform(environment: <String, String>{
-        'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
-        'FLUTTER_XCODE_DEVELOPMENT_TEAM': 'S8QB4VV633',
-        'FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER': 'a name with space',
-      });
+      final platform.Platform pl = platform.FakePlatform(
+        environment: <String, String>{
+          'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
+          'FLUTTER_XCODE_DEVELOPMENT_TEAM': 'S8QB4VV633',
+          'FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER': 'a name with space',
+        },
+      );
 
       final HealthCheckResult res = await closeIosDialog(pm: pm, pl: pl);
 

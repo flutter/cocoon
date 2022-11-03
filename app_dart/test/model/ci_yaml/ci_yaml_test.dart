@@ -15,15 +15,20 @@ void main() {
     final List<EnabledBranchesRegexTest> tests = <EnabledBranchesRegexTest>[
       EnabledBranchesRegexTest('matches main', 'main', <String>['main']),
       EnabledBranchesRegexTest(
-          'matches candidate branch', 'flutter-2.4-candidate.3', <String>['flutter-\\d+\\.\\d+-candidate\\.\\d+']),
+        'matches candidate branch',
+        'flutter-2.4-candidate.3',
+        <String>['flutter-\\d+\\.\\d+-candidate\\.\\d+'],
+      ),
       EnabledBranchesRegexTest('matches main when not first pattern', 'main', <String>['dev', 'main']),
       EnabledBranchesRegexTest('does not do partial matches', 'super-main', <String>['main'], false),
     ];
 
     for (EnabledBranchesRegexTest regexTest in tests) {
       test(regexTest.name, () {
-        expect(CiYaml.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
-            regexTest.expectation);
+        expect(
+          CiYaml.enabledBranchesMatchesCurrentBranch(regexTest.enabledBranches, regexTest.branch),
+          regexTest.expectation,
+        );
       });
     }
   });
@@ -39,7 +44,8 @@ void main() {
     validatePinnedVersion('[{"dependency": "open_jdk", "version": "11"}]');
     validatePinnedVersion('[{"dependency": "android_sdk", "version": "version:31v8"}]');
     validatePinnedVersion(
-        '[{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}]');
+      '[{"dependency": "goldctl", "version": "git_revision:3a77d0b12c697a840ca0c7705208e8622dc94603"}]',
+    );
   });
 
   group('Validate un-pinned version operation.', () {
