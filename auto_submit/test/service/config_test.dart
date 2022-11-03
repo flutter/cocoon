@@ -52,7 +52,7 @@ void main() {
     test('generateGithubToken pulls from cache', () async {
       const String configValue = 'githubToken';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
-      Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
+      final Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         cachedValue,
         const Duration(minutes: 1),
@@ -67,7 +67,7 @@ void main() {
       final Uint8List flutterValue = Uint8List.fromList(flutterToken.codeUnits);
       const String testToken = 'testToken';
       final Uint8List testValue = Uint8List.fromList(testToken.codeUnits);
-      Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
+      final Cache cache = Cache<dynamic>(cacheProvider).withPrefix('config');
       await cache['githubToken-${flutterSlug.owner}'].set(
         flutterValue,
         const Duration(minutes: 1),
@@ -77,8 +77,8 @@ void main() {
         const Duration(minutes: 1),
       );
 
-      GitHub flutterClient = await config.createGithubClient(flutterSlug);
-      GitHub testClient = await config.createGithubClient(testSlug);
+      final GitHub flutterClient = await config.createGithubClient(flutterSlug);
+      final GitHub testClient = await config.createGithubClient(testSlug);
       expect(flutterClient.auth!.token!, flutterToken);
       expect(testClient.auth!.token!, testToken);
     });

@@ -28,35 +28,35 @@ class Revert extends Validation {
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
     final auto.Commit commit = pullRequest.commits!.nodes!.single.commit!;
-    String? sha = commit.oid;
+    final String? sha = commit.oid;
 
     if (!isValidAuthor(author, authorAssociation)) {
-      String message = 'The author $author does not have permissions to make this request.';
+      final String message = 'The author $author does not have permissions to make this request.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    bool? canMerge = messagePullRequest.mergeable;
+    final bool? canMerge = messagePullRequest.mergeable;
     if (canMerge == null || !canMerge) {
-      String message =
+      const String message =
           'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    String? pullRequestBody = messagePullRequest.body;
-    String? revertLink = extractLinkFromText(pullRequestBody);
+    final String? pullRequestBody = messagePullRequest.body;
+    final String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
-      String message =
+      const String message =
           'A reverts link could not be found or was formatted incorrectly. Format is \'Reverts owner/repo#id\'';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
-    GithubService githubService = await config.createGithubService(repositorySlug);
+    final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
+    final GithubService githubService = await config.createGithubService(repositorySlug);
 
-    bool requiredChecksCompleted = await waitForRequiredChecks(
+    final bool requiredChecksCompleted = await waitForRequiredChecks(
       githubService: githubService,
       slug: repositorySlug,
       sha: sha!,
@@ -71,10 +71,10 @@ class Revert extends Validation {
       );
     }
 
-    int pullRequestId = _getPullRequestNumberFromLink(revertLink);
-    github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
+    final int pullRequestId = _getPullRequestNumberFromLink(revertLink);
+    final github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
-    bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
+    final bool requestsMatch = await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
 
     if (requestsMatch) {
       return ValidationResult(
@@ -103,7 +103,7 @@ class Revert extends Validation {
       return null;
     }
     final RegExp regExp = RegExp(r'[Rr]everts[\s]+([-\.a-zA-Z_]+/[-\.a-zA-Z_]+#[0-9]+)', multiLine: true);
-    Iterable<RegExpMatch> matches = regExp.allMatches(bodyText);
+    final Iterable<RegExpMatch> matches = regExp.allMatches(bodyText);
 
     if (matches.isNotEmpty && matches.length == 1) {
       return matches.elementAt(0).group(1);
@@ -116,15 +116,15 @@ class Revert extends Validation {
   /// Split a reverts link on the '#' then the '/' to get the parts of the repo
   /// slug. It is assumed that the link has the format flutter/repo#id.
   github.RepositorySlug _getSlugFromLink(String link) {
-    List<String> linkSplit = link.split('#');
-    List<String> slugSplit = linkSplit.elementAt(0).split('/');
+    final List<String> linkSplit = link.split('#');
+    final List<String> slugSplit = linkSplit.elementAt(0).split('/');
     return github.RepositorySlug(slugSplit.elementAt(0), slugSplit.elementAt(1));
   }
 
   /// Split a reverts link on the '#' to get the id part of the link.
   /// It is assumed that the link has the format flutter/repo#id.
   int _getPullRequestNumberFromLink(String link) {
-    List<String> linkSplit = link.split('#');
+    final List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }
 
@@ -136,7 +136,7 @@ class Revert extends Validation {
     required String sha,
     required List<String> checkNames,
   }) async {
-    List<github.CheckRun> targetCheckRuns = [];
+    final List<github.CheckRun> targetCheckRuns = [];
     for (var element in checkNames) {
       targetCheckRuns.addAll(
         await githubService.getCheckRunsFiltered(
@@ -180,7 +180,7 @@ Future<void> _verifyCheckRunCompleted(
   GithubService githubService,
   github.CheckRun targetCheckRun,
 ) async {
-  List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
+  final List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
     slug: slug,
     ref: targetCheckRun.headSha!,
     checkName: targetCheckRun.name,

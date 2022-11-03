@@ -242,7 +242,7 @@ void main() {
         ),
       );
 
-      Map<int, RepositorySlug> expectedMergeRequestMap = {};
+      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[0] = RepositorySlug('flutter', 'flutter');
       expectedMergeRequestMap[1] = RepositorySlug('flutter', cocoonRepo);
 

@@ -17,8 +17,8 @@ class Conflicting extends Validation {
   /// Implements the logic to validate if the PR is in a conflicting state.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     // This is used to remove the bot label as it requires manual intervention.
-    bool result = !(messagePullRequest.mergeable == false);
-    String message = '- This commit is not mergeable and has conflicts. Please'
+    final bool result = !(messagePullRequest.mergeable == false);
+    const String message = '- This commit is not mergeable and has conflicts. Please'
         ' rebase your PR and fix all the conflicts.';
     return ValidationResult(result, Action.REMOVE_LABEL, message);
   }

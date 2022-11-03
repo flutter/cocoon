@@ -10,3 +10,4 @@ linter:
     require_trailing_commas: true
     unawaited_futures: true
     prefer_final_fields: true
+    prefer_final_locals: true

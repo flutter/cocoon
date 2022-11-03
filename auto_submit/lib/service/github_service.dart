@@ -55,7 +55,7 @@ class GithubService {
       return listPullRequestFiles;
     }
 
-    Stream<PullRequestFile> pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
+    final Stream<PullRequestFile> pullRequestFiles = github.pullRequests.listFiles(slug, pullRequestId);
 
     await for (PullRequestFile file in pullRequestFiles) {
       listPullRequestFiles.add(file);
@@ -74,7 +74,7 @@ class GithubService {
     List<String>? assignees,
     String? state,
   }) async {
-    IssueRequest issueRequest = IssueRequest(
+    final IssueRequest issueRequest = IssueRequest(
       title: title,
       body: body,
       labels: labels,

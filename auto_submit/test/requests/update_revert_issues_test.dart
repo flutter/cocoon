@@ -61,15 +61,15 @@ void main() {
 
   group('Update issue tests.', () {
     test('Open issue is not updated.', () async {
-      User user = User(login: 'ricardoamador');
-      Issue issue = Issue(
+      final User user = User(login: 'ricardoamador');
+      final Issue issue = Issue(
         user: user,
         state: 'open',
       );
 
       fakeGithubService.githubIssueMock = issue;
 
-      RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+      final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
         reviewIssueAssignee: 'keyonghan',
         reviewIssueCreatedTimestamp: DateTime.now(),
         reviewIssueNumber: 1234,
@@ -81,7 +81,7 @@ void main() {
         );
       });
 
-      bool result = await updateRevertReviews.updateIssue(
+      final bool result = await updateRevertReviews.updateIssue(
         revertRequestRecord: revertRequestRecord,
         bigqueryService: fakeBigqueryService,
         githubService: fakeGithubService,
@@ -91,8 +91,8 @@ void main() {
     });
 
     test('Closed issue is updated.', () async {
-      User user = User(login: 'ricardoamador');
-      Issue issue = Issue(
+      final User user = User(login: 'ricardoamador');
+      final Issue issue = Issue(
         user: user,
         state: 'closed',
         closedAt: DateTime.now(),
@@ -102,7 +102,7 @@ void main() {
 
       fakeGithubService.githubIssueMock = issue;
 
-      RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+      final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
         reviewIssueAssignee: 'keyonghan',
         reviewIssueCreatedTimestamp: DateTime.now(),
         reviewIssueNumber: 1234,
@@ -114,7 +114,7 @@ void main() {
         );
       });
 
-      bool result = await updateRevertReviews.updateIssue(
+      final bool result = await updateRevertReviews.updateIssue(
         revertRequestRecord: revertRequestRecord,
         bigqueryService: fakeBigqueryService,
         githubService: fakeGithubService,
@@ -124,8 +124,8 @@ void main() {
     });
 
     test('Closed issue is not updated on exception.', () async {
-      User user = User(login: 'ricardoamador');
-      Issue issue = Issue(
+      final User user = User(login: 'ricardoamador');
+      final Issue issue = Issue(
         user: user,
         state: 'closed',
         closedAt: DateTime.now(),
@@ -135,7 +135,7 @@ void main() {
 
       fakeGithubService.githubIssueMock = issue;
 
-      RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+      final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
         reviewIssueAssignee: 'keyonghan',
         reviewIssueCreatedTimestamp: DateTime.now(),
         reviewIssueNumber: 1234,
@@ -145,7 +145,7 @@ void main() {
         throw BigQueryException('Update of review issue 1234 did not complete.');
       });
 
-      bool result = await updateRevertReviews.updateIssue(
+      final bool result = await updateRevertReviews.updateIssue(
         revertRequestRecord: revertRequestRecord,
         bigqueryService: fakeBigqueryService,
         githubService: fakeGithubService,
@@ -163,9 +163,9 @@ void main() {
         );
       });
 
-      Response response = await updateRevertReviews.get();
+      final Response response = await updateRevertReviews.get();
       expect(response.statusCode, 200);
-      String body = await response.readAsString(Encoding.getByName("UTF-8"));
+      final String body = await response.readAsString(Encoding.getByName("UTF-8"));
       expect(body, equals('No open revert reviews to update.'));
     });
   });

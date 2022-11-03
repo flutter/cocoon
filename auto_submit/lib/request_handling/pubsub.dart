@@ -49,7 +49,7 @@ class PubSub {
       ],
     );
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
-    pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
+    final pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
     final pubsub.PullResponse pullResponse = await pubsubApi.projects.subscriptions
         .pull(pullRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
     return pullResponse;
