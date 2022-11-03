@@ -44,13 +44,21 @@ class BuildFailedError extends Error {
 
 /// Creates a directory from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
-Directory dir(String thePath,
-    [String? part2, String? part3, String? part4, String? part5, String? part6, String? part7, String? part8]) {
+Directory dir(
+  String thePath, [
+  String? part2,
+  String? part3,
+  String? part4,
+  String? part5,
+  String? part6,
+  String? part7,
+  String? part8,
+]) {
   return Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
-  String previousCwd = path.current;
+  final String previousCwd = path.current;
   try {
     cd(directory);
     return await action();
@@ -73,10 +81,13 @@ void cd(dynamic directory) {
 }
 
 /// Starts a process for an executable command, and returns the processes.
-Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String>? env,
-    bool silent = false,
-    ProcessManager? processManager = const LocalProcessManager()}) async {
+Future<Process> startProcess(
+  String executable,
+  List<String> arguments, {
+  Map<String, String>? env,
+  bool silent = false,
+  ProcessManager? processManager = const LocalProcessManager(),
+}) async {
   late Process proc;
   try {
     proc = await processManager!
@@ -90,17 +101,21 @@ Future<Process> startProcess(String executable, List<String> arguments,
 /// Executes a command and returns its standard output as a String.
 ///
 /// Standard error is redirected to the current process' standard error stream.
-Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String>? env,
-    bool canFail = false,
-    bool silent = false,
-    ProcessManager? processManager = const LocalProcessManager()}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
+Future<String> eval(
+  String executable,
+  List<String> arguments, {
+  Map<String, String>? env,
+  bool canFail = false,
+  bool silent = false,
+  ProcessManager? processManager = const LocalProcessManager(),
+}) async {
+  final Process proc =
+      await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
-  String output = await utf8.decodeStream(proc.stdout);
-  int exitCode = await proc.exitCode;
+  final String output = await utf8.decodeStream(proc.stdout);
+  final int exitCode = await proc.exitCode;
 
   if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
 

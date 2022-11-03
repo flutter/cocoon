@@ -140,7 +140,7 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    List<ValidationResult> results = <ValidationResult>[];
+    final List<ValidationResult> results = <ValidationResult>[];
 
     /// Runs all the validation defined in the service.
     for (Validation validation in validations) {
@@ -397,7 +397,7 @@ Exception: ${exception.message}
     log.info('Updated pull request info: ${currentPullRequest.toString()}');
 
     // add a record for the pull request into our metrics tracking
-    PullRequestRecord pullRequestRecord = PullRequestRecord(
+    final PullRequestRecord pullRequestRecord = PullRequestRecord(
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
@@ -411,7 +411,7 @@ Exception: ${exception.message}
     log.info('Created pull request record: ${pullRequestRecord.toString()}');
 
     try {
-      BigqueryService bigqueryService = await config.createBigQueryService();
+      final BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertPullRequestRecord(
         projectId: Config.flutterGcpProjectId,
         pullRequestRecord: pullRequestRecord,
@@ -432,12 +432,12 @@ Exception: ${exception.message}
     // Get the updated revert issue.
     final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, revertPullRequest.number!);
     // Get the original pull request issue.
-    String originalPullRequestLink = revertValidation!.extractLinkFromText(revertPullRequest.body)!;
-    int originalPullRequestNumber = int.parse(originalPullRequestLink.split('#').elementAt(1));
+    final String originalPullRequestLink = revertValidation!.extractLinkFromText(revertPullRequest.body)!;
+    final int originalPullRequestNumber = int.parse(originalPullRequestLink.split('#').elementAt(1));
     // return int.parse(linkSplit.elementAt(1));
     final github.PullRequest originalPullRequest = await gitHubService.getPullRequest(slug, originalPullRequestNumber);
 
-    RevertRequestRecord revertRequestRecord = RevertRequestRecord(
+    final RevertRequestRecord revertRequestRecord = RevertRequestRecord(
       organization: currentPullRequest.base!.repo!.slug().owner,
       repository: currentPullRequest.base!.repo!.slug().name,
       author: currentPullRequest.user!.login,
@@ -456,7 +456,7 @@ Exception: ${exception.message}
     );
 
     try {
-      BigqueryService bigqueryService = await config.createBigQueryService();
+      final BigqueryService bigqueryService = await config.createBigQueryService();
       await bigqueryService.insertRevertRequestRecord(
         projectId: Config.flutterGcpProjectId,
         revertRequestRecord: revertRequestRecord,

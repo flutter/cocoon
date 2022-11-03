@@ -57,12 +57,15 @@ void main() {
       });
 
       // when gets the content of TESTOWNERS
-      when(mockRepositoriesService.getContents(
-        captureAny,
-        kTestOwnerPath,
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockRepositoriesService.getContents(
+          captureAny,
+          kTestOwnerPath,
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<RepositoryContents>.value(
-            RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))));
+          RepositoryContents(file: GitHubFile(content: gitHubEncode(testOwnersContent))),
+        );
       });
 
       when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
@@ -115,11 +118,13 @@ void main() {
       });
       // when firing github request.
       // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
       final Map<String, dynamic> result = await utf8.decoder
@@ -135,11 +140,13 @@ void main() {
       expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
 
       // Verify labels are applied correctly.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
@@ -180,11 +187,13 @@ void main() {
       });
       // when firing github request.
       // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
       final Map<String, dynamic> result = await utf8.decoder
@@ -200,11 +209,13 @@ void main() {
       expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
 
       // Verify labels are applied correctly.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
@@ -245,11 +256,13 @@ void main() {
       });
       // when firing github request.
       // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
       final Map<String, dynamic> result = await utf8.decoder
@@ -268,11 +281,13 @@ void main() {
       expect(captured[5], expectedStagingCiyamlTestIssueComment);
 
       // Verify labels are applied correctly.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 6);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
@@ -312,11 +327,13 @@ void main() {
       });
       // when firing github request.
       // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
 
@@ -367,11 +384,13 @@ void main() {
       });
       // when firing github request.
       // This is for replacing labels.
-      when(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).thenAnswer((Invocation invocation) {
+      when(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
 
@@ -388,11 +407,13 @@ void main() {
       expect(captured[2], expectedSemanticsIntegrationTestZeroFlakeIssueComment);
 
       // Verify labels are the same.
-      captured = verify(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      )).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(captured[1], '/repos/${Config.flutterSlug.fullName}/issues/$existingIssueNumber/labels');
@@ -439,11 +460,13 @@ void main() {
       verifyNever(mockIssuesService.createComment(captureAny, captureAny, captureAny));
 
       // Verify labels are the same.
-      verifyNever(mockGitHubClient.request(
-        captureAny,
-        captureAny,
-        body: captureAnyNamed('body'),
-      ));
+      verifyNever(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      );
 
       expect(result['Status'], 'success');
     });

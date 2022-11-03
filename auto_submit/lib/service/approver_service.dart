@@ -62,7 +62,7 @@ class ApproverService {
     final gh.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final gh.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 
-    Stream<gh.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
+    final Stream<gh.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
     await for (gh.PullRequestReview review in reviews) {
       if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
         // Already approved.

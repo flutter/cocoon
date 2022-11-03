@@ -27,9 +27,10 @@ void main() {
     setUp(() async {
       config = FakeConfig();
       tester = RequestHandlerTester(
-          request: FakeHttpRequest(
-        path: testHttpPath,
-      ));
+        request: FakeHttpRequest(
+          path: testHttpPath,
+        ),
+      );
 
       cache = CacheService(inMemory: true);
     });

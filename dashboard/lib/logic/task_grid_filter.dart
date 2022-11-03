@@ -171,7 +171,7 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
 
-    LinkedHashMap<String, bool> orderedOSFilter = LinkedHashMap<String, bool>.of({
+    final LinkedHashMap<String, bool> orderedOSFilter = LinkedHashMap<String, bool>.of({
       'ios': _allProperties['showiOS']?.value ?? false,
       'android': _allProperties['showAndroid']?.value ?? false,
       'mac': _allProperties['showMac']?.value ?? false,

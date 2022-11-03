@@ -68,19 +68,25 @@ void main() {
     test('triggers if less tasks than batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => allPending);
       expect(
-          await policy.triggerPriority(task: generateTask(4), datastore: datastore), LuciBuildService.kDefaultPriority);
+        await policy.triggerPriority(task: generateTask(4), datastore: datastore),
+        LuciBuildService.kDefaultPriority,
+      );
     });
 
     test('triggers after batch size', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestAllPending);
       expect(
-          await policy.triggerPriority(task: generateTask(7), datastore: datastore), LuciBuildService.kDefaultPriority);
+        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        LuciBuildService.kDefaultPriority,
+      );
     });
 
     test('triggers with higher priority on recent failures', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
       expect(
-          await policy.triggerPriority(task: generateTask(7), datastore: datastore), LuciBuildService.kRerunPriority);
+        await policy.triggerPriority(task: generateTask(7), datastore: datastore),
+        LuciBuildService.kRerunPriority,
+      );
     });
 
     test('does not trigger when a test was recently scheduled', () async {
@@ -118,13 +124,17 @@ void main() {
     test('triggers every task', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => pending);
       expect(
-          await policy.triggerPriority(task: generateTask(2), datastore: datastore), LuciBuildService.kDefaultPriority);
+        await policy.triggerPriority(task: generateTask(2), datastore: datastore),
+        LuciBuildService.kDefaultPriority,
+      );
     });
 
     test('triggers with higher priority on recent failure', () async {
       db.addOnQuery<Task>((Iterable<Task> results) => latestFailed);
       expect(
-          await policy.triggerPriority(task: generateTask(2), datastore: datastore), LuciBuildService.kRerunPriority);
+        await policy.triggerPriority(task: generateTask(2), datastore: datastore),
+        LuciBuildService.kRerunPriority,
+      );
     });
   });
 }

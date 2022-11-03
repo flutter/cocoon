@@ -209,12 +209,13 @@ github.PullRequest generatePullRequest({
     number: number,
     mergedAt: mergedAt,
     base: github.PullRequestHead(
-        ref: branch,
-        repo: github.Repository(
-          fullName: 'flutter/$repo',
-          name: repo,
-          owner: github.UserInformation('flutter', 1, '', ''),
-        )),
+      ref: branch,
+      repo: github.Repository(
+        fullName: 'flutter/$repo',
+        name: repo,
+        owner: github.UserInformation('flutter', 1, '', ''),
+      ),
+    ),
     head: github.PullRequestHead(
       ref: branch,
       sha: sha,

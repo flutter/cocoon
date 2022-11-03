@@ -64,7 +64,7 @@ class Config {
   }
 
   Future<GitHub> createGithubClient(RepositorySlug slug) async {
-    String token = await generateGithubToken(slug);
+    final String token = await generateGithubToken(slug);
     return GitHub(auth: Authentication.withToken(token));
   }
 
@@ -161,7 +161,7 @@ class Config {
 
   Future<String> _generateGithubJwt() async {
     final String rawKey = await secretManager.get(kGithubKey);
-    StringBuffer sb = StringBuffer();
+    final StringBuffer sb = StringBuffer();
     sb.writeln(rawKey.substring(0, 32));
     sb.writeln(rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'));
     sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
@@ -224,7 +224,7 @@ class Config {
   }
 
   Future<Uint8List> _getValueFromSecretManager(String key) async {
-    String value = await secretManager.get(key);
+    final String value = await secretManager.get(key);
     return Uint8List.fromList(value.codeUnits);
   }
 }

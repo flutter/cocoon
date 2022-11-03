@@ -40,95 +40,119 @@ void main() {
 
     test('taskStatus', () {
       expect(
-        buildStage(statuses: <String>[
-          Task.statusSucceeded,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusSucceeded,
+          ],
+        ).taskStatus,
         Task.statusSucceeded,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusSucceeded,
-          Task.statusSucceeded,
-          Task.statusFailed,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusSucceeded,
+            Task.statusSucceeded,
+            Task.statusFailed,
+          ],
+        ).taskStatus,
         Task.statusFailed,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusNew,
-          Task.statusFailed,
-          Task.statusNew,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusNew,
+            Task.statusFailed,
+            Task.statusNew,
+          ],
+        ).taskStatus,
         Task.statusFailed,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusInProgress,
-          Task.statusFailed,
-          Task.statusInProgress,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusInProgress,
+            Task.statusFailed,
+            Task.statusInProgress,
+          ],
+        ).taskStatus,
         Task.statusFailed,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusSucceeded,
-          Task.statusFailed,
-          Task.statusSucceeded,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusSucceeded,
+            Task.statusFailed,
+            Task.statusSucceeded,
+          ],
+        ).taskStatus,
         Task.statusFailed,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusNew,
-          Task.statusFailed,
-          Task.statusInProgress,
-          Task.statusSucceeded,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusNew,
+            Task.statusFailed,
+            Task.statusInProgress,
+            Task.statusSucceeded,
+          ],
+        ).taskStatus,
         Task.statusFailed,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusNew,
-          Task.statusInProgress,
-          Task.statusNew,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusNew,
+            Task.statusInProgress,
+            Task.statusNew,
+          ],
+        ).taskStatus,
         Task.statusInProgress,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusNew,
-          Task.statusSucceeded,
-          Task.statusNew,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusNew,
+            Task.statusSucceeded,
+            Task.statusNew,
+          ],
+        ).taskStatus,
         Task.statusInProgress,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusSucceeded,
-          Task.statusSucceeded,
-          Task.statusInProgress,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusSucceeded,
+            Task.statusSucceeded,
+            Task.statusInProgress,
+          ],
+        ).taskStatus,
         Task.statusInProgress,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusNew,
-          Task.statusNew,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusNew,
+            Task.statusNew,
+          ],
+        ).taskStatus,
         Task.statusNew,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusInProgress,
-          Task.statusInProgress,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusInProgress,
+            Task.statusInProgress,
+          ],
+        ).taskStatus,
         Task.statusInProgress,
       );
       expect(
-        buildStage(statuses: <String>[
-          Task.statusSucceeded,
-          Task.statusSucceeded,
-        ]).taskStatus,
+        buildStage(
+          statuses: <String>[
+            Task.statusSucceeded,
+            Task.statusSucceeded,
+          ],
+        ).taskStatus,
         Task.statusSucceeded,
       );
     });
@@ -140,11 +164,12 @@ void main() {
       expect(() => (StageBuilder()..name = 'name').build(), throwsStateError);
       expect(() => (StageBuilder()..commit = generateCommit(1)).build(), throwsStateError);
       expect(
-          () => (StageBuilder()
-                ..name = 'name'
-                ..commit = generateCommit(1))
-              .build(),
-          throwsStateError);
+        () => (StageBuilder()
+              ..name = 'name'
+              ..commit = generateCommit(1))
+            .build(),
+        throwsStateError,
+      );
     });
   });
 }

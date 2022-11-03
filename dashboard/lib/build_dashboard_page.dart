@@ -368,8 +368,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    MediaQueryData queryData = MediaQuery.of(context);
-    double devicePixelRatio = queryData.devicePixelRatio;
+    final MediaQueryData queryData = MediaQuery.of(context);
+    final double devicePixelRatio = queryData.devicePixelRatio;
     _smallScreen = queryData.size.width * devicePixelRatio < screenWidthThreshold;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].

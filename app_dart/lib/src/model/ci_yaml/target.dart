@@ -53,7 +53,7 @@ class Target {
 
     final Map<String, Object> platformDimensions = _getPlatformDimensions();
     for (String key in platformDimensions.keys) {
-      String value = platformDimensions[key].toString();
+      final String value = platformDimensions[key].toString();
       dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
@@ -62,14 +62,14 @@ class Target {
     // remove this logic after dimensions are supported in ci.yaml files
     for (String dimension in dimensionList) {
       if (properties.containsKey(dimension)) {
-        String value = properties[dimension].toString();
+        final String value = properties[dimension].toString();
         dimensionsMap[dimension] = RequestedDimension(key: dimension, value: value);
       }
     }
 
     final Map<String, Object> targetDimensions = _getTargetDimensions();
     for (String key in targetDimensions.keys) {
-      String value = targetDimensions[key].toString();
+      final String value = targetDimensions[key].toString();
       dimensionsMap[key] = RequestedDimension(key: key, value: value);
     }
 
@@ -93,7 +93,7 @@ class Target {
   ///
   /// Return an empty list if no tags are found.
   List<String> get tags {
-    Map<String, Object> properties = getProperties();
+    final Map<String, Object> properties = getProperties();
     return (properties.containsKey('tags')) ? (properties['tags'] as List).map((e) => e as String).toList() : [];
   }
 

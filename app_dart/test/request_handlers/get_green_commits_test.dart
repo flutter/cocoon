@@ -46,12 +46,24 @@ void main() {
 
     final Stage stageOneSucceed =
         Stage('cocoon', commit1, [task1Succeed], Task.statusInProgress); // should scceed, since task 1 succeed
-    final Stage stageFailed = Stage('luci', commit1, [task1Succeed, task2Failed],
-        Task.statusInProgress); // should fail, since task 1 succeed and task2 fail
-    final Stage stageMultipleSucceed = Stage('cocoon', commit2, [task1Succeed, task4SucceedFlaky],
-        Task.statusInProgress); // should succeed, since both task 1 and task 4 succeed
-    final Stage stageFailedFlaky = Stage('luci', commit2, [task1Succeed, task3FailedFlaky],
-        Task.statusInProgress); // should succeed, even though it includes task 3
+    final Stage stageFailed = Stage(
+      'luci',
+      commit1,
+      [task1Succeed, task2Failed],
+      Task.statusInProgress,
+    ); // should fail, since task 1 succeed and task2 fail
+    final Stage stageMultipleSucceed = Stage(
+      'cocoon',
+      commit2,
+      [task1Succeed, task4SucceedFlaky],
+      Task.statusInProgress,
+    ); // should succeed, since both task 1 and task 4 succeed
+    final Stage stageFailedFlaky = Stage(
+      'luci',
+      commit2,
+      [task1Succeed, task3FailedFlaky],
+      Task.statusInProgress,
+    ); // should succeed, even though it includes task 3
 
     Future<List<T?>?> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
@@ -79,10 +91,12 @@ void main() {
     });
 
     test('should return commits with all tasks succeed', () async {
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stageOneSucceed]),
-        CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, <Stage>[stageOneSucceed]),
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
+        ],
+      );
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -99,10 +113,12 @@ void main() {
     });
 
     test('should fail commits that have failed task without [bringup: true] label', () async {
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stageFailed]),
-        CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, <Stage>[stageFailed]),
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageMultipleSucceed])
+        ],
+      );
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -116,10 +132,12 @@ void main() {
     });
 
     test('should return commits with failed tasks but with `bringup: true` label', () async {
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stageFailed]),
-        CommitStatus(commit2, <Stage>[stageFailedFlaky])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, <Stage>[stageFailed]),
+          CommitStatus(commit2, <Stage>[stageFailedFlaky])
+        ],
+      );
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -133,10 +151,12 @@ void main() {
     });
 
     test('should return commits with both flaky and succeeded tasks', () async {
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
-        CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commit1, <Stage>[stageOneSucceed, stageMultipleSucceed]),
+          CommitStatus(commit2, <Stage>[stageOneSucceed, stageFailedFlaky])
+        ],
+      );
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -153,12 +173,16 @@ void main() {
     });
 
     test('should return branched commits', () async {
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commitBranched, <Stage>[stageOneSucceed]),
-      ]);
-      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        GetGreenCommits.kBranchParam: commitBranched.branch!,
-      });
+      buildStatusService = FakeBuildStatusService(
+        commitStatuses: <CommitStatus>[
+          CommitStatus(commitBranched, <Stage>[stageOneSucceed]),
+        ],
+      );
+      tester.request = FakeHttpRequest(
+        queryParametersValue: <String, String>{
+          GetGreenCommits.kBranchParam: commitBranched.branch!,
+        },
+      );
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),

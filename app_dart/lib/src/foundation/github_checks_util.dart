@@ -55,17 +55,20 @@ class GithubChecksUtil {
       maxAttempts: 3,
       delayFactor: Duration(seconds: 2),
     );
-    return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
-      await gitHubClient.checks.checkRuns.updateCheckRun(
-        slug,
-        checkRun,
-        status: status,
-        conclusion: conclusion,
-        detailsUrl: detailsUrl,
-        output: output,
-      );
-    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
+    return r.retry(
+      () async {
+        final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+        await gitHubClient.checks.checkRuns.updateCheckRun(
+          slug,
+          checkRun,
+          status: status,
+          conclusion: conclusion,
+          detailsUrl: detailsUrl,
+          output: output,
+        );
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
   }
 
   Future<github.CheckRun> getCheckRun(
@@ -77,13 +80,16 @@ class GithubChecksUtil {
       maxAttempts: 3,
       delayFactor: Duration(seconds: 2),
     );
-    return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
-      return await gitHubClient.checks.checkRuns.getCheckRun(
-        slug,
-        checkRunId: id!,
-      );
-    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
+    return r.retry(
+      () async {
+        final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+        return await gitHubClient.checks.checkRuns.getCheckRun(
+          slug,
+          checkRunId: id!,
+        );
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
   }
 
   /// Sends a request to GitHub's Checks API to create a new [github.CheckRun].
@@ -102,18 +108,19 @@ class GithubChecksUtil {
       maxAttempts: 3,
       delayFactor: Duration(seconds: 2),
     );
-    return r.retry(() async {
-      return _createCheckRun(
-        cocoonConfig!,
-        slug,
-        sha,
-        name,
-        output: output,
-      );
-    },
-        retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
-        onRetry: (Exception e) =>
-            log.warning('createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name'));
+    return r.retry(
+      () async {
+        return _createCheckRun(
+          cocoonConfig!,
+          slug,
+          sha,
+          name,
+          output: output,
+        );
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+      onRetry: (Exception e) => log.warning('createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name'),
+    );
   }
 
   Future<github.CheckRun> _createCheckRun(

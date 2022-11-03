@@ -195,8 +195,10 @@ class DatastoreService {
       /// occurs in app engine. When multiple records exist, the latest one
       /// is returned.
       if (previousStatusUpdates.length > 1) {
-        return previousStatusUpdates.reduce((GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
-            current.updateTimeMillis! < next.updateTimeMillis! ? next : current);
+        return previousStatusUpdates.reduce(
+          (GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
+              current.updateTimeMillis! < next.updateTimeMillis! ? next : current,
+        );
       }
       return previousStatusUpdates.single;
     }
@@ -242,45 +244,57 @@ class DatastoreService {
   Future<void> insert(List<Model<dynamic>> rows) async {
     final List<List<Model<dynamic>>> shards = await shard(rows);
     for (List<Model<dynamic>> shard in shards) {
-      await runTransactionWithRetries(() async {
-        await db.withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(inserts: shard);
-          await transaction.commit();
-        });
-      }, retryOptions: retryOptions);
+      await runTransactionWithRetries(
+        () async {
+          await db.withTransaction<void>((Transaction transaction) async {
+            transaction.queueMutations(inserts: shard);
+            await transaction.commit();
+          });
+        },
+        retryOptions: retryOptions,
+      );
     }
   }
 
   /// Looks up registers by [keys].
   Future<List<T?>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     List<T?> results = <T>[];
-    await runTransactionWithRetries(() async {
-      await db.withTransaction<void>((Transaction transaction) async {
-        results = await transaction.lookup<T>(keys);
-      });
-    }, retryOptions: retryOptions);
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          results = await transaction.lookup<T>(keys);
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return results;
   }
 
   /// Looks up registers by value using a single [key].
   Future<T> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function()? orElse}) async {
     late T result;
-    await runTransactionWithRetries(() async {
-      await db.withTransaction<void>((Transaction transaction) async {
-        result = await db.lookupValue<T>(key, orElse: orElse);
-      });
-    }, retryOptions: retryOptions);
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          result = await db.lookupValue<T>(key, orElse: orElse);
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return result;
   }
 
   /// Runs a function inside a transaction providing a [Transaction] parameter.
   Future<T?> withTransaction<T>(Future<T> Function(Transaction) handler) async {
     T? result;
-    await runTransactionWithRetries(() async {
-      await db.withTransaction<void>((Transaction transaction) async {
-        result = await handler(transaction);
-      });
-    }, retryOptions: retryOptions);
+    await runTransactionWithRetries(
+      () async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          result = await handler(transaction);
+        });
+      },
+      retryOptions: retryOptions,
+    );
     return result;
   }
 }

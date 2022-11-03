@@ -69,11 +69,13 @@ class CiYaml {
     return initialTargets.toList();
   }
 
-  Iterable<Target> get _targets => config.targets.map((pb.Target target) => Target(
-        schedulerConfig: config,
-        value: target,
-        slug: slug,
-      ));
+  Iterable<Target> get _targets => config.targets.map(
+        (pb.Target target) => Target(
+          schedulerConfig: config,
+          value: target,
+          slug: slug,
+        ),
+      );
 
   /// Get an unfiltered list of all [targets] that are found in the ci.yaml file.
   List<Target> get targets => _targets.toList();
@@ -157,7 +159,8 @@ class CiYaml {
         // link to wiki - https://github.com/flutter/flutter/wiki/Reducing-Test-Flakiness#adding-a-new-devicelab-test
         if (totTargets.isNotEmpty && !totTargets.contains(target.name) && target.bringup != true) {
           exceptions.add(
-              'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`');
+            'ERROR: ${target.name} is a new builder added. it needs to be marked bringup: true\nIf ci.yaml wasn\'t changed, try `git fetch upstream && git merge upstream/master`',
+          );
           continue;
         }
         targetGraph[target.name] = <pb.Target>[];
@@ -211,13 +214,13 @@ class DependencyValidator {
     final List<String> exceptions = <String>[];
 
     /// Decoded will contain a list of maps for the dependencies found.
-    List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
+    final List<dynamic> decoded = json.decode(dependencyJsonString) as List<dynamic>;
 
     for (Map<String, dynamic> depMap in decoded) {
       if (!depMap.containsKey('version')) {
         exceptions.add('ERROR: dependency ${depMap['dependency']} must have a version.');
       } else {
-        String version = depMap['version'] as String;
+        final String version = depMap['version'] as String;
         if (version.isEmpty || version == 'latest') {
           exceptions
               .add('ERROR: dependency ${depMap['dependency']} must have a non empty, non "latest" version supplied.');

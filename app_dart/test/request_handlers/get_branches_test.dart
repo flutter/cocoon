@@ -48,7 +48,7 @@ void main() {
       );
 
       const String id = 'flutter/flutter/branch-created-old';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
         key: branchKey,
@@ -68,7 +68,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 1);
 
       const String id = 'flutter/flutter/branch-created-now';
-      int lastActivity = DateTime.now().millisecondsSinceEpoch;
+      final int lastActivity = DateTime.now().millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
         key: branchKey,

@@ -98,12 +98,15 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
       }
     }
 
-    await runZoned<Future<void>>(() async {
-      await super.service(request);
-    }, zoneValues: <NoAuthKey<dynamic>, Object?>{
-      NoAuthKey.requestBody: Uint8List.fromList(body),
-      NoAuthKey.requestData: requestData,
-    });
+    await runZoned<Future<void>>(
+      () async {
+        await super.service(request);
+      },
+      zoneValues: <NoAuthKey<dynamic>, Object?>{
+        NoAuthKey.requestBody: Uint8List.fromList(body),
+        NoAuthKey.requestData: requestData,
+      },
+    );
   }
 }
 

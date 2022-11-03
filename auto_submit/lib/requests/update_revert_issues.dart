@@ -56,7 +56,7 @@ class UpdateRevertIssues extends AuthenticatedRequestHandler {
     log.info('Processing review issue# ${revertRequestRecord.reviewIssueNumber}.');
     try {
       // Get the revert review issue.
-      Issue issue = await githubService.getIssue(
+      final Issue issue = await githubService.getIssue(
         slug: RepositorySlug(Config.flutter, Config.flutter),
         issueNumber: revertRequestRecord.reviewIssueNumber!,
       );

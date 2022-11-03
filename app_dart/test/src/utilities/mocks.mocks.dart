@@ -5231,6 +5231,8 @@ class MockPullRequestsService extends _i1.Mock implements _i10.PullRequestsServi
     _i10.RepositorySlug? slug,
     int? number, {
     String? message,
+    _i10.MergeMethod? mergeMethod = _i10.MergeMethod.merge,
+    String? requestSha,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -5239,7 +5241,11 @@ class MockPullRequestsService extends _i1.Mock implements _i10.PullRequestsServi
             slug,
             number,
           ],
-          {#message: message},
+          {
+            #message: message,
+            #mergeMethod: mergeMethod,
+            #requestSha: requestSha,
+          },
         ),
         returnValue: _i17.Future<_i10.PullRequestMerge>.value(_FakePullRequestMerge_53(
           this,
@@ -5249,7 +5255,11 @@ class MockPullRequestsService extends _i1.Mock implements _i10.PullRequestsServi
               slug,
               number,
             ],
-            {#message: message},
+            {
+              #message: message,
+              #mergeMethod: mergeMethod,
+              #requestSha: requestSha,
+            },
           ),
         )),
       ) as _i17.Future<_i10.PullRequestMerge>);

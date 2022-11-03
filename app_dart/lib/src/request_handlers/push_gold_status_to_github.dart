@@ -157,12 +157,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(slug, pr);
           statusRequest = _createStatus(
-              goldStatus,
-              goldStatus == GithubGoldStatusUpdate.statusRunning
-                  ? config.flutterGoldChanges
-                  : config.flutterGoldSuccess,
-              slug,
-              pr.number!);
+            goldStatus,
+            goldStatus == GithubGoldStatusUpdate.statusRunning ? config.flutterGoldChanges : config.flutterGoldSuccess,
+            slug,
+            pr.number!,
+          );
           log.fine('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {

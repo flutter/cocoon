@@ -105,7 +105,7 @@ class FakeGithubService implements GithubService {
   ) async {
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
     final List<dynamic> checkRunsBody = rawBody["check_runs"]! as List<dynamic>;
-    List<CheckRun> checkRuns = <CheckRun>[];
+    final List<CheckRun> checkRuns = <CheckRun>[];
     if ((checkRunsBody[0] as Map<String, dynamic>).isNotEmpty) {
       checkRuns.addAll(
         checkRunsBody.map((dynamic checkRun) => CheckRun.fromJson(checkRun as Map<String, dynamic>)).toList(),
@@ -122,9 +122,9 @@ class FakeGithubService implements GithubService {
     CheckRunStatus? status,
     CheckRunFilter? filter,
   }) async {
-    List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
+    final List<CheckRun> checkRuns = await getCheckRuns(slug, ref);
     if (checkName != null) {
-      List<CheckRun> checkRunsFilteredByName = [];
+      final List<CheckRun> checkRunsFilteredByName = [];
       for (CheckRun checkRun in checkRuns) {
         if (checkRun.name == checkName) {
           checkRunsFilteredByName.add(checkRun);
@@ -200,12 +200,12 @@ class FakeGithubService implements GithubService {
       pullRequestData = pullRequestFilesJsonMock as String;
     }
 
-    List<PullRequestFile> pullRequestFileList = [];
+    final List<PullRequestFile> pullRequestFileList = [];
 
-    dynamic parsedList = jsonDecode(pullRequestData);
+    final dynamic parsedList = jsonDecode(pullRequestData);
 
     for (dynamic d in parsedList) {
-      PullRequestFile file = PullRequestFile.fromJson(d as Map<String, dynamic>);
+      final PullRequestFile file = PullRequestFile.fromJson(d as Map<String, dynamic>);
       pullRequestFileList.add(file);
     }
 
@@ -234,8 +234,8 @@ class FakeGithubService implements GithubService {
       return compareReturnValue;
     }
 
-    List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
-    List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+    final List<PullRequestFile> revertPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
+    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
 
     return validateFileSetsAreEqual(revertPullRequestFiles, currentPullRequestFiles);
   }
@@ -268,7 +268,7 @@ class FakeGithubService implements GithubService {
     // At this point all the files are the same so we can iterate over one list to
     // compare changes.
     for (PullRequestFile pullRequestFile in changeList1) {
-      PullRequestFile pullRequestFileChangeList2 =
+      final PullRequestFile pullRequestFileChangeList2 =
           changeList2.firstWhere((element) => element.filename == pullRequestFile.filename);
       if (pullRequestFile.changesCount != pullRequestFileChangeList2.changesCount ||
           pullRequestFile.additionsCount != pullRequestFileChangeList2.deletionsCount ||

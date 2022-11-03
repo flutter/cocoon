@@ -67,15 +67,20 @@ class BuildBucketClient {
     final Uri url = Uri.parse('$buildBucketUri$path');
     final AccessToken? token = await accessTokenService?.createAccessToken();
 
-    final http.Response response = await httpClient.post(url, body: json.encode(request), headers: <String, String>{
-      HttpHeaders.contentTypeHeader: 'application/json',
-      HttpHeaders.acceptHeader: 'application/json',
-      if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
-    });
+    final http.Response response = await httpClient.post(
+      url,
+      body: json.encode(request),
+      headers: <String, String>{
+        HttpHeaders.contentTypeHeader: 'application/json',
+        HttpHeaders.acceptHeader: 'application/json',
+        if (token != null) HttpHeaders.authorizationHeader: '${token.type} ${token.data}',
+      },
+    );
 
     if (response.statusCode < 300) {
       return responseFromJson(
-          json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?);
+        json.decode(response.body.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>?,
+      );
     }
     throw BuildBucketException(response.statusCode, response.body);
   }

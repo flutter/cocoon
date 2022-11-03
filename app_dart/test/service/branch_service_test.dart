@@ -70,7 +70,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 0);
 
       const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
       db.values[currentBranch.key] = currentBranch;
@@ -89,7 +89,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 0);
 
       const String id = 'flutter/flutter/flutter-2.12-candidate.4';
-      int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
+      final int lastActivity = DateTime.tryParse("2019-05-15T15:20:56Z")!.millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(key: branchKey, lastActivity: lastActivity);
       db.values[currentBranch.key] = currentBranch;
@@ -100,8 +100,10 @@ void main() {
       await branchService.handleCreateRequest(createEvent);
 
       expect(db.values.values.whereType<Branch>().length, 2);
-      expect(db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
-          containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']));
+      expect(
+        db.values.values.whereType<Branch>().map<String>((Branch b) => b.name),
+        containsAll(<String>['flutter-2.12-candidate.4', 'flutter-2.12-candidate.5']),
+      );
     });
   });
 
@@ -114,12 +116,13 @@ void main() {
     });
 
     test('return beta, stable, and latest candidate branches', () async {
-      gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
-      gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
-      gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
-      gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
-      gh.Branch candidateBranchTwo = generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
-      gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
+      final gh.Branch stableBranch = generateBranch(1, name: 'flutter-2.13-candidate.0', sha: '123stable');
+      final gh.Branch betaBranch = generateBranch(2, name: 'flutter-3.2-candidate.5', sha: '456beta');
+      final gh.Branch candidateBranch = generateBranch(3, name: 'flutter-3.4-candidate.5', sha: '789dev');
+      final gh.Branch candidateBranchOne = generateBranch(4, name: 'flutter-3.3-candidate.9', sha: 'lagerZValue');
+      final gh.Branch candidateBranchTwo =
+          generateBranch(5, name: 'flutter-2.15-candidate.99', sha: 'superLargeYZvalue');
+      final gh.Branch candidateBranchThree = generateBranch(6, name: 'flutter-0.5-candidate.0', sha: 'someZeroValues');
 
       when(mockRepositoriesService.listBranches(any)).thenAnswer((Invocation invocation) {
         return Stream.fromIterable([
@@ -154,15 +157,19 @@ void main() {
 
     test('does not create branch that already exists', () async {
       gerritService.branchesValue = <String>[branch];
-      expect(() async => branchService.branchFlutterRecipes(branch),
-          throwsExceptionWith<BadRequestException>('$branch already exists'));
+      expect(
+        () async => branchService.branchFlutterRecipes(branch),
+        throwsExceptionWith<BadRequestException>('$branch already exists'),
+      );
     });
 
     test('does not create branch if a good branch point cannot be found', () async {
       gerritService.commitsValue = <GerritCommit>[];
       githubService.listCommitsBranch = (String branch, int ts) => <gh.RepositoryCommit>[];
-      expect(() async => branchService.branchFlutterRecipes(branch),
-          throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'));
+      expect(
+        () async => branchService.branchFlutterRecipes(branch),
+        throwsExceptionWith<InternalServerError>('Failed to find a revision to branch Flutter recipes for $branch'),
+      );
     });
 
     test('creates branch', () async {

@@ -24,8 +24,8 @@ Future<void> main() async {
       const String taskExecutable = 'bin/validate_task_ownership.dart';
       final List<String> taskArgs = <String>[config.slug.name, config.branch];
 
-      ProcessManager processManager = const LocalProcessManager();
-      Process process = await processManager.start(
+      const ProcessManager processManager = LocalProcessManager();
+      final Process process = await processManager.start(
         <String>[dart, taskExecutable, ...taskArgs],
         workingDirectory: Directory.current.path,
       );

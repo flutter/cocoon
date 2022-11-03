@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('RefreshCirrusStatus', () {
     Map<String, dynamic>? data;
-    List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
     setUp(() {
       data = dataWithMultipleBuilds;
     });

@@ -52,7 +52,7 @@ class ChangeRequested extends Validation {
     }
     final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
     log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
-    bool changesRequested = (approvers.length > 1) && changeRequestAuthors.isEmpty;
+    final bool changesRequested = (approvers.length > 1) && changeRequestAuthors.isEmpty;
 
     final StringBuffer buffer = StringBuffer();
     for (String? author in changeRequestAuthors) {

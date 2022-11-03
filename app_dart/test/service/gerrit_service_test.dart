@@ -94,7 +94,10 @@ void main() {
       );
 
       await gerritService.createBranch(
-          Config.recipesSlug, 'flutter-2.13-candidate.0', '00439ab49a991db42595f14078adb9811a6f60c6');
+        Config.recipesSlug,
+        'flutter-2.13-candidate.0',
+        '00439ab49a991db42595f14078adb9811a6f60c6',
+      );
     });
 
     test('unexpected response', () async {
@@ -108,8 +111,10 @@ void main() {
             FakeAuthClient(baseClient!),
         retryDelay: Duration.zero,
       );
-      expect(() async => await gerritService.createBranch(Config.recipesSlug, 'flutter-2.13-candidate.0', 'abc'),
-          throwsExceptionWith<InternalServerError>('Failed to create branch'));
+      expect(
+        () async => await gerritService.createBranch(Config.recipesSlug, 'flutter-2.13-candidate.0', 'abc'),
+        throwsExceptionWith<InternalServerError>('Failed to create branch'),
+      );
     });
 
     test('retries non-200 responses', () async {
@@ -132,7 +137,10 @@ void main() {
         retryDelay: Duration.zero,
       );
       await gerritService.createBranch(
-          Config.recipesSlug, 'flutter-2.13-candidate.0', '00439ab49a991db42595f14078adb9811a6f60c6');
+        Config.recipesSlug,
+        'flutter-2.13-candidate.0',
+        '00439ab49a991db42595f14078adb9811a6f60c6',
+      );
       expect(attempts, 2);
     });
   });

@@ -127,7 +127,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches() async {
-    List<Branch> fakeBranches = <Branch>[];
+    final List<Branch> fakeBranches = <Branch>[];
     for (String repo in _repos) {
       fakeBranches.add(
         Branch()

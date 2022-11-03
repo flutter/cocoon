@@ -286,11 +286,13 @@ class FakeConfig implements Config {
     if (supportedBranchesValue == null) {
       throw Exception('Test must set suportedBranchesValue to be able to use Config.getBranches');
     }
-    return supportedBranchesValue!.map((String branch) => Branch(
-          key: db.emptyKey.append<String>(
-            Branch,
-            id: '${slug.fullName}/$branch',
-          ),
-        ));
+    return supportedBranchesValue!.map(
+      (String branch) => Branch(
+        key: db.emptyKey.append<String>(
+          Branch,
+          id: '${slug.fullName}/$branch',
+        ),
+      ),
+    );
   }
 }

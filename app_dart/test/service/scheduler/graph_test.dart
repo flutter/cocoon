@@ -48,15 +48,18 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap?;
-      expect(() {
-        final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
-          ..mergeFromProto3Json(targetWithNonexistentScheduler);
-        CiYaml(
-          slug: Config.flutterSlug,
-          branch: Config.defaultBranch(Config.flutterSlug),
-          config: unCheckedSchedulerConfig,
-        ).config;
-      }, throwsA(isA<FormatException>()));
+      expect(
+        () {
+          final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
+            ..mergeFromProto3Json(targetWithNonexistentScheduler);
+          CiYaml(
+            slug: Config.flutterSlug,
+            branch: Config.defaultBranch(Config.flutterSlug),
+            config: unCheckedSchedulerConfig,
+          ).config;
+        },
+        throwsA(isA<FormatException>()),
+      );
     });
 
     test('constructs graph with dependency chain', () {
@@ -141,18 +144,19 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithCycle);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-              ).config,
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: A depends on B which does not exist'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+        ).config,
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: A depends on B which does not exist'),
+          ),
+        ),
+      );
     });
 
     test('fails when there are duplicate targets', () {
@@ -166,18 +170,19 @@ targets:
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
         ..mergeFromProto3Json(configWithDuplicateTargets);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-              ).config,
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: A already exists in graph'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+        ).config,
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: A already exists in graph'),
+          ),
+        ),
+      );
     });
 
     test('fails when there are multiple dependencies', () {
@@ -195,18 +200,19 @@ targets:
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()
         ..mergeFromProto3Json(configWithMultipleDependencies);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-              ).config,
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: C has multiple dependencies which is not supported. Use only one dependency'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+        ).config,
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: C has multiple dependencies which is not supported. Use only one dependency'),
+          ),
+        ),
+      );
     });
 
     test('fails when dependency does not exist', () {
@@ -220,18 +226,19 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(configWithMissingTarget);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-              ).config,
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: A depends on B which does not exist'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+        ).config,
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: A depends on B which does not exist'),
+          ),
+        ),
+      );
     });
   });
 
@@ -239,7 +246,7 @@ targets:
     late CiYaml? totConfig;
 
     setUp(() {
-      YamlMap? totYaml = loadYaml('''
+      final YamlMap? totYaml = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -262,13 +269,14 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-                totConfig: totConfig,
-              ),
-          returnsNormally);
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          totConfig: totConfig,
+        ),
+        returnsNormally,
+      );
     });
 
     test('succeed when new builder is marked with bringup:true ', () {
@@ -282,13 +290,14 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-                totConfig: totConfig,
-              ),
-          returnsNormally);
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          totConfig: totConfig,
+        ),
+        returnsNormally,
+      );
     });
 
     test('fails when new builder is missing bringup:true ', () {
@@ -301,19 +310,20 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-                totConfig: totConfig,
-              ),
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          totConfig: totConfig,
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
+          ),
+        ),
+      );
     });
 
     test('fails when new builder has bringup set to false ', () {
@@ -327,19 +337,20 @@ targets:
       ''') as YamlMap?;
       final SchedulerConfig unCheckedSchedulerConfig = SchedulerConfig()..mergeFromProto3Json(currentYaml);
       expect(
-          () => CiYaml(
-                slug: Config.flutterSlug,
-                branch: Config.defaultBranch(Config.flutterSlug),
-                config: unCheckedSchedulerConfig,
-                totConfig: totConfig,
-              ),
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
-            ),
-          ));
+        () => CiYaml(
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          totConfig: totConfig,
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException e) => e.toString(),
+            'message',
+            contains('ERROR: B is a new builder added. it needs to be marked bringup: true'),
+          ),
+        ),
+      );
     });
   });
 }

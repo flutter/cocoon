@@ -63,15 +63,19 @@ String buildPushMessageJson(
   String? failureReason,
   String? userData,
 }) =>
-    base64.encode(utf8.encode(buildPushMessageString(
-      status,
-      result: result,
-      builderName: builderName,
-      urlParam: urlParam,
-      retries: retries,
-      failureReason: failureReason,
-      userData: userData,
-    )));
+    base64.encode(
+      utf8.encode(
+        buildPushMessageString(
+          status,
+          result: result,
+          builderName: builderName,
+          urlParam: urlParam,
+          retries: retries,
+          failureReason: failureReason,
+          userData: userData,
+        ),
+      ),
+    );
 
 String buildPushMessageJsonNoBuildset(
   String status, {
@@ -81,14 +85,18 @@ String buildPushMessageJsonNoBuildset(
   int retries = 0,
   String? failureReason,
 }) =>
-    base64.encode(utf8.encode(buildPushMessageNoBuildsetString(
-      status,
-      result: result,
-      builderName: builderName,
-      urlParam: urlParam,
-      retries: retries,
-      failureReason: failureReason,
-    )));
+    base64.encode(
+      utf8.encode(
+        buildPushMessageNoBuildsetString(
+          status,
+          result: result,
+          builderName: builderName,
+          urlParam: urlParam,
+          retries: retries,
+          failureReason: failureReason,
+        ),
+      ),
+    );
 
 String buildPushMessageString(
   String status, {
@@ -142,12 +150,14 @@ String buildPushMessageString(
 }''';
 }
 
-String buildPushMessageNoBuildsetString(String status,
-    {String? result,
-    String builderName = 'Linux Coverage',
-    String urlParam = '',
-    int retries = 0,
-    String? failureReason}) {
+String buildPushMessageNoBuildsetString(
+  String status, {
+  String? result,
+  String builderName = 'Linux Coverage',
+  String urlParam = '',
+  int retries = 0,
+  String? failureReason,
+}) {
   return '''{
   "build": {
     "bucket": "luci.flutter.prod",

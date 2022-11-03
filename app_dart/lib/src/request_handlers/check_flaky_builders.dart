@@ -105,8 +105,12 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   /// 3. The builder is not in [ignoredBuilders].
   /// 4. The flaky issue of the builder is closed if there is one.
   /// 5. Does not have any existing pr against the builder.
-  Future<List<_BuilderInfo>> _getEligibleFlakyBuilders(GithubService gitHub, RepositorySlug slug,
-      {required String content, required CiYaml ciYaml}) async {
+  Future<List<_BuilderInfo>> _getEligibleFlakyBuilders(
+    GithubService gitHub,
+    RepositorySlug slug, {
+    required String content,
+    required CiYaml ciYaml,
+  }) async {
     final YamlMap ci = loadYaml(content) as YamlMap;
     final YamlList targets = ci[kCiYamlTargetsKey] as YamlList;
     final List<YamlMap?> flakyTargets = targets
@@ -169,7 +173,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final String modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
     final GitReference masterRef = await gitHub.getReference(slug, kMasterRefs);
     final DeflakePullRequestBuilder prBuilder = DeflakePullRequestBuilder(
-        name: info.name, recordNumber: kRecordNumber, ownership: testOwnership, issue: info.existingIssue);
+      name: info.name,
+      recordNumber: kRecordNumber,
+      ownership: testOwnership,
+      issue: info.existingIssue,
+    );
     final PullRequest pullRequest = await gitHub.createPullRequest(
       slug,
       title: prBuilder.pullRequestTitle,
