@@ -129,6 +129,24 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
+  /// Merges a pull request according to the MergeMethod type. Current supported
+  /// merge method types are merge, rebase and squash.
+  Future<PullRequestMerge> mergePullRequest(
+    RepositorySlug slug,
+    int number, {
+    String? commitMessage,
+    MergeMethod mergeMethod = MergeMethod.merge,
+    String? requestSha,
+  }) async {
+    return await github.pullRequests.merge(
+      slug,
+      number,
+      message: commitMessage,
+      mergeMethod: mergeMethod,
+      requestSha: requestSha,
+    );
+  }
+
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
   Future<void> autoMergeBranch(PullRequest pullRequest) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
@@ -136,7 +154,7 @@ class GithubService {
     final RepositoryCommit totCommit = await getCommit(slug, 'HEAD');
     final GitHubComparison comparison = await compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
     if (comparison.behindBy! >= _kBehindToT) {
-      log.info('The current branch behinds by ${comparison.behindBy} commits.');
+      log.info('The current branch is behind by ${comparison.behindBy} commits.');
       final String headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
