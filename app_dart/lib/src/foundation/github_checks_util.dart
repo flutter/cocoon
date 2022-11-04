@@ -118,8 +118,10 @@ class GithubChecksUtil {
           output: output,
         );
       },
-      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
-      onRetry: (Exception e) => log.warning('createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name'),
+      retryIf: (Exception e) => true,
+      onRetry: (Exception e) => log.warning(
+        'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name. Exception: ${e.toString()}',
+      ),
     );
   }
 
