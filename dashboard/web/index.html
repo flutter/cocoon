@@ -27,8 +27,8 @@ found in the LICENSE file. -->
 <body>
 <script>
   window.addEventListener('load', function() {
-    // Contact dit@ when this starts throwing warnings in development :)
     window.flutterConfiguration = {
+      // Use the local build of CanvasKit rather than the CDN.
       canvasKitBaseUrl: "/canvaskit/"
     };
     _flutter.loader.loadEntrypoint({
