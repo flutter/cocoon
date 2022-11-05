@@ -50,64 +50,10 @@ void main() {
       log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
-    test('incorrectly formatted password file throws exception', () async {
-      fileSystem.file(appSpecificPasswordFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(
-          'file_a',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
+    test('lacking password file throws exception', () async {
       expect(
         () async {
           await codesignVisitor.readPassword(appSpecificPasswordFilePath);
-          fileSystem.file(appSpecificPasswordFilePath).deleteSync();
-        },
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('unknown password name throws an exception', () async {
-      fileSystem.file(codesignTeamIDFilePath)
-        ..createSync(recursive: true, exclusive: true)
-        ..writeAsStringSync(
-          'dart:dart',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
-      expect(
-        () async {
-          await codesignVisitor.readPassword(codesignTeamIDFilePath);
-          await fileSystem.file(codesignTeamIDFilePath).delete();
-        },
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('lacking required passwords throws exception', () async {
-      codesignVisitor.availablePasswords = {
-        'CODESIGN_APPSTORE_ID': '',
-        'CODESIGN_TEAM_ID': '',
-        'APP-SPECIFIC-PASSWORD': ''
-      };
-      fileSystem.file(codesignAppstoreIDFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(
-          'CODESIGN_APPSTORE_ID:123',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
-      expect(
-        () async {
-          await codesignVisitor.validateAll();
-          await fileSystem.file(codesignAppstoreIDFilePath).delete();
         },
         throwsA(
           isA<CodesignException>(),
@@ -119,7 +65,7 @@ void main() {
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true, exclusive: true)
         ..writeAsStringSync(
-          'APP_SPECIFIC_PASSWORD:123',
+          '123',
           mode: FileMode.write,
           encoding: utf8,
         );
@@ -1086,13 +1032,13 @@ status: Invalid''',
       log.onRecord.listen((LogRecord record) => records.add(record));
       fileSystem.file(codesignAppstoreIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('CODESIGN_APPSTORE_ID:$randomString');
+        ..writeAsStringSync(randomString);
       fileSystem.file(codesignTeamIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('CODESIGN_TEAM_ID:$randomString');
+        ..writeAsStringSync(randomString);
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('APP_SPECIFIC_PASSWORD:$randomString');
+        ..writeAsStringSync(randomString);
     });
 
     test('codesign optional switches artifacts when dryrun is true', () async {

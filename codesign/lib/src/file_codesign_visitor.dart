@@ -123,48 +123,19 @@ update these file paths accordingly.
 ''';
 
   /// Read a single line of password stored at [passwordFilePath].
-  ///
-  /// The password file should provide the password name and value, deliminated by a single colon.
-  /// The content of a password file would look similar to:
-  /// CODESIGN_APPSTORE_ID:123
-  Future<void> readPassword(String passwordFilePath) async {
+  Future<String> readPassword(String passwordFilePath) async {
     if (!(await fileSystem.file(passwordFilePath).exists())) {
       throw CodesignException('$passwordFilePath not found \n'
           'make sure you have provided codesign credentials in a file \n');
     }
-
-    final String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
-    final List<String> parsedPasswordLine = passwordLine.split(":");
-    if (parsedPasswordLine.length != 2) {
-      throw CodesignException('$passwordFilePath is not correctly formatted. \n'
-          'please double check formatting \n');
-    }
-    final String passwordName = parsedPasswordLine[0];
-    final String passwordValue = parsedPasswordLine[1];
-    if (!availablePasswords.containsKey(passwordName)) {
-      throw CodesignException('$passwordName is not a password we can process. \n'
-          'please double check passwords.txt \n');
-    }
-    availablePasswords[passwordName] = passwordValue;
-    return;
+    return (await fileSystem.file(passwordFilePath).readAsString());
   }
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    for (String passwordFilePath in [
-      codesignAppstoreIDFilePath,
-      codesignTeamIDFilePath,
-      appSpecificPasswordFilePath,
-    ]) {
-      await readPassword(passwordFilePath);
-    }
-    if (availablePasswords.containsValue('')) {
-      throw CodesignException('certian passwords are missing. \n'
-          'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
-    }
-    codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
-    codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
-    appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
+    codesignAppstoreId = await readPassword(codesignAppstoreIDFilePath);
+    codesignTeamId = await readPassword(codesignTeamIDFilePath);
+    appSpecificPassword = await readPassword(appSpecificPasswordFilePath);
 
     // The value of codesignedFilePath is used in the cleanup process in the finally block.
     String? codesignedFilePath;
