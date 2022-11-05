@@ -137,20 +137,11 @@ update these file paths accordingly.
     codesignTeamId = await readPassword(codesignTeamIDFilePath);
     appSpecificPassword = await readPassword(appSpecificPasswordFilePath);
 
-    // The value of codesignedFilePath is used in the cleanup process in the finally block.
-    String? codesignedFilePath;
-    try {
-      codesignedFilePath = await processRemoteZip();
-    } finally {
-      rootDirectory.list(recursive: true).listen((FileSystemEntity file) async {
-        if (file is File && file.path != codesignedFilePath) {
-          await file.delete();
-        }
-      });
-    }
-    log.info('Codesign completed. Codesigned zip is located at $codesignedFilePath.'
+    await processRemoteZip();
+
+    log.info('Codesign completed. Codesigned zip is located at $outputZipPath.'
         'If you have uploaded the artifacts back to google cloud storage, please delete'
-        ' the folder $codesignedFilePath and $inputZipPath.');
+        ' the folder $outputZipPath and $inputZipPath.');
     if (dryrun) {
       log.info('code signing dry run has completed, this is a quick sanity check without'
           'going through the notary service. To run the full codesign process, use --no-dryrun flag.');
@@ -190,6 +181,8 @@ update these file paths accordingly.
       outputZipPath: outputZipPath,
       processManager: processManager,
     );
+
+    await parentDirectory.delete(recursive: true);
 
     // `dryrun` flag defaults to true to save time for a faster sanity check
     if (!dryrun) {
@@ -266,6 +259,7 @@ update these file paths accordingly.
       outputZipPath: zipEntity.absolute.path,
       processManager: processManager,
     );
+    await newDir.delete(recursive: true);
   }
 
   /// Visit and codesign a binary with / without entitlement.
