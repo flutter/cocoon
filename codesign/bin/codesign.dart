@@ -15,8 +15,8 @@ import 'package:process/process.dart';
 const String kHelpFlag = 'help';
 const String kDryrunFlag = 'dryrun';
 const String kCodesignCertNameOption = 'codesign-cert-name';
-const String kGcsDownloadPathOption = 'gcs-download-path';
-const String kGcsUploadPathOption = 'gcs-upload-path';
+const String kInputZipPathOption = 'input-zip-file-path';
+const String kOutputZipPathOption = 'output-zip-file-path';
 const String kAppSpecificPasswordOption = 'app-specific-password-file-path';
 const String kCodesignAppstoreIDOption = 'codesign-appstore-id-file-path';
 const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
@@ -24,20 +24,20 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// Perform Mac code signing based on file paths.
 ///
 /// By default, if a user does not specify a dryrun flag, or selects dryrun
-/// mode by providing the `--dryrun` flag, then [kDryrunFlag] is set to true.
-/// In this case, code signed artifacts are not uploaded back to google cloud storage.
+/// mode by providing the `--dryrun` flag, then [kDryrunFlag] is set to true,
+/// a quick sanity check is performed and the notarization process is skipped.
 /// On the other hand, if a user provides the flag `--no-dryrun`, [kDryrunFlag]
-/// will be set to false, and code signed artifacts will be uploaded back to
-/// google cloud storage.
+/// will be set to false, and code signed artifacts will go through the notarization
+/// process.
 ///
-/// For [kGcsDownloadPathOption] and [kGcsUploadPathOption], they are required parameter to specify the google cloud bucket paths.
-/// [kGcsDownloadPathOption] is the google cloud bucket prefix to download the remote artifacts,
-/// [kGcsUploadPathOption] is the cloud bucket prefix to upload codesigned artifact to.
+/// For [kInputZipPathOption] and [kOutputZipPathOption], they are required parameter to specify the
+/// input and output locations.
+/// The codesign app will take the zip file located at the input location [kInputZipPathOption], and
+/// put codesigned zip at [kOutputZipPathOption]. The work of downloading and uploading the zip
+/// artifacts is delegated to recipe.
 /// For example, supply
-/// '--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip',
-/// and code sign app will download the artifact at
-/// 'flutter_infra_release/ios-usb-dependencies/unsigned/libimobiledevice/<commit>/libimobiledevice.zip'
-/// on google cloud storage
+/// '--input-zip-file-path=/tmp/input.zip',
+/// and code sign app will code sign the artifacts located at /tmp/input.zip.
 ///
 /// For [kAppSpecificPasswordOption], [kCodesignAppstoreIDOption] and [kCodesignTeamIDOption],
 /// they are file paths of the password files in the file system.
@@ -59,8 +59,8 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// --codesign-team-id-file-path=/a/b/c.txt
 /// --codesign-appstore-id-file-path=/a/b/b.txt
 /// --app-specific-password-file-path=/a/b/a.txt
-/// --gcs-download-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
-/// --gcs-upload-path=gs://flutter_infra_release/flutter/<commit>/android-arm-profile/artifacts.zip
+/// --input-zip-file-path=/a/input.zip
+/// --output-zip-file-path=/b/output.zip
 /// ```
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
@@ -81,36 +81,32 @@ Future<void> main(List<String> args) async {
           'the name of the certificate for flutter, for example, is: FLUTTER.IO LLC',
     )
     ..addOption(
-      kGcsDownloadPathOption,
-      help: 'The google cloud bucket path to download the artifact from\n'
-          'e.g. supply `--gcs-download-path=gs://flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip`'
-          ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/unsigned/ios-deploy/<commit>/ios-deploy.zip to be downloaded from \n',
+      kInputZipPathOption,
+      help: 'File path to the unsigned artifact zip file.',
     )
     ..addOption(
-      kGcsUploadPathOption,
-      help: 'The google cloud bucket path to upload the artifact to. \n'
-          'e.g. supply `--gcs-upload-path=gs://flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip`'
-          ' if you would like to codesign ios-deploy.zip, which has a google cloud bucket path of flutter_infra_release/ios-usb-dependencies/ios-deploy/<commit>/ios-deploy.zip to be uploaded to',
+      kOutputZipPathOption,
+      help: 'File path to codesigned artifact zip file for output.',
     )
     ..addOption(
       kAppSpecificPasswordOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <APP-SPECIFIC-PASSWORD> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <APP-SPECIFIC-PASSWORD>.',
     )
     ..addOption(
       kCodesignAppstoreIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_APPSTORE_ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_APPSTORE_ID>.',
     )
     ..addOption(
       kCodesignTeamIDOption,
       help:
-          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_TEAM_ID> \n',
+          'The file path of a password file in file system. The password file stores the sensitive password <CODESIGN_TEAM_ID>.',
     )
     ..addFlag(
       kDryrunFlag,
       defaultsTo: true,
-      help: 'whether we are going to upload the artifacts back to GCS for dryrun',
+      help: 'whether we are going to skip the notarization process.',
     );
 
   final ArgResults argResults = parser.parse(args);
@@ -118,8 +114,8 @@ Future<void> main(List<String> args) async {
   const Platform platform = LocalPlatform();
 
   final String codesignCertName = getValueFromArgs(kCodesignCertNameOption, argResults)!;
-  final String gCloudDownloadPath = getValueFromArgs(kGcsDownloadPathOption, argResults)!;
-  final String gCloudUploadPath = getValueFromArgs(kGcsUploadPathOption, argResults)!;
+  final String inputZipPath = getValueFromArgs(kInputZipPathOption, argResults)!;
+  final String outputZipPath = getValueFromArgs(kOutputZipPathOption, argResults)!;
   final String appSpecificPasswordFilePath = getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
   final String codesignAppstoreIDFilePath = getValueFromArgs(kCodesignAppstoreIDOption, argResults)!;
   final String codesignTeamIDFilePath = getValueFromArgs(kCodesignTeamIDOption, argResults)!;
@@ -136,10 +132,6 @@ Future<void> main(List<String> args) async {
   const FileSystem fileSystem = LocalFileSystem();
   final Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
   const ProcessManager processManager = LocalProcessManager();
-  final GoogleCloudStorage googleCloudStorage = GoogleCloudStorage(
-    processManager: processManager,
-    rootDirectory: rootDirectory,
-  );
 
   return FileCodesignVisitor(
     codesignCertName: codesignCertName,
@@ -150,8 +142,7 @@ Future<void> main(List<String> args) async {
     codesignTeamIDFilePath: codesignTeamIDFilePath,
     processManager: processManager,
     dryrun: dryrun,
-    gcsDownloadPath: gCloudDownloadPath,
-    gcsUploadPath: gCloudUploadPath,
-    googleCloudStorage: googleCloudStorage,
+    inputZipPath: inputZipPath,
+    outputZipPath: outputZipPath,
   ).validateAll();
 }

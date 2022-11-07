@@ -8,7 +8,6 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:process/process.dart';
 
-import 'google_cloud_storage.dart';
 import 'log.dart';
 import 'utils.dart';
 
@@ -29,9 +28,8 @@ class FileCodesignVisitor {
     required this.fileSystem,
     required this.rootDirectory,
     required this.processManager,
-    required this.gcsDownloadPath,
-    required this.gcsUploadPath,
-    required this.googleCloudStorage,
+    required this.inputZipPath,
+    required this.outputZipPath,
     required this.appSpecificPasswordFilePath,
     required this.codesignAppstoreIDFilePath,
     required this.codesignTeamIDFilePath,
@@ -39,8 +37,6 @@ class FileCodesignVisitor {
     this.notarizationTimerDuration = const Duration(seconds: 5),
   }) {
     entitlementsFile = rootDirectory.childFile('Entitlements.plist')..writeAsStringSync(_entitlementsFileContents);
-    remoteDownloadsDir = rootDirectory.childDirectory('downloads')..createSync();
-    codesignedZipsDir = rootDirectory.childDirectory('codesigned_zips')..createSync();
   }
 
   /// Temp [Directory] to download/extract files to.
@@ -49,11 +45,10 @@ class FileCodesignVisitor {
   final Directory rootDirectory;
   final FileSystem fileSystem;
   final ProcessManager processManager;
-  final GoogleCloudStorage googleCloudStorage;
 
   final String codesignCertName;
-  final String gcsDownloadPath;
-  final String gcsUploadPath;
+  final String inputZipPath;
+  final String outputZipPath;
   final String appSpecificPasswordFilePath;
   final String codesignAppstoreIDFilePath;
   final String codesignTeamIDFilePath;
@@ -78,8 +73,6 @@ class FileCodesignVisitor {
   };
 
   late final File entitlementsFile;
-  late final Directory remoteDownloadsDir;
-  late final Directory codesignedZipsDir;
 
   int _remoteDownloadIndex = 0;
   int get remoteDownloadIndex => _remoteDownloadIndex++;
@@ -130,75 +123,40 @@ update these file paths accordingly.
 ''';
 
   /// Read a single line of password stored at [passwordFilePath].
-  ///
-  /// The password file should provide the password name and value, deliminated by a single colon.
-  /// The content of a password file would look similar to:
-  /// CODESIGN_APPSTORE_ID:123
-  Future<void> readPassword(String passwordFilePath) async {
+  Future<String> readPassword(String passwordFilePath) async {
     if (!(await fileSystem.file(passwordFilePath).exists())) {
       throw CodesignException('$passwordFilePath not found \n'
           'make sure you have provided codesign credentials in a file \n');
     }
-
-    final String passwordLine = await fileSystem.file(passwordFilePath).readAsString();
-    final List<String> parsedPasswordLine = passwordLine.split(":");
-    if (parsedPasswordLine.length != 2) {
-      throw CodesignException('$passwordFilePath is not correctly formatted. \n'
-          'please double check formatting \n');
-    }
-    final String passwordName = parsedPasswordLine[0];
-    final String passwordValue = parsedPasswordLine[1];
-    if (!availablePasswords.containsKey(passwordName)) {
-      throw CodesignException('$passwordName is not a password we can process. \n'
-          'please double check passwords.txt \n');
-    }
-    availablePasswords[passwordName] = passwordValue;
-    return;
+    return (await fileSystem.file(passwordFilePath).readAsString());
   }
 
   /// The entrance point of examining and code signing an engine artifact.
   Future<void> validateAll() async {
-    for (String passwordFilePath in [
-      codesignAppstoreIDFilePath,
-      codesignTeamIDFilePath,
-      appSpecificPasswordFilePath,
-    ]) {
-      await readPassword(passwordFilePath);
-    }
-    if (availablePasswords.containsValue('')) {
-      throw CodesignException('certian passwords are missing. \n'
-          'make sure you have provided <CODESIGN_APPSTORE_ID>, <CODESIGN_TEAM_ID>, and <APP_SPECIFIC_PASSWORD>');
-    }
-    codesignAppstoreId = availablePasswords['CODESIGN_APPSTORE_ID']!;
-    codesignTeamId = availablePasswords['CODESIGN_TEAM_ID']!;
-    appSpecificPassword = availablePasswords['APP_SPECIFIC_PASSWORD']!;
+    codesignAppstoreId = await readPassword(codesignAppstoreIDFilePath);
+    codesignTeamId = await readPassword(codesignTeamIDFilePath);
+    appSpecificPassword = await readPassword(appSpecificPasswordFilePath);
 
     await processRemoteZip();
 
+    log.info('Codesign completed. Codesigned zip is located at $outputZipPath.'
+        'If you have uploaded the artifacts back to google cloud storage, please delete'
+        ' the folder $outputZipPath and $inputZipPath.');
     if (dryrun) {
-      log.info('code signing dry run has completed, If you intend to upload the artifacts back to'
-          ' google cloud storage, please use the --dryrun=false flag to run code signing script.');
+      log.info('code signing dry run has completed, this is a quick sanity check without'
+          'going through the notary service. To run the full codesign process, use --no-dryrun flag.');
     }
-    log.info('Codesigned all binaries in ${rootDirectory.path}');
-
-    await rootDirectory.delete(recursive: true);
   }
 
-  /// Retrieve engine artifact from google cloud storage and kick start a
+  /// Process engine artifacts from [inputZipPath] and kick start a
   /// recursive visit of its contents.
   ///
   /// Invokes [visitDirectory] to recursively visit the contents of the remote
-  /// zip. Also downloads, notarizes and uploads the engine artifact.
-  Future<void> processRemoteZip() async {
-    // Name of the downloaded artifact.
-    // There won't be collisions since we are only signing one artifact at a time now
-    const String localFilePath = 'remote_artifact.zip';
-
+  /// zip. Notarizes the engine artifact if [dryrun] is false.
+  /// Returns null as result if [dryrun] is true.
+  Future<String?> processRemoteZip() async {
     // download the zip file
-    final File originalFile = await googleCloudStorage.downloadEngineArtifact(
-      from: gcsDownloadPath,
-      destination: remoteDownloadsDir.childFile(localFilePath).path,
-    );
+    final File originalFile = rootDirectory.fileSystem.file(inputZipPath);
 
     // This is the starting directory of the unzipped artifact.
     final Directory parentDirectory = rootDirectory.childDirectory('single_artifact');
@@ -218,24 +176,21 @@ update these file paths accordingly.
     // recursively visit extracted files
     await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
 
-    final File codesignedFile = codesignedZipsDir.childFile(localFilePath);
-
     await zip(
       inputDir: parentDirectory,
-      outputZip: codesignedFile,
+      outputZipPath: outputZipPath,
       processManager: processManager,
     );
 
-    // `dryrun` flag defaults to true to prevent uploading artifacts back to google cloud.
-    // This would help prevent https://github.com/flutter/flutter/issues/104387
-    if (!dryrun) {
-      await notarize(codesignedFile);
+    await parentDirectory.delete(recursive: true);
 
-      await googleCloudStorage.uploadEngineArtifact(
-        from: codesignedFile.path,
-        destination: gcsUploadPath,
-      );
+    // `dryrun` flag defaults to true to save time for a faster sanity check
+    if (!dryrun) {
+      await notarize(fileSystem.file(outputZipPath));
+
+      return outputZipPath;
     }
+    return null;
   }
 
   /// Visit a [Directory] type while examining the file system extracted from an artifact.
@@ -301,9 +256,10 @@ update these file paths accordingly.
     await zipEntity.delete();
     await zip(
       inputDir: newDir,
-      outputZip: zipEntity,
+      outputZipPath: zipEntity.absolute.path,
       processManager: processManager,
     );
+    await newDir.delete(recursive: true);
   }
 
   /// Visit and codesign a binary with / without entitlement.
