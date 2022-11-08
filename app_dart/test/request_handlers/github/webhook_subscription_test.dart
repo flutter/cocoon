@@ -1769,9 +1769,9 @@ void foo() {
       );
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-            PullRequestFile()..filename = 'fml/blah.cc',
-            PullRequestFile()..filename = 'fml/testing/blah_test.sh',
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'fml/blah.cc',
+          PullRequestFile()..filename = 'fml/testing/blah_test.sh',
         ]),
       );
 
