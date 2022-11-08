@@ -220,7 +220,7 @@ class Target {
       return true;
     } else if (value == 'false') {
       return false;
-    } else if (value.startsWith('[')) {
+    } else if (value.startsWith('[') || value.startsWith('{')) {
       return jsonDecode(value) as Object;
     } else if (newLineIssues.contains(key)) {
       return value.replaceAll('\\n', '\n');
