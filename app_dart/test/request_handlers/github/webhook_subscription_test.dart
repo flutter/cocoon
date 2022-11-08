@@ -1759,6 +1759,33 @@ void foo() {
       );
     });
 
+    test('Engine labels PRs, no comment if script tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'fml/blah.cc',
+            PullRequestFile()..filename = 'fml/testing/blah_test.sh',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Engine labels PRs, no comment if cc tests', () async {
       const int issueNumber = 123;
 
@@ -1794,7 +1821,7 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no comment if cc becnhmarks', () async {
+    test('Engine labels PRs, no comment if cc benchmarks', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
