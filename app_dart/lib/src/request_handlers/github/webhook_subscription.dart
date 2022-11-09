@@ -32,7 +32,7 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
   'flutter/plugins',
 };
 
-final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc)$');
+final RegExp kEngineTestRegExp = RegExp(r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh)$');
 final List<String> kNeedsTestsLabels = <String>['needs tests'];
 
 /// Subscription for processing GitHub webhooks.
