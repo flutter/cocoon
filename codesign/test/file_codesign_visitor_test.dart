@@ -21,16 +21,17 @@ void main() {
   const String codesignTeamIDFilePath = '/tmp/teamID.txt';
   const String inputZipPath = '/tmp/input.zip';
   const String outputZipPath = '/tmp/output.zip';
-  final MemoryFileSystem fileSystem = MemoryFileSystem.test();
   final List<LogRecord> records = <LogRecord>[];
 
+  late MemoryFileSystem fileSystem;
   late FakeProcessManager processManager;
   late cs.FileCodesignVisitor codesignVisitor;
-
-  Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  late Directory rootDirectory;
 
   group('test reading in passwords: ', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -92,6 +93,8 @@ void main() {
 
   group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -220,6 +223,8 @@ void main() {
 
   group('visit directory/zip api calls: ', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -590,6 +595,8 @@ void main() {
 
   group('parse entitlement configs: ', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -694,6 +701,8 @@ file_c''',
 
   group('notarization tests: ', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
+      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -1010,6 +1019,7 @@ status: Invalid''',
 
   group('support optional switches and dryrun :', () {
     setUp(() {
+      fileSystem = MemoryFileSystem.test();
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
       processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
@@ -1106,11 +1116,6 @@ status: Invalid''',
         contains('code signing dry run has completed, this is a quick sanity check without'
             'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
       );
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-
-      await fileSystem.file(appSpecificPasswordFilePath).delete();
-      await fileSystem.file(codesignAppstoreIDFilePath).delete();
-      await fileSystem.file(codesignTeamIDFilePath).delete();
     });
 
     test('upload optional switch artifacts when dryrun is false', () async {
@@ -1203,11 +1208,6 @@ status: Invalid''',
               'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
         ),
       );
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-
-      await fileSystem.file(appSpecificPasswordFilePath).delete();
-      await fileSystem.file(codesignAppstoreIDFilePath).delete();
-      await fileSystem.file(codesignTeamIDFilePath).delete();
     });
   });
 }
