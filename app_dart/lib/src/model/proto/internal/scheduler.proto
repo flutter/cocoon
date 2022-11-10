@@ -75,6 +75,6 @@ enum SchedulerSystem {
     luci = 2;
     // Google internally uses Flutter, and validates if tip-of-tree causes breakages.
     google_internal = 3;
-    // This scheduler will be used to trigger our packaging builds to the release_packaging build
+    // Special Cocoon scheduler case to trigger targets intended for beta and stable releases.
     release = 4;
 }
