@@ -67,7 +67,7 @@ message Target {
 }
 
 // Schedulers supported in SchedulerConfig.
-// Next ID: 4
+// Next ID: 5
 enum SchedulerSystem {
     // Cocoon will handle all actions for the target (initial trigger, retries).
     cocoon = 1;
@@ -75,4 +75,6 @@ enum SchedulerSystem {
     luci = 2;
     // Google internally uses Flutter, and validates if tip-of-tree causes breakages.
     google_internal = 3;
+    // This scheduler will be used to trigger our packaging builds to the release_packaging build
+    release = 4;
 }
