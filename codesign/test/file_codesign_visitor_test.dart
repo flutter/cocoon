@@ -1107,6 +1107,10 @@ status: Invalid''',
             'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
       );
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+
+      await fileSystem.file(appSpecificPasswordFilePath).delete();
+      await fileSystem.file(codesignAppstoreIDFilePath).delete();
+      await fileSystem.file(codesignTeamIDFilePath).delete();
     });
 
     test('upload optional switch artifacts when dryrun is false', () async {
@@ -1200,6 +1204,10 @@ status: Invalid''',
         ),
       );
       rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+
+      await fileSystem.file(appSpecificPasswordFilePath).delete();
+      await fileSystem.file(codesignAppstoreIDFilePath).delete();
+      await fileSystem.file(codesignTeamIDFilePath).delete();
     });
   });
 }
