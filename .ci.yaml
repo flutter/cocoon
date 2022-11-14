@@ -74,4 +74,3 @@ targets:
   - name: Test release scheduler
     recipe: test
     scheduler: release
-
