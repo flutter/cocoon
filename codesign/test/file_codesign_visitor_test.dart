@@ -28,11 +28,16 @@ void main() {
   late cs.FileCodesignVisitor codesignVisitor;
   late Directory rootDirectory;
 
+  setUp((){
+    fileSystem = MemoryFileSystem.test();
+    rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+    processManager = FakeProcessManager.list(<FakeCommand>[]);
+    records.clear();
+    log.onRecord.listen((LogRecord record) => records.add(record));
+  });
+
   group('test reading in passwords: ', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         fileSystem: fileSystem,
@@ -47,8 +52,6 @@ void main() {
         dryrun: false,
       );
       codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('lacking password file throws exception', () async {
@@ -93,9 +96,6 @@ void main() {
 
   group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         fileSystem: fileSystem,
@@ -109,12 +109,10 @@ void main() {
         inputZipPath: inputZipPath,
         outputZipPath: outputZipPath,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('procesRemotezip triggers correct workflow', () async {
@@ -223,9 +221,6 @@ void main() {
 
   group('visit directory/zip api calls: ', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         fileSystem: fileSystem,
@@ -238,12 +233,10 @@ void main() {
         outputZipPath: outputZipPath,
         notarizationTimerDuration: Duration.zero,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('visitDirectory correctly list files', () async {
@@ -595,9 +588,6 @@ void main() {
 
   group('parse entitlement configs: ', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         inputZipPath: inputZipPath,
@@ -609,12 +599,10 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('correctly store file paths', () async {
@@ -701,9 +689,6 @@ file_c''',
 
   group('notarization tests: ', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         inputZipPath: inputZipPath,
@@ -715,12 +700,10 @@ file_c''',
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('successful notarization check returns true', () async {
@@ -1019,9 +1002,6 @@ status: Invalid''',
 
   group('support optional switches and dryrun :', () {
     setUp(() {
-      fileSystem = MemoryFileSystem.test();
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
         inputZipPath: inputZipPath,
@@ -1034,12 +1014,10 @@ status: Invalid''',
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
       fileSystem.file(codesignAppstoreIDFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync(randomString);
