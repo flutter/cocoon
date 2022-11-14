@@ -28,7 +28,7 @@ void main() {
   late cs.FileCodesignVisitor codesignVisitor;
   late Directory rootDirectory;
 
-  setUp((){
+  setUp(() {
     fileSystem = MemoryFileSystem.test();
     rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     processManager = FakeProcessManager.list(<FakeCommand>[]);
