@@ -71,6 +71,6 @@ targets:
     properties:
       add_recipes_cq: "true"
 
-  - name: Test release scheduler
-    recipe: test
-    scheduler: release
+  # - name: Test release scheduler
+  #   recipe: test
+  #   scheduler: release
