@@ -15,7 +15,7 @@ flutter clean
 dart pub get
 
 echo "############# update proto generated code #############"
-sudo apt-get install protocol-compiler
+apt-get install protocol-compiler
 protoc --dart_out=. app_dart/lib/src/model/proto/**/*.proto
 echo "#######################################################"
 
