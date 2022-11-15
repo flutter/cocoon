@@ -14,10 +14,11 @@ pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
-echo "############# update proto generated code #############"
-apt-get install protocol-compiler
-protoc --dart_out=. app_dart/lib/src/model/proto/**/*.proto
-echo "#######################################################"
+# TODO(drewroen): Validate proto code has been generated.
+# Requires a CIPD package for protocol-compiler in Linux
+# echo "############# update proto generated code #############"
+# protoc --dart_out=. app_dart/lib/src/model/proto/**/*.proto
+# echo "#######################################################"
 
 echo "############# files that require formatting ###########"
 dart format --set-exit-if-changed --line-length=120 .
