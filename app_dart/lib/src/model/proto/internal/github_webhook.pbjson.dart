@@ -19,5 +19,5 @@ const GithubWebhookMessage$json = const {
 };
 
 /// Descriptor for `GithubWebhookMessage`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List githubWebhookMessageDescriptor = $convert.base64Decode(
-    'ChRHaXRodWJXZWJob29rTWVzc2FnZRIUCgVldmVudBgBIAEoCVIFZXZlbnQSGAoHcGF5bG9hZBgCIAEoCVIHcGF5bG9hZA==');
+final $typed_data.Uint8List githubWebhookMessageDescriptor = $convert
+    .base64Decode('ChRHaXRodWJXZWJob29rTWVzc2FnZRIUCgVldmVudBgBIAEoCVIFZXZlbnQSGAoHcGF5bG9hZBgCIAEoCVIHcGF5bG9hZA==');

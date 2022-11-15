@@ -27,21 +27,8 @@ final $typed_data.Uint8List schedulerSystemDescriptor = $convert.base64Decode(
 const SchedulerConfig$json = const {
   '1': 'SchedulerConfig',
   '2': const [
-    const {
-      '1': 'targets',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.scheduler.Target',
-      '10': 'targets'
-    },
-    const {
-      '1': 'enabled_branches',
-      '3': 2,
-      '4': 3,
-      '5': 9,
-      '10': 'enabledBranches'
-    },
+    const {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.scheduler.Target', '10': 'targets'},
+    const {'1': 'enabled_branches', '3': 2, '4': 3, '5': 9, '10': 'enabledBranches'},
     const {
       '1': 'platform_properties',
       '3': 3,
@@ -51,10 +38,7 @@ const SchedulerConfig$json = const {
       '10': 'platformProperties'
     },
   ],
-  '3': const [
-    SchedulerConfig_PlatformPropertiesEntry$json,
-    SchedulerConfig_PlatformProperties$json
-  ],
+  '3': const [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PlatformProperties$json],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -62,14 +46,7 @@ const SchedulerConfig_PlatformPropertiesEntry$json = const {
   '1': 'PlatformPropertiesEntry',
   '2': const [
     const {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    const {
-      '1': 'value',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.scheduler.SchedulerConfig.PlatformProperties',
-      '10': 'value'
-    },
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties', '10': 'value'},
   ],
   '7': const {'7': true},
 };
@@ -130,31 +107,10 @@ const Target$json = const {
   '2': const [
     const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'dependencies', '3': 2, '4': 3, '5': 9, '10': 'dependencies'},
-    const {
-      '1': 'bringup',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '7': 'false',
-      '10': 'bringup'
-    },
+    const {'1': 'bringup', '3': 3, '4': 1, '5': 8, '7': 'false', '10': 'bringup'},
     const {'1': 'timeout', '3': 4, '4': 1, '5': 5, '7': '30', '10': 'timeout'},
-    const {
-      '1': 'testbed',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '7': 'linux-vm',
-      '10': 'testbed'
-    },
-    const {
-      '1': 'properties',
-      '3': 6,
-      '4': 3,
-      '5': 11,
-      '6': '.scheduler.Target.PropertiesEntry',
-      '10': 'properties'
-    },
+    const {'1': 'testbed', '3': 5, '4': 1, '5': 9, '7': 'linux-vm', '10': 'testbed'},
+    const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.scheduler.Target.PropertiesEntry', '10': 'properties'},
     const {
       '1': 'builder',
       '3': 7,
@@ -172,30 +128,10 @@ const Target$json = const {
       '7': 'cocoon',
       '10': 'scheduler'
     },
-    const {
-      '1': 'presubmit',
-      '3': 9,
-      '4': 1,
-      '5': 8,
-      '7': 'true',
-      '10': 'presubmit'
-    },
-    const {
-      '1': 'postsubmit',
-      '3': 10,
-      '4': 1,
-      '5': 8,
-      '7': 'true',
-      '10': 'postsubmit'
-    },
+    const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
+    const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
     const {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
-    const {
-      '1': 'enabled_branches',
-      '3': 12,
-      '4': 3,
-      '5': 9,
-      '10': 'enabledBranches'
-    },
+    const {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
     const {'1': 'recipe', '3': 13, '4': 1, '5': 9, '10': 'recipe'},
     const {
       '1': 'postsubmit_properties',
@@ -205,20 +141,9 @@ const Target$json = const {
       '6': '.scheduler.Target.PostsubmitPropertiesEntry',
       '10': 'postsubmitProperties'
     },
-    const {
-      '1': 'dimensions',
-      '3': 16,
-      '4': 3,
-      '5': 11,
-      '6': '.scheduler.Target.DimensionsEntry',
-      '10': 'dimensions'
-    },
+    const {'1': 'dimensions', '3': 16, '4': 3, '5': 11, '6': '.scheduler.Target.DimensionsEntry', '10': 'dimensions'},
   ],
-  '3': const [
-    Target_PropertiesEntry$json,
-    Target_PostsubmitPropertiesEntry$json,
-    Target_DimensionsEntry$json
-  ],
+  '3': const [Target_PropertiesEntry$json, Target_PostsubmitPropertiesEntry$json, Target_DimensionsEntry$json],
   '9': const [
     const {'1': 14, '2': 15},
   ],

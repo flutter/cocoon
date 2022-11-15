@@ -11,20 +11,10 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 class GithubWebhookMessage extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'GithubWebhookMessage',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'GithubWebhookMessage',
       createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'event')
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'payload')
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'event')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'payload')
     ..hasRequiredFields = false;
 
   GithubWebhookMessage._() : super();
@@ -44,14 +34,12 @@ class GithubWebhookMessage extends $pb.GeneratedMessage {
   factory GithubWebhookMessage.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory GithubWebhookMessage.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory GithubWebhookMessage.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  GithubWebhookMessage clone() =>
-      GithubWebhookMessage()..mergeFromMessage(this);
+  GithubWebhookMessage clone() => GithubWebhookMessage()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
@@ -62,11 +50,10 @@ class GithubWebhookMessage extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static GithubWebhookMessage create() => GithubWebhookMessage._();
   GithubWebhookMessage createEmptyInstance() => create();
-  static $pb.PbList<GithubWebhookMessage> createRepeated() =>
-      $pb.PbList<GithubWebhookMessage>();
+  static $pb.PbList<GithubWebhookMessage> createRepeated() => $pb.PbList<GithubWebhookMessage>();
   @$core.pragma('dart2js:noInline')
-  static GithubWebhookMessage getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<GithubWebhookMessage>(create);
+  static GithubWebhookMessage getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GithubWebhookMessage>(create);
   static GithubWebhookMessage? _defaultInstance;
 
   @$pb.TagNumber(1)

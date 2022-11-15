@@ -13,38 +13,15 @@ import 'package:protobuf/protobuf.dart' as $pb;
 enum Key_Id { uid, name, notSet }
 
 class Key extends $pb.GeneratedMessage {
-  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {
-    2: Key_Id.uid,
-    3: Key_Id.name,
-    0: Key_Id.notSet
-  };
+  static const $core.Map<$core.int, Key_Id> _Key_IdByTag = {2: Key_Id.uid, 3: Key_Id.name, 0: Key_Id.notSet};
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'Key',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Key',
       createEmptyInstance: create)
     ..oo(0, [2, 3])
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'type')
-    ..aInt64(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'uid')
-    ..aOS(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'name')
-    ..aOM<Key>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'child',
-        subBuilder: Key.create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
+    ..aInt64(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'uid')
+    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..aOM<Key>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'child', subBuilder: Key.create)
     ..hasRequiredFields = false;
 
   Key._() : super();
@@ -69,11 +46,9 @@ class Key extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory Key.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Key.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Key.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Key.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -83,16 +58,14 @@ class Key extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Key copyWith(void Function(Key) updates) =>
-      super.copyWith((message) => updates(message as Key))
-          as Key; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Key)) as Key; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Key create() => Key._();
   Key createEmptyInstance() => create();
   static $pb.PbList<Key> createRepeated() => $pb.PbList<Key>();
   @$core.pragma('dart2js:noInline')
-  static Key getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Key>(create);
+  static Key getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Key>(create);
   static Key? _defaultInstance;
 
   Key_Id whichId() => _Key_IdByTag[$_whichOneof(0)]!;
@@ -151,21 +124,10 @@ class Key extends $pb.GeneratedMessage {
 
 class RootKey extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'RootKey',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RootKey',
       createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'namespace')
-    ..aOM<Key>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'child',
-        subBuilder: Key.create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'namespace')
+    ..aOM<Key>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'child', subBuilder: Key.create)
     ..hasRequiredFields = false;
 
   RootKey._() : super();
@@ -182,11 +144,9 @@ class RootKey extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory RootKey.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory RootKey.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory RootKey.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory RootKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -196,16 +156,14 @@ class RootKey extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   RootKey copyWith(void Function(RootKey) updates) =>
-      super.copyWith((message) => updates(message as RootKey))
-          as RootKey; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as RootKey)) as RootKey; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RootKey create() => RootKey._();
   RootKey createEmptyInstance() => create();
   static $pb.PbList<RootKey> createRepeated() => $pb.PbList<RootKey>();
   @$core.pragma('dart2js:noInline')
-  static RootKey getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RootKey>(create);
+  static RootKey getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RootKey>(create);
   static RootKey? _defaultInstance;
 
   @$pb.TagNumber(1)
