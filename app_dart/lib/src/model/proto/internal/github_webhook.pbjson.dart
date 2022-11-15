@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use githubWebhookMessageDescriptor instead')
 const GithubWebhookMessage$json = const {
   '1': 'GithubWebhookMessage',
@@ -18,4 +19,5 @@ const GithubWebhookMessage$json = const {
 };
 
 /// Descriptor for `GithubWebhookMessage`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List githubWebhookMessageDescriptor = $convert.base64Decode('ChRHaXRodWJXZWJob29rTWVzc2FnZRIUCgVldmVudBgBIAEoCVIFZXZlbnQSGAoHcGF5bG9hZBgCIAEoCVIHcGF5bG9hZA==');
+final $typed_data.Uint8List githubWebhookMessageDescriptor = $convert.base64Decode(
+    'ChRHaXRodWJXZWJob29rTWVzc2FnZRIUCgVldmVudBgBIAEoCVIFZXZlbnQSGAoHcGF5bG9hZBgCIAEoCVIHcGF5bG9hZA==');
