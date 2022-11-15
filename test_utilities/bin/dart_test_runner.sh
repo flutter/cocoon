@@ -15,7 +15,7 @@ flutter clean
 dart pub get
 
 echo "############# update proto generated code #############"
-protoc --dart_out=. lib/src/model/proto/**/*.proto
+protoc --dart_out=. app_dart/lib/src/model/proto/**/*.proto
 echo "#######################################################"
 
 echo "############# files that require formatting ###########"
