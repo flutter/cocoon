@@ -14,6 +14,10 @@ pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
+echo "############# update proto generated code #############"
+protoc --dart_out=. lib/src/model/proto/**/*.proto
+echo "#######################################################"
+
 echo "############# files that require formatting ###########"
 dart format --set-exit-if-changed --line-length=120 .
 echo "#######################################################"
