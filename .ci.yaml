@@ -73,4 +73,4 @@ targets:
 
   - name: Test ci_yaml
     recipe: test
-    scheduler: release
+    scheduler: google_internal
