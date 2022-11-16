@@ -579,13 +579,13 @@ class LuciBuildService {
     );
   }
 
-  /// Creates postsubmit check runs for supported repositories.
+  /// Creates postsubmit check runs for prod targets in supported repositories.
   Future<void> createPostsubmitCheckRun(
     Commit commit,
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {
-    if (!config.githubPostsubmitSupportedRepo(commit.slug)) {
+    if (!config.githubPostsubmitSupportedRepo(commit.slug) || target.value.bringup) {
       return;
     }
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
