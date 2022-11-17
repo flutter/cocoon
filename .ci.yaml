@@ -73,5 +73,5 @@ targets:
 
   - name: Test ci_yaml
     recipe: test
-    scheduler: google_internal
+    scheduler: release
     bringup: true
