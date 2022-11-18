@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'dashboard_navigation_drawer.dart';
 import 'logic/task_grid_filter.dart';
-import 'navigation_drawer.dart';
 import 'service/cocoon.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
@@ -434,7 +434,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
             ],
           ),
         ),
-        drawer: const NavigationDrawer(),
+        drawer: const DashboardNavigationDrawer(),
       ),
     );
   }

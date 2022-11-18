@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/main.dart';
-import 'package:flutter_dashboard/navigation_drawer.dart';
+import 'package:flutter_dashboard/dashboard_navigation_drawer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
@@ -14,7 +14,7 @@ import 'utils/wrapper.dart';
 
 void main() {
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
-  group('NavigationDrawer', () {
+  group('DashboardNavigationDrawer', () {
     late FakeUrlLauncher urlLauncher;
 
     setUp(() {
@@ -28,7 +28,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           title: 'Test',
-          home: NavigationDrawer(),
+          home: DashboardNavigationDrawer(),
         ),
       );
 
@@ -46,7 +46,7 @@ void main() {
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
         MaterialApp(
-          home: const NavigationDrawer(),
+          home: const DashboardNavigationDrawer(),
           initialRoute: '/',
           routes: <String, WidgetBuilder>{
             '/build': (BuildContext context) => const Text('i am build'),
@@ -69,7 +69,7 @@ void main() {
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: NavigationDrawer(),
+          home: DashboardNavigationDrawer(),
         ),
       );
 
@@ -85,7 +85,7 @@ void main() {
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: NavigationDrawer(),
+          home: DashboardNavigationDrawer(),
         ),
       );
 
