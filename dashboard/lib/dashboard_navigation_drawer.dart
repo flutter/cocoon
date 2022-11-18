@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'logic/links.dart';
 
 /// Sidebar for navigating the different pages of Cocoon.
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({super.key});
+class DashboardNavigationDrawer extends StatelessWidget {
+  const DashboardNavigationDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
