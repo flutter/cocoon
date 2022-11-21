@@ -14,6 +14,8 @@ pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
+# TODO(drewroengoogle): Validate proto code has been generated. https://github.com/flutter/flutter/issues/115473
+
 echo "############# files that require formatting ###########"
 dart format --set-exit-if-changed --line-length=120 .
 echo "#######################################################"
