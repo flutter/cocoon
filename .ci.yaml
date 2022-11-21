@@ -71,8 +71,21 @@ targets:
     properties:
       add_recipes_cq: "true"
 
-  - name: Test ci_yaml
-    recipe: test
+  # This is used to test the new release scheduler. This will be deleted.
+  - name: Linux docs_test
+    recipe: flutter/flutter
     scheduler: release
     bringup: true
-
+    timeout: 60
+    properties:
+      cores: "32"
+      dependencies: >-
+        [
+          {"dependency": "dashing", "version": "0.4.0"}
+        ]
+      firebase_project: ""
+      release_ref: ""
+      tags: >
+        ["framework","hostonly", "linux"]
+      validation: docs
+      validation_name: Docs
