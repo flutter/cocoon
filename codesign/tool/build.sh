@@ -29,7 +29,7 @@ fi
 
 mkdir -p build
 tool/dart-sdk/bin/dart pub get
-tool/dart-sdk/bin/dart compile exe bin/codesign.dart -o build/codesign
+tool/dart-sdk/bin/dart compile exe bin/flutter_codesign.dart -o build/flutter_codesign
 
 cp -f LICENSE build/
 
