@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../build_dashboard_page.dart';
 import '../index_page.dart';
 
-/// List of links that are shown on [IndexPage] and in the [NavigationDrawer].
+/// List of links that are shown on [IndexPage] and in the [DashboardNavigationDrawer].
 List<CocoonLink> createCocoonLinks(BuildContext context) {
   return <CocoonLink>[
     CocoonLink(
@@ -59,7 +59,7 @@ class CocoonLink {
   /// Text shown to users describing this link.
   final String? name;
 
-  /// If the link is internal to this Flutter app, this can be passed to highlight on the [NavigationDrawer] the page the user is on.
+  /// If the link is internal to this Flutter app, this can be passed to highlight on the [DashboardNavigationDrawer] the page the user is on.
   final String? route;
 
   /// An [Icon] to represent this link.

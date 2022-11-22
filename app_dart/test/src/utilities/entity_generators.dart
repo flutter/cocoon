@@ -100,6 +100,7 @@ Target generateTarget(
   Map<String, String>? properties,
   Map<String, String>? dimensions,
   List<String>? runIf,
+  bool? bringup,
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
 }) {
@@ -122,6 +123,7 @@ Target generateTarget(
       properties: properties,
       dimensions: dimensions,
       runIf: runIf ?? <String>[],
+      bringup: bringup ?? false,
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),
   );
