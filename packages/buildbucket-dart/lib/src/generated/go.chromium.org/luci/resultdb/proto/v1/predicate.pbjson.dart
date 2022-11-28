@@ -8,13 +8,21 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use testResultPredicateDescriptor instead')
 const TestResultPredicate$json = const {
   '1': 'TestResultPredicate',
   '2': const [
     const {'1': 'test_id_regexp', '3': 1, '4': 1, '5': 9, '10': 'testIdRegexp'},
     const {'1': 'variant', '3': 2, '4': 1, '5': 11, '6': '.luci.resultdb.v1.VariantPredicate', '10': 'variant'},
-    const {'1': 'expectancy', '3': 3, '4': 1, '5': 14, '6': '.luci.resultdb.v1.TestResultPredicate.Expectancy', '10': 'expectancy'},
+    const {
+      '1': 'expectancy',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.luci.resultdb.v1.TestResultPredicate.Expectancy',
+      '10': 'expectancy'
+    },
     const {'1': 'exclude_exonerated', '3': 4, '4': 1, '5': 8, '10': 'excludeExonerated'},
   ],
   '4': const [TestResultPredicate_Expectancy$json],
@@ -31,7 +39,8 @@ const TestResultPredicate_Expectancy$json = const {
 };
 
 /// Descriptor for `TestResultPredicate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List testResultPredicateDescriptor = $convert.base64Decode('ChNUZXN0UmVzdWx0UHJlZGljYXRlEiQKDnRlc3RfaWRfcmVnZXhwGAEgASgJUgx0ZXN0SWRSZWdleHASPAoHdmFyaWFudBgCIAEoCzIiLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudFByZWRpY2F0ZVIHdmFyaWFudBJQCgpleHBlY3RhbmN5GAMgASgOMjAubHVjaS5yZXN1bHRkYi52MS5UZXN0UmVzdWx0UHJlZGljYXRlLkV4cGVjdGFuY3lSCmV4cGVjdGFuY3kSLQoSZXhjbHVkZV9leG9uZXJhdGVkGAQgASgIUhFleGNsdWRlRXhvbmVyYXRlZCJmCgpFeHBlY3RhbmN5EgcKA0FMTBAAEiQKIFZBUklBTlRTX1dJVEhfVU5FWFBFQ1RFRF9SRVNVTFRTEAESKQolVkFSSUFOVFNfV0lUSF9PTkxZX1VORVhQRUNURURfUkVTVUxUUxAC');
+final $typed_data.Uint8List testResultPredicateDescriptor = $convert.base64Decode(
+    'ChNUZXN0UmVzdWx0UHJlZGljYXRlEiQKDnRlc3RfaWRfcmVnZXhwGAEgASgJUgx0ZXN0SWRSZWdleHASPAoHdmFyaWFudBgCIAEoCzIiLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudFByZWRpY2F0ZVIHdmFyaWFudBJQCgpleHBlY3RhbmN5GAMgASgOMjAubHVjaS5yZXN1bHRkYi52MS5UZXN0UmVzdWx0UHJlZGljYXRlLkV4cGVjdGFuY3lSCmV4cGVjdGFuY3kSLQoSZXhjbHVkZV9leG9uZXJhdGVkGAQgASgIUhFleGNsdWRlRXhvbmVyYXRlZCJmCgpFeHBlY3RhbmN5EgcKA0FMTBAAEiQKIFZBUklBTlRTX1dJVEhfVU5FWFBFQ1RFRF9SRVNVTFRTEAESKQolVkFSSUFOVFNfV0lUSF9PTkxZX1VORVhQRUNURURfUkVTVUxUUxAC');
 @$core.Deprecated('Use testExonerationPredicateDescriptor instead')
 const TestExonerationPredicate$json = const {
   '1': 'TestExonerationPredicate',
@@ -42,7 +51,8 @@ const TestExonerationPredicate$json = const {
 };
 
 /// Descriptor for `TestExonerationPredicate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List testExonerationPredicateDescriptor = $convert.base64Decode('ChhUZXN0RXhvbmVyYXRpb25QcmVkaWNhdGUSJAoOdGVzdF9pZF9yZWdleHAYASABKAlSDHRlc3RJZFJlZ2V4cBI8Cgd2YXJpYW50GAIgASgLMiIubHVjaS5yZXN1bHRkYi52MS5WYXJpYW50UHJlZGljYXRlUgd2YXJpYW50');
+final $typed_data.Uint8List testExonerationPredicateDescriptor = $convert.base64Decode(
+    'ChhUZXN0RXhvbmVyYXRpb25QcmVkaWNhdGUSJAoOdGVzdF9pZF9yZWdleHAYASABKAlSDHRlc3RJZFJlZ2V4cBI8Cgd2YXJpYW50GAIgASgLMiIubHVjaS5yZXN1bHRkYi52MS5WYXJpYW50UHJlZGljYXRlUgd2YXJpYW50');
 @$core.Deprecated('Use variantPredicateDescriptor instead')
 const VariantPredicate$json = const {
   '1': 'VariantPredicate',
@@ -56,13 +66,28 @@ const VariantPredicate$json = const {
 };
 
 /// Descriptor for `VariantPredicate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List variantPredicateDescriptor = $convert.base64Decode('ChBWYXJpYW50UHJlZGljYXRlEjMKBmVxdWFscxgBIAEoCzIZLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudEgAUgZlcXVhbHMSNwoIY29udGFpbnMYAiABKAsyGS5sdWNpLnJlc3VsdGRiLnYxLlZhcmlhbnRIAFIIY29udGFpbnNCCwoJcHJlZGljYXRl');
+final $typed_data.Uint8List variantPredicateDescriptor = $convert.base64Decode(
+    'ChBWYXJpYW50UHJlZGljYXRlEjMKBmVxdWFscxgBIAEoCzIZLmx1Y2kucmVzdWx0ZGIudjEuVmFyaWFudEgAUgZlcXVhbHMSNwoIY29udGFpbnMYAiABKAsyGS5sdWNpLnJlc3VsdGRiLnYxLlZhcmlhbnRIAFIIY29udGFpbnNCCwoJcHJlZGljYXRl');
 @$core.Deprecated('Use artifactPredicateDescriptor instead')
 const ArtifactPredicate$json = const {
   '1': 'ArtifactPredicate',
   '2': const [
-    const {'1': 'follow_edges', '3': 1, '4': 1, '5': 11, '6': '.luci.resultdb.v1.ArtifactPredicate.EdgeTypeSet', '10': 'followEdges'},
-    const {'1': 'test_result_predicate', '3': 2, '4': 1, '5': 11, '6': '.luci.resultdb.v1.TestResultPredicate', '10': 'testResultPredicate'},
+    const {
+      '1': 'follow_edges',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.luci.resultdb.v1.ArtifactPredicate.EdgeTypeSet',
+      '10': 'followEdges'
+    },
+    const {
+      '1': 'test_result_predicate',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.luci.resultdb.v1.TestResultPredicate',
+      '10': 'testResultPredicate'
+    },
     const {'1': 'content_type_regexp', '3': 3, '4': 1, '5': 9, '10': 'contentTypeRegexp'},
     const {'1': 'artifact_id_regexp', '3': 4, '4': 1, '5': 9, '10': 'artifactIdRegexp'},
   ],
@@ -79,4 +104,5 @@ const ArtifactPredicate_EdgeTypeSet$json = const {
 };
 
 /// Descriptor for `ArtifactPredicate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List artifactPredicateDescriptor = $convert.base64Decode('ChFBcnRpZmFjdFByZWRpY2F0ZRJSCgxmb2xsb3dfZWRnZXMYASABKAsyLy5sdWNpLnJlc3VsdGRiLnYxLkFydGlmYWN0UHJlZGljYXRlLkVkZ2VUeXBlU2V0Ugtmb2xsb3dFZGdlcxJZChV0ZXN0X3Jlc3VsdF9wcmVkaWNhdGUYAiABKAsyJS5sdWNpLnJlc3VsdGRiLnYxLlRlc3RSZXN1bHRQcmVkaWNhdGVSE3Rlc3RSZXN1bHRQcmVkaWNhdGUSLgoTY29udGVudF90eXBlX3JlZ2V4cBgDIAEoCVIRY29udGVudFR5cGVSZWdleHASLAoSYXJ0aWZhY3RfaWRfcmVnZXhwGAQgASgJUhBhcnRpZmFjdElkUmVnZXhwGmMKC0VkZ2VUeXBlU2V0EjEKFGluY2x1ZGVkX2ludm9jYXRpb25zGAEgASgIUhNpbmNsdWRlZEludm9jYXRpb25zEiEKDHRlc3RfcmVzdWx0cxgCIAEoCFILdGVzdFJlc3VsdHM=');
+final $typed_data.Uint8List artifactPredicateDescriptor = $convert.base64Decode(
+    'ChFBcnRpZmFjdFByZWRpY2F0ZRJSCgxmb2xsb3dfZWRnZXMYASABKAsyLy5sdWNpLnJlc3VsdGRiLnYxLkFydGlmYWN0UHJlZGljYXRlLkVkZ2VUeXBlU2V0Ugtmb2xsb3dFZGdlcxJZChV0ZXN0X3Jlc3VsdF9wcmVkaWNhdGUYAiABKAsyJS5sdWNpLnJlc3VsdGRiLnYxLlRlc3RSZXN1bHRQcmVkaWNhdGVSE3Rlc3RSZXN1bHRQcmVkaWNhdGUSLgoTY29udGVudF90eXBlX3JlZ2V4cBgDIAEoCVIRY29udGVudFR5cGVSZWdleHASLAoSYXJ0aWZhY3RfaWRfcmVnZXhwGAQgASgJUhBhcnRpZmFjdElkUmVnZXhwGmMKC0VkZ2VUeXBlU2V0EjEKFGluY2x1ZGVkX2ludm9jYXRpb25zGAEgASgIUhNpbmNsdWRlZEludm9jYXRpb25zEiEKDHRlc3RfcmVzdWx0cxgCIAEoCFILdGVzdFJlc3VsdHM=');

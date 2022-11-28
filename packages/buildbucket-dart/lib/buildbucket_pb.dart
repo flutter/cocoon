@@ -5,4 +5,3 @@
 library buildbucket_pb;
 
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart' show Build;
-

@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use builderIDDescriptor instead')
 const BuilderID$json = const {
   '1': 'BuilderID',
@@ -19,7 +20,8 @@ const BuilderID$json = const {
 };
 
 /// Descriptor for `BuilderID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderIDDescriptor = $convert.base64Decode('CglCdWlsZGVySUQSGAoHcHJvamVjdBgBIAEoCVIHcHJvamVjdBIWCgZidWNrZXQYAiABKAlSBmJ1Y2tldBIYCgdidWlsZGVyGAMgASgJUgdidWlsZGVy');
+final $typed_data.Uint8List builderIDDescriptor = $convert.base64Decode(
+    'CglCdWlsZGVySUQSGAoHcHJvamVjdBgBIAEoCVIHcHJvamVjdBIWCgZidWNrZXQYAiABKAlSBmJ1Y2tldBIYCgdidWlsZGVyGAMgASgJUgdidWlsZGVy');
 @$core.Deprecated('Use builderItemDescriptor instead')
 const BuilderItem$json = const {
   '1': 'BuilderItem',
@@ -30,4 +32,5 @@ const BuilderItem$json = const {
 };
 
 /// Descriptor for `BuilderItem`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List builderItemDescriptor = $convert.base64Decode('CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaWQSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmln');
+final $typed_data.Uint8List builderItemDescriptor = $convert.base64Decode(
+    'CgtCdWlsZGVySXRlbRIpCgJpZBgBIAEoCzIZLmJ1aWxkYnVja2V0LnYyLkJ1aWxkZXJJRFICaWQSMgoGY29uZmlnGAIgASgLMhouYnVpbGRidWNrZXQuQnVpbGRlckNvbmZpZ1IGY29uZmln');

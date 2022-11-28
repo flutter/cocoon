@@ -14,7 +14,7 @@ class Toggle extends $pb.ProtobufEnum {
   static const Toggle YES = Toggle._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'YES');
   static const Toggle NO = Toggle._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'NO');
 
-  static const $core.List<Toggle> values = <Toggle> [
+  static const $core.List<Toggle> values = <Toggle>[
     UNSET,
     YES,
     NO,
@@ -27,11 +27,14 @@ class Toggle extends $pb.ProtobufEnum {
 }
 
 class Acl_Role extends $pb.ProtobufEnum {
-  static const Acl_Role READER = Acl_Role._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'READER');
-  static const Acl_Role SCHEDULER = Acl_Role._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SCHEDULER');
-  static const Acl_Role WRITER = Acl_Role._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'WRITER');
+  static const Acl_Role READER =
+      Acl_Role._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'READER');
+  static const Acl_Role SCHEDULER =
+      Acl_Role._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SCHEDULER');
+  static const Acl_Role WRITER =
+      Acl_Role._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'WRITER');
 
-  static const $core.List<Acl_Role> values = <Acl_Role> [
+  static const $core.List<Acl_Role> values = <Acl_Role>[
     READER,
     SCHEDULER,
     WRITER,
@@ -42,4 +45,3 @@ class Acl_Role extends $pb.ProtobufEnum {
 
   const Acl_Role._($core.int v, $core.String n) : super(v, n);
 }
-

@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use nullValueDescriptor instead')
 const NullValue$json = const {
   '1': 'NullValue',
@@ -38,7 +39,8 @@ const Struct_FieldsEntry$json = const {
 };
 
 /// Descriptor for `Struct`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List structDescriptor = $convert.base64Decode('CgZTdHJ1Y3QSOwoGZmllbGRzGAEgAygLMiMuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdC5GaWVsZHNFbnRyeVIGZmllbGRzGlEKC0ZpZWxkc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EiwKBXZhbHVlGAIgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlUgV2YWx1ZToCOAE=');
+final $typed_data.Uint8List structDescriptor = $convert.base64Decode(
+    'CgZTdHJ1Y3QSOwoGZmllbGRzGAEgAygLMiMuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdC5GaWVsZHNFbnRyeVIGZmllbGRzGlEKC0ZpZWxkc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EiwKBXZhbHVlGAIgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlUgV2YWx1ZToCOAE=');
 @$core.Deprecated('Use valueDescriptor instead')
 const Value$json = const {
   '1': 'Value',
@@ -56,7 +58,8 @@ const Value$json = const {
 };
 
 /// Descriptor for `Value`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List valueDescriptor = $convert.base64Decode('CgVWYWx1ZRI7CgpudWxsX3ZhbHVlGAEgASgOMhouZ29vZ2xlLnByb3RvYnVmLk51bGxWYWx1ZUgAUgludWxsVmFsdWUSIwoMbnVtYmVyX3ZhbHVlGAIgASgBSABSC251bWJlclZhbHVlEiMKDHN0cmluZ192YWx1ZRgDIAEoCUgAUgtzdHJpbmdWYWx1ZRIfCgpib29sX3ZhbHVlGAQgASgISABSCWJvb2xWYWx1ZRI8CgxzdHJ1Y3RfdmFsdWUYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0SABSC3N0cnVjdFZhbHVlEjsKCmxpc3RfdmFsdWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuTGlzdFZhbHVlSABSCWxpc3RWYWx1ZUIGCgRraW5k');
+final $typed_data.Uint8List valueDescriptor = $convert.base64Decode(
+    'CgVWYWx1ZRI7CgpudWxsX3ZhbHVlGAEgASgOMhouZ29vZ2xlLnByb3RvYnVmLk51bGxWYWx1ZUgAUgludWxsVmFsdWUSIwoMbnVtYmVyX3ZhbHVlGAIgASgBSABSC251bWJlclZhbHVlEiMKDHN0cmluZ192YWx1ZRgDIAEoCUgAUgtzdHJpbmdWYWx1ZRIfCgpib29sX3ZhbHVlGAQgASgISABSCWJvb2xWYWx1ZRI8CgxzdHJ1Y3RfdmFsdWUYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0SABSC3N0cnVjdFZhbHVlEjsKCmxpc3RfdmFsdWUYBiABKAsyGi5nb29nbGUucHJvdG9idWYuTGlzdFZhbHVlSABSCWxpc3RWYWx1ZUIGCgRraW5k');
 @$core.Deprecated('Use listValueDescriptor instead')
 const ListValue$json = const {
   '1': 'ListValue',
@@ -66,4 +69,5 @@ const ListValue$json = const {
 };
 
 /// Descriptor for `ListValue`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listValueDescriptor = $convert.base64Decode('CglMaXN0VmFsdWUSLgoGdmFsdWVzGAEgAygLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlUgZ2YWx1ZXM=');
+final $typed_data.Uint8List listValueDescriptor =
+    $convert.base64Decode('CglMaXN0VmFsdWUSLgoGdmFsdWVzGAEgAygLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlUgZ2YWx1ZXM=');

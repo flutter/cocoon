@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use taskDescriptor instead')
 const Task$json = const {
   '1': 'Task',
@@ -22,7 +23,8 @@ const Task$json = const {
 };
 
 /// Descriptor for `Task`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskDescriptor = $convert.base64Decode('CgRUYXNrEiYKAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEUgJpZBISCgRsaW5rGAIgASgJUgRsaW5rEi4KBnN0YXR1cxgDIAEoDjIWLmJ1aWxkYnVja2V0LnYyLlN0YXR1c1IGc3RhdHVzEkQKDnN0YXR1c19kZXRhaWxzGAQgASgLMh0uYnVpbGRidWNrZXQudjIuU3RhdHVzRGV0YWlsc1INc3RhdHVzRGV0YWlscxIhCgxzdW1tYXJ5X2h0bWwYBSABKAlSC3N1bW1hcnlIdG1sEjEKB2RldGFpbHMYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0UgdkZXRhaWxz');
+final $typed_data.Uint8List taskDescriptor = $convert.base64Decode(
+    'CgRUYXNrEiYKAmlkGAEgASgLMhYuYnVpbGRidWNrZXQudjIuVGFza0lEUgJpZBISCgRsaW5rGAIgASgJUgRsaW5rEi4KBnN0YXR1cxgDIAEoDjIWLmJ1aWxkYnVja2V0LnYyLlN0YXR1c1IGc3RhdHVzEkQKDnN0YXR1c19kZXRhaWxzGAQgASgLMh0uYnVpbGRidWNrZXQudjIuU3RhdHVzRGV0YWlsc1INc3RhdHVzRGV0YWlscxIhCgxzdW1tYXJ5X2h0bWwYBSABKAlSC3N1bW1hcnlIdG1sEjEKB2RldGFpbHMYBiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0UgdkZXRhaWxz');
 @$core.Deprecated('Use taskIDDescriptor instead')
 const TaskID$json = const {
   '1': 'TaskID',
@@ -33,4 +35,5 @@ const TaskID$json = const {
 };
 
 /// Descriptor for `TaskID`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List taskIDDescriptor = $convert.base64Decode('CgZUYXNrSUQSFgoGdGFyZ2V0GAEgASgJUgZ0YXJnZXQSDgoCaWQYAiABKAlSAmlk');
+final $typed_data.Uint8List taskIDDescriptor =
+    $convert.base64Decode('CgZUYXNrSUQSFgoGdGFyZ2V0GAEgASgJUgZ0YXJnZXQSDgoCaWQYAiABKAlSAmlk');

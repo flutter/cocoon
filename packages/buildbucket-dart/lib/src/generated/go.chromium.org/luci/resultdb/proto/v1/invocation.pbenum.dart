@@ -10,12 +10,16 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Invocation_State extends $pb.ProtobufEnum {
-  static const Invocation_State STATE_UNSPECIFIED = Invocation_State._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STATE_UNSPECIFIED');
-  static const Invocation_State ACTIVE = Invocation_State._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ACTIVE');
-  static const Invocation_State FINALIZING = Invocation_State._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FINALIZING');
-  static const Invocation_State FINALIZED = Invocation_State._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FINALIZED');
+  static const Invocation_State STATE_UNSPECIFIED =
+      Invocation_State._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STATE_UNSPECIFIED');
+  static const Invocation_State ACTIVE =
+      Invocation_State._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ACTIVE');
+  static const Invocation_State FINALIZING =
+      Invocation_State._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FINALIZING');
+  static const Invocation_State FINALIZED =
+      Invocation_State._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FINALIZED');
 
-  static const $core.List<Invocation_State> values = <Invocation_State> [
+  static const $core.List<Invocation_State> values = <Invocation_State>[
     STATE_UNSPECIFIED,
     ACTIVE,
     FINALIZING,
@@ -27,4 +31,3 @@ class Invocation_State extends $pb.ProtobufEnum {
 
   const Invocation_State._($core.int v, $core.String n) : super(v, n);
 }
-

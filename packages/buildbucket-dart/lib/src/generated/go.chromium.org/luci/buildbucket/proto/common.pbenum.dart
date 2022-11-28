@@ -10,16 +10,24 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Status extends $pb.ProtobufEnum {
-  static const Status STATUS_UNSPECIFIED = Status._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STATUS_UNSPECIFIED');
-  static const Status SCHEDULED = Status._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SCHEDULED');
-  static const Status STARTED = Status._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STARTED');
-  static const Status ENDED_MASK = Status._(4, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ENDED_MASK');
-  static const Status SUCCESS = Status._(12, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SUCCESS');
-  static const Status FAILURE = Status._(20, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FAILURE');
-  static const Status INFRA_FAILURE = Status._(36, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'INFRA_FAILURE');
-  static const Status CANCELED = Status._(68, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'CANCELED');
+  static const Status STATUS_UNSPECIFIED =
+      Status._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STATUS_UNSPECIFIED');
+  static const Status SCHEDULED =
+      Status._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SCHEDULED');
+  static const Status STARTED =
+      Status._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'STARTED');
+  static const Status ENDED_MASK =
+      Status._(4, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ENDED_MASK');
+  static const Status SUCCESS =
+      Status._(12, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SUCCESS');
+  static const Status FAILURE =
+      Status._(20, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'FAILURE');
+  static const Status INFRA_FAILURE =
+      Status._(36, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'INFRA_FAILURE');
+  static const Status CANCELED =
+      Status._(68, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'CANCELED');
 
-  static const $core.List<Status> values = <Status> [
+  static const $core.List<Status> values = <Status>[
     STATUS_UNSPECIFIED,
     SCHEDULED,
     STARTED,
@@ -37,11 +45,12 @@ class Status extends $pb.ProtobufEnum {
 }
 
 class Trinary extends $pb.ProtobufEnum {
-  static const Trinary UNSET = Trinary._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'UNSET');
+  static const Trinary UNSET =
+      Trinary._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'UNSET');
   static const Trinary YES = Trinary._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'YES');
   static const Trinary NO = Trinary._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'NO');
 
-  static const $core.List<Trinary> values = <Trinary> [
+  static const $core.List<Trinary> values = <Trinary>[
     UNSET,
     YES,
     NO,
@@ -54,10 +63,12 @@ class Trinary extends $pb.ProtobufEnum {
 }
 
 class Compression extends $pb.ProtobufEnum {
-  static const Compression ZLIB = Compression._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZLIB');
-  static const Compression ZSTD = Compression._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZSTD');
+  static const Compression ZLIB =
+      Compression._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZLIB');
+  static const Compression ZSTD =
+      Compression._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ZSTD');
 
-  static const $core.List<Compression> values = <Compression> [
+  static const $core.List<Compression> values = <Compression>[
     ZLIB,
     ZSTD,
   ];
@@ -67,4 +78,3 @@ class Compression extends $pb.ProtobufEnum {
 
   const Compression._($core.int v, $core.String n) : super(v, n);
 }
-
