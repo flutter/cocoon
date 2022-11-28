@@ -1,19 +1,18 @@
+#!/bin/bash
 # Copyright 2020 The Flutter Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-#!/usr/bin/env bash
 
 set -ex
 
 mkdir -p lib/src/generated
 
-#rm -rf buildbucket_tmp
+rm -rf buildbucket_tmp
 mkdir -p buildbucket_tmp
 pushd buildbucket_tmp
-#git clone https://chromium.googlesource.com/infra/luci/luci-go
-#git clone https://github.com/googleapis/googleapis
-#git clone https://github.com/protocolbuffers/protobuf
+git clone https://chromium.googlesource.com/infra/luci/luci-go
+git clone https://github.com/googleapis/googleapis
+git clone https://github.com/protocolbuffers/protobuf
 PROTOC="protoc --plugin=protoc-gen-dart=$HOME/.pub-cache/bin/protoc-gen-dart --dart_out=grpc:lib/src/generated -Ibuildbucket_tmp/protobuf/src -Ibuildbucket_tmp/googleapis -Ibuildbucket_tmp/luci-go -Ibuildbucket_tmp/buildbucket"
 pushd luci-go
 find . -name *.proto -exec bash -c 'path={}; d=../buildbucket/go.chromium.org/luci/$(dirname $path); mkdir -p $d ; cp $path $d' \;

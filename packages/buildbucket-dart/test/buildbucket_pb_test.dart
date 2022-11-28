@@ -1,4 +1,8 @@
-import 'package:buildbucket_proto/buildbucket_proto.dart';
+// Copyright 2022 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:buildbucket_proto/buildbucket_pb.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> buildJson = {
