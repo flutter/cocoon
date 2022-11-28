@@ -18,12 +18,12 @@ pushd luci-go
 find . -name *.proto -exec bash -c 'path={}; d=../buildbucket/go.chromium.org/luci/$(dirname $path); mkdir -p $d ; cp $path $d' \;
 popd
 popd
-$PROTOC go.chromium.org/luci/buildbucket/proto/build.proto 
-$PROTOC go.chromium.org/luci/buildbucket/proto/builder_common.proto 
-$PROTOC go.chromium.org/luci/buildbucket/proto/common.proto 
-$PROTOC go.chromium.org/luci/buildbucket/proto/project_config.proto 
-$PROTOC go.chromium.org/luci/buildbucket/proto/step.proto 
-$PROTOC go.chromium.org/luci/buildbucket/proto/task.proto 
+$PROTOC go.chromium.org/luci/buildbucket/proto/build.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/builder_common.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/common.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/project_config.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/step.proto
+$PROTOC go.chromium.org/luci/buildbucket/proto/task.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/common.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/invocation.proto
 $PROTOC go.chromium.org/luci/resultdb/proto/v1/predicate.proto
