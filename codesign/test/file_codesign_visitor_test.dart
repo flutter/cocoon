@@ -536,7 +536,7 @@ void main() {
         ),
         FakeCommand(
           command: <String>[
-            'codesign',
+            '/usr/bin/codesign',
             '-f',
             '-s',
             randomString,
@@ -558,7 +558,7 @@ void main() {
         ),
         FakeCommand(
           command: <String>[
-            'codesign',
+            '/usr/bin/codesign',
             '-f',
             '-s',
             randomString,
