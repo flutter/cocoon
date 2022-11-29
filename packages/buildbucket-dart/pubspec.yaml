@@ -1,6 +1,6 @@
-name: buildbucket_proto
-description: LUCI Buildbucket protobufs.
-version: 0.0.1
+name: buildbucket
+description: LUCI Buildbucket library. Protos and utilities to communicate with LUCI buildbucket service.
+version: 1.0.0
 repository: https://github.com/flutter/cocoon/tree/main/packages/buildbucket-dart
 
 environment:

@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:buildbucket_proto/buildbucket_pb.dart';
+import 'package:buildbucket/buildbucket_pb.dart';
 
 void main() {
   // Create a BuildBucket build from a json string.
