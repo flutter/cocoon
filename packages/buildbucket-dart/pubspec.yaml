@@ -1,5 +1,5 @@
-name: buildbucket_pb
-description: LUCI Buildbucket protobufs.
+name: buildbucket
+description: LUCI Buildbucket library. Protos and utilities to communicate with LUCI buildbucket service.
 version: 1.0.0
 repository: https://github.com/flutter/cocoon/tree/main/packages/buildbucket-dart
 
