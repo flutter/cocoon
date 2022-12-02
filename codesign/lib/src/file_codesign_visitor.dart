@@ -286,7 +286,7 @@ update these file paths accordingly.
       return;
     }
     final List<String> args = <String>[
-      'codesign',
+      '/usr/bin/codesign',
       '-f', // force
       '-s', // use the cert provided by next argument
       codesignCertName,

@@ -53,11 +53,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     BuildPushMessage buildPushMessage;
     try {
       final String decodedData = String.fromCharCodes(base64.decode(data));
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(decodedData) as Map<String, dynamic>);
       log.info('Result message from base64: $decodedData');
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(decodedData) as Map<String, dynamic>);
     } on FormatException {
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
       log.info('Result message: $data');
+      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
     }
     log.fine(buildPushMessage.userData);
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
