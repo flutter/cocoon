@@ -651,7 +651,7 @@ file_e''',
       );
     });
 
-    test('throw exception when configuration file is missing', () async {
+    test('log warnings when configuration file is missing', () async {
       fileSystem.file('${rootDirectory.absolute.path}/test_entitlement_2/entitlements.txt')
         ..createSync(recursive: true)
         ..writeAsStringSync(
@@ -675,14 +675,19 @@ file_c''',
           'file_c',
         ]),
       );
+      await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement_2'),
+        false,
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
-        () => codesignVisitor.parseEntitlements(
-          fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement_2'),
-          false,
-        ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        messages,
+        contains('${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
+            'by default, system will assume there is no without_entitlements file.'
+            'if this is not intended, please provide them along with the engine artifacts.'),
       );
     });
   });
