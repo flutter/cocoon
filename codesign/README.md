@@ -38,10 +38,10 @@ cipd create -in build                   \
 
 ## How to use
 
-`codesign` is the executable binary, and can be called via
+`codesign` is the executable binary in the `build` folder, and can be called via
 
  ```bash
- dart run bin/codesign.dart --[no-]dryrun
+ ./codesign --[no-]dryrun
  --codesign-cert-name="FLUTTER.IO LLC"
  --codesign-team-id-file-path=/a/b/c.txt
  --codesign-appstore-id-file-path=/a/b/b.txt
@@ -50,7 +50,7 @@ cipd create -in build                   \
  --output-zip-file-path=/b/output.zip
  ```
 
-The meaning and usage of each field is explained in detail
-in the comment section of `bin/codesign.dart`.
+Use `codesign --help` to learn more.
 
-Use `/path/to/codesign --help` to learn more.
+Alternatively, if user has dart installed and does not wish to build a binary,
+codesign app can be invoked via `dart run bin/codesign.dart --<extra_flags>`.
