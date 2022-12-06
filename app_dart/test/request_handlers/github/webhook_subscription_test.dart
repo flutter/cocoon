@@ -2454,7 +2454,8 @@ void foo() {
       when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/pigeon/lib/swift_generator.dart',
-          PullRequestFile()..filename = 'packages/pigeon/platform_tests/shared_test_plugin_code/lib/integration_tests.dart',
+          PullRequestFile()
+            ..filename = 'packages/pigeon/platform_tests/shared_test_plugin_code/lib/integration_tests.dart',
         ]),
       );
 
