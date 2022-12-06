@@ -116,8 +116,8 @@ class ValidationService {
   /// Checks if a pullRequest is still open and with autosubmit label before trying to process it.
   Future<ProcessMethod> processPullRequestMethod(github.PullRequest pullRequest) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
-    final github.PullRequest currentPullRequest = await gitHubService.getPullRequest(slug, pullRequest.number!);
+    final GithubService githubService = await config.createGithubService(slug);
+    final github.PullRequest currentPullRequest = await githubService.getPullRequest(slug, pullRequest.number!);
     final List<String> labelNames = (currentPullRequest.labels as List<github.IssueLabel>)
         .map<String>((github.IssueLabel labelMap) => labelMap.name)
         .toList();
@@ -148,7 +148,7 @@ class ValidationService {
       results.add(validationResult);
     }
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
-    final GithubService gitHubService = await config.createGithubService(slug);
+    final GithubService githubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.
     bool shouldReturn = false;
@@ -160,7 +160,7 @@ class ValidationService {
         final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, due to $commmentMessage';
 
         await removeLabelAndComment(
-          githubService: gitHubService,
+          githubService: githubService,
           repositorySlug: slug,
           prNumber: prNumber,
           prLabel: Config.kAutosubmitLabel,
@@ -189,7 +189,6 @@ class ValidationService {
 
     // If we got to this point it means we are ready to submit the PR.
     final ProcessMergeResult processed = await processMerge(
-      githubService: gitHubService,
       config: config,
       queryResult: result,
       messagePullRequest: messagePullRequest,
@@ -199,7 +198,7 @@ class ValidationService {
       final String message = 'auto label is removed for ${slug.fullName}, pr: $prNumber, ${processed.message}.';
 
       await removeLabelAndComment(
-        githubService: gitHubService,
+        githubService: githubService,
         repositorySlug: slug,
         prNumber: prNumber,
         prLabel: Config.kAutosubmitLabel,
@@ -235,14 +234,13 @@ class ValidationService {
 
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;
-    final GithubService gitHubService = await config.createGithubService(slug);
+    final GithubService githubService = await config.createGithubService(slug);
 
     if (revertValidationResult.result) {
       // Approve the pull request automatically as it has been validated.
       await approverService!.revertApproval(result, messagePullRequest);
 
       final ProcessMergeResult processed = await processMerge(
-        githubService: gitHubService,
         config: config,
         queryResult: result,
         messagePullRequest: messagePullRequest,
@@ -258,7 +256,7 @@ class ValidationService {
             originalPrLink: revertValidation!.extractLinkFromText(messagePullRequest.body)!,
           );
 
-          final github.Issue issue = await gitHubService.createIssue(
+          final github.Issue issue = await githubService.createIssue(
             // Created issues are created and tracked within flutter/flutter.
             slug: github.RepositorySlug(Config.flutter, Config.flutter),
             title: revertReviewTemplate.title!,
@@ -289,13 +287,13 @@ Please create a follow up issue to track a review for this pull request.
 Exception: ${exception.message}
 ''';
           log.warning(errorMessage);
-          await gitHubService.createComment(slug, prNumber, errorMessage);
+          await githubService.createComment(slug, prNumber, errorMessage);
         }
       } else {
         final String message = 'revert label is removed for ${slug.fullName}, pr#: $prNumber, ${processed.message}.';
 
         await removeLabelAndComment(
-          githubService: gitHubService,
+          githubService: githubService,
           repositorySlug: slug,
           prNumber: prNumber,
           prLabel: Config.kRevertLabel,
@@ -315,7 +313,7 @@ Exception: ${exception.message}
           revertValidationResult.message.isEmpty ? 'Validations Fail.' : revertValidationResult.message;
 
       await removeLabelAndComment(
-        githubService: gitHubService,
+        githubService: githubService,
         repositorySlug: slug,
         prNumber: prNumber,
         prLabel: Config.kRevertLabel,
@@ -332,7 +330,6 @@ Exception: ${exception.message}
 
   /// Merges the commit if the PullRequest passes all the validations.
   Future<ProcessMergeResult> processMerge({
-    required GithubService githubService,
     required Config config,
     required QueryResult queryResult,
     required github.PullRequest messagePullRequest,
@@ -346,7 +343,7 @@ Exception: ${exception.message}
       await retryOptions.retry(
         () async {
           result = await _processMergeInternal(
-            githubService: githubService,
+            config: config,
             slug: slug,
             number: number,
             // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
@@ -483,14 +480,17 @@ typedef RetryHandler = Function();
 
 /// Internal wrapper for the logic of merging a pull request into github.
 Future<github.PullRequestMerge> _processMergeInternal({
-  required GithubService githubService,
+  required Config config,
   required github.RepositorySlug slug,
   required int number,
   required github.MergeMethod mergeMethod,
   String? commitMessage,
   String? requestSha,
 }) async {
-  final github.PullRequestMerge pullRequestMerge = await githubService.mergePullRequest(
+  // This is retryable so to guard against token expiration we get a fresh
+  // client each time.
+  final GithubService gitHubService = await config.createGithubService(slug);
+  final github.PullRequestMerge pullRequestMerge = await gitHubService.mergePullRequest(
     slug,
     number,
     commitMessage: commitMessage,
