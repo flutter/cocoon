@@ -326,7 +326,7 @@ class LuciBuildService {
   /// Sends [ScheduleBuildRequest] the buildset, user_agent, and
   /// github_link tags are applied to match the original build. The build
   /// properties from the original build are also preserved.
-  Future<bool> rescheduleBuild({
+  Future<Build> rescheduleBuild({
     required String commitSha,
     required String builderName,
     required push_message.BuildPushMessage buildPushMessage,
@@ -336,7 +336,7 @@ class LuciBuildService {
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
     final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
-    await buildBucketClient.scheduleBuild(
+    return await buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
           project: buildPushMessage.build!.project,
@@ -356,13 +356,12 @@ class LuciBuildService {
         ),
       ),
     );
-    return true;
   }
 
   /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
   ///
   /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
-  Future<bool> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  Future<Build> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -401,7 +400,7 @@ class LuciBuildService {
 
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
-    return true;
+    return scheduleBuild;
   }
 
   /// Gets [Build] using its [id] and passing the additional
