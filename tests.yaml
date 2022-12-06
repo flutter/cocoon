@@ -37,3 +37,6 @@ tasks:
 
   - task: device_doctor
     script: test_utilities/bin/dart_test_runner.sh
+
+  - task: packages/buildbucket-dart
+    script: test_utilities/bin/dart_test_runner.sh

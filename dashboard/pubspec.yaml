@@ -30,7 +30,7 @@ dependencies:
   http: ^0.13.4
   protobuf: ^2.0.1
   provider: ^6.0.4
-  url_launcher: ^6.1.6
+  url_launcher: ^6.1.7
   flutter_app_icons: ^0.0.8
   truncate: ^3.0.1
 

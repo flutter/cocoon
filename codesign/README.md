@@ -18,8 +18,8 @@ To create the CIPD package, make sure that the `build/` folder does not exist.
 Every new commit will trigger pre-submit builders to auto build a new version
 for different platforms without any tag/ref.
 
-When a new commit is submitted, post-submit builders will trigger a new version
-with a tag of `commit_sha`, and a ref of `staging`.
+When a new commit is submitted, post-submit builders will trigger the build of
+a new version of the cipd package, and tag the package with `latest`.
 
 ### Manual build
 
@@ -28,7 +28,7 @@ the `build` folder. Then push to cipd by running
 
 ```bash
 cipd create -in build                   \
-  -name flutter/device_doctor/<os>-amd64 \
+  -name flutter/codesign/<os>-amd64 \
   -ref <ref>                     \
   -tag sha_timestamp:<revision>_<timestamp>
 ```
@@ -38,16 +38,19 @@ cipd create -in build                   \
 
 ## How to use
 
-`codesign` is the executable binary, and can be called
+`codesign` is the executable binary in the `build` folder, and can be called via
 
-```bash
-/path/to/codesign --commit <commit_sha> (--production)
---filepath <darwin-x64/FlutterMacOS.framework.zip>
---filepath <ios/artifacts.zip>
---filepath <more_file_path>
-```
+ ```bash
+ ./codesign --[no-]dryrun
+ --codesign-cert-name="FLUTTER.IO LLC"
+ --codesign-team-id-file-path=/a/b/c.txt
+ --codesign-appstore-id-file-path=/a/b/b.txt
+ --app-specific-password-file-path=/a/b/a.txt
+ --input-zip-file-path=/a/input.zip
+ --output-zip-file-path=/b/output.zip
+ ```
 
-Use `/path/to/codesign --help` to learn more.
+Use `codesign --help` to learn more.
 
-**Note**: Do not add the --production flag unless the binaries are
-intended to be uploaded back to Google Cloud Storage.
+Alternatively, if user has dart installed and does not wish to build a binary,
+codesign app can be invoked via `dart run bin/codesign.dart --<extra_flags>`.
