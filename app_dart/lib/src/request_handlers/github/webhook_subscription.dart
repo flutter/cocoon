@@ -486,7 +486,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // Native Linux tests.
           filename.endsWith('_test.cc') ||
           // Native Windows tests.
-          filename.endsWith('_test.cpp')) {
+          filename.endsWith('_test.cpp') ||
+          // Pigeon native tests.
+          filename.contains('/platform_tests/')) {
         hasTests = true;
       }
     }
