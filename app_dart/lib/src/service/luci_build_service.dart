@@ -363,7 +363,7 @@ class LuciBuildService {
 
   /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
   ///
-  /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
+  /// Returns the [Build] returned by scheduleBuildRequest.
   Future<Build> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
