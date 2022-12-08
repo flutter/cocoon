@@ -323,9 +323,12 @@ class LuciBuildService {
     return expectedFailedBuilds.toList();
   }
 
-  /// Sends [ScheduleBuildRequest] the buildset, user_agent, and
-  /// github_link tags are applied to match the original build. The build
-  /// properties from the original build are also preserved.
+  /// Sends [ScheduleBuildRequest] using information from a given build's
+  /// [BuildPushMessage].
+  ///
+  /// The buildset, user_agent, and github_link tags are applied to match the
+  /// original build. The build properties and user data from the original build
+  /// are also preserved.
   Future<Build> rescheduleBuild({
     required String commitSha,
     required String builderName,
