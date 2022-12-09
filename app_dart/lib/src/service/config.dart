@@ -326,8 +326,7 @@ class Config {
 
   Future<String> generateGithubToken(gh.RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    const RetryOptions retryOptions =
-        RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
+    const RetryOptions retryOptions = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 3));
     final Uint8List? cacheValue = await _cache.getOrCreate(
       configCacheName,
       'githubToken-${slug.fullName}',
