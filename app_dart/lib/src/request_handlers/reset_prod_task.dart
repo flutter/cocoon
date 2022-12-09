@@ -84,11 +84,13 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
     // Try to find the existing GitHub PR check run associated with this specific commit and task.
+    log.fine('Looking up existing check run...');
     final checkRunResults = await luciBuildService.githubChecksUtil
         .listCheckRunsForRef(config, commit.slug, ref: commit.sha!, checkName: target.value.name);
     final CheckRun? existingCheckRun = await checkRunResults
         .cast<CheckRun?>()
         .firstWhere((element) => element!.name == target.value.name, orElse: () => null);
+    log.fine('Found $existingCheckRun');
 
     final Map<String, List<String>> tags = <String, List<String>>{
       'triggered_by': <String>[token.email!],
