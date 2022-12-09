@@ -523,6 +523,7 @@ class LuciBuildService {
     Map<String, Object>? properties,
     Map<String, List<String>>? tags,
     int priority = kDefaultPriority,
+    github.CheckRun? existingCheckRun,
   }) async {
     tags ??= <String, List<String>>{};
     tags.addAll(<String, List<String>>{
@@ -538,12 +539,22 @@ class LuciBuildService {
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
+    // Received by [PostsubmitLuciSubscription] when LUCI phones back with build results.
     final Map<String, dynamic> rawUserData = <String, dynamic>{
       'commit_key': commitKey,
       'task_key': taskKey,
     };
 
-    await createPostsubmitCheckRun(commit, target, rawUserData);
+    final checkRun = existingCheckRun ?? await createPostsubmitCheckRun(commit, target);
+    if (checkRun != null) {
+      // Used by [GithubChecksService.updateCheckStatus], which is called by [PostsubmitLuciSubscription].
+      rawUserData['check_run_id'] = checkRun.id;
+      rawUserData['commit_sha'] = commit.sha;
+      rawUserData['commit_branch'] = commit.branch;
+      rawUserData['builder_name'] = target.value.name;
+      rawUserData['repo_owner'] = target.slug.owner;
+      rawUserData['repo_name'] = target.slug.name;
+    }
 
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
@@ -580,26 +591,19 @@ class LuciBuildService {
   }
 
   /// Creates postsubmit check runs for prod targets in supported repositories.
-  Future<void> createPostsubmitCheckRun(
+  Future<github.CheckRun?> createPostsubmitCheckRun(
     Commit commit,
     Target target,
-    Map<String, dynamic> rawUserData,
   ) async {
     if (!config.githubPostsubmitSupportedRepo(commit.slug) || target.value.bringup) {
-      return;
+      return null;
     }
-    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+    return await githubChecksUtil.createCheckRun(
       config,
       target.slug,
       commit.sha!,
       target.value.name,
     );
-    rawUserData['check_run_id'] = checkRun.id;
-    rawUserData['commit_sha'] = commit.sha;
-    rawUserData['commit_branch'] = commit.branch;
-    rawUserData['builder_name'] = target.value.name;
-    rawUserData['repo_owner'] = target.slug.owner;
-    rawUserData['repo_name'] = target.slug.name;
   }
 
   /// Check to auto-rerun TOT test failures.
@@ -608,7 +612,7 @@ class LuciBuildService {
   ///   1. It has been tried below the max retry limit
   ///   2. It is for the tip of tree
   ///   3. The last known status is not green
-  ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
+  ///   4. [ignoreChecks] is true. This allows manual reruns to bypass the Cocoon state.
   Future<bool> checkRerunBuilder({
     required Commit commit,
     required Target target,
@@ -616,6 +620,7 @@ class LuciBuildService {
     required DatastoreService datastore,
     Map<String, List<String>>? tags,
     bool ignoreChecks = false,
+    github.CheckRun? existingCheckRun,
   }) async {
     if (ignoreChecks == false && await _shouldRerunBuilder(task, commit, datastore) == false) {
       return false;
@@ -634,6 +639,7 @@ class LuciBuildService {
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: tags,
+            existingCheckRun: existingCheckRun,
           ),
         ),
       ],

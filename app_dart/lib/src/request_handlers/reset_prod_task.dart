@@ -83,6 +83,13 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
 
+    // Try to find the existing GitHub PR check run associated with this specific commit and task.
+    final checkRunResults = await luciBuildService.githubChecksUtil
+        .listCheckRunsForRef(config, commit.slug, ref: commit.sha!, checkName: target.value.name);
+    final CheckRun? existingCheckRun = await checkRunResults
+        .cast<CheckRun?>()
+        .firstWhere((element) => element!.name == target.value.name, orElse: () => null);
+
     final Map<String, List<String>> tags = <String, List<String>>{
       'triggered_by': <String>[token.email!],
       'trigger_type': <String>['manual'],
@@ -94,6 +101,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       datastore: datastore,
       tags: tags,
       ignoreChecks: true,
+      existingCheckRun: existingCheckRun,
     );
     if (isRerunning == false) {
       throw InternalServerError('Failed to rerun ${task.name}');

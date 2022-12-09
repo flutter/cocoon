@@ -140,4 +140,55 @@ class GithubChecksUtil {
       output: output,
     );
   }
+
+  /// Retrieves all check runs that match the Git [ref].
+  ///
+  /// Optionally, you can supply [checkName], [status], and/or [filter] to refine the query.
+  Future<Stream<github.CheckRun>> listCheckRunsForRef(
+    Config cocoonConfig,
+    github.RepositorySlug slug, {
+    required String ref,
+    String? checkName,
+    github.CheckRunStatus? status,
+    github.CheckRunFilter? filter,
+  }) async {
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
+    );
+    return r.retry(
+      () async {
+        return _listCheckRunsForRef(
+          cocoonConfig,
+          slug,
+          ref: ref,
+          checkName: checkName,
+          status: status,
+          filter: filter,
+        );
+      },
+      retryIf: (Exception e) => true,
+      onRetry: (Exception e) => log.warning(
+        'listCheckRunsForRef fails for slug: ${slug.fullName}, ref: $ref, checkName: $checkName, status: $status, filter: $filter. Exception: ${e.toString()}',
+      ),
+    );
+  }
+
+  Future<Stream<github.CheckRun>> _listCheckRunsForRef(
+    Config cocoonConfig,
+    github.RepositorySlug slug, {
+    required String ref,
+    String? checkName,
+    github.CheckRunStatus? status,
+    github.CheckRunFilter? filter,
+  }) async {
+    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+    return gitHubClient.checks.checkRuns.listCheckRunsForRef(
+      slug,
+      ref: ref,
+      checkName: checkName,
+      status: status,
+      filter: filter,
+    );
+  }
 }
