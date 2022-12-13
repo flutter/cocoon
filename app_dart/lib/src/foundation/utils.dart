@@ -19,6 +19,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
 import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
