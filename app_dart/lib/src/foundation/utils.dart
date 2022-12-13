@@ -63,7 +63,7 @@ Future<String> githubFileContent(
   late String content;
   try {
     await retryOptions.retry(
-      () async => content = github.repositories.getContents(slug, filePath, ref: ref);
+      () async => content = github.repositories.getContents(slug, filePath, ref: ref),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
