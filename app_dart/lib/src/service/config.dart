@@ -333,7 +333,7 @@ class Config {
       // If generating the github token fails, wait 3 seconds and retry up to 3 times.
       createFn: () => retryOptions.retry(
         () async => await _generateGithubToken(slug),
-        retryIf: (Exception e) => true,
+        retryIf: (Exception e) => e is GitHubError,
       ),
       // Tokens are minted for 10 minutes
       ttl: const Duration(minutes: 8),
