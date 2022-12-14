@@ -50,7 +50,7 @@ Future<String> githubFileContent(
     delayFactor: Duration(seconds: 3),
   ),
 }) async {
-  final GitHub github = await Config.createGitHubClient();
+  final GitHub github = await Config.createGitHubClient(slug: slug);
   // git-on-borg has a different path for shas and refs to github
   final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
   final Uri gobUrl = Uri.https(
