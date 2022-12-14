@@ -249,6 +249,7 @@ class Scheduler {
     final String configContent = await githubFileContent(
       commit.slug,
       '.ci.yaml',
+      config.createDefaultGitHubService(),
       httpClientProvider: httpClientProvider,
       ref: commit.sha!,
       retryOptions: retryOptions,
