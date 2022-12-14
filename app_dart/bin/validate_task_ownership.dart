@@ -15,13 +15,19 @@ import 'package:http/http.dart' as http;
 ///
 /// This currently supports `flutter/flutter` only.
 Future<List<String>> remoteCheck(String repo, String ref) async {
-  final String ciYamlContent = await githubFileContent(
+  const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
+  final bool inMemoryCache = Platform.environment[_kCocoonUseInMemoryCache] == 'true';
+  final CacheService cache = CacheService(inMemory: inMemoryCache);
+
+  final Config config = Config(dbService, cache);
+  final GithubService githubService = await config.createDefaultGitHubService();
+  final String ciYamlContent = await githubService.githubFileContent(
     RepositorySlug('flutter', repo),
     kCiYamlPath,
     httpClientProvider: () => http.Client(),
     ref: ref,
   );
-  final String testOwnersContent = await githubFileContent(
+  final String testOwnersContent = await githubService.githubFileContent(
     RepositorySlug('flutter', repo),
     kTestOwnerPath,
     httpClientProvider: () => http.Client(),

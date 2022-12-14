@@ -26,9 +26,15 @@ final List<SupportedConfig> configs = <SupportedConfig>[
 ];
 
 Future<void> main() async {
+  const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
+  final bool inMemoryCache = Platform.environment[_kCocoonUseInMemoryCache] == 'true';
+  final CacheService cache = CacheService(inMemory: inMemoryCache);
+
+  final Config config = Config(dbService, cache);
+  final GithubService githubService = await config.createDefaultGitHubService();
   for (final SupportedConfig config in configs) {
     test('validate config file of $config', () async {
-      final String configContent = await githubFileContent(
+      final String configContent = await githubService.githubFileContent(
         config.slug,
         kCiYamlPath,
         httpClientProvider: () => http.Client(),
@@ -50,7 +56,7 @@ Future<void> main() async {
     test(
       'validate enabled branches of $config',
       () async {
-        final String configContent = await githubFileContent(
+        final String configContent = await githubService.githubFileContent(
           config.slug,
           kCiYamlPath,
           httpClientProvider: () => http.Client(),

@@ -38,47 +38,6 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-/// Get content of [filePath] from GitHub CDN.
-Future<String> githubFileContent(
-  RepositorySlug slug,
-  String filePath, 
-  GitHub github, {
-  required HttpClientProvider httpClientProvider,
-  String ref = 'master',
-  Duration timeout = const Duration(seconds: 5),
-  RetryOptions retryOptions = const RetryOptions(
-    maxAttempts: 3,
-    delayFactor: Duration(seconds: 3),
-  ),
-}) async {
-  // git-on-borg has a different path for shas and refs to github
-  final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
-  final Uri gobUrl = Uri.https(
-    'flutter.googlesource.com',
-    'mirrors/${slug.name}/+/$gobRef/$filePath',
-    <String, String>{
-      'format': 'text',
-    },
-  );
-  late String content;
-  try {
-    await retryOptions.retry(
-      () async {
-        content = await github.repositories.getContents(slug, filePath, ref: ref)
-        .then((contents) => contents.file)
-        .then((file) => file?.text)
-      },
-      retryIf: (Exception e) => e is HttpException || e is NotFoundException,
-    );
-  } catch (e) {
-    await retryOptions.retry(
-      () async =>
-          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
-      retryIf: (Exception e) => e is HttpException,
-    );
-  }
-  return content;
-}
 
 /// Return [String] of response from [url] if status is [HttpStatus.ok].
 ///
