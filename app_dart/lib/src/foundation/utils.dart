@@ -19,7 +19,6 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handlers/flaky_handler_utils.dart';
 import '../request_handling/exceptions.dart';
-import '../service/config.dart';
 import '../service/logging.dart';
 
 const String kCiYamlPath = '.ci.yaml';
@@ -50,7 +49,8 @@ Future<String> githubFileContent(
     delayFactor: Duration(seconds: 3),
   ),
 }) async {
-  final GitHub github = await Config.createGitHubClient(slug: slug);
+  final GitHubFile githubFile = GitHubFile()
+  final Uri githubUrl = Uri.https('raw.githubusercontent.com', '${slug.fullName}/$ref/$filePath');
   // git-on-borg has a different path for shas and refs to github
   final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
   final Uri gobUrl = Uri.https(
@@ -63,7 +63,7 @@ Future<String> githubFileContent(
   late String content;
   try {
     await retryOptions.retry(
-      () async => content = github.repositories.getContents(slug, filePath, ref: ref),
+      () async => content = await getUrl(githubUrl, httpClientProvider, timeout: timeout),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } catch (e) {
