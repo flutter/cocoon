@@ -246,10 +246,10 @@ class Scheduler {
     String ciPath, {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
-    final String configContent = await githubFileContent(
+    final GithubService githubService = await config.createDefaultGitHubService();
+    final String configContent = await githubService.githubFileContent(
       commit.slug,
       '.ci.yaml',
-      config.createDefaultGitHubService(),
       httpClientProvider: httpClientProvider,
       ref: commit.sha!,
       retryOptions: retryOptions,
