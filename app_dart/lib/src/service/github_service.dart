@@ -312,7 +312,7 @@ class GithubService {
         () async {
           content = await github.repositories.getContents(slug, filePath, ref: ref)
           .then((contents) => contents.file)
-          .then((file) => file?.text)
+          .then((file) => file?.text);
         },
         retryIf: (Exception e) => e is HttpException || e is NotFoundException,
       );
