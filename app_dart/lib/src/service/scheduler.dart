@@ -247,7 +247,7 @@ class Scheduler {
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
   }) async {
     final GithubService githubService = await config.createDefaultGitHubService();
-    final String configContent = await githubService.githubFileContent(
+    final String configContent = await githubService.getFileContent(
       commit.slug,
       '.ci.yaml',
       httpClientProvider: httpClientProvider,

@@ -285,8 +285,8 @@ class GithubService {
     return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
-  /// Get content of [filePath] from GitHub CDN.
-  Future<String> githubFileContent(
+  /// Get content of [filePath] from GitHub API.
+  Future<String> getFileContent(
     RepositorySlug slug,
     String filePath, {
     required HttpClientProvider httpClientProvider,
