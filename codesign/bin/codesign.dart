@@ -8,6 +8,7 @@ import 'package:args/args.dart';
 import 'package:codesign/codesign.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:logging/logging.dart';
 import 'package:platform/platform.dart';
 import 'package:process/process.dart';
 
@@ -63,6 +64,10 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// --output-zip-file-path=/b/output.zip
 /// ```
 Future<void> main(List<String> args) async {
+  Logger.root.onRecord.listen((LogRecord record) {
+    stdout.writeln(record.toString());
+  });
+
   final ArgParser parser = ArgParser();
   parser
     ..addFlag(

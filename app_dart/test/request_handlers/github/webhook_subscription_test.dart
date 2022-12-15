@@ -889,9 +889,11 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
-        ),
+          PullRequestFile()..filename = 'shell/platform/embedder/tests/embedder_test_context.cc',
+          PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
+        ]),
       );
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(

@@ -313,7 +313,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
-        filename.startsWith('dev/devicelab/lib/versions/gallery.dart');
+        filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
+        filename.startsWith('shell/platform/embedder/tests') ||
+        filename.startsWith('shell/platform/embedder/fixtures');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.

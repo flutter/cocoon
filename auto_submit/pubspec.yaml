@@ -8,7 +8,7 @@ publish_to: none
 homepage: https://github.com/flutter/cocoon/blob/main/autosubmit
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
   appengine: ^0.13.4
@@ -33,7 +33,7 @@ dev_dependencies:
   json_serializable: ^6.5.4
   flutter_lints: ^2.0.1
   mockito: ^5.3.2
-  test: ^1.22.0
+  test: ^1.22.1
 
 builders:
   json_serializable: ^3.3.0
