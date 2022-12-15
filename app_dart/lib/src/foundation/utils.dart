@@ -37,7 +37,6 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-
 /// Return [String] of response from [url] if status is [HttpStatus.ok].
 ///
 /// If [url] returns [HttpStatus.notFound] throw [NotFoundException].
