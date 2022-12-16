@@ -4763,7 +4763,7 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         returnValue: _i17.Future<List<_i9.Build?>>.value(<_i9.Build?>[]),
       ) as _i17.Future<List<_i9.Build?>>);
   @override
-  _i17.Future<bool> rescheduleBuild({
+  _i17.Future<_i9.Build> rescheduleBuild({
     required String? commitSha,
     required String? builderName,
     required _i30.BuildPushMessage? buildPushMessage,
@@ -4778,16 +4778,33 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
             #buildPushMessage: buildPushMessage,
           },
         ),
-        returnValue: _i17.Future<bool>.value(false),
-      ) as _i17.Future<bool>);
+        returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
+          this,
+          Invocation.method(
+            #rescheduleBuild,
+            [],
+            {
+              #commitSha: commitSha,
+              #builderName: builderName,
+              #buildPushMessage: buildPushMessage,
+            },
+          ),
+        )),
+      ) as _i17.Future<_i9.Build>);
   @override
-  _i17.Future<bool> rescheduleUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) => (super.noSuchMethod(
+  _i17.Future<_i9.Build> rescheduleUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) => (super.noSuchMethod(
         Invocation.method(
           #rescheduleUsingCheckRunEvent,
           [checkRunEvent],
         ),
-        returnValue: _i17.Future<bool>.value(false),
-      ) as _i17.Future<bool>);
+        returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
+          this,
+          Invocation.method(
+            #rescheduleUsingCheckRunEvent,
+            [checkRunEvent],
+          ),
+        )),
+      ) as _i17.Future<_i9.Build>);
   @override
   _i17.Future<_i9.Build> getBuildById(
     String? id, {
