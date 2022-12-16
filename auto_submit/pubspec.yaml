@@ -29,7 +29,7 @@ dependencies:
   retry: ^3.0.1
 
 dev_dependencies:
-  build_runner: ^2.3.2
+  build_runner: ^2.3.3
   json_serializable: ^6.5.4
   flutter_lints: ^2.0.1
   mockito: ^5.3.2
