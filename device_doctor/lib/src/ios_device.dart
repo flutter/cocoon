@@ -93,17 +93,31 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     HealthCheckResult healthCheckResult;
     try {
       final String? homeDir = Platform.environment['HOME'];
-      final String profile = await eval(
+
+      final String out = await eval(
         'ls',
         <String>['$homeDir/Library/MobileDevice/Provisioning\ Profiles'],
         processManager: processManager,
       );
-      final String provisionFileContent = await eval(
-        'security',
-        <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$profile'],
-        processManager: processManager,
-      );
-      if (provisionFileContent.contains(deviceId!)) {
+      // Split filenames
+      final profiles = out.split('\n');
+
+      // Check all provisioning profiles in the directory to
+      // to see if any contain a valid profile
+      bool validProfileFound = false;
+      for (var file in profiles) {
+        // print(file.path);
+        final String provisionFileContent = await eval(
+          'security',
+          <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$file'],
+          processManager: processManager,
+        );
+        if (provisionFileContent.contains(deviceId!)) {
+          validProfileFound = true;
+        }
+      }
+      // If any file contained a valid profile, then set result accordingly
+      if (validProfileFound) {
         healthCheckResult = HealthCheckResult.success(kDeviceProvisioningProfileCheckKey);
       } else {
         healthCheckResult = HealthCheckResult.failure(
