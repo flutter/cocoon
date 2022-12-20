@@ -106,7 +106,6 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       // to see if any contain a valid profile
       bool validProfileFound = false;
       for (var file in profiles) {
-        // print(file.path);
         final String provisionFileContent = await eval(
           'security',
           <String>['cms', '-D', '-i', '$homeDir/Library/MobileDevice/Provisioning\ Profiles/$file'],
