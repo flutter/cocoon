@@ -100,7 +100,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
         processManager: processManager,
       );
       // Split filenames
-      final profiles = out.split('\n');
+      final profiles = LineSplitter.split(out).toList();
 
       // Check all provisioning profiles in the directory to
       // to see if any contain a valid profile
@@ -114,6 +114,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
         );
         if (provisionFileContent.contains(deviceId!)) {
           validProfileFound = true;
+          break;
         }
       }
       // If any file contained a valid profile, then set result accordingly
