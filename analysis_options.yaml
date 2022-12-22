@@ -30,7 +30,6 @@ analyzer:
     missing_return: warning
     # allow having TODOs in the code
     todo: ignore
-    implicit_dynamic_parameter: info
   exclude:
     - ".dart_tool/**"
     - "**/*.g.dart"

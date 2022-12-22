@@ -18,6 +18,11 @@ command -v cipd > /dev/null || {
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)"
 OS="`uname`"
 
+echo ########### Ensure file ###########
+cat $DIR/ensure_file
+echo ###################################
+
+
 cipd ensure -ensure-file $DIR/ensure_file -root $DIR
 
 pushd $DIR/..

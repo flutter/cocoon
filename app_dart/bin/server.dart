@@ -56,6 +56,11 @@ Future<void> main() async {
         config: config,
         authenticationProvider: authProvider,
       ),
+      '/api/create-branch': CreateBranch(
+        branchService: branchService,
+        config: config,
+        authenticationProvider: authProvider,
+      ),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
         config: config,
         authenticationProvider: authProvider,

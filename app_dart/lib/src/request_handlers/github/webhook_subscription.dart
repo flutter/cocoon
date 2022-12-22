@@ -313,7 +313,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
-        filename.startsWith('dev/devicelab/lib/versions/gallery.dart');
+        filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
+        filename.startsWith('shell/platform/embedder/tests') ||
+        filename.startsWith('shell/platform/embedder/fixtures');
   }
 
   /// Returns the set of labels applicable to a file in the framework repo.
@@ -486,7 +488,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // Native Linux tests.
           filename.endsWith('_test.cc') ||
           // Native Windows tests.
-          filename.endsWith('_test.cpp')) {
+          filename.endsWith('_test.cpp') ||
+          // Pigeon native tests.
+          filename.contains('/platform_tests/')) {
         hasTests = true;
       }
     }

@@ -740,12 +740,13 @@ void main() {
 
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      final bool rescheduled = await service.rescheduleBuild(
+      final build = await service.rescheduleBuild(
         commitSha: 'abc',
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
       );
-      expect(rescheduled, isTrue);
+      expect(build.id, '1');
+      expect(build.status, Status.success);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });
