@@ -686,7 +686,8 @@ file_c''',
       expect(
         messages,
         contains('${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
-            'by default, system will assume there is no without_entitlements file.'
+            'by default, system will assume there is no without_entitlements file. '
+            'As a result, no binary will be codesigned.'
             'if this is not intended, please provide them along with the engine artifacts.'),
       );
     });

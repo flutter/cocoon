@@ -318,7 +318,8 @@ update these file paths accordingly.
         : fileSystem.path.join(parent.path, 'without_entitlements.txt');
     if (!(await fileSystem.file(entitlementFilePath).exists())) {
       log.warning('$entitlementFilePath not found. '
-          'by default, system will assume there is no ${entitlements ? '' : 'without_'}entitlements file.'
+          'by default, system will assume there is no ${entitlements ? '' : 'without_'}entitlements file. '
+          'As a result, no binary will be codesigned.'
           'if this is not intended, please provide them along with the engine artifacts.');
       return <String>{};
     }
