@@ -451,7 +451,8 @@ class Scheduler {
             success = true;
           }
         } else {
-          success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+          await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+          success = true;
         }
 
         log.fine('CheckName: $name State: $success');
