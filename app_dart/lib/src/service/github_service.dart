@@ -249,19 +249,19 @@ class GithubService {
   /// in the repository. Retries in case of failure and falls back onto GoB
   /// in the case of file not being found using github package
   Future<String> getFileContent(
-      RepositorySlug slug,
-      String path, {
-      HttpClientProvider? httpClientProvider,
-      String ref = 'master',
-      Duration timeout = const Duration(seconds: 5),
-      RetryOptions retryOptions = const RetryOptions(
-        maxAttempts: 3,
-        delayFactor: Duration(seconds: 3),
-      ),
-    }) async {
+    RepositorySlug slug,
+    String path, {
+    HttpClientProvider? httpClientProvider,
+    String ref = 'master',
+    Duration timeout = const Duration(seconds: 5),
+    RetryOptions retryOptions = const RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 3),
+    ),
+  }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(path);
-    
+
     final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
     final Uri gobUrl = Uri.https(
       'flutter.googlesource.com',
@@ -285,8 +285,8 @@ class GithubService {
     } catch (e) {
       await retryOptions.retry(
         () async {
-            ArgumentError.checkNotNull(httpClientProvider);
-            content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider!, timeout: timeout)));
+          ArgumentError.checkNotNull(httpClientProvider);
+          content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider!, timeout: timeout)));
         },
         retryIf: (Exception e) => e is HttpException,
       );
