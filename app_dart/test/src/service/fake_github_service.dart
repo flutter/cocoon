@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/foundation/typedefs.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
+import 'package:retry/retry.dart';
 
 import '../utilities/mocks.dart';
 
@@ -62,7 +65,17 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
+  Future<String> getFileContent(
+    RepositorySlug slug,
+    String path, {
+    HttpClientProvider? httpClientProvider,
+    String ref = 'master',
+    Duration timeout = const Duration(seconds: 5),
+    RetryOptions retryOptions = const RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 3),
+    ),
+  }) async {
     if (path == 'bin/internal/release-candidate-branch.version') {
       if (ref == 'beta') {
         return 'flutter-3.2-candidate.5\n';
