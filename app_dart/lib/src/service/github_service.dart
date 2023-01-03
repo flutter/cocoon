@@ -4,10 +4,15 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'dart:io';
 
 import 'package:github/github.dart';
 import 'package:http/http.dart';
+import 'package:retry/retry.dart';
 
+import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
+import '../request_handling/exceptions.dart';
 import '../service/logging.dart';
 
 class GithubService {
@@ -241,15 +246,51 @@ class GithubService {
   }
 
   /// Gets the file content as UTF8 string of the file specified by the `path`
-  /// in the repository.
-  Future<String> getFileContent(RepositorySlug slug, String path, {String? ref}) async {
+  /// in the repository. Retries in case of failure and falls back onto GoB
+  /// in the case of file not being found using github package
+  Future<String> getFileContent(
+      RepositorySlug slug,
+      String path, {
+      HttpClientProvider? httpClientProvider,
+      String ref = 'master',
+      Duration timeout = const Duration(seconds: 5),
+      RetryOptions retryOptions = const RetryOptions(
+        maxAttempts: 3,
+        delayFactor: Duration(seconds: 3),
+      ),
+    }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(path);
-    final RepositoryContents contents = await github.repositories.getContents(slug, path, ref: ref);
-    if (!contents.isFile) {
-      throw 'The path $path should point to a file, but it is not!';
+    
+    final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
+    final Uri gobUrl = Uri.https(
+      'flutter.googlesource.com',
+      'mirrors/${slug.name}/+/$gobRef/$path',
+      <String, String>{
+        'format': 'text',
+      },
+    );
+    late String content;
+    try {
+      await retryOptions.retry(
+        () async {
+          final RepositoryContents contents = await github.repositories.getContents(slug, path, ref: ref);
+          if (!contents.isFile) {
+            throw 'The path $path should point to a file, but it is not!';
+          }
+          content = utf8.decode(base64.decode(contents.file!.content!.replaceAll('\n', '')));
+        },
+        retryIf: (Exception e) => e is HttpException || e is NotFoundException,
+      );
+    } catch (e) {
+      await retryOptions.retry(
+        () async {
+            ArgumentError.checkNotNull(httpClientProvider);
+            content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider!, timeout: timeout)));
+        },
+        retryIf: (Exception e) => e is HttpException,
+      );
     }
-    final String content = utf8.decode(base64.decode(contents.file!.content!.replaceAll('\n', '')));
     return content;
   }
 
@@ -283,47 +324,5 @@ class GithubService {
     const String chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     final Random rnd = Random();
     return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
-  }
-
-  /// Get content of [filePath] from GitHub API.
-  Future<String> getFileContent(
-    RepositorySlug slug,
-    String filePath, {
-    required HttpClientProvider httpClientProvider,
-    String ref = 'master',
-    Duration timeout = const Duration(seconds: 5),
-    RetryOptions retryOptions = const RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 3),
-    ),
-  }) async {
-    // git-on-borg has a different path for shas and refs to github
-    final String gobRef = (ref.length < 40) ? 'refs/heads/$ref' : ref;
-    final Uri gobUrl = Uri.https(
-      'flutter.googlesource.com',
-      'mirrors/${slug.name}/+/$gobRef/$filePath',
-      <String, String>{
-        'format': 'text',
-      },
-    );
-    late String content;
-    try {
-      await retryOptions.retry(
-        () async {
-          content = await github.repositories
-              .getContents(slug, filePath, ref: ref)
-              .then((contents) => contents.file)
-              .then((file) => file?.text);
-        },
-        retryIf: (Exception e) => e is HttpException || e is NotFoundException,
-      );
-    } catch (e) {
-      await retryOptions.retry(
-        () async =>
-            content = String.fromCharCodes(base64Decode(await getUrl(gobUrl, httpClientProvider, timeout: timeout))),
-        retryIf: (Exception e) => e is HttpException,
-      );
-    }
-    return content;
   }
 }
