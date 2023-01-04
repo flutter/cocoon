@@ -294,7 +294,7 @@ packages:
       name: graphql
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.1.2-beta.6"
+    version: "5.1.2"
   graphs:
     dependency: transitive
     description:
