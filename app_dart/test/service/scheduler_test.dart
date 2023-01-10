@@ -65,6 +65,7 @@ void main() {
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeBuildStatusService buildStatusService;
+  late MockGithubService mockGithubService;
   late MockClient httpClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
@@ -87,7 +88,13 @@ void main() {
       when(tabledataResource.insertAll(any, any, any, any)).thenAnswer((_) async {
         return TableDataInsertAllResponse();
       });
-
+      mockGithubService = MockGithubService();
+      when(mockGithubService.getFileContent(any, argThat(contains('.ci.yaml')),
+              httpClientProvider: anyNamed('httpClientProvider'),
+              ref: anyNamed('ref'),
+              timeout: anyNamed('timeout'),
+              retryOptions: anyNamed('retryOptions')))
+          .thenAnswer((_) => Future<String>.value(singleCiYaml));
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       buildStatusService =
@@ -95,19 +102,13 @@ void main() {
       config = FakeConfig(
         tabledataResource: tabledataResource,
         dbValue: db,
-        githubService: FakeGithubService(),
+        githubService: mockGithubService,
         githubClient: MockGitHub(),
         supportedReposValue: <RepositorySlug>{
           Config.engineSlug,
           Config.flutterSlug,
         },
       );
-      httpClient = MockClient((http.Request request) async {
-        if (request.url.path.contains('.ci.yaml')) {
-          return http.Response(singleCiYaml, 200);
-        }
-        throw Exception('Failed to find ${request.url.path}');
-      });
 
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
@@ -304,6 +305,19 @@ void main() {
 
     group('add pull request', () {
       test('creates expected commit', () async {
+        when(mockGithubService.getFileContent(any, any,
+                httpClientProvider: anyNamed('httpClientProvider'),
+                ref: anyNamed('ref'),
+                timeout: anyNamed('timeout'),
+                retryOptions: anyNamed('retryOptions')))
+            .thenAnswer((_) => Future<String>.value('''
+enabled_branches:
+  - master
+targets:
+  - name: Linux A
+    presubmit: true
+    scheduler: luci
+          '''));
         final PullRequest mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
@@ -319,6 +333,12 @@ void main() {
       });
 
       test('schedules tasks against merged PRs', () async {
+        when(mockGithubService.getFileContent(any, any,
+                httpClientProvider: anyNamed('httpClientProvider'),
+                ref: anyNamed('ref'),
+                timeout: anyNamed('timeout'),
+                retryOptions: anyNamed('retryOptions')))
+            .thenAnswer((_) => Future<String>.value(singleCiYaml));
         final PullRequest mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
@@ -454,10 +474,14 @@ void main() {
 
     group('presubmit', () {
       test('gets only enabled .ci.yaml builds', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
+        when(mockGithubService.listFiles(pullRequest))
+            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+        when(mockGithubService.getFileContent(any, '.ci.yaml',
+                httpClientProvider: anyNamed('httpClientProvider'),
+                ref: anyNamed('ref'),
+                timeout: anyNamed('timeout'),
+                retryOptions: anyNamed('retryOptions')))
+            .thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - master
 targets:
@@ -483,12 +507,7 @@ targets:
     enabled_branches:
       - master
     presubmit: true
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          '''));
         final List<Target> presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
         expect(
           presubmitTargets.map((Target target) => target.value.name).toList(),
@@ -497,23 +516,20 @@ targets:
       });
 
       test('checks for release branches', () async {
-        const String branch = 'flutter-1.24-candidate.1';
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
+        when(mockGithubService.getFileContent(any, any,
+                httpClientProvider: anyNamed('httpClientProvider'),
+                ref: anyNamed('ref'),
+                timeout: anyNamed('timeout'),
+                retryOptions: anyNamed('retryOptions')))
+            .thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - master
 targets:
   - name: Linux A
     presubmit: true
     scheduler: luci
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          '''));
+        const String branch = 'flutter-1.24-candidate.1';
         expect(
           scheduler.getPresubmitTargets(generatePullRequest(branch: branch)),
           throwsA(predicate((Exception e) => e.toString().contains('$branch is not enabled'))),
@@ -522,22 +538,19 @@ targets:
 
       test('checks for release branch regex', () async {
         const String branch = 'flutter-1.24-candidate.1';
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
+        when(mockGithubService.getFileContent(any, any,
+                httpClientProvider: anyNamed('httpClientProvider'),
+                ref: anyNamed('ref'),
+                timeout: anyNamed('timeout'),
+                retryOptions: anyNamed('retryOptions')))
+            .thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - main
   - flutter-\\d+.\\d+-candidate.\\d+
 targets:
   - name: Linux A
     scheduler: luci
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+          '''));
         final List<Target> targets = await scheduler.getPresubmitTargets(generatePullRequest(branch: branch));
         expect(targets.single.value.name, 'Linux A');
       });
@@ -561,7 +574,6 @@ targets:
       });
 
       test('triggers all presubmit build checks when diff cannot be found', () async {
-        final MockGithubService mockGithubService = MockGithubService();
         when(mockGithubService.listFiles(pullRequest))
             .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
         buildStatusService =
@@ -686,23 +698,7 @@ targets:
       });
 
       test('ci.yaml validation fails with config with unknown dependencies', () async {
-        httpClient = MockClient((http.Request request) async {
-          if (request.url.path.contains('.ci.yaml')) {
-            return http.Response(
-              '''
-enabled_branches:
-  - master
-targets:
-  - name: A
-    builder: Linux A
-    dependencies:
-      - B
-          ''',
-              200,
-            );
-          }
-          throw Exception('Failed to find ${request.url.path}');
-        });
+        when(mockGithubService.listFiles(pullRequest)).thenAnswer((_) => Future<List<String>>.value(["Test"]));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(
@@ -720,6 +716,8 @@ targets:
       });
 
       test('retries only triggers failed builds only', () async {
+        when(mockGithubService.listFiles(pullRequest))
+            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
