@@ -89,12 +89,15 @@ void main() {
         return TableDataInsertAllResponse();
       });
       mockGithubService = MockGithubService();
-      when(mockGithubService.getFileContent(any, argThat(contains('.ci.yaml')),
-              httpClientProvider: anyNamed('httpClientProvider'),
-              ref: anyNamed('ref'),
-              timeout: anyNamed('timeout'),
-              retryOptions: anyNamed('retryOptions')))
-          .thenAnswer((_) => Future<String>.value(singleCiYaml));
+      when(
+          mockGithubService.getFileContent(
+          any,
+          argThat(contains('.ci.yaml')),
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value(singleCiYaml));
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       buildStatusService =
@@ -305,12 +308,15 @@ void main() {
 
     group('add pull request', () {
       test('creates expected commit', () async {
-        when(mockGithubService.getFileContent(any, any,
-                httpClientProvider: anyNamed('httpClientProvider'),
-                ref: anyNamed('ref'),
-                timeout: anyNamed('timeout'),
-                retryOptions: anyNamed('retryOptions')))
-            .thenAnswer((_) => Future<String>.value('''
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - master
 targets:
@@ -333,12 +339,15 @@ targets:
       });
 
       test('schedules tasks against merged PRs', () async {
-        when(mockGithubService.getFileContent(any, any,
-                httpClientProvider: anyNamed('httpClientProvider'),
-                ref: anyNamed('ref'),
-                timeout: anyNamed('timeout'),
-                retryOptions: anyNamed('retryOptions')))
-            .thenAnswer((_) => Future<String>.value(singleCiYaml));
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value(singleCiYaml));
         final PullRequest mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
@@ -408,6 +417,8 @@ targets:
 
     group('process check run', () {
       test('rerequested ci.yaml check retriggers presubmit', () async {
+        when(mockGithubService.listFiles(any))
+          .thenAnswer((_) => Future<List<String>>.value(["Test"]));
         when(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -475,13 +486,16 @@ targets:
     group('presubmit', () {
       test('gets only enabled .ci.yaml builds', () async {
         when(mockGithubService.listFiles(pullRequest))
-            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
-        when(mockGithubService.getFileContent(any, '.ci.yaml',
-                httpClientProvider: anyNamed('httpClientProvider'),
-                ref: anyNamed('ref'),
-                timeout: anyNamed('timeout'),
-                retryOptions: anyNamed('retryOptions')))
-            .thenAnswer((_) => Future<String>.value('''
+          .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+        when(
+          mockGithubService.getFileContent(
+          any,
+          '.ci.yaml',
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - master
 targets:
@@ -516,12 +530,15 @@ targets:
       });
 
       test('checks for release branches', () async {
-        when(mockGithubService.getFileContent(any, any,
-                httpClientProvider: anyNamed('httpClientProvider'),
-                ref: anyNamed('ref'),
-                timeout: anyNamed('timeout'),
-                retryOptions: anyNamed('retryOptions')))
-            .thenAnswer((_) => Future<String>.value('''
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - master
 targets:
@@ -538,12 +555,15 @@ targets:
 
       test('checks for release branch regex', () async {
         const String branch = 'flutter-1.24-candidate.1';
-        when(mockGithubService.getFileContent(any, any,
-                httpClientProvider: anyNamed('httpClientProvider'),
-                ref: anyNamed('ref'),
-                timeout: anyNamed('timeout'),
-                retryOptions: anyNamed('retryOptions')))
-            .thenAnswer((_) => Future<String>.value('''
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value('''
 enabled_branches:
   - main
   - flutter-\\d+.\\d+-candidate.\\d+
@@ -556,6 +576,8 @@ targets:
       });
 
       test('triggers expected presubmit build checks', () async {
+        when(mockGithubService.listFiles(pullRequest))
+          .thenAnswer((_) => Future<List<String>>.value(["Test"]));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(mockGithubChecksUtil.createCheckRun(any, any, any, captureAny, output: captureAnyNamed('output')))
@@ -638,6 +660,8 @@ targets:
       });
 
       test('ci.yaml validation passes with default config', () async {
+        when(mockGithubService.listFiles(pullRequest))
+          .thenAnswer((_) => Future<List<String>>.value(["Test"]));
         when(mockGithubChecksUtil.getCheckRun(any, any, any))
             .thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -657,12 +681,23 @@ targets:
       });
 
       test('ci.yaml validation fails with empty config', () async {
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value(''));
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
             return http.Response('', 200);
           }
           throw Exception('Failed to find ${request.url.path}');
         });
+        when(mockGithubService.listFiles(pullRequest))
+          .thenAnswer((_) => Future<List<String>>.value(["Test"]));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(
@@ -698,7 +733,25 @@ targets:
       });
 
       test('ci.yaml validation fails with config with unknown dependencies', () async {
-        when(mockGithubService.listFiles(pullRequest)).thenAnswer((_) => Future<List<String>>.value(["Test"]));
+        when(mockGithubService.listFiles(pullRequest))
+          .thenAnswer((_) => Future<List<String>>.value(["Test"]));
+        when(
+          mockGithubService.getFileContent(
+          any,
+          any,
+          httpClientProvider: anyNamed('httpClientProvider'),
+          ref: anyNamed('ref'),
+          timeout: anyNamed('timeout'),
+          retryOptions: anyNamed('retryOptions'))
+        ).thenAnswer((_) => Future<String>.value('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    builder: Linux A
+    dependencies:
+      - B
+          '''));
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           verify(
@@ -717,7 +770,7 @@ targets:
 
       test('retries only triggers failed builds only', () async {
         when(mockGithubService.listFiles(pullRequest))
-            .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
+          .thenThrow(GitHubError(GitHub(), 'Requested Resource was Not Found'));
         final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
