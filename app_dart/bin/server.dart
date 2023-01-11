@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:mutex/mutex.dart';
 
 /// For local development, you might want to set this to true.
 const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
@@ -18,8 +19,9 @@ Future<void> main() async {
 
     final bool inMemoryCache = Platform.environment[_kCocoonUseInMemoryCache] == 'true';
     final CacheService cache = CacheService(inMemory: inMemoryCache);
+    final ReadWriteMutex readWriteMutex = ReadWriteMutex();
 
-    final Config config = Config(dbService, cache);
+    final Config config = Config(dbService, cache, readWriteMutex);
     final AuthenticationProvider authProvider = AuthenticationProvider(config: config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config: config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(

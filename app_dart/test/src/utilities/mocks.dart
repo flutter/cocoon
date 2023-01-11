@@ -22,6 +22,7 @@ import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:process/process.dart';
 
@@ -76,6 +77,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     LuciBuildService,
     ProcessManager,
     PullRequestsService,
+    ReadWriteMutex,
     RepositoriesService,
     TabledataResource,
     UsersService,

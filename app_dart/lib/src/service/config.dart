@@ -15,6 +15,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:mutex/mutex.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
@@ -30,11 +31,13 @@ import 'logging.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache);
+  Config(this._db, this._cache, this._mutex);
 
   final DatastoreDB _db;
 
   final CacheService _cache;
+
+  final ReadWriteMutex _mutex;
 
   /// List of Github presubmit supported repos.
   ///
@@ -325,15 +328,23 @@ class Config {
   }
 
   Future<String> generateGithubToken(gh.RepositorySlug slug) async {
-    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final Uint8List? cacheValue = await _cache.getOrCreate(
-      configCacheName,
-      'githubToken-${slug.fullName}',
-      createFn: () => _generateGithubToken(slug),
-      // Tokens are minted for 10 minutes
-      ttl: const Duration(minutes: 8),
-    );
-
+    Uint8List? cacheValue;
+    // This is a read-write lock that prevents multiple Github tokens from
+    // being generated simultaneously, which would cause a rate limit.
+    await _mutex.acquireWrite();
+    try {
+      // GitHub's secondary rate limits are run into very frequently when making auth tokens.
+      cacheValue = await _cache.getOrCreate(
+        configCacheName,
+        'githubToken-${slug.fullName}',
+        createFn: () => _generateGithubToken(slug),
+        // Tokens are minted for 10 minutes
+        ttl: const Duration(minutes: 8),
+      );
+    }
+    finally {
+      _mutex.release();
+    }
     return String.fromCharCodes(cacheValue!);
   }
 
