@@ -62,7 +62,7 @@ Internal requirements count=1 size=164
           '-v',
           '-R=notarized',
           '--check-notarization',
-          binaryPath
+          binaryPath,
         ],
         stderr: '''
 $binaryPath: valid on disk
@@ -114,7 +114,7 @@ Internal requirements count=1 size=164
           '-v',
           '-R=notarized',
           '--check-notarization',
-          binaryPath
+          binaryPath,
         ],
         stderr: '''
 $binaryPath: valid on disk

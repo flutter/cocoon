@@ -27,8 +27,7 @@ ArgResults _parseArgs(List<String> args, Logger logger) {
       'input-file',
       abbr: 'i',
       mandatory: true,
-      help:
-          'The input binary file whose code signature and notarization status '
+      help: 'The input binary file whose code signature and notarization status '
           'will be verified.',
       valueHelp: 'path to binary file',
     );
