@@ -16,6 +16,7 @@ import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import '../utilities/entity_generators.dart';
+import 'fake_gerrit_service.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -28,6 +29,7 @@ class FakeScheduler extends Scheduler {
     GithubChecksUtil? githubChecksUtil,
   }) : super(
           cache: CacheService(inMemory: true),
+          gerritService: FakeGerritService(),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: githubChecksUtil,

@@ -38,7 +38,7 @@ class LuciBuildService {
     GerritService? gerritService,
     this.pubsub = const PubSub(),
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-        gerritService = gerritService ?? GerritService();
+        gerritService = gerritService ?? GerritService(config: config);
 
   BuildBucketClient buildBucketClient;
   Config config;
@@ -361,10 +361,10 @@ class LuciBuildService {
     );
   }
 
-  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
+  /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
   /// Returns the [Build] returned by scheduleBuildRequest.
-  Future<Build> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  Future<Build> reschedulePresubmitBuildUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -403,6 +403,30 @@ class LuciBuildService {
 
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
+    return scheduleBuild;
+  }
+
+  /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
+  ///
+  /// Returns the [Build] returned by scheduleBuildRequest.
+  Future<Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+    cocoon_checks.CheckRunEvent checkRunEvent, {
+    required Commit commit,
+    required Task task,
+    required Target target,
+  }) async {
+    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
+    final String sha = checkRunEvent.checkRun!.headSha!;
+    final String checkName = checkRunEvent.checkRun!.name!;
+
+    final Iterable<Build> builds = await getProdBuilds(slug, sha, checkName);
+    final Build build = builds.first;
+    final Map<String, dynamic>? properties = build.input!.properties;
+    log.info('input ${build.input!} properties $properties');
+
+    final ScheduleBuildRequest scheduleBuildRequest =
+        await _createPostsubmitScheduleBuild(commit: commit, target: target, task: task, properties: properties);
+    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
     return scheduleBuild;
   }
 
@@ -522,7 +546,7 @@ class LuciBuildService {
     required Commit commit,
     required Target target,
     required Task task,
-    Map<String, Object>? properties,
+    Map<String, dynamic>? properties,
     Map<String, List<String>>? tags,
     int priority = kDefaultPriority,
   }) async {
@@ -550,8 +574,8 @@ class LuciBuildService {
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
-    final Map<String, Object> processedProperties = target.getProperties();
-    processedProperties.addAll(properties ?? <String, Object>{});
+    final Map<String, dynamic> processedProperties = target.getProperties();
+    processedProperties.addAll(properties ?? <String, dynamic>{});
     processedProperties['git_branch'] = commit.branch!;
     final String cipdVersion = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdVersion;

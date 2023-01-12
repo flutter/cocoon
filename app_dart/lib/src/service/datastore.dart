@@ -18,7 +18,9 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
+import '../request_handling/exceptions.dart';
 import 'config.dart';
+import 'logging.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
 /// be touched in any given transaction, or the backing datastore will throw
@@ -296,5 +298,44 @@ class DatastoreService {
       retryOptions: retryOptions,
     );
     return result;
+  }
+
+  /// Finds the [Commit] that matches the given [gitBranch], [sha], and [slug].
+  ///
+  /// The [Commit] model is stored as a "Checklist" entity in the datastore.
+  ///
+  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
+  Future<Commit> findCommit({
+    required String gitBranch,
+    required String sha,
+    required RepositorySlug slug,
+  }) async {
+    gitBranch = gitBranch.trim();
+    sha = sha.trim();
+    final String id = '${slug.fullName}/$gitBranch/$sha';
+    final Key<String> commitKey = db.emptyKey.append<String>(Commit, id: id);
+    log.fine('Constructed commit key=$id');
+    return await lookupByValue<Commit>(commitKey);
+  }
+
+  /// Finds the [Task] that matches the given [commitKey] and [name].
+  Future<Task> findTask({required Key<String> commitKey, required String name}) async {
+    final Query<Task> query = db.query<Task>(ancestorKey: commitKey);
+    final List<Task> initialTasks = await query.run().toList();
+    log.fine('Found ${initialTasks.length} tasks for commit');
+    final List<Task> tasks = <Task>[];
+    log.fine('Searching for task with name=$name');
+    for (Task task in initialTasks) {
+      if (task.name == name) {
+        tasks.add(task);
+      }
+    }
+
+    if (tasks.length != 1) {
+      log.severe('Found ${tasks.length} entries for builder $name');
+      throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
+    }
+
+    return tasks.single;
   }
 }

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
@@ -23,6 +24,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/gerrit/commit.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
@@ -44,6 +46,7 @@ class Scheduler {
   Scheduler({
     required this.cache,
     required this.config,
+    required this.gerritService,
     required this.githubChecksService,
     required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
@@ -55,6 +58,7 @@ class Scheduler {
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
+  final GerritService gerritService;
   final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
 
@@ -450,7 +454,33 @@ class Scheduler {
             success = true;
           }
         } else {
-          await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+          final String sha = checkRunEvent.checkRun!.headSha!;
+          final String checkName = checkRunEvent.checkRun!.name!;
+          final RepositorySlug slug = checkRunEvent.repository!.slug();
+
+          // TODO: Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
+          // See https://docs.github.com/developers/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=rerequested#check_run
+          final String gitBranch = Config.defaultBranch(slug);
+
+          // Only merged commits are mirrored. If a matching commit is found on GoB, this must be a postsubmit checkrun.
+          final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+
+          if (gobCommit == null) {
+            await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+          } else {
+            final Commit commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
+            final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
+            final CiYaml ciYaml = await getCiYaml(commit);
+            final Target target =
+                ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+            await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+              checkRunEvent,
+              commit: commit,
+              task: task,
+              target: target,
+            );
+          }
+
           success = true;
         }
 

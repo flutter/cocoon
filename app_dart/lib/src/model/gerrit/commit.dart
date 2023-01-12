@@ -29,6 +29,8 @@ class GerritCommit extends JsonBody {
   final String? commit;
   final String? tree;
   final GerritUser? author;
+
+  /// TODO: Fix deserialization by changing this to `committer` to match response.
   final GerritUser? comitter;
   final String? message;
 
