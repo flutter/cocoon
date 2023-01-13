@@ -120,7 +120,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
 
     final Commit commit = await datastore.findCommit(gitBranch: gitBranch!, sha: sha!, slug: slug!);
-    return await datastore.findTask(commitKey: commit.key, name: name!);
+    return datastore.findTask(commitKey: commit.key, name: name!);
   }
 
   /// Returns the [Commit] associated with [Task].

@@ -304,7 +304,7 @@ class DatastoreService {
   ///
   /// The [Commit] model is stored as a "Checklist" entity in the datastore.
   ///
-  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
+  /// Throws [BadRequestException] if [gitBranch] does not exist in datastore.
   Future<Commit> findCommit({
     required String gitBranch,
     required String sha,
