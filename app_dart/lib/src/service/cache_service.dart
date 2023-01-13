@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:mutex/mutex.dart';
+import 'package:retry/retry.dart';
 
 /// Service for reading and writing values to a cache for quick access of data.
 ///
@@ -52,28 +53,27 @@ class CacheService {
   Future<Uint8List?> getOrCreate(
     String subcacheName,
     String key, {
-    int attempt = 1,
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     Uint8List? value;
 
+    const RetryOptions r = RetryOptions(
+      maxAttempts: maxCacheGetAttempts,
+      delayFactor: Duration(milliseconds: 50),
+    );
+
     try {
-      value = await subcache[key].get();
+      await r.retry(
+        () async {
+          value = await subcache[key].get();
+        },
+      );
     } catch (e) {
-      if (attempt < maxCacheGetAttempts) {
-        return getOrCreate(
-          subcacheName,
-          key,
-          attempt: ++attempt,
-          createFn: createFn,
-          ttl: ttl,
-        );
-      } else {
-        // Give up on trying to get the value from the cache.
-        value = null;
-      }
+      // If the last retry is unsuccessful on an exception we do not want to die
+      // here.
+      value = null;
     }
 
     // If given createFn, update the cache value if the value returned was null.
@@ -96,41 +96,15 @@ class CacheService {
   Future<Uint8List?> getOrCreateWithLocking(
     String subcacheName,
     String key, {
-    int attempt = 1,
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    Uint8List? value;
-
     await m.acquireRead();
     try {
-      value = await subcache[key].get();
-    } catch (e) {
-      if (attempt < maxCacheGetAttempts) {
-        return getOrCreateWithLocking(
-          subcacheName,
-          key,
-          attempt: ++attempt,
-          createFn: createFn,
-          ttl: ttl,
-        );
-      } else {
-        // Give up on trying to get the value from the cache.
-        value = null;
-      }
+      return getOrCreate(subcacheName, key, createFn: createFn, ttl: ttl);
     } finally {
       m.release();
     }
-
-    // If given createFn, update the cache value if the value returned was null.
-    if (createFn != null && value == null) {
-      // Try creating the value
-      value = await createFn();
-      await setWithLocking(subcacheName, key, value, ttl: ttl);
-    }
-
-    return value;
   }
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
@@ -160,9 +134,12 @@ class CacheService {
   }) async {
     await m.acquireWrite();
     try {
-      final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-      final Entry<Uint8List> entry = subcache[key];
-      return entry.set(value, ttl);
+      return set(
+        subcacheName,
+        key,
+        value,
+        ttl: ttl,
+      );
     } finally {
       m.release();
     }
