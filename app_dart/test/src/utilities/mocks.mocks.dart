@@ -7152,6 +7152,11 @@ class MockGitHub extends _i1.Mock implements _i10.GitHub {
         returnValue: '',
       ) as String);
   @override
+  String get version => (super.noSuchMethod(
+        Invocation.getter(#version),
+        returnValue: '',
+      ) as String);
+  @override
   _i2.Client get client => (super.noSuchMethod(
         Invocation.getter(#client),
         returnValue: _FakeClient_0(
