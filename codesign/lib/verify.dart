@@ -33,7 +33,7 @@ class VerificationService {
     if (!pm.canRun('codesign')) {
       throw Exception(
         'The binary `codesign` is required to run this tool. Do you have '
-        'XCode installed?',
+        'Xcode installed?',
       );
     }
   }

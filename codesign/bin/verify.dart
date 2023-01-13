@@ -4,7 +4,6 @@
 
 import 'dart:io' as io;
 
-import 'package:args/args.dart';
 import 'package:codesign/verify.dart';
 import 'package:logging/logging.dart';
 
@@ -13,31 +12,14 @@ Future<void> main(List<String> args) async {
   logger.onRecord.listen((LogRecord record) {
     io.stdout.writeln(record.message);
   });
-  final argResults = _parseArgs(args, logger);
+  if (args.length != 1) {
+    logger.info('Usage: dart verify.dart [FILE]');
+    io.exit(1);
+  }
+  final inputFile = args[0];
   final VerificationResult result = await VerificationService(
-    binaryPath: argResults['input-file'],
+    binaryPath: inputFile,
     logger: logger,
   ).run();
   io.exit(result == VerificationResult.codesignedAndNotarized ? 0 : 1);
-}
-
-ArgResults _parseArgs(List<String> args, Logger logger) {
-  final parser = ArgParser()
-    ..addOption(
-      'input-file',
-      abbr: 'i',
-      mandatory: true,
-      help: 'The input binary file whose code signature and notarization status '
-          'will be verified.',
-      valueHelp: 'path to binary file',
-    );
-  final ArgResults results;
-  try {
-    results = parser.parse(args);
-  } on FormatException catch (exception) {
-    logger.severe(exception);
-    logger.info(parser.usage);
-    io.exit(1);
-  }
-  return results;
 }
