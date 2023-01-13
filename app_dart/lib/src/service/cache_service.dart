@@ -53,15 +53,13 @@ class CacheService {
     String subcacheName,
     String key, {
     int attempt = 1,
-    Future<Uint8List> Function()? createFn,
+    required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     Uint8List? value;
 
-    await m.acquireRead();
     try {
-      print("Acquiring getOrCreate read lock.");
       value = await subcache[key].get();
     } catch (e) {
       if (attempt < maxCacheGetAttempts) {
@@ -76,8 +74,52 @@ class CacheService {
         // Give up on trying to get the value from the cache.
         value = null;
       }
+    }
+
+    // If given createFn, update the cache value if the value returned was null.
+    if (createFn != null && value == null) {
+      // Try creating the value
+      value = await createFn();
+      await set(subcacheName, key, value, ttl: ttl);
+    }
+
+    return value;
+  }
+
+  /// This method is the same as the [getOrCreate] method above except that it
+  /// enforces locking access.
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens. Care should be taken to use the
+  /// locking methods together when accessing data from an entity using the
+  /// cache.
+  Future<Uint8List?> getOrCreateWithLocking(
+    String subcacheName,
+    String key, {
+    int attempt = 1,
+    required Future<Uint8List> Function()? createFn,
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List? value;
+
+    await m.acquireRead();
+    try {
+      value = await subcache[key].get();
+    } catch (e) {
+      if (attempt < maxCacheGetAttempts) {
+        return getOrCreateWithLocking(
+          subcacheName,
+          key,
+          attempt: ++attempt,
+          createFn: createFn,
+          ttl: ttl,
+        );
+      } else {
+        // Give up on trying to get the value from the cache.
+        value = null;
+      }
     } finally {
-      print("Releasing getOrCreate read lock.");
       m.release();
     }
 
@@ -85,8 +127,7 @@ class CacheService {
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
-      print("Acquiring getOrCreate write lock.");
-      await set(subcacheName, key, value, ttl: ttl);
+      await setWithLocking(subcacheName, key, value, ttl: ttl);
     }
 
     return value;
@@ -99,27 +140,46 @@ class CacheService {
     Uint8List? value, {
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    print("Acquiring set write lock.");
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    final Entry<Uint8List> entry = subcache[key];
+    return entry.set(value, ttl);
+  }
+
+  /// Set [value] for [key] in the subcache [subcacheName] with [ttl] but
+  /// enforce locking accessing.
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens. Care should be taken to use the
+  /// locking methods together when accessing data from an entity using the
+  /// cache.
+  Future<Uint8List?> setWithLocking(
+    String subcacheName,
+    String key,
+    Uint8List? value, {
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
     await m.acquireWrite();
     try {
       final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
       final Entry<Uint8List> entry = subcache[key];
       return entry.set(value, ttl);
     } finally {
-      print("Releasing set write lock.");
       m.release();
     }
   }
 
   /// Clear the value stored in subcache [subcacheName] for key [key].
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens. Care should be taken to use the
+  /// locking methods together when accessing data from an entity using the
+  /// cache.
   Future<void> purge(String subcacheName, String key) async {
-    print("Acquiring purge write lock.");
     await m.acquireWrite();
     try {
       final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
       return subcache[key].purge(retries: maxCacheGetAttempts);
     } finally {
-      print("Releasing purge write lock.");
       m.release();
     }
   }
