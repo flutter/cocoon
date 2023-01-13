@@ -9,3 +9,7 @@ steps:
 timeout: 1200s
 
 images: ['us-docker.pkg.dev/$PROJECT_ID/appengine/auto-submit.version-$SHORT_SHA']
+
+# If build provenance is not generated, the docker deployment will fail.
+options:
+  requestedVerifyOption: VERIFIED
