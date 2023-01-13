@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -116,6 +117,28 @@ void main() {
 
       final Uint8List? valueAfterPurge = await cache.getOrCreate(testSubcacheName, testKey);
       expect(valueAfterPurge, isNull);
+    });
+
+    test('set blocks read attempt', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+
+      unawaited(cache.set(testSubcacheName, testKey, expectedValue));
+      final Uint8List? valueAfterSet = await cache.getOrCreate(testSubcacheName, testKey);
+
+      expect(valueAfterSet, expectedValue);
+    });
+
+    test('read locks are not blocking', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+
+      unawaited(cache.set(testSubcacheName, testKey, expectedValue));
+      final Future<Uint8List?> valueAfterSet = cache.getOrCreate(testSubcacheName, testKey);
+      final Uint8List? valueAfterSet2 = await cache.getOrCreate(testSubcacheName, testKey);
+
+      expect(valueAfterSet2, expectedValue);
+      await valueAfterSet.then((value) => expect(value, expectedValue));
     });
 
     test('sets ttl from set', () async {

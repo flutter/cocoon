@@ -333,7 +333,7 @@ packages:
     dependency: "direct main"
     description:
       name: graphql
-      sha256: "68bb34f7d239b7c9530c37de754ccb4b9e19927d838fd103da297444c11dad62"
+      sha256: "2a04c92d1fa897de21cd76e13ed212e7da1b0c2036ed54bd148d0b1679fbd72e"
       url: "https://pub.dev"
     source: hosted
     version: "5.1.2-beta.6"
