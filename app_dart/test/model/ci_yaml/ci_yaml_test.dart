@@ -108,6 +108,16 @@ void main() {
       );
     });
   });
+
+  test('dependencies', () {
+    final CiYaml ciYaml = buildTestConfig;
+    final List<Target> initialTargets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets);
+    final List<String> initialTargetNames = initialTargets.map((Target target) => target.value.name).toList();
+    expect(initialTargetNames, <String>['Linux build']);
+    final List<Target> dependencies = ciYaml.getDependentTargets(initialTargets.single, ciYaml.postsubmitTargets);
+    final List<String> dependencyNames = dependencies.map((Target target) => target.value.name).toList();
+    expect(dependencyNames, <String>['Linux test']);
+  });
 }
 
 /// Wrapper class for table driven design of [CiYaml.enabledBranchesMatchesCurrentBranch].

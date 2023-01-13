@@ -119,3 +119,22 @@ CiYaml batchPolicyConfig = CiYaml(
     ],
   ),
 );
+
+CiYaml buildTestConfig = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux build',
+      ),
+      pb.Target(
+        name: 'Linux test',
+        dependencies: <String>['Linux build'],
+      ),
+    ],
+  ),
+);

@@ -418,7 +418,13 @@ void main() {
           ),
         );
         // Verfies Linux A was created
-        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        )).called(1);
       });
 
       test('rerequested triggers a single luci build', () async {

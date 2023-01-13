@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
+import '../../service/datastore.dart';
 import '../../service/logging.dart';
 import '../ci_yaml/target.dart';
 import '../luci/push_message.dart';
@@ -67,6 +68,62 @@ class Task extends Model<int> {
       stageName: target.value.scheduler.toString(),
       status: Task.statusNew,
       timeoutInMinutes: target.value.timeout,
+    );
+  }
+
+  /// Lookup [Task] from Datastore from it's parent key and name.
+  static Future<Task> fromCommitKey({
+    required DatastoreService datastore,
+    required Key<String> commitKey,
+    required String name,
+  }) async {
+    if (name.isEmpty) {
+      throw const BadRequestException('task name is null');
+    }
+    final List<Task> tasks = await datastore.queryRecentTasksByName(name: name).toList();
+    if (tasks.isEmpty) {
+      throw KeyNotFoundException(commitKey);
+    }
+    return tasks.singleWhere((Task task) => task.parentKey?.id == commitKey.id);
+  }
+
+  /// Lookup [Task] from its [key].
+  ///
+  /// This is the fastest way to lookup [Task], but requires [id] to be passed
+  /// as it is generated from Datastore.
+  static Future<Task> fromKey({
+    required DatastoreService datastore,
+    required Key<String> commitKey,
+    required int id,
+  }) {
+    log.fine('Looking up key...');
+    final Key<int> key = Key<int>(commitKey, Task, id);
+    return datastore.lookupByValue<Task>(key);
+  }
+
+  /// Lookup [Task] from Datastore.
+  ///
+  /// Either name or id must be given to lookup [Task].
+  ///
+  /// Prefer passing [id] when possible as it is a faster lookup.
+  static Future<Task> fromDatastore({
+    required DatastoreService datastore,
+    required Key<String> commitKey,
+    String? name,
+    String? id,
+  }) {
+    if (id == null) {
+      return Task.fromCommitKey(
+        datastore: datastore,
+        commitKey: commitKey,
+        name: name!,
+      );
+    }
+
+    return Task.fromKey(
+      datastore: datastore,
+      commitKey: commitKey,
+      id: int.parse(id),
     );
   }
 

@@ -264,12 +264,13 @@ void main() {
       });
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-      final List<Target> scheduledTargets = await service.scheduleTryBuilds(
-        pullRequest: pullRequest,
+      await service.scheduleTryBuilds(
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
         targets: targets,
       );
-      final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);
-      expect(scheduledTargetNames, <String>['Linux 1']);
       final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
       expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
 
@@ -322,7 +323,10 @@ void main() {
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
-        pullRequest: pullRequest,
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
         targets: targets,
       );
       expect(
@@ -350,7 +354,10 @@ void main() {
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
-        pullRequest: pullRequest,
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
         targets: targets,
       );
       expect(
@@ -377,7 +384,10 @@ void main() {
       final List<LogRecord> records = <LogRecord>[];
       log.onRecord.listen((LogRecord record) => records.add(record));
       await service.scheduleTryBuilds(
-        pullRequest: pullRequest,
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
         targets: targets,
       );
       expect(records[0].message, 'Linux 1 has already been scheduled for this pull request');
@@ -397,19 +407,13 @@ void main() {
       });
       await expectLater(
         service.scheduleTryBuilds(
-          pullRequest: pullRequest,
+          branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+          prNumber: pullRequest.number!,
+          sha: pullRequest.head!.sha!,
+          slug: pullRequest.repo!.slug(),
           targets: <Target>[],
         ),
         throwsA(isA<InternalServerError>()),
-      );
-    });
-    test('Try to schedule build on a unsupported repo', () async {
-      expect(
-        () async => await service.scheduleTryBuilds(
-          targets: targets,
-          pullRequest: generatePullRequest(repo: 'nonsupported'),
-        ),
-        throwsA(const TypeMatcher<BadRequestException>()),
       );
     });
   });

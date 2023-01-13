@@ -65,7 +65,7 @@ Json? _$JsonConverterToJson<Json, Value>(
 BuildPushMessage _$BuildPushMessageFromJson(Map<String, dynamic> json) => BuildPushMessage(
       build: json['build'] == null ? null : Build.fromJson(json['build'] as Map<String, dynamic>),
       hostname: json['hostname'] as String?,
-      userData: json['user_data'] as String?,
+      userData: json['userData'] as String?,
     );
 
 Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
@@ -79,7 +79,7 @@ Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
 
   writeNotNull('build', instance.build);
   writeNotNull('hostname', instance.hostname);
-  writeNotNull('user_data', instance.userData);
+  val['userData'] = instance.userData;
   return val;
 }
 

@@ -138,6 +138,16 @@ Future<void> main() async {
         config: config,
         buildBucketClient: buildBucketClient,
       ),
+      '/api/scheduler/presubmit-build-test-subscription': PresubmitBuildTestSubscription(
+        cache: cache,
+        config: config,
+        scheduler: scheduler,
+      ),
+      '/api/scheduler/postsubmit-build-test-subscription': PostsubmitBuildTestSubscription(
+        cache: cache,
+        config: config,
+        scheduler: scheduler,
+      ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
         config: config,
         authenticationProvider: authProvider,

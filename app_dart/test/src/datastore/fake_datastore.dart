@@ -144,8 +144,8 @@ class FakeDatastoreDB implements DatastoreDB {
 /// A query that will return all values of type `T` that exist in the
 /// [FakeDatastoreDB.values] map.
 ///
-/// This fake query ignores any [filter] or [order] directives, though it does
-/// respect [limit] and [offset] directives.
+/// This fake query respects [order], [limit], and [offset]. However, [filter]
+/// may require local additions here to respect new filters.
 class FakeQuery<T extends Model<dynamic>> implements Query<T> {
   FakeQuery._(this.db, this.results);
 
@@ -189,14 +189,14 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
   Stream<T> run() {
     Iterable<T> resultsView = results;
 
-    // This considers only the special case when there exists [branch] or [pr] filter.
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object? value = filter.comparisonObject;
       if (filterString.contains('branch =') ||
           filterString.contains('head =') ||
           filterString.contains('pr =') ||
-          filterString.contains('repository =')) {
+          filterString.contains('repository =') ||
+          filterString.contains('name =')) {
         resultsView = resultsView.where((T result) => result.toString().contains(value.toString()));
       }
     }
@@ -214,6 +214,9 @@ class FakeFilterSpec {
 
   final String filterString;
   final Object? comparisonObject;
+
+  @override
+  String toString() => 'FakeFilterSpec($filterString, $comparisonObject)';
 }
 
 class FakeOrderSpec {

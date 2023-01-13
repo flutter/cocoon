@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:github/github.dart' as github;
-import 'package:github/hooks.dart';
+import 'package:github/github.dart' as gh;
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -64,7 +63,7 @@ class LuciBuildService {
 
   /// Returns an Iterable of try BuildBucket build for a given Github [slug], [sha], [builderName].
   Future<Iterable<Build>> getTryBuilds(
-    github.RepositorySlug slug,
+    gh.RepositorySlug slug,
     String sha,
     String? builderName,
   ) async {
@@ -78,7 +77,7 @@ class LuciBuildService {
   /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName] and [repo].
   Future<Iterable<Build>> getProdBuilds(
-    github.RepositorySlug slug,
+    gh.RepositorySlug slug,
     String commitSha,
     String? builderName,
   ) async {
@@ -89,7 +88,7 @@ class LuciBuildService {
   /// Returns an iterable of BuildBucket builds for a given Github [slug], [commitSha],
   /// [builderName], [bucket] and [tags].
   Future<Iterable<Build>> getBuilds(
-    github.RepositorySlug? slug,
+    gh.RepositorySlug? slug,
     String? commitSha,
     String? builderName,
     String bucket,
@@ -123,7 +122,7 @@ class LuciBuildService {
   /// Returns a map of the BuildBucket builds for a given Github [PullRequest]
   /// using the [builderName] as key and [Build] as value.
   Future<Map<String?, Build?>> tryBuildsForPullRequest(
-    github.PullRequest pullRequest,
+    gh.PullRequest pullRequest,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(
       BatchRequest(
@@ -172,103 +171,46 @@ class LuciBuildService {
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
-  Future<List<Target>> scheduleTryBuilds({
+  Future<void> scheduleTryBuilds({
     required List<Target> targets,
-    required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-  }) async {
-    if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
-      throw BadRequestException('${pullRequest.base!.repo!.slug()} is not supported by this service.');
-    }
-    targets = await _targetsToSchedule(targets, pullRequest);
-    await _scheduleTryBuilds(
-      targets: targets,
-      pullRequest: pullRequest,
-      checkSuiteEvent: checkSuiteEvent,
-    );
-
-    return targets;
-  }
-
-  /// List of targets that should be scheduled.
-  ///
-  /// If a [Target] has a [Build] that is already scheduled or was successful, it shouldn't be scheduled again.
-  ///
-  /// Throws [InternalServerError] is [targets] is empty.
-  Future<List<Target>> _targetsToSchedule(List<Target> targets, github.PullRequest pullRequest) async {
-    if (targets.isEmpty) {
-      throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
-    }
-
-    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
-    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where(
-      (Build? build) =>
-          build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success,
-    );
-    final List<Target> targetsToSchedule = <Target>[];
-    for (Target target in targets) {
-      if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
-        log.info('${target.value.name} has already been scheduled for this pull request');
-        continue;
-      }
-      targetsToSchedule.add(target);
-    }
-
-    return targetsToSchedule;
-  }
-
-  /// Schedules [targets] against [pullRequest].
-  Future<void> _scheduleTryBuilds({
-    required List<Target> targets,
-    required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
+    required String branch,
+    required String sha,
+    required int prNumber,
+    required gh.RepositorySlug slug,
   }) async {
     final List<Request> requests = <Request>[];
-    final List<String> branches = await gerritService.branches(
-      'flutter-review.googlesource.com',
-      'recipes',
-      filterRegex: 'flutter-.*|fuchsia.*',
-    );
-    log.info('Available release branches: $branches');
-
-    final String sha = pullRequest.head!.sha!;
-    String cipdVersion = 'refs/heads/${pullRequest.base!.ref!}';
-    cipdVersion = branches.contains(cipdVersion) ? cipdVersion : config.defaultRecipeBundleRef;
 
     for (Target target in targets) {
-      final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+      final gh.CheckRun checkRun = await githubChecksUtil.createCheckRun(
         config,
         target.slug,
         sha,
         target.value.name,
       );
 
-      final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
-
-      final Map<String, dynamic> userData = <String, dynamic>{};
-      if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
-        userData['check_run_id'] = checkRun.id;
-        userData['commit_sha'] = sha;
-        userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
-        userData['builder_name'] = target.value.name;
-      }
+      final Map<String, dynamic> userData = <String, dynamic>{
+        'builder_name': target.value.name,
+        'check_run_id': checkRun.id,
+        'commit_branch': branch,
+        'commit_sha': sha,
+      };
 
       final Map<String, List<String>> tags = <String, List<String>>{
         'github_checkrun': <String>[checkRun.id.toString()],
       };
 
       final Map<String, Object> properties = target.getProperties();
-      properties.putIfAbsent('git_branch', () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''));
+      properties['git_branch'] = branch;
 
       requests.add(
         Request(
           scheduleBuild: _createPresubmitScheduleBuild(
             slug: slug,
-            sha: pullRequest.head!.sha!,
+            sha: sha,
             //Use target.value.name here otherwise tests will die due to null checkRun.name.
             checkName: target.value.name,
-            pullRequestNumber: pullRequest.number!,
-            cipdVersion: cipdVersion,
+            pullRequestNumber: prNumber,
+            cipdVersion: 'refs/heads/$branch',
             userData: userData,
             properties: properties,
             tags: tags,
@@ -285,10 +227,38 @@ class LuciBuildService {
     }
   }
 
+  /// List of targets that should be scheduled.
+  ///
+  /// If a [Target] has a [Build] that is already scheduled or was successful, it shouldn't be scheduled again.
+  ///
+  /// Throws [InternalServerError] is [targets] is empty.
+  Future<List<Target>> _targetsToSchedule(List<Target> targets, gh.PullRequest pullRequest) async {
+    if (targets.isEmpty) {
+      throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
+    }
+
+    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
+    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where(
+      (Build? build) =>
+          build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success,
+    );
+    final List<Target> targetsToSchedule = <Target>[];
+    for (Target target in targets) {
+      if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
+        // TODO(chillers): Check if this is being logged anywhere. Otherwise, remove this whole method.
+        log.info('${target.value.name} has already been scheduled for this pull request');
+        continue;
+      }
+      targetsToSchedule.add(target);
+    }
+
+    return targetsToSchedule;
+  }
+
   /// Cancels all the current builds on [pullRequest] with [reason].
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
-  Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
+  Future<void> cancelBuilds(gh.PullRequest pullRequest, String reason) async {
     if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
       throw BadRequestException('This service does not support ${pullRequest.base!.repo}');
     }
@@ -311,7 +281,7 @@ class LuciBuildService {
 
   /// Filters [builders] to only those that failed on [pullRequest].
   Future<List<Build?>> failedBuilds(
-    github.PullRequest pullRequest,
+    gh.PullRequest pullRequest,
     List<Target> targets,
   ) async {
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
@@ -338,7 +308,6 @@ class LuciBuildService {
     // V1 bucket name  is "luci.flutter.prod" while the api
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
-    final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
     return await buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
@@ -355,7 +324,7 @@ class LuciBuildService {
             (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: json.encode(userData),
+          userData: json.encode(buildPushMessage),
         ),
       ),
     );
@@ -365,12 +334,12 @@ class LuciBuildService {
   ///
   /// Returns the [Build] returned by scheduleBuildRequest.
   Future<Build> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
-    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
+    final gh.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
+    final gh.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
       config,
       slug,
       sha,
@@ -464,7 +433,7 @@ class LuciBuildService {
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   ScheduleBuildRequest _createPresubmitScheduleBuild({
-    required github.RepositorySlug slug,
+    required gh.RepositorySlug slug,
     required String sha,
     required String checkName,
     required int pullRequestNumber,
@@ -590,7 +559,7 @@ class LuciBuildService {
     if (!config.githubPostsubmitSupportedRepo(commit.slug) || target.value.bringup) {
       return;
     }
-    final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+    final gh.CheckRun checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,
       commit.sha!,

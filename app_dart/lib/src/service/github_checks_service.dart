@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
@@ -71,29 +69,23 @@ class GithubChecksService {
     github.RepositorySlug slug,
   ) async {
     final push_message.Build? build = buildPushMessage.build;
-    if (buildPushMessage.userData!.isEmpty) {
+    if (buildPushMessage.userData.isEmpty) {
       return false;
     }
-    Map<String, dynamic> userData;
-    try {
-      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
-    } on FormatException {
-      userData = jsonDecode(String.fromCharCodes(base64Decode(buildPushMessage.userData!))) as Map<String, dynamic>;
-    }
 
-    if (!userData.containsKey('check_run_id') ||
-        !userData.containsKey('repo_owner') ||
-        !userData.containsKey('repo_name')) {
+    if (!buildPushMessage.userData.containsKey('check_run_id') ||
+        !buildPushMessage.userData.containsKey('repo_owner') ||
+        !buildPushMessage.userData.containsKey('repo_name')) {
       log.severe(
-        'UserData did not contain check_run_id,'
-        'repo_owner, or repo_name: $userData',
+        'buildPushMessage.userData did not contain check_run_id,'
+        'repo_owner, or repo_name: $buildPushMessage.userData',
       );
       return false;
     }
     final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(
       config,
       slug,
-      userData['check_run_id'] as int?,
+      buildPushMessage.userData['check_run_id'] as int?,
     );
     final github.CheckRunStatus status = statusForResult(build!.status);
     final github.CheckRunConclusion? conclusion =

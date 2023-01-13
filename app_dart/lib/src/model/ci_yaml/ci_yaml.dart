@@ -69,6 +69,10 @@ class CiYaml {
     return initialTargets.toList();
   }
 
+  /// Gets the list of [Target] that are dependent on [target].
+  List<Target> getDependentTargets(Target target, List<Target> targets) =>
+      targets.where((Target t) => t.value.dependencies.contains(target.value.name)).toList();
+
   Iterable<Target> get _targets => config.targets.map(
         (pb.Target target) => Target(
           schedulerConfig: config,

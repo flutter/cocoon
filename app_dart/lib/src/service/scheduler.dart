@@ -302,11 +302,11 @@ class Scheduler {
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
       await luciBuildService.scheduleTryBuilds(
         targets: presubmitTriggerTargets,
-        pullRequest: pullRequest,
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
       );
-    } on FormatException catch (error, backtrace) {
-      log.warning(backtrace.toString());
-      exception = error;
     } catch (error, backtrace) {
       log.warning(backtrace.toString());
       exception = error;
@@ -314,6 +314,7 @@ class Scheduler {
 
     // Update validate ci.yaml check
     if (exception == null) {
+      print(exception);
       // Success in validating ci.yaml
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
@@ -379,8 +380,10 @@ class Scheduler {
 
       await luciBuildService.scheduleTryBuilds(
         targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
-        pullRequest: pullRequest,
-        checkSuiteEvent: checkSuiteEvent,
+        branch: pullRequest.base!.ref!.replaceAll('refs/heads', ''),
+        prNumber: pullRequest.number!,
+        sha: pullRequest.head!.sha!,
+        slug: pullRequest.repo!.slug(),
       );
     }
   }
@@ -459,6 +462,48 @@ class Scheduler {
     }
 
     return true;
+  }
+
+  Future<void> triggerPostsubmitDependencies({
+    required Commit commit,
+    required List<Target> targets,
+  }) async {
+    final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
+    final List<Task> tasks = <Task>[];
+    for (Target target in targets) {
+      final Task task = Task.fromTarget(commit: commit, target: target);
+      tasks.add(task);
+      SchedulerPolicy policy = target.schedulerPolicy;
+      // Engine repo and release branches should run every task
+      if (commit.slug == Config.engineSlug || Config.defaultBranch(commit.slug) != commit.branch) {
+        policy = GuaranteedPolicy();
+      }
+      final int? priority = await policy.triggerPriority(task: task, datastore: datastore);
+      if (priority != null) {
+        // Mark task as in progress to ensure it isn't scheduled over
+        task.status = Task.statusInProgress;
+        toBeScheduled.add(Tuple<Target, Task, int>(target, task, priority));
+      }
+    }
+
+    await datastore.insert(tasks);
+    return _batchScheduleBuilds(commit, toBeScheduled);
+  }
+
+  Future<void> triggerPresubmitDependencies({
+    required List<Target> dependencies,
+    required String sha,
+    required String branch,
+    required int prNumber,
+    required RepositorySlug slug,
+  }) async {
+    await luciBuildService.scheduleTryBuilds(
+      targets: dependencies,
+      branch: branch,
+      prNumber: prNumber,
+      sha: sha,
+      slug: slug,
+    );
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.

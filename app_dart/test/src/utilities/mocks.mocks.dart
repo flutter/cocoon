@@ -4714,10 +4714,12 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         returnValue: _i17.Future<Map<String?, _i9.Build?>>.value(<String?, _i9.Build?>{}),
       ) as _i17.Future<Map<String?, _i9.Build?>>);
   @override
-  _i17.Future<List<_i32.Target>> scheduleTryBuilds({
+  _i17.Future<void> scheduleTryBuilds({
     required List<_i32.Target>? targets,
-    required _i10.PullRequest? pullRequest,
-    _i24.CheckSuiteEvent? checkSuiteEvent,
+    required String? branch,
+    required String? sha,
+    required int? prNumber,
+    required _i10.RepositorySlug? slug,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4725,12 +4727,15 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
           [],
           {
             #targets: targets,
-            #pullRequest: pullRequest,
-            #checkSuiteEvent: checkSuiteEvent,
+            #branch: branch,
+            #sha: sha,
+            #prNumber: prNumber,
+            #slug: slug,
           },
         ),
-        returnValue: _i17.Future<List<_i32.Target>>.value(<_i32.Target>[]),
-      ) as _i17.Future<List<_i32.Target>>);
+        returnValue: _i17.Future<void>.value(),
+        returnValueForMissingStub: _i17.Future<void>.value(),
+      ) as _i17.Future<void>);
   @override
   _i17.Future<void> cancelBuilds(
     _i10.PullRequest? pullRequest,
@@ -7149,6 +7154,11 @@ class MockGitHub extends _i1.Mock implements _i10.GitHub {
   @override
   String get endpoint => (super.noSuchMethod(
         Invocation.getter(#endpoint),
+        returnValue: '',
+      ) as String);
+  @override
+  String get version => (super.noSuchMethod(
+        Invocation.getter(#version),
         returnValue: '',
       ) as String);
   @override
