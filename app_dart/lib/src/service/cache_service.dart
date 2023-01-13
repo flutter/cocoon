@@ -20,7 +20,7 @@ class CacheService {
     int inMemoryMaxNumberEntries = 256,
   }) : _provider =
             inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUri);
-  
+
   final ReadWriteMutex m = ReadWriteMutex();
 
   final CacheProvider<List<int>> _provider;
@@ -56,42 +56,40 @@ class CacheService {
     Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    
-      final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-      Uint8List? value;
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List? value;
 
-      await m.acquireRead();
-      try {
-        print("Acquiring getOrCreate read lock.");
-        value = await subcache[key].get();
-      } catch (e) {
-        if (attempt < maxCacheGetAttempts) {
-          return getOrCreate(
-            subcacheName,
-            key,
-            attempt: ++attempt,
-            createFn: createFn,
-            ttl: ttl,
-          );
-        } else {
-          // Give up on trying to get the value from the cache.
-          value = null;
-        }
-      }  finally {
-        print("Releasing getOrCreate read lock.");
-        m.release();
+    await m.acquireRead();
+    try {
+      print("Acquiring getOrCreate read lock.");
+      value = await subcache[key].get();
+    } catch (e) {
+      if (attempt < maxCacheGetAttempts) {
+        return getOrCreate(
+          subcacheName,
+          key,
+          attempt: ++attempt,
+          createFn: createFn,
+          ttl: ttl,
+        );
+      } else {
+        // Give up on trying to get the value from the cache.
+        value = null;
       }
+    } finally {
+      print("Releasing getOrCreate read lock.");
+      m.release();
+    }
 
-      // If given createFn, update the cache value if the value returned was null.
-      if (createFn != null && value == null) {
-        // Try creating the value
-        value = await createFn();
-        print("Acquiring getOrCreate write lock.");
-        await set(subcacheName, key, value, ttl: ttl);
-      }
+    // If given createFn, update the cache value if the value returned was null.
+    if (createFn != null && value == null) {
+      // Try creating the value
+      value = await createFn();
+      print("Acquiring getOrCreate write lock.");
+      await set(subcacheName, key, value, ttl: ttl);
+    }
 
-      return value;
-    
+    return value;
   }
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
