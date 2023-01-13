@@ -56,25 +56,27 @@ class CacheService {
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    Uint8List? value;
+    // final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    // Uint8List? value;
 
-    const RetryOptions r = RetryOptions(
-      maxAttempts: maxCacheGetAttempts,
-      delayFactor: Duration(milliseconds: 50),
-    );
+    // const RetryOptions r = RetryOptions(
+    //   maxAttempts: maxCacheGetAttempts,
+    //   delayFactor: Duration(milliseconds: 50),
+    // );
 
-    try {
-      await r.retry(
-        () async {
-          value = await subcache[key].get();
-        },
-      );
-    } catch (e) {
-      // If the last retry is unsuccessful on an exception we do not want to die
-      // here.
-      value = null;
-    }
+    // try {
+    //   await r.retry(
+    //     () async {
+    //       value = await subcache[key].get();
+    //     },
+    //   );
+    // } catch (e) {
+    //   // If the last retry is unsuccessful on an exception we do not want to die
+    //   // here.
+    //   value = null;
+    // }
+
+    Uint8List? value = await _readValue(subcacheName, key);
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
@@ -95,26 +97,57 @@ class CacheService {
   /// enforces locking access.
   ///
   /// Note: these methods are intended to prevent issues around race conditions
-  /// when storing and retrieving github tokens. Care should be taken to use the
-  /// locking methods together when accessing data from an entity using the
-  /// cache.
+  /// when storing and retrieving github tokens locally only for this instance.
+  /// Care should be taken to use the locking methods together when accessing
+  /// data from an entity using the cache.
   Future<Uint8List?> getOrCreateWithLocking(
     String subcacheName,
     String key, {
     required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    await m.acquireRead();
-    try {
-      return getOrCreate(
+    Uint8List? value = await _readValue(subcacheName, key);
+
+    // If given createFn, update the cache value if the value returned was null.
+    if (createFn != null && value == null) {
+      // Try creating the value
+      value = await createFn();
+      await setWithLocking(
         subcacheName,
         key,
-        createFn: createFn,
+        value,
         ttl: ttl,
       );
-    } finally {
-      m.release();
     }
+
+    return value;
+  }
+
+  Future<Uint8List?> _readValue(
+    String subcacheName,
+    String key,
+  ) async {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List? value;
+
+    const RetryOptions r = RetryOptions(
+      maxAttempts: maxCacheGetAttempts,
+      delayFactor: Duration(milliseconds: 50),
+    );
+
+    try {
+      await r.retry(
+        () async {
+          value = await subcache[key].get();
+        },
+      );
+    } catch (e) {
+      // If the last retry is unsuccessful on an exception we do not want to die
+      // here.
+      value = null;
+    }
+
+    return value;
   }
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].

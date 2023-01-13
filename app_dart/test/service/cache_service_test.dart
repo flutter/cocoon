@@ -191,28 +191,62 @@ void main() {
       verify(entry.set(any, testDuration)).called(1);
     });
 
-    test('set blocks read attempt', () async {
+    test('set does not block read attempt', () async {
       const String testKey = 'abc';
       final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
 
       final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
-      final Uint8List? valueAfterSet = await cache.getOrCreateWithLocking(testSubcacheName, testKey, createFn: null);
+      Uint8List? valueAfterSet = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
 
-      expect(valueAfterSet, expectedValue);
+      expect(valueAfterSet, null);
       await cacheWrite;
+      valueAfterSet = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      expect(valueAfterSet, expectedValue);
     });
 
     test('read locks are not blocking', () async {
       const String testKey = 'abc';
       final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
 
-      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
-      final Future<Uint8List?> valueAfterSet = cache.getOrCreateWithLocking(testSubcacheName, testKey, createFn: null);
-      final Uint8List? valueAfterSet2 = await cache.getOrCreateWithLocking(testSubcacheName, testKey, createFn: null);
+      await cache.setWithLocking(testSubcacheName, testKey, expectedValue);
+      final Future<Uint8List?> valueAfterSet = cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      final Uint8List? valueAfterSet2 = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
 
       expect(valueAfterSet2, expectedValue);
       await valueAfterSet.then((value) => expect(value, expectedValue));
+    });
+
+    test('write locks are blocking', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      final Uint8List newValue = Uint8List.fromList('345'.codeUnits);
+
+      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
+      final cacheWrite2 = cache.setWithLocking(testSubcacheName, testKey, newValue);
       await cacheWrite;
+      final Uint8List? readValue = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      expect(readValue, expectedValue);
+      await cacheWrite2;
     });
   });
 }
