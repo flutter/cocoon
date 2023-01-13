@@ -80,7 +80,12 @@ class CacheService {
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
-      await set(subcacheName, key, value, ttl: ttl);
+      await set(
+        subcacheName,
+        key,
+        value,
+        ttl: ttl,
+      );
     }
 
     return value;
@@ -101,7 +106,12 @@ class CacheService {
   }) async {
     await m.acquireRead();
     try {
-      return getOrCreate(subcacheName, key, createFn: createFn, ttl: ttl);
+      return getOrCreate(
+        subcacheName,
+        key,
+        createFn: createFn,
+        ttl: ttl,
+      );
     } finally {
       m.release();
     }
