@@ -539,7 +539,7 @@ void main() {
     test('reschedule using checkrun event fails gracefully', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-      
+
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
