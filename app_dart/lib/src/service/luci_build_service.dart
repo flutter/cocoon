@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
@@ -406,7 +407,7 @@ class LuciBuildService {
       await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
       return scheduleBuild;
     } else {
-      throw const NotFoundException('Unable to find try build.');
+      throw NoBuildFoundException('Unable to find try build.');
     }
   }
 
