@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
@@ -450,8 +451,12 @@ class Scheduler {
             success = true;
           }
         } else {
-          await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-          success = true;
+          try {
+            await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+            success = true;
+          } on NoBuildFoundException {
+            log.warning('No build found to reschedule.');
+          }
         }
 
         log.fine('CheckName: $name State: $success');
