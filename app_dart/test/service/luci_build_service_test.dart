@@ -539,7 +539,7 @@ void main() {
     test('reschedule using checkrun event fails gracefully', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-
+      
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -553,21 +553,11 @@ void main() {
       });
 
       final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
-      // print(pushMessage.data);
-      // print(json.decode(pushMessage.data!));
       final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
       final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
       final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
-      // Repository repository = Repository.fromJson(jsonMap['2']['repository']);
-      // print(repository);
-      // final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(json.decode(pushMessage.data!));
-      // print(checkRunEvent.checkRun);
-      // final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(pushMessage);
-      // print(checkRunEvent.action);
-      // print(checkRunEvent.repository);
-      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
-          throwsA(const TypeMatcher<NoBuildFoundException>()));
+      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent), throwsA(const TypeMatcher<NoBuildFoundException>()));
     });
 
     test('do not create postsubmit checkrun for bringup: true target', () async {
