@@ -79,9 +79,9 @@ class GerritService {
   ///
   /// See more:
   ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html#get-commit
-  Future<GerritCommit?> getCommit(RepositorySlug slug, String projectName, String commitId) async {
-    // URL encode because mirrors/flutter should be mirrors%2Fflutter
-    projectName = Uri.encodeComponent(projectName);
+  Future<GerritCommit?> getCommit(RepositorySlug slug, String commitId) async {
+    // URL encode because "mirrors/flutter" should be "mirrors%2Fflutter".
+    final String projectName = Uri.encodeComponent(slug.name);
     final Uri url = Uri.https('${slug.owner}-review.googlesource.com', 'projects/$projectName/commits/$commitId');
 
     final http.Response response = await _get(url);
@@ -117,7 +117,7 @@ class GerritService {
   Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
     if (!config.postsubmitSupportedRepos.contains(slug)) return null;
     final gobMirrorName = 'mirrors/${slug.name}';
-    return await getCommit(slug, gobMirrorName, sha);
+    return await getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
   }
 
   /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
