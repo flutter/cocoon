@@ -557,7 +557,8 @@ void main() {
       final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
       final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
-      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent), throwsA(const TypeMatcher<NoBuildFoundException>()));
+      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
+          throwsA(const TypeMatcher<NoBuildFoundException>()));
     });
 
     test('do not create postsubmit checkrun for bringup: true target', () async {
