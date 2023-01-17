@@ -32,7 +32,7 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
 
   @override
   bool operator ==(Object other) {
-    final GoogleSignInAccount otherAccount = other;
+    final GoogleSignInAccount otherAccount = other as GoogleSignInAccount;
     return email == otherAccount.email;
   }
 
