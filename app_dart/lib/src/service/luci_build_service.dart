@@ -379,31 +379,35 @@ class LuciBuildService {
 
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
 
-    final Build build = builds.first;
+    if (builds.isNotEmpty) {
+      final Build build = builds.first;
 
-    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
-    final String cipdVersion = build.tags!['cipd_version']![0]!;
-    final int prNumber = int.parse(prString.split('/')[2]);
+      final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
+      final String cipdVersion = build.tags!['cipd_version']![0]!;
+      final int prNumber = int.parse(prString.split('/')[2]);
 
-    final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-    final Map<String, dynamic>? properties = build.input!.properties;
-    log.info('input ${build.input!} properties $properties');
+      final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+      final Map<String, dynamic>? properties = build.input!.properties;
+      log.info('input ${build.input!} properties $properties');
 
-    final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-      slug: slug,
-      sha: sha,
-      checkName: checkName,
-      pullRequestNumber: prNumber,
-      cipdVersion: cipdVersion,
-      properties: properties,
-      userData: userData,
-    );
+      final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+        slug: slug,
+        sha: sha,
+        checkName: checkName,
+        pullRequestNumber: prNumber,
+        cipdVersion: cipdVersion,
+        properties: properties,
+        userData: userData,
+      );
 
-    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+      final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
 
-    final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-    await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
-    return scheduleBuild;
+      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+      await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
+      return scheduleBuild;
+    } else {
+      throw const NotFoundException('Unable to find try build.');
+    }
   }
 
   /// Gets [Build] using its [id] and passing the additional

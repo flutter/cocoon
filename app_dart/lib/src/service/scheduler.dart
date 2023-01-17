@@ -450,8 +450,12 @@ class Scheduler {
             success = true;
           }
         } else {
-          await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-          success = true;
+          try {
+            await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+            success = true;
+          } catch (e) {
+            log.warning('No build found for reschedule.');   
+          }
         }
 
         log.fine('CheckName: $name State: $success');
