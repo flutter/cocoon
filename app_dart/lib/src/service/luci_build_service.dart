@@ -379,36 +379,34 @@ class LuciBuildService {
     );
 
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
-
-    if (builds.isNotEmpty) {
-      final Build build = builds.first;
-
-      final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
-      final String cipdVersion = build.tags!['cipd_version']![0]!;
-      final int prNumber = int.parse(prString.split('/')[2]);
-
-      final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-      final Map<String, dynamic>? properties = build.input!.properties;
-      log.info('input ${build.input!} properties $properties');
-
-      final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
-        slug: slug,
-        sha: sha,
-        checkName: checkName,
-        pullRequestNumber: prNumber,
-        cipdVersion: cipdVersion,
-        properties: properties,
-        userData: userData,
-      );
-
-      final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
-
-      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
-      await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
-      return scheduleBuild;
-    } else {
+    if (builds.isEmpty) {
       throw NoBuildFoundException('Unable to find try build.');
     }
+
+    final Build build = builds.first;
+    final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
+    final String cipdVersion = build.tags!['cipd_version']![0]!;
+    final int prNumber = int.parse(prString.split('/')[2]);
+
+    final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
+    final Map<String, dynamic>? properties = build.input!.properties;
+    log.info('input ${build.input!} properties $properties');
+
+    final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
+      slug: slug,
+      sha: sha,
+      checkName: checkName,
+      pullRequestNumber: prNumber,
+      cipdVersion: cipdVersion,
+      properties: properties,
+      userData: userData,
+    );
+
+    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+
+    final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+    await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
+    return scheduleBuild;
   }
 
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
@@ -425,6 +423,10 @@ class LuciBuildService {
     final String checkName = checkRunEvent.checkRun!.name!;
 
     final Iterable<Build> builds = await getProdBuilds(slug, sha, checkName);
+    if (builds.isEmpty) {
+      throw NoBuildFoundException('Unable to find prod build.');
+    }
+
     final Build build = builds.first;
     final Map<String, dynamic>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');

@@ -305,7 +305,7 @@ class DatastoreService {
   /// The [Commit] model is stored as a "Checklist" entity in the datastore.
   ///
   /// Throws [BadRequestException] if [gitBranch] does not exist in datastore.
-  Future<Commit> findCommit({
+  Future<Commit?> findCommit({
     required String gitBranch,
     required String sha,
     required RepositorySlug slug,
@@ -315,7 +315,12 @@ class DatastoreService {
     final String id = '${slug.fullName}/$gitBranch/$sha';
     final Key<String> commitKey = db.emptyKey.append<String>(Commit, id: id);
     log.fine('Constructed commit key=$id');
-    return await lookupByValue<Commit>(commitKey);
+    try {
+      return await lookupByValue<Commit>(commitKey);
+    } on KeyNotFoundException {
+      log.fine('No commit found for key=$id');
+      return null;
+    }
   }
 
   /// Finds the [Task] that matches the given [commitKey] and [name].

@@ -25,7 +25,6 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/gerrit/commit.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
@@ -450,8 +449,8 @@ class Scheduler {
         if (name == kCiYamlCheckName) {
           // TODO(chillers): This is not rerunning the ci.yaml validation check. https://github.com/flutter/flutter/issues/100081
           final List<github.PullRequest> pullRequests = checkRunEvent.checkRun!.pullRequests ?? <github.PullRequest>[];
-          for (github.PullRequest pullRequest in pullRequests) {
-            await triggerPresubmitTargets(pullRequest: pullRequest);
+          for (final pr in pullRequests) {
+            await triggerPresubmitTargets(pullRequest: pr);
             success = true;
           }
         } else {
@@ -461,16 +460,15 @@ class Scheduler {
             final RepositorySlug slug = checkRunEvent.repository!.slug();
 
             // TODO: Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
-            // See https://docs.github.com/developers/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=rerequested#check_run
+            // Update when https://github.com/SpinlockLabs/github.dart/pull/347 is merged
             final String gitBranch = Config.defaultBranch(slug);
 
-            // Only merged commits are mirrored. If a matching commit is found on GoB, this must be a postsubmit checkrun.
-            final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+            // Only merged commits are added to the datstore. If a matching commit is found, this must be a postsubmit checkrun.
+            final Commit? commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
 
-            if (gobCommit == null) {
+            if (commit == null) {
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
-              final Commit commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
               final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
