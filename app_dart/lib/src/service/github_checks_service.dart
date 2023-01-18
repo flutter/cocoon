@@ -172,4 +172,32 @@ class GithubChecksService {
         throw StateError('unreachable');
     }
   }
+
+  /// Given a [headSha] and [checkSuiteId], finds the [PullRequest] that matches.
+  Future<github.PullRequest?> findMatchingPullRequest(
+    github.RepositorySlug slug,
+    String headSha,
+    int checkSuiteId,
+  ) async {
+    final githubService = await config.createDefaultGitHubService();
+
+    // There could be multiple PRs that have the same [headSha] commit.
+    final prIssues = githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
+
+    await for (final prIssue in prIssues) {
+      final prNumber = prIssue.number;
+
+      // Each PR can have multiple check suites.
+      final checkSuites =
+          await githubChecksUtil.listCheckSuitesForRef(githubService.github, slug, ref: 'refs/pull/$prNumber/head');
+
+      // Use check suite ID equality to verify that we have iterated to the correct PR.
+      final doesPrIncludeMatchingCheckSuite = await checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
+      if (doesPrIncludeMatchingCheckSuite) {
+        return githubService.getPullRequest(slug, prNumber);
+      }
+    }
+
+    return null;
+  }
 }

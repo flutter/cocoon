@@ -287,9 +287,12 @@ class GithubService {
 
   /// Returns a [Stream] of [Issue]s that match the given [query].
   ///
+  /// The GitHub package uses the [Issue] object for both issue results and PRs.
+  ///
   /// Reference:
   ///   * https://docs.github.com/en/rest/search?apiVersion=2022-11-28#search-issues-and-pull-requests
-  Stream<Issue> searchIssues(RepositorySlug slug, String query, {String? sort, int pages = 2}) {
+  ///   * https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
+  Stream<Issue> searchIssuesAndPRs(RepositorySlug slug, String query, {String? sort, int pages = 2}) {
     return github.search.issues(Uri.encodeComponent('$query repo:${slug.fullName}'), sort: sort, pages: pages);
   }
 

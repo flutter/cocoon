@@ -446,7 +446,11 @@ class Scheduler {
         if (name == kCiYamlCheckName) {
           // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
           // event, so we need to find the matching pull request.
-          final pullRequest = await _findMatchingPullRequest(checkRunEvent);
+          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          final String headSha = checkRunEvent.checkRun!.headSha!;
+          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          final PullRequest? pullRequest =
+              await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
           if (pullRequest != null) {
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
@@ -467,33 +471,6 @@ class Scheduler {
     }
 
     return true;
-  }
-
-  /// Given a [checkRunEvent], finds the [PullRequest] that the check run must belong to.
-  Future<PullRequest?> _findMatchingPullRequest(cocoon_checks.CheckRunEvent checkRunEvent) async {
-    final slug = checkRunEvent.repository!.slug();
-    final headSha = checkRunEvent.checkRun!.headSha!;
-    final GithubService githubService = await config.createDefaultGitHubService();
-
-    // There could be multiple PRs that have the same [headSha] commit.
-    final prIssues = githubService.searchIssues(slug, '$headSha type:pr');
-
-    await for (final prIssue in prIssues) {
-      final prNumber = prIssue.number;
-
-      // Each PR can have multiple check suites.
-      final checkSuites = await githubChecksService.githubChecksUtil
-          .listCheckSuitesForRef(githubService.github, slug, ref: 'refs/pull/$prNumber/head');
-
-      // Use check suite ID equality to verify that we have iterated to the correct PR.
-      final doesPrIncludeMatchingCheckSuite =
-          await checkSuites.any((checkSuite) => checkSuite.id! == checkRunEvent.checkRun!.checkSuite!.id);
-      if (doesPrIncludeMatchingCheckSuite) {
-        return githubService.getPullRequest(slug, prNumber);
-      }
-    }
-
-    return null;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
