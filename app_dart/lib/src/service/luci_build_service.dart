@@ -39,7 +39,7 @@ class LuciBuildService {
     GerritService? gerritService,
     this.pubsub = const PubSub(),
   })  : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-        gerritService = gerritService ?? GerritService(config: config);
+        gerritService = gerritService ?? GerritService();
 
   BuildBucketClient buildBucketClient;
   Config config;
