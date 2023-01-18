@@ -444,11 +444,14 @@ class Scheduler {
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // TODO(chillers): This is not rerunning the ci.yaml validation check. https://github.com/flutter/flutter/issues/100081
-          final List<github.PullRequest> pullRequests = checkRunEvent.checkRun!.pullRequests ?? <github.PullRequest>[];
-          for (github.PullRequest pullRequest in pullRequests) {
+          // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
+          // event, so we need to find the matching pull request.
+          final pullRequest = await _findMatchingPullRequest(checkRunEvent);
+          if (pullRequest != null) {
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
+          } else {
+            log.warning('No matching PR found for head_sha in check run event.');
           }
         } else {
           try {
@@ -464,6 +467,33 @@ class Scheduler {
     }
 
     return true;
+  }
+
+  /// Given a [checkRunEvent], finds the [PullRequest] that the check run must belong to.
+  Future<PullRequest?> _findMatchingPullRequest(cocoon_checks.CheckRunEvent checkRunEvent) async {
+    final slug = checkRunEvent.repository!.slug();
+    final headSha = checkRunEvent.checkRun!.headSha!;
+    final GithubService githubService = await config.createDefaultGitHubService();
+
+    // There could be multiple PRs that have the same [headSha] commit.
+    final prIssues = githubService.searchIssues(slug, '$headSha type:pr');
+
+    await for (final prIssue in prIssues) {
+      final prNumber = prIssue.number;
+
+      // Each PR can have multiple check suites.
+      final checkSuites = await githubChecksService.githubChecksUtil
+          .listCheckSuitesForRef(githubService.github, slug, ref: 'refs/pull/$prNumber/head');
+
+      // Use check suite ID equality to verify that we have iterated to the correct PR.
+      final doesPrIncludeMatchingCheckSuite =
+          await checkSuites.any((checkSuite) => checkSuite.id! == checkRunEvent.checkRun!.checkSuite!.id);
+      if (doesPrIncludeMatchingCheckSuite) {
+        return githubService.getPullRequest(slug, prNumber);
+      }
+    }
+
+    return null;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
