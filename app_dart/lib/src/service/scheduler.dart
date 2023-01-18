@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
@@ -454,34 +455,38 @@ class Scheduler {
             success = true;
           }
         } else {
-          final String sha = checkRunEvent.checkRun!.headSha!;
-          final String checkName = checkRunEvent.checkRun!.name!;
-          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          try {
+            final String sha = checkRunEvent.checkRun!.headSha!;
+            final String checkName = checkRunEvent.checkRun!.name!;
+            final RepositorySlug slug = checkRunEvent.repository!.slug();
 
-          // TODO: Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
-          // See https://docs.github.com/developers/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=rerequested#check_run
-          final String gitBranch = Config.defaultBranch(slug);
+            // TODO: Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
+            // See https://docs.github.com/developers/webhooks-and-events/webhooks/webhook-events-and-payloads?actionType=rerequested#check_run
+            final String gitBranch = Config.defaultBranch(slug);
 
-          // Only merged commits are mirrored. If a matching commit is found on GoB, this must be a postsubmit checkrun.
-          final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+            // Only merged commits are mirrored. If a matching commit is found on GoB, this must be a postsubmit checkrun.
+            final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
 
-          if (gobCommit == null) {
-            await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
-          } else {
-            final Commit commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
-            final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
-            final CiYaml ciYaml = await getCiYaml(commit);
-            final Target target =
-                ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
-            await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
-              checkRunEvent,
-              commit: commit,
-              task: task,
-              target: target,
-            );
+            if (gobCommit == null) {
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+            } else {
+              final Commit commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
+              final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
+              final CiYaml ciYaml = await getCiYaml(commit);
+              final Target target =
+                  ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+                checkRunEvent,
+                commit: commit,
+                task: task,
+                target: target,
+              );
+            }
+
+            success = true;
+          } on NoBuildFoundException {
+            log.warning('No build found to reschedule.');
           }
-
-          success = true;
         }
 
         log.fine('CheckName: $name State: $success');

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -22,7 +23,11 @@ void main() {
     });
 
     test('returns null when no value exists', () async {
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, 'abc');
+      final Uint8List? value = await cache.getOrCreate(
+        testSubcacheName,
+        'abc',
+        createFn: null,
+      );
 
       expect(value, isNull);
     });
@@ -33,7 +38,11 @@ void main() {
 
       await cache.set(testSubcacheName, testKey, expectedValue);
 
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, testKey);
+      final Uint8List? value = await cache.getOrCreate(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
 
       expect(value, expectedValue);
     });
@@ -47,10 +56,18 @@ void main() {
       await cache.set(testSubcacheName, testKey1, expectedValue1);
       await cache.set(testSubcacheName, testKey2, expectedValue2);
 
-      final Uint8List? value1 = await cache.getOrCreate(testSubcacheName, testKey1);
+      final Uint8List? value1 = await cache.getOrCreate(
+        testSubcacheName,
+        testKey1,
+        createFn: null,
+      );
       expect(value1, null);
 
-      final Uint8List? value2 = await cache.getOrCreate(testSubcacheName, testKey2);
+      final Uint8List? value2 = await cache.getOrCreate(
+        testSubcacheName,
+        testKey2,
+        createFn: null,
+      );
       expect(value2, expectedValue2);
     });
 
@@ -68,7 +85,11 @@ void main() {
 
       cache.cacheValue = mockMainCache;
 
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, 'does not matter');
+      final Uint8List? value = await cache.getOrCreate(
+        testSubcacheName,
+        'does not matter',
+        createFn: null,
+      );
       verify(mockTestSubcache['does not matter']).called(2);
       expect(value, Uint8List.fromList('abc123'.codeUnits));
     });
@@ -88,7 +109,11 @@ void main() {
 
       cache.cacheValue = mockMainCache;
 
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, 'does not matter');
+      final Uint8List? value = await cache.getOrCreate(
+        testSubcacheName,
+        'does not matter',
+        createFn: null,
+      );
       verify(mockTestSubcache['does not matter']).called(CacheService.maxCacheGetAttempts);
       expect(value, isNull);
     });
@@ -108,13 +133,21 @@ void main() {
 
       await cache.set(testSubcacheName, testKey, expectedValue);
 
-      final Uint8List? value = await cache.getOrCreate(testSubcacheName, testKey);
+      final Uint8List? value = await cache.getOrCreate(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
 
       expect(value, expectedValue);
 
       await cache.purge(testSubcacheName, testKey);
 
-      final Uint8List? valueAfterPurge = await cache.getOrCreate(testSubcacheName, testKey);
+      final Uint8List? valueAfterPurge = await cache.getOrCreate(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
       expect(valueAfterPurge, isNull);
     });
 
@@ -156,6 +189,64 @@ void main() {
         ttl: testDuration,
       );
       verify(entry.set(any, testDuration)).called(1);
+    });
+
+    test('set does not block read attempt', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+
+      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
+      Uint8List? valueAfterSet = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+
+      expect(valueAfterSet, null);
+      await cacheWrite;
+      valueAfterSet = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      expect(valueAfterSet, expectedValue);
+    });
+
+    test('read locks are not blocking', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+
+      await cache.setWithLocking(testSubcacheName, testKey, expectedValue);
+      final Future<Uint8List?> valueAfterSet = cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      final Uint8List? valueAfterSet2 = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+
+      expect(valueAfterSet2, expectedValue);
+      await valueAfterSet.then((value) => expect(value, expectedValue));
+    });
+
+    test('write locks are blocking', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+      final Uint8List newValue = Uint8List.fromList('345'.codeUnits);
+
+      final cacheWrite = cache.setWithLocking(testSubcacheName, testKey, expectedValue);
+      final cacheWrite2 = cache.setWithLocking(testSubcacheName, testKey, newValue);
+      await cacheWrite;
+      final Uint8List? readValue = await cache.getOrCreateWithLocking(
+        testSubcacheName,
+        testKey,
+        createFn: null,
+      );
+      expect(readValue, expectedValue);
+      await cacheWrite2;
     });
   });
 }
