@@ -12,11 +12,13 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -28,6 +30,7 @@ import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
+import '../src/utilities/webhook_generators.dart';
 
 void main() {
   late FakeConfig config;
@@ -531,6 +534,31 @@ void main() {
         'repo_owner': 'flutter',
         'repo_name': 'packages'
       });
+    });
+
+    test('reschedule using checkrun event fails gracefully', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[],
+              ),
+            )
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
+          throwsA(const TypeMatcher<NoBuildFoundException>()));
     });
 
     test('do not create postsubmit checkrun for bringup: true target', () async {
