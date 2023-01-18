@@ -12,9 +12,6 @@ steps:
     args:
       - '-c'
       - |-
-        gcloud builds submit --config app_dart/cloudbuild_app_dart_docker.yaml \
-          --substitutions="SHORT_SHA=$SHORT_SHA"
-        gcloud builds submit --config app_dart/cloudbuild_app_dart_deploy.yaml \
-          --substitutions="_GAE_PROMOTE=$_GAE_PROMOTE,SHORT_SHA=$SHORT_SHA"
+        ls
 
 timeout: 1200s
