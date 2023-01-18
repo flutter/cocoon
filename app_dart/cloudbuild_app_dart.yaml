@@ -12,6 +12,7 @@ steps:
     args:
       - '-c'
       - |-
-        ls
+        gcloud builds submit --config app_dart/cloudbuild_app_dart_docker.yaml \
+          --substitutions="SHORT_SHA=$SHORT_SHA"
 
 timeout: 1200s
