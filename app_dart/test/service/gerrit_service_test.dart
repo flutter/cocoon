@@ -14,6 +14,7 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
+import '../src/datastore/fake_config.dart';
 import '../src/service/fake_auth_client.dart';
 import '../src/utilities/matchers.dart';
 
@@ -23,7 +24,7 @@ void main() {
   group('getBranches', () {
     test('Too many retries raise an exception', () async {
       mockHttpClient = MockClient((_) async => http.Response(')]}\'\n[]', HttpStatus.forbidden));
-      gerritService = GerritService(httpClient: mockHttpClient);
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
       try {
         await gerritService.branches(
           'myhost',
@@ -42,7 +43,7 @@ void main() {
         requestAux = request;
         return http.Response(body, HttpStatus.ok);
       });
-      gerritService = GerritService(httpClient: mockHttpClient);
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
@@ -54,7 +55,7 @@ void main() {
 
     test('No results return an empty list', () async {
       mockHttpClient = MockClient((_) async => http.Response(')]}\'\n[]', HttpStatus.ok));
-      gerritService = GerritService(httpClient: mockHttpClient);
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
       final List<String> branches = await gerritService.branches(
         'myhost',
         'a/b/c',
@@ -67,7 +68,7 @@ void main() {
   group('commits', () {
     test('Returns a list of commits', () async {
       mockHttpClient = MockClient((_) async => http.Response(commitsListJson, HttpStatus.ok));
-      gerritService = GerritService(httpClient: mockHttpClient);
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
       final Iterable<GerritCommit> commits = await gerritService.commits(Config.recipesSlug, 'main');
       expect(commits.length, 1);
       final GerritCommit commit = commits.single;
@@ -84,6 +85,7 @@ void main() {
     test('ok response', () async {
       mockHttpClient = MockClient((_) async => http.Response(createBranchJson, HttpStatus.ok));
       gerritService = GerritService(
+        config: FakeConfig(),
         httpClient: mockHttpClient,
         authClientProvider: ({
           Client? baseClient,
@@ -103,6 +105,7 @@ void main() {
     test('unexpected response', () async {
       mockHttpClient = MockClient((_) async => http.Response(createBranchJson, HttpStatus.ok));
       gerritService = GerritService(
+        config: FakeConfig(),
         httpClient: mockHttpClient,
         authClientProvider: ({
           Client? baseClient,
@@ -128,6 +131,7 @@ void main() {
         return http.Response(createBranchJson, HttpStatus.accepted);
       });
       gerritService = GerritService(
+        config: FakeConfig(),
         httpClient: mockHttpClient,
         authClientProvider: ({
           Client? baseClient,

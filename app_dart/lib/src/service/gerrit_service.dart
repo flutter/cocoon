@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:core';
 import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -14,17 +15,20 @@ import 'package:http/retry.dart';
 import 'package:meta/meta.dart';
 
 import '../model/gerrit/commit.dart';
+import 'config.dart';
 import 'logging.dart';
 
 /// Communicates with gerrit APIs https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html
 /// to get information about projects hosted in Git on Borg.
 class GerritService {
   GerritService({
+    required this.config,
     http.Client? httpClient,
     @visibleForTesting this.authClientProvider = clientViaApplicationDefaultCredentials,
     @visibleForTesting this.retryDelay,
   }) : httpClient = httpClient ?? http.Client();
 
+  final Config config;
   final http.Client httpClient;
 
   final Duration? retryDelay;
@@ -47,7 +51,7 @@ class GerritService {
       if (filterRegex != null && filterRegex.isNotEmpty) 'r': filterRegex,
     };
     final Uri url = Uri.https(repo, 'projects/$project/branches', queryParameters);
-    final List<dynamic> response = await _get(url) as List<dynamic>;
+    final List<dynamic> response = await _getJson(url) as List<dynamic>;
 
     final List<String> branches = <String>[];
 
@@ -65,10 +69,27 @@ class GerritService {
         Uri.https('${slug.owner}.googlesource.com', '${slug.name}/+log/refs/heads/$branch', <String, String>{
       'format': 'json',
     });
-    final Map<String, dynamic> response = await _get(url) as Map<String, dynamic>;
+    final Map<String, dynamic> response = await _getJson(url) as Map<String, dynamic>;
     final List<dynamic> commitsJson = response['log'] as List<dynamic>;
 
     return commitsJson.map((dynamic part) => GerritCommit.fromJson(part as Map<String, dynamic>));
+  }
+
+  /// Gets the info for a commit from a remote git repository using the gerrit APIs.
+  ///
+  /// See more:
+  ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html#get-commit
+  Future<GerritCommit?> getCommit(RepositorySlug slug, String commitId) async {
+    // URL encode because "mirrors/flutter" should be "mirrors%2Fflutter".
+    final String projectName = Uri.encodeComponent(slug.name);
+    final Uri url = Uri.https('${slug.owner}-review.googlesource.com', 'projects/$projectName/commits/$commitId');
+
+    final http.Response response = await _get(url);
+    if (!_responseIsAcceptable(response)) return null;
+
+    final String jsonBody = _stripXssToken(response.body);
+    final json = jsonDecode(jsonBody) as Map<String, dynamic>;
+    return GerritCommit.fromJson(json);
   }
 
   /// Creates a new branch.
@@ -89,13 +110,31 @@ class GerritService {
     log.info('Created branch $branchName');
   }
 
-  Future<dynamic> _get(Uri url) async {
+  /// Find a commit on a GoB mirror using the GitHub [slug] and commit [sha].
+  ///
+  /// The [slug] will be validated by checking if [Config.postsubmitSupportedRepos] includes it.
+  Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
+    if (!config.postsubmitSupportedRepos.contains(slug)) return null;
+    final gobMirrorName = 'mirrors/${slug.name}';
+    return await getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
+  }
+
+  /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
+  /// must be stripped before feeding the rest of the response body to a JSON parser. The magic prefix is ")]}'".
+  String _stripXssToken(String body) {
+    return body.replaceRange(0, 4, '');
+  }
+
+  Future<http.Response> _get(Uri url) async {
+    final RetryClient client = RetryClient(httpClient);
+    return await client.get(url);
+  }
+
+  Future<dynamic> _getJson(Uri url) async {
     final RetryClient client = RetryClient(httpClient);
     final http.Response response = await client.get(url);
 
-    /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
-    /// must be stripped before feeding the rest of the response body to a JSON parser. The magic prefix is ")]}'".
-    final String jsonBody = response.body.replaceRange(0, 4, '');
+    final String jsonBody = _stripXssToken(response.body);
     return jsonDecode(jsonBody) as dynamic;
   }
 
@@ -119,8 +158,7 @@ class GerritService {
     }
     log.info('Sent PUT to $url');
     log.info(response.body);
-    // Remove XSS token
-    final String jsonBody = response.body.replaceRange(0, 4, '');
+    final String jsonBody = _stripXssToken(response.body);
     log.info(jsonBody);
     return jsonDecode(jsonBody);
   }

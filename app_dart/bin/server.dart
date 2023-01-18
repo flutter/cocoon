@@ -48,7 +48,7 @@ Future<void> main() async {
 
     final BranchService branchService = BranchService(
       config: config,
-      gerritService: GerritService(),
+      gerritService: GerritService(config: config),
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
