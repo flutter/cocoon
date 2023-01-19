@@ -89,4 +89,16 @@ void main() {
     expect(commit.commit!.committer!.name, authorName);
     expect(commit.commit!.committer!.email, authorEmail);
   });
+
+  test('searchIssuesAndPRs encodes query properly', () async {
+    mockGitHub = MockGitHub();
+    final mockSearchService = MockSearchService();
+    when(mockGitHub.search).thenReturn(mockSearchService);
+    when(mockSearchService.issues(any)).thenAnswer((invocation) {
+      expect(invocation.positionalArguments[0], '6afa96d84e2ecf6537f8ea76341d8ba397942e80%20repo%3Aflutter%2Fflutter');
+      return const Stream.empty();
+    });
+    githubService = GithubService(mockGitHub);
+    githubService.searchIssuesAndPRs(slug, '6afa96d84e2ecf6537f8ea76341d8ba397942e80');
+  });
 }
