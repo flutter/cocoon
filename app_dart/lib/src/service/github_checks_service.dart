@@ -180,27 +180,23 @@ class GithubChecksService {
     String headSha,
     int checkSuiteId,
   ) async {
-    final GithubService githubService =
-        await config.createDefaultGitHubService();
+    final GithubService githubService = await config.createDefaultGitHubService();
 
     // There could be multiple PRs that have the same [headSha] commit.
-    final List<github.Issue> prIssues =
-        await githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
+    final List<github.Issue> prIssues = await githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
 
     for (final prIssue in prIssues) {
       final int prNumber = prIssue.number;
 
       // Each PR can have multiple check suites.
-      final List<github.CheckSuite> checkSuites =
-          await githubChecksUtil.listCheckSuitesForRef(
+      final List<github.CheckSuite> checkSuites = await githubChecksUtil.listCheckSuitesForRef(
         githubService.github,
         slug,
         ref: 'refs/pull/$prNumber/head',
       );
 
       // Use check suite ID equality to verify that we have iterated to the correct PR.
-      final bool doesPrIncludeMatchingCheckSuite =
-          checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
+      final bool doesPrIncludeMatchingCheckSuite = checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
       if (doesPrIncludeMatchingCheckSuite) {
         return githubService.getPullRequest(slug, prNumber);
       }

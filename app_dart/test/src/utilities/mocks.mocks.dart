@@ -2209,7 +2209,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         )),
       ) as _i17.Future<_i10.CheckSuite>);
   @override
-  _i17.Future<_i17.Stream<_i10.CheckSuite>> listCheckSuitesForRef(
+  _i17.Future<List<_i10.CheckSuite>> listCheckSuitesForRef(
     _i10.GitHub? gitHubClient,
     _i10.RepositorySlug? slug, {
     required String? ref,
@@ -2229,8 +2229,8 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
             #checkName: checkName,
           },
         ),
-        returnValue: _i17.Future<_i17.Stream<_i10.CheckSuite>>.value(_i17.Stream<_i10.CheckSuite>.empty()),
-      ) as _i17.Future<_i17.Stream<_i10.CheckSuite>>);
+        returnValue: _i17.Future<List<_i10.CheckSuite>>.value(<_i10.CheckSuite>[]),
+      ) as _i17.Future<List<_i10.CheckSuite>>);
   @override
   _i17.Future<void> updateCheckRun(
     _i3.Config? cocoonConfig,
@@ -2599,7 +2599,7 @@ class MockGithubService extends _i1.Mock implements _i25.GithubService {
         )),
       ) as _i17.Future<_i10.RateLimit>);
   @override
-  _i17.Stream<_i10.Issue> searchIssuesAndPRs(
+  _i17.Future<List<_i10.Issue>> searchIssuesAndPRs(
     _i10.RepositorySlug? slug,
     String? query, {
     String? sort,
@@ -2617,8 +2617,8 @@ class MockGithubService extends _i1.Mock implements _i25.GithubService {
             #pages: pages,
           },
         ),
-        returnValue: _i17.Stream<_i10.Issue>.empty(),
-      ) as _i17.Stream<_i10.Issue>);
+        returnValue: _i17.Future<List<_i10.Issue>>.value(<_i10.Issue>[]),
+      ) as _i17.Future<List<_i10.Issue>>);
   @override
   _i17.Future<_i10.PullRequest> getPullRequest(
     _i10.RepositorySlug? slug,
