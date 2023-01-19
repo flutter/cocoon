@@ -31,8 +31,8 @@ class FakeGoogleSignInAccount implements GoogleSignInAccount {
   Future<void> clearAuthCache() => Future<void>.value(null);
 
   @override
-  bool operator ==(dynamic other) {
-    final GoogleSignInAccount otherAccount = other;
+  bool operator ==(Object other) {
+    final GoogleSignInAccount otherAccount = other as GoogleSignInAccount;
     return email == otherAccount.email;
   }
 
