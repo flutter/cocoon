@@ -393,21 +393,17 @@ void main() {
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         config = FakeConfig(
-          dbValue: db,
           githubService: mockGithubService,
-          githubClient: mockGithubClient,
         );
         scheduler = Scheduler(
           cache: cache,
           config: config,
           buildStatusProvider: (_) => buildStatusService,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
           httpClientProvider: () => httpClient,
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
-            gerritService: FakeGerritService(branchesValue: <String>['master']),
           ),
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
