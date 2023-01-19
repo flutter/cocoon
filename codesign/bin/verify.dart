@@ -16,6 +16,10 @@ Future<void> main(List<String> args) async {
     logger.info('Usage: dart verify.dart [FILE]');
     io.exit(1);
   }
+  if (!io.Platform.isMacOS) {
+    logger.severe('This tool must be run from macOS.');
+    io.exit(1);
+  }
   final inputFile = args[0];
   final VerificationResult result = await VerificationService(
     binaryPath: inputFile,
