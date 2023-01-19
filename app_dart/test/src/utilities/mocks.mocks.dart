@@ -9,9 +9,9 @@ import 'dart:io' as _i15;
 import 'dart:typed_data' as _i27;
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i11;
-import 'package:cocoon_service/src/foundation/utils.dart' as _i35;
+import 'package:cocoon_service/src/foundation/utils.dart' as _i36;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i34;
-import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
+import 'package:cocoon_service/src/model/appengine/task.dart' as _i35;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i32;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i33;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i9;
@@ -4792,16 +4792,47 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         )),
       ) as _i17.Future<_i9.Build>);
   @override
-  _i17.Future<_i9.Build> rescheduleUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) => (super.noSuchMethod(
+  _i17.Future<_i9.Build> reschedulePresubmitBuildUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #rescheduleUsingCheckRunEvent,
+          #reschedulePresubmitBuildUsingCheckRunEvent,
           [checkRunEvent],
         ),
         returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
           this,
           Invocation.method(
-            #rescheduleUsingCheckRunEvent,
+            #reschedulePresubmitBuildUsingCheckRunEvent,
             [checkRunEvent],
+          ),
+        )),
+      ) as _i17.Future<_i9.Build>);
+  @override
+  _i17.Future<_i9.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+    _i33.CheckRunEvent? checkRunEvent, {
+    required _i34.Commit? commit,
+    required _i35.Task? task,
+    required _i32.Target? target,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #reschedulePostsubmitBuildUsingCheckRunEvent,
+          [checkRunEvent],
+          {
+            #commit: commit,
+            #task: task,
+            #target: target,
+          },
+        ),
+        returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
+          this,
+          Invocation.method(
+            #reschedulePostsubmitBuildUsingCheckRunEvent,
+            [checkRunEvent],
+            {
+              #commit: commit,
+              #task: task,
+              #target: target,
+            },
           ),
         )),
       ) as _i17.Future<_i9.Build>);
@@ -4844,7 +4875,7 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
   @override
   _i17.Future<void> schedulePostsubmitBuilds({
     required _i34.Commit? commit,
-    required List<_i35.Tuple<_i32.Target, _i36.Task, int>>? toBeScheduled,
+    required List<_i36.Tuple<_i32.Target, _i35.Task, int>>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4880,7 +4911,7 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
   _i17.Future<bool> checkRerunBuilder({
     required _i34.Commit? commit,
     required _i32.Target? target,
-    required _i36.Task? task,
+    required _i35.Task? task,
     required _i37.DatastoreService? datastore,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,

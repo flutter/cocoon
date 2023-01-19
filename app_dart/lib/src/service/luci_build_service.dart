@@ -389,7 +389,7 @@ class LuciBuildService {
     final int prNumber = int.parse(prString.split('/')[2]);
 
     final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-    final Map<String, dynamic>? properties = build.input!.properties;
+    final Map<String, Object>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -428,7 +428,7 @@ class LuciBuildService {
     }
 
     final Build build = builds.first;
-    final Map<String, dynamic>? properties = build.input!.properties;
+    final Map<String, Object>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest =
@@ -500,15 +500,15 @@ class LuciBuildService {
     required String checkName,
     required int pullRequestNumber,
     required String cipdVersion,
-    Map<String, dynamic>? properties,
+    Map<String, Object>? properties,
     Map<String, List<String>>? tags,
     Map<String, dynamic>? userData,
     List<RequestedDimension>? dimensions,
   }) {
-    final Map<String, dynamic> processedProperties = <String, dynamic>{};
-    processedProperties.addAll(properties ?? <String, dynamic>{});
+    final Map<String, Object> processedProperties = <String, Object>{};
+    processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties.addEntries(
-      <String, dynamic>{
+      <String, Object>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
         'git_ref': 'refs/pull/$pullRequestNumber/head',
         'exe_cipd_version': cipdVersion,
@@ -553,7 +553,7 @@ class LuciBuildService {
     required Commit commit,
     required Target target,
     required Task task,
-    Map<String, dynamic>? properties,
+    Map<String, Object>? properties,
     Map<String, List<String>>? tags,
     int priority = kDefaultPriority,
   }) async {
@@ -581,8 +581,8 @@ class LuciBuildService {
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
     tags['scheduler_job_id'] = <String>['flutter/${target.value.name}'];
-    final Map<String, dynamic> processedProperties = target.getProperties();
-    processedProperties.addAll(properties ?? <String, dynamic>{});
+    final Map<String, Object> processedProperties = target.getProperties();
+    processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties['git_branch'] = commit.branch!;
     final String cipdVersion = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdVersion;

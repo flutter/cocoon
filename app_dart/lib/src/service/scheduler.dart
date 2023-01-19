@@ -463,7 +463,8 @@ class Scheduler {
             // Update when https://github.com/SpinlockLabs/github.dart/pull/347 is merged
             final String gitBranch = Config.defaultBranch(slug);
 
-            // Only merged commits are added to the datstore. If a matching commit is found, this must be a postsubmit checkrun.
+            // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
+            datastore = datastoreProvider(config.db);
             final Commit? commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
 
             if (commit == null) {
