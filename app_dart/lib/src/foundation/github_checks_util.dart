@@ -41,7 +41,7 @@ class GithubChecksUtil {
   }
 
   /// Finds all check suites that are associated with a given git [ref].
-  Future<Stream<github.CheckSuite>> listCheckSuitesForRef(
+  Future<List<github.CheckSuite>> listCheckSuitesForRef(
     github.GitHub gitHubClient,
     github.RepositorySlug slug, {
     required String ref,
@@ -55,7 +55,13 @@ class GithubChecksUtil {
     return r.retry(
       () async {
         return gitHubClient.checks.checkSuites
-            .listCheckSuitesForRef(slug, ref: ref, appId: appId, checkName: checkName);
+            .listCheckSuitesForRef(
+              slug,
+              ref: ref,
+              appId: appId,
+              checkName: checkName,
+            )
+            .toList();
       },
       retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
     );

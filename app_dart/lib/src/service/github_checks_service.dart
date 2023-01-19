@@ -11,6 +11,7 @@ import '../foundation/github_checks_util.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import 'config.dart';
+import 'github_service.dart';
 import 'logging.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
@@ -179,20 +180,27 @@ class GithubChecksService {
     String headSha,
     int checkSuiteId,
   ) async {
-    final githubService = await config.createDefaultGitHubService();
+    final GithubService githubService =
+        await config.createDefaultGitHubService();
 
     // There could be multiple PRs that have the same [headSha] commit.
-    final prIssues = githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
+    final List<github.Issue> prIssues =
+        await githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
 
-    await for (final prIssue in prIssues) {
-      final prNumber = prIssue.number;
+    for (final prIssue in prIssues) {
+      final int prNumber = prIssue.number;
 
       // Each PR can have multiple check suites.
-      final checkSuites =
-          await githubChecksUtil.listCheckSuitesForRef(githubService.github, slug, ref: 'refs/pull/$prNumber/head');
+      final List<github.CheckSuite> checkSuites =
+          await githubChecksUtil.listCheckSuitesForRef(
+        githubService.github,
+        slug,
+        ref: 'refs/pull/$prNumber/head',
+      );
 
       // Use check suite ID equality to verify that we have iterated to the correct PR.
-      final doesPrIncludeMatchingCheckSuite = await checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
+      final bool doesPrIncludeMatchingCheckSuite =
+          checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
       if (doesPrIncludeMatchingCheckSuite) {
         return githubService.getPullRequest(slug, prNumber);
       }

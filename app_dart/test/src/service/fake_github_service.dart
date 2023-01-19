@@ -131,7 +131,12 @@ class FakeGithubService implements GithubService {
   }
 
   @override
-  Stream<Issue> searchIssuesAndPRs(RepositorySlug slug, String query, {String? sort, int pages = 2}) async* {
-    yield Issue();
+  Future<List<Issue>> searchIssuesAndPRs(
+    RepositorySlug slug,
+    String query, {
+    String? sort,
+    int pages = 2,
+  }) async {
+    return <Issue>[];
   }
 }
