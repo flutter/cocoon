@@ -192,6 +192,20 @@ github.CheckRun generateCheckRun(
   });
 }
 
+github.CheckSuite generateCheckSuite(
+  int i, {
+  String headSha = 'abc',
+  github.CheckRunConclusion conclusion = github.CheckRunConclusion.success,
+  List<github.PullRequest> pullRequests = const <github.PullRequest>[],
+}) {
+  return github.CheckSuite(
+    id: i,
+    headSha: headSha,
+    conclusion: conclusion,
+    pullRequests: pullRequests,
+  );
+}
+
 github.PullRequest generatePullRequest({
   int id = 789,
   String branch = 'master',
@@ -249,3 +263,21 @@ github.RepositoryCommit generateGitCommit(int i) => github.RepositoryCommit(
         ),
       ),
     );
+
+github.Issue generateIssue(
+  int i, {
+  String authorLogin = 'dash',
+  String authorAvatar = 'dashatar',
+  String title = 'example message',
+  int number = 123,
+}) {
+  return github.Issue(
+    id: i,
+    title: title,
+    number: number,
+    user: github.User(
+      login: authorLogin,
+      avatarUrl: authorAvatar,
+    ),
+  );
+}
