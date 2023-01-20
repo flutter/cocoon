@@ -124,4 +124,19 @@ class FakeGithubService implements GithubService {
   Future<RateLimit> getRateLimit() {
     throw UnimplementedError();
   }
+
+  @override
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int number) async {
+    return PullRequest();
+  }
+
+  @override
+  Future<List<Issue>> searchIssuesAndPRs(
+    RepositorySlug slug,
+    String query, {
+    String? sort,
+    int pages = 2,
+  }) async {
+    return <Issue>[];
+  }
 }

@@ -284,4 +284,34 @@ class GithubService {
     final Random rnd = Random();
     return String.fromCharCodes(Iterable<int>.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
+
+  /// Returns a [List] of [Issue]s that match the given [query].
+  ///
+  /// The GitHub package uses the [Issue] object for both issue results and PRs.
+  ///
+  /// Reference:
+  ///   * https://docs.github.com/en/rest/search?apiVersion=2022-11-28#search-issues-and-pull-requests
+  ///   * https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests
+  Future<List<Issue>> searchIssuesAndPRs(
+    RepositorySlug slug,
+    String query, {
+    String? sort,
+    int pages = 2,
+  }) {
+    return github.search
+        .issues(
+          Uri.encodeComponent('$query repo:${slug.fullName}'),
+          sort: sort,
+          pages: pages,
+        )
+        .toList();
+  }
+
+  /// Retrieves a pull request with the given [number].
+  ///
+  /// Reference:
+  ///   * https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int number) async {
+    return await github.pullRequests.get(slug, number);
+  }
 }

@@ -77,6 +77,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     ProcessManager,
     PullRequestsService,
     RepositoriesService,
+    SearchService,
     TabledataResource,
     UsersService,
   ],

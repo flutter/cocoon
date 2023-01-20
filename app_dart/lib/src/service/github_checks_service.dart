@@ -11,6 +11,7 @@ import '../foundation/github_checks_util.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import 'config.dart';
+import 'github_service.dart';
 import 'logging.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
@@ -171,5 +172,36 @@ class GithubChecksService {
       case null:
         throw StateError('unreachable');
     }
+  }
+
+  /// Given a [headSha] and [checkSuiteId], finds the [PullRequest] that matches.
+  Future<github.PullRequest?> findMatchingPullRequest(
+    github.RepositorySlug slug,
+    String headSha,
+    int checkSuiteId,
+  ) async {
+    final GithubService githubService = await config.createDefaultGitHubService();
+
+    // There could be multiple PRs that have the same [headSha] commit.
+    final List<github.Issue> prIssues = await githubService.searchIssuesAndPRs(slug, '$headSha type:pr');
+
+    for (final prIssue in prIssues) {
+      final int prNumber = prIssue.number;
+
+      // Each PR can have multiple check suites.
+      final List<github.CheckSuite> checkSuites = await githubChecksUtil.listCheckSuitesForRef(
+        githubService.github,
+        slug,
+        ref: 'refs/pull/$prNumber/head',
+      );
+
+      // Use check suite ID equality to verify that we have iterated to the correct PR.
+      final bool doesPrIncludeMatchingCheckSuite = checkSuites.any((checkSuite) => checkSuite.id! == checkSuiteId);
+      if (doesPrIncludeMatchingCheckSuite) {
+        return githubService.getPullRequest(slug, prNumber);
+      }
+    }
+
+    return null;
   }
 }
