@@ -477,8 +477,10 @@ class Scheduler {
             final Commit? commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
 
             if (commit == null) {
+              log.fine('Commit not found in datastore. Rescheduling presubmit build.');
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
+              log.fine('Commit found in datastore. Rescheduling postsubmit build.');
               final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
