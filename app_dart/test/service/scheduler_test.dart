@@ -391,6 +391,35 @@ void main() {
 
     group('process check run', () {
       test('rerequested ci.yaml check retriggers presubmit', () async {
+        final MockGithubService mockGithubService = MockGithubService();
+        final MockGitHub mockGithubClient = MockGitHub();
+        buildStatusService =
+            FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
+        config = FakeConfig(
+          githubService: mockGithubService,
+        );
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          buildStatusProvider: (_) => buildStatusService,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        when(mockGithubService.searchIssuesAndPRs(any, any, sort: anyNamed('sort'), pages: anyNamed('pages')))
+            .thenAnswer((_) async => [generateIssue(3)]);
+        when(mockGithubChecksUtil.listCheckSuitesForRef(any, any, ref: anyNamed('ref'))).thenAnswer(
+          (_) async => [
+            // From check_run.check_suite.id in [checkRunString].
+            generateCheckSuite(668083231)
+          ],
+        );
+        when(mockGithubService.getPullRequest(any, any)).thenAnswer((_) async => generatePullRequest());
+        when(mockGithubService.listFiles(any)).thenAnswer((_) async => ['abc/def']);
         when(
           mockGithubChecksUtil.createCheckRun(
             any,

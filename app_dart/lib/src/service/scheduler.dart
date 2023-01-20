@@ -444,14 +444,23 @@ class Scheduler {
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
+        log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // TODO(chillers): This is not rerunning the ci.yaml validation check. https://github.com/flutter/flutter/issues/100081
-          final List<github.PullRequest> pullRequests = checkRunEvent.checkRun!.pullRequests ?? <github.PullRequest>[];
-          for (final pr in pullRequests) {
-            await triggerPresubmitTargets(pullRequest: pr);
+          // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
+          // event, so we need to find the matching pull request.
+          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          final String headSha = checkRunEvent.checkRun!.headSha!;
+          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          final PullRequest? pullRequest =
+              await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
+          if (pullRequest != null) {
+            log.fine('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
+            await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
+          } else {
+            log.warning('No matching PR found for head_sha in check run event.');
           }
         } else {
           try {
