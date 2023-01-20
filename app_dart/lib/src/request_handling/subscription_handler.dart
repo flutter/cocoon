@@ -106,6 +106,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       throw const BadRequestException('Failed to get message');
     }
     log.finer(envelope.toJson());
+    log.fine('PubsubMessage publishTime: ${envelope.message!.publishTime}');
 
     final String messageId = envelope.message!.messageId!;
 
