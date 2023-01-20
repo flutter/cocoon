@@ -441,6 +441,7 @@ class Scheduler {
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
+        log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
@@ -452,6 +453,7 @@ class Scheduler {
           final PullRequest? pullRequest =
               await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
           if (pullRequest != null) {
+            log.fine('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
           } else {
