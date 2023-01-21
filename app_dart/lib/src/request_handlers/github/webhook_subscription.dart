@@ -15,6 +15,7 @@ import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
+import '../../service/gerrit_service.dart';
 import '../../service/github_checks_service.dart';
 import '../../service/logging.dart';
 import '../../service/scheduler.dart';
@@ -53,6 +54,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     required this.scheduler,
+    required this.gerritService,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
@@ -60,6 +62,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
+
+  /// To verify whether a commit was mirrored to GoB.
+  final GerritService gerritService;
 
   /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
@@ -116,6 +121,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
         } else {
           // Merged pull requests can be added to CI.
+          // TODO: Add gob check here?
+          // Throw if not found
+          // Pubsub event will be retried
           await scheduler.addPullRequest(pr);
         }
         break;

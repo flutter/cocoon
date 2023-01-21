@@ -19,6 +19,7 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_buildbucket.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
@@ -103,6 +104,7 @@ void main() {
       config: config,
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
+      gerritService: FakeGerritService(),
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
     );
