@@ -38,21 +38,17 @@ Future<void> main() async {
       config,
     );
 
-    // Gerrit service class to communicate with GoB.
-    final GerritService gerritService = GerritService();
-
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final Scheduler scheduler = Scheduler(
       cache: cache,
       config: config,
-      gerritService: gerritService,
       githubChecksService: githubChecksService,
       luciBuildService: luciBuildService,
     );
 
     final BranchService branchService = BranchService(
       config: config,
-      gerritService: gerritService,
+      gerritService: GerritService(),
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{

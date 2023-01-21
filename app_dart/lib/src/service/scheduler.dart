@@ -46,7 +46,6 @@ class Scheduler {
   Scheduler({
     required this.cache,
     required this.config,
-    required this.gerritService,
     required this.githubChecksService,
     required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
@@ -58,7 +57,6 @@ class Scheduler {
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
-  final GerritService gerritService;
   final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
 
