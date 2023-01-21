@@ -2139,6 +2139,23 @@ class MockGithubChecksService extends _i1.Mock implements _i28.GithubChecksServi
           ),
         ),
       ) as _i10.CheckRunStatus);
+  @override
+  _i17.Future<_i10.PullRequest?> findMatchingPullRequest(
+    _i10.RepositorySlug? slug,
+    String? headSha,
+    int? checkSuiteId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findMatchingPullRequest,
+          [
+            slug,
+            headSha,
+            checkSuiteId,
+          ],
+        ),
+        returnValue: _i17.Future<_i10.PullRequest?>.value(),
+      ) as _i17.Future<_i10.PullRequest?>);
 }
 
 /// A class which mocks [GithubChecksUtil].
@@ -2191,6 +2208,29 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
           ),
         )),
       ) as _i17.Future<_i10.CheckSuite>);
+  @override
+  _i17.Future<List<_i10.CheckSuite>> listCheckSuitesForRef(
+    _i10.GitHub? gitHubClient,
+    _i10.RepositorySlug? slug, {
+    required String? ref,
+    int? appId,
+    String? checkName,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listCheckSuitesForRef,
+          [
+            gitHubClient,
+            slug,
+          ],
+          {
+            #ref: ref,
+            #appId: appId,
+            #checkName: checkName,
+          },
+        ),
+        returnValue: _i17.Future<List<_i10.CheckSuite>>.value(<_i10.CheckSuite>[]),
+      ) as _i17.Future<List<_i10.CheckSuite>>);
   @override
   _i17.Future<void> updateCheckRun(
     _i3.Config? cocoonConfig,
@@ -2558,6 +2598,51 @@ class MockGithubService extends _i1.Mock implements _i25.GithubService {
           ),
         )),
       ) as _i17.Future<_i10.RateLimit>);
+  @override
+  _i17.Future<List<_i10.Issue>> searchIssuesAndPRs(
+    _i10.RepositorySlug? slug,
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #searchIssuesAndPRs,
+          [
+            slug,
+            query,
+          ],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Future<List<_i10.Issue>>.value(<_i10.Issue>[]),
+      ) as _i17.Future<List<_i10.Issue>>);
+  @override
+  _i17.Future<_i10.PullRequest> getPullRequest(
+    _i10.RepositorySlug? slug,
+    int? number,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPullRequest,
+          [
+            slug,
+            number,
+          ],
+        ),
+        returnValue: _i17.Future<_i10.PullRequest>.value(_FakePullRequest_22(
+          this,
+          Invocation.method(
+            #getPullRequest,
+            [
+              slug,
+              number,
+            ],
+          ),
+        )),
+      ) as _i17.Future<_i10.PullRequest>);
 }
 
 /// A class which mocks [GitService].
@@ -6740,6 +6825,116 @@ class MockRepositoriesService extends _i1.Mock implements _i10.RepositoriesServi
           ),
         )),
       ) as _i17.Future<_i10.ReleaseNotes>);
+}
+
+/// A class which mocks [SearchService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSearchService extends _i1.Mock implements _i10.SearchService {
+  MockSearchService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i10.GitHub get github => (super.noSuchMethod(
+        Invocation.getter(#github),
+        returnValue: _FakeGitHub_12(
+          this,
+          Invocation.getter(#github),
+        ),
+      ) as _i10.GitHub);
+  @override
+  _i17.Stream<_i10.Repository> repositories(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #repositories,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.Repository>.empty(),
+      ) as _i17.Stream<_i10.Repository>);
+  @override
+  _i17.Stream<_i10.CodeSearchResults> code(
+    String? query, {
+    int? pages,
+    int? perPage,
+    String? language,
+    String? filename,
+    String? extension,
+    String? user,
+    String? org,
+    String? repo,
+    String? fork,
+    String? path,
+    String? size,
+    bool? inFile = true,
+    bool? inPath = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #code,
+          [query],
+          {
+            #pages: pages,
+            #perPage: perPage,
+            #language: language,
+            #filename: filename,
+            #extension: extension,
+            #user: user,
+            #org: org,
+            #repo: repo,
+            #fork: fork,
+            #path: path,
+            #size: size,
+            #inFile: inFile,
+            #inPath: inPath,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.CodeSearchResults>.empty(),
+      ) as _i17.Stream<_i10.CodeSearchResults>);
+  @override
+  _i17.Stream<_i10.Issue> issues(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #issues,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.Issue>.empty(),
+      ) as _i17.Stream<_i10.Issue>);
+  @override
+  _i17.Stream<_i10.User> users(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+    int? perPage = 30,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #users,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+            #perPage: perPage,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.User>.empty(),
+      ) as _i17.Stream<_i10.User>);
 }
 
 /// A class which mocks [TabledataResource].

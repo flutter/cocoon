@@ -42,7 +42,7 @@ packages:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.1"
+    version: "2.3.2"
   asn1lib:
     dependency: transitive
     description:
@@ -357,7 +357,7 @@ packages:
       name: io
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.4"
   js:
     dependency: transitive
     description:
@@ -371,14 +371,14 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.7.0"
+    version: "4.8.0"
   json_serializable:
     dependency: "direct dev"
     description:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.5.4"
+    version: "6.6.0"
   lints:
     dependency: transitive
     description:
@@ -665,7 +665,7 @@ packages:
       name: vm_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "10.0.0"
+    version: "10.1.0"
   watcher:
     dependency: transitive
     description:
@@ -674,7 +674,7 @@ packages:
     source: hosted
     version: "1.0.2"
   web_socket_channel:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: web_socket_channel
       url: "https://pub.dartlang.org"

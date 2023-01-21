@@ -33,6 +33,7 @@ PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
       ),
       data: _$JsonConverterFromJson<String, String>(json['data'], const Base64Converter().fromJson),
       messageId: json['messageId'] as String?,
+      publishTime: json['publishTime'] as String?,
     );
 
 Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
@@ -47,6 +48,7 @@ Map<String, dynamic> _$PushMessageToJson(PushMessage instance) {
   writeNotNull('attributes', instance.attributes);
   writeNotNull('data', _$JsonConverterToJson<String, String>(instance.data, const Base64Converter().toJson));
   writeNotNull('messageId', instance.messageId);
+  writeNotNull('publishTime', instance.publishTime);
   return val;
 }
 
