@@ -9,6 +9,7 @@ import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
 import '../../../protos.dart' as pb;
+import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
@@ -84,13 +85,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     log.finest(webhook.payload);
     switch (webhook.event) {
       case 'pull_request':
-        await _handlePullRequest(webhook.payload);
+        if (await _handlePullRequest(webhook.payload) == false) {
+          throw const InternalServerError('Failed to process pull_request event.');
+        }
         break;
       case 'check_run':
         final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
-          throw InternalServerError('Failed to process $checkRunEvent');
+          throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
         }
         break;
     }
@@ -98,7 +101,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
-  Future<void> _handlePullRequest(
+  Future<bool> _handlePullRequest(
     String rawRequest,
   ) async {
     final PullRequestEvent? pullRequestEvent = await _getPullRequestEvent(rawRequest);
@@ -121,10 +124,22 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
         } else {
           // Merged pull requests can be added to CI.
-          // TODO: Add gob check here?
-          // Throw if not found
-          // Pubsub event will be retried
-          await scheduler.addPullRequest(pr);
+          log.fine('Pull request ${pr.number} was closed and merged.');
+          final RepositorySlug slug = pr.base!.repo!.slug();
+          final String sha = pr.base!.sha!;
+          final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+          if (gobCommit != null) {
+            log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
+            await scheduler.addPullRequest(pr);
+          } else {
+            // As of Jan 23, 2023, the retention policy for Pub/Sub messages is
+            // 7 days. This event will be retried with exponential backoff
+            // within that time period. The GoB mirror should be caught up
+            // within that time frame via either the internal mirroring service
+            // or [VacuumGithubCommits].
+            log.warning('Merged commit was not found on GoB mirror. Failing so this event can be retried...');
+            return false;
+          }
         }
         break;
       case 'edited':
@@ -157,6 +172,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
+
+    return true;
   }
 
   /// This method assumes that jobs should be cancelled if they are already

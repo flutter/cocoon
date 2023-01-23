@@ -57,6 +57,15 @@ class Config {
         pluginsSlug,
       };
 
+  /// List of Github repos that are mirrored to GoB.
+  Set<gh.RepositorySlug> get mirroredRepos => <gh.RepositorySlug>{
+        cocoonSlug,
+        engineSlug,
+        flutterSlug,
+        packagesSlug,
+        pluginsSlug,
+      };
+
   /// List of Cirrus supported repos.
   static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
@@ -428,5 +437,9 @@ class Config {
 
   bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
     return postsubmitSupportedRepos.contains(slug);
+  }
+
+  bool isGithubRepoMirroredToGob(gh.RepositorySlug slug) {
+    return mirroredRepos.contains(slug);
   }
 }

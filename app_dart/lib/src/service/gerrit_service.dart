@@ -114,7 +114,7 @@ class GerritService {
   ///
   /// The [slug] will be validated by checking if [Config.postsubmitSupportedRepos] includes it.
   Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
-    if (!config.postsubmitSupportedRepos.contains(slug)) return null;
+    if (!config.isGithubRepoMirroredToGob(slug)) return null;
     final gobMirrorName = 'mirrors/${slug.name}';
     return await getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
   }

@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
@@ -78,6 +79,52 @@ void main() {
       final DateTime time = commit.author!.time!;
       final DateTime expectedTime = DateTime.utc(2022, 7, 12, 17, 21, 25);
       expect(time, expectedTime);
+    });
+  });
+
+  group('getCommit', () {
+    test('Returns a commit', () async {
+      mockHttpClient = MockClient((_) async => http.Response(getCommitJson, HttpStatus.ok));
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
+      final GerritCommit? commit = await gerritService.getCommit(
+        RepositorySlug('flutter', 'flutter'),
+        '7a702db7c1c8dc057d95e0d23849c885b3463ff3',
+      );
+      expect(commit, isNotNull);
+      expect(commit!.author?.email, 'dash@flutter.dev');
+      expect(commit.author?.name, 'Dash');
+      expect(commit.author?.time, isNotNull);
+      final DateTime time = commit.author!.time!;
+      final DateTime expectedTime = DateTime.utc(2022, 7, 12, 17, 21, 25);
+      expect(time, expectedTime);
+    });
+
+    test('Uses percent-encoding for project name', () async {
+      mockHttpClient = MockClient((request) async {
+        expect(request.url.path, startsWith("/projects/mirrors%252Fflutter/"));
+        return http.Response(getCommitJson, HttpStatus.ok);
+      });
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
+      final commit = await gerritService.getCommit(
+        RepositorySlug('flutter', 'mirrors/flutter'),
+        '7a702db7c1c8dc057d95e0d23849c885b3463ff3',
+      );
+      expect(commit, isNotNull);
+    });
+  });
+
+  group('findMirroredCommit', () {
+    test('Uses matching slug for GoB mirror', () async {
+      mockHttpClient = MockClient((request) async {
+        expect(request.url.path, startsWith("/projects/mirrors%252Fpackages/"));
+        return http.Response(getCommitJson, HttpStatus.ok);
+      });
+      gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
+      final commit = await gerritService.findMirroredCommit(
+        RepositorySlug('flutter', 'packages'),
+        '7a702db7c1c8dc057d95e0d23849c885b3463ff3',
+      );
+      expect(commit, isNotNull);
     });
   });
 
@@ -179,5 +226,29 @@ const String commitsListJson = ''')]}'
 const String createBranchJson = ''')]}'
 {
   "revision": "00439ab49a991db42595f14078adb9811a6f60c6"
+}
+''';
+
+const String getCommitJson = ''')]}'
+{
+  "commit": "7a702db7c1c8dc057d95e0d23849c885b3463ff3",
+  "parents": [
+    {
+      "commit": "1eee2c9d8f352483781e772f35dc586a69ff5646",
+      "subject": "Migrate contributor agreements to All-Projects."
+    }
+  ],
+  "author": {
+    "name": "Dash",
+    "email": "dash@flutter.dev",
+    "time": "Tue Jul 12 17:21:25 2022 +0000"
+  },
+  "committer": {
+    "name": "CQ Bot Account",
+    "email": "flutter-scoped@luci-project-accounts.iam.gserviceaccount.com",
+    "time": "Tue Jul 12 17:21:25 2022 +0000"
+  },
+  "subject": "Use an EventBus to manage star icons",
+  "message": "Use an EventBus to manage star icons\\n\\nImage widgets that need to ..."
 }
 ''';

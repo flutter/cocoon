@@ -19,7 +19,6 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_buildbucket.dart';
-import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
@@ -34,6 +33,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late MockGerritService gerritService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -100,11 +100,12 @@ void main() {
       });
     });
 
+    gerritService = MockGerritService();
     webhook = GithubWebhookSubscription(
       config: config,
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
-      gerritService: FakeGerritService(),
+      gerritService: gerritService,
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
     );
@@ -2618,9 +2619,42 @@ void foo() {
         merged: true,
       );
 
+      when(gerritService.findMirroredCommit(any, any)).thenAnswer(
+        (realInvocation) async {
+          return generateGerritCommit(1);
+        },
+      );
+
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.post(webhook);
       expect(db.values.values.whereType<Commit>().length, 1);
+    });
+
+    test('Fail when pull request is closed and merged, but merged commit is not found on GoB', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        merged: true,
+      );
+
+      when(gerritService.findMirroredCommit(any, any)).thenAnswer(
+        (realInvocation) async {
+          return null;
+        },
+      );
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      try {
+        await tester.post(webhook);
+      } catch (e) {
+        expect(
+          e.toString(),
+          matches('HTTP 500: Failed to process pull_request event.'),
+        );
+      }
+      expect(db.values.values.whereType<Commit>().length, 0);
     });
 
     test('Does not comment about needing tests on draft pull requests.', () async {
