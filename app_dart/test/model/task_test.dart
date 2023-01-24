@@ -2,11 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import '../src/datastore/fake_config.dart';
 import '../src/utilities/entity_generators.dart';
 
 void main() {
@@ -174,9 +177,60 @@ void main() {
       });
     });
   });
-}
 
-void validateModel(Task task) {
-  // Throws an exception when property validation fails.
-  ModelDBImpl().toDatastoreEntity(task);
+  // TODO(chillers): There is a bug where `dart test` does not work in offline mode.
+  // Need to file issue and get traces.
+  group('Task.fromDatastore', () {
+    late FakeConfig config;
+    late Commit commit;
+    late Task expectedTask;
+
+    setUp(() {
+      config = FakeConfig();
+      commit = generateCommit(1);
+      expectedTask = generateTask(1, parent: commit);
+      config.db.values[commit.key] = commit;
+      config.db.values[expectedTask.key] = expectedTask;
+    });
+
+    test('look up by id', () async {
+      final Task task = await Task.fromDatastore(
+        datastore: DatastoreService(config.db, 5),
+        commitKey: commit.key,
+        id: '${expectedTask.id}',
+      );
+      expect(task, expectedTask);
+    });
+
+    test('look up by id fails if cannot be found', () async {
+      expect(
+        Task.fromDatastore(
+          datastore: DatastoreService(config.db, 5),
+          commitKey: commit.key,
+          id: '12345',
+        ),
+        throwsA(isA<KeyNotFoundException>()),
+      );
+    });
+
+    test('look up by name', () async {
+      final Task task = await Task.fromDatastore(
+        datastore: DatastoreService(config.db, 5),
+        commitKey: commit.key,
+        name: expectedTask.name,
+      );
+      expect(task, expectedTask);
+    });
+
+    test('look up by name fails if cannot be found', () async {
+      expect(
+        Task.fromDatastore(
+          datastore: DatastoreService(config.db, 5),
+          commitKey: commit.key,
+          name: 'Linux not_found',
+        ),
+        throwsA(isA<KeyNotFoundException>()),
+      );
+    });
+  });
 }
