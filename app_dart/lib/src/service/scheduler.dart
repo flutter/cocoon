@@ -466,7 +466,7 @@ class Scheduler {
             final String checkName = checkRunEvent.checkRun!.name!;
             final RepositorySlug slug = checkRunEvent.repository!.slug();
 
-            // TODO: Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
+            // TODO(nehalvpatel): Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
             // Update when https://github.com/SpinlockLabs/github.dart/pull/347 is merged
             final String gitBranch = Config.defaultBranch(slug);
 
