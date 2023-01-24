@@ -48,12 +48,13 @@ class GithubChecksService {
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.
+        log.info('Check suite request for pull request ${pullRequest.number}, ${pullRequest.title}');
         await scheduler.triggerPresubmitTargets(
           pullRequest: pullRequest,
         );
         break;
-
       case 'rerequested':
+        log.info('Check suite re-request for pull request ${pullRequest.number}, ${pullRequest.title}');
         pullRequest.head = github.PullRequestHead(sha: checkSuiteEvent.checkSuite?.headSha);
         return await scheduler.retryPresubmitTargets(
           pullRequest: pullRequest,

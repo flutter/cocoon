@@ -279,12 +279,13 @@ class Scheduler {
     List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.fine('about to cancel presubmit targets');
+    log.fine('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
     await cancelPreSubmitTargets(
       pullRequest: pullRequest,
       reason: reason,
     );
 
+    log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       pullRequest.base!.repo!.slug(),
@@ -296,6 +297,7 @@ class Scheduler {
       ),
     );
 
+    log.info('Creating presubmit targets for ${pullRequest.number}');
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
@@ -306,16 +308,20 @@ class Scheduler {
         pullRequest: pullRequest,
       );
     } on FormatException catch (error, backtrace) {
+      log.warning('FormatException encountered when scheduling presubmit targets for ${pullRequest.number}');
       log.warning(backtrace.toString());
       exception = error;
     } catch (error, backtrace) {
+      log.warning('Exception encountered when scheduling presubmit targets for ${pullRequest.number}');
       log.warning(backtrace.toString());
       exception = error;
     }
 
     // Update validate ci.yaml check
+    log.info('Updating ci.yaml validation check for ${pullRequest.number}');
     if (exception == null) {
       // Success in validating ci.yaml
+      log.info('ci.yaml validation check was successful for ${pullRequest.number}');
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
         slug,
@@ -398,6 +404,7 @@ class Scheduler {
       sha: pullRequest.head!.sha,
     );
     late CiYaml ciYaml;
+    log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
@@ -405,13 +412,16 @@ class Scheduler {
     } else {
       ciYaml = await getCiYaml(commit);
     }
+    log.info('ci.yaml loaded successfully.');
 
+    log.info('Collecting presubmit targets for ${pullRequest.number}');
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
       (Target target) =>
           target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
     );
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
+      log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
       return presubmitTargets.toList();
     }
 
