@@ -12,7 +12,7 @@ GerritCommit _$GerritCommitFromJson(Map<String, dynamic> json) => GerritCommit(
       commit: json['commit'] as String?,
       tree: json['tree'] as String?,
       author: json['author'] == null ? null : GerritUser.fromJson(json['author'] as Map<String, dynamic>),
-      comitter: json['comitter'] == null ? null : GerritUser.fromJson(json['comitter'] as Map<String, dynamic>),
+      committer: json['committer'] == null ? null : GerritUser.fromJson(json['committer'] as Map<String, dynamic>),
       message: json['message'] as String?,
     );
 
@@ -20,7 +20,7 @@ Map<String, dynamic> _$GerritCommitToJson(GerritCommit instance) => <String, dyn
       'commit': instance.commit,
       'tree': instance.tree,
       'author': instance.author,
-      'comitter': instance.comitter,
+      'committer': instance.committer,
       'message': instance.message,
     };
 

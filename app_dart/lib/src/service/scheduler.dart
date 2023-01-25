@@ -455,7 +455,7 @@ class Scheduler {
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
+          // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
           final RepositorySlug slug = checkRunEvent.repository!.slug();
           final String headSha = checkRunEvent.checkRun!.headSha!;
@@ -471,7 +471,42 @@ class Scheduler {
           }
         } else {
           try {
-            await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+            final String sha = checkRunEvent.checkRun!.headSha!;
+            final String checkName = checkRunEvent.checkRun!.name!;
+            final RepositorySlug slug = checkRunEvent.repository!.slug();
+
+            // TODO(nehalvpatel): Use head_branch from checkRunEvent.checkRun.checkSuite, https://github.com/flutter/flutter/issues/119171
+            final String gitBranch = Config.defaultBranch(slug);
+
+            // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
+            datastore = datastoreProvider(config.db);
+            final Key<String> commitKey =
+                Commit.createKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+            Commit? commit;
+            try {
+              commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);
+              log.fine('Commit found in datastore.');
+            } on KeyNotFoundException {
+              log.fine('Commit not found in datastore.');
+            }
+
+            if (commit == null) {
+              log.fine('Rescheduling presubmit build.');
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+            } else {
+              log.fine('Rescheduling postsubmit build.');
+              final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
+              final CiYaml ciYaml = await getCiYaml(commit);
+              final Target target =
+                  ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+                checkRunEvent,
+                commit: commit,
+                task: task,
+                target: target,
+              );
+            }
+
             success = true;
           } on NoBuildFoundException {
             log.warning('No build found to reschedule.');

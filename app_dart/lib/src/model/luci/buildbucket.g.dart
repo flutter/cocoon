@@ -327,7 +327,9 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) =
       experimental: $enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
       gitilesCommit:
           json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
-      properties: json['properties'] as Map<String, dynamic>?,
+      properties: (json['properties'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as Object),
+      ),
       dimensions: (json['dimensions'] as List<dynamic>?)
           ?.map((e) => RequestedDimension.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -461,7 +463,9 @@ Json? _$JsonConverterToJson<Json, Value>(
     value == null ? null : toJson(value);
 
 Input _$InputFromJson(Map<String, dynamic> json) => Input(
-      properties: json['properties'] as Map<String, dynamic>?,
+      properties: (json['properties'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as Object),
+      ),
       gitilesCommit:
           json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
       experimental: json['experimental'] as bool?,

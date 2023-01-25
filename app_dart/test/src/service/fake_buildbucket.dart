@@ -62,7 +62,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
                     'cipd_version': <String>['refs/heads/main']
                   },
                   input: Input(
-                    properties: <String, dynamic>{'bringup': 'true'},
+                    properties: <String, Object>{'bringup': 'true'},
                   ),
                 ),
               ],
