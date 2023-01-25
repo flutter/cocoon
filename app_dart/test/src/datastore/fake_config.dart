@@ -55,7 +55,6 @@ class FakeConfig implements Config {
     this.postsubmitSupportedReposValue,
     this.supportedBranchesValue,
     this.supportedReposValue,
-    this.mirroredReposValue,
     this.batchSizeValue,
     this.githubRequestDelayValue,
     FakeDatastoreDB? dbValue,
@@ -99,7 +98,6 @@ class FakeConfig implements Config {
   String? overrideTreeStatusLabelValue;
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
-  Set<gh.RepositorySlug>? mirroredReposValue;
   Duration? githubRequestDelayValue;
 
   @override
@@ -235,7 +233,7 @@ class FakeConfig implements Config {
 
   @override
   bool isGithubRepoMirroredToGob(gh.RepositorySlug slug) {
-    return mirroredRepos.contains(slug);
+    return githubPresubmitSupportedRepo(slug) || githubPostsubmitSupportedRepo(slug);
   }
 
   @override
@@ -286,17 +284,6 @@ class FakeConfig implements Config {
   @override
   Set<gh.RepositorySlug> get postsubmitSupportedRepos =>
       postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug, Config.pluginsSlug};
-
-  @override
-  Set<gh.RepositorySlug> get mirroredRepos =>
-      mirroredReposValue ??
-      <gh.RepositorySlug>{
-        Config.flutterSlug,
-        Config.engineSlug,
-        Config.cocoonSlug,
-        Config.packagesSlug,
-        Config.pluginsSlug,
-      };
 
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {

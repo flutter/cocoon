@@ -57,15 +57,6 @@ class Config {
         pluginsSlug,
       };
 
-  /// List of Github repos that are mirrored to GoB.
-  Set<gh.RepositorySlug> get mirroredRepos => <gh.RepositorySlug>{
-        cocoonSlug,
-        engineSlug,
-        flutterSlug,
-        packagesSlug,
-        pluginsSlug,
-      };
-
   /// List of Cirrus supported repos.
   static Set<String> cirrusSupportedRepos = <String>{'plugins', 'packages', 'flutter'};
 
@@ -439,7 +430,10 @@ class Config {
     return postsubmitSupportedRepos.contains(slug);
   }
 
+  /// Checks whether the GitHub repo represented by the [slug] is mirrored to GoB.
+  ///
+  /// Per the security policy, all repos running on LUCI are mirrored.
   bool isGithubRepoMirroredToGob(gh.RepositorySlug slug) {
-    return mirroredRepos.contains(slug);
+    return githubPresubmitSupportedRepo(slug) || githubPostsubmitSupportedRepo(slug);
   }
 }
