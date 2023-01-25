@@ -76,6 +76,9 @@ void main() {
       expect(commit.author?.email, 'dash@flutter.dev');
       expect(commit.author?.name, 'Dash');
       expect(commit.author?.time, isNotNull);
+      expect(commit.committer?.email, 'flutter-scoped@luci-project-accounts.iam.gserviceaccount.com');
+      expect(commit.committer?.name, 'CQ Bot Account');
+      expect(commit.committer?.time, isNotNull);
       final DateTime time = commit.author!.time!;
       final DateTime expectedTime = DateTime.utc(2022, 7, 12, 17, 21, 25);
       expect(time, expectedTime);

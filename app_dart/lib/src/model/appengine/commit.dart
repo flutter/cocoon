@@ -6,6 +6,8 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../service/datastore.dart';
+import '../../service/logging.dart';
 import 'key_converter.dart';
 
 part 'commit.g.dart';
@@ -26,6 +28,28 @@ class Commit extends Model<String> {
   }) {
     parentKey = key?.parent;
     id = key?.id;
+  }
+
+  /// Create a [Key] that can be used to lookup a [Commit] from Datastore.
+  static Key<String> createKey({
+    required DatastoreDB db,
+    required RepositorySlug slug,
+    required String gitBranch,
+    required String sha,
+  }) {
+    return db.emptyKey.append(
+      Commit,
+      id: '${slug.fullName}/$gitBranch/$sha',
+    );
+  }
+
+  /// Lookup [Commit] from Datastore.
+  static Future<Commit> fromDatastore({
+    required DatastoreService datastore,
+    required Key<String> key,
+  }) async {
+    log.fine('Looking up commit by key with id: ${key.id}');
+    return datastore.lookupByValue<Commit>(key);
   }
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
