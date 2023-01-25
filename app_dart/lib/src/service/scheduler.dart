@@ -445,7 +445,7 @@ class Scheduler {
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
+          // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
           final RepositorySlug slug = checkRunEvent.repository!.slug();
           final String headSha = checkRunEvent.checkRun!.headSha!;
@@ -465,14 +465,13 @@ class Scheduler {
             final String checkName = checkRunEvent.checkRun!.name!;
             final RepositorySlug slug = checkRunEvent.repository!.slug();
 
-            // TODO(nehalvpatel): Can't access branch from [checkRunEvent.checkRun.checkSuite] because head_branch is not deserialized
-            // Update when https://github.com/SpinlockLabs/github.dart/pull/347 is merged
+            // TODO(nehalvpatel): Use head_branch from checkRunEvent.checkRun.checkSuite, https://github.com/flutter/flutter/issues/119171
             final String gitBranch = Config.defaultBranch(slug);
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
             datastore = datastoreProvider(config.db);
             final Key<String> commitKey =
-                Commit.composeKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+                Commit.createKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
             Commit? commit;
             try {
               commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);

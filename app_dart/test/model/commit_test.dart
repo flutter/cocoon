@@ -19,7 +19,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
       const String gitBranch = 'main';
       const String sha = 'abc';
-      final key = Commit.composeKey(db: db, slug: slug, gitBranch: gitBranch, sha: sha);
+      final key = Commit.createKey(db: db, slug: slug, gitBranch: gitBranch, sha: sha);
       expect(key.id, equals('flutter/flutter/main/abc'));
     });
   });
@@ -47,7 +47,7 @@ void main() {
       expect(
         Commit.fromDatastore(
           datastore: datastore,
-          key: Commit.composeKey(
+          key: Commit.createKey(
             db: datastore.db,
             slug: RepositorySlug('abc', 'test'),
             gitBranch: 'main',

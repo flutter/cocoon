@@ -118,7 +118,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
       return datastore.lookupByValue<Task>(key);
     }
-    final Key<String> commitKey = Commit.composeKey(
+    final Key<String> commitKey = Commit.createKey(
       db: datastore.db,
       slug: slug!,
       gitBranch: gitBranch!,

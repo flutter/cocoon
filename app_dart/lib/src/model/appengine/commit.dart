@@ -31,7 +31,7 @@ class Commit extends Model<String> {
   }
 
   /// Create a [Key] that can be used to lookup a [Commit] from Datastore.
-  static Key<String> composeKey({
+  static Key<String> createKey({
     required DatastoreDB db,
     required RepositorySlug slug,
     required String gitBranch,

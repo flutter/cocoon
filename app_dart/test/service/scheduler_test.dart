@@ -491,7 +491,7 @@ void main() {
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
         // Set up datastore with postsubmit entities matching [checkRunString].
-        db = FakeDatastoreDB(defaultPartitionValue: Partition('flutter-dashboard'));
+        db = FakeDatastoreDB();
         config = FakeConfig(dbValue: db, postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')});
         final Commit commit = generateCommit(
           1,

@@ -15,7 +15,7 @@ import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
+Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
 
 Commit generateCommit(
   int i, {

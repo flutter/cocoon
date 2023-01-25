@@ -38,7 +38,6 @@ class FakeDatastoreDB implements DatastoreDB {
   FakeDatastoreDB({
     Map<Key<dynamic>, Model<dynamic>>? values,
     Map<Type, QueryCallback<Model<dynamic>>>? onQuery,
-    this.defaultPartitionValue,
     this.onCommit,
     this.commitException = false,
   })  : values = values ?? <Key<dynamic>, Model<dynamic>>{},
@@ -46,7 +45,6 @@ class FakeDatastoreDB implements DatastoreDB {
 
   final Map<Key<dynamic>, Model<dynamic>> values;
   final Map<Type, QueryCallback<Model<dynamic>>> onQuery;
-  Partition? defaultPartitionValue;
   CommitCallback? onCommit;
   // Flag used in tests whether the transaction commit throws exception.
   bool? commitException;
@@ -79,7 +77,7 @@ class FakeDatastoreDB implements DatastoreDB {
   Datastore get datastore => throw UnimplementedError();
 
   @override
-  Partition get defaultPartition => defaultPartitionValue ?? Partition(null);
+  Partition get defaultPartition => Partition(null);
 
   @override
   Key<dynamic> get emptyKey => defaultPartition.emptyKey;
