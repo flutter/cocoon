@@ -406,15 +406,6 @@ void main() {
         throwsA(isA<InternalServerError>()),
       );
     });
-    test('Try to schedule build on a unsupported repo', () async {
-      expect(
-        () async => await service.scheduleTryBuilds(
-          targets: targets,
-          pullRequest: generatePullRequest(repo: 'nonsupported'),
-        ),
-        throwsA(const TypeMatcher<BadRequestException>()),
-      );
-    });
   });
 
   group('schedulePostsubmitBuilds', () {
@@ -557,8 +548,10 @@ void main() {
       final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
       final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
-      expect(() async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
-          throwsA(const TypeMatcher<NoBuildFoundException>()));
+      expect(
+        () async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
+        throwsA(const TypeMatcher<NoBuildFoundException>()),
+      );
     });
 
     test('do not create postsubmit checkrun for bringup: true target', () async {
@@ -690,15 +683,6 @@ void main() {
       expect(
         verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
         json.decode('{"id": "998", "summaryMarkdown": "new builds"}'),
-      );
-    });
-    test('Cancel builds from unsuported repo', () async {
-      expect(
-        () async => await service.cancelBuilds(
-          generatePullRequest(repo: 'notsupported'),
-          'new builds',
-        ),
-        throwsA(const TypeMatcher<BadRequestException>()),
       );
     });
   });

@@ -10,16 +10,16 @@ import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use keyDescriptor instead')
-const Key$json = const {
+const Key$json = {
   '1': 'Key',
-  '2': const [
-    const {'1': 'type', '3': 1, '4': 1, '5': 9, '10': 'type'},
-    const {'1': 'uid', '3': 2, '4': 1, '5': 3, '9': 0, '10': 'uid'},
-    const {'1': 'name', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'name'},
-    const {'1': 'child', '3': 4, '4': 1, '5': 11, '6': '.Key', '10': 'child'},
+  '2': [
+    {'1': 'type', '3': 1, '4': 1, '5': 9, '10': 'type'},
+    {'1': 'uid', '3': 2, '4': 1, '5': 3, '9': 0, '10': 'uid'},
+    {'1': 'name', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'name'},
+    {'1': 'child', '3': 4, '4': 1, '5': 11, '6': '.Key', '10': 'child'},
   ],
-  '8': const [
-    const {'1': 'id'},
+  '8': [
+    {'1': 'id'},
   ],
 };
 
@@ -27,11 +27,11 @@ const Key$json = const {
 final $typed_data.Uint8List keyDescriptor = $convert.base64Decode(
     'CgNLZXkSEgoEdHlwZRgBIAEoCVIEdHlwZRISCgN1aWQYAiABKANIAFIDdWlkEhQKBG5hbWUYAyABKAlIAFIEbmFtZRIaCgVjaGlsZBgEIAEoCzIELktleVIFY2hpbGRCBAoCaWQ=');
 @$core.Deprecated('Use rootKeyDescriptor instead')
-const RootKey$json = const {
+const RootKey$json = {
   '1': 'RootKey',
-  '2': const [
-    const {'1': 'namespace', '3': 1, '4': 1, '5': 9, '10': 'namespace'},
-    const {'1': 'child', '3': 2, '4': 1, '5': 11, '6': '.Key', '10': 'child'},
+  '2': [
+    {'1': 'namespace', '3': 1, '4': 1, '5': 9, '10': 'namespace'},
+    {'1': 'child', '3': 2, '4': 1, '5': 11, '6': '.Key', '10': 'child'},
   ],
 };
 
