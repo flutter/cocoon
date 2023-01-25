@@ -48,7 +48,7 @@ class Commit extends Model<String> {
     required DatastoreService datastore,
     required Key<String> key,
   }) async {
-    log.fine('Looking up commit by key: $key');
+    log.fine('Looking up commit by key with id: ${key.id}');
     return datastore.lookupByValue<Commit>(key);
   }
 
