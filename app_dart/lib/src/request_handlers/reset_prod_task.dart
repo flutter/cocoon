@@ -118,13 +118,17 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
       return datastore.lookupByValue<Task>(key);
     }
-
-    final Commit? commit = await datastore.findCommit(gitBranch: gitBranch!, sha: sha!, slug: slug!);
-    if (commit == null) {
-      throw const InternalServerError('Failed to retrieve commit.');
-    }
-
-    return datastore.findTask(commitKey: commit.key, name: name!);
+    final Key<String> commitKey = Commit.composeKey(
+      db: datastore.db,
+      slug: slug!,
+      gitBranch: gitBranch!,
+      sha: sha!,
+    );
+    return Task.fromDatastore(
+      datastore: datastore,
+      commitKey: commitKey,
+      name: name!,
+    );
   }
 
   /// Returns the [Commit] associated with [Task].

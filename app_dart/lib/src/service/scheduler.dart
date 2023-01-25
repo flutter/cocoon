@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
-import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
@@ -472,14 +471,22 @@ class Scheduler {
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
             datastore = datastoreProvider(config.db);
-            final Commit? commit = await datastore.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
+            final Key<String> commitKey =
+                Commit.composeKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+            Commit? commit;
+            try {
+              commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);
+              log.fine('Commit found in datastore.');
+            } on KeyNotFoundException {
+              log.fine('Commit not found in datastore.');
+            }
 
             if (commit == null) {
-              log.fine('Commit not found in datastore. Rescheduling presubmit build.');
+              log.fine('Rescheduling presubmit build.');
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
-              log.fine('Commit found in datastore. Rescheduling postsubmit build.');
-              final Task task = await datastore.findTask(commitKey: commit.key, name: checkName);
+              log.fine('Rescheduling postsubmit build.');
+              final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =
                   ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);

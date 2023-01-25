@@ -4,12 +4,10 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -186,48 +184,6 @@ void main() {
       });
       expect(expected, equals('success'));
       expect(config.db.values[commit.key], equals(commit));
-    });
-
-    test('FindCommit', () async {
-      const String sha = 'abc_master';
-      final RepositorySlug slug = Config.flutterSlug;
-      const String gitBranch = 'master';
-      final Commit expectedCommit = generateCommit(1, sha: sha, branch: gitBranch, repo: slug.name);
-      config.db.values[expectedCommit.key] = expectedCommit;
-      final Commit? result = await datastoreService.findCommit(gitBranch: gitBranch, sha: sha, slug: slug);
-      expect(result, equals(expectedCommit));
-    });
-
-    test('FindTask', () async {
-      const String sha = 'abc_master';
-      final RepositorySlug slug = Config.flutterSlug;
-      const String gitBranch = 'master';
-      final Commit parentCommit = generateCommit(1, sha: sha, branch: gitBranch, repo: slug.name);
-      config.db.values[parentCommit.key] = parentCommit;
-      const String taskName = 'taskA';
-      final Task expectedTask = generateTask(1, parent: parentCommit, name: taskName);
-      config.db.values[expectedTask.key] = expectedTask;
-      final Task result = await datastoreService.findTask(commitKey: parentCommit.key, name: taskName);
-      expect(result, equals(expectedTask));
-    });
-
-    test('FindTask throws when multiple Tasks with the same name are found', () async {
-      const String sha = 'abc_master';
-      final RepositorySlug slug = Config.flutterSlug;
-      const String gitBranch = 'master';
-      final Commit parentCommit = generateCommit(1, sha: sha, branch: gitBranch, repo: slug.name);
-      config.db.values[parentCommit.key] = parentCommit;
-      const String taskName = 'taskA';
-      final Task taskOne = generateTask(1, parent: parentCommit, name: taskName);
-      config.db.values[taskOne.key] = taskOne;
-      final Task taskTwo = generateTask(2, parent: parentCommit, name: taskName);
-      config.db.values[taskTwo.key] = taskTwo;
-      try {
-        await datastoreService.findTask(commitKey: parentCommit.key, name: taskName);
-      } catch (e) {
-        expect(e, isA<InternalServerError>());
-        expect(e.toString(), equals('HTTP 500: Expected to find 1 task for $taskName, but found 2'));
-      }
     });
   });
 

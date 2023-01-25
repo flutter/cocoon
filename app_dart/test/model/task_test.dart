@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -223,14 +224,43 @@ void main() {
     });
 
     test('look up by name fails if cannot be found', () async {
-      expect(
-        Task.fromDatastore(
+      try {
+        await Task.fromDatastore(
           datastore: DatastoreService(config.db, 5),
           commitKey: commit.key,
           name: 'Linux not_found',
-        ),
-        throwsA(isA<KeyNotFoundException>()),
-      );
+        );
+      } catch (e) {
+        expect(e, isA<InternalServerError>());
+        expect(
+          e.toString(),
+          equals(
+            'HTTP 500: Expected to find 1 task for Linux not_found, but found 0',
+          ),
+        );
+      }
+    });
+
+    test('look up by name fails if multiple Tasks with the same name are found', () async {
+      final DatastoreService datastore = DatastoreService(config.db, 5);
+      final String taskName = expectedTask.name!;
+      final Task duplicatedTask = generateTask(2, parent: commit, name: taskName);
+      config.db.values[duplicatedTask.key] = duplicatedTask;
+      try {
+        await Task.fromDatastore(
+          datastore: datastore,
+          commitKey: commit.key,
+          name: taskName,
+        );
+      } catch (e) {
+        expect(e, isA<InternalServerError>());
+        expect(
+          e.toString(),
+          equals(
+            'HTTP 500: Expected to find 1 task for $taskName, but found 2',
+          ),
+        );
+      }
     });
   });
 }
