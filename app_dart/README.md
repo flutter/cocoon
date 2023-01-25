@@ -14,6 +14,7 @@ and authenticate yourself by running:
 gcloud auth login
 gcloud init
 ```
+
 * [Install Flutter](https://flutter.dev/docs/get-started/install )
 ```sh
 export PATH="$PATH":"path/to/flutter/bin/"
