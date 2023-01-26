@@ -160,7 +160,7 @@ class XCDevice {
     required this.name,
   });
 
-  static const String _debugSymbolDescriptionPattern = 'iPhone is busy: Fetching debug symbols for iPhone';
+  static const String _debugSymbolDescriptionPattern = r' is busy: Fetching debug symbols for ';
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {

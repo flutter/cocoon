@@ -591,7 +591,7 @@ class ScheduleBuildRequest extends JsonBody {
   /// * ["blamelist""]
   /// * ["$recipe_engine/runtime", "is_luci"]
   /// * ["$recipe_engine/runtime", "is_experimental"]
-  final Map<String, dynamic>? properties;
+  final Map<String, Object>? properties;
 
   /// The value for Build.input.gitiles_commit.
   ///
@@ -809,7 +809,7 @@ class Input extends JsonBody {
   static Input fromJson(Map<String, dynamic> json) => _$InputFromJson(json);
 
   /// The build properties of a build.
-  final Map<String, dynamic>? properties;
+  final Map<String, Object>? properties;
 
   /// The [GitilesCommit] information for a build.
   final GitilesCommit? gitilesCommit;

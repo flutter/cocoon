@@ -32,6 +32,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/request_handling/fake_pubsub.dart';
+import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
@@ -450,18 +451,105 @@ void main() {
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
 
-      test('rerequested triggers a single luci build', () async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
-          return CheckRun.fromJson(const <String, dynamic>{
-            'id': 1,
-            'started_at': '2020-05-10T02:49:31Z',
-            'check_suite': <String, dynamic>{'id': 2},
-          });
+      test('rerequested presubmit check triggers presubmit build', () async {
+        // Note that we're not inserting any commits into the db, because
+        // only postsubmit commits are stored in the datastore.
+        config = FakeConfig(dbValue: db);
+        db = FakeDatastoreDB();
+
+        // Set up mock buildbucket to validate which bucket is requested.
+        final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        when(mockBuildbucket.batch(any)).thenAnswer((i) async {
+          return FakeBuildBucketClient().batch(i.positionalArguments[0]);
         });
+        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+            .thenAnswer((realInvocation) async {
+          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          // Ensure this is an attempt to schedule a presubmit build by
+          // verifying that bucket == 'try'.
+          expect(scheduleBuildRequest.builderId.bucket, equals('try'));
+          return const Build(builderId: BuilderId(), id: '');
+        });
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            buildbucket: mockBuildbucket,
+          ),
+        );
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
+        verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
+      });
+
+      test('rerequested postsubmit check triggers postsubmit build', () async {
+        // Set up datastore with postsubmit entities matching [checkRunString].
+        db = FakeDatastoreDB();
+        config = FakeConfig(dbValue: db, postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')});
+        final Commit commit = generateCommit(
+          1,
+          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          branch: 'master',
+          owner: 'abc',
+          repo: 'cocoon',
+        );
+        config.db.values[commit.key] = commit;
+        final Task task = generateTask(1, name: "test1", parent: commit);
+        config.db.values[task.key] = task;
+
+        // Set up ci.yaml with task name from [checkRunString].
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response(
+              r'''
+enabled_branches:
+  - master
+targets:
+  - name: test1
+''',
+              200,
+            );
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+
+        // Set up mock buildbucket to validate which bucket is requested.
+        final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        when(mockBuildbucket.batch(any)).thenAnswer((i) async {
+          return FakeBuildBucketClient().batch(i.positionalArguments[0]);
+        });
+        when(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri')))
+            .thenAnswer((realInvocation) async {
+          final ScheduleBuildRequest scheduleBuildRequest = realInvocation.positionalArguments[0];
+          // Ensure this is an attempt to schedule a postsubmit build by
+          // verifying that bucket == 'prod'.
+          expect(scheduleBuildRequest.builderId.bucket, equals('prod'));
+          return const Build(builderId: BuilderId(), id: '');
+        });
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            buildbucket: mockBuildbucket,
+          ),
+        );
+        final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          jsonDecode(checkRunString) as Map<String, dynamic>,
+        );
+        expect(await scheduler.processCheckRun(checkRunEvent), true);
+        verify(mockBuildbucket.scheduleBuild(any, buildBucketUri: anyNamed('buildBucketUri'))).called(1);
         verify(mockGithubChecksUtil.createCheckRun(any, any, any, any)).called(1);
       });
 
