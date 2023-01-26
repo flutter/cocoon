@@ -19,6 +19,7 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_buildbucket.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
@@ -33,7 +34,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
-  late MockGerritService gerritService;
+  late FakeGerritService gerritService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -100,7 +101,7 @@ void main() {
       });
     });
 
-    gerritService = MockGerritService();
+    gerritService = FakeGerritService();
     webhook = GithubWebhookSubscription(
       config: config,
       cache: CacheService(inMemory: true),
@@ -2617,12 +2618,7 @@ void foo() {
         action: 'closed',
         number: issueNumber,
         merged: true,
-      );
-
-      when(gerritService.findMirroredCommit(any, any)).thenAnswer(
-        (realInvocation) async {
-          return generateGerritCommit(1);
-        },
+        baseSha: 'sha1', // Found in pre-populated commits in FakeGerritService.
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
@@ -2637,12 +2633,7 @@ void foo() {
         action: 'closed',
         number: issueNumber,
         merged: true,
-      );
-
-      when(gerritService.findMirroredCommit(any, any)).thenAnswer(
-        (realInvocation) async {
-          return null;
-        },
+        baseSha: 'unknown_sha',
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
@@ -2651,7 +2642,9 @@ void foo() {
       } catch (e) {
         expect(
           e.toString(),
-          matches('HTTP 500: Failed to process pull_request event.'),
+          matches(
+            r'HTTP 500: (.+) was not found on GoB\. Failing so this event can be retried\.\.\.',
+          ),
         );
       }
       expect(db.values.values.whereType<Commit>().length, 0);

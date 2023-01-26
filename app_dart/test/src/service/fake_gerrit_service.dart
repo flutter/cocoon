@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:http/testing.dart';
 
@@ -40,4 +41,10 @@ class FakeGerritService extends GerritService {
 
   @override
   Future<void> createBranch(RepositorySlug slug, String branchName, String revision) async => Future.value(null);
+
+  @override
+  Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
+    final commits = await this.commits(slug, '');
+    return commits.firstWhereOrNull((commit) => commit.commit == sha);
+  }
 }
