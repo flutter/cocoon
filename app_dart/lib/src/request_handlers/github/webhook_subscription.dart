@@ -85,9 +85,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     log.finest(webhook.payload);
     switch (webhook.event) {
       case 'pull_request':
-        if (await _handlePullRequest(webhook.payload) == false) {
-          throw const InternalServerError('Failed to process pull_request event.');
-        }
+        await _handlePullRequest(webhook.payload);
         break;
       case 'check_run':
         final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
@@ -101,7 +99,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
-  Future<bool> _handlePullRequest(
+  /// Handles a GitHub webhook with the event type "pull_request".
+  ///
+  /// Regarding merged pull request events: the commit must be mirrored to GoB
+  /// before we can trigger postsubmit tasks. If the commit is not found, the
+  /// event will be failed so it can be retried. As of Jan 26, 2023, the
+  /// retention policy for Pub/Sub messages is 7 days. This event will be
+  /// retried with exponential backoff within that time period. The GoB mirror
+  /// should be caught up within that time frame via either the internal
+  /// mirroring service or [VacuumGithubCommits].
+  Future<void> _handlePullRequest(
     String rawRequest,
   ) async {
     final PullRequestEvent? pullRequestEvent = await _getPullRequestEvent(rawRequest);
@@ -130,16 +137,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
           if (gobCommit != null) {
             log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
-            await scheduler.addPullRequest(pr);
-          } else {
-            // As of Jan 23, 2023, the retention policy for Pub/Sub messages is
-            // 7 days. This event will be retried with exponential backoff
-            // within that time period. The GoB mirror should be caught up
-            // within that time frame via either the internal mirroring service
-            // or [VacuumGithubCommits].
-            log.warning('Merged commit was not found on GoB mirror. Failing so this event can be retried...');
-            return false;
+            return scheduler.addPullRequest(pr);
           }
+          throw InternalServerError('$sha was not found on GoB. Failing so this event can be retried...');
         }
         break;
       case 'edited':
@@ -172,8 +172,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
-
-    return true;
   }
 
   /// This method assumes that jobs should be cancelled if they are already
