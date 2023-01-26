@@ -80,6 +80,11 @@ Future<void> main() async {
 
     test('recover opens Xcode, waits, then kills it', () async {
       when(
+        processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
+      ).thenAnswer((_) async {
+        return ProcessResult(0, 0, '', '');
+      });
+      when(
         processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
       ).thenAnswer((_) async {
         return ProcessResult(1, 0, '', '');
@@ -114,6 +119,7 @@ Future<void> main() async {
       expect(
         logger.logs[Level.INFO],
         containsAllInOrder(<String>[
+          'Running Xcode first launch...',
           'Launching Xcode...',
           'Waiting for 300 seconds',
           'Waited for 300 seconds, now killing Xcode',
