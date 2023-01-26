@@ -195,12 +195,14 @@ github.CheckRun generateCheckRun(
 
 github.CheckSuite generateCheckSuite(
   int i, {
+  String headBranch = 'main',
   String headSha = 'abc',
   github.CheckRunConclusion conclusion = github.CheckRunConclusion.success,
   List<github.PullRequest> pullRequests = const <github.PullRequest>[],
 }) {
   return github.CheckSuite(
     id: i,
+    headBranch: headBranch,
     headSha: headSha,
     conclusion: conclusion,
     pullRequests: pullRequests,
