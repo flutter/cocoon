@@ -111,11 +111,11 @@ class GerritService {
 
   /// Find a commit on a GoB mirror using the GitHub [slug] and commit [sha].
   ///
-  /// The [slug] will be validated by checking if [Config.postsubmitSupportedRepos] includes it.
+  /// The [slug] will be validated by checking if it represents a presubmit or postsubmit supported repo.
   Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
     if (!config.isGithubRepoMirroredToGob(slug)) return null;
     final gobMirrorName = 'mirrors/${slug.name}';
-    return await getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
+    return getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
   }
 
   /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
