@@ -472,7 +472,7 @@ class Scheduler {
         } else {
           try {
             final RepositorySlug slug = checkRunEvent.repository!.slug();
-            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch!;
+            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
             final String sha = checkRunEvent.checkRun!.headSha!;
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
