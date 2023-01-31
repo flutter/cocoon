@@ -105,9 +105,10 @@ void main() {
 
   testWidgets('clicking copy icon in CommitBox adds sha to clipboard', (WidgetTester tester) async {
     final List<MethodCall> log = <MethodCall>[];
-    SystemChannels.platform.setMockMethodCallHandler((MethodCall methodCall) async {
-      log.add(methodCall);
-    });
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall methodCall) async => log.add(methodCall),
+    );
 
     await tester.pumpWidget(basicApp);
 
