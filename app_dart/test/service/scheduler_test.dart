@@ -496,7 +496,7 @@ void main() {
         final Commit commit = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
-          branch: 'master',
+          branch: 'independent_agent',
           owner: 'abc',
           repo: 'cocoon',
         );
@@ -504,13 +504,13 @@ void main() {
         final Task task = generateTask(1, name: "test1", parent: commit);
         config.db.values[task.key] = task;
 
-        // Set up ci.yaml with task name from [checkRunString].
+        // Set up ci.yaml with task name and branch name from [checkRunString].
         httpClient = MockClient((http.Request request) async {
           if (request.url.path.contains('.ci.yaml')) {
             return http.Response(
               r'''
 enabled_branches:
-  - master
+  - independent_agent
 targets:
   - name: test1
 ''',
