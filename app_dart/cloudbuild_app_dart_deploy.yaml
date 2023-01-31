@@ -5,6 +5,27 @@
 # The auto-build will be skipped if no new commits since last deployment.
 
 steps:
+  # Get recently pushed docker image and associated provenance, along with the
+  # correct docker digest url, including the hash.
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |-
+        gcloud artifacts docker images describe \
+          us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA:latest \
+          --format json \
+          --show-provenance \
+          > unverified-provenance.json
+
+  # Verify provenance is valid before proceeding with deployment.
+  - name: 'golang:stretch'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |-
+        bash cloud_build/verify-slsa-provenance.sh
+
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
