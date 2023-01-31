@@ -18,7 +18,7 @@ builds.
 
 It is not designed to help developers build Flutter apps.
 
-Cocoon is not a Google product.
+Cocoon is not a Google product. It is open source.
 
 
 # Using Cocoon
