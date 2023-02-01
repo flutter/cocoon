@@ -689,7 +689,10 @@ void main() {
 
     test('Finds merge method succesfully.', () async {
       const String issueCommentBody = '@autosubmit:rebase';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.rebase, mergeMethod);
@@ -697,7 +700,10 @@ void main() {
 
     test('Multiple lines in single comment return last found merge method.', () async {
       const String issueCommentBody = '@autosubmit:rebase\n@autosubmit:squash';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.rebase, mergeMethod);
@@ -705,7 +711,10 @@ void main() {
 
     test('Multiple comments return last found merge method.', () async {
       const String issueCommentBody = '@autosubmit:rebase';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       const String issueCommentBody2 = '@autosubmit:squash';
       final IssueComment issueComment2 = IssueComment(id: 2, body: issueCommentBody2);
       commentList.add(issueComment);
@@ -716,7 +725,10 @@ void main() {
 
     test('Multiple comments, multiple lines in comment return last found merge method.', () async {
       const String issueCommentBody = '@autosubmit:rebase\n@autosubmit:merge';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       const String issueCommentBody2 = '@autosubmit:squash\n@autosubmit:merge';
       final IssueComment issueComment2 = IssueComment(id: 2, body: issueCommentBody2);
       commentList.add(issueComment);
@@ -727,7 +739,10 @@ void main() {
 
     test('Regex for merge method is case insensitive.', () async {
       const String issueCommentBody = '@autosubmit:Rebase';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.rebase, mergeMethod);
@@ -735,7 +750,10 @@ void main() {
 
     test('Unknown merge method supplied returns merge as default.', () async {
       const String issueCommentBody = '@autosubmit:mrege';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);
@@ -743,7 +761,10 @@ void main() {
 
     test('Merge method found surounded by text.', () async {
       const String issueCommentBody = 'Please use @autosubmit:rebase. To avoid conflicts.';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.rebase, mergeMethod);
@@ -751,7 +772,10 @@ void main() {
 
     test('Merge method default is returned in multiline regex.', () async {
       const String issueCommentBody = 'Please use @autosubmit:\nrebase. To avoid conflicts.';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);
@@ -759,7 +783,10 @@ void main() {
 
     test('Merge method is default for empty comment.', () async {
       const String issueCommentBody = '';
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);
@@ -767,7 +794,10 @@ void main() {
 
     test('Merge method is default for null comment.', () async {
       const String? issueCommentBody = null;
-      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody,);
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);

@@ -314,7 +314,7 @@ class FakeGithubService implements GithubService {
       assert(expected[key] == value);
     });
   }
-  
+
   @override
   Future<List<IssueComment>> listIssueComments(RepositorySlug slug, int issueNumber) async {
     final List<IssueComment> issueCommentList = [];
