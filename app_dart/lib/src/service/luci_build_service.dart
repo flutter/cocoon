@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 
@@ -323,10 +324,13 @@ class LuciBuildService {
     return expectedFailedBuilds.toList();
   }
 
-  /// Sends [ScheduleBuildRequest] the buildset, user_agent, and
-  /// github_link tags are applied to match the original build. The build
-  /// properties from the original build are also preserved.
-  Future<bool> rescheduleBuild({
+  /// Sends [ScheduleBuildRequest] using information from a given build's
+  /// [BuildPushMessage].
+  ///
+  /// The buildset, user_agent, and github_link tags are applied to match the
+  /// original build. The build properties and user data from the original build
+  /// are also preserved.
+  Future<Build> rescheduleBuild({
     required String commitSha,
     required String builderName,
     required push_message.BuildPushMessage buildPushMessage,
@@ -336,7 +340,7 @@ class LuciBuildService {
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
     final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
-    await buildBucketClient.scheduleBuild(
+    return await buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
           project: buildPushMessage.build!.project,
@@ -356,13 +360,12 @@ class LuciBuildService {
         ),
       ),
     );
-    return true;
   }
 
-  /// Sends [ScheduleBuildRequest] for [pullRequest] using [checkRunEvent].
+  /// Sends presubmit [ScheduleBuildRequest] for a pull request using [checkRunEvent].
   ///
-  /// Returns true if it is able to send the scheduleBuildRequest. Otherwise, false.
-  Future<bool> rescheduleUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
+  /// Returns the [Build] returned by scheduleBuildRequest.
+  Future<Build> reschedulePresubmitBuildUsingCheckRunEvent(cocoon_checks.CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository!.slug();
 
     final String sha = checkRunEvent.checkRun!.headSha!;
@@ -376,15 +379,17 @@ class LuciBuildService {
     );
 
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
+    if (builds.isEmpty) {
+      throw NoBuildFoundException('Unable to find try build.');
+    }
 
     final Build build = builds.first;
-
     final String prString = build.tags!['buildset']!.firstWhere((String? element) => element!.startsWith('pr/git/'))!;
     final String cipdVersion = build.tags!['cipd_version']![0]!;
     final int prNumber = int.parse(prString.split('/')[2]);
 
     final Map<String, dynamic> userData = <String, dynamic>{'check_run_id': githubCheckRun.id};
-    final Map<String, dynamic>? properties = build.input!.properties;
+    final Map<String, Object>? properties = build.input!.properties;
     log.info('input ${build.input!} properties $properties');
 
     final ScheduleBuildRequest scheduleBuildRequest = _createPresubmitScheduleBuild(
@@ -401,7 +406,35 @@ class LuciBuildService {
 
     final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
     await githubChecksUtil.updateCheckRun(config, slug, githubCheckRun, detailsUrl: buildUrl);
-    return true;
+    return scheduleBuild;
+  }
+
+  /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
+  ///
+  /// Returns the [Build] returned by scheduleBuildRequest.
+  Future<Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+    cocoon_checks.CheckRunEvent checkRunEvent, {
+    required Commit commit,
+    required Task task,
+    required Target target,
+  }) async {
+    final github.RepositorySlug slug = checkRunEvent.repository!.slug();
+    final String sha = checkRunEvent.checkRun!.headSha!;
+    final String checkName = checkRunEvent.checkRun!.name!;
+
+    final Iterable<Build> builds = await getProdBuilds(slug, sha, checkName);
+    if (builds.isEmpty) {
+      throw NoBuildFoundException('Unable to find prod build.');
+    }
+
+    final Build build = builds.first;
+    final Map<String, Object>? properties = build.input!.properties;
+    log.info('input ${build.input!} properties $properties');
+
+    final ScheduleBuildRequest scheduleBuildRequest =
+        await _createPostsubmitScheduleBuild(commit: commit, target: target, task: task, properties: properties);
+    final Build scheduleBuild = await buildBucketClient.scheduleBuild(scheduleBuildRequest);
+    return scheduleBuild;
   }
 
   /// Gets [Build] using its [id] and passing the additional
@@ -467,15 +500,15 @@ class LuciBuildService {
     required String checkName,
     required int pullRequestNumber,
     required String cipdVersion,
-    Map<String, dynamic>? properties,
+    Map<String, Object>? properties,
     Map<String, List<String>>? tags,
     Map<String, dynamic>? userData,
     List<RequestedDimension>? dimensions,
   }) {
-    final Map<String, dynamic> processedProperties = <String, dynamic>{};
-    processedProperties.addAll(properties ?? <String, dynamic>{});
+    final Map<String, Object> processedProperties = <String, Object>{};
+    processedProperties.addAll(properties ?? <String, Object>{});
     processedProperties.addEntries(
-      <String, dynamic>{
+      <String, Object>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
         'git_ref': 'refs/pull/$pullRequestNumber/head',
         'exe_cipd_version': cipdVersion,
@@ -579,13 +612,13 @@ class LuciBuildService {
     );
   }
 
-  /// Creates postsubmit check runs for supported repositories.
+  /// Creates postsubmit check runs for prod targets in supported repositories.
   Future<void> createPostsubmitCheckRun(
     Commit commit,
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {
-    if (!config.githubPostsubmitSupportedRepo(commit.slug)) {
+    if (!config.githubPostsubmitSupportedRepo(commit.slug) || target.value.bringup) {
       return;
     }
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(

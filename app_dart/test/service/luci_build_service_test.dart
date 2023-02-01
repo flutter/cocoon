@@ -12,11 +12,13 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -28,6 +30,7 @@ import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
+import '../src/utilities/webhook_generators.dart';
 
 void main() {
   late FakeConfig config;
@@ -533,6 +536,81 @@ void main() {
       });
     });
 
+    test('reschedule using checkrun event fails gracefully', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[],
+              ),
+            )
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      expect(
+        () async => await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+          checkRunEvent,
+          commit: generateCommit(0),
+          task: generateTask(0),
+          target: generateTarget(0),
+        ),
+        throwsA(const TypeMatcher<NoBuildFoundException>()),
+      );
+    });
+
+    test('do not create postsubmit checkrun for bringup: true target', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+      final Commit commit = generateCommit(0, repo: 'packages');
+      when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+        return const ListBuildersResponse(
+          builders: [
+            BuilderItem(id: BuilderId(bucket: 'prod', project: 'flutter', builder: 'Linux 1')),
+          ],
+        );
+      });
+      final Tuple<Target, Task, int> toBeScheduled = Tuple<Target, Task, int>(
+        generateTarget(
+          1,
+          properties: <String, String>{
+            'os': 'debian-10.12',
+          },
+          bringup: true,
+          slug: RepositorySlug('flutter', 'packages'),
+        ),
+        generateTask(1),
+        LuciBuildService.kDefaultPriority,
+      );
+      await service.schedulePostsubmitBuilds(
+        commit: commit,
+        toBeScheduled: <Tuple<Target, Task, int>>[
+          toBeScheduled,
+        ],
+      );
+      // Only one batch request should be published
+      expect(pubsub.messages.length, 1);
+      final BatchRequest request = pubsub.messages.first as BatchRequest;
+      expect(request.requests?.single.scheduleBuild, isNotNull);
+      final ScheduleBuildRequest scheduleBuild = request.requests!.single.scheduleBuild!;
+      expect(scheduleBuild.builderId.bucket, 'staging');
+      expect(scheduleBuild.builderId.builder, 'Linux 1');
+      expect(scheduleBuild.notify?.pubsubTopic, 'projects/flutter-dashboard/topics/luci-builds-prod');
+      final Map<String, dynamic> userData =
+          jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
+      // No check run related data.
+      expect(userData, <String, dynamic>{'commit_key': 'flutter/flutter/master/1', 'task_key': '1'});
+    });
+
     test('Skip non-existing builder', () async {
       final Commit commit = generateCommit(0);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
@@ -697,12 +775,13 @@ void main() {
 
     test('Reschedule an existing build', () async {
       when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((_) async => generateBuild(1));
-      final bool rescheduled = await service.rescheduleBuild(
+      final build = await service.rescheduleBuild(
         commitSha: 'abc',
         builderName: 'mybuild',
         buildPushMessage: buildPushMessage,
       );
-      expect(rescheduled, isTrue);
+      expect(build.id, '1');
+      expect(build.status, Status.success);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });

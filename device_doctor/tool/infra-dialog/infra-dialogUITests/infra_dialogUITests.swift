@@ -19,7 +19,7 @@ class infra_dialogUITests: XCTestCase {
 
         // If the device has low battery or bad cable, report as infra failure.
         let failureTexts = ["Low Battery", "This accessory may not be supported"]
-        let buttonTexts = ["OK", "Later", "Allow", "Remind Me Later", "Close"]
+        let buttonTexts = ["OK", "Later", "Allow", "Remind Me Later", "Close", "Dismiss"]
 
         // Sometimes a second dialog pops up when one is closed, so let's run 3 times.
         for _ in 0..<3 {

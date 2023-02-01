@@ -15,23 +15,24 @@ import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
+Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
 
 Commit generateCommit(
   int i, {
   String? sha,
   String branch = 'master',
+  String? owner = 'flutter',
   String repo = 'flutter',
   int? timestamp,
 }) =>
     Commit(
       sha: sha ?? '$i',
       timestamp: timestamp ?? i,
-      repository: 'flutter/$repo',
+      repository: '$owner/$repo',
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/$repo/$branch/${sha ?? '$i'}',
+        '$owner/$repo/$branch/${sha ?? '$i'}',
       ),
     );
 
@@ -100,6 +101,7 @@ Target generateTarget(
   Map<String, String>? properties,
   Map<String, String>? dimensions,
   List<String>? runIf,
+  bool? bringup,
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
 }) {
@@ -122,6 +124,7 @@ Target generateTarget(
       properties: properties,
       dimensions: dimensions,
       runIf: runIf ?? <String>[],
+      bringup: bringup ?? false,
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
     ),
   );
@@ -190,6 +193,22 @@ github.CheckRun generateCheckRun(
   });
 }
 
+github.CheckSuite generateCheckSuite(
+  int i, {
+  String headBranch = 'main',
+  String headSha = 'abc',
+  github.CheckRunConclusion conclusion = github.CheckRunConclusion.success,
+  List<github.PullRequest> pullRequests = const <github.PullRequest>[],
+}) {
+  return github.CheckSuite(
+    id: i,
+    headBranch: headBranch,
+    headSha: headSha,
+    conclusion: conclusion,
+    pullRequests: pullRequests,
+  );
+}
+
 github.PullRequest generatePullRequest({
   int id = 789,
   String branch = 'master',
@@ -247,3 +266,21 @@ github.RepositoryCommit generateGitCommit(int i) => github.RepositoryCommit(
         ),
       ),
     );
+
+github.Issue generateIssue(
+  int i, {
+  String authorLogin = 'dash',
+  String authorAvatar = 'dashatar',
+  String title = 'example message',
+  int number = 123,
+}) {
+  return github.Issue(
+    id: i,
+    title: title,
+    number: number,
+    user: github.User(
+      login: authorLogin,
+      avatarUrl: authorAvatar,
+    ),
+  );
+}

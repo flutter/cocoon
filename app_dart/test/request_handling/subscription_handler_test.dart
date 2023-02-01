@@ -95,19 +95,19 @@ void main() {
       expect(response.statusCode, HttpStatus.ok);
       // 2. Empty message is returned as this was already processed
       expect(responseBody, '123 was already processed');
-      expect(await cache.getOrCreate(subscription.subscriptionName, '123'), isNotNull);
+      expect(await cache.getOrCreate(subscription.subscriptionName, '123', createFn: null), isNotNull);
     });
 
     test('ensure messages can be retried', () async {
       final CacheService cache = CacheService(inMemory: true);
       subscription = ErrorTest(cache);
       HttpClientResponse response = await issueRequest(body: jsonEncode(testEnvelope));
-      Uint8List? messageLock = await cache.getOrCreate('error', '123');
+      Uint8List? messageLock = await cache.getOrCreate('error', '123', createFn: null);
       expect(response.statusCode, HttpStatus.internalServerError);
       expect(messageLock, isNull);
 
       response = await issueRequest(body: jsonEncode(testEnvelope));
-      messageLock = await cache.getOrCreate('error', '123');
+      messageLock = await cache.getOrCreate('error', '123', createFn: null);
       expect(response.statusCode, HttpStatus.internalServerError);
       expect(messageLock, isNull);
     });

@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:codesign/codesign.dart' as cs;
-import 'package:codesign/src/google_cloud_storage.dart';
 import 'package:codesign/src/log.dart';
 import 'package:codesign/src/utils.dart';
 import 'package:file/file.dart';
@@ -20,99 +19,45 @@ void main() {
   const String appSpecificPasswordFilePath = '/tmp/passwords.txt';
   const String codesignAppstoreIDFilePath = '/tmp/appID.txt';
   const String codesignTeamIDFilePath = '/tmp/teamID.txt';
-  final MemoryFileSystem fileSystem = MemoryFileSystem.test();
+  const String inputZipPath = '/tmp/input.zip';
+  const String outputZipPath = '/tmp/output.zip';
   final List<LogRecord> records = <LogRecord>[];
 
+  late MemoryFileSystem fileSystem;
   late FakeProcessManager processManager;
-  late GoogleCloudStorage googleCloudStorage;
   late cs.FileCodesignVisitor codesignVisitor;
+  late Directory rootDirectory;
 
-  Directory rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+  setUp(() {
+    fileSystem = MemoryFileSystem.test();
+    rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
+    processManager = FakeProcessManager.list(<FakeCommand>[]);
+    records.clear();
+    log.onRecord.listen((LogRecord record) => records.add(record));
+  });
 
   group('test reading in passwords: ', () {
     setUp(() {
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
-        gcsUploadPath: 'gs://flutter/$randomString/$randomString',
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
       );
       codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
-    test('incorrectly formatted password file throws exception', () async {
-      fileSystem.file(appSpecificPasswordFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(
-          'file_a',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
+    test('lacking password file throws exception', () async {
       expect(
         () async {
           await codesignVisitor.readPassword(appSpecificPasswordFilePath);
-          fileSystem.file(appSpecificPasswordFilePath).deleteSync();
-        },
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('unknown password name throws an exception', () async {
-      fileSystem.file(codesignTeamIDFilePath)
-        ..createSync(recursive: true, exclusive: true)
-        ..writeAsStringSync(
-          'dart:dart',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
-      expect(
-        () async {
-          await codesignVisitor.readPassword(codesignTeamIDFilePath);
-          await fileSystem.file(codesignTeamIDFilePath).delete();
-        },
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('lacking required passwords throws exception', () async {
-      codesignVisitor.availablePasswords = {
-        'CODESIGN_APPSTORE_ID': '',
-        'CODESIGN_TEAM_ID': '',
-        'APP-SPECIFIC-PASSWORD': ''
-      };
-      fileSystem.file(codesignAppstoreIDFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync(
-          'CODESIGN_APPSTORE_ID:123',
-          mode: FileMode.write,
-          encoding: utf8,
-        );
-
-      expect(
-        () async {
-          await codesignVisitor.validateAll();
-          await fileSystem.file(codesignAppstoreIDFilePath).delete();
         },
         throwsA(
           isA<CodesignException>(),
@@ -124,7 +69,7 @@ void main() {
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true, exclusive: true)
         ..writeAsStringSync(
-          'APP_SPECIFIC_PASSWORD:123',
+          '123',
           mode: FileMode.write,
           encoding: utf8,
         );
@@ -151,152 +96,23 @@ void main() {
 
   group('test google cloud storage and processRemoteZip workflow', () {
     setUp(() {
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gcsDownloadPath: 'gs://flutter/$randomString/$randomString',
-        gcsUploadPath: 'gs://flutter/$randomString/$randomString',
         notarizationTimerDuration: const Duration(seconds: 0),
         dryrun: false,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
-    });
-
-    test('download fails and upload succeeds throws exception', () async {
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            randomString,
-            'gs://flutter/$randomString/$randomString',
-          ],
-          exitCode: 0,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.uploadEngineArtifact(
-          from: randomString,
-          destination: codesignVisitor.gcsUploadPath,
-        ),
-        returnsNormally,
-      );
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            'gs://flutter/$randomString/$randomString',
-            randomString,
-          ],
-          exitCode: -1,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.downloadEngineArtifact(
-          destination: randomString,
-          from: codesignVisitor.gcsDownloadPath,
-        ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('download succeeds and upload fails throws exception', () async {
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            'gs://flutter/$randomString/$randomString',
-            randomString,
-          ],
-          exitCode: 0,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.downloadEngineArtifact(
-          destination: randomString,
-          from: codesignVisitor.gcsDownloadPath,
-        ),
-        returnsNormally,
-      );
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            randomString,
-            'gs://flutter/$randomString/$randomString',
-          ],
-          exitCode: -1,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.uploadEngineArtifact(
-          from: randomString,
-          destination: codesignVisitor.gcsUploadPath,
-        ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
-      );
-    });
-
-    test('download succeeds and upload succeeds returns normally', () async {
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            'gs://flutter/$randomString/$randomString',
-            randomString,
-          ],
-          exitCode: 0,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.downloadEngineArtifact(
-          destination: randomString,
-          from: codesignVisitor.gcsDownloadPath,
-        ),
-        returnsNormally,
-      );
-      processManager.addCommands(<FakeCommand>[
-        const FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            randomString,
-            'gs://flutter/$randomString/$randomString',
-          ],
-          exitCode: 0,
-        ),
-      ]);
-      expect(
-        () => googleCloudStorage.uploadEngineArtifact(
-          from: randomString,
-          destination: codesignVisitor.gcsUploadPath,
-        ),
-        returnsNormally,
-      );
     });
 
     test('procesRemotezip triggers correct workflow', () async {
@@ -305,16 +121,8 @@ void main() {
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
-            'gsutil',
-            'cp',
-            'gs://flutter/$randomString/$randomString',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
+            codesignVisitor.inputZipPath,
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
@@ -327,7 +135,7 @@ void main() {
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
+            codesignVisitor.outputZipPath,
             '.',
             '--include',
             '*',
@@ -338,7 +146,7 @@ void main() {
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
+            codesignVisitor.outputZipPath,
             '--apple-id',
             randomString,
             '--password',
@@ -363,14 +171,6 @@ void main() {
           ],
           stdout: 'status: Accepted',
         ),
-        FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
-            'gs://flutter/$randomString/$randomString',
-          ],
-        ),
       ]);
 
       await codesignVisitor.processRemoteZip();
@@ -381,7 +181,7 @@ void main() {
       expect(
         messages,
         contains(
-          'The downloaded file is unzipped from ${rootDirectory.absolute.path}/downloads/remote_artifact.zip to ${rootDirectory.path}/single_artifact',
+          'The downloaded file is unzipped from ${codesignVisitor.inputZipPath} to ${rootDirectory.path}/single_artifact',
         ),
       );
       expect(
@@ -399,14 +199,12 @@ void main() {
       expect(
         messages,
         contains(
-          'uploading xcrun notarytool submit ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip --apple-id $randomString --password $randomString --team-id $randomString',
+          'uploading xcrun notarytool submit ${codesignVisitor.outputZipPath} --apple-id $randomString --password $randomString --team-id $randomString',
         ),
       );
       expect(
         messages,
-        contains(
-          'RequestUUID for ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip is: $randomString',
-        ),
+        contains('RequestUUID for ${codesignVisitor.outputZipPath} is: $randomString'),
       );
       expect(
         messages,
@@ -416,37 +214,29 @@ void main() {
       );
       expect(
         messages,
-        contains('successfully notarized ${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip'),
+        contains('successfully notarized ${codesignVisitor.outputZipPath}'),
       );
     });
   });
 
   group('visit directory/zip api calls: ', () {
     setUp(() {
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gcsDownloadPath: 'gs://flutter/$randomString/FILEPATH',
-        gcsUploadPath: 'gs://flutter/$randomString/FILEPATH',
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         notarizationTimerDuration: Duration.zero,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('visitDirectory correctly list files', () async {
@@ -714,15 +504,14 @@ void main() {
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        googleCloudStorage: googleCloudStorage,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
         codesignTeamIDFilePath: codesignTeamIDFilePath,
         processManager: processManager,
         rootDirectory: rootDirectory,
-        gcsDownloadPath: 'flutter/$randomString/FILEPATH',
-        gcsUploadPath: 'flutter/$randomString/FILEPATH',
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         dryrun: false,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
@@ -747,7 +536,7 @@ void main() {
         ),
         FakeCommand(
           command: <String>[
-            'codesign',
+            '/usr/bin/codesign',
             '-f',
             '-s',
             randomString,
@@ -769,7 +558,7 @@ void main() {
         ),
         FakeCommand(
           command: <String>[
-            'codesign',
+            '/usr/bin/codesign',
             '-f',
             '-s',
             randomString,
@@ -799,16 +588,10 @@ void main() {
 
   group('parse entitlement configs: ', () {
     setUp(() {
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        gcsDownloadPath: 'flutter/$randomString/FILEPATH',
-        gcsUploadPath: 'flutter/$randomString/FILEPATH',
-        googleCloudStorage: googleCloudStorage,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
@@ -816,12 +599,10 @@ void main() {
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('correctly store file paths', () async {
@@ -870,7 +651,7 @@ file_e''',
       );
     });
 
-    test('throw exception when configuration file is missing', () async {
+    test('log warnings when configuration file is missing', () async {
       fileSystem.file('${rootDirectory.absolute.path}/test_entitlement_2/entitlements.txt')
         ..createSync(recursive: true)
         ..writeAsStringSync(
@@ -894,30 +675,30 @@ file_c''',
           'file_c',
         ]),
       );
+      await codesignVisitor.parseEntitlements(
+        fileSystem.directory('${rootDirectory.absolute.path}/test_entitlement_2'),
+        false,
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
-        () => codesignVisitor.parseEntitlements(
-          fileSystem.directory('/Users/xilaizhang/Desktop/test_entitlement_2'),
-          false,
-        ),
-        throwsA(
-          isA<CodesignException>(),
-        ),
+        messages,
+        contains('${rootDirectory.absolute.path}/test_entitlement_2/without_entitlements.txt not found. '
+            'by default, system will assume there is no without_entitlements file. '
+            'As a result, no binary will be codesigned.'
+            'if this is not intended, please provide them along with the engine artifacts.'),
       );
     });
   });
 
   group('notarization tests: ', () {
     setUp(() {
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        gcsDownloadPath: 'flutter/$randomString/FILEPATH',
-        gcsUploadPath: 'flutter/$randomString/FILEPATH',
-        googleCloudStorage: googleCloudStorage,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
@@ -925,12 +706,10 @@ file_c''',
         processManager: processManager,
         rootDirectory: rootDirectory,
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
     });
 
     test('successful notarization check returns true', () async {
@@ -1229,17 +1008,10 @@ status: Invalid''',
 
   group('support optional switches and dryrun :', () {
     setUp(() {
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
-      processManager = FakeProcessManager.list(<FakeCommand>[]);
-      googleCloudStorage = GoogleCloudStorage(
-        processManager: processManager,
-        rootDirectory: rootDirectory,
-      );
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
-        gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
-        googleCloudStorage: googleCloudStorage,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
@@ -1248,37 +1020,27 @@ status: Invalid''',
         rootDirectory: rootDirectory,
         notarizationTimerDuration: const Duration(seconds: 0),
       );
+      codesignVisitor.directoriesVisited.clear();
       codesignVisitor.appSpecificPassword = randomString;
       codesignVisitor.codesignAppstoreId = randomString;
       codesignVisitor.codesignTeamId = randomString;
-      codesignVisitor.directoriesVisited.clear();
-      records.clear();
-      log.onRecord.listen((LogRecord record) => records.add(record));
       fileSystem.file(codesignAppstoreIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('CODESIGN_APPSTORE_ID:$randomString');
+        ..writeAsStringSync(randomString);
       fileSystem.file(codesignTeamIDFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('CODESIGN_TEAM_ID:$randomString');
+        ..writeAsStringSync(randomString);
       fileSystem.file(appSpecificPasswordFilePath)
         ..createSync(recursive: true)
-        ..writeAsStringSync('APP_SPECIFIC_PASSWORD:$randomString');
+        ..writeAsStringSync(randomString);
     });
 
-    test('codesign optional switches artifacts when dryrun is false', () async {
+    test('codesign optional switches artifacts when dryrun is true', () async {
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
-            'gsutil',
-            'cp',
-            'gs://ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
+            codesignVisitor.inputZipPath,
             '-d',
             '${rootDirectory.absolute.path}/single_artifact'
           ],
@@ -1291,7 +1053,7 @@ status: Invalid''',
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
+            codesignVisitor.outputZipPath,
             '.',
             '--include',
             '*'
@@ -1302,7 +1064,7 @@ status: Invalid''',
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_zip',
+            codesignVisitor.outputZipPath,
             '--apple-id',
             randomString,
             '--password',
@@ -1335,26 +1097,17 @@ status: Invalid''',
           .toList();
       expect(
         messages,
-        contains('code signing dry run has completed, If you intend to upload the artifacts back to'
-            ' google cloud storage, please use the --dryrun=false flag to run code signing script.'),
+        contains('code signing dry run has completed, this is a quick sanity check without'
+            'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
       );
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
 
-    test('upload optional switch artifacts when dryrun is true', () async {
+    test('upload optional switch artifacts when dryrun is false', () async {
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
-            'gsutil',
-            'cp',
-            'gs://ios-usb-dependencies/unsigned/libimobiledevice/abcd1234/libimobiledevice.zip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
-          ],
-        ),
-        FakeCommand(
-          command: <String>[
             'unzip',
-            '${rootDirectory.absolute.path}/downloads/remote_artifact.zip',
+            codesignVisitor.inputZipPath,
             '-d',
             '${rootDirectory.absolute.path}/single_artifact'
           ],
@@ -1367,7 +1120,7 @@ status: Invalid''',
             'zip',
             '--symlinks',
             '--recurse-paths',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
+            codesignVisitor.outputZipPath,
             '.',
             '--include',
             '*'
@@ -1378,7 +1131,7 @@ status: Invalid''',
             'xcrun',
             'notarytool',
             'submit',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
+            codesignVisitor.outputZipPath,
             '--apple-id',
             randomString,
             '--password',
@@ -1403,20 +1156,11 @@ status: Invalid''',
           ],
           stdout: 'status: Accepted',
         ),
-        FakeCommand(
-          command: <String>[
-            'gsutil',
-            'cp',
-            '${rootDirectory.absolute.path}/codesigned_zips/remote_artifact.zip',
-            'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
-          ],
-        ),
       ]);
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
-        gcsDownloadPath: 'gs://ios-usb-dependencies/unsigned/libimobiledevice/$randomString/libimobiledevice.zip',
-        gcsUploadPath: 'gs://ios-usb-dependencies/libimobiledevice/$randomString/libimobiledevice.zip',
-        googleCloudStorage: googleCloudStorage,
+        inputZipPath: inputZipPath,
+        outputZipPath: outputZipPath,
         fileSystem: fileSystem,
         appSpecificPasswordFilePath: appSpecificPasswordFilePath,
         codesignAppstoreIDFilePath: codesignAppstoreIDFilePath,
@@ -1437,16 +1181,17 @@ status: Invalid''',
           .toSet();
       expect(
         messages,
-        isNot(
-          contains('code signing dry run has completed, If you intend to upload the artifacts back to'
-              ' google cloud storage, please use the --dryrun=false flag to run code signing script.'),
-        ),
+        contains('Codesign completed. Codesigned zip is located at ${codesignVisitor.outputZipPath}.'
+            'If you have uploaded the artifacts back to google cloud storage, please delete'
+            ' the folder ${codesignVisitor.outputZipPath} and ${codesignVisitor.inputZipPath}.'),
       );
       expect(
         messages,
-        contains('Codesigned all binaries in ${rootDirectory.path}'),
+        isNot(
+          contains('code signing dry run has completed, this is a quick sanity check without'
+              'going through the notary service. To run the full codesign process, use --no-dryrun flag.'),
+        ),
       );
-      rootDirectory = fileSystem.systemTempDirectory.createTempSync('conductor_codesign');
     });
   });
 }

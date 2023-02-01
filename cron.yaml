@@ -5,7 +5,7 @@
 cron:
 - description: retrieve missing commits
   url: /api/vacuum-github-commits
-  schedule: every 1 hours
+  schedule: every 10 minutes
 
 - description: backfills builds
   url: /api/scheduler/batch-backfiller
@@ -49,6 +49,6 @@ cron:
   schedule: every 1 minutes
 
 - description: check revert review issues for closed issues to update in our database
-  url: 'api/update-revert-issues'
+  url: '/api/update-revert-issues'
   target: auto-submit
   schedule: every 24 hours

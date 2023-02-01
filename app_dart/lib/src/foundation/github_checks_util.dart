@@ -40,6 +40,33 @@ class GithubChecksUtil {
     );
   }
 
+  /// Finds all check suites that are associated with a given git [ref].
+  Future<List<github.CheckSuite>> listCheckSuitesForRef(
+    github.GitHub gitHubClient,
+    github.RepositorySlug slug, {
+    required String ref,
+    int? appId,
+    String? checkName,
+  }) async {
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
+    );
+    return r.retry(
+      () async {
+        return gitHubClient.checks.checkSuites
+            .listCheckSuitesForRef(
+              slug,
+              ref: ref,
+              appId: appId,
+              checkName: checkName,
+            )
+            .toList();
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
+  }
+
   /// Sends a request to github checks api to update a [CheckRun] with a given
   /// [status] and [conclusion].
   Future<void> updateCheckRun(
@@ -118,8 +145,10 @@ class GithubChecksUtil {
           output: output,
         );
       },
-      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
-      onRetry: (Exception e) => log.warning('createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name'),
+      retryIf: (Exception e) => true,
+      onRetry: (Exception e) => log.warning(
+        'createCheckRun fails for slug: ${slug.fullName}, sha: $sha, name: $name. Exception: ${e.toString()}',
+      ),
     );
   }
 

@@ -889,9 +889,11 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
-        ),
+          PullRequestFile()..filename = 'shell/platform/embedder/tests/embedder_test_context.cc',
+          PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
+        ]),
       );
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
@@ -1759,6 +1761,33 @@ void foo() {
       );
     });
 
+    test('Engine labels PRs, no comment if script tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'fml/blah.cc',
+          PullRequestFile()..filename = 'fml/testing/blah_test.sh',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Engine labels PRs, no comment if cc tests', () async {
       const int issueNumber = 123;
 
@@ -1794,7 +1823,7 @@ void foo() {
       );
     });
 
-    test('Engine labels PRs, no comment if cc becnhmarks', () async {
+    test('Engine labels PRs, no comment if cc benchmarks', () async {
       const int issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -2402,6 +2431,33 @@ void foo() {
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/foo/foo_linux/linux/foo.cc',
           PullRequestFile()..filename = 'packages/foo/foo_linux/linux/test/foo_test.cc',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.pluginsSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Packages does not comment if Pigeon native tests', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.packagesSlug,
+      );
+      when(pullRequestsService.listFiles(Config.packagesSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/pigeon/lib/swift_generator.dart',
+          PullRequestFile()
+            ..filename = 'packages/pigeon/platform_tests/shared_test_plugin_code/lib/integration_tests.dart',
         ]),
       );
 

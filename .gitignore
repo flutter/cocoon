@@ -2,7 +2,6 @@
 .DS_Store
 *~
 *.pyc
-packages
 .packages
 .pub
 app/build

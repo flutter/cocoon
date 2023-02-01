@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:mutex/mutex.dart';
+import 'package:retry/retry.dart';
 
 /// Service for reading and writing values to a cache for quick access of data.
 ///
@@ -19,6 +21,8 @@ class CacheService {
     int inMemoryMaxNumberEntries = 256,
   }) : _provider =
             inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUri);
+
+  final Mutex m = Mutex();
 
   final CacheProvider<List<int>> _provider;
 
@@ -49,35 +53,78 @@ class CacheService {
   Future<Uint8List?> getOrCreate(
     String subcacheName,
     String key, {
-    int attempt = 1,
-    Future<Uint8List> Function()? createFn,
+    required Future<Uint8List> Function()? createFn,
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    Uint8List? value;
-
-    try {
-      value = await subcache[key].get();
-    } catch (e) {
-      if (attempt < maxCacheGetAttempts) {
-        return getOrCreate(
-          subcacheName,
-          key,
-          attempt: ++attempt,
-          createFn: createFn,
-          ttl: ttl,
-        );
-      } else {
-        // Give up on trying to get the value from the cache.
-        value = null;
-      }
-    }
+    Uint8List? value = await _readValue(subcacheName, key);
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
-      await set(subcacheName, key, value, ttl: ttl);
+      await set(
+        subcacheName,
+        key,
+        value,
+        ttl: ttl,
+      );
+    }
+
+    return value;
+  }
+
+  /// This method is the same as the [getOrCreate] method above except that it
+  /// enforces locking access.
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens locally only for this instance.
+  /// Care should be taken to use the locking methods together when accessing
+  /// data from an entity using the cache.
+  Future<Uint8List?> getOrCreateWithLocking(
+    String subcacheName,
+    String key, {
+    required Future<Uint8List> Function()? createFn,
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    Uint8List? value = await _readValue(subcacheName, key);
+
+    // If given createFn, update the cache value if the value returned was null.
+    if (createFn != null && value == null) {
+      // Try creating the value
+      value = await createFn();
+      await setWithLocking(
+        subcacheName,
+        key,
+        value,
+        ttl: ttl,
+      );
+    }
+
+    return value;
+  }
+
+  Future<Uint8List?> _readValue(
+    String subcacheName,
+    String key,
+  ) async {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List? value;
+
+    const RetryOptions r = RetryOptions(
+      maxAttempts: maxCacheGetAttempts,
+      delayFactor: Duration(milliseconds: 50),
+    );
+
+    try {
+      await r.retry(
+        () async {
+          value = await subcache[key].get();
+        },
+      );
+    } catch (e) {
+      // If the last retry is unsuccessful on an exception we do not want to die
+      // here.
+      value = null;
     }
 
     return value;
@@ -95,10 +142,46 @@ class CacheService {
     return entry.set(value, ttl);
   }
 
+  /// Set [value] for [key] in the subcache [subcacheName] with [ttl] but
+  /// enforce locking accessing.
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens. Care should be taken to use the
+  /// locking methods together when accessing data from an entity using the
+  /// cache.
+  Future<Uint8List?> setWithLocking(
+    String subcacheName,
+    String key,
+    Uint8List? value, {
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    await m.acquire();
+    try {
+      return set(
+        subcacheName,
+        key,
+        value,
+        ttl: ttl,
+      );
+    } finally {
+      m.release();
+    }
+  }
+
   /// Clear the value stored in subcache [subcacheName] for key [key].
-  Future<void> purge(String subcacheName, String key) {
-    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    return subcache[key].purge(retries: maxCacheGetAttempts);
+  ///
+  /// Note: these methods are intended to prevent issues around race conditions
+  /// when storing and retrieving github tokens. Care should be taken to use the
+  /// locking methods together when accessing data from an entity using the
+  /// cache.
+  Future<void> purge(String subcacheName, String key) async {
+    await m.acquire();
+    try {
+      final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+      return subcache[key].purge(retries: maxCacheGetAttempts);
+    } finally {
+      m.release();
+    }
   }
 
   void dispose() {

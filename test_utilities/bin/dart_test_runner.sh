@@ -14,6 +14,8 @@ pushd "$1" > /dev/null
 flutter clean
 dart pub get
 
+# TODO(drewroengoogle): Validate proto code has been generated. https://github.com/flutter/flutter/issues/115473
+
 echo "############# files that require formatting ###########"
 dart format --set-exit-if-changed --line-length=120 .
 echo "#######################################################"
@@ -25,8 +27,6 @@ if grep -lq "build_runner" pubspec.yaml; then
   echo "###############################"
 fi
 
-# See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
-dart pub global run tuneup check
 # Only try tests if test folder exist.
 if [ -d 'test' ]; then
   echo "############# tests ###########"
