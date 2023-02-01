@@ -375,10 +375,10 @@ Exception: ${exception.message}
   /// A user can provide an alternate merge method via comment by providing the
   /// string @autosubmit:<merge_method>.
   ///
-  /// This function will look for the first occurence of the regex in the latest
-  /// comment created in the pull request. If no comment is found with the
-  /// @autosubmit string or the string does not contain a supported method the
-  /// default method returned will be 'squash'.
+  /// This function will look for the most recent occurence of the regex in the 
+  /// pull request comments. If no comment is found with the @autosubmit string 
+  /// or the string does not contain a supported method the default method 
+  /// returned will be 'squash'.
   static final RegExp regExpMergeMethod = RegExp(r'@autosubmit:(merge|squash|rebase)', caseSensitive: false);
   Future<github.MergeMethod> checkForMergeMethod({
     required github.RepositorySlug slug,
@@ -398,7 +398,7 @@ Exception: ${exception.message}
       // if (comment.author_association != 'MEMBER' || comment.author_association != 'OWNER') {
       //   continue;
       // }
-
+      
       final String? commentBody = comment.body;
       if (commentBody == null || commentBody.isEmpty) {
         continue;
@@ -410,8 +410,6 @@ Exception: ${exception.message}
         continue;
       }
       final Match foundMatch = allMatches.last;
-
-      // final RegExpMatch? foundMatch = regExpMergeMethod.firstMatch(commentBody);
 
       if (foundMatch[0] != null) {
         final String value = foundMatch.group(1)!.toLowerCase();
