@@ -141,7 +141,7 @@ class ValidationService {
     required PubSub pubsub,
   }) async {
     final List<ValidationResult> results = <ValidationResult>[];
-
+    
     /// Runs all the validation defined in the service.
     for (Validation validation in validations) {
       final ValidationResult validationResult = await validation.validate(result, messagePullRequest);
@@ -340,6 +340,8 @@ Exception: ${exception.message}
     try {
       github.PullRequestMerge? result;
 
+      final github.MergeMethod mergeMethod = await checkForMergeMethod(slug: slug, prNumber: number,);
+
       await retryOptions.retry(
         () async {
           result = await _processMergeInternal(
@@ -347,7 +349,7 @@ Exception: ${exception.message}
             slug: slug,
             number: number,
             // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
-            mergeMethod: github.MergeMethod.squash,
+            mergeMethod: mergeMethod,
           );
         },
         retryIf: (Exception e) => e is RetryableException,
@@ -366,6 +368,40 @@ Exception: ${exception.message}
     }
 
     return ProcessMergeResult.noMessage(true);
+  }
+
+  /// A user can provide an alternate merge method via comment by providing the
+  /// string @autosubmit:<merge_method>. 
+  static final RegExp regExpMergeMethod = RegExp(r'@autosubmit:(merge|squash|rebase)', caseSensitive: false);
+  Future<github.MergeMethod> checkForMergeMethod({
+    required github.RepositorySlug slug,
+    required int prNumber,}) async {
+      const github.MergeMethod defaultMergeMethod = github.MergeMethod.squash;
+      final GithubService githubService = await config.createGithubService(slug);
+
+      final List<github.IssueComment> issueComments = await githubService.listIssueComments(slug, prNumber);
+      if (issueComments.isEmpty) {
+        return defaultMergeMethod;
+      }
+
+      final List<github.MergeMethod> foundMatches = [];
+      for (github.IssueComment comment in issueComments) {
+        final String? commentBody = comment.body;
+        if (commentBody == null || commentBody.isEmpty) {
+          continue;
+        }
+
+        final RegExpMatch? foundMatch = regExpMergeMethod.firstMatch(commentBody);
+        
+        if (foundMatch != null) {
+          final String value = foundMatch.group(1)!.toLowerCase();
+          foundMatches.add(github.MergeMethod.values.byName(value));
+        }
+      }
+
+      // Return the last match found, this is the most recent match at the time
+      // collected.
+      return foundMatches.isEmpty ? defaultMergeMethod : foundMatches.last;
   }
 
   /// Remove a pull request label and add a comment to the pull request.
