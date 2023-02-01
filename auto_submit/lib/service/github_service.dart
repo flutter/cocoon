@@ -136,7 +136,7 @@ class GithubService {
     RepositorySlug slug,
     int issueNumber,
   ) async {
-    return await github.issues.listCommentsByIssue(slug, issueNumber).toList();
+    return github.issues.listCommentsByIssue(slug, issueNumber).toList();
   }
 
   /// Merges a pull request according to the MergeMethod type. Current supported
