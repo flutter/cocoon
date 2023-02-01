@@ -706,7 +706,7 @@ void main() {
       );
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
-      expect(MergeMethod.rebase, mergeMethod);
+      expect(MergeMethod.squash, mergeMethod);
     });
 
     test('Multiple comments return last found merge method.', () async {
@@ -734,7 +734,7 @@ void main() {
       commentList.add(issueComment);
       commentList.add(issueComment2);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
-      expect(MergeMethod.squash, mergeMethod);
+      expect(MergeMethod.merge, mergeMethod);
     });
 
     test('Regex for merge method is case insensitive.', () async {

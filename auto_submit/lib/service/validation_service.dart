@@ -394,14 +394,26 @@ Exception: ${exception.message}
 
     final List<github.MergeMethod> foundMethods = [];
     for (github.IssueComment comment in issueComments) {
+      // If comment author is not a MEMBER or OWNER we ignore this.
+      // if (comment.author_association != 'MEMBER' || comment.author_association != 'OWNER') {
+      //   continue;
+      // }
+
       final String? commentBody = comment.body;
       if (commentBody == null || commentBody.isEmpty) {
         continue;
       }
 
-      final RegExpMatch? foundMatch = regExpMergeMethod.firstMatch(commentBody);
+      // detect all matches of the pattern in the comment and use the last one.
+      final Iterable<Match> allMatches = regExpMergeMethod.allMatches(commentBody);
+      if (allMatches.isEmpty) {
+        continue;
+      }
+      final Match foundMatch = allMatches.last;
 
-      if (foundMatch != null) {
+      // final RegExpMatch? foundMatch = regExpMergeMethod.firstMatch(commentBody);
+
+      if (foundMatch[0] != null) {
         final String value = foundMatch.group(1)!.toLowerCase();
         foundMethods.add(github.MergeMethod.values.byName(value));
       }
