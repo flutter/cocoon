@@ -42,6 +42,7 @@ targets:
       add_recipes_cq: "true"
       script: device_doctor/tool/build.sh
       cipd_name: flutter/device_doctor/mac-amd64
+      device_type: none
     runIf:
       - device_doctor/**
       - .ci.yaml
@@ -62,6 +63,7 @@ targets:
       add_recipes_cq: "true"
       script: codesign/tool/build.sh
       cipd_name: flutter/codesign/mac-amd64
+      device_type: none
     runIf:
       - codesign/**
       - .ci.yaml
