@@ -375,9 +375,9 @@ Exception: ${exception.message}
   /// A user can provide an alternate merge method via comment by providing the
   /// string @autosubmit:<merge_method>.
   ///
-  /// This function will look for the most recent occurence of the regex in the 
-  /// pull request comments. If no comment is found with the @autosubmit string 
-  /// or the string does not contain a supported method the default method 
+  /// This function will look for the most recent occurence of the regex in the
+  /// pull request comments. If no comment is found with the @autosubmit string
+  /// or the string does not contain a supported method the default method
   /// returned will be 'squash'.
   static final RegExp regExpMergeMethod = RegExp(r'@autosubmit:(merge|squash|rebase)', caseSensitive: false);
   Future<github.MergeMethod> checkForMergeMethod({
