@@ -213,7 +213,7 @@ class Scheduler {
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
     ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
@@ -406,9 +406,14 @@ class Scheduler {
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
+      // This fails when we attempt the second call to getCiYaml since the retry
+      // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      ciYaml = await getCiYaml(
+        commit,
+        totCiYaml: totYaml,
+      );
     } else {
       ciYaml = await getCiYaml(commit);
     }
