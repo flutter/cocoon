@@ -683,7 +683,10 @@ void main() {
     });
 
     test('No comment returns merge as default method.', () async {
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.squash, mergeMethod);
     });
 
@@ -695,7 +698,10 @@ void main() {
         authorAssociation: 'MEMBER',
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.rebase, mergeMethod);
     });
 
@@ -707,7 +713,10 @@ void main() {
         authorAssociation: 'OWNER',
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.merge, mergeMethod);
     });
 
@@ -719,10 +728,17 @@ void main() {
         authorAssociation: 'OWNER',
       );
       const String issueCommentBody2 = '@autosubmit:merge';
-      final IssueComment issueComment2 = IssueComment(id: 2, body: issueCommentBody2, authorAssociation: 'OWNER',);
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'OWNER',
+      );
       commentList.add(issueComment);
       commentList.add(issueComment2);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.merge, mergeMethod);
     });
 
@@ -734,10 +750,17 @@ void main() {
         authorAssociation: 'MEMBER',
       );
       const String issueCommentBody2 = '@autosubmit:squash\n@autosubmit:merge';
-      final IssueComment issueComment2 = IssueComment(id: 2, body: issueCommentBody2, authorAssociation: 'OWNER',);
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'OWNER',
+      );
       commentList.add(issueComment);
       commentList.add(issueComment2);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.merge, mergeMethod);
     });
 
@@ -749,7 +772,10 @@ void main() {
         authorAssociation: 'MEMBER',
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.rebase, mergeMethod);
     });
 
@@ -761,7 +787,10 @@ void main() {
         authorAssociation: 'OWNER',
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.squash, mergeMethod);
     });
 
@@ -779,11 +808,7 @@ void main() {
 
     test('Merge method default is returned in multiline regex.', () async {
       const String issueCommentBody = 'Please use @autosubmit:\nrebase. To avoid conflicts.';
-      final IssueComment issueComment = IssueComment(
-        id: 1,
-        body: issueCommentBody,
-        authorAssociation: 'OWNER'
-      );
+      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody, authorAssociation: 'OWNER');
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);
@@ -791,11 +816,7 @@ void main() {
 
     test('Merge method is default for empty comment.', () async {
       const String issueCommentBody = '';
-      final IssueComment issueComment = IssueComment(
-        id: 1,
-        body: issueCommentBody,
-        authorAssociation: 'MEMBER'
-      );
+      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody, authorAssociation: 'MEMBER');
       commentList.add(issueComment);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
       expect(MergeMethod.squash, mergeMethod);
@@ -809,7 +830,10 @@ void main() {
         authorAssociation: 'OWNER',
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.squash, mergeMethod);
     });
 
@@ -847,7 +871,11 @@ void main() {
         authorAssociation: 'MEMBER',
       );
       const String issueCommentBody2 = '@autosubmit:merge';
-      final IssueComment issueComment2 = IssueComment(id: 2, body: issueCommentBody2, authorAssociation: 'COLLABORATOR',);
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'COLLABORATOR',
+      );
       commentList.add(issueComment);
       commentList.add(issueComment2);
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
@@ -861,7 +889,10 @@ void main() {
         body: issueCommentBody,
       );
       commentList.add(issueComment);
-      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1,);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
       expect(MergeMethod.squash, mergeMethod);
     });
   });
