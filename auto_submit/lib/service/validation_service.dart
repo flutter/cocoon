@@ -395,9 +395,9 @@ Exception: ${exception.message}
     final List<github.MergeMethod> foundMethods = [];
     for (github.IssueComment comment in issueComments) {
       // If comment author is not a MEMBER or OWNER we ignore this.
-      // if (comment.author_association != 'MEMBER' || comment.author_association != 'OWNER') {
-      //   continue;
-      // }
+      if (comment.authorAssociation == null || comment.authorAssociation != 'MEMBER' && comment.authorAssociation != 'OWNER') {
+        continue;
+      }
       
       final String? commentBody = comment.body;
       if (commentBody == null || commentBody.isEmpty) {

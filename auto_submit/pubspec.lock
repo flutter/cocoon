@@ -245,7 +245,7 @@ packages:
     dependency: "direct main"
     description:
       name: github
-      sha256: "826a554f071fb51fd1076d20a79d4a6b43974189b5498a64434bdfd34746a5e3"
+      sha256: "2f78b5cdb21fdc54740a2476344718ab4d1eb59971fbac7962714b1a87fa9862"
       url: "https://pub.dev"
     source: hosted
     version: "9.9.0"
