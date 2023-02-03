@@ -213,7 +213,7 @@ class Scheduler {
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
-    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 3),
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
     ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
