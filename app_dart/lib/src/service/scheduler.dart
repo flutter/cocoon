@@ -406,9 +406,12 @@ class Scheduler {
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
+      // This fails when we attempt the second call to getCiYaml since the retry
+      // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      // TODO consider adding this as default to all calls to getCiYaml.
+      ciYaml = await getCiYaml(commit, totCiYaml: totYaml, retryOptions: const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 3));
     } else {
       ciYaml = await getCiYaml(commit);
     }
