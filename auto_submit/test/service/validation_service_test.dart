@@ -682,7 +682,7 @@ void main() {
       githubService.issueCommentsMockList = commentList;
     });
 
-    test('No comment returns merge as default method.', () async {
+    test('No comment returns squash as default method.', () async {
       final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
         slug: slug,
         prNumber: 1,
@@ -779,7 +779,7 @@ void main() {
       expect(MergeMethod.rebase, mergeMethod);
     });
 
-    test('Unknown merge method supplied returns merge as default.', () async {
+    test('Unknown merge method supplied returns squash as default.', () async {
       const String issueCommentBody = '@autosubmit:mrege';
       final IssueComment issueComment = IssueComment(
         id: 1,
