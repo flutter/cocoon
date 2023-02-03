@@ -54,6 +54,7 @@ class FakeGithubService implements GithubService {
 
   List<String?> pullRequestFilesMockList = [];
   List<PullRequest?> pullRequestMockList = [];
+  List<IssueComment> issueCommentsMockList = [];
 
   IssueComment? issueComment;
   bool useRealComment = false;
@@ -312,5 +313,12 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+  }
+
+  @override
+  Future<List<IssueComment>> listIssueComments(RepositorySlug slug, int issueNumber) async {
+    final List<IssueComment> issueCommentList = [];
+    issueCommentList.addAll(issueCommentsMockList);
+    return issueCommentList;
   }
 }
