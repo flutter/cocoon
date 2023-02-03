@@ -410,7 +410,6 @@ class Scheduler {
       // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      // TODO consider adding this as default to all calls to getCiYaml.
       ciYaml = await getCiYaml(
         commit,
         totCiYaml: totYaml,
