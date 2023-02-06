@@ -17,19 +17,21 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 Future<void> main() async {
-  test('XCDevice surfaces "Fetching debug symbols" error messages', () {
-    final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithErrors);
-    final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
-      return device.hasError;
+  for (final String deviceName in const <String>['iPhone', 'iPhone 11', "Flutter's iOS Phone"]) {
+    test('XCDevice surfaces "Fetching debug symbols" error messages for "$deviceName"', () {
+      final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithErrors(deviceName));
+      final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
+        return device.hasError;
+      });
+      expect(erroredDevices, hasLength(1));
+      final XCDevice erroredDevice = erroredDevices.single;
+      expect(erroredDevice.error!['code'], -10);
+      expect(erroredDevice.error!['failureReason'], isEmpty);
+      expect(erroredDevice.error!['description'], '$deviceName is busy: Fetching debug symbols for $deviceName');
+      expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when iPhone is finished.');
+      expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
     });
-    expect(erroredDevices, hasLength(1));
-    final XCDevice erroredDevice = erroredDevices.single;
-    expect(erroredDevice.error!['code'], -10);
-    expect(erroredDevice.error!['failureReason'], isEmpty);
-    expect(erroredDevice.error!['description'], 'iPhone is busy: Fetching debug symbols for iPhone');
-    expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when iPhone is finished.');
-    expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
-  });
+  }
 
   test('XCDevice ignores "phone is locked" errors', () {
     final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithNonFatalErrors);
@@ -78,6 +80,11 @@ Future<void> main() async {
 
     test('recover opens Xcode, waits, then kills it', () async {
       when(
+        processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
+      ).thenAnswer((_) async {
+        return ProcessResult(0, 0, '', '');
+      });
+      when(
         processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
       ).thenAnswer((_) async {
         return ProcessResult(1, 0, '', '');
@@ -112,6 +119,7 @@ Future<void> main() async {
       expect(
         logger.logs[Level.INFO],
         containsAllInOrder(<String>[
+          'Running Xcode first launch...',
           'Launching Xcode...',
           'Waiting for 300 seconds',
           'Waited for 300 seconds, now killing Xcode',
@@ -154,7 +162,7 @@ const String _jsonWithNonFatalErrors = '''
   }
 ]''';
 
-const String _jsonWithErrors = '''
+String _jsonWithErrors(String name) => '''
 [
   {
     "modelCode" : "iPhone8,1",
@@ -163,7 +171,7 @@ const String _jsonWithErrors = '''
     "error" : {
       "code" : -10,
       "failureReason" : "",
-      "description" : "iPhone is busy: Fetching debug symbols for iPhone",
+      "description" : "$name is busy: Fetching debug symbols for $name",
       "recoverySuggestion" : "Xcode will continue when iPhone is finished.",
       "domain" : "com.apple.platform.iphoneos"
     },

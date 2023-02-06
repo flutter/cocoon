@@ -15,23 +15,24 @@ import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition('flutter-dashboard')).append<T>(type, id: id);
+Key<T> generateKey<T>(Type type, T id) => Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
 
 Commit generateCommit(
   int i, {
   String? sha,
   String branch = 'master',
+  String? owner = 'flutter',
   String repo = 'flutter',
   int? timestamp,
 }) =>
     Commit(
       sha: sha ?? '$i',
       timestamp: timestamp ?? i,
-      repository: 'flutter/$repo',
+      repository: '$owner/$repo',
       branch: branch,
       key: generateKey<String>(
         Commit,
-        'flutter/$repo/$branch/${sha ?? '$i'}',
+        '$owner/$repo/$branch/${sha ?? '$i'}',
       ),
     );
 
@@ -194,12 +195,14 @@ github.CheckRun generateCheckRun(
 
 github.CheckSuite generateCheckSuite(
   int i, {
+  String headBranch = 'main',
   String headSha = 'abc',
   github.CheckRunConclusion conclusion = github.CheckRunConclusion.success,
   List<github.PullRequest> pullRequests = const <github.PullRequest>[],
 }) {
   return github.CheckSuite(
     id: i,
+    headBranch: headBranch,
     headSha: headSha,
     conclusion: conclusion,
     pullRequests: pullRequests,

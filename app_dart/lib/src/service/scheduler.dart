@@ -213,7 +213,7 @@ class Scheduler {
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
     ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
@@ -406,9 +406,14 @@ class Scheduler {
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
+      // This fails when we attempt the second call to getCiYaml since the retry
+      // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      ciYaml = await getCiYaml(
+        commit,
+        totCiYaml: totYaml,
+      );
     } else {
       ciYaml = await getCiYaml(commit);
     }
@@ -455,7 +460,7 @@ class Scheduler {
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // The [CheckRunEvent.checkRun.pullRequests] array is empty for this
+          // The CheckRunEvent.checkRun.pullRequests array is empty for this
           // event, so we need to find the matching pull request.
           final RepositorySlug slug = checkRunEvent.repository!.slug();
           final String headSha = checkRunEvent.checkRun!.headSha!;
@@ -471,7 +476,40 @@ class Scheduler {
           }
         } else {
           try {
-            await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+            final RepositorySlug slug = checkRunEvent.repository!.slug();
+            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
+            final String sha = checkRunEvent.checkRun!.headSha!;
+
+            // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
+            datastore = datastoreProvider(config.db);
+            final Key<String> commitKey =
+                Commit.createKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+            Commit? commit;
+            try {
+              commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);
+              log.fine('Commit found in datastore.');
+            } on KeyNotFoundException {
+              log.fine('Commit not found in datastore.');
+            }
+
+            if (commit == null) {
+              log.fine('Rescheduling presubmit build.');
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+            } else {
+              log.fine('Rescheduling postsubmit build.');
+              final String checkName = checkRunEvent.checkRun!.name!;
+              final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
+              final CiYaml ciYaml = await getCiYaml(commit);
+              final Target target =
+                  ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+                checkRunEvent,
+                commit: commit,
+                task: task,
+                target: target,
+              );
+            }
+
             success = true;
           } on NoBuildFoundException {
             log.warning('No build found to reschedule.');

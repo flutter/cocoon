@@ -19,7 +19,6 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import '../service/datastore.dart';
-import '../service/logging.dart';
 import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
 
@@ -119,50 +118,17 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       final Key<int> key = config.keyHelper.decode(encodedKey) as Key<int>;
       return datastore.lookupByValue<Task>(key);
     }
-
-    final Key<String> commitKey = await _constructCommitKey(
-      datastore: datastore,
+    final Key<String> commitKey = Commit.createKey(
+      db: datastore.db,
+      slug: slug!,
       gitBranch: gitBranch!,
       sha: sha!,
-      slug: slug!,
     );
-
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
-    final List<Task> initialTasks = await query.run().toList();
-    log.fine('Found ${initialTasks.length} tasks for commit');
-    final List<Task> tasks = <Task>[];
-    log.fine('Searching for task with name=$name');
-    for (Task task in initialTasks) {
-      if (task.name == name) {
-        tasks.add(task);
-      }
-    }
-
-    if (tasks.length != 1) {
-      log.severe('Found ${tasks.length} entries for builder $name');
-      throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
-    }
-
-    return tasks.single;
-  }
-
-  /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
-  ///
-  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
-  Future<Key<String>> _constructCommitKey({
-    required DatastoreService datastore,
-    required String gitBranch,
-    required String sha,
-    required RepositorySlug slug,
-  }) async {
-    gitBranch = gitBranch.trim();
-    sha = sha.trim();
-    final String id = '${slug.fullName}/$gitBranch/$sha';
-    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
-    log.fine('Constructed commit key=$id');
-    // Return the official key from Datastore for task lookups.
-    final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
-    return commit.key;
+    return Task.fromDatastore(
+      datastore: datastore,
+      commitKey: commitKey,
+      name: name!,
+    );
   }
 
   /// Returns the [Commit] associated with [Task].

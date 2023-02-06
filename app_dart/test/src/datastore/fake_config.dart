@@ -261,7 +261,7 @@ class FakeConfig implements Config {
 
   @override
   Set<gh.RepositorySlug> get postsubmitSupportedRepos =>
-      postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug};
+      postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug, Config.pluginsSlug};
 
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {

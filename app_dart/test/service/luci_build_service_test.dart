@@ -464,7 +464,12 @@ void main() {
       final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       expect(
-        () async => await service.rescheduleUsingCheckRunEvent(checkRunEvent),
+        () async => await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+          checkRunEvent,
+          commit: generateCommit(0),
+          task: generateTask(0),
+          target: generateTarget(0),
+        ),
         throwsA(const TypeMatcher<NoBuildFoundException>()),
       );
     });
