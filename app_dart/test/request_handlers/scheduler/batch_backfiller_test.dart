@@ -6,6 +6,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
@@ -15,6 +16,7 @@ import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_luci_build_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
+import '../../src/utilities/mocks.dart';
 
 final List<Commit> commits = <Commit>[
   generateCommit(3),
@@ -28,18 +30,29 @@ void main() {
   late FakeDatastoreDB db;
   late FakePubSub pubsub;
   late FakeScheduler scheduler;
+  late MockGithubChecksUtil mockGithubChecksUtil;
 
   group('BatchBackfiller', () {
     setUp(() async {
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
       final Config config = FakeConfig(dbValue: db);
       pubsub = FakePubSub();
+      mockGithubChecksUtil = MockGithubChecksUtil();
+      when(mockGithubChecksUtil.createCheckRun(
+        any,
+        any,
+        any,
+        any,
+        output: anyNamed('output'),
+      )).thenAnswer((_) async => generateCheckRun(1));
       scheduler = FakeScheduler(
         config: config,
         ciYaml: batchPolicyConfig,
+        githubChecksUtil: mockGithubChecksUtil,
         luciBuildService: FakeLuciBuildService(
           config: config,
           pubsub: pubsub,
+          githubChecksUtil: mockGithubChecksUtil,
         ),
       );
       handler = BatchBackfiller(

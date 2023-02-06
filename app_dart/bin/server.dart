@@ -106,7 +106,6 @@ Future<void> main() async {
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
         cache: cache,
         config: config,
-        luciBuildService: luciBuildService,
         scheduler: scheduler,
         githubChecksService: githubChecksService,
       ),

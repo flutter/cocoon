@@ -70,7 +70,7 @@ class GithubChecksUtil {
   /// Sends a request to github checks api to update a [CheckRun] with a given
   /// [status] and [conclusion].
   Future<void> updateCheckRun(
-    Config cocoonConfig,
+    Config config,
     github.RepositorySlug slug,
     github.CheckRun checkRun, {
     github.CheckRunStatus status = github.CheckRunStatus.queued,
@@ -84,7 +84,7 @@ class GithubChecksUtil {
     );
     return r.retry(
       () async {
-        final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+        final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
         await gitHubClient.checks.checkRuns.updateCheckRun(
           slug,
           checkRun,
@@ -99,7 +99,7 @@ class GithubChecksUtil {
   }
 
   Future<github.CheckRun> getCheckRun(
-    Config cocoonConfig,
+    Config config,
     github.RepositorySlug slug,
     int? id,
   ) async {
@@ -109,7 +109,7 @@ class GithubChecksUtil {
     );
     return r.retry(
       () async {
-        final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+        final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
         return await gitHubClient.checks.checkRuns.getCheckRun(
           slug,
           checkRunId: id!,
@@ -125,7 +125,7 @@ class GithubChecksUtil {
   ///
   /// Optionally, will have [output] to give information to users.
   Future<github.CheckRun> createCheckRun(
-    Config? cocoonConfig,
+    Config config,
     github.RepositorySlug slug,
     String sha,
     String name, {
@@ -138,7 +138,7 @@ class GithubChecksUtil {
     return r.retry(
       () async {
         return _createCheckRun(
-          cocoonConfig!,
+          config!,
           slug,
           sha,
           name,
@@ -153,13 +153,13 @@ class GithubChecksUtil {
   }
 
   Future<github.CheckRun> _createCheckRun(
-    Config cocoonConfig,
+    Config config,
     github.RepositorySlug slug,
     String sha,
     String name, {
     github.CheckRunOutput? output,
   }) async {
-    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug: slug);
+    final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
       slug,
       name: name,

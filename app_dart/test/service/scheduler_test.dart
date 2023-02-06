@@ -274,8 +274,11 @@ void main() {
           config: config,
           buildbucket: mockBuildBucketClient,
           gerritService: FakeGerritService(),
+          githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubsub,
         );
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+            .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
         when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
           return const ListBuildersResponse(
             builders: [

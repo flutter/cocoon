@@ -177,21 +177,10 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
-    await _scheduleTryBuilds(
-      targets: targets,
-      pullRequest: pullRequest,
-      checkSuiteEvent: checkSuiteEvent,
-    );
+    if (targets.isEmpty) {
+      return targets;
+    }
 
-    return targets;
-  }
-
-  /// Schedules [targets] against [pullRequest].
-  Future<void> _scheduleTryBuilds({
-    required List<Target> targets,
-    required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-  }) async {
     final List<Request> requests = <Request>[];
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
@@ -251,6 +240,8 @@ class LuciBuildService {
       final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
       await pubsub.publish('scheduler-requests', batchRequest);
     }
+
+    return targets;
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
