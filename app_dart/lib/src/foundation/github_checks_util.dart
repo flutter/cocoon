@@ -138,7 +138,7 @@ class GithubChecksUtil {
     return r.retry(
       () async {
         return _createCheckRun(
-          config!,
+          config,
           slug,
           sha,
           name,

@@ -38,13 +38,15 @@ void main() {
       final Config config = FakeConfig(dbValue: db);
       pubsub = FakePubSub();
       mockGithubChecksUtil = MockGithubChecksUtil();
-      when(mockGithubChecksUtil.createCheckRun(
-        any,
-        any,
-        any,
-        any,
-        output: anyNamed('output'),
-      )).thenAnswer((_) async => generateCheckRun(1));
+      when(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          any,
+          any,
+          any,
+          output: anyNamed('output'),
+        ),
+      ).thenAnswer((_) async => generateCheckRun(1));
       scheduler = FakeScheduler(
         config: config,
         ciYaml: batchPolicyConfig,

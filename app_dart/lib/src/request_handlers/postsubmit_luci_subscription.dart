@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
