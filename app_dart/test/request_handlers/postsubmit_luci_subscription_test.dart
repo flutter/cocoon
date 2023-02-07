@@ -27,20 +27,29 @@ void main() {
   late FakeHttpRequest request;
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
+  late MockGithubChecksUtil mockGithubChecksUtil;
 
   setUp(() async {
     config = FakeConfig(maxLuciTaskRetriesValue: 3);
+    mockGithubChecksUtil = MockGithubChecksUtil();
     mockGithubChecksService = MockGithubChecksService();
+    when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
+    when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+        .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
+    final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
+      config: config,
+      githubChecksUtil: mockGithubChecksUtil,
+    );
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
       githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
-      luciBuildService: FakeLuciBuildService(config: config),
       scheduler: FakeScheduler(
         ciYaml: exampleConfig,
         config: config,
+        luciBuildService: luciBuildService,
       ),
     );
     request = FakeHttpRequest();

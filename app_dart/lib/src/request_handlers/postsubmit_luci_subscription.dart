@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -35,13 +34,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    required this.luciBuildService,
     required this.scheduler,
     required this.githubChecksService,
   }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
   final Scheduler scheduler;
   final GithubChecksService githubChecksService;
 
@@ -88,7 +85,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
       await githubChecksService.updateCheckStatus(
         buildPushMessage,
-        luciBuildService,
+        scheduler.luciBuildService,
         slug,
       );
     }
@@ -131,7 +128,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
       final CiYaml ciYaml = await scheduler.getCiYaml(commit);
       final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
-      final bool retried = await luciBuildService.checkRerunBuilder(
+      final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
         task: task,
