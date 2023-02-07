@@ -71,7 +71,7 @@ class Task extends Model<int> {
     );
   }
 
-  /// Lookup [Task] from Datastore from it's parent key and name.
+  /// Lookup [Task] from Datastore from its parent key and name.
   static Future<Task> fromCommitKey({
     required DatastoreService datastore,
     required Key<String> commitKey,
@@ -80,11 +80,13 @@ class Task extends Model<int> {
     if (name.isEmpty) {
       throw const BadRequestException('task name is null');
     }
-    final List<Task> tasks = await datastore.queryRecentTasksByName(name: name).toList();
-    if (tasks.isEmpty) {
-      throw KeyNotFoundException(commitKey);
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)..filter('name =', name);
+    final List<Task> tasks = await query.run().toList();
+    if (tasks.length != 1) {
+      log.severe('Found ${tasks.length} entries for builder $name');
+      throw InternalServerError('Expected to find 1 task for $name, but found ${tasks.length}');
     }
-    return tasks.singleWhere((Task task) => task.parentKey?.id == commitKey.id);
+    return tasks.single;
   }
 
   /// Lookup [Task] from its [key].

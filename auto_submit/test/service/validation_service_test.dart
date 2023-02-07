@@ -674,4 +674,226 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
   });
+
+  group('Specifying merge method via comment', () {
+    late List<IssueComment> commentList;
+    setUp(() {
+      commentList = [];
+      githubService.issueCommentsMockList = commentList;
+    });
+
+    test('No comment returns squash as default method.', () async {
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('Finds merge method succesfully.', () async {
+      const String issueCommentBody = '@autosubmit:rebase';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'MEMBER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.rebase, mergeMethod);
+    });
+
+    test('Multiple lines in single comment return last found merge method.', () async {
+      const String issueCommentBody = '@autosubmit:rebase\n@autosubmit:merge';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.merge, mergeMethod);
+    });
+
+    test('Multiple comments return last found merge method.', () async {
+      const String issueCommentBody = '@autosubmit:rebase';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'OWNER',
+      );
+      const String issueCommentBody2 = '@autosubmit:merge';
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      commentList.add(issueComment2);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.merge, mergeMethod);
+    });
+
+    test('Multiple comments, multiple lines in comment return last found merge method.', () async {
+      const String issueCommentBody = '@autosubmit:rebase\n@autosubmit:merge';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'MEMBER',
+      );
+      const String issueCommentBody2 = '@autosubmit:squash\n@autosubmit:merge';
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      commentList.add(issueComment2);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.merge, mergeMethod);
+    });
+
+    test('Regex for merge method is case insensitive.', () async {
+      const String issueCommentBody = '@autosubmit:Rebase';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'MEMBER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.rebase, mergeMethod);
+    });
+
+    test('Unknown merge method supplied returns squash as default.', () async {
+      const String issueCommentBody = '@autosubmit:mrege';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('Merge method found surounded by text.', () async {
+      const String issueCommentBody = 'Please use @autosubmit:rebase. To avoid conflicts.';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
+      expect(MergeMethod.rebase, mergeMethod);
+    });
+
+    test('Merge method default is returned in multiline regex.', () async {
+      const String issueCommentBody = 'Please use @autosubmit:\nrebase. To avoid conflicts.';
+      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody, authorAssociation: 'OWNER');
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('Merge method is default for empty comment.', () async {
+      const String issueCommentBody = '';
+      final IssueComment issueComment = IssueComment(id: 1, body: issueCommentBody, authorAssociation: 'MEMBER');
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('Merge method is default for null comment.', () async {
+      const String? issueCommentBody = null;
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'OWNER',
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('Merge method ignored for non-member and non-owner comment author.', () async {
+      // This is to validate the changes made in the github repo for adding authorAssociation are correct here.
+      const String issueCommentJson = '''
+        {
+          "id": 1376163336,
+          "node_id": "IC_kwDOA8VHis5SBpYI",
+          "user": {
+            "login": "CaseyHillers",
+            "id": 2148558,
+            "node_id": "MDQ6VXNlcjIxNDg1NTg=",
+            "site_admin": false
+          },
+          "created_at": "2023-01-09T19:22:07Z",
+          "updated_at": "2023-01-09T19:22:07Z",
+          "author_association": "COLLABORATOR",
+          "body": "@autosubmit:rebase",
+          "performed_via_github_app": null
+        }
+      ''';
+
+      final IssueComment issueCommentFromJson = IssueComment.fromJson(json.decode(issueCommentJson));
+      commentList.add(issueCommentFromJson);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
+      expect(MergeMethod.squash, mergeMethod);
+    });
+
+    test('With multiple merge method newest from non-owner, non-member is ignored.', () async {
+      const String issueCommentBody = '@autosubmit:rebase';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+        authorAssociation: 'MEMBER',
+      );
+      const String issueCommentBody2 = '@autosubmit:merge';
+      final IssueComment issueComment2 = IssueComment(
+        id: 2,
+        body: issueCommentBody2,
+        authorAssociation: 'COLLABORATOR',
+      );
+      commentList.add(issueComment);
+      commentList.add(issueComment2);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(slug: slug, prNumber: 1);
+      expect(MergeMethod.rebase, mergeMethod);
+    });
+
+    test('No authorAssociation with supplied merge method is ignored.', () async {
+      const String issueCommentBody = '@autosubmit:merge';
+      final IssueComment issueComment = IssueComment(
+        id: 1,
+        body: issueCommentBody,
+      );
+      commentList.add(issueComment);
+      final MergeMethod mergeMethod = await validationService.checkForMergeMethod(
+        slug: slug,
+        prNumber: 1,
+      );
+      expect(MergeMethod.squash, mergeMethod);
+    });
+  });
 }

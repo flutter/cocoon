@@ -66,13 +66,11 @@ class PresubmitBuildTestSubscription extends SubscriptionHandler {
     final CiYaml ciYaml = await scheduler.getCiYaml(commit);
     final Target target = ciYaml.presubmitTargets.singleWhere((Target target) => target.value.name == builderName);
     final List<Target> dependencies = ciYaml.getDependentTargets(target, ciYaml.presubmitTargets);
-    await scheduler.triggerPresubmitDependencies(
-      dependencies: dependencies,
-      sha: sha,
-      branch: branch,
-      prNumber: prNumber,
-      slug: slug,
-    );
+    // TODO(chillers): Re-enable.
+    // await scheduler.triggerPresubmitDependencies(
+    //   dependencies: dependencies,
+    //   pullRequest: pullRequest,
+    // );
 
     return Body.empty;
   }

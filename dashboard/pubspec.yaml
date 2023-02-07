@@ -22,15 +22,15 @@ environment:
   sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
-  collection: ^1.16.0
+  collection: ^1.17.0
   fixnum: ^1.0.0
   flutter:
     sdk: flutter
-  google_sign_in: ^5.4.3
+  google_sign_in: ^5.4.4
   http: ^0.13.4
   protobuf: ^2.0.1
   provider: ^6.0.5
-  url_launcher: ^6.1.7
+  url_launcher: ^6.1.8
   flutter_app_icons: ^0.0.8
   truncate: ^3.0.1
 

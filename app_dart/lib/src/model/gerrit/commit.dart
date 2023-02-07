@@ -20,7 +20,7 @@ class GerritCommit extends JsonBody {
     this.commit,
     this.tree,
     this.author,
-    this.comitter,
+    this.committer,
     this.message,
   });
 
@@ -29,7 +29,7 @@ class GerritCommit extends JsonBody {
   final String? commit;
   final String? tree;
   final GerritUser? author;
-  final GerritUser? comitter;
+  final GerritUser? committer;
   final String? message;
 
   @override

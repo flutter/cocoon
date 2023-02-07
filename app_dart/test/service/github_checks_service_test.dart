@@ -69,10 +69,7 @@ void main() {
       final List<Target> scheduledTargets = verify(
         mockLuciBuildService.scheduleTryBuilds(
           targets: captureAnyNamed('targets'),
-          branch: anyNamed('branch'),
-          sha: anyNamed('sha'),
-          prNumber: anyNamed('prNumber'),
-          slug: anyNamed('slug'),
+          pullRequest: anyNamed('pullRequest'),
         ),
       ).captured.single as List<Target>;
       final Iterable<String> scheduledTargetNames = scheduledTargets.map((Target target) => target.value.name);

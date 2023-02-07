@@ -57,6 +57,7 @@ class PushMessage extends JsonBody {
     this.attributes,
     this.data,
     this.messageId,
+    this.publishTime,
   });
 
   static PushMessage fromJson(Map<String, dynamic> json) => _$PushMessageFromJson(json);
@@ -70,6 +71,14 @@ class PushMessage extends JsonBody {
 
   /// A identifier for the message from PubSub.
   final String? messageId;
+
+  /// The time at which the message was published, populated by the server when
+  /// it receives the topics.publish call.
+  ///
+  /// A timestamp in RFC3339 UTC "Zulu" format, with nanosecond resolution and
+  /// up to nine fractional digits. Examples: "2014-10-02T15:01:23Z" and
+  /// "2014-10-02T15:01:23.045123456Z".
+  final String? publishTime;
 
   @override
   Map<String, dynamic> toJson() => _$PushMessageToJson(this);

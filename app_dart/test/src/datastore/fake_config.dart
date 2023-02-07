@@ -16,6 +16,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 
 import '../request_handling/fake_authentication.dart';
+import '../service/fake_github_service.dart';
 import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
@@ -119,7 +120,7 @@ class FakeConfig implements Config {
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override
-  Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService!;
+  Future<GithubService> createGithubService(gh.RepositorySlug slug) async => githubService ?? FakeGithubService();
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService!;
@@ -222,25 +223,6 @@ class FakeConfig implements Config {
   Set<String> get rollerAccounts => rollerAccountsValue!;
 
   @override
-  bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
-    return <gh.RepositorySlug>[
-      Config.flutterSlug,
-      Config.engineSlug,
-      Config.cocoonSlug,
-      Config.packagesSlug,
-      Config.pluginsSlug,
-    ].contains(slug);
-  }
-
-  @override
-  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
-    return <gh.RepositorySlug>[
-      Config.packagesSlug,
-      Config.pluginsSlug,
-    ].contains(slug);
-  }
-
-  @override
   Future<String> generateGithubToken(gh.RepositorySlug slug) {
     throw UnimplementedError();
   }
@@ -279,7 +261,7 @@ class FakeConfig implements Config {
 
   @override
   Set<gh.RepositorySlug> get postsubmitSupportedRepos =>
-      postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug};
+      postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug, Config.pluginsSlug};
 
   @override
   Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {

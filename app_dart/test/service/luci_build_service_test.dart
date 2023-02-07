@@ -11,13 +11,12 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/logging.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
-import 'package:logging/logging.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -28,6 +27,7 @@ import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
+import '../src/utilities/webhook_generators.dart';
 
 void main() {
   late FakeConfig config;
@@ -35,7 +35,7 @@ void main() {
   late MockBuildBucketClient mockBuildBucketClient;
   late LuciBuildService service;
   late RepositorySlug slug;
-  final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+  late MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   late FakePubSub pubsub;
 
   final List<Target> targets = <Target>[
@@ -240,6 +240,7 @@ void main() {
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
+      mockGithubChecksUtil = MockGithubChecksUtil();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
@@ -265,11 +266,8 @@ void main() {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       await service.scheduleTryBuilds(
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
         targets: targets,
+        pullRequest: pullRequest,
       );
       final BatchRequest batchRequest = pubsub.messages.single as BatchRequest;
       expect(batchRequest.requests!.single.scheduleBuild, isNotNull);
@@ -299,122 +297,19 @@ void main() {
         'git_branch': 'master',
         'git_url': 'https://github.com/flutter/flutter',
         'git_ref': 'refs/pull/123/head',
-        'exe_cipd_version': 'refs/heads/main'
+        'exe_cipd_version': 'refs/heads/master'
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
       expect(dimensions[0].value, 'abc');
     });
 
-    test('try to schedule builds already started', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux 1', status: Status.started),
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-      final List<LogRecord> records = <LogRecord>[];
-      log.onRecord.listen((LogRecord record) => records.add(record));
+    test('Schedule builds no-ops when targets list is empty', () async {
       await service.scheduleTryBuilds(
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
-        targets: targets,
+        pullRequest: pullRequest,
+        targets: <Target>[],
       );
-      expect(
-        records.where(
-          (LogRecord record) => record.message.contains('Linux 1 has already been scheduled for this pull request'),
-        ),
-        hasLength(1),
-      );
-    });
-
-    test('try to schedule builds already passed', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux 1', status: Status.success),
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-      final List<LogRecord> records = <LogRecord>[];
-      log.onRecord.listen((LogRecord record) => records.add(record));
-      await service.scheduleTryBuilds(
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
-        targets: targets,
-      );
-      expect(
-        records.where(
-          (LogRecord record) => record.message.contains('Linux 1 has already been scheduled for this pull request'),
-        ),
-        hasLength(1),
-      );
-    });
-    test('try to schedule builds already scheduled', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  generateBuild(998, name: 'Linux 1', status: Status.scheduled),
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-      final List<LogRecord> records = <LogRecord>[];
-      log.onRecord.listen((LogRecord record) => records.add(record));
-      await service.scheduleTryBuilds(
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
-        targets: targets,
-      );
-      expect(records[0].message, 'Linux 1 has already been scheduled for this pull request');
-    });
-    test('Schedule builds throws when current list of targets is empty', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
-        return CheckRun.fromJson(const <String, dynamic>{
-          'id': 1,
-          'started_at': '2020-05-10T02:49:31Z',
-          'check_suite': <String, dynamic>{'id': 2}
-        });
-      });
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-      await expectLater(
-        service.scheduleTryBuilds(
-          branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-          prNumber: pullRequest.number!,
-          sha: pullRequest.head!.sha!,
-          slug: pullRequest.repo!.slug(),
-          targets: <Target>[],
-        ),
-        throwsA(isA<InternalServerError>()),
-      );
+      verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
     });
   });
 
@@ -432,6 +327,8 @@ void main() {
 
     test('schedule postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
+      when(mockGithubChecksUtil.createCheckRun(any, Config.flutterSlug, any, 'Linux 1'))
+          .thenAnswer((_) async => generateCheckRun(1));
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return const ListBuildersResponse(
           builders: [
@@ -468,6 +365,12 @@ void main() {
       expect(userData, <String, dynamic>{
         'commit_key': 'flutter/flutter/master/1',
         'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'flutter',
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       expect(properties, <String, dynamic>{
@@ -537,10 +440,42 @@ void main() {
       });
     });
 
+    test('reschedule using checkrun event fails gracefully', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[],
+              ),
+            )
+          ],
+        );
+      });
+
+      final pushMessage = generateCheckRunEvent(action: 'created', numberOfPullRequests: 1);
+      final Map<String, dynamic> jsonMap = json.decode(pushMessage.data!);
+      final Map<String, dynamic> jsonSubMap = json.decode(jsonMap['2']);
+      final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
+
+      expect(
+        () async => await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+          checkRunEvent,
+          commit: generateCommit(0),
+          task: generateTask(0),
+          target: generateTarget(0),
+        ),
+        throwsA(const TypeMatcher<NoBuildFoundException>()),
+      );
+    });
+
     test('do not create postsubmit checkrun for bringup: true target', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
           .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-      final Commit commit = generateCommit(0, repo: 'packages');
+      final Commit commit = generateCommit(0, repo: Config.packagesSlug.name);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return const ListBuildersResponse(
           builders: [
@@ -555,9 +490,9 @@ void main() {
             'os': 'debian-10.12',
           },
           bringup: true,
-          slug: RepositorySlug('flutter', 'packages'),
+          slug: Config.packagesSlug,
         ),
-        generateTask(1),
+        generateTask(1, parent: commit),
         LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
@@ -577,7 +512,16 @@ void main() {
       final Map<String, dynamic> userData =
           jsonDecode(String.fromCharCodes(base64Decode(scheduleBuild.notify!.userData!))) as Map<String, dynamic>;
       // No check run related data.
-      expect(userData, <String, dynamic>{'commit_key': 'flutter/flutter/master/1', 'task_key': '1'});
+      expect(userData, <String, dynamic>{
+        'commit_key': 'flutter/packages/master/0',
+        'task_key': '1',
+        'check_run_id': 1,
+        'commit_sha': '0',
+        'commit_branch': 'master',
+        'builder_name': 'Linux 1',
+        'repo_owner': 'flutter',
+        'repo_name': 'packages',
+      });
     });
 
     test('Skip non-existing builder', () async {
@@ -668,15 +612,6 @@ void main() {
         json.decode('{"id": "998", "summaryMarkdown": "new builds"}'),
       );
     });
-    test('Cancel builds from unsuported repo', () async {
-      expect(
-        () async => await service.cancelBuilds(
-          generatePullRequest(repo: 'notsupported'),
-          'new builds',
-        ),
-        throwsA(const TypeMatcher<BadRequestException>()),
-      );
-    });
   });
 
   group('failedBuilds', () {
@@ -759,13 +694,18 @@ void main() {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
+    late MockGithubChecksUtil mockGithubChecksUtil;
     setUp(() {
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
+      mockGithubChecksUtil = MockGithubChecksUtil();
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
+          .thenAnswer((realInvocation) async => generateCheckRun(1));
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
         buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
       );
       datastore = DatastoreService(config.db, 5);

@@ -9,9 +9,9 @@ import 'dart:io' as _i15;
 import 'dart:typed_data' as _i27;
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i11;
-import 'package:cocoon_service/src/foundation/utils.dart' as _i35;
+import 'package:cocoon_service/src/foundation/utils.dart' as _i36;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i34;
-import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
+import 'package:cocoon_service/src/model/appengine/task.dart' as _i35;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i32;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i33;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart' as _i9;
@@ -2139,6 +2139,23 @@ class MockGithubChecksService extends _i1.Mock implements _i28.GithubChecksServi
           ),
         ),
       ) as _i10.CheckRunStatus);
+  @override
+  _i17.Future<_i10.PullRequest?> findMatchingPullRequest(
+    _i10.RepositorySlug? slug,
+    String? headSha,
+    int? checkSuiteId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findMatchingPullRequest,
+          [
+            slug,
+            headSha,
+            checkSuiteId,
+          ],
+        ),
+        returnValue: _i17.Future<_i10.PullRequest?>.value(),
+      ) as _i17.Future<_i10.PullRequest?>);
 }
 
 /// A class which mocks [GithubChecksUtil].
@@ -2192,8 +2209,31 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         )),
       ) as _i17.Future<_i10.CheckSuite>);
   @override
+  _i17.Future<List<_i10.CheckSuite>> listCheckSuitesForRef(
+    _i10.GitHub? gitHubClient,
+    _i10.RepositorySlug? slug, {
+    required String? ref,
+    int? appId,
+    String? checkName,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listCheckSuitesForRef,
+          [
+            gitHubClient,
+            slug,
+          ],
+          {
+            #ref: ref,
+            #appId: appId,
+            #checkName: checkName,
+          },
+        ),
+        returnValue: _i17.Future<List<_i10.CheckSuite>>.value(<_i10.CheckSuite>[]),
+      ) as _i17.Future<List<_i10.CheckSuite>>);
+  @override
   _i17.Future<void> updateCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     _i10.CheckRun? checkRun, {
     _i10.CheckRunStatus? status = _i10.CheckRunStatus.queued,
@@ -2205,7 +2245,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #updateCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             checkRun,
           ],
@@ -2221,7 +2261,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
       ) as _i17.Future<void>);
   @override
   _i17.Future<_i10.CheckRun> getCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     int? id,
   ) =>
@@ -2229,7 +2269,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #getCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             id,
           ],
@@ -2239,7 +2279,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
           Invocation.method(
             #getCheckRun,
             [
-              cocoonConfig,
+              config,
               slug,
               id,
             ],
@@ -2248,7 +2288,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
       ) as _i17.Future<_i10.CheckRun>);
   @override
   _i17.Future<_i10.CheckRun> createCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     String? sha,
     String? name, {
@@ -2258,7 +2298,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #createCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             sha,
             name,
@@ -2270,7 +2310,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
           Invocation.method(
             #createCheckRun,
             [
-              cocoonConfig,
+              config,
               slug,
               sha,
               name,
@@ -2558,6 +2598,51 @@ class MockGithubService extends _i1.Mock implements _i25.GithubService {
           ),
         )),
       ) as _i17.Future<_i10.RateLimit>);
+  @override
+  _i17.Future<List<_i10.Issue>> searchIssuesAndPRs(
+    _i10.RepositorySlug? slug,
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #searchIssuesAndPRs,
+          [
+            slug,
+            query,
+          ],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Future<List<_i10.Issue>>.value(<_i10.Issue>[]),
+      ) as _i17.Future<List<_i10.Issue>>);
+  @override
+  _i17.Future<_i10.PullRequest> getPullRequest(
+    _i10.RepositorySlug? slug,
+    int? number,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPullRequest,
+          [
+            slug,
+            number,
+          ],
+        ),
+        returnValue: _i17.Future<_i10.PullRequest>.value(_FakePullRequest_22(
+          this,
+          Invocation.method(
+            #getPullRequest,
+            [
+              slug,
+              number,
+            ],
+          ),
+        )),
+      ) as _i17.Future<_i10.PullRequest>);
 }
 
 /// A class which mocks [GitService].
@@ -4714,12 +4799,10 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         returnValue: _i17.Future<Map<String?, _i9.Build?>>.value(<String?, _i9.Build?>{}),
       ) as _i17.Future<Map<String?, _i9.Build?>>);
   @override
-  _i17.Future<void> scheduleTryBuilds({
+  _i17.Future<List<_i32.Target>> scheduleTryBuilds({
     required List<_i32.Target>? targets,
-    required String? branch,
-    required String? sha,
-    required int? prNumber,
-    required _i10.RepositorySlug? slug,
+    required _i10.PullRequest? pullRequest,
+    _i24.CheckSuiteEvent? checkSuiteEvent,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4727,15 +4810,12 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
           [],
           {
             #targets: targets,
-            #branch: branch,
-            #sha: sha,
-            #prNumber: prNumber,
-            #slug: slug,
+            #pullRequest: pullRequest,
+            #checkSuiteEvent: checkSuiteEvent,
           },
         ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
+        returnValue: _i17.Future<List<_i32.Target>>.value(<_i32.Target>[]),
+      ) as _i17.Future<List<_i32.Target>>);
   @override
   _i17.Future<void> cancelBuilds(
     _i10.PullRequest? pullRequest,
@@ -4797,16 +4877,47 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
         )),
       ) as _i17.Future<_i9.Build>);
   @override
-  _i17.Future<_i9.Build> rescheduleUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) => (super.noSuchMethod(
+  _i17.Future<_i9.Build> reschedulePresubmitBuildUsingCheckRunEvent(_i33.CheckRunEvent? checkRunEvent) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #rescheduleUsingCheckRunEvent,
+          #reschedulePresubmitBuildUsingCheckRunEvent,
           [checkRunEvent],
         ),
         returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
           this,
           Invocation.method(
-            #rescheduleUsingCheckRunEvent,
+            #reschedulePresubmitBuildUsingCheckRunEvent,
             [checkRunEvent],
+          ),
+        )),
+      ) as _i17.Future<_i9.Build>);
+  @override
+  _i17.Future<_i9.Build> reschedulePostsubmitBuildUsingCheckRunEvent(
+    _i33.CheckRunEvent? checkRunEvent, {
+    required _i34.Commit? commit,
+    required _i35.Task? task,
+    required _i32.Target? target,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #reschedulePostsubmitBuildUsingCheckRunEvent,
+          [checkRunEvent],
+          {
+            #commit: commit,
+            #task: task,
+            #target: target,
+          },
+        ),
+        returnValue: _i17.Future<_i9.Build>.value(_FakeBuild_8(
+          this,
+          Invocation.method(
+            #reschedulePostsubmitBuildUsingCheckRunEvent,
+            [checkRunEvent],
+            {
+              #commit: commit,
+              #task: task,
+              #target: target,
+            },
           ),
         )),
       ) as _i17.Future<_i9.Build>);
@@ -4849,7 +4960,7 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
   @override
   _i17.Future<void> schedulePostsubmitBuilds({
     required _i34.Commit? commit,
-    required List<_i35.Tuple<_i32.Target, _i36.Task, int>>? toBeScheduled,
+    required List<_i36.Tuple<_i32.Target, _i35.Task, int>>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4885,7 +4996,7 @@ class MockLuciBuildService extends _i1.Mock implements _i31.LuciBuildService {
   _i17.Future<bool> checkRerunBuilder({
     required _i34.Commit? commit,
     required _i32.Target? target,
-    required _i36.Task? task,
+    required _i35.Task? task,
     required _i37.DatastoreService? datastore,
     Map<String, List<String>>? tags,
     bool? ignoreChecks = false,
@@ -6745,6 +6856,116 @@ class MockRepositoriesService extends _i1.Mock implements _i10.RepositoriesServi
           ),
         )),
       ) as _i17.Future<_i10.ReleaseNotes>);
+}
+
+/// A class which mocks [SearchService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSearchService extends _i1.Mock implements _i10.SearchService {
+  MockSearchService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i10.GitHub get github => (super.noSuchMethod(
+        Invocation.getter(#github),
+        returnValue: _FakeGitHub_12(
+          this,
+          Invocation.getter(#github),
+        ),
+      ) as _i10.GitHub);
+  @override
+  _i17.Stream<_i10.Repository> repositories(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #repositories,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.Repository>.empty(),
+      ) as _i17.Stream<_i10.Repository>);
+  @override
+  _i17.Stream<_i10.CodeSearchResults> code(
+    String? query, {
+    int? pages,
+    int? perPage,
+    String? language,
+    String? filename,
+    String? extension,
+    String? user,
+    String? org,
+    String? repo,
+    String? fork,
+    String? path,
+    String? size,
+    bool? inFile = true,
+    bool? inPath = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #code,
+          [query],
+          {
+            #pages: pages,
+            #perPage: perPage,
+            #language: language,
+            #filename: filename,
+            #extension: extension,
+            #user: user,
+            #org: org,
+            #repo: repo,
+            #fork: fork,
+            #path: path,
+            #size: size,
+            #inFile: inFile,
+            #inPath: inPath,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.CodeSearchResults>.empty(),
+      ) as _i17.Stream<_i10.CodeSearchResults>);
+  @override
+  _i17.Stream<_i10.Issue> issues(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #issues,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.Issue>.empty(),
+      ) as _i17.Stream<_i10.Issue>);
+  @override
+  _i17.Stream<_i10.User> users(
+    String? query, {
+    String? sort,
+    int? pages = 2,
+    int? perPage = 30,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #users,
+          [query],
+          {
+            #sort: sort,
+            #pages: pages,
+            #perPage: perPage,
+          },
+        ),
+        returnValue: _i17.Stream<_i10.User>.empty(),
+      ) as _i17.Stream<_i10.User>);
 }
 
 /// A class which mocks [TabledataResource].

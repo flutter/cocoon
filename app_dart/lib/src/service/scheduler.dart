@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
@@ -212,7 +213,7 @@ class Scheduler {
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
     ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
@@ -278,12 +279,13 @@ class Scheduler {
     List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.fine('about to cancel presubmit targets');
+    log.fine('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
     await cancelPreSubmitTargets(
       pullRequest: pullRequest,
       reason: reason,
     );
 
+    log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,
       pullRequest.base!.repo!.slug(),
@@ -295,6 +297,7 @@ class Scheduler {
       ),
     );
 
+    log.info('Creating presubmit targets for ${pullRequest.number}');
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     dynamic exception;
     try {
@@ -302,20 +305,20 @@ class Scheduler {
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
       await luciBuildService.scheduleTryBuilds(
         targets: presubmitTriggerTargets,
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
+        pullRequest: pullRequest,
       );
     } catch (error, backtrace) {
+      log.warning('Exception encountered when scheduling presubmit targets for ${pullRequest.number}');
       log.warning(backtrace.toString());
       exception = error;
     }
 
     // Update validate ci.yaml check
+    log.info('Updating ci.yaml validation check for ${pullRequest.number}');
     if (exception == null) {
       print(exception);
       // Success in validating ci.yaml
+      log.info('ci.yaml validation check was successful for ${pullRequest.number}');
       await githubChecksService.githubChecksUtil.updateCheckRun(
         config,
         slug,
@@ -380,10 +383,7 @@ class Scheduler {
 
       await luciBuildService.scheduleTryBuilds(
         targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
-        branch: pullRequest.base!.ref!.replaceAll('refs/heads', ''),
-        prNumber: pullRequest.number!,
-        sha: pullRequest.head!.sha!,
-        slug: pullRequest.repo!.slug(),
+        pullRequest: pullRequest,
       );
     }
   }
@@ -400,20 +400,29 @@ class Scheduler {
       sha: pullRequest.head!.sha,
     );
     late CiYaml ciYaml;
+    log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
+      // This fails when we attempt the second call to getCiYaml since the retry
+      // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      ciYaml = await getCiYaml(
+        commit,
+        totCiYaml: totYaml,
+      );
     } else {
       ciYaml = await getCiYaml(commit);
     }
+    log.info('ci.yaml loaded successfully.');
 
+    log.info('Collecting presubmit targets for ${pullRequest.number}');
     final Iterable<Target> presubmitTargets = ciYaml.presubmitTargets.where(
       (Target target) =>
           target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
     );
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
+      log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
       return presubmitTargets.toList();
     }
 
@@ -443,18 +452,64 @@ class Scheduler {
   Future<bool> processCheckRun(cocoon_checks.CheckRunEvent checkRunEvent) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
+        log.fine('Rerun requested by GitHub user: ${checkRunEvent.sender?.login}');
         final String? name = checkRunEvent.checkRun!.name;
         bool success = false;
         if (name == kCiYamlCheckName) {
-          // TODO(chillers): This is not rerunning the ci.yaml validation check. https://github.com/flutter/flutter/issues/100081
-          final List<github.PullRequest> pullRequests = checkRunEvent.checkRun!.pullRequests ?? <github.PullRequest>[];
-          for (github.PullRequest pullRequest in pullRequests) {
+          // The CheckRunEvent.checkRun.pullRequests array is empty for this
+          // event, so we need to find the matching pull request.
+          final RepositorySlug slug = checkRunEvent.repository!.slug();
+          final String headSha = checkRunEvent.checkRun!.headSha!;
+          final int checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          final PullRequest? pullRequest =
+              await githubChecksService.findMatchingPullRequest(slug, headSha, checkSuiteId);
+          if (pullRequest != null) {
+            log.fine('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
             await triggerPresubmitTargets(pullRequest: pullRequest);
             success = true;
+          } else {
+            log.warning('No matching PR found for head_sha in check run event.');
           }
         } else {
-          await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-          success = true;
+          try {
+            final RepositorySlug slug = checkRunEvent.repository!.slug();
+            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
+            final String sha = checkRunEvent.checkRun!.headSha!;
+
+            // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
+            datastore = datastoreProvider(config.db);
+            final Key<String> commitKey =
+                Commit.createKey(db: datastore.db, slug: slug, gitBranch: gitBranch, sha: sha);
+            Commit? commit;
+            try {
+              commit = await Commit.fromDatastore(datastore: datastore, key: commitKey);
+              log.fine('Commit found in datastore.');
+            } on KeyNotFoundException {
+              log.fine('Commit not found in datastore.');
+            }
+
+            if (commit == null) {
+              log.fine('Rescheduling presubmit build.');
+              await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
+            } else {
+              log.fine('Rescheduling postsubmit build.');
+              final String checkName = checkRunEvent.checkRun!.name!;
+              final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
+              final CiYaml ciYaml = await getCiYaml(commit);
+              final Target target =
+                  ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task.name);
+              await luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+                checkRunEvent,
+                commit: commit,
+                task: task,
+                target: target,
+              );
+            }
+
+            success = true;
+          } on NoBuildFoundException {
+            log.warning('No build found to reschedule.');
+          }
         }
 
         log.fine('CheckName: $name State: $success');
@@ -492,17 +547,11 @@ class Scheduler {
 
   Future<void> triggerPresubmitDependencies({
     required List<Target> dependencies,
-    required String sha,
-    required String branch,
-    required int prNumber,
-    required RepositorySlug slug,
+    required PullRequest pullRequest,
   }) async {
     await luciBuildService.scheduleTryBuilds(
       targets: dependencies,
-      branch: branch,
-      prNumber: prNumber,
-      sha: sha,
-      slug: slug,
+      pullRequest: pullRequest,
     );
   }
 

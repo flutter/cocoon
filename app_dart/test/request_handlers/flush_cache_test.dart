@@ -48,7 +48,7 @@ void main() {
       );
       await tester.get(handler);
 
-      expect(await cache.getOrCreate(Config.configCacheName, cacheKey), null);
+      expect(await cache.getOrCreate(Config.configCacheName, cacheKey, createFn: null), null);
     });
 
     test('raises error if cache key not passed', () async {

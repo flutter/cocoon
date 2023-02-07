@@ -106,10 +106,15 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       throw const BadRequestException('Failed to get message');
     }
     log.finer(envelope.toJson());
+    log.fine('PubsubMessage publishTime: ${envelope.message!.publishTime}');
 
     final String messageId = envelope.message!.messageId!;
 
-    final Uint8List? messageLock = await cache.getOrCreate(subscriptionName, messageId);
+    final Uint8List? messageLock = await cache.getOrCreate(
+      subscriptionName,
+      messageId,
+      createFn: null,
+    );
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
       final HttpResponse response = request.response
