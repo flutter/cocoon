@@ -18,7 +18,6 @@ import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
@@ -178,52 +177,10 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
   }) async {
-    if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
-      throw BadRequestException('${pullRequest.base!.repo!.slug()} is not supported by this service.');
-    }
-    targets = await _targetsToSchedule(targets, pullRequest);
-    await _scheduleTryBuilds(
-      targets: targets,
-      pullRequest: pullRequest,
-      checkSuiteEvent: checkSuiteEvent,
-    );
-
-    return targets;
-  }
-
-  /// List of targets that should be scheduled.
-  ///
-  /// If a [Target] has a [Build] that is already scheduled or was successful, it shouldn't be scheduled again.
-  ///
-  /// Throws [InternalServerError] is [targets] is empty.
-  Future<List<Target>> _targetsToSchedule(List<Target> targets, github.PullRequest pullRequest) async {
     if (targets.isEmpty) {
-      throw InternalServerError('${pullRequest.base!.repo!.slug()} does not have any targets');
+      return targets;
     }
 
-    final Map<String?, Build?> tryBuilds = await tryBuildsForPullRequest(pullRequest);
-    final Iterable<Build?> runningOrCompletedBuilds = tryBuilds.values.where(
-      (Build? build) =>
-          build?.status == Status.scheduled || build?.status == Status.started || build?.status == Status.success,
-    );
-    final List<Target> targetsToSchedule = <Target>[];
-    for (Target target in targets) {
-      if (runningOrCompletedBuilds.any((Build? build) => build?.builderId.builder == target.value.name)) {
-        log.info('${target.value.name} has already been scheduled for this pull request');
-        continue;
-      }
-      targetsToSchedule.add(target);
-    }
-
-    return targetsToSchedule;
-  }
-
-  /// Schedules [targets] against [pullRequest].
-  Future<void> _scheduleTryBuilds({
-    required List<Target> targets,
-    required github.PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-  }) async {
     final List<Request> requests = <Request>[];
     final List<String> branches = await gerritService.branches(
       'flutter-review.googlesource.com',
@@ -246,13 +203,12 @@ class LuciBuildService {
 
       final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
 
-      final Map<String, dynamic> userData = <String, dynamic>{};
-      if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
-        userData['check_run_id'] = checkRun.id;
-        userData['commit_sha'] = sha;
-        userData['commit_branch'] = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
-        userData['builder_name'] = target.value.name;
-      }
+      final Map<String, dynamic> userData = <String, dynamic>{
+        'builder_name': target.value.name,
+        'check_run_id': checkRun.id,
+        'commit_sha': sha,
+        'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+      };
 
       final Map<String, List<String>> tags = <String, List<String>>{
         'github_checkrun': <String>[checkRun.id.toString()],
@@ -284,15 +240,14 @@ class LuciBuildService {
       final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
       await pubsub.publish('scheduler-requests', batchRequest);
     }
+
+    return targets;
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
-    if (!config.githubPresubmitSupportedRepo(pullRequest.base!.repo!.slug())) {
-      throw BadRequestException('This service does not support ${pullRequest.base!.repo}');
-    }
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     if (!builds.values.any((Build? build) {
       return build!.status == Status.scheduled || build.status == Status.started;
@@ -618,9 +573,6 @@ class LuciBuildService {
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {
-    if (!config.githubPostsubmitSupportedRepo(commit.slug) || target.value.bringup) {
-      return;
-    }
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,

@@ -129,6 +129,16 @@ class GithubService {
     return response.statusCode == StatusCodes.ACCEPTED;
   }
 
+  /// Get a list of all the issue comments for a specific issue.
+  ///
+  /// Note that these are different from review comments.
+  Future<List<IssueComment>> listIssueComments(
+    RepositorySlug slug,
+    int issueNumber,
+  ) async {
+    return github.issues.listCommentsByIssue(slug, issueNumber).toList();
+  }
+
   /// Merges a pull request according to the MergeMethod type. Current supported
   /// merge method types are merge, rebase and squash.
   Future<PullRequestMerge> mergePullRequest(
