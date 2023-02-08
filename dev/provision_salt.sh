@@ -35,6 +35,10 @@ function config_minion() {
   # Uses hostname as the minion id.
   echo "id: $(hostname -s)" | sudo tee -a /etc/salt/minion
 
+  # Set fqdn for salt key autoaccept
+  echo "autosign_grains:" | sudo tee -a /etc/salt/minion
+  echo "  - fqdn" | sudo tee -a /etc/salt/minion
+
   if [[ "$(uname)" == 'Darwin' ]]; then
     sudo cp salt.minion.plist "$MINION_PLIST_PATH"
   fi
