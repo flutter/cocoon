@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -46,42 +44,22 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final String data = message.data!;
-    BuildPushMessage buildPushMessage;
-    try {
-      final String decodedData = String.fromCharCodes(base64.decode(data));
-      log.info('Result message from base64: $decodedData');
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(decodedData) as Map<String, dynamic>);
-    } on FormatException {
-      log.info('Result message: $data');
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
-    }
-    log.fine(buildPushMessage.userData);
+    final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
+    log.fine('userData=${buildPushMessage.userData}');
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
-    // Example user data:
-    // {
-    //   "task_key": "key123",
-    // }
-    if (buildPushMessage.userData == null) {
+    if (buildPushMessage.userData.isEmpty) {
       log.fine('User data is empty');
       return Body.empty;
     }
 
-    Map<String, dynamic> userData;
-    try {
-      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
-    } on FormatException {
-      userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
-    }
-
-    if (userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
+    if (buildPushMessage.userData.containsKey('repo_owner') && buildPushMessage.userData.containsKey('repo_name')) {
       // Message is coming from a github checks api (postsubmit) enabled repo. We need to
       // create the slug from the data in the message and send the check status
       // update.
 
       final RepositorySlug slug = RepositorySlug(
-        userData['repo_owner'] as String,
-        userData['repo_name'] as String,
+        buildPushMessage.userData['repo_owner'] as String,
+        buildPushMessage.userData['repo_name'] as String,
       );
       await githubChecksService.updateCheckStatus(
         buildPushMessage,
@@ -90,8 +68,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
     }
 
-    final String? rawTaskKey = userData['task_key'] as String?;
-    final String? rawCommitKey = userData['commit_key'] as String?;
+    final String? rawTaskKey = buildPushMessage.userData['task_key'] as String?;
+    final String? rawCommitKey = buildPushMessage.userData['commit_key'] as String?;
     if (rawCommitKey == null) {
       throw const BadRequestException('userData does not contain commit_key');
     }
@@ -106,7 +84,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.fine('Pulling builder name from parameters_json...');
       log.fine(build.buildParameters);
       final String? taskName = build.buildParameters?['builder_name'] as String?;
-      if (taskName == null) {
+      if (taskName == null || taskName.isEmpty) {
         throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
       }
       final List<Task> tasks = await datastore.queryRecentTasksByName(name: taskName).toList();

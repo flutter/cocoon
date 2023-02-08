@@ -63,7 +63,8 @@ void main() {
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      userData: '{}',
+      builderName: '',
+      userData: '{\\"commit_key\\":\\"flutter/main/abc123\\"}',
     );
 
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
