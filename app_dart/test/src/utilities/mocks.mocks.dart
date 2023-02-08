@@ -2233,7 +2233,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
       ) as _i17.Future<List<_i10.CheckSuite>>);
   @override
   _i17.Future<void> updateCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     _i10.CheckRun? checkRun, {
     _i10.CheckRunStatus? status = _i10.CheckRunStatus.queued,
@@ -2245,7 +2245,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #updateCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             checkRun,
           ],
@@ -2261,7 +2261,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
       ) as _i17.Future<void>);
   @override
   _i17.Future<_i10.CheckRun> getCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     int? id,
   ) =>
@@ -2269,7 +2269,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #getCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             id,
           ],
@@ -2279,7 +2279,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
           Invocation.method(
             #getCheckRun,
             [
-              cocoonConfig,
+              config,
               slug,
               id,
             ],
@@ -2288,7 +2288,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
       ) as _i17.Future<_i10.CheckRun>);
   @override
   _i17.Future<_i10.CheckRun> createCheckRun(
-    _i3.Config? cocoonConfig,
+    _i3.Config? config,
     _i10.RepositorySlug? slug,
     String? sha,
     String? name, {
@@ -2298,7 +2298,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
         Invocation.method(
           #createCheckRun,
           [
-            cocoonConfig,
+            config,
             slug,
             sha,
             name,
@@ -2310,7 +2310,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i11.GithubChecksUtil {
           Invocation.method(
             #createCheckRun,
             [
-              cocoonConfig,
+              config,
               slug,
               sha,
               name,
