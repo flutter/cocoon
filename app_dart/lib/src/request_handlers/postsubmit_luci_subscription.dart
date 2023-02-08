@@ -79,12 +79,22 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
-    final Task task = await Task.fromDatastore(
-      datastore: datastore,
-      commitKey: commitKey,
-      name: build.buildParameters?['builder_name'] as String,
-      id: rawTaskKey,
-    );
+    Task? task;
+    if (rawTaskKey == null || rawTaskKey.isEmpty || rawTaskKey == 'null') {
+      log.fine('Pulling builder name from parameters_json...');
+      log.fine(build.buildParameters);
+      final String? taskName = build.buildParameters?['builder_name'] as String?;
+      if (taskName == null || taskName.isEmpty) {
+        throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
+      }
+      final List<Task> tasks = await datastore.queryRecentTasksByName(name: taskName).toList();
+      task = tasks.singleWhere((Task task) => task.parentKey?.id == commitKey.id);
+    } else {
+      log.fine('Looking up key...');
+      final int taskId = int.parse(rawTaskKey);
+      final Key<int> taskKey = Key<int>(commitKey, Task, taskId);
+      task = await datastore.lookupByValue<Task>(taskKey);
+    }
     log.fine('Found $task');
 
     task.updateFromBuild(build);
