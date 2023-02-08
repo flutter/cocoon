@@ -79,8 +79,8 @@ class GithubChecksService {
         !buildPushMessage.userData.containsKey('repo_owner') ||
         !buildPushMessage.userData.containsKey('repo_name')) {
       log.severe(
-        'buildPushMessage.userData did not contain check_run_id,'
-        'repo_owner, or repo_name: $buildPushMessage.userData',
+        'UserData did not contain check_run_id,'
+        'repo_owner, or repo_name: ${buildPushMessage.userData}',
       );
       return false;
     }

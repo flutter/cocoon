@@ -43,9 +43,15 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+
     final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
-    log.fine(buildPushMessage.userData);
+    log.fine('userData=${buildPushMessage.userData}');
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
+    if (buildPushMessage.userData.isEmpty) {
+      log.fine('User data is empty');
+      return Body.empty;
+    }
+
     if (buildPushMessage.userData.containsKey('repo_owner') && buildPushMessage.userData.containsKey('repo_name')) {
       // Message is coming from a github checks api (postsubmit) enabled repo. We need to
       // create the slug from the data in the message and send the check status

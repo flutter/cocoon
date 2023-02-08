@@ -302,7 +302,7 @@ class LuciBuildService {
             (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: json.encode(buildPushMessage),
+          userData: json.encode(buildPushMessage.userData),
         ),
       ),
     );
