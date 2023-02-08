@@ -294,7 +294,6 @@ class LuciBuildService {
     // V1 bucket name  is "luci.flutter.prod" while the api
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
-    final Map<String, dynamic>? userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>?;
     return await buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
@@ -311,7 +310,7 @@ class LuciBuildService {
             (buildPushMessage.build!.buildParameters!['properties'] as Map<String, dynamic>).cast<String, String>(),
         notify: NotificationConfig(
           pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-          userData: json.encode(userData),
+          userData: json.encode(buildPushMessage.userData),
         ),
       ),
     );

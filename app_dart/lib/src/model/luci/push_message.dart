@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/body.dart';
+import '../../service/logging.dart';
 import '../common/json_converters.dart';
 
 part 'push_message.g.dart';
@@ -82,13 +86,30 @@ class PushMessage extends JsonBody {
 }
 
 /// The LUCI build data from a PubSub push message payload.
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, fieldRename: FieldRename.snake)
 class BuildPushMessage extends JsonBody {
   const BuildPushMessage({
     this.build,
     this.hostname,
-    this.userData,
-  });
+    String? userData,
+  }) : rawUserData = userData;
+
+  /// Create [BuildPushMessage] from [PushMessage].
+  factory BuildPushMessage.fromPushMessage(PushMessage message) {
+    final data = message.data;
+    if (data == null) {
+      throw const FormatException('Cannot create BuildPushMessage from null data');
+    }
+
+    try {
+      final String decodedData = String.fromCharCodes(base64.decode(data));
+      log.info('Result message from base64: $decodedData');
+      return BuildPushMessage.fromJson(json.decode(decodedData) as Map<String, dynamic>);
+    } on FormatException {
+      log.info('Result message: $data');
+      return BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
+    }
+  }
 
   static BuildPushMessage fromJson(Map<String, dynamic> json) => _$BuildPushMessageFromJson(json);
 
@@ -98,9 +119,32 @@ class BuildPushMessage extends JsonBody {
   /// The hostname for the build, e.g. `cr-buildbucket.appspot.com`.
   final String? hostname;
 
-  /// User data that was included in the LUCI build request.
+  /// Do not use this value for anything.
+  ///
+  /// This value cannot be marked private due to json_serializable not
+  /// generating on private fields.
+  ///
+  /// This value is used to generate [userData].
   @JsonKey(name: 'user_data')
-  final String? userData;
+  final String? rawUserData;
+
+  /// User data that was included in the LUCI build request.
+  Map<String, dynamic> get userData {
+    if (rawUserData == null) {
+      return <String, dynamic>{};
+    }
+
+    try {
+      return json.decode(rawUserData!) as Map<String, dynamic>;
+    } on FormatException {
+      final Uint8List bytes = base64.decode(rawUserData!);
+      final String rawJson = String.fromCharCodes(bytes);
+      if (rawJson.isEmpty) {
+        return <String, dynamic>{};
+      }
+      return json.decode(rawJson) as Map<String, dynamic>;
+    }
+  }
 
   @override
   Map<String, dynamic> toJson() => _$BuildPushMessageToJson(this);
