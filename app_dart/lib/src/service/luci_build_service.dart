@@ -18,7 +18,6 @@ import '../model/ci_yaml/target.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';

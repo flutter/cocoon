@@ -17,6 +17,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -59,6 +60,17 @@ targets:
     postsubmit: true
     presubmit: false
     scheduler: google_internal
+''';
+
+const String buildTestCiYaml = r'''
+enabled_branches:
+  - master
+  - main
+targets:
+  - name: Linux build
+  - name: Linux test
+    dependencies:
+      - Linux build
 ''';
 
 void main() {
@@ -388,6 +400,46 @@ void main() {
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
       });
+
+      test('does not schedule dependent tasks', () async {
+        httpClient = MockClient((http.Request request) async {
+          if (request.url.path.contains('.ci.yaml')) {
+            return http.Response(buildTestCiYaml, 200);
+          }
+          throw Exception('Failed to find ${request.url.path}');
+        });
+        final PullRequest pr = generatePullRequest();
+        await scheduler.addPullRequest(pr);
+
+        expect(db.values.values.whereType<Task>().length, 1);
+        final Task task = db.values.values.whereType<Task>().first;
+        // Linux test will be triggered later once this build finishes.
+        expect(task.name, 'Linux build');
+      });
+    });
+
+    group('triggerPostsubmitDependencies', () {
+      test('schedules tasks', () async {
+        final Commit commit = generateCommit(1);
+        final Task successfulTask = generateTask(
+          1,
+          status: Task.statusSucceeded,
+        );
+        db.values[commit.key] = commit;
+        db.values[successfulTask.key] = successfulTask;
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 1);
+        await scheduler.triggerPostsubmitDependencies(
+          commit: commit,
+          targets: <Target>[generateTarget(2)],
+        );
+
+        expect(db.values.values.whereType<Commit>().length, 1);
+        expect(db.values.values.whereType<Task>().length, 2);
+        final Task? dependentTask =
+            db.values.values.whereType<Task>().where((Task task) => task.name == 'Linux 2').firstOrNull;
+        expect(dependentTask, isNotNull);
+      });
     });
 
     group('process check run', () {
@@ -451,13 +503,15 @@ void main() {
           ),
         );
         // Verfies Linux A was created
-        verify(mockGithubChecksUtil.createCheckRun(
-          any,
-          any,
-          any,
-          any,
-          output: anyNamed('output'),
-        )).called(1);
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).called(1);
       });
 
       test('rerequested presubmit check triggers presubmit build', () async {

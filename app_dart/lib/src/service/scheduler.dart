@@ -303,7 +303,7 @@ class Scheduler {
     try {
       final List<Target> presubmitTargets = await getPresubmitTargets(pullRequest);
       final List<Target> presubmitTriggerTargets = getTriggerList(presubmitTargets, builderTriggerList);
-      await luciBuildService.scheduleTryBuilds(
+      await triggerPresubmit(
         targets: presubmitTriggerTargets,
         pullRequest: pullRequest,
       );
@@ -316,7 +316,6 @@ class Scheduler {
     // Update validate ci.yaml check
     log.info('Updating ci.yaml validation check for ${pullRequest.number}');
     if (exception == null) {
-      print(exception);
       // Success in validating ci.yaml
       log.info('ci.yaml validation check was successful for ${pullRequest.number}');
       await githubChecksService.githubChecksUtil.updateCheckRun(
@@ -350,11 +349,13 @@ class Scheduler {
 
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
-  List<Target> getTriggerList(List<Target> presubmitTarget, List<String>? builderTriggerList) {
+  List<Target> getTriggerList(List<Target> presubmitTargets, List<String>? builderTriggerList) {
+    final Iterable<Target> initialTargets =
+        presubmitTargets.where((Target target) => target.value.dependencies.isEmpty);
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
-      return presubmitTarget.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
+      return initialTargets.where((Target target) => builderTriggerList.contains(target.value.name)).toList();
     }
-    return presubmitTarget;
+    return initialTargets.toList();
   }
 
   /// Given a pull request event, retry all failed LUCI checks.
@@ -381,7 +382,7 @@ class Scheduler {
         continue;
       }
 
-      await luciBuildService.scheduleTryBuilds(
+      await triggerPresubmit(
         targets: presubmitTargets.where((Target target) => build.builderId.builder == target.value.name).toList(),
         pullRequest: pullRequest,
       );
@@ -519,10 +520,18 @@ class Scheduler {
     return true;
   }
 
+  /// Schedule all [targets] for [commit] on postsubmit.
+  ///
+  /// [targets] is expected to be the list of dependencies to trigger. This
+  /// will create a [Task] entity for them in the DB, and trigger a LUCI build.
+  ///
+  /// This differs from [addPullRequest] in that a DB transaction is skipped
+  /// due to [commit] not needing to be committed as well.
   Future<void> triggerPostsubmitDependencies({
     required Commit commit,
     required List<Target> targets,
   }) async {
+    datastore = datastoreProvider(config.db);
     final List<Tuple<Target, Task, int>> toBeScheduled = <Tuple<Target, Task, int>>[];
     final List<Task> tasks = <Task>[];
     for (Target target in targets) {
@@ -545,12 +554,13 @@ class Scheduler {
     return _batchScheduleBuilds(commit, toBeScheduled);
   }
 
-  Future<void> triggerPresubmitDependencies({
-    required List<Target> dependencies,
+  /// Schedule all [targets] for [pullRequest] on presubmit on LUCI.
+  Future<void> triggerPresubmit({
+    required List<Target> targets,
     required PullRequest pullRequest,
   }) async {
     await luciBuildService.scheduleTryBuilds(
-      targets: dependencies,
+      targets: targets,
       pullRequest: pullRequest,
     );
   }

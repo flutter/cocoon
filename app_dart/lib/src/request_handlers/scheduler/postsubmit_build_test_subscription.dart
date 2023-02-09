@@ -17,9 +17,8 @@ import '../../service/logging.dart';
 import '../../service/scheduler.dart';
 
 // TODO(chillers): Create new subscription.
-// TODO(chillers): Add this to bin/server.dart
 // TODO(chillers): Write tests.
-// TODO(chillers): Create a similar version of this for presubmit.
+/// Processes postsubmit LUCI build messages to trigger dependent builds.
 @immutable
 class PostsubmitBuildTestSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
@@ -29,7 +28,7 @@ class PostsubmitBuildTestSubscription extends SubscriptionHandler {
     required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
-  }) : super(subscriptionName: 'postsubmit-build-test');
+  }) : super(subscriptionName: 'scheduler-postsubmit-build-test');
 
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
@@ -38,16 +37,19 @@ class PostsubmitBuildTestSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
+    final Build? build = buildPushMessage.build;
+    if (build == null) {
+      log.warning('Build is null');
+      return Body.empty;
+    }
+    if (build.result != Result.success) {
+      return Body.empty;
+    }
     log.fine(buildPushMessage.userData);
     final String? rawTaskKey = buildPushMessage.userData['task_key'] as String?;
     final String? rawCommitKey = buildPushMessage.userData['commit_key'] as String?;
     if (rawCommitKey == null) {
       throw const BadRequestException('buildPushMessage.userData does not contain commit_key');
-    }
-    final Build? build = buildPushMessage.build;
-    if (build == null) {
-      log.warning('Build is null');
-      return Body.empty;
     }
     final Key<String> commitKey = Key<String>(Key<dynamic>.emptyKey(Partition(null)), Commit, rawCommitKey);
     final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
