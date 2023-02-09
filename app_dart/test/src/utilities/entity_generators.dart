@@ -90,7 +90,7 @@ Task generateTask(
       isFlaky: isFlaky,
       buildNumber: buildNumber,
       buildNumberList: buildNumber != null ? '$buildNumber' : null,
-      createTimestamp: created?.millisecondsSinceEpoch,
+      createTimestamp: created?.millisecondsSinceEpoch ?? 0,
       stageName: stage,
     );
 
