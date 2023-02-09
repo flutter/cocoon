@@ -530,7 +530,9 @@ class LuciBuildService {
       'task_key': taskKey,
     };
 
-    await createPostsubmitCheckRun(commit, target, rawUserData);
+    if (target.value.bringup == false) {
+      await createPostsubmitCheckRun(commit, target, rawUserData);
+    }
 
     tags['user_agent'] = <String>['flutter-cocoon'];
     // Tag `scheduler_job_id` is needed when calling buildbucket search build API.
