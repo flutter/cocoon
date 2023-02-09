@@ -28,6 +28,7 @@ void main() {
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
+  late FakeScheduler scheduler;
 
   setUp(() async {
     config = FakeConfig(maxLuciTaskRetriesValue: 3);
@@ -36,9 +37,15 @@ void main() {
     when(mockGithubChecksService.githubChecksUtil).thenReturn(mockGithubChecksUtil);
     when(mockGithubChecksUtil.createCheckRun(any, any, any, any, output: anyNamed('output')))
         .thenAnswer((_) async => generateCheckRun(1, name: 'Linux A'));
+    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     final FakeLuciBuildService luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
+    );
+    scheduler = FakeScheduler(
+      ciYaml: exampleConfig,
+      config: config,
+      luciBuildService: luciBuildService,
     );
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
@@ -46,11 +53,7 @@ void main() {
       authProvider: FakeAuthenticationProvider(),
       githubChecksService: mockGithubChecksService,
       datastoreProvider: (_) => DatastoreService(config.db, 5),
-      scheduler: FakeScheduler(
-        ciYaml: exampleConfig,
-        config: config,
-        luciBuildService: luciBuildService,
-      ),
+      scheduler: scheduler,
     );
     request = FakeHttpRequest();
 
@@ -86,6 +89,7 @@ void main() {
     final Task task = generateTask(
       4507531199512576,
       parent: commit,
+      name: 'Linux A',
     );
 
     tester.message = createBuildbucketPushMessage(
@@ -94,6 +98,7 @@ void main() {
       userData: '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\"}',
     );
 
+    config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
 
     expect(task.status, Task.statusNew);
@@ -161,24 +166,50 @@ void main() {
     expect(task.status, Task.statusInProgress);
   });
 
-  test('Requests with repo_owner and repo_name update checks', () async {
+  test('non-bringup target updates check run', () async {
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
       4507531199512576,
+      name: 'Linux A',
       parent: commit,
     );
+    config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
 
     tester.message = createBuildbucketPushMessage(
       'COMPLETED',
       result: 'SUCCESS',
-      builderName: 'Linux Packages',
+      builderName: 'Linux A',
       // Use escaped string to mock json decoded ones.
       userData:
           '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"packages\\"}',
     );
     await tester.post(handler);
     verify(mockGithubChecksService.updateCheckStatus(any, any, any)).called(1);
+  });
+
+  test('bringup target does not update check run', () async {
+    scheduler.ciYaml = bringupConfig;
+    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux bringup',
+      parent: commit,
+    );
+    config.db.values[commit.key] = commit;
+    config.db.values[task.key] = task;
+
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      builderName: 'Linux bringup',
+      // Use escaped string to mock json decoded ones.
+      userData:
+          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"packages\\"}',
+    );
+    await tester.post(handler);
+    verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
   });
 }

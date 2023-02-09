@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
@@ -52,22 +51,6 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    if (buildPushMessage.userData.containsKey('repo_owner') && buildPushMessage.userData.containsKey('repo_name')) {
-      // Message is coming from a github checks api (postsubmit) enabled repo. We need to
-      // create the slug from the data in the message and send the check status
-      // update.
-
-      final RepositorySlug slug = RepositorySlug(
-        buildPushMessage.userData['repo_owner'] as String,
-        buildPushMessage.userData['repo_name'] as String,
-      );
-      await githubChecksService.updateCheckStatus(
-        buildPushMessage,
-        scheduler.luciBuildService,
-        slug,
-      );
-    }
-
     final String? rawTaskKey = buildPushMessage.userData['task_key'] as String?;
     final String? rawCommitKey = buildPushMessage.userData['commit_key'] as String?;
     if (rawCommitKey == null) {
@@ -101,11 +84,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     await datastore.insert(<Task>[task]);
     log.fine('Updated datastore');
 
+    final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
+    final CiYaml ciYaml = await scheduler.getCiYaml(commit);
+    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
     if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure) {
       log.fine('Trying to auto-retry...');
-      final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
-      final CiYaml ciYaml = await scheduler.getCiYaml(commit);
-      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
       final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
@@ -113,6 +96,15 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
         datastore: datastore,
       );
       log.info('Retried: $retried');
+    }
+
+    // Only update GitHub checks if target is not bringup
+    if (target.value.bringup == false) {
+      await githubChecksService.updateCheckStatus(
+        buildPushMessage,
+        scheduler.luciBuildService,
+        commit.slug,
+      );
     }
 
     return Body.empty;

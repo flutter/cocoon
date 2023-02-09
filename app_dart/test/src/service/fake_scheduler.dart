@@ -92,7 +92,6 @@ CiYaml exampleConfig = CiYaml(
         scheduler: pb.SchedulerSystem.luci,
       ),
       pb.Target(
-        bringup: false,
         name: 'Google Internal Roll',
         presubmit: false,
         postsubmit: true,
@@ -115,6 +114,22 @@ CiYaml batchPolicyConfig = CiYaml(
       ),
       pb.Target(
         name: 'Linux_android B',
+      ),
+    ],
+  ),
+);
+
+final CiYaml bringupConfig = CiYaml(
+  slug: Config.flutterSlug,
+  branch: Config.defaultBranch(Config.flutterSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux bringup',
+        bringup: true,
       ),
     ],
   ),
