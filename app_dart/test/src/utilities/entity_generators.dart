@@ -79,6 +79,7 @@ Task generateTask(
   String stage = 'test-stage',
   Commit? parent,
   int? buildNumber,
+  DateTime? created,
 }) =>
     Task(
       name: name ?? 'task$i',
@@ -89,6 +90,7 @@ Task generateTask(
       isFlaky: isFlaky,
       buildNumber: buildNumber,
       buildNumberList: buildNumber != null ? '$buildNumber' : null,
+      createTimestamp: created?.millisecondsSinceEpoch,
       stageName: stage,
     );
 

@@ -22,8 +22,8 @@ class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  }) : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider;
+    @visibleForTesting this.buildStatusProvider = BuildStatusService.defaultProvider,
+  });
 
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusServiceProvider buildStatusProvider;
