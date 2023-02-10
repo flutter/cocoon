@@ -30,7 +30,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   /// For testing, can be used to inject a deterministic time.
   final DateTime? nowValue;
 
-  static const int kCommitLimit = 25;
+  /// Tasks that are in progress for this duration will be reset.
   static const Duration kTimeoutLimit = Duration(hours: 3);
 
   @override
