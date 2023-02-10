@@ -32,28 +32,84 @@ class GithubWebhook extends RequestHandler {
     final Map<String, String> reqHeader = request.headers;
     log.info('Header: $reqHeader');
 
+    // this is how you know what was sent to the webhook.
     final String? gitHubEvent = request.headers['X-GitHub-Event'];
 
     if (gitHubEvent == null || request.headers['X-Hub-Signature'] == null) {
       throw const BadRequestException('Missing required headers.');
     }
+
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers['X-Hub-Signature'];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
       throw const Forbidden();
     }
 
-    // Listen to the pull request with 'autosubmit' label.
+    // Check and process request
+    return processEvent(gitHubEvent, requestBytes);
+  }
+
+  Future<Response> processEvent(String githubEvent, List<int> requestBytes) async {
+    switch (githubEvent) {
+      case 'pull_request':
+        return processPullRequest(requestBytes);
+      case 'issue_comment':
+        return processComment(requestBytes);
+      default:
+        // We do not recognize the object type yet.
+        return Response.ok(jsonEncode(<String, String>{}));
+    }
+  }
+
+  Future<Response> processComment(List<int> requestBytes) async {
+    final String rawPayload = utf8.decode(requestBytes);
+    final Map<String, dynamic> jsonPayload = json.decode(rawPayload) as Map<String, dynamic>;
+
+    // Do not process edited comments.
+    if (jsonPayload.containsKey('action') && jsonPayload['action'] != 'created') {
+      return Response.ok(jsonEncode(<String, String>{}));
+    }
+
+    // The issue has the repo information we need and the issue_comment has the
+    // request being made and the author association.
+    final Issue issue = Issue.fromJson(jsonPayload['issue'] as Map<String, dynamic>);
+    final IssueComment issueComment = IssueComment.fromJson(jsonPayload['comment'] as Map<String, dynamic>);
+
+    if (validateIssueRequirements(issue) && validateCommentRequirements(issueComment)) {
+      return Response.ok(rawPayload);
+    }
+
+    return Response.ok('');
+  }
+
+  /// Verify that this is a pull request issue.
+  bool validateIssueRequirements(Issue issue) {
+    return issue.pullRequest != null;
+  }
+
+  static final RegExp regExpMergeMethod = RegExp(r'@autosubmit\s*:\s*merge', caseSensitive: false);
+
+  /// Verify that the comment being processed was written by a member of the 
+  /// google team.
+  bool validateCommentRequirements(IssueComment issueComment) {
+    return (issueComment.authorAssociation == 'MEMBER' ||
+        issueComment.authorAssociation == 'OWNER') &&
+            (issueComment.body != null &&
+            regExpMergeMethod.hasMatch(issueComment.body!));
+  }
+
+  Future<Response> processPullRequest(List<int> requestBytes) async {
     bool hasAutosubmit = false;
     bool hasRevertLabel = false;
     final String rawBody = utf8.decode(requestBytes);
-    final body = json.decode(rawBody) as Map<String, dynamic>;
+    final Map<String, dynamic> body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey('pull_request') || !((body['pull_request'] as Map<String, dynamic>).containsKey('labels'))) {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
+
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
     hasRevertLabel = pullRequest.labels!.any((label) => label.name == Config.kRevertLabel);
 
