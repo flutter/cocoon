@@ -186,6 +186,9 @@ class Config {
   static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
+  static String get flutterDefaultBranch => 'master';
+  static String get defaultBranch => 'main';
+
   /// The names of autoroller accounts for the repositories.
   ///
   /// These accounts should not need reviews before merging. See

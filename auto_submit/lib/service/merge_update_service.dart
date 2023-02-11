@@ -19,9 +19,19 @@ class MergeUpdateService {
       log.info(message);
       // Add a message to the issue.
       await githubService.createComment(slug, issueNumber, message);
-      return;
+    } else {
+      final String defaultBranch = (slug.name == 'flutter') ? Config.flutterDefaultBranch : Config.defaultBranch;
+      final GitReference gitReference = await githubService.getReference(slug, 'heads/$defaultBranch');
+      final bool status = await githubService.updateBranch(slug, issueNumber, gitReference.object!.sha!);
+      String message;
+      if (status) {
+        message = 'Successfully merged ${gitReference.object!.sha!} into pull request $issueNumber';
+        log.info(message);
+      } else {
+        message = 'Unable to merge ${gitReference.object!.sha!} into pull request $issueNumber';
+        log.severe(message);
+      }
+      await githubService.createComment(slug, issueNumber, message);
     }
-
-
   }
 }

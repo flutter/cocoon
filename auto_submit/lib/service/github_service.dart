@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/connectors/v2.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
 /// then the bot tries to rebase it
@@ -45,6 +46,11 @@ class GithubService {
   /// Fetches the specified commit.
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
     return await github.repositories.getCommit(slug, sha);
+  }
+
+  /// Fetches a reference from a repository for the given [ref].
+  Future<GitReference> getReference(RepositorySlug slug, String ref) async {
+    return await github.git.getReference(slug, ref);
   }
 
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
