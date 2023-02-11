@@ -62,6 +62,8 @@ class FakeGithubService implements GithubService {
   bool compareReturnValue = false;
   bool skipRealCompare = false;
 
+  GitReference? gitReferenceMock;
+
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
   }
@@ -96,6 +98,10 @@ class FakeGithubService implements GithubService {
 
   set githubIssue(Issue? issue) {
     githubIssueMock = issue;
+  }
+
+  set gitReference(GitReference gitReference) {
+    gitReferenceMock = gitReference;
   }
 
   @override
@@ -312,5 +318,10 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+  }
+  
+  @override
+  Future<GitReference> getReference(RepositorySlug slug, String ref) async {
+    return gitReferenceMock!;
   }
 }
