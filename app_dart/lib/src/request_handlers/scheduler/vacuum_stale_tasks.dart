@@ -79,7 +79,7 @@ class VacuumStaleTasks extends RequestHandler<Body> {
 
     final Iterable<Task> inserts = tasksToBeReset
         .map((Task task) => task..status = Task.statusNew)
-        .map((Task task) => task..createTimestamp = null);
+        .map((Task task) => task..createTimestamp = 0);
     await datastore.insert(inserts.toList());
   }
 }

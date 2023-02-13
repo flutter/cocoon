@@ -100,7 +100,7 @@ void main() {
       expect(tasks[0], originalTasks[0]);
       expect(tasks[1], originalTasks[1]);
       expect(tasks[2].status, Task.statusNew);
-      expect(tasks[2].createTimestamp, isNull);
+      expect(tasks[2].createTimestamp, 0);
     });
   });
 }
