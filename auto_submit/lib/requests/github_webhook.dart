@@ -75,27 +75,27 @@ class GithubWebhook extends RequestHandler {
     final Issue issue = Issue.fromJson(jsonPayload['issue'] as Map<String, dynamic>);
     final IssueComment issueComment = IssueComment.fromJson(jsonPayload['comment'] as Map<String, dynamic>);
 
-    if (validateIssueRequirements(issue) && validateCommentRequirements(issueComment)) {
+    if (isValidPullRequestIssue(issue) && isValidMergeUpdateComment(issueComment)) {
+      log.info('Found a comment requesting a merge update.');
+      await pubsub.publish('auto-submit-comment-queue', rawPayload);
       return Response.ok(rawPayload);
     }
 
-    return Response.ok('');
+    return Response.ok(jsonEncode(<String, String>{}));
   }
 
   /// Verify that this is a pull request issue.
-  bool validateIssueRequirements(Issue issue) {
+  bool isValidPullRequestIssue(Issue issue) {
     return issue.pullRequest != null;
   }
 
   static final RegExp regExpMergeMethod = RegExp(r'@autosubmit\s*:\s*merge', caseSensitive: false);
 
-  /// Verify that the comment being processed was written by a member of the 
+  /// Verify that the comment being processed was written by a member of the
   /// google team.
-  bool validateCommentRequirements(IssueComment issueComment) {
-    return (issueComment.authorAssociation == 'MEMBER' ||
-        issueComment.authorAssociation == 'OWNER') &&
-            (issueComment.body != null &&
-            regExpMergeMethod.hasMatch(issueComment.body!));
+  bool isValidMergeUpdateComment(IssueComment issueComment) {
+    return (issueComment.authorAssociation == 'MEMBER' || issueComment.authorAssociation == 'OWNER') &&
+        (issueComment.body != null && regExpMergeMethod.hasMatch(issueComment.body!));
   }
 
   Future<Response> processPullRequest(List<int> requestBytes) async {

@@ -61,6 +61,7 @@ class FakeGithubService implements GithubService {
 
   bool compareReturnValue = false;
   bool skipRealCompare = false;
+  bool updateBranchValue = true;
 
   GitReference? gitReferenceMock;
 
@@ -185,7 +186,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
-    return true;
+    return updateBranchValue;
   }
 
   @override
@@ -319,7 +320,7 @@ class FakeGithubService implements GithubService {
       assert(expected[key] == value);
     });
   }
-  
+
   @override
   Future<GitReference> getReference(RepositorySlug slug, String ref) async {
     return gitReferenceMock!;

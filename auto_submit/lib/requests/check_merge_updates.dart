@@ -24,7 +24,7 @@ class CheckMergeUpdates extends AuthenticatedRequestHandler {
   final PubSub pubsub;
   static const int pullMesssageBatchSize = 100;
   static const int pubsubPullNumber = 5;
-  
+
   @override
   Future<Response> get() async {
     final Set<int> processingLog = <int>{};
@@ -35,14 +35,14 @@ class CheckMergeUpdates extends AuthenticatedRequestHandler {
     }
 
     log.info('Processing ${messageList.length} messages');
-    
+
     final List<Future<void>> futures = <Future<void>>[];
     final MergeUpdateService mergeUpdateService = MergeUpdateService(config);
 
     for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-      
+
       final IssueComment issueComment = IssueComment.fromJson(rawBody['comment'] as Map<String, dynamic>);
       final Issue issue = Issue.fromJson(rawBody['issue'] as Map<String, dynamic>);
       final Repository repository = Repository.fromJson(rawBody['repository'] as Map<String, dynamic>);
