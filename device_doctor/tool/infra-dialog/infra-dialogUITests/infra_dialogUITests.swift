@@ -17,6 +17,7 @@ class infra_dialogUITests: XCTestCase {
     func testDismissDialogs() {
         // Dismiss system dialogs, e.g. No SIM Card Installed
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let defaultLog = Logger()
 
         // If the device has low battery or bad cable, report as infra failure.
         let failureTexts = ["Low Battery", "This accessory may not be supported"]
@@ -32,12 +33,13 @@ class infra_dialogUITests: XCTestCase {
             for buttonText in buttonTexts {
                 let button = springboard.buttons[buttonText]
                 if button.exists {
+                    defaultLog.log("Found button \(buttonText, privacy: .public)")
+                    defaultLog.log("\(springboard.debugDescription, privacy: .public)")
                     button.tap()
                 }
             }
         }
         if springboard.buttons.count > 0 {
-            let defaultLog = Logger()
             defaultLog.log("Unexpected SpringBoard button found")
             defaultLog.log("\(springboard.debugDescription, privacy: .public)")
         }
