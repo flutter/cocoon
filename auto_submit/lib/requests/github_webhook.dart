@@ -27,6 +27,8 @@ class GithubWebhook extends RequestHandler {
 
   final PubSub pubsub;
 
+  static final nonSuccessResponse = jsonEncode(<String, String>{});
+
   @override
   Future<Response> post(Request request) async {
     final Map<String, String> reqHeader = request.headers;
@@ -49,6 +51,8 @@ class GithubWebhook extends RequestHandler {
     return processEvent(gitHubEvent, requestBytes);
   }
 
+  /// Process and validate the Github events we expect to process with this
+  /// webhook.
   Future<Response> processEvent(String githubEvent, List<int> requestBytes) async {
     switch (githubEvent) {
       case 'pull_request':
@@ -57,17 +61,22 @@ class GithubWebhook extends RequestHandler {
         return processComment(requestBytes);
       default:
         // We do not recognize the object type yet.
-        return Response.ok(jsonEncode(<String, String>{}));
+        return Response.ok(nonSuccessResponse);
     }
   }
 
+  /// Process a github issue comment that was passed to this webhook.
+  ///
+  /// In order for the comment to be processed it must be a newly created
+  /// comment, and be a comment left on a pull request. The author of the
+  /// comment must also be a MEMBER or OWNER of the repository.
   Future<Response> processComment(List<int> requestBytes) async {
     final String rawPayload = utf8.decode(requestBytes);
     final Map<String, dynamic> jsonPayload = json.decode(rawPayload) as Map<String, dynamic>;
 
     // Do not process edited comments.
     if (jsonPayload.containsKey('action') && jsonPayload['action'] != 'created') {
-      return Response.ok(jsonEncode(<String, String>{}));
+      return Response.ok(nonSuccessResponse);
     }
 
     // The issue has the repo information we need and the issue_comment has the
@@ -81,7 +90,7 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(rawPayload);
     }
 
-    return Response.ok(jsonEncode(<String, String>{}));
+    return Response.ok(jsonEncode(nonSuccessResponse));
   }
 
   /// Verify that this is a pull request issue.
@@ -98,6 +107,10 @@ class GithubWebhook extends RequestHandler {
         (issueComment.body != null && regExpMergeMethod.hasMatch(issueComment.body!));
   }
 
+  /// Process a pull request issue from github.
+  ///
+  /// The pull request must be a valid pull request and contain the 'autosubmit'
+  /// or 'revert' label in order to be processed by this service.
   Future<Response> processPullRequest(List<int> requestBytes) async {
     bool hasAutosubmit = false;
     bool hasRevertLabel = false;
@@ -105,7 +118,7 @@ class GithubWebhook extends RequestHandler {
     final Map<String, dynamic> body = json.decode(rawBody) as Map<String, dynamic>;
 
     if (!body.containsKey('pull_request') || !((body['pull_request'] as Map<String, dynamic>).containsKey('labels'))) {
-      return Response.ok(jsonEncode(<String, String>{}));
+      return Response.ok(nonSuccessResponse);
     }
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
@@ -116,11 +129,13 @@ class GithubWebhook extends RequestHandler {
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
       await pubsub.publish('auto-submit-queue', pullRequest);
+      return Response.ok(rawBody);
     }
 
-    return Response.ok(rawBody);
+    return Response.ok(nonSuccessResponse);
   }
 
+  /// Validate that the signature in the github request is valid.
   Future<bool> _validateRequest(
     String? signature,
     List<int> requestBody,

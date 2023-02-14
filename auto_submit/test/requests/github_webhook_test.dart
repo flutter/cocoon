@@ -9,6 +9,7 @@ import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/exceptions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/cloudbuild/v1.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -36,11 +37,14 @@ void main() {
       githubWebhook = GithubWebhook(config: config, pubsub: pubsub);
     });
 
-    test('Call handler to handle the post request', () async {
+    test('Call handler to handle the post request for pull request event', () async {
       final Uint8List body = utf8.encode(generateWebhookEvent()) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
-      validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'pull_request',};
+      validHeader = <String, String>{
+        'X-Hub-Signature': 'sha1=$hmac',
+        'X-GitHub-Event': 'pull_request',
+      };
       req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
       final Response response = await githubWebhook.post(req);
       final String resBody = await response.readAsString();
@@ -61,6 +65,16 @@ void main() {
       await expectLater(githubWebhook.post(req), throwsA(isA<BadRequestException>()));
     });
 
+    test('Reject pull request with no labels', () async {
+      final Uint8List body = utf8.encode(generateWebhookEvent(
+        labelName: 'draft',
+        autosubmitLabel: 'validate:test',
+      )) as Uint8List;
+      final Response response = await githubWebhook.processPullRequest(body);
+      expect(response.statusCode, 200);
+      expect(await response.readAsString(), GithubWebhook.nonSuccessResponse);
+    });
+
     test('Process comment returns successful', () async {
       final Uint8List requestBody = utf8.encode(commentOnPullRequestPayload) as Uint8List;
       final Response response = await githubWebhook.processComment(requestBody);
@@ -74,7 +88,7 @@ void main() {
       final Response response = await githubWebhook.processComment(requestBody);
       expect(response.statusCode, 200);
       // Empty payload is considered failure as we would not return the raw text.
-      expect(await response.readAsString(), '{}');
+      expect(await response.readAsString(), GithubWebhook.nonSuccessResponse);
     });
 
     test('Process comment is rejected if action is not create', () async {
@@ -82,7 +96,7 @@ void main() {
       final Response response = await githubWebhook.processComment(requestBody);
       expect(response.statusCode, 200);
       // Empty payload is considered failure as we would not return the raw text.
-      expect(await response.readAsString(), '{}');
+      expect(await response.readAsString(), GithubWebhook.nonSuccessResponse);
     });
 
     test('Validate issue comment detects MEMBER Correctly', () {
