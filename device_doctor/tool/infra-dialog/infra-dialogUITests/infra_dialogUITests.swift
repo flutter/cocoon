@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import XCTest
+import os
 
 // An XCUITest to dismiss System Dialogs.
 class infra_dialogUITests: XCTestCase {
@@ -34,6 +35,11 @@ class infra_dialogUITests: XCTestCase {
                     button.tap()
                 }
             }
+        }
+        if springboard.buttons.count > 0 {
+            let defaultLog = Logger()
+            defaultLog.log("Unexpected SpringBoard button found")
+            defaultLog.log("\(springboard.debugDescription, privacy: .public)")
         }
     }
 }
