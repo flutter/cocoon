@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/model/merge_comment_message.dart';
 import 'package:auto_submit/server/authenticated_request_handler.dart';
 import 'package:auto_submit/service/merge_update_service.dart';
 import 'package:github/github.dart';
@@ -14,8 +15,8 @@ import '../request_handling/pubsub.dart';
 
 import '../service/log.dart';
 
-class CheckMergeUpdates extends AuthenticatedRequestHandler {
-  const CheckMergeUpdates({
+class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
+  const MergeUpdatePullRequest({
     required super.config,
     required super.cronAuthProvider,
     this.pubsub = const PubSub(),
@@ -42,24 +43,25 @@ class CheckMergeUpdates extends AuthenticatedRequestHandler {
     for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
-
-      final IssueComment issueComment = IssueComment.fromJson(rawBody['comment'] as Map<String, dynamic>);
-      final Issue issue = Issue.fromJson(rawBody['issue'] as Map<String, dynamic>);
-      final Repository repository = Repository.fromJson(rawBody['repository'] as Map<String, dynamic>);
-      final RepositorySlug slug = repository.slug();
-
+      final MergeCommentMessage mergeCommentMessage = MergeCommentMessage.fromJson(rawBody);
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing comment: $rawBody');
 
-      if (processingLog.contains(issueComment.id)) {
+      if (processingLog.contains(mergeCommentMessage.comment!.id!)) {
         log.info('Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge('auto-submit-comment-sub', message.ackId!);
         continue;
       } else {
-        processingLog.add(issueComment.id!);
+        processingLog.add(mergeCommentMessage.comment!.id!);
       }
-      futures.add(mergeUpdateService.processMessage(slug, issue.number, issueComment, message.ackId!, pubsub));
+      futures.add(
+        mergeUpdateService.processMessage(
+          mergeCommentMessage,
+          message.ackId!,
+          pubsub,
+        ),
+      );
     }
     await Future.wait(futures);
     return Response.ok('Finished processing changes');

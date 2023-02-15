@@ -43,6 +43,7 @@ class FakeGithubService implements GithubService {
 
   /// map to track pull request calls using pull number and repository slug.
   Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
+  Map<int, RepositorySlug> verifyBranchUpdates = {};
 
   bool throwOnCreateIssue = false;
 
@@ -186,6 +187,7 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
+    verifyBranchUpdates[number] = slug;
     return updateBranchValue;
   }
 

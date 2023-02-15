@@ -9,6 +9,7 @@ import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
 
+import '../model/merge_comment_message.dart';
 import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/log.dart';
@@ -83,14 +84,23 @@ class GithubWebhook extends RequestHandler {
     // request being made and the author association.
     final Issue issue = Issue.fromJson(jsonPayload['issue'] as Map<String, dynamic>);
     final IssueComment issueComment = IssueComment.fromJson(jsonPayload['comment'] as Map<String, dynamic>);
+    final Repository repository = Repository.fromJson(jsonPayload['repository'] as Map<String, dynamic>);
 
     if (isValidPullRequestIssue(issue) && isValidMergeUpdateComment(issueComment)) {
       log.info('Found a comment requesting a merge update.');
-      await pubsub.publish('auto-submit-comment-queue', rawPayload);
+
+      // Since we do not need all the information we can construct what we need.
+      final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+        issue: issue,
+        comment: issueComment,
+        repository: repository,
+      );
+
+      await pubsub.publish('auto-submit-comment-queue', mergeCommentMessage);
       return Response.ok(rawPayload);
     }
 
-    return Response.ok(jsonEncode(nonSuccessResponse));
+    return Response.ok(nonSuccessResponse);
   }
 
   /// Verify that this is a pull request issue.
