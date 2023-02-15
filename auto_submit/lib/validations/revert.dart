@@ -30,21 +30,39 @@ class Revert extends Validation {
     final auto.Commit commit = pullRequest.commits!.nodes!.single.commit!;
     final String? sha = commit.oid;
 
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    GithubService githubService = await config.createGithubService(slug);
+    final github.PullRequest updatedPullRequest = await githubService.getPullRequest(
+      slug,
+      messagePullRequest.number!,
+    );
+
     if (!isValidAuthor(author, authorAssociation)) {
       final String message = 'The author $author does not have permissions to make this request.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    final bool? canMerge = messagePullRequest.mergeable;
-    if (canMerge == null || !canMerge) {
+    final bool? canMerge = updatedPullRequest.mergeable;
+
+    if (canMerge == null) {
+      // if canMerge is null that means github still needs to calculate wether or
+      // not the change can be merged.
+      final String message = 'Github is still calculating mergeability of pr# ${updatedPullRequest.number}.';
+      log.info(message);
+      return ValidationResult(false, Action.IGNORE_TEMPORARILY, message);
+    }
+
+    if (!canMerge) {
+      // if canMerge is false then github has detected merge conflicts and the user
+      // will need to address them.
       const String message =
           'This pull request cannot be merged due to conflicts. Please resolve conflicts and re-add the revert label.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
     }
 
-    final String? pullRequestBody = messagePullRequest.body;
+    final String? pullRequestBody = updatedPullRequest.body;
     final String? revertLink = extractLinkFromText(pullRequestBody);
     if (revertLink == null) {
       const String message =
@@ -54,7 +72,7 @@ class Revert extends Validation {
     }
 
     final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
-    final GithubService githubService = await config.createGithubService(repositorySlug);
+    githubService = await config.createGithubService(repositorySlug);
 
     final bool requiredChecksCompleted = await waitForRequiredChecks(
       githubService: githubService,
@@ -75,7 +93,7 @@ class Revert extends Validation {
     final github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);
 
     final bool requestsMatch =
-        await githubService.comparePullRequests(repositorySlug, requestToRevert, messagePullRequest);
+        await githubService.comparePullRequests(repositorySlug, requestToRevert, updatedPullRequest);
 
     if (requestsMatch) {
       return ValidationResult(
