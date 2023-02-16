@@ -99,6 +99,14 @@ void main() {
       expect(await response.readAsString(), GithubWebhook.nonSuccessResponse);
     });
 
+    test('Process comment is rejected for missing repository field', () async {
+      final Uint8List requestBody = utf8.encode(partialPayload) as Uint8List;
+      final Response response = await githubWebhook.processComment(requestBody);
+      expect(response.statusCode, 200);
+      // Empty payload is considered failure as we would not return the raw text.
+      expect(await response.readAsString(), GithubWebhook.nonSuccessResponse);
+    });
+
     test('Validate issue comment detects MEMBER Correctly', () {
       final IssueComment issueComment = IssueComment(body: '@autosubmit:merge', authorAssociation: 'MEMBER');
       final bool processed = githubWebhook.isValidMergeUpdateComment(issueComment);

@@ -77,6 +77,13 @@ class GithubWebhook extends RequestHandler {
 
     // Do not process edited comments.
     if (jsonPayload.containsKey('action') && jsonPayload['action'] != 'created') {
+      log.info('Ignoring comment with non "created" action');
+      return Response.ok(nonSuccessResponse);
+    }
+
+    // Check for keys so we do not blow up. We must have all three of these.
+    if (!jsonPayload.containsKey('issue') || !jsonPayload.containsKey('comment') || !jsonPayload.containsKey('repository')) {
+      log.info('Comment payload does not contain the required keys, "issue," "comment," and "repository"');
       return Response.ok(nonSuccessResponse);
     }
 

@@ -521,6 +521,90 @@ const String nonCreateCommentPayload = '''
 }
 ''';
 
+const String partialPayload = '''
+{
+  "action": "created",
+  "issue": {
+    "url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/9",
+    "repository_url": "https://api.github.com/repos/ricardoamador/flutter_test",
+    "html_url": "https://github.com/ricardoamador/flutter_test/pull/9",
+    "id": 1497518469,
+    "node_id": "PR_kwDOIRxr_M5Ff1-I",
+    "number": 9,
+    "title": "Revert Updated readme",
+    "user": {
+      "login": "revert[bot]",
+      "id": 120533631,
+      "node_id": "BOT_kgDOBy8yfw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32242716?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/revert%5Bbot%5D",
+      "html_url": "https://github.com/apps/revert",
+      "type": "Bot",
+      "site_admin": false
+    },
+    "labels": [
+
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 1,
+    "created_at": "2022-12-14T22:44:10Z",
+    "updated_at": "2023-02-08T22:43:26Z",
+    "closed_at": null,
+    "author_association": "NONE",
+    "active_lock_reason": null,
+    "draft": false,
+    "pull_request": {
+      "url": "https://api.github.com/repos/ricardoamador/flutter_test/pulls/9",
+      "html_url": "https://github.com/ricardoamador/flutter_test/pull/9",
+      "diff_url": "https://github.com/ricardoamador/flutter_test/pull/9.diff",
+      "patch_url": "https://github.com/ricardoamador/flutter_test/pull/9.patch",
+      "merged_at": null
+    },
+    "body": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/9/reactions"
+    },
+    "timeline_url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/9/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null
+  },
+  "comment": {
+    "url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/comments/1423335532",
+    "html_url": "https://github.com/ricardoamador/flutter_test/pull/9#issuecomment-1423335532",
+    "issue_url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/9",
+    "id": 1423335532,
+    "node_id": "IC_kwDOIRxr_M5U1mBs",
+    "user": {
+      "login": "ricardoamador",
+      "id": 32242716,
+      "node_id": "MDQ6VXNlcjMyMjQyNzE2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32242716?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/ricardoamador",
+      "html_url": "https://github.com/ricardoamador",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2023-02-08T22:43:26Z",
+    "updated_at": "2023-02-08T22:43:26Z",
+    "author_association": "OWNER",
+    "body": "Issue comment payload test.",
+    "reactions": {
+      "url": "https://api.github.com/repos/ricardoamador/flutter_test/issues/comments/1423335532/reactions",
+      "total_count": 0
+    },
+    "performed_via_github_app": null
+  }
+}
+''';
+
 const String gitReference = '''
 {
   "ref": "refs/heads/main",

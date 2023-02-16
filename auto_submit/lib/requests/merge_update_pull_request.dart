@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:auto_submit/model/merge_comment_message.dart';
 import 'package:auto_submit/server/authenticated_request_handler.dart';
 import 'package:auto_submit/service/merge_update_service.dart';
-import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 
@@ -74,7 +73,7 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
   Future<List<pub.ReceivedMessage>> pullMessages() async {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < pubsubPullNumber; i++) {
-      final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-comment-sub', pullMesssageBatchSize);
+      final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-comment-sub', pullMesssageBatchSize,);
       final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;
