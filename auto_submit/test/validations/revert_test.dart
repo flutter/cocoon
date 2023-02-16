@@ -124,6 +124,7 @@ void main() {
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryContributorJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      githubService.pullRequestMock = revertPullRequest;
       final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
@@ -137,6 +138,7 @@ void main() {
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      githubService.pullRequestMock = revertPullRequest;
       final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
@@ -146,6 +148,20 @@ void main() {
       );
     });
 
+    test('Validation is postponed on null mergeable value', () async {
+      final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
+      final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
+      revertPullRequest.mergeable = null;
+      final Map<String, dynamic> queryResultJsonDecode =
+          jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
+      final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      githubService.pullRequestMock = revertPullRequest;
+      final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
+      assert(!validationResult.result);
+      assert(validationResult.action == Action.IGNORE_TEMPORARILY);
+      assert(validationResult.message.contains('Github is still calculating mergeability of pr# '));
+    });
+
     test('Validation fails on malformed reverts link in the pr body.', () async {
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
@@ -153,6 +169,7 @@ void main() {
       final Map<String, dynamic> queryResultJsonDecode =
           jsonDecode(queryResultRepositoryOwnerJson) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
+      githubService.pullRequestMock = revertPullRequest;
       final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
@@ -181,7 +198,7 @@ void main() {
 
       // Need to set the mock checkRuns for required CheckRun validation
       githubService.checkRunsData = ciyamlCheckRunNotComplete;
-
+      githubService.pullRequestMock = revertPullRequest;
       revert = Revert(
         config: config,
         retryOptions: const RetryOptions(
@@ -217,6 +234,8 @@ void main() {
       // Need to set the mock checkRuns for required CheckRun validation
       githubService.checkRunsData = ciyamlCheckRun;
 
+      githubService.pullRequestMock = revertPullRequest;
+
       final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(!validationResult.result);
       assert(validationResult.action == Action.REMOVE_LABEL);
@@ -245,6 +264,8 @@ void main() {
 
       // Need to set the mock checkRuns for required CheckRun validation
       githubService.checkRunsData = ciyamlCheckRun;
+
+      githubService.pullRequestMock = revertPullRequest;
 
       final ValidationResult validationResult = await revert.validate(queryResult, revertPullRequest);
       assert(validationResult.result);
