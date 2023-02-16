@@ -46,7 +46,7 @@ class Revert extends Validation {
     final bool? canMerge = updatedPullRequest.mergeable;
 
     if (canMerge == null) {
-      // if canMerge is null that means github still needs to calculate wether or
+      // if canMerge is null that means github still needs to calculate whether or
       // not the change can be merged.
       final String message = 'Github is still calculating mergeability of pr# ${updatedPullRequest.number}.';
       log.info(message);
