@@ -1951,7 +1951,7 @@ void foo() {
       );
 
       when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
-            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()
             ..filename = 'flutter/lib/ui/foo.dart'
             ..deletionsCount = 20
