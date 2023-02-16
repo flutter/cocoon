@@ -24,7 +24,7 @@ steps:
     args:
       - '-c'
       - |-
-        bash cloud_build/verify-provenance.sh
+        cloud_build/verify-provenance.sh
 
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
