@@ -197,9 +197,10 @@ class Config {
         // both as we use graphQL to merge the PR and REST API to approve the PR.
         'dependabot[bot]',
         'dependabot',
+        'DartDevtoolWorkflowBot',
       };
 
-  /// The label which shows the overrideTreeStatus.
+  /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 
   /// Number of Pub/Sub pull calls in each cron job run.

@@ -92,7 +92,7 @@ class BatchBackfiller extends RequestHandler {
       });
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
-      await Future.wait<void>(backfillRequestList(backfill));
+      await Future.wait<void>(backfillRequestList(backfill), eagerError: true);
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
@@ -115,6 +115,7 @@ class BatchBackfiller extends RequestHandler {
         ),
       );
     }
+
     return futures;
   }
 

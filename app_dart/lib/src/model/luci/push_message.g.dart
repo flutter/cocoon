@@ -81,7 +81,7 @@ Map<String, dynamic> _$BuildPushMessageToJson(BuildPushMessage instance) {
 
   writeNotNull('build', instance.build);
   writeNotNull('hostname', instance.hostname);
-  writeNotNull('user_data', instance.userData);
+  val['user_data'] = instance.userData;
   return val;
 }
 

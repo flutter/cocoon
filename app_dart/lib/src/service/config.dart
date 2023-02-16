@@ -421,12 +421,4 @@ class Config {
     final gh.GitHub github = createGitHubClientWithToken(token);
     return GithubService(github);
   }
-
-  bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
-    return supportedRepos.contains(slug);
-  }
-
-  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
-    return postsubmitSupportedRepos.contains(slug);
-  }
 }
