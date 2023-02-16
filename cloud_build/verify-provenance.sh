@@ -3,6 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# This script is used to verify provenance of our artifacts using slsa-verifier.
+# If slsa-verifier is unable to ensure the provenance of the artifact is
+# legitimate, then the script will exit with a non-zero exit code.
 set -e
 
 # Download the jq binary in order to obtain the artifact registry url from the
@@ -28,5 +31,3 @@ slsa-verifier verify-image $(cat unverified-provenance.json | \
   --source-uri https://github.com/flutter/cocoon \
   --builder-id=https://cloudbuild.googleapis.com/GoogleHostedWorker@v0.3 \
   --provenance-path unverified-provenance.json
-
-echo "Provenance has been successfully validated!"
