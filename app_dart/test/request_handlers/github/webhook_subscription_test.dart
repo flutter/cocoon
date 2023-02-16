@@ -1941,6 +1941,37 @@ void foo() {
       );
     });
 
+    test('Engine labels deletion only PR, no test request', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'flutter/lib/ui/foo.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      // The PR here is only deleting code, so no test comment.
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
 

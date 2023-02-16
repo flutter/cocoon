@@ -415,8 +415,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
+      final int linesAdded = file.additionsCount ?? 1;
+      final int linesDeleted = file.deletionsCount ?? 0;
+      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
+
       final String filename = file.filename!.toLowerCase();
-      if (filename.endsWith('.dart') ||
+      if (addedCode && filename.endsWith('.dart') ||
           filename.endsWith('.mm') ||
           filename.endsWith('.m') ||
           filename.endsWith('.java') ||
