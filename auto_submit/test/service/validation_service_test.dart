@@ -100,7 +100,7 @@ void main() {
     );
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
     final auto.QueryResult queryResult = createQueryResult(flutterRequest);
-
+    githubService.pullRequestMock = pullRequest;
     await validationService.processRevertRequest(
       config: config,
       result: queryResult,
