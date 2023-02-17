@@ -49,7 +49,10 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
 
       if (processingLog.contains(mergeCommentMessage.comment!.id!)) {
         log.info('Ack the duplicated message : ${message.ackId!}.');
-        await pubsub.acknowledge('auto-submit-comment-sub', message.ackId!);
+        await pubsub.acknowledge(
+          'auto-submit-comment-sub',
+          message.ackId!,
+        );
         continue;
       } else {
         processingLog.add(mergeCommentMessage.comment!.id!);

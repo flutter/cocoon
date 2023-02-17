@@ -44,12 +44,18 @@ class GithubWebhook extends RequestHandler {
 
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers['X-Hub-Signature'];
-    if (!await _validateRequest(hmacSignature, requestBytes)) {
+    if (!await _validateRequest(
+      hmacSignature,
+      requestBytes,
+    )) {
       throw const Forbidden();
     }
 
     // Check and process request
-    return processEvent(gitHubEvent, requestBytes);
+    return processEvent(
+      gitHubEvent,
+      requestBytes,
+    );
   }
 
   /// Process and validate the Github events we expect to process with this
@@ -105,7 +111,10 @@ class GithubWebhook extends RequestHandler {
         repository: repository,
       );
 
-      await pubsub.publish('auto-submit-comment-queue', mergeCommentMessage);
+      await pubsub.publish(
+        'auto-submit-comment-queue',
+        mergeCommentMessage,
+      );
       return Response.ok(rawPayload);
     }
 
@@ -145,7 +154,10 @@ class GithubWebhook extends RequestHandler {
 
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
+      await pubsub.publish(
+        'auto-submit-queue',
+        pullRequest,
+      );
       return Response.ok(rawBody);
     }
 

@@ -34,13 +34,20 @@ void main() {
     auth = FakeCronAuthProvider();
     pubsub = FakePubSub();
     githubService = FakeGithubService();
-    config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
+    config = FakeConfig(
+      githubService: githubService,
+      githubGraphQLClient: githubGraphQLClient,
+      githubClient: gitHub,
+    );
   });
 
   group('CheckPullRequestUpdates()', () {
     test('Multiple identical messages are processed once', () async {
       // Need to add a pullrequest to the pullRequestMock in the FakeGithubService.
-      final RepositorySlug slug = RepositorySlug('ricardoamador', 'flutter_test');
+      final RepositorySlug slug = RepositorySlug(
+        'ricardoamador',
+        'flutter_test',
+      );
       final PullRequest pullRequest = PullRequest(state: 'open');
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
@@ -57,10 +64,17 @@ void main() {
       githubService.pullRequestMock = pullRequest;
 
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-comment-sub', mergeCommentMessage));
+        unawaited(pubsub.publish(
+          'auto-submit-comment-sub',
+          mergeCommentMessage,
+        ));
       }
 
-      pullRequestMergeUpdate = MergeUpdatePullRequest(config: config, cronAuthProvider: auth, pubsub: pubsub);
+      pullRequestMergeUpdate = MergeUpdatePullRequest(
+        config: config,
+        cronAuthProvider: auth,
+        pubsub: pubsub,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
       expectedMergeRequestMap[10] = slug;
@@ -70,13 +84,21 @@ void main() {
       // Verify that processed what we think we processed.
       githubService.verifyBranchUpdates(expectedMergeRequestMap);
 
-      expect(0, pubsub.messagesQueue.length);
+      expect(
+        0,
+        pubsub.messagesQueue.length,
+      );
     });
 
     test('Comments on a closed PR are not processed.', () async {
       // Need to add a pullrequest to the pullRequestMock in the FakeGithubService.
-      final RepositorySlug slug = RepositorySlug('ricardoamador', 'flutter_test');
-      final PullRequest pullRequest = PullRequest(state: 'closed');
+      final RepositorySlug slug = RepositorySlug(
+        'ricardoamador',
+        'flutter_test',
+      );
+      final PullRequest pullRequest = PullRequest(
+        state: 'closed',
+      );
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
         slug: slug,
@@ -92,10 +114,17 @@ void main() {
       githubService.pullRequestMock = pullRequest;
 
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-comment-sub', mergeCommentMessage));
+        unawaited(pubsub.publish(
+          'auto-submit-comment-sub',
+          mergeCommentMessage,
+        ));
       }
 
-      pullRequestMergeUpdate = MergeUpdatePullRequest(config: config, cronAuthProvider: auth, pubsub: pubsub);
+      pullRequestMergeUpdate = MergeUpdatePullRequest(
+        config: config,
+        cronAuthProvider: auth,
+        pubsub: pubsub,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
 
@@ -104,12 +133,18 @@ void main() {
       // Verify that processed what we think we processed.
       githubService.verifyBranchUpdates(expectedMergeRequestMap);
 
-      expect(0, pubsub.messagesQueue.length);
+      expect(
+        0,
+        pubsub.messagesQueue.length,
+      );
     });
 
     test('Edited comment is not processed.', () async {
       // Need to add a pullrequest to the pullRequestMock in the FakeGithubService.
-      final RepositorySlug slug = RepositorySlug('ricardoamador', 'flutter_test');
+      final RepositorySlug slug = RepositorySlug(
+        'ricardoamador',
+        'flutter_test',
+      );
       final PullRequest pullRequest = PullRequest(state: 'open');
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
@@ -127,10 +162,17 @@ void main() {
       githubService.pullRequestMock = pullRequest;
 
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-comment-sub', mergeCommentMessage));
+        unawaited(pubsub.publish(
+          'auto-submit-comment-sub',
+          mergeCommentMessage,
+        ));
       }
 
-      pullRequestMergeUpdate = MergeUpdatePullRequest(config: config, cronAuthProvider: auth, pubsub: pubsub);
+      pullRequestMergeUpdate = MergeUpdatePullRequest(
+        config: config,
+        cronAuthProvider: auth,
+        pubsub: pubsub,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
 
@@ -139,12 +181,18 @@ void main() {
       // Verify that processed what we think we processed.
       githubService.verifyBranchUpdates(expectedMergeRequestMap);
 
-      expect(0, pubsub.messagesQueue.length);
+      expect(
+        0,
+        pubsub.messagesQueue.length,
+      );
     });
 
     test('Wrong authorAssociation is not processed', () async {
       // Need to add a pullrequest to the pullRequestMock in the FakeGithubService.
-      final RepositorySlug slug = RepositorySlug('ricardoamador', 'flutter_test');
+      final RepositorySlug slug = RepositorySlug(
+        'ricardoamador',
+        'flutter_test',
+      );
       final PullRequest pullRequest = PullRequest(state: 'open');
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
@@ -162,10 +210,17 @@ void main() {
       githubService.pullRequestMock = pullRequest;
 
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish('auto-submit-comment-sub', mergeCommentMessage));
+        unawaited(pubsub.publish(
+          'auto-submit-comment-sub',
+          mergeCommentMessage,
+        ));
       }
 
-      pullRequestMergeUpdate = MergeUpdatePullRequest(config: config, cronAuthProvider: auth, pubsub: pubsub);
+      pullRequestMergeUpdate = MergeUpdatePullRequest(
+        config: config,
+        cronAuthProvider: auth,
+        pubsub: pubsub,
+      );
 
       final Map<int, RepositorySlug> expectedMergeRequestMap = {};
 
@@ -174,7 +229,10 @@ void main() {
       // Verify that processed what we think we processed.
       githubService.verifyBranchUpdates(expectedMergeRequestMap);
 
-      expect(0, pubsub.messagesQueue.length);
+      expect(
+        0,
+        pubsub.messagesQueue.length,
+      );
     });
   });
 }
@@ -197,7 +255,10 @@ MergeCommentMessage generateMergeCommentMessage({
 ''';
 
   final String pullRequest = addPullRequest ? pullRequestJson : '';
-  slug ??= RepositorySlug('flutter', 'cocoon');
+  slug ??= RepositorySlug(
+    'flutter',
+    'cocoon',
+  );
   authorAssociation ??= 'OWNER';
   commentBody ??= '@autosubmit:merge';
   issueState ??= 'open';

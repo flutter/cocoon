@@ -28,10 +28,16 @@ void main() {
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
     githubService = FakeGithubService(client: MockGitHub());
-    config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient);
+    config = FakeConfig(
+      githubService: githubService,
+      githubGraphQLClient: githubGraphQLClient,
+    );
 
     mergeUpdateService = MergeUpdateService(config);
-    slug = RepositorySlug('flutter', 'cocoon');
+    slug = RepositorySlug(
+      'flutter',
+      'cocoon',
+    );
 
     gitReferenceMock = GitReference.fromJson(json.decode(gitReference) as Map<String, dynamic>);
     githubService.gitReferenceMock = gitReferenceMock;
@@ -64,7 +70,10 @@ void main() {
     );
 
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Null IssueComment is not processed.', () async {
@@ -93,9 +102,15 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('IssueComment not found with Exception is handled.', () async {
@@ -127,9 +142,15 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Null IssueComment body is not processed.', () async {
@@ -160,7 +181,10 @@ void main() {
     );
 
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Issue body text does not match merge request text.', () async {
@@ -168,7 +192,11 @@ void main() {
 
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
-    final IssueComment issueComment = IssueComment(authorAssociation: 'MEMBER', id: 111, body: 'Hello World.');
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'MEMBER',
+      id: 111,
+      body: 'Hello World.',
+    );
     final Issue issue = Issue(number: 1);
 
     githubService.issueCommentMock = issueComment;
@@ -188,7 +216,10 @@ void main() {
     );
 
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Null authorAssociation is handled correctly.', () async {
@@ -196,7 +227,10 @@ void main() {
 
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
-    final IssueComment issueComment = IssueComment(id: 111, body: '@autosubmit:merge');
+    final IssueComment issueComment = IssueComment(
+      id: 111,
+      body: '@autosubmit:merge',
+    );
     final Issue issue = Issue(number: 1);
 
     githubService.issueCommentMock = issueComment;
@@ -215,13 +249,19 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     expect(
       githubService.issueComment!.body!.contains('You must be a MEMBER or OWNER author to request a merge update'),
       isTrue,
     );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Non Member/Owner authorAssociation is not processed.', () async {
@@ -252,13 +292,19 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     expect(
       githubService.issueComment!.body!.contains('You must be a MEMBER or OWNER author to request a merge update'),
       isTrue,
     );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Update branch is successful.', () async {
@@ -289,13 +335,19 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     expect(
       githubService.issueComment!.body!.contains('Successfully merged'),
       isTrue,
     );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 
   test('Update branch is unsuccessful.', () async {
@@ -326,12 +378,18 @@ void main() {
       FakePubSub(),
     );
 
-    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.getCommentInvocations,
+      1,
+    );
     expect(
       githubService.issueComment!.body!.contains('Unable to merge'),
       isTrue,
     );
     // Validate some other issue did not take place.
-    expect(pubSub.messagesQueue.length, 0);
+    expect(
+      pubSub.messagesQueue.length,
+      0,
+    );
   });
 }
