@@ -112,7 +112,7 @@ class GithubWebhook extends RequestHandler {
       );
 
       await pubsub.publish(
-        'auto-submit-comment-queue',
+        'auto-submit-comments',
         mergeCommentMessage,
       );
       return Response.ok(rawPayload);
