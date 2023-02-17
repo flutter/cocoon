@@ -21,32 +21,113 @@ class MergeUpdateService {
     String ackId,
     PubSub pubsub,
   ) async {
-
     final RepositorySlug slug = RepositorySlug.full(mergeCommentMessage.repository!.fullName);
     final GithubService githubService = await config.createGithubService(slug);
 
-    // get the list of comments on the pull request issue.
+    // Make sure the pull request is still open before we do anything else.
+    final PullRequest pullRequest = await githubService.getPullRequest(
+      slug,
+      mergeCommentMessage.issue!.number,
+    );
+    if (pullRequest.state != 'open') {
+      log.info('Ignoring closed pull request as it is not open.');
+      await pubsub.acknowledge(
+        Config.pubSubCommentSubscription,
+        ackId,
+      );
+      return;
+    }
 
-    // Need to get the Reposlug from the issue
-    if (mergeCommentMessage.comment!.authorAssociation != 'MEMBER' && mergeCommentMessage.comment!.authorAssociation != 'OWNER') {
+    // Get the updated IssueComment.
+    final IssueComment? issueComment = await getIssueComment(
+      githubService,
+      slug,
+      mergeCommentMessage.comment!.id!,
+    );
+    if (issueComment == null) {
+      log.info('Message could no longer be found in issue.');
+      await pubsub.acknowledge(
+        Config.pubSubCommentSubscription,
+        ackId,
+      );
+      return;
+    }
+
+    // Make sure the comment still requests the merge update. Last chance to unrequest merge.
+    if (issueComment.body == null || !Config.regExpMergeMethod.hasMatch(issueComment.body!)) {
+      const String message = 'Merge request not found in comment, ignoring.';
+      log.info(message);
+      await pubsub.acknowledge(
+        Config.pubSubCommentSubscription,
+        ackId,
+      );
+      return;
+    }
+
+    if (issueComment.authorAssociation == null ||
+        !Config.approvedAuthorAssociations.contains(issueComment.authorAssociation!)) {
       const String message = 'You must be a MEMBER or OWNER author to request a merge update.';
       log.info(message);
       // Add a message to the issue.
-      await githubService.createComment(slug, mergeCommentMessage.issue!.number, message);
-    } else {
-      final String defaultBranch = mergeCommentMessage.repository!.defaultBranch;
-      final GitReference gitReference = await githubService.getReference(slug, 'heads/$defaultBranch');
-      final bool status = await githubService.updateBranch(slug, mergeCommentMessage.issue!.number, gitReference.object!.sha!);
-      String message;
-      if (status) {
-        message = 'Successfully merged ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
-        log.info(message);
-      } else {
-        message = 'Unable to merge ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
-        log.severe(message);
-      }
-      await githubService.createComment(slug, mergeCommentMessage.issue!.number, message);
+      await githubService.createComment(
+        slug,
+        mergeCommentMessage.issue!.number,
+        message,
+      );
+      await pubsub.acknowledge(
+        Config.pubSubCommentSubscription,
+        ackId,
+      );
+      return;
     }
-    await pubsub.acknowledge('auto-submit-comment-sub', ackId);
+
+    // Attempt the merge request.
+    final String defaultBranch = mergeCommentMessage.repository!.defaultBranch;
+    // Ref should always exist.
+    final GitReference gitReference = await githubService.getReference(
+      slug,
+      'heads/$defaultBranch',
+    );
+
+    final bool status = await githubService.updateBranch(
+      slug,
+      mergeCommentMessage.issue!.number,
+      gitReference.object!.sha!,
+    );
+
+    String message;
+    if (status) {
+      message =
+          'Successfully merged ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
+      log.info(message);
+    } else {
+      message =
+          'Unable to merge ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
+      log.severe(message);
+    }
+    await githubService.createComment(
+      slug,
+      mergeCommentMessage.issue!.number,
+      message,
+    );
+    await pubsub.acknowledge(Config.pubSubCommentSubscription, ackId);
+  }
+
+  Future<IssueComment?> getIssueComment(
+    GithubService githubService,
+    RepositorySlug slug,
+    int commentId,
+  ) async {
+    IssueComment? issueComment;
+    try {
+      issueComment = await githubService.getComment(slug, commentId);
+    } on NotFound {
+      // The comment does not exist, this is not an issue.
+      log.info('Comment has been deleted. Ignoring update request.');
+    } catch (e) {
+      // some other exception that IS an error.
+      log.severe('An error has occurred while attempting to get issue comment: $e.');
+    }
+    return issueComment;
   }
 }

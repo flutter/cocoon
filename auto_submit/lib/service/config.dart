@@ -37,6 +37,14 @@ class Config {
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
 
+  static final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
+
+  // Regex for merge update comments
+  static final RegExp regExpMergeMethod = RegExp(r'@autosubmit\s*:\s*merge', caseSensitive: false);
+
+  static const String pubSubCommentTopic = 'auto-submit-comment-queue';
+  static const String pubSubCommentSubscription = 'auto-submit-comment-sub';
+
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),
     maxDelay: Duration(seconds: 1),

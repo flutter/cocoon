@@ -82,7 +82,9 @@ class GithubWebhook extends RequestHandler {
     }
 
     // Check for keys so we do not blow up. We must have all three of these.
-    if (!jsonPayload.containsKey('issue') || !jsonPayload.containsKey('comment') || !jsonPayload.containsKey('repository')) {
+    if (!jsonPayload.containsKey('issue') ||
+        !jsonPayload.containsKey('comment') ||
+        !jsonPayload.containsKey('repository')) {
       log.info('Comment payload does not contain the required keys, "issue," "comment," and "repository"');
       return Response.ok(nonSuccessResponse);
     }
@@ -115,13 +117,11 @@ class GithubWebhook extends RequestHandler {
     return issue.pullRequest != null;
   }
 
-  static final RegExp regExpMergeMethod = RegExp(r'@autosubmit\s*:\s*merge', caseSensitive: false);
-
   /// Verify that the comment being processed was written by a member of the
   /// google team.
   bool isValidMergeUpdateComment(IssueComment issueComment) {
-    return (issueComment.authorAssociation == 'MEMBER' || issueComment.authorAssociation == 'OWNER') &&
-        (issueComment.body != null && regExpMergeMethod.hasMatch(issueComment.body!));
+    return Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) &&
+        (issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!));
   }
 
   /// Process a pull request issue from github.

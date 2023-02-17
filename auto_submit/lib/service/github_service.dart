@@ -87,32 +87,60 @@ class GithubService {
       assignees: assignees,
       state: state,
     );
-    return await github.issues.create(slug, issueRequest);
+    return await github.issues.create(
+      slug,
+      issueRequest,
+    );
   }
 
   Future<Issue> getIssue({
     required RepositorySlug slug,
     required int issueNumber,
   }) async {
-    return await github.issues.get(slug, issueNumber);
+    return await github.issues.get(
+      slug,
+      issueNumber,
+    );
   }
 
   /// Fetches the specified pull request.
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
-    return await github.pullRequests.get(slug, pullRequestNumber);
+  Future<PullRequest> getPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
+    return await github.pullRequests.get(
+      slug,
+      pullRequestNumber,
+    );
   }
 
   /// Compares two commits to fetch diff.
   ///
   /// The response will include details on the files that were changed between the two commits.
   /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
-  Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    return await github.repositories.compareCommits(slug, refBase, refHead);
+  Future<GitHubComparison> compareTwoCommits(
+    RepositorySlug slug,
+    String refBase,
+    String refHead,
+  ) async {
+    return await github.repositories.compareCommits(
+      slug,
+      refBase,
+      refHead,
+    );
   }
 
   /// Removes a lable for a pull request.
-  Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
-    return await github.issues.removeLabelForIssue(slug, issueNumber, label);
+  Future<bool> removeLabel(
+    RepositorySlug slug,
+    int issueNumber,
+    String label,
+  ) async {
+    return await github.issues.removeLabelForIssue(
+      slug,
+      issueNumber,
+      label,
+    );
   }
 
   /// Create a comment for a pull request.
@@ -122,6 +150,30 @@ class GithubService {
     String body,
   ) async {
     return await github.issues.createComment(slug, issueNumber, body);
+  }
+
+  /// Get a particular comment by its id.
+  Future<IssueComment> getComment(
+    RepositorySlug slug,
+    int commentId,
+  ) async {
+    return await github.issues.getComment(
+      slug,
+      commentId,
+    );
+  }
+
+  /// List all the comments on a particular issue.
+  Future<List<IssueComment>> listCommentsByIssue(
+    RepositorySlug slug,
+    int issueNumber,
+  ) async {
+    return await github.issues
+        .listCommentsByIssue(
+          slug,
+          issueNumber,
+        )
+        .toList();
   }
 
   /// Update a pull request branch
@@ -157,21 +209,38 @@ class GithubService {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final int prNumber = pullRequest.number!;
     final RepositoryCommit totCommit = await getCommit(slug, 'HEAD');
-    final GitHubComparison comparison = await compareTwoCommits(slug, totCommit.sha!, pullRequest.base!.sha!);
+    final GitHubComparison comparison = await compareTwoCommits(
+      slug,
+      totCommit.sha!,
+      pullRequest.base!.sha!,
+    );
     if (comparison.behindBy! >= _kBehindToT) {
       log.info('The current branch is behind by ${comparison.behindBy} commits.');
       final String headSha = pullRequest.head!.sha!;
-      await updateBranch(slug, prNumber, headSha);
+      await updateBranch(
+        slug,
+        prNumber,
+        headSha,
+      );
     }
   }
 
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
-    final List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(repositorySlug, revert);
-    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(repositorySlug, current);
+    final List<PullRequestFile> originalPullRequestFiles = await getPullRequestFiles(
+      repositorySlug,
+      revert,
+    );
+    final List<PullRequestFile> currentPullRequestFiles = await getPullRequestFiles(
+      repositorySlug,
+      current,
+    );
 
-    return validateFileSetsAreEqual(originalPullRequestFiles, currentPullRequestFiles);
+    return validateFileSetsAreEqual(
+      originalPullRequestFiles,
+      currentPullRequestFiles,
+    );
   }
 
   /// Validate that each pull request has the same number of files and that the

@@ -73,7 +73,10 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
   Future<List<pub.ReceivedMessage>> pullMessages() async {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < pubsubPullNumber; i++) {
-      final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-comment-sub', pullMesssageBatchSize,);
+      final pub.PullResponse pullResponse = await pubsub.pull(
+        'auto-submit-comment-sub',
+        pullMesssageBatchSize,
+      );
       final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;

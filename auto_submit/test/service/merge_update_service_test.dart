@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/model/merge_comment_message.dart';
 import 'package:auto_submit/service/merge_update_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -36,28 +37,301 @@ void main() {
     githubService.gitReferenceMock = gitReferenceMock;
   });
 
-  // test('Non member/owner comment is ignored', () async {
-  //   githubService.useRealComment = true;
-  //   final IssueComment issueComment = IssueComment(authorAssociation: 'CONTRIBUTOR');
-  //   await mergeUpdateService.processMessage(slug, 1, issueComment, '1', FakePubSub());
-  //   expect(githubService.issueComment, isNotNull);
-  //   expect(githubService.issueComment!.body!, 'You must be a MEMBER or OWNER author to request a merge update.');
-  // });
+  test('Closed pullRequest is ignored.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'closed');
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'MEMBER',
+      id: 111,
+    );
+    final Issue issue = Issue(number: 1);
 
-  // test('Valid comment is processed', () async {
-  //   githubService.useRealComment = true;
-  //   final IssueComment issueComment = IssueComment(authorAssociation: 'MEMBER');
-  //   await mergeUpdateService.processMessage(slug, 1, issueComment, '1', FakePubSub());
-  //   expect(githubService.issueComment, isNotNull);
-  //   expect(githubService.issueComment!.body!.contains('Successfully merged'), isTrue);
-  // });
+    githubService.issueCommentMock = null;
+    githubService.pullRequestMock = pullRequest;
 
-  // test('Valid comment but merge could not process', () async {
-  //   githubService.updateBranchValue = false;
-  //   githubService.useRealComment = true;
-  //   final IssueComment issueComment = IssueComment(authorAssociation: 'MEMBER');
-  //   await mergeUpdateService.processMessage(slug, 1, issueComment, '1', FakePubSub());
-  //   expect(githubService.issueComment, isNotNull);
-  //   expect(githubService.issueComment!.body!.contains('Unable to merge'), isTrue);
-  // });
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Null IssueComment is not processed.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'MEMBER',
+      id: 111,
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = null;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('IssueComment not found with Exception is handled.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+    githubService.gitHubError = NotFound(MockGitHub(), 'Not Found.');
+    githubService.getCommentThrowsException = true;
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'MEMBER',
+      id: 111,
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = null;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Null IssueComment body is not processed.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'MEMBER',
+      id: 111,
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Issue body text does not match merge request text.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(authorAssociation: 'MEMBER', id: 111, body: 'Hello World.');
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Null authorAssociation is handled correctly.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(id: 111, body: '@autosubmit:merge');
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.issueComment!.body!.contains('You must be a MEMBER or OWNER author to request a merge update'),
+      isTrue,
+    );
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Non Member/Owner authorAssociation is not processed.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'CONTRIBUTOR',
+      id: 111,
+      body: '@autosubmit:merge',
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.issueComment!.body!.contains('You must be a MEMBER or OWNER author to request a merge update'),
+      isTrue,
+    );
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Update branch is successful.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'OWNER',
+      id: 111,
+      body: '@autosubmit:merge',
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.issueComment!.body!.contains('Successfully merged'),
+      isTrue,
+    );
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
+
+  test('Update branch is unsuccessful.', () async {
+    final PullRequest pullRequest = PullRequest(state: 'open');
+    githubService.updateBranchValue = false;
+    githubService.useRealComment = true;
+    final Repository repository = Repository(fullName: slug.fullName);
+    final IssueComment issueComment = IssueComment(
+      authorAssociation: 'OWNER',
+      id: 111,
+      body: '@autosubmit:merge',
+    );
+    final Issue issue = Issue(number: 1);
+
+    githubService.issueCommentMock = issueComment;
+    githubService.pullRequestMock = pullRequest;
+
+    final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
+      issue: issue,
+      comment: issueComment,
+      repository: repository,
+    );
+
+    final FakePubSub pubSub = FakePubSub();
+    await mergeUpdateService.processMessage(
+      mergeCommentMessage,
+      '1',
+      FakePubSub(),
+    );
+
+    expect(githubService.getCommentInvocations, 1);
+    expect(
+      githubService.issueComment!.body!.contains('Unable to merge'),
+      isTrue,
+    );
+    // Validate some other issue did not take place.
+    expect(pubSub.messagesQueue.length, 0);
+  });
 }
