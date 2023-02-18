@@ -116,6 +116,8 @@ class GithubWebhook extends RequestHandler {
         mergeCommentMessage,
       );
       return Response.ok(rawPayload);
+    } else {
+      log.warning('The comment was not on a pull request or the author does not have the authority to request a merge update.');
     }
 
     return Response.ok(nonSuccessResponse);
@@ -129,7 +131,8 @@ class GithubWebhook extends RequestHandler {
   /// Verify that the comment being processed was written by a member of the
   /// google team.
   bool isValidMergeUpdateComment(IssueComment issueComment) {
-    return Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) &&
+    // TODO remove contributor as I am not a member or owner and needed to test this.
+    return (Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) || issueComment.authorAssociation == 'CONTRIBUTOR') &&
         (issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!));
   }
 
