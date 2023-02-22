@@ -26,11 +26,11 @@ dependencies:
   fixnum: ^1.0.0
   flutter:
     sdk: flutter
-  google_sign_in: ^6.0.0
+  google_sign_in: ^6.0.1
   http: ^0.13.4
   protobuf: ^2.0.1
   provider: ^6.0.5
-  url_launcher: ^6.1.9
+  url_launcher: ^6.1.10
   flutter_app_icons: ^0.0.8
   truncate: ^3.0.1
 

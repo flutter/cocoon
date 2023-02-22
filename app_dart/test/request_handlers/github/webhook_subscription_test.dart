@@ -620,7 +620,7 @@ void main() {
         // Label applies to integration_test package
         expect(
           GithubWebhookSubscription.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
-          contains('integration_test'),
+          <String>{'integration_test', 'framework'},
         );
       });
     });
