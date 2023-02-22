@@ -239,14 +239,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      // When null, do not assume 0 lines have been added.
       final String filename = file.filename!;
-      final int linesAdded = file.additionsCount ?? 1;
-      final int linesDeleted = file.deletionsCount ?? 0;
-      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
-      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
 
-      if (addedCode &&
+      if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
           !filename.startsWith('dev/bots/') &&
           !filename.endsWith('.gitignore')) {
@@ -416,7 +411,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
     await for (PullRequestFile file in files) {
       final String filename = file.filename!.toLowerCase();
-      if (filename.endsWith('.dart') ||
+      if (_fileContainsAddedCode(file) && filename.endsWith('.dart') ||
           filename.endsWith('.mm') ||
           filename.endsWith('.m') ||
           filename.endsWith('.java') ||
@@ -449,6 +444,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
+  bool _fileContainsAddedCode(PullRequestFile file) {
+    // When null, do not assume 0 lines have been added.
+    final int linesAdded = file.additionsCount ?? 1;
+    final int linesDeleted = file.deletionsCount ?? 0;
+    final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
+    return linesAdded > 0 || linesDeleted != linesTotal;
+  }
+
   // Runs automated test checks for both flutter/packages and flutter/plugins.
   Future<void> _applyPackageTestChecks(GitHub gitHubClient, String? eventAction, PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
@@ -459,13 +462,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     await for (PullRequestFile file in files) {
       final String filename = file.filename!;
 
-      // When null, do not assume 0 lines have been added.
-      final int linesAdded = file.additionsCount ?? 1;
-      final int linesDeleted = file.deletionsCount ?? 0;
-      final int linesTotal = file.changesCount ?? linesDeleted + linesAdded;
-      final bool addedCode = linesAdded > 0 || linesDeleted != linesTotal;
-
-      if (addedCode &&
+      if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
           !filename.contains('.ci/') &&
           // Custom package-specific test runners. These do not count as tests
