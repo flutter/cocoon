@@ -225,7 +225,7 @@ packages:
       name: google_sign_in
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.0"
+    version: "6.0.1"
   google_sign_in_android:
     dependency: transitive
     description:
