@@ -343,7 +343,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       'packages/flutter_goldens_client/': <String>['framework', 'a: tests', 'team'],
       'packages/flutter_test/': <String>['framework', 'a: tests'],
       'packages/fuchsia_remote_debug_protocol/': <String>['tool'],
-      'packages/integration_test/': <String>['integration_test'],
+      'packages/integration_test/': <String>['integration_test', 'framework'],
     };
     const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
       'accessibility': <String>['a: accessibility'],
