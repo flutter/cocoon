@@ -213,7 +213,7 @@ class Scheduler {
   Future<CiYaml> getCiYaml(
     Commit commit, {
     CiYaml? totCiYaml,
-    RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+    RetryOptions retryOptions = const RetryOptions(delayFactor: Duration(seconds: 2), maxAttempts: 4),
   }) async {
     String ciPath;
     ciPath = '${commit.repository}/${commit.sha!}/$kCiYamlPath';
@@ -406,9 +406,14 @@ class Scheduler {
     late CiYaml ciYaml;
     log.info('Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}');
     if (commit.branch == Config.defaultBranch(commit.slug)) {
+      // This fails when we attempt the second call to getCiYaml since the retry
+      // options did not set a high enough delay factor.
       final Commit totCommit = await generateTotCommit(slug: commit.slug, branch: Config.defaultBranch(commit.slug));
       final CiYaml totYaml = await getCiYaml(totCommit);
-      ciYaml = await getCiYaml(commit, totCiYaml: totYaml);
+      ciYaml = await getCiYaml(
+        commit,
+        totCiYaml: totYaml,
+      );
     } else {
       ciYaml = await getCiYaml(commit);
     }
@@ -471,12 +476,9 @@ class Scheduler {
           }
         } else {
           try {
-            final String sha = checkRunEvent.checkRun!.headSha!;
-            final String checkName = checkRunEvent.checkRun!.name!;
             final RepositorySlug slug = checkRunEvent.repository!.slug();
-
-            // TODO(nehalvpatel): Use head_branch from checkRunEvent.checkRun.checkSuite, https://github.com/flutter/flutter/issues/119171
-            final String gitBranch = Config.defaultBranch(slug);
+            final String gitBranch = checkRunEvent.checkRun!.checkSuite!.headBranch ?? Config.defaultBranch(slug);
+            final String sha = checkRunEvent.checkRun!.headSha!;
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
             datastore = datastoreProvider(config.db);
@@ -495,6 +497,7 @@ class Scheduler {
               await luciBuildService.reschedulePresubmitBuildUsingCheckRunEvent(checkRunEvent);
             } else {
               log.fine('Rescheduling postsubmit build.');
+              final String checkName = checkRunEvent.checkRun!.name!;
               final Task task = await Task.fromDatastore(datastore: datastore, commitKey: commitKey, name: checkName);
               final CiYaml ciYaml = await getCiYaml(commit);
               final Target target =

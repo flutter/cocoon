@@ -190,7 +190,6 @@ class ValidationService {
     // If we got to this point it means we are ready to submit the PR.
     final ProcessMergeResult processed = await processMerge(
       config: config,
-      queryResult: result,
       messagePullRequest: messagePullRequest,
     );
 
@@ -242,7 +241,6 @@ class ValidationService {
 
       final ProcessMergeResult processed = await processMerge(
         config: config,
-        queryResult: result,
         messagePullRequest: messagePullRequest,
       );
 
@@ -331,11 +329,13 @@ Exception: ${exception.message}
   /// Merges the commit if the PullRequest passes all the validations.
   Future<ProcessMergeResult> processMerge({
     required Config config,
-    required QueryResult queryResult,
     required github.PullRequest messagePullRequest,
   }) async {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
+    // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
+    String commitMessage = messagePullRequest.title!;
+    commitMessage = commitMessage.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
 
     try {
       github.PullRequestMerge? result;
@@ -344,6 +344,7 @@ Exception: ${exception.message}
         () async {
           result = await _processMergeInternal(
             config: config,
+            commitMessage: commitMessage,
             slug: slug,
             number: number,
             // TODO(ricardoamador): make this configurable per repository, https://github.com/flutter/flutter/issues/114557
@@ -353,8 +354,9 @@ Exception: ${exception.message}
         retryIf: (Exception e) => e is RetryableException,
       );
 
-      if (result != null && !result!.merged!) {
-        final String message = 'Failed to merge pr#: $number with ${result!.message}';
+      final bool merged = result?.merged ?? false;
+      if (result != null && !merged) {
+        final String message = 'Failed to merge pr#: $number with ${result?.message}';
         log.severe(message);
         return ProcessMergeResult(false, message);
       }
@@ -365,7 +367,7 @@ Exception: ${exception.message}
       return ProcessMergeResult(false, message);
     }
 
-    return ProcessMergeResult.noMessage(true);
+    return ProcessMergeResult(true, commitMessage);
   }
 
   /// Remove a pull request label and add a comment to the pull request.

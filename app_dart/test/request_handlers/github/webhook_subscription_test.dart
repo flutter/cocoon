@@ -624,7 +624,7 @@ void main() {
         // Label applies to integration_test package
         expect(
           GithubWebhookSubscription.getLabelsForFrameworkPath('packages/integration_test/lib/common.dart'),
-          contains('integration_test'),
+          <String>{'integration_test', 'framework'},
         );
       });
     });
@@ -1936,6 +1936,37 @@ void foo() {
 
       await tester.post(webhook);
 
+      verifyNever(
+        issuesService.createComment(
+          Config.engineSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
+    test('Engine labels deletion only PR, no test request', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+        slug: Config.engineSlug,
+      );
+
+      when(pullRequestsService.listFiles(Config.engineSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'flutter/lib/ui/foo.dart'
+            ..deletionsCount = 20
+            ..additionsCount = 0
+            ..changesCount = 20,
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      // The PR here is only deleting code, so no test comment.
       verifyNever(
         issuesService.createComment(
           Config.engineSlug,

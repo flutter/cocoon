@@ -7,6 +7,10 @@ cron:
   url: /api/vacuum-github-commits
   schedule: every 10 minutes
 
+- description: vacuum stale tasks
+  url: /api/scheduler/vacuum-stale-tasks
+  schedule: every 10 minutes
+
 - description: backfills builds
   url: /api/scheduler/batch-backfiller
   schedule: every 5 minutes

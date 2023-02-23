@@ -76,31 +76,32 @@ String generateWebhookEvent({
 }
 
 PullRequest generatePullRequest({
-  String? labelName,
+  String labelName = 'cla: yes',
   String? autosubmitLabel = Config.kAutosubmitLabel,
-  String? repoName,
-  String? login,
-  String? authorAssociation,
-  String? author,
-  int? prNumber,
-  String? state,
-  String? body,
+  String repoName = 'flutter',
+  String login = 'flutter',
+  String authorAssociation = 'OWNER',
+  String author = 'octocat',
+  int prNumber = 1347,
+  String state = 'open',
+  String? body = 'Please pull these awesome changes in!',
+  String title = 'Amazing new feature',
 }) {
   return PullRequest.fromJson(
     json.decode('''{
       "id": 1,
-      "number": ${prNumber ?? 1347},
-      "state": "${state ?? "open"}",
-      "title": "Amazing new feature",
+      "number": $prNumber,
+      "state": "$state",
+      "title": ${jsonEncode(title)},
       "user": {
-        "login": "${author ?? "octocat"}",
+        "login": "$author",
         "id": 1
       },
-      "body": "${body ?? "Please pull these awesome changes in!"}",
+      "body": "$body",
       "labels": [
         {
           "id": 487496476,
-          "name": "${labelName ?? "cla: yes"}"
+          "name": "$labelName"
         },
         {
           "id": 284437560,
@@ -132,17 +133,17 @@ PullRequest generatePullRequest({
         "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
         "repo": {
           "id": 1296269,
-          "name": "${repoName ?? "flutter"}",
-          "full_name": "${login ?? "flutter"}/${repoName ?? "flutter"}",
+          "name": "$repoName",
+          "full_name": "$login/$repoName",
           "owner": {
-            "login": "${login ?? "flutter"}",
+            "login": "$login",
             "id": 1,
             "avatar_url": "https://github.com/images/error/octocat_happy.gif",
             "html_url": "https://github.com/octocat"
           }
         }
       },
-      "author_association": "${authorAssociation ?? "OWNER"}",
+      "author_association": "$authorAssociation",
       "mergeable": true,
       "mergeable_state": "clean"
   }''') as Map<String, dynamic>,

@@ -2,12 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
@@ -35,13 +31,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     required super.config,
     super.authProvider,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    required this.luciBuildService,
     required this.scheduler,
     required this.githubChecksService,
   }) : super(subscriptionName: 'luci-postsubmit');
 
   final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
   final Scheduler scheduler;
   final GithubChecksService githubChecksService;
 
@@ -49,52 +43,16 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
   Future<Body> post() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final String data = message.data!;
-    BuildPushMessage buildPushMessage;
-    try {
-      final String decodedData = String.fromCharCodes(base64.decode(data));
-      log.info('Result message from base64: $decodedData');
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(decodedData) as Map<String, dynamic>);
-    } on FormatException {
-      log.info('Result message: $data');
-      buildPushMessage = BuildPushMessage.fromJson(json.decode(data) as Map<String, dynamic>);
-    }
-    log.fine(buildPushMessage.userData);
+    final BuildPushMessage buildPushMessage = BuildPushMessage.fromPushMessage(message);
+    log.fine('userData=${buildPushMessage.userData}');
     log.fine('Updating buildId=${buildPushMessage.build?.id} for result=${buildPushMessage.build?.result}');
-    // Example user data:
-    // {
-    //   "task_key": "key123",
-    // }
-    if (buildPushMessage.userData == null) {
+    if (buildPushMessage.userData.isEmpty) {
       log.fine('User data is empty');
       return Body.empty;
     }
 
-    Map<String, dynamic> userData;
-    try {
-      userData = jsonDecode(buildPushMessage.userData!) as Map<String, dynamic>;
-    } on FormatException {
-      userData = jsonDecode(String.fromCharCodes(base64.decode(buildPushMessage.userData!))) as Map<String, dynamic>;
-    }
-
-    if (userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
-      // Message is coming from a github checks api (postsubmit) enabled repo. We need to
-      // create the slug from the data in the message and send the check status
-      // update.
-
-      final RepositorySlug slug = RepositorySlug(
-        userData['repo_owner'] as String,
-        userData['repo_name'] as String,
-      );
-      await githubChecksService.updateCheckStatus(
-        buildPushMessage,
-        luciBuildService,
-        slug,
-      );
-    }
-
-    final String? rawTaskKey = userData['task_key'] as String?;
-    final String? rawCommitKey = userData['commit_key'] as String?;
+    final String? rawTaskKey = buildPushMessage.userData['task_key'] as String?;
+    final String? rawCommitKey = buildPushMessage.userData['commit_key'] as String?;
     if (rawCommitKey == null) {
       throw const BadRequestException('userData does not contain commit_key');
     }
@@ -109,7 +67,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.fine('Pulling builder name from parameters_json...');
       log.fine(build.buildParameters);
       final String? taskName = build.buildParameters?['builder_name'] as String?;
-      if (taskName == null) {
+      if (taskName == null || taskName.isEmpty) {
         throw const BadRequestException('task_key is null and parameters_json does not contain the builder name');
       }
       final List<Task> tasks = await datastore.queryRecentTasksByName(name: taskName).toList();
@@ -126,18 +84,27 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     await datastore.insert(<Task>[task]);
     log.fine('Updated datastore');
 
+    final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
+    final CiYaml ciYaml = await scheduler.getCiYaml(commit);
+    final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
     if (task.status == Task.statusFailed || task.status == Task.statusInfraFailure) {
       log.fine('Trying to auto-retry...');
-      final Commit commit = await datastore.lookupByValue<Commit>(commitKey);
-      final CiYaml ciYaml = await scheduler.getCiYaml(commit);
-      final Target target = ciYaml.postsubmitTargets.singleWhere((Target target) => target.value.name == task!.name);
-      final bool retried = await luciBuildService.checkRerunBuilder(
+      final bool retried = await scheduler.luciBuildService.checkRerunBuilder(
         commit: commit,
         target: target,
         task: task,
         datastore: datastore,
       );
       log.info('Retried: $retried');
+    }
+
+    // Only update GitHub checks if target is not bringup
+    if (target.value.bringup == false) {
+      await githubChecksService.updateCheckStatus(
+        buildPushMessage,
+        scheduler.luciBuildService,
+        commit.slug,
+      );
     }
 
     return Body.empty;

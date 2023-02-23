@@ -110,7 +110,6 @@ Future<void> main() async {
       '/api/postsubmit-luci-subscription': PostsubmitLuciSubscription(
         cache: cache,
         config: config,
-        luciBuildService: luciBuildService,
         scheduler: scheduler,
         githubChecksService: githubChecksService,
       ),
@@ -141,6 +140,9 @@ Future<void> main() async {
         cache: cache,
         config: config,
         buildBucketClient: buildBucketClient,
+      ),
+      '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
+        config: config,
       ),
       '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
         config: config,

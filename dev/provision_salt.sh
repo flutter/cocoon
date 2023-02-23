@@ -35,6 +35,10 @@ function config_minion() {
   # Uses hostname as the minion id.
   echo "id: $(hostname -s)" | sudo tee -a /etc/salt/minion
 
+  # Set fqdn for salt key autoaccept
+  echo "autosign_grains:" | sudo tee -a /etc/salt/minion
+  echo "  - fqdn" | sudo tee -a /etc/salt/minion
+
   if [[ "$(uname)" == 'Darwin' ]]; then
     sudo cp salt.minion.plist "$MINION_PLIST_PATH"
   fi
@@ -75,9 +79,10 @@ Usage: ./provision_salt.sh [SERVER] [DEVICE_OS]
 
 function main() {
   local master_hostname=''
+  # TODO(yusuf-goog): Update the hostname below when we get a dev flutter salt master.
   case "$1" in
-    prod) master_hostname='salt.endpoints.fuchsia-infra.cloud.goog' ;;
-    dev) master_hostname='salt.endpoints.fuchsia-infra-dev.cloud.goog' ;;
+    prod) master_hostname='salt-flutter.endpoints.fuchsia-infra.cloud.goog' ;;
+    dev) master_hostname='salt-flutter.endpoints.fuchsia-infra.cloud.goog' ;;
     *)
       Usage
       exit 1

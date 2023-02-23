@@ -79,6 +79,7 @@ Task generateTask(
   String stage = 'test-stage',
   Commit? parent,
   int? buildNumber,
+  DateTime? created,
 }) =>
     Task(
       name: name ?? 'task$i',
@@ -89,6 +90,7 @@ Task generateTask(
       isFlaky: isFlaky,
       buildNumber: buildNumber,
       buildNumberList: buildNumber != null ? '$buildNumber' : null,
+      createTimestamp: created?.millisecondsSinceEpoch ?? 0,
       stageName: stage,
     );
 
@@ -195,12 +197,14 @@ github.CheckRun generateCheckRun(
 
 github.CheckSuite generateCheckSuite(
   int i, {
+  String headBranch = 'main',
   String headSha = 'abc',
   github.CheckRunConclusion conclusion = github.CheckRunConclusion.success,
   List<github.PullRequest> pullRequests = const <github.PullRequest>[],
 }) {
   return github.CheckSuite(
     id: i,
+    headBranch: headBranch,
     headSha: headSha,
     conclusion: conclusion,
     pullRequests: pullRequests,

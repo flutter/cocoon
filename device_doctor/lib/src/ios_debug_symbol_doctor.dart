@@ -109,6 +109,28 @@ class RecoverCommand extends Command<bool> {
     if (timeoutSeconds == null) {
       throw ArgumentError('Could not parse an integer from the option --timeout="${argResults!['timeout']}"');
     }
+
+    // Prompt Xcode to first setup without opening the app.
+    // This will return very quickly if there is no work to do.
+    logger.info('Running Xcode first launch...');
+    final io.ProcessResult runFirstLaunchResult = await processManager.run(<String>[
+      'xcrun',
+      'xcodebuild',
+      '-runFirstLaunch',
+    ]);
+    final String runFirstLaunchStdout = runFirstLaunchResult.stdout.trim();
+    if (runFirstLaunchStdout.isNotEmpty) {
+      logger.info('stdout from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStdout\n');
+    }
+    final String runFirstLaunchStderr = runFirstLaunchResult.stderr.trim();
+    if (runFirstLaunchStderr.isNotEmpty) {
+      logger.info('stderr from `xcodebuild -runFirstLaunch`:\n$runFirstLaunchStderr\n');
+    }
+    final int runFirstLaunchCode = runFirstLaunchResult.exitCode;
+    if (runFirstLaunchCode != 0) {
+      logger.info('Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!');
+    }
+
     final Duration timeout = Duration(seconds: timeoutSeconds);
     logger.info('Launching Xcode...');
     final Future<io.ProcessResult> xcodeFuture = processManager.run(<String>[
@@ -160,7 +182,7 @@ class XCDevice {
     required this.name,
   });
 
-  static const String _debugSymbolDescriptionPattern = 'iPhone is busy: Fetching debug symbols for iPhone';
+  static const String _debugSymbolDescriptionPattern = r' is busy: Fetching debug symbols for ';
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
