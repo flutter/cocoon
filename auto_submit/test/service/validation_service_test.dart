@@ -682,7 +682,10 @@ void main() {
         repoName: slug.name,
         title: 'Revert "Revert "My first PR!"',
       );
-      githubService.mergeRequestMock = PullRequestMerge(merged: true, sha: pullRequest.mergeCommitSha,);
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
       final ProcessMergeResult result = await validationService.processMerge(
         config: config,
         messagePullRequest: pullRequest,
