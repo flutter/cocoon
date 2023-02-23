@@ -674,4 +674,24 @@ void main() {
       expect(processMethod, ProcessMethod.doNotProcess);
     });
   });
+
+  group('processMerge', () {
+    test('Correct PR titles when merging to use Reland', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: 'Revert "Revert "My first PR!"',
+      );
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+      final ProcessMergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.message, 'Reland "My first PR!"');
+    });
+  });
 }
