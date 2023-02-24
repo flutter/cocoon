@@ -53,6 +53,41 @@ class FakeScheduler extends Scheduler {
   Future<Commit> generateTotCommit({required String branch, required RepositorySlug slug}) async {
     return generateCommit(1);
   }
+
+  int cancelPreSubmitTargetsCallCnt = 0;
+
+  int get cancelPreSubmitTargetsCallCount {
+    return cancelPreSubmitTargetsCallCnt;
+  }
+
+  void resetCancelPreSubmitTargetsCallCount() {
+    cancelPreSubmitTargetsCallCnt = 0;
+  }
+
+  @override
+  Future<void> cancelPreSubmitTargets({
+    required PullRequest pullRequest,
+    String reason = 'Newer commit available',
+  }) async {
+    cancelPreSubmitTargetsCallCnt++;
+  }
+
+  int addPullRequestCallCnt = 0;
+
+  int get addPullRequestCallCount {
+    return addPullRequestCallCnt;
+  }
+
+  void resetAddPullRequestCallCount() {
+    addPullRequestCallCnt = 0;
+  }
+
+  @override
+  Future<void> addPullRequest(
+    PullRequest pr,
+  ) async {
+    addPullRequestCallCnt++;
+  }
 }
 
 final CiYaml emptyConfig = CiYaml(
