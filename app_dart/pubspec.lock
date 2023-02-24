@@ -13,7 +13,7 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: "0c80aeab9bc807ab10022cd3b2f4cf2ecdf231949dc1ddd9442406a003f19201"
+      sha256: "569ddca58d535e601dd1584afa117710abc999d036c0cd2c51777fb257df78e8"
       url: "https://pub.dev"
     source: hosted
     version: "53.0.0"
@@ -21,7 +21,7 @@ packages:
     dependency: "direct dev"
     description:
       name: analyzer
-      sha256: cd8ee83568a77f3ae6b913a36093a1c9b1264e7cb7f834d9ddd2311dade9c1f4
+      sha256: "10927c4b7c7c88b1adbca278c3d5531db92e2f4b4abf04e2919a800af965f3f5"
       url: "https://pub.dev"
     source: hosted
     version: "5.5.0"
@@ -45,7 +45,7 @@ packages:
     dependency: "direct main"
     description:
       name: args
-      sha256: "139d809800a412ebb26a3892da228b2d0ba36f0ef5d9a82166e5e52ec8d61611"
+      sha256: "4cab82a83ffef80b262ddedf47a0a8e56ee6fbf7fe21e6e768b02792034dd440"
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
@@ -269,10 +269,10 @@ packages:
     dependency: "direct main"
     description:
       name: github
-      sha256: "2f78b5cdb21fdc54740a2476344718ab4d1eb59971fbac7962714b1a87fa9862"
+      sha256: "5658b01529dc9078f7d2b8b48abd01fee75ff87626c98b5596b9bf5517b8f431"
       url: "https://pub.dev"
     source: hosted
-    version: "9.9.0"
+    version: "9.10.1"
   glob:
     dependency: transitive
     description:
@@ -842,4 +842,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <3.0.0"
+  dart: ">=2.19.0 <4.0.0"
