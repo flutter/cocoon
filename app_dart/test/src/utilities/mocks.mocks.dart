@@ -7687,13 +7687,13 @@ class MockGitHub extends _i1.Mock implements _i10.GitHub {
         )),
       ) as _i17.Future<_i2.Response>);
   @override
-  void handleStatusCode(_i2.Response? response) => super.noSuchMethod(
+  Never handleStatusCode(_i2.Response? response) => (super.noSuchMethod(
         Invocation.method(
           #handleStatusCode,
           [response],
         ),
-        returnValueForMissingStub: null,
-      );
+        returnValue: null,
+      ) as Never);
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(

@@ -227,6 +227,38 @@ void main() {
       ).called(1);
     });
 
+    test('Acts on closed, cancels presubmit targets', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: false,
+      );
+
+      await tester.post(webhook);
+
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(scheduler.addPullRequestCallCnt, 0);
+    });
+
+    test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: true,
+      );
+
+      await tester.post(webhook);
+
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(scheduler.addPullRequestCallCnt, 1);
+    });
+
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
