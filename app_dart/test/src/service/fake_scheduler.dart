@@ -69,6 +69,7 @@ class FakeScheduler extends Scheduler {
     required PullRequest pullRequest,
     String reason = 'Newer commit available',
   }) async {
+    await super.cancelPreSubmitTargets(pullRequest: pullRequest);
     cancelPreSubmitTargetsCallCnt++;
   }
 
@@ -86,6 +87,7 @@ class FakeScheduler extends Scheduler {
   Future<void> addPullRequest(
     PullRequest pr,
   ) async {
+    await super.addPullRequest(pr);
     addPullRequestCallCnt++;
   }
 }
