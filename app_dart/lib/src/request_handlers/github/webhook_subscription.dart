@@ -115,6 +115,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         if (!pr.merged!) {
           await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
         } else {
+          // Forcefully merged pull requests should have targets cancelled.
+          await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request merged');
           // Merged pull requests can be added to CI.
           await scheduler.addPullRequest(pr);
         }
