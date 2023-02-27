@@ -126,10 +126,10 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
       targetsToRun.add(target);
     }
     for (String glob in globs) {
-      glob = glob.replaceAll('**', '[a-zA-Z_/]?');
-      glob = glob.replaceAll('*', '[a-zA-Z_/]*');
+      glob = glob.replaceAll('**', '[a-zA-Z_/.]+');
+      glob = glob.replaceAll('*', '[a-zA-Z_]+');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-      final RegExp regExp = RegExp('^$glob');
+      final RegExp regExp = RegExp('^$glob\$');
       if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
         targetsToRun.add(target);
         break;
