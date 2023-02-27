@@ -574,6 +574,10 @@ class LuciBuildService {
     Target target,
     Map<String, dynamic> rawUserData,
   ) async {
+    if (commit.slug == Config.flutterSlug) {
+      // Framework has too many targets, and will get throttled.
+      return;
+    }
     final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
       config,
       target.slug,
