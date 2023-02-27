@@ -367,12 +367,6 @@ void main() {
       expect(userData, <String, dynamic>{
         'commit_key': 'flutter/flutter/master/1',
         'task_key': '1',
-        'check_run_id': 1,
-        'commit_sha': '0',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       expect(properties, <String, dynamic>{
