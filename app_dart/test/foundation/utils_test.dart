@@ -199,24 +199,24 @@ void main() {
 
       test('does not return builders when run_if does not match any file', () async {
         targets = <Target>[
-          generateTarget(1, runIf: <String>['d/']),
+          generateTarget(1, runIf: <String>['cde/']),
         ];
-        files = <String>['a/b', 'c/d'];
+        files = <String>['abc/cde.py', 'cde/fgh.dart'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result.isEmpty, isTrue);
       });
 
       test('returns builders when run_if is null', () async {
-        files = <String>['a/b', 'c/d'];
+        files = <String>['abc/def.py', 'cde/dgh.dart'];
         targets = <Target>[generateTarget(1)];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
       });
 
-      test('returns builders when run_if matches files', () async {
-        files = <String>['a/b', 'c/d'];
+      test('returns builders when run_if matches files using full path', () async {
+        files = <String>['abc/cde.py', 'cgh/dhj.dart'];
         targets = <Target>[
-          generateTarget(1, runIf: <String>['a/'])
+          generateTarget(1, runIf: <String>['abc/cde.py'])
         ];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
@@ -224,18 +224,27 @@ void main() {
 
       test('returns builders when run_if matches files with **', () async {
         targets = <Target>[
-          generateTarget(1, runIf: <String>['a/**']),
+          generateTarget(1, runIf: <String>['abc/**']),
         ];
-        files = <String>['a/b', 'c/d'];
+        files = <String>['abc/cdf/hj.dart', 'abc/dej.dart'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
+      });
+
+      test('returns builders when run_if matches files with ** in the middle', () async {
+        targets = <Target>[
+          generateTarget(1, runIf: <String>['abc/**/hj.dart']),
+        ];
+        files = <String>['abc/cdf/efg/hj.dart', 'abc/dej.dart'];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, [targets[0]]);
       });
 
       test('returns builders when run_if matches files with both * and **', () async {
         targets = <Target>[
           generateTarget(1, runIf: <String>['a/b*c/**']),
         ];
-        files = <String>['a/baddsc/defg', 'c/d'];
+        files = <String>['a/baddsc/defg.zz', 'c/d'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
       });
