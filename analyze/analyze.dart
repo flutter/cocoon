@@ -206,7 +206,8 @@ const Set<String> kExecutableAllowlist = <String>{
   'test_utilities/bin/flutter_test_runner.sh',
   'test_utilities/bin/global_test_runner.dart',
   'test_utilities/bin/prepare_environment.sh',
-  'cloud_build/verify-provenance.sh'
+  'cloud_build/verify_provenance.sh',
+  'cloud_build/get_docker_image_provenance.sh'
 };
 
 Future<void> _checkForNewExecutables() async {

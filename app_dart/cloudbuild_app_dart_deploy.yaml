@@ -12,11 +12,9 @@ steps:
     args:
       - '-c'
       - |-
-        gcloud artifacts docker images describe \
+        cloud_build/get_docker_image_provenance.sh \
           us-docker.pkg.dev/$PROJECT_ID/appengine/default.version-$SHORT_SHA:latest \
-          --format json \
-          --show-provenance \
-          > unverified-provenance.json
+          unverified_provenance.json
 
   # Verify provenance is valid before proceeding with deployment.
   - name: 'golang:stretch'
@@ -24,7 +22,7 @@ steps:
     args:
       - '-c'
       - |-
-        cloud_build/verify-provenance.sh
+        cloud_build/verify_provenance.sh unverified_provenance.json
 
   # Deploy a new version to google cloud.
   - name: gcr.io/cloud-builders/gcloud
