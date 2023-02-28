@@ -430,6 +430,7 @@ class LuciBuildService {
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(tuple.first.value.name)) {
+        log.warning('Found no available builder for ${tuple.first.value.name}, commit ${commit.sha}');
         continue;
       }
       final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
