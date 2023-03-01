@@ -17,9 +17,10 @@ do
     COMMAND_RESULT=$?
     if [[ $COMMAND_RESULT -eq 0 ]]
     then
+        echo "Successfully obtained provenance and saved to $2"
         break
     else
-        echo "Failed to obtain provenance. Retrying in 30 seconds"
+        echo "Failed to obtain provenance."
         sleep 30
     fi
 done
