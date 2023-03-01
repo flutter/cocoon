@@ -521,6 +521,8 @@ void main() {
     });
 
     test('Skip non-existing builder', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
       final Commit commit = generateCommit(0);
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return const ListBuildersResponse(

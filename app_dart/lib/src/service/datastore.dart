@@ -263,6 +263,7 @@ class DatastoreService {
       () async {
         await db.withTransaction<void>((Transaction transaction) async {
           results = await transaction.lookup<T>(keys);
+          await transaction.commit();
         });
       },
       retryOptions: retryOptions,
@@ -277,6 +278,7 @@ class DatastoreService {
       () async {
         await db.withTransaction<void>((Transaction transaction) async {
           result = await db.lookupValue<T>(key, orElse: orElse);
+          await transaction.commit();
         });
       },
       retryOptions: retryOptions,

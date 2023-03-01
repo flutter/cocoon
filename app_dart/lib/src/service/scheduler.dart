@@ -167,6 +167,7 @@ class Scheduler {
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(Commit commit, List<Tuple<Target, Task, int>> toBeScheduled) async {
+    log.info('Batching ${toBeScheduled.length} for ${commit.sha}');
     final List<Future<void>> futures = <Future<void>>[];
     for (int i = 0; i < toBeScheduled.length; i += config.batchSize) {
       futures.add(
@@ -529,6 +530,8 @@ class Scheduler {
     const String dataset = 'cocoon';
     const String table = 'Checklist';
 
+    log.info('Uploading commit ${commit.sha} info to bigquery.');
+
     final TabledataResource tabledataResource = await config.createTabledataResourceApi();
     final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
@@ -554,6 +557,11 @@ class Scheduler {
 
     /// Insert [commits] to [BigQuery]
     try {
+      if (rows.rows == null) {
+        log.warning('Rows to be inserted is null');
+      } else {
+        log.info('Inserting ${rows.rows!.length} into big query for ${commit.sha}');
+      }
       await tabledataResource.insertAll(rows, projectId, dataset, table);
     } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
