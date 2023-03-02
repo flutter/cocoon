@@ -29,6 +29,6 @@ echo "Verifying the provenance is valid and correct..."
 FULLY_QUALIFIED_DIGEST=$(cat $1 | \
   jq -r .image_summary.fully_qualified_digest)
 slsa-verifier verify-image $FULLY_QUALIFIED_DIGEST \
-  --source-uri https://github.com/flutter/cocoon \
+  --source-uri git+https://github.com/flutter/cocoon \
   --builder-id=https://cloudbuild.googleapis.com/GoogleHostedWorker@v0.3 \
   --provenance-path $1
