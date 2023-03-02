@@ -156,14 +156,10 @@ class GithubChecksService {
   ///   https://developer.github.com/v3/checks/runs/#check-runs
   github.CheckRunStatus statusForResult(push_message.Status? status) {
     switch (status) {
-      case push_message.Status.completed:
-        return github.CheckRunStatus.completed;
-      case push_message.Status.scheduled:
-        return github.CheckRunStatus.queued;
-      case push_message.Status.started:
-        return github.CheckRunStatus.inProgress;
-      case null:
-        throw StateError('unreachable');
+      case push_message.Status.completed: return github.CheckRunStatus.completed;
+      case push_message.Status.scheduled: return github.CheckRunStatus.queued;
+      case push_message.Status.started: return github.CheckRunStatus.inProgress;
+      case null: throw StateError('unreachable');
     }
   }
 
