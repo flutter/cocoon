@@ -40,6 +40,8 @@ abstract class DeviceDiscovery {
 
   /// Prepares the device.
   Future<void> prepareDevices();
+
+  Future<bool> devicesReady();
 }
 
 /// A proxy for one specific phone device.

@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:device_doctor/src/no_device_found_exception.dart';
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
 import 'package:retry/retry.dart';
@@ -39,8 +41,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   static AndroidDeviceDiscovery? _instance;
 
-  Future<String> _deviceListOutput(Duration timeout, {ProcessManager? processManager}) async {
-    return eval('adb', <String>['devices', '-l'], canFail: false, processManager: processManager).timeout(timeout);
+  /// Get a list of devices currently connected seen in adb.
+  Future<String> _deviceListOutput(Duration timeout, {bool canFail = false, ProcessManager? processManager}) async {
+    return eval('adb', <String>['devices', '-l'], canFail: canFail, processManager: processManager).timeout(timeout);
   }
 
   Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager? processManager}) async {
@@ -74,8 +77,12 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }) async {
     processManager ??= LocalProcessManager();
     final List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
+    return parseDevicesListOutput(output);
+  }
+
+  Future<List<AndroidDevice>> parseDevicesListOutput(List<String> deviceOutput) async {
     final List<String> results = <String>[];
-    for (String line in output) {
+    for (String line in deviceOutput) {
       // Skip lines like: * daemon started successfully *
       if (line.startsWith('* daemon ')) continue;
 
@@ -91,7 +98,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
           results.add(deviceID!);
         }
       } else {
-        throw 'Failed to parse device from adb output: $line';
+        throw FormatException('Failed to parse device from adb output: $line');
       }
     }
     return results.map((String id) => AndroidDevice(deviceId: id)).toList();
@@ -369,6 +376,47 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     for (Device device in await discoverDevices()) {
       await device.prepare();
     }
+  }
+
+  /// Wait a specified duration for device(s) to be ready. We will give adb a
+  /// max delay of 15 seconds between requests
+  @override
+  Future<bool> devicesReady({
+    Duration timeout = const Duration(seconds: 15),
+    Duration deviceOutputTimeout = const Duration(seconds: 15),
+    ProcessManager? processManager,
+  }) async {
+    processManager ??= LocalProcessManager();
+
+    final RetryOptions r = RetryOptions(
+      maxAttempts: 4,
+      // set to the same as the timeout so each interval is 15 seconds
+      delayFactor: deviceOutputTimeout,
+      maxDelay: timeout,
+    );
+
+    final List<AndroidDevice> adbDevices = await r.retry(
+      () async {
+        final String result = await _deviceListOutput(
+          timeout,
+          canFail: true,
+          processManager: processManager,
+        );
+        // Since we can successfully run the devicesListOutput and get nothing
+        // We need to parse the list here for a failure to retry.
+        final List<String> adbOutput = result.trim().split('\n');
+        final List<AndroidDevice> devicesFound = await parseDevicesListOutput(adbOutput);
+        if (devicesFound.isEmpty) {
+          throw NoDeviceFoundException('No devices found in output.');
+        }
+        return devicesFound;
+      },
+      retryIf: (Exception e) => e is TimeoutException || e is FormatException || e is NoDeviceFoundException,
+    );
+
+    stdout.write("Found ${adbDevices[0].deviceId}");
+
+    return true;
   }
 }
 

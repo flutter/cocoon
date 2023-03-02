@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_doctor/src/no_device_found_exception.dart';
 import 'package:file/src/backends/memory/memory_file_system.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -53,6 +54,112 @@ void main() {
         deviceDiscovery.discoverDevices(retryDuration: const Duration(seconds: 0), processManager: processManager),
         throwsA(TypeMatcher<BuildFailedError>()),
       );
+    });
+  });
+
+  group('AndroidDeviceDeviceReady', () {
+    late AndroidDeviceDiscovery deviceDiscovery;
+    late MockProcessManager processManager;
+    List<List<int>> output;
+    List<List<int>> output2;
+    Process process;
+    Process process2;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery(MemoryFileSystem().file('output'));
+      processManager = MockProcessManager();
+    });
+
+    test('successfully gets device from output no retries', () async {
+      final StringBuffer sb = StringBuffer();
+      sb.writeln('List of devices attached');
+      sb.writeln('ZY223JQNMR      device');
+      output = <List<int>>[utf8.encode(sb.toString())];
+      process = FakeProcess(0, out: output);
+
+      when(
+        processManager.start(
+          <Object>['adb', 'devices', '-l'],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+
+      final bool returnValue = await deviceDiscovery.devicesReady(processManager: processManager);
+
+      expect(returnValue, isTrue);
+    });
+
+    test('Exception thrown when retries exhausted', () async {
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => throw TimeoutException('test'));
+
+      expect(
+        deviceDiscovery.devicesReady(
+          timeout: const Duration(seconds: 1),
+          deviceOutputTimeout: const Duration(seconds: 0),
+          processManager: processManager,
+        ),
+        throwsA(
+          TypeMatcher<BuildFailedError>(),
+        ),
+      );
+    });
+
+    test('adb runs but no devices attached throws exception', () async {
+      final StringBuffer sb = StringBuffer();
+      sb.writeln('List of devices attached');
+      output = <List<int>>[utf8.encode(sb.toString())];
+      process = FakeProcess(0, out: output);
+
+      when(
+        processManager.start(
+          <Object>['adb', 'devices', '-l'],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => Future.value(process));
+
+      expect(
+        () async => await deviceDiscovery.devicesReady(
+          timeout: const Duration(seconds: 1),
+          deviceOutputTimeout: const Duration(seconds: 0),
+          processManager: processManager,
+        ),
+        throwsException,
+      );
+    });
+
+    test('adb returns device after a try has been attempted', () async {
+      // initial failure output
+      final StringBuffer sb2 = StringBuffer();
+      sb2.writeln('List of devices attached');
+      output2 = <List<int>>[utf8.encode(sb2.toString())];
+
+      process2 = FakeProcess(0, out: output2);
+
+      // subsequent successful process run
+      final StringBuffer sb = StringBuffer();
+      sb.writeln('List of devices attached');
+      sb.writeln('ZY223JQNMR      device');
+      output = <List<int>>[utf8.encode(sb.toString())];
+
+      process = FakeProcess(0, out: output);
+
+      final processReturns = [Future.value(process2), Future.value(process)];
+
+      when(
+        processManager.start(
+          <Object>['adb', 'devices', '-l'],
+          workingDirectory: anyNamed('workingDirectory'),
+        ),
+      ).thenAnswer((_) => processReturns.removeAt(0));
+
+      final bool returnValue = await deviceDiscovery.devicesReady(
+        timeout: const Duration(seconds: 1),
+        deviceOutputTimeout: const Duration(seconds: 0),
+        processManager: processManager,
+      );
+
+      expect(returnValue, isTrue);
     });
   });
 

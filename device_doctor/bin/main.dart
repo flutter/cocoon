@@ -12,7 +12,7 @@ const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
 const String outputFlag = 'output';
-const List<String> supportedOptions = <String>['healthcheck', 'prepare', 'recovery', 'properties'];
+const List<String> supportedOptions = <String>['healthcheck', 'prepare', 'recovery', 'properties', 'deviceready'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 const String defaultOutputPath = '.output';
 
@@ -56,7 +56,8 @@ Future<void> main(List<String> args) async {
       allowedHelp: {
         'healthcheck': 'Check device health status.',
         'recovery': 'Clean up and reboot device.',
-        'properties': 'Return device properties/dimensions.'
+        'properties': 'Return device properties/dimensions.',
+        'deviceready': 'Wait for a device to become ready.'
       },
     )
     ..addOption('$outputFlag', help: 'Path to the output file')
@@ -86,5 +87,8 @@ Future<void> main(List<String> args) async {
       break;
     case 'properties':
       await deviceDiscovery.deviceProperties();
+      break;
+    case 'deviceready':
+      await deviceDiscovery.devicesReady();
   }
 }

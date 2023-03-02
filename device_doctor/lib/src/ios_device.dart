@@ -207,6 +207,12 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       await device.prepare();
     }
   }
+
+  @override
+  Future<bool> devicesReady({Duration timeout = const Duration(seconds: 60)}) async {
+    // support ios later.
+    return true;
+  }
 }
 
 /// iOS device.
