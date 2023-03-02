@@ -389,7 +389,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     processManager ??= LocalProcessManager();
 
     final RetryOptions r = RetryOptions(
-      maxAttempts: 4,
+      maxAttempts: 5,
       // set to the same as the timeout so each interval is 15 seconds
       delayFactor: deviceOutputTimeout,
       maxDelay: timeout,
