@@ -25,9 +25,12 @@ abstract class RequestHandler {
   Future<Response> run(Request request) async {
     try {
       switch (request.method) {
-        case 'GET': return await get() as Response;
-        case 'POST': return await post(request) as Response;
-        default: throw MethodNotAllowed(request.method);
+        case 'GET':
+          return await get() as Response;
+        case 'POST':
+          return await post(request) as Response;
+        default:
+          throw MethodNotAllowed(request.method);
       }
     } on HttpStatusException {
       rethrow;

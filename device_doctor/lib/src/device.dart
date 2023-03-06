@@ -15,9 +15,12 @@ import 'ios_device.dart';
 abstract class DeviceDiscovery {
   factory DeviceDiscovery(String? deviceOs, File? output) {
     switch (deviceOs) {
-      case 'ios': return IosDeviceDiscovery(output);
-      case 'android': return AndroidDeviceDiscovery(output);
-      default: throw StateError('Unsupported device operating system: $deviceOs');
+      case 'ios':
+        return IosDeviceDiscovery(output);
+      case 'android':
+        return AndroidDeviceDiscovery(output);
+      default:
+        throw StateError('Unsupported device operating system: $deviceOs');
     }
   }
 
