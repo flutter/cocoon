@@ -350,11 +350,16 @@ class Task extends Model<int> {
       return status = statusInProgress;
     }
     switch (build.result) {
-      case Result.success: return status = statusSucceeded;
-      case Result.canceled: return status = statusCancelled;
-      case Result.infraFailure: return status = statusInfraFailure;
-      case Result.failure: return status = statusFailed;
-      default: throw BadRequestException('${build.result} is unknown');
+      case Result.success:
+        return status = statusSucceeded;
+      case Result.canceled:
+        return status = statusCancelled;
+      case Result.infraFailure:
+        return status = statusInfraFailure;
+      case Result.failure:
+        return status = statusFailed;
+      default:
+        throw BadRequestException('${build.result} is unknown');
     }
   }
 
