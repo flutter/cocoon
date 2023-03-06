@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart';
 
+import '../../service/config.dart';
 import '../luci/buildbucket.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 
@@ -80,12 +81,14 @@ class Target {
   ///
   /// Targets not triggered by Cocoon will not be triggered.
   ///
-  /// All targets run with [BatchPolicy] to reduce queue time.
+  /// All targets except from [Config.guaranteedSchedulingRepos] run with [BatchPolicy] to reduce queue time.
   SchedulerPolicy get schedulerPolicy {
     if (value.scheduler != pb.SchedulerSystem.cocoon) {
       return OmitPolicy();
     }
-
+    if (Config.guaranteedSchedulingRepos.contains(slug)) {
+      return GuaranteedPolicy();
+    }
     return BatchPolicy();
   }
 

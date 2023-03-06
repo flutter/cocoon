@@ -349,8 +349,8 @@ void main() {
 
         expect(db.values.values.whereType<Commit>().length, 1);
         expect(db.values.values.whereType<Task>().length, 3);
-        // Ensure all tasks have been marked in progress
-        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
+        // Ensure all tasks under cocoon scheduler have been marked in progress
+        expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusInProgress).length, 2);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {

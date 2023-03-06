@@ -49,6 +49,12 @@ class Config {
         pluginsSlug,
       };
 
+  /// List of guaranteed scheduling Github repos.
+  static Set<gh.RepositorySlug> get guaranteedSchedulingRepos => <gh.RepositorySlug>{
+        engineSlug,
+        packagesSlug,
+      };
+
   /// List of Github postsubmit supported repos.
   ///
   /// This adds support for check runs to the repo.
