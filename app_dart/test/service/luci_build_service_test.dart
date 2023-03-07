@@ -327,9 +327,9 @@ void main() {
       );
     });
 
-    test('schedule postsubmit builds successfully', () async {
+    test('schedule packages postsubmit builds successfully', () async {
       final Commit commit = generateCommit(0);
-      when(mockGithubChecksUtil.createCheckRun(any, Config.flutterSlug, any, 'Linux 1'))
+      when(mockGithubChecksUtil.createCheckRun(any, Config.packagesSlug, any, 'Linux 1'))
           .thenAnswer((_) async => generateCheckRun(1));
       when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
         return const ListBuildersResponse(
@@ -344,6 +344,7 @@ void main() {
           properties: <String, String>{
             'os': 'debian-10.12',
           },
+          slug: Config.packagesSlug,
         ),
         generateTask(1),
         LuciBuildService.kDefaultPriority,
@@ -372,7 +373,7 @@ void main() {
         'commit_branch': 'master',
         'builder_name': 'Linux 1',
         'repo_owner': 'flutter',
-        'repo_name': 'flutter',
+        'repo_name': 'packages',
       });
       final Map<String, dynamic> properties = scheduleBuild.properties!;
       expect(properties, <String, dynamic>{
