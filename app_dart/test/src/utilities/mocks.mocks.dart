@@ -3274,11 +3274,10 @@ class MockHttpClient extends _i1.Mock implements _i15.HttpClient {
   @override
   set authenticate(
           _i17.Future<bool> Function(
-    Uri,
-    String,
-    String?,
-  )?
-              f) =>
+            Uri,
+            String,
+            String?,
+          )? f) =>
       super.noSuchMethod(
         Invocation.setter(
           #authenticate,
@@ -3289,11 +3288,10 @@ class MockHttpClient extends _i1.Mock implements _i15.HttpClient {
   @override
   set connectionFactory(
           _i17.Future<_i15.ConnectionTask<_i15.Socket>> Function(
-    Uri,
-    String?,
-    int?,
-  )?
-              f) =>
+            Uri,
+            String?,
+            int?,
+          )? f) =>
       super.noSuchMethod(
         Invocation.setter(
           #connectionFactory,
@@ -3312,12 +3310,11 @@ class MockHttpClient extends _i1.Mock implements _i15.HttpClient {
   @override
   set authenticateProxy(
           _i17.Future<bool> Function(
-    String,
-    int,
-    String,
-    String?,
-  )?
-              f) =>
+            String,
+            int,
+            String,
+            String?,
+          )? f) =>
       super.noSuchMethod(
         Invocation.setter(
           #authenticateProxy,
@@ -3328,11 +3325,10 @@ class MockHttpClient extends _i1.Mock implements _i15.HttpClient {
   @override
   set badCertificateCallback(
           bool Function(
-    _i15.X509Certificate,
-    String,
-    int,
-  )?
-              callback) =>
+            _i15.X509Certificate,
+            String,
+            int,
+          )? callback) =>
       super.noSuchMethod(
         Invocation.setter(
           #badCertificateCallback,
@@ -4172,10 +4168,9 @@ class MockHttpClientResponse extends _i1.Mock implements _i15.HttpClientResponse
   @override
   _i17.Future<List<int>> reduce(
           List<int> Function(
-    List<int>,
-    List<int>,
-  )?
-              combine) =>
+            List<int>,
+            List<int>,
+          )? combine) =>
       (super.noSuchMethod(
         Invocation.method(
           #reduce,
@@ -4189,8 +4184,7 @@ class MockHttpClientResponse extends _i1.Mock implements _i15.HttpClientResponse
     S Function(
       S,
       List<int>,
-    )?
-        combine,
+    )? combine,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4311,8 +4305,7 @@ class MockHttpClientResponse extends _i1.Mock implements _i15.HttpClientResponse
           [bool Function(
             List<int>,
             List<int>,
-          )?
-              equals]) =>
+          )? equals]) =>
       (super.noSuchMethod(
         Invocation.method(
           #distinct,

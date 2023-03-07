@@ -531,7 +531,8 @@ class LuciBuildService {
       'task_key': taskKey,
     };
 
-    if (target.value.bringup == false) {
+    // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
+    if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
       await createPostsubmitCheckRun(commit, target, rawUserData);
     }
 
