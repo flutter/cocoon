@@ -433,6 +433,7 @@ class LuciBuildService {
         log.warning('Found no available builder for ${tuple.first.value.name}, commit ${commit.sha}');
         continue;
       }
+      log.info('create postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
       final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: tuple.first,
@@ -440,6 +441,7 @@ class LuciBuildService {
         priority: tuple.third,
       );
       buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
+      log.info('created postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
     }
     final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
     log.fine(batchRequest);
@@ -522,7 +524,7 @@ class LuciBuildService {
 
     final String commitKey = task.parentKey!.id.toString();
     final String taskKey = task.key.id.toString();
-    log.info('Scheduling builder: ${target.value.name}');
+    log.info('Scheduling builder: ${target.value.name} for commit ${commit.sha}');
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
