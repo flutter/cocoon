@@ -174,7 +174,8 @@ tags: >
 4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
    1. PRs/commits that have rebased on the changing PR do not need to wait
    2. PRs/commits that have not rebased on the changing PR need to wait
-   3. Local LED runs need to wait
+   3. Local LUCI runs need to wait
+   4. Package cache needs to wait for roll out
 
 **Note:** updates on other entries except `properties` will not take effect immediately. Ths PR needs
 to be landed first to wait for changes propagated in infrastructure.
