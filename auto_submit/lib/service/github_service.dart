@@ -47,6 +47,11 @@ class GithubService {
     return await github.repositories.getCommit(slug, sha);
   }
 
+  /// Fetches a reference from a repository for the given [ref].
+  Future<GitReference> getReference(RepositorySlug slug, String ref) async {
+    return await github.git.getReference(slug, ref);
+  }
+
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
     final int? pullRequestId = pullRequest.number;
     final List<PullRequestFile> listPullRequestFiles = [];
@@ -82,19 +87,19 @@ class GithubService {
       assignees: assignees,
       state: state,
     );
-    return await github.issues.create(slug, issueRequest);
+    return await github.issues.create(slug, issueRequest,);
   }
 
   Future<Issue> getIssue({
     required RepositorySlug slug,
     required int issueNumber,
   }) async {
-    return await github.issues.get(slug, issueNumber);
+    return await github.issues.get(slug, issueNumber,);
   }
 
   /// Fetches the specified pull request.
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
-    return await github.pullRequests.get(slug, pullRequestNumber);
+  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber,) async {
+    return await github.pullRequests.get(slug, pullRequestNumber,);
   }
 
   /// Compares two commits to fetch diff.
@@ -145,6 +150,30 @@ class GithubService {
       mergeMethod: mergeMethod,
       requestSha: requestSha,
     );
+  }
+
+  /// Get a particular comment by its id.
+  Future<IssueComment> getComment(
+    RepositorySlug slug,
+    int commentId,
+  ) async {
+    return await github.issues.getComment(
+      slug,
+      commentId,
+    );
+  }
+
+  /// List all the comments on a particular issue.
+  Future<List<IssueComment>> listCommentsByIssue(
+    RepositorySlug slug,
+    int issueNumber,
+  ) async {
+    return await github.issues
+        .listCommentsByIssue(
+          slug,
+          issueNumber,
+        )
+        .toList();
   }
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
