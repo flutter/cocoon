@@ -106,7 +106,7 @@ promote a test that has been passing for the past 50 runs.
 
 ### Test Ownership
 
-**This only applies to flutter/flutter***
+**This only applies to flutter/flutter**
 
 To prevent tests from rotting, all targets are required to have a clear owner. Add an
 owner in [TESTOWNERS](https://github.com/flutter/flutter/blob/master/TESTOWNERS)
@@ -149,7 +149,9 @@ tags: >
   ["devicelab","hostonly"]
 ```
 
-### Upgrading dependencies
+### Updating targets
+
+#### Properties
 1. Find the cipd ref to upgrade to
     - If this is a Flutter managed package, look up its docs on uploading a new version
     - For example, JDK is at https://chrome-infra-packages.appspot.com/p/flutter_internal/java/openjdk/linux-amd64
@@ -165,10 +167,13 @@ tags: >
               {"dependency": "open_jdk", "version": "11"}
           ]
         timeout: 60
-    ```
-    - Send PR, wait for the checks to go green (the change takes effect on presubmit)
+      ```
+    - Send PR, wait for the checks to go green (**the change takes effect on presubmit**)
 3. If the check is red, add patches to get it green
 4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
+
+**Note** Updates on other entries except `properties` will not take effect on presubmit. Ths PR needs
+to be landed first to wait for changes propagated in infrastructure.
 
 ### External Tests
 
