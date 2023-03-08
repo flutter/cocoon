@@ -535,22 +535,31 @@ String _issueBuilderLink(String? builder) {
 
 Team _teamFromString(String teamString) {
   switch (teamString) {
-    case 'flutter/framework': return Team.framework;
-    case 'flutter/engine': return Team.engine;
-    case 'flutter/tool': return Team.tool;
-    case 'flutter/web': return Team.web;
+    case 'flutter/framework':
+      return Team.framework;
+    case 'flutter/engine':
+      return Team.engine;
+    case 'flutter/tool':
+      return Team.tool;
+    case 'flutter/web':
+      return Team.web;
   }
   return Team.unknown;
 }
 
 String? _getTeamLabelFromTeam(Team? team) {
   switch (team) {
-    case Team.framework: return kFrameworkLabel;
-    case Team.engine: return kEngineLabel;
-    case Team.tool: return kToolLabel;
-    case Team.web: return kWebLabel;
+    case Team.framework:
+      return kFrameworkLabel;
+    case Team.engine:
+      return kEngineLabel;
+    case Team.tool:
+      return kToolLabel;
+    case Team.web:
+      return kWebLabel;
     case Team.unknown:
-    case null: return null;
+    case null:
+      return null;
   }
 }
 

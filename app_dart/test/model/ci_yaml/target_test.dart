@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
+import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
 
 import '../../src/utilities/entity_generators.dart';
@@ -378,6 +379,11 @@ void main() {
 
       test('vm cocoon targets return batch policy', () {
         expect(generateTarget(1, platform: 'Linux').schedulerPolicy, isA<BatchPolicy>());
+      });
+
+      test('packages targets use guaranteed policy', () {
+        expect(generateTarget(1, platform: 'Mac', slug: github.RepositorySlug('flutter', 'packages')).schedulerPolicy,
+            isA<GuaranteedPolicy>());
       });
     });
   });
