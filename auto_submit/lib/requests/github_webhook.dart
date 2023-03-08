@@ -44,12 +44,18 @@ class GithubWebhook extends RequestHandler {
 
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers['X-Hub-Signature'];
-    
-    if (!await _validateRequest(hmacSignature, requestBytes,)) {
+
+    if (!await _validateRequest(
+      hmacSignature,
+      requestBytes,
+    )) {
       throw const Forbidden();
     }
 
-    return processEvent(gitHubEvent, requestBytes,);
+    return processEvent(
+      gitHubEvent,
+      requestBytes,
+    );
   }
 
   /// Process and validate the Github events we expect to process with this
@@ -111,7 +117,8 @@ class GithubWebhook extends RequestHandler {
       );
       return Response.ok(rawPayload);
     } else {
-      log.warning('The comment was not on a pull request or the author does not have the authority to request a merge update.');
+      log.warning(
+          'The comment was not on a pull request or the author does not have the authority to request a merge update.');
     }
 
     return Response.ok(nonSuccessResponse);
@@ -126,7 +133,8 @@ class GithubWebhook extends RequestHandler {
   /// google team.
   bool isValidMergeUpdateComment(IssueComment issueComment) {
     // TODO remove contributor as I am not a member or owner and needed to test this.
-    return (Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) || issueComment.authorAssociation == 'CONTRIBUTOR') &&
+    return (Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) ||
+            issueComment.authorAssociation == 'CONTRIBUTOR') &&
         (issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!));
   }
 
@@ -160,7 +168,6 @@ class GithubWebhook extends RequestHandler {
 
     return Response.ok(nonSuccessResponse);
   }
-
 
   Future<bool> _validateRequest(
     String? signature,

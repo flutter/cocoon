@@ -87,19 +87,31 @@ class GithubService {
       assignees: assignees,
       state: state,
     );
-    return await github.issues.create(slug, issueRequest,);
+    return await github.issues.create(
+      slug,
+      issueRequest,
+    );
   }
 
   Future<Issue> getIssue({
     required RepositorySlug slug,
     required int issueNumber,
   }) async {
-    return await github.issues.get(slug, issueNumber,);
+    return await github.issues.get(
+      slug,
+      issueNumber,
+    );
   }
 
   /// Fetches the specified pull request.
-  Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber,) async {
-    return await github.pullRequests.get(slug, pullRequestNumber,);
+  Future<PullRequest> getPullRequest(
+    RepositorySlug slug,
+    int pullRequestNumber,
+  ) async {
+    return await github.pullRequests.get(
+      slug,
+      pullRequestNumber,
+    );
   }
 
   /// Compares two commits to fetch diff.
