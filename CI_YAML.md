@@ -171,7 +171,10 @@ tags: >
     - Send PR, wait for the checks to go green (**the change takes effect on both presubmit and postsubmit as cocoon scheduling**
     **fetches latest change and applies it to new builds immediately**)
 3. If the check is red, add patches to get it green
-4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties for incoming PRs to see them.
+4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
+   1. PRs/commits that have rebased on the changing PR do not need to wait
+   2. PRs/commits that have not rebased on the changing PR need to wait
+   3. Local LED runs need to wait
 
 **Note:** updates on other entries except `properties` will not take effect immediately. Ths PR needs
 to be landed first to wait for changes propagated in infrastructure.
