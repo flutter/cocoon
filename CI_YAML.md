@@ -172,7 +172,7 @@ tags: >
 3. If the check is red, add patches to get it green
 4. Once the PR has landed, infrastructure may take 1 or 2 commits to apply the latest properties
 
-**Note** Updates on other entries except `properties` will not take effect on presubmit. Ths PR needs
+**Note:** updates on other entries except `properties` will not take effect on presubmit. Ths PR needs
 to be landed first to wait for changes propagated in infrastructure.
 
 ### External Tests
