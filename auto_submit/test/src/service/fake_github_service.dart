@@ -43,6 +43,7 @@ class FakeGithubService implements GithubService {
 
   /// map to track pull request calls using pull number and repository slug.
   Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
+  Map<int, RepositorySlug> verifyBranchUpdatesMap = {};
 
   bool throwOnCreateIssue = false;
 
@@ -61,6 +62,12 @@ class FakeGithubService implements GithubService {
 
   bool compareReturnValue = false;
   bool skipRealCompare = false;
+  bool updateBranchValue = true;
+
+  GitReference? gitReferenceMock;
+
+  // Simulate issueComment from github
+  IssueComment? issueCommentMock;
 
   set checkRunsData(String? checkRunsMock) {
     this.checkRunsMock = checkRunsMock;
@@ -96,6 +103,10 @@ class FakeGithubService implements GithubService {
 
   set githubIssue(Issue? issue) {
     githubIssueMock = issue;
+  }
+
+  set gitReference(GitReference gitReference) {
+    gitReferenceMock = gitReference;
   }
 
   @override
@@ -177,9 +188,18 @@ class FakeGithubService implements GithubService {
     return issueComment!;
   }
 
+  void verifyBranchUpdates(Map<int, RepositorySlug> expected) {
+    assert(verifyBranchUpdatesMap.length == expected.length);
+    verifyBranchUpdatesMap.forEach((key, value) {
+      assert(expected.containsKey(key));
+      assert(expected[key] == value);
+    });
+  }
+
   @override
   Future<bool> updateBranch(RepositorySlug slug, int number, String headSha) async {
-    return true;
+    verifyBranchUpdatesMap[number] = slug;
+    return updateBranchValue;
   }
 
   @override
@@ -312,5 +332,31 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+  }
+
+  @override
+  Future<GitReference> getReference(RepositorySlug slug, String ref) async {
+    return gitReferenceMock!;
+  }
+
+  int getCommentInvocations = 0;
+  bool getCommentThrowsException = false;
+  GitHubError gitHubError = GitHubError(MockGitHub(), 'Github Error.');
+
+  @override
+  Future<IssueComment> getComment(RepositorySlug slug, int commentId) async {
+    getCommentInvocations++;
+    if (getCommentThrowsException) {
+      throw gitHubError;
+    }
+    // This will be an issue if the issueCommentMock is not set.
+    final IssueComment issueComment = issueCommentMock!;
+    return issueComment;
+  }
+
+  @override
+  Future<List<IssueComment>> listCommentsByIssue(RepositorySlug slug, int issueNumber) {
+    // Not currently used.
+    throw UnimplementedError();
   }
 }
