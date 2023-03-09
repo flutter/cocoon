@@ -84,13 +84,18 @@ class IssueCommentProcessor implements EventProcessor {
   /// comment must also be a MEMBER or OWNER of the repository.
   @override
   Future<Response> processEvent(List<int> requestBytes) async {
+    log.info('Processing event...');
     final String rawPayload = utf8.decode(requestBytes);
     final Map<String, dynamic> jsonPayload = json.decode(rawPayload) as Map<String, dynamic>;
+
+    log.info('payload = $jsonPayload');
 
     // Do not process edited comments.
     if (jsonPayload.containsKey('action') && jsonPayload['action'] != 'created') {
       log.info('Ignoring comment with non "created" action');
       return Response.ok(nonSuccessResponse);
+    } else {
+      log.info('Action = created.');
     }
 
     // Check for keys so we do not blow up. We must have all three of these.
@@ -99,6 +104,8 @@ class IssueCommentProcessor implements EventProcessor {
         !jsonPayload.containsKey('repository')) {
       log.info('Comment payload does not contain the required keys, "issue," "comment," and "repository"');
       return Response.ok(nonSuccessResponse);
+    } else {
+      log.info('All keys present.');
     }
 
     // The issue has the repo information we need and the issue_comment has the
@@ -106,6 +113,10 @@ class IssueCommentProcessor implements EventProcessor {
     final Issue issue = Issue.fromJson(jsonPayload['issue'] as Map<String, dynamic>);
     final IssueComment issueComment = IssueComment.fromJson(jsonPayload['comment'] as Map<String, dynamic>);
     final Repository repository = Repository.fromJson(jsonPayload['repository'] as Map<String, dynamic>);
+
+    log.info('${issue.pullRequest}');
+    log.info('${issueComment.body}');
+    log.info(repository.fullName);
 
     if (isValidPullRequestIssue(issue) && isValidMergeUpdateComment(issueComment)) {
       log.info('Found a comment requesting a merge update.');
@@ -132,6 +143,7 @@ class IssueCommentProcessor implements EventProcessor {
 
   /// Verify that this is a pull request issue.
   bool isValidPullRequestIssue(Issue issue) {
+    log.info(issue.pullRequest);
     return issue.pullRequest != null;
   }
 

@@ -23,7 +23,7 @@ abstract class SecretManager {
 class CloudSecretManager implements SecretManager {
   CloudSecretManager();
 
-  final String projectId = Platform.environment['APPLICATION_ID'] ?? 'flutter-dashboard';
+  final String projectId = Platform.environment['APPLICATION_ID'] ?? 'flutter-dashboard-dev';
 
   @override
   Future<String> get(

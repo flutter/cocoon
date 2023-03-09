@@ -36,7 +36,7 @@ class PubSub {
         pubsub.PubsubMessage(data: messageBase64),
       ],
     );
-    final String fullTopicName = 'projects/flutter-dashboard/topics/$topic';
+    final String fullTopicName = 'projects/flutter-dashboard-dev/topics/$topic';
     final pubsub.PublishResponse response = await pubsubApi.projects.topics.publish(request, fullTopicName);
     log.info('pubsub response messageId=${response.messageIds}');
   }
@@ -51,7 +51,7 @@ class PubSub {
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
     final pubsub.PullResponse pullResponse = await pubsubApi.projects.subscriptions
-        .pull(pullRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
+        .pull(pullRequest, 'projects/flutter-dashboard-dev/subscriptions/$subscription');
     return pullResponse;
   }
 
@@ -68,6 +68,6 @@ class PubSub {
     final List<String> ackIds = [ackId];
     final pubsub.AcknowledgeRequest acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
     await pubsubApi.projects.subscriptions
-        .acknowledge(acknowledgeRequest, 'projects/flutter-dashboard/subscriptions/$subscription');
+        .acknowledge(acknowledgeRequest, 'projects/flutter-dashboard-dev/subscriptions/$subscription');
   }
 }

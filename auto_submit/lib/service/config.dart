@@ -42,8 +42,8 @@ class Config {
   // Regex for merge update comments
   static final RegExp regExpMergeMethod = RegExp(r'@autosubmit\s*:\s*merge', caseSensitive: false);
 
-  static const String pubSubCommentTopic = 'auto-submit-comment-queue';
-  static const String pubSubCommentSubscription = 'auto-submit-comment-sub';
+  static const String pubSubCommentTopic = 'auto-submit-comments';
+  static const String pubSubCommentSubscription = 'auto-submit-comments-sub';
 
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),
