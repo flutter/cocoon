@@ -12,6 +12,7 @@ import 'package:googleapis/pubsub/v1.dart' as pub;
 
 import '../request_handling/pubsub.dart';
 
+import '../service/config.dart';
 import '../service/log.dart';
 
 class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
@@ -50,7 +51,7 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
       if (processingLog.contains(mergeCommentMessage.comment!.id!)) {
         log.info('Ack the duplicated message : ${message.ackId!}.');
         await pubsub.acknowledge(
-          'auto-submit-comment-sub',
+          Config.pubSubCommentSubscription,
           message.ackId!,
         );
         continue;
@@ -77,7 +78,7 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < pubsubPullNumber; i++) {
       final pub.PullResponse pullResponse = await pubsub.pull(
-        'auto-submit-comment-sub',
+        Config.pubSubCommentSubscription,
         pullMesssageBatchSize,
       );
       final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;

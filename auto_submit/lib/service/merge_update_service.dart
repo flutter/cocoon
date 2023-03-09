@@ -29,12 +29,29 @@ class MergeUpdateService {
       slug,
       mergeCommentMessage.issue!.number,
     );
+
     if (pullRequest.state != 'open') {
       log.info('Ignoring closed pull request as it is not open.');
       await pubsub.acknowledge(
         Config.pubSubCommentSubscription,
         ackId,
       );
+      return;
+    }
+
+    if (pullRequest.mergeable != null && !pullRequest.mergeable!) {
+      const String message = 'Ignoring pull request merge request as it is not in a mergeable state.';
+      log.info(message);
+      await githubService.createComment(
+        slug,
+        mergeCommentMessage.issue!.number,
+        message,
+      );
+      await pubsub.acknowledge(
+        Config.pubSubCommentSubscription,
+        ackId,
+      );
+
       return;
     }
 
@@ -65,7 +82,9 @@ class MergeUpdateService {
     }
 
     if (issueComment.authorAssociation == null ||
-        !Config.approvedAuthorAssociations.contains(issueComment.authorAssociation!)) {
+        //TODO remove contributor check after testing.
+        !Config.approvedAuthorAssociations.contains(issueComment.authorAssociation!) &&
+            (issueComment.authorAssociation != 'CONTRIBUTOR')) {
       const String message = 'You must be a MEMBER or OWNER author to request a merge update.';
       log.info(message);
       // Add a message to the issue.

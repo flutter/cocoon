@@ -77,7 +77,10 @@ void main() {
   });
 
   test('Null IssueComment is not processed.', () async {
-    final PullRequest pullRequest = PullRequest(state: 'open');
+    final PullRequest pullRequest = PullRequest(
+      state: 'open',
+      mergeable: true,
+    );
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
     final IssueComment issueComment = IssueComment(
@@ -265,12 +268,16 @@ void main() {
   });
 
   test('Non Member/Owner authorAssociation is not processed.', () async {
-    final PullRequest pullRequest = PullRequest(state: 'open');
+    final PullRequest pullRequest = PullRequest(
+      state: 'open',
+      mergeable: true,
+    );
 
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
     final IssueComment issueComment = IssueComment(
-      authorAssociation: 'CONTRIBUTOR',
+      //TODO change back to contributor after testing.
+      authorAssociation: 'ASSOCIATE',
       id: 111,
       body: '@autosubmit:merge',
     );

@@ -22,14 +22,14 @@ abstract class EventProcessor {
       case 'issue_comment':
         return IssueCommentProcessor(config, pubSub);
       default:
-        return NullableRequestProcessor();
+        return NoOpRequestProcessor();
     }
   }
 
   Future<Response> processEvent(List<int> requestBytes);
 }
 
-class NullableRequestProcessor implements EventProcessor {
+class NoOpRequestProcessor implements EventProcessor {
   @override
   Future<Response> processEvent(List<int> requestBytes) async {
     return Response.ok(nonSuccessResponse);
@@ -139,8 +139,6 @@ class IssueCommentProcessor implements EventProcessor {
   /// google team.
   bool isValidMergeUpdateComment(IssueComment issueComment) {
     // TODO remove contributor as I am not a member or owner and needed to test this.
-    return (Config.approvedAuthorAssociations.contains(issueComment.authorAssociation) ||
-            issueComment.authorAssociation == 'CONTRIBUTOR') &&
-        (issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!));
+    return issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!);
   }
 }

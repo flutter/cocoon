@@ -48,7 +48,10 @@ void main() {
         'ricardoamador',
         'flutter_test',
       );
-      final PullRequest pullRequest = PullRequest(state: 'open');
+      final PullRequest pullRequest = PullRequest(
+        state: 'open',
+        mergeable: true,
+      );
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
         slug: slug,
@@ -145,7 +148,10 @@ void main() {
         'ricardoamador',
         'flutter_test',
       );
-      final PullRequest pullRequest = PullRequest(state: 'open');
+      final PullRequest pullRequest = PullRequest(
+        state: 'open',
+        mergeable: true,
+      );
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
         slug: slug,
@@ -193,10 +199,13 @@ void main() {
         'ricardoamador',
         'flutter_test',
       );
-      final PullRequest pullRequest = PullRequest(state: 'open');
+      final PullRequest pullRequest = PullRequest(
+        state: 'open',
+        mergeable: true,
+      );
 
       final MergeCommentMessage mergeCommentMessage = generateMergeCommentMessage(
-        authorAssociation: 'CONTRIBUTOR',
+        authorAssociation: 'ASSOCIATE',
         addPullRequest: true,
         slug: slug,
       );

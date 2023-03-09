@@ -6,13 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:auto_submit/requests/event_processor.dart';
-import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
 
-import '../model/merge_comment_message.dart';
 import '../request_handling/pubsub.dart';
-import '../service/config.dart';
 import '../service/log.dart';
 import '../server/request_handler.dart';
 import '../requests/exceptions.dart';
