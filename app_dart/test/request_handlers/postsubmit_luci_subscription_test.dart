@@ -167,11 +167,12 @@ void main() {
   });
 
   test('non-bringup target updates check run', () async {
+    scheduler.ciYaml = nonBringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
-    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822', repo: 'packages');
     final Task task = generateTask(
       4507531199512576,
-      name: 'Linux A',
+      name: 'Linux nonbringup',
       parent: commit,
     );
     config.db.values[commit.key] = commit;
@@ -190,7 +191,7 @@ void main() {
   });
 
   test('bringup target does not update check run', () async {
-    scheduler.ciYaml = bringupConfig;
+    scheduler.ciYaml = bringupPackagesConfig;
     when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
     final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
     final Task task = generateTask(
@@ -208,6 +209,30 @@ void main() {
       // Use escaped string to mock json decoded ones.
       userData:
           '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"packages\\"}',
+    );
+    await tester.post(handler);
+    verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
+  });
+
+  test('unsupported repo target does not update check run', () async {
+    scheduler.ciYaml = unsupportedPostsubmitCheckrunConfig;
+    when(mockGithubChecksService.updateCheckStatus(any, any, any)).thenAnswer((_) async => true);
+    final Commit commit = generateCommit(1, sha: '87f88734747805589f2131753620d61b22922822');
+    final Task task = generateTask(
+      4507531199512576,
+      name: 'Linux flutter',
+      parent: commit,
+    );
+    config.db.values[commit.key] = commit;
+    config.db.values[task.key] = task;
+
+    tester.message = createBuildbucketPushMessage(
+      'COMPLETED',
+      result: 'SUCCESS',
+      builderName: 'Linux bringup',
+      // Use escaped string to mock json decoded ones.
+      userData:
+          '{\\"task_key\\":\\"${task.key.id}\\", \\"commit_key\\":\\"${task.key.parent?.id}\\", \\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"flutter\\"}',
     );
     await tester.post(handler);
     verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));

@@ -138,7 +138,7 @@ CiYaml exampleConfig = CiYaml(
   ),
 );
 
-CiYaml batchPolicyConfig = CiYaml(
+final CiYaml batchPolicyConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   config: pb.SchedulerConfig(
@@ -156,12 +156,42 @@ CiYaml batchPolicyConfig = CiYaml(
   ),
 );
 
-final CiYaml bringupConfig = CiYaml(
+final CiYaml unsupportedPostsubmitCheckrunConfig = CiYaml(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   config: pb.SchedulerConfig(
     enabledBranches: <String>[
       Config.defaultBranch(Config.flutterSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux flutter',
+      ),
+    ],
+  ),
+);
+
+final CiYaml nonBringupPackagesConfig = CiYaml(
+  slug: Config.packagesSlug,
+  branch: Config.defaultBranch(Config.packagesSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.packagesSlug),
+    ],
+    targets: <pb.Target>[
+      pb.Target(
+        name: 'Linux nonbringup',
+      ),
+    ],
+  ),
+);
+
+final CiYaml bringupPackagesConfig = CiYaml(
+  slug: Config.packagesSlug,
+  branch: Config.defaultBranch(Config.packagesSlug),
+  config: pb.SchedulerConfig(
+    enabledBranches: <String>[
+      Config.defaultBranch(Config.packagesSlug),
     ],
     targets: <pb.Target>[
       pb.Target(
