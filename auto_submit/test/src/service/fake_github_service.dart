@@ -44,6 +44,7 @@ class FakeGithubService implements GithubService {
   /// map to track pull request calls using pull number and repository slug.
   Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
   Map<int, RepositorySlug> verifyBranchUpdatesMap = {};
+  Map<int, PullRequest> verifyAutoMergeCallMap = {};
 
   bool throwOnCreateIssue = false;
 
@@ -63,6 +64,8 @@ class FakeGithubService implements GithubService {
   bool compareReturnValue = false;
   bool skipRealCompare = false;
   bool updateBranchValue = true;
+
+  bool? autoMergeResult = false;
 
   GitReference? gitReferenceMock;
 
@@ -194,6 +197,7 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+    // verifyUpdates(expected, verifyBranchUpdatesMap);
   }
 
   @override
@@ -202,10 +206,22 @@ class FakeGithubService implements GithubService {
     return updateBranchValue;
   }
 
+  void verifyUpdates<T, E>(Map<T, E> expected, Map<T, E> actual) {
+    assert(actual.length == expected.length);
+    actual.forEach((key, value) {
+      assert(expected.containsKey(key));
+      assert(expected[key] == value);
+    });
+  }
+
+  void verifyAutoMergeBranchCalls(Map<int, PullRequest> expected) {
+    verifyUpdates(expected, verifyAutoMergeCallMap);
+  }
+
   @override
-  Future<Response> autoMergeBranch(PullRequest pullRequest) {
-    // TODO: implement autoMergeBranch
-    throw UnimplementedError();
+  Future<bool?> autoMergeBranch(PullRequest pullRequest) async {
+    verifyAutoMergeCallMap[pullRequest.number!] = pullRequest;
+    return autoMergeResult;
   }
 
   @override

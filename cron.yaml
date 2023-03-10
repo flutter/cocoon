@@ -47,7 +47,7 @@ cron:
   schedule: every wednesday 16:20
 
 - description: update branches to reflect most recent commit activity
-  url: '/api/update-branches'
+  url: /api/update-branches
   schedule: every wednesday 19:00
 
 - description: check pull request in auto submit bot
@@ -61,6 +61,6 @@ cron:
   schedule: every 12 hours
 
 - description: check for merge requests on open pull requests
-  url: /update-revert-issues
+  url: /merge-update-pull-request
   target: auto-submit
   schedule: every 1 minutes

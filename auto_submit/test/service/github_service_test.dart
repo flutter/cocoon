@@ -66,7 +66,7 @@ void main() {
   });
 
   test('Does not merge branch', () async {
-    when(mockGitHubComparison.behindBy).thenReturn(9);
+    when(mockGitHubComparison.behindBy).thenReturn(0);
     final PullRequest pullRequest = generatePullRequest();
     await githubService.autoMergeBranch(pullRequest);
     verifyNever(mockResponse.statusCode);

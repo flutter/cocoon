@@ -315,7 +315,7 @@ void main() {
   });
 
   test('Update branch is successful.', () async {
-    final PullRequest pullRequest = PullRequest(state: 'open');
+    final PullRequest pullRequest = PullRequest(state: 'open', number: 10);
 
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
@@ -328,6 +328,7 @@ void main() {
 
     githubService.issueCommentMock = issueComment;
     githubService.pullRequestMock = pullRequest;
+    githubService.autoMergeResult = true;
 
     final MergeCommentMessage mergeCommentMessage = MergeCommentMessage(
       issue: issue,
@@ -347,7 +348,7 @@ void main() {
       1,
     );
     expect(
-      githubService.issueComment!.body!.contains('Successfully merged'),
+      githubService.issueComment!.body!.contains('Successfully updated'),
       isTrue,
     );
     // Validate some other issue did not take place.
@@ -358,7 +359,7 @@ void main() {
   });
 
   test('Update branch is unsuccessful.', () async {
-    final PullRequest pullRequest = PullRequest(state: 'open');
+    final PullRequest pullRequest = PullRequest(state: 'open', number: 10);
     githubService.updateBranchValue = false;
     githubService.useRealComment = true;
     final Repository repository = Repository(fullName: slug.fullName);
@@ -390,7 +391,7 @@ void main() {
       1,
     );
     expect(
-      githubService.issueComment!.body!.contains('Unable to merge'),
+      githubService.issueComment!.body!.contains('Unable to update'),
       isTrue,
     );
     // Validate some other issue did not take place.

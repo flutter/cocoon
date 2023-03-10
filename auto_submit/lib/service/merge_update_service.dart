@@ -21,6 +21,7 @@ class MergeUpdateService {
     String ackId,
     PubSub pubsub,
   ) async {
+    log.info('Processing $ackId');
     final RepositorySlug slug = RepositorySlug.full(mergeCommentMessage.repository!.fullName);
     final GithubService githubService = await config.createGithubService(slug);
 
@@ -37,6 +38,8 @@ class MergeUpdateService {
         ackId,
       );
       return;
+    } else {
+      log.info('Pull request is still open.');
     }
 
     if (pullRequest.mergeable != null && !pullRequest.mergeable!) {
@@ -53,6 +56,8 @@ class MergeUpdateService {
       );
 
       return;
+    } else {
+      log.info('Pull request is in a mergeable state.');
     }
 
     // Get the updated IssueComment.
@@ -68,6 +73,8 @@ class MergeUpdateService {
         ackId,
       );
       return;
+    } else {
+      log.info('Merge request is still valid.');
     }
 
     // Make sure the comment still requests the merge update. Last chance to unrequest merge.
@@ -81,10 +88,9 @@ class MergeUpdateService {
       return;
     }
 
+    // TODO not sure why we need to do this... Anyone can update their pull requests.
     if (issueComment.authorAssociation == null ||
-        //TODO remove contributor check after testing.
-        !Config.approvedAuthorAssociations.contains(issueComment.authorAssociation!) &&
-            (issueComment.authorAssociation != 'CONTRIBUTOR')) {
+        !Config.approvedAuthorAssociations.contains(issueComment.authorAssociation!)) {
       const String message = 'You must be a MEMBER or OWNER author to request a merge update.';
       log.info(message);
       // Add a message to the issue.
@@ -100,35 +106,28 @@ class MergeUpdateService {
       return;
     }
 
-    // Attempt the merge request.
-    final String defaultBranch = mergeCommentMessage.repository!.defaultBranch;
-    // Ref should always exist.
-    final GitReference gitReference = await githubService.getReference(
-      slug,
-      'heads/$defaultBranch',
-    );
-
-    final bool status = await githubService.updateBranch(
-      slug,
-      mergeCommentMessage.issue!.number,
-      gitReference.object!.sha!,
-    );
+    final bool? status = await githubService.autoMergeBranch(pullRequest);
 
     String message;
-    if (status) {
-      message =
-          'Successfully merged ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
-      log.info(message);
+    if (status != null) {
+      if (status) {
+        message = 'Successfully updated pull request';
+        log.info(message);
+      } else {
+        message = 'Unable to update pull request';
+        log.severe(message);
+      }
     } else {
-      message =
-          'Unable to merge ${gitReference.object!.sha!} into this pull request ${mergeCommentMessage.issue!.number}';
-      log.severe(message);
+      message = 'No update needed, branch is not behind head.';
+      log.info(message);
     }
+
     await githubService.createComment(
       slug,
       mergeCommentMessage.issue!.number,
       message,
     );
+
     await pubsub.acknowledge(Config.pubSubCommentSubscription, ackId);
   }
 

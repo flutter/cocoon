@@ -56,6 +56,7 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
         );
         continue;
       } else {
+        log.info('Adding message ${message.ackId!} to processing log.');
         processingLog.add(mergeCommentMessage.comment!.id!);
       }
       futures.add(

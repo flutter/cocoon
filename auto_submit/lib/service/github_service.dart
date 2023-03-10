@@ -8,7 +8,7 @@ import 'package:github/github.dart';
 
 /// If a pull request was behind the tip of tree by _kBehindToT commits
 /// then the bot tries to rebase it
-const int _kBehindToT = 10;
+const int _kBehindToT = 1;
 
 /// [GithubService] handles communication with the GitHub API.
 class GithubService {
@@ -189,7 +189,7 @@ class GithubService {
   }
 
   /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
-  Future<void> autoMergeBranch(PullRequest pullRequest) async {
+  Future<bool?> autoMergeBranch(PullRequest pullRequest) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final int prNumber = pullRequest.number!;
     final RepositoryCommit totCommit = await getCommit(slug, 'HEAD');
@@ -197,8 +197,10 @@ class GithubService {
     if (comparison.behindBy! >= _kBehindToT) {
       log.info('The current branch is behind by ${comparison.behindBy} commits.');
       final String headSha = pullRequest.head!.sha!;
-      await updateBranch(slug, prNumber, headSha);
+      return await updateBranch(slug, prNumber, headSha);
     }
+    log.info('Branch is not behind by more than $_kBehindToT commits.');
+    return null;
   }
 
   /// Compare the filesets of the current pull request and the original pull

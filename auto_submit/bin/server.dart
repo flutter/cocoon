@@ -48,7 +48,7 @@ Future<void> main() async {
       ..get(
         '/merge-update-pull-request',
         MergeUpdatePullRequest(
-          config: config, 
+          config: config,
           cronAuthProvider: authProvider,
         ).run,
       )

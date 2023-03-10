@@ -49,6 +49,7 @@ void main() {
         'flutter_test',
       );
       final PullRequest pullRequest = PullRequest(
+        number: 10,
         state: 'open',
         mergeable: true,
       );
@@ -65,12 +66,15 @@ void main() {
       githubService.gitReferenceMock = gitReferenceMock;
       githubService.useRealComment = true;
       githubService.pullRequestMock = pullRequest;
+      githubService.autoMergeResult = true;
 
       for (int i = 0; i < 2; i++) {
-        unawaited(pubsub.publish(
-          'auto-submit-comment-sub',
-          mergeCommentMessage,
-        ));
+        unawaited(
+          pubsub.publish(
+            'auto-submit-comment-sub',
+            mergeCommentMessage,
+          ),
+        );
       }
 
       pullRequestMergeUpdate = MergeUpdatePullRequest(
@@ -79,13 +83,13 @@ void main() {
         pubsub: pubsub,
       );
 
-      final Map<int, RepositorySlug> expectedMergeRequestMap = {};
-      expectedMergeRequestMap[10] = slug;
+      final Map<int, PullRequest> expectedMergeRequestMap = {};
+      expectedMergeRequestMap[10] = pullRequest;
 
       await pullRequestMergeUpdate.get();
 
       // Verify that processed what we think we processed.
-      githubService.verifyBranchUpdates(expectedMergeRequestMap);
+      githubService.verifyAutoMergeBranchCalls(expectedMergeRequestMap);
 
       expect(
         0,
