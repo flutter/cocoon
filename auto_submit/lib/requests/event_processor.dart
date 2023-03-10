@@ -8,7 +8,7 @@ import '../model/merge_comment_message.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 
-final nonSuccessResponse = jsonEncode(<String, String>{});
+final String nonSuccessResponse = jsonEncode(<String, String>{});
 
 abstract class EventProcessor {
   factory EventProcessor(
@@ -118,7 +118,7 @@ class IssueCommentProcessor implements EventProcessor {
     log.info('${issueComment.body}');
     log.info(repository.fullName);
 
-    if (isValidPullRequestIssue(issue) && isValidMergeUpdateComment(issueComment)) {
+    if (_isValidPullRequestIssue(issue) && _isValidMergeUpdateComment(issueComment)) {
       log.info('Found a comment requesting a merge update.');
 
       // Since we do not need all the information we can construct what we need.
@@ -142,15 +142,14 @@ class IssueCommentProcessor implements EventProcessor {
   }
 
   /// Verify that this is a pull request issue.
-  bool isValidPullRequestIssue(Issue issue) {
+  bool _isValidPullRequestIssue(Issue issue) {
     log.info(issue.pullRequest);
     return issue.pullRequest != null;
   }
 
   /// Verify that the comment being processed was written by a member of the
   /// google team.
-  bool isValidMergeUpdateComment(IssueComment issueComment) {
-    // TODO remove contributor as I am not a member or owner and needed to test this.
+  bool _isValidMergeUpdateComment(IssueComment issueComment) {
     return issueComment.body != null && Config.regExpMergeMethod.hasMatch(issueComment.body!);
   }
 }
