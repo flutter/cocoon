@@ -56,6 +56,11 @@ cron:
   schedule: every 1 minutes
 
 - description: check revert review issues for closed issues to update in our database
-  url: '/api/update-revert-issues'
+  url: /update-revert-issues
   target: auto-submit
-  schedule: every 24 hours
+  schedule: every 12 hours
+
+- description: check for merge requests on open pull requests
+  url: /update-revert-issues
+  target: auto-submit
+  schedule: every 1 minutes
