@@ -99,7 +99,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     // Only update GitHub checks if target is not bringup
-    if (target.value.bringup == false) {
+    if (target.value.bringup == false && config.postsubmitSupportedRepos.contains(target.slug)) {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         buildPushMessage,

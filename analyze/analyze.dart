@@ -196,7 +196,6 @@ Future<EvalResult> _evalCommand(
 
 // These files legitimately require executable permissions
 const Set<String> kExecutableAllowlist = <String>{
-  'build_and_analyze.sh',
   'dev/provision_salt.sh',
   'format.sh',
   'oneoff/cirrus_stats/load.sh',
