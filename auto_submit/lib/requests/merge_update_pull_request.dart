@@ -15,6 +15,11 @@ import '../request_handling/pubsub.dart';
 import '../service/config.dart';
 import '../service/log.dart';
 
+/// The merge update pull request handler will be called via a cron to pull
+/// messages from pubsub where a user has requested a merge update on an open
+/// pull request. It will then forward these messages to the merge update
+/// service which will validate the contents of the message and perform a merge
+/// if all criteria have been met.
 class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
   const MergeUpdatePullRequest({
     required super.config,
@@ -26,6 +31,10 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
   static const int pullMesssageBatchSize = 100;
   static const int pubsubPullNumber = 5;
 
+  /// Pull message from the comment topic in gcp. We make 5 requests in an
+  /// attempt to get as many messages in a single call. This should be a fairly
+  /// low traffic api since Github when and implemented a button in the UI so
+  /// users can update their branches there instead.
   @override
   Future<Response> get() async {
     final Set<int> processingLog = <int>{};
@@ -74,7 +83,7 @@ class MergeUpdatePullRequest extends AuthenticatedRequestHandler {
   /// Pulls queued Pub/Sub messages.
   ///
   /// Pub/Sub pull request API doesn't guarantee returning all messages each time. This
-  /// loops to pull `kPubsubPullNumber` times to try covering all queued messages.
+  /// loops to pull `pubsubPullNumber` times to try covering all queued messages.
   Future<List<pub.ReceivedMessage>> pullMessages() async {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < pubsubPullNumber; i++) {

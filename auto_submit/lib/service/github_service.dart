@@ -188,7 +188,13 @@ class GithubService {
         .toList();
   }
 
-  /// Automerges a given pull request with HEAD to ensure the commit is not in conflicting state.
+  /// Automerges a given pull request with HEAD to ensure the commit is not in
+  /// conflicting state.
+  ///
+  /// Returns true if the branch was updated successfully, false if it could not
+  /// be updated due to an error such as conflicts with the base branch or null
+  /// if the branch is not behind the base branch by more than [_kBehindToT]
+  /// commits.
   Future<bool?> autoMergeBranch(PullRequest pullRequest) async {
     final RepositorySlug slug = pullRequest.base!.repo!.slug();
     final int prNumber = pullRequest.number!;

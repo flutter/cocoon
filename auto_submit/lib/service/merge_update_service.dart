@@ -38,9 +38,9 @@ class MergeUpdateService {
         ackId,
       );
       return;
-    } else {
-      log.info('Pull request is still open.');
     }
+
+    log.info('Pull request is still open.');
 
     if (pullRequest.mergeable != null && !pullRequest.mergeable!) {
       const String message = 'Ignoring pull request merge request as it is not in a mergeable state.';
@@ -56,9 +56,9 @@ class MergeUpdateService {
       );
 
       return;
-    } else {
-      log.info('Pull request is in a mergeable state.');
     }
+
+    log.info('Pull request is in a mergeable state.');
 
     // Get the updated IssueComment.
     final IssueComment? issueComment = await getIssueComment(
@@ -73,9 +73,9 @@ class MergeUpdateService {
         ackId,
       );
       return;
-    } else {
-      log.info('Merge request is still valid.');
     }
+
+    log.info('Merge request is still valid.');
 
     // Make sure the comment still requests the merge update. Last chance to unrequest merge.
     if (issueComment.body == null || !Config.regExpMergeMethod.hasMatch(issueComment.body!)) {

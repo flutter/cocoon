@@ -8,6 +8,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'merge_comment_message.g.dart';
 
+/// This class is a data holder for the important parts of the issue_comment
+/// request event payload that is sent by github. Each data member here holds a
+/// part of the request that we need for validation.
 @JsonSerializable()
 class MergeCommentMessage {
   const MergeCommentMessage({
@@ -16,8 +19,12 @@ class MergeCommentMessage {
     this.repository,
   });
 
+  // Issue represents the pull request issue.
   final Issue? issue;
+  // IssueComment is the comment we want from the issue.
   final IssueComment? comment;
+  // Repository is present if the comment was done on a pull request which is
+  // what we want.
   final Repository? repository;
 
   @override
