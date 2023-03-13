@@ -57,6 +57,7 @@ class FakeConfig implements Config {
     this.supportedBranchesValue,
     this.supportedReposValue,
     this.batchSizeValue,
+    this.backfillerTargetLimitValue,
     this.githubRequestDelayValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
@@ -87,6 +88,7 @@ class FakeConfig implements Config {
   String? waitingForTreeToGoGreenLabelNameValue;
   Set<String>? rollerAccountsValue;
   int? maxRecordsValue;
+  int? backfillerTargetLimitValue;
   String? flutterGoldPendingValue;
   String? flutterGoldSuccessValue;
   String? flutterGoldChangesValue;
@@ -137,6 +139,9 @@ class FakeConfig implements Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   @override
   int get schedulingShardSize => 5;
+
+  @override
+  int get backfillerTargetLimit => backfillerTargetLimitValue ?? 50;
 
   @override
   int get batchSize => batchSizeValue ?? 5;
