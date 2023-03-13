@@ -29,14 +29,53 @@ class Config {
     required this.secretManager,
   });
 
+  /// Project/GCP constants
+  static const String flutter = 'flutter';
+  static const String flutterGcpProjectId = 'flutter-dashboard';
+
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
+
+  /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
 
+  /// The label which shows the overrideTree    Status.
+  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
+
+  /// Repository Slug data
+  /// GitHub repositories that use CI status to determine if pull requests can be submitted.
+  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
+    engineSlug,
+    flutterSlug,
+  };
+  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
+
+  /// The names of autoroller accounts for the repositories.
+  ///
+  /// These accounts should not need reviews before merging. See
+  /// https://github.com/flutter/flutter/wiki/Autorollers
+  Set<String> get rollerAccounts => const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+        // both as we use graphQL to merge the PR and REST API to approve the PR.
+        'dependabot[bot]',
+        'dependabot',
+        'DartDevtoolWorkflowBot',
+      };
+
+  /// Number of Pub/Sub pull calls in each cron job run.
+  ///
+  /// TODO(keyonghan): monitor and optimize this number based on response time
+  /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
+  int get kPubsubPullNumber => 5;
+
+  /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),
     maxDelay: Duration(seconds: 1),
@@ -49,9 +88,14 @@ class Config {
     maxAttempts: 5,
   );
 
-  static const String flutter = 'flutter';
-  static const String flutterGcpProjectId = 'flutter-dashboard';
+  /// Pull request approval message
+  static const String pullRequestApprovalRequirementsMessage =
+      '- Merge guidelines: You need at least one approved review if you are already '
+      'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
+      'autosubmit label. __Reviewers__: If you left a comment approving, please use '
+      'the "approve" review action instead.';
 
+  /// Config object members
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;
   final SecretManager secretManager;
@@ -176,38 +220,6 @@ class Config {
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
-
-  /// GitHub repositories that use CI status to determine if pull requests can be submitted.
-  static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
-    engineSlug,
-    flutterSlug,
-  };
-
-  static RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
-  static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
-
-  /// The names of autoroller accounts for the repositories.
-  ///
-  /// These accounts should not need reviews before merging. See
-  /// https://github.com/flutter/flutter/wiki/Autorollers
-  Set<String> get rollerAccounts => const <String>{
-        'skia-flutter-autoroll',
-        'engine-flutter-autoroll',
-        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
-        // both as we use graphQL to merge the PR and REST API to approve the PR.
-        'dependabot[bot]',
-        'dependabot',
-        'DartDevtoolWorkflowBot',
-      };
-
-  /// The label which shows the overrideTree    Status.
-  String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
-
-  /// Number of Pub/Sub pull calls in each cron job run.
-  ///
-  /// TODO(keyonghan): monitor and optimize this number based on response time
-  /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
-  int get kPubsubPullNumber => 5;
 
   /// Get the webhook key
   Future<String> getWebhookKey() async {
