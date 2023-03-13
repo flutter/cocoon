@@ -145,7 +145,6 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
       expect(result.message.contains('need 1 more review'), isTrue);
-      print(result.message);
     });
 
     test('Author is NON member and reviewers are NON members, need 2 reviews', () async {

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
@@ -36,17 +37,13 @@ class Approval extends Validation {
       approved = approver.approved;
       log.info(
           'PR approved $approved, approvers: ${approver.approvers}, remaining approvals: ${approver.remainingReviews}, request authors: ${approver.changeRequestAuthors}');
-      final String appvd = approved
+      final String approvedMessage = approved
           ? 'This PR has met approval requirements for merging.\n'
           : 'This PR has not met approval requirements for merging. You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
 
       message = approved
-          ? appvd
-          : '$appvd\n'
-              '- Merge guidelines: You need at least one approved review if you are already '
-              'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
-              'autosubmit label. __Reviewers__: If you left a comment approving, please use '
-              'the "approve" review action instead.';
+          ? approvedMessage
+          : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
     }
 
     return ValidationResult(approved, Action.REMOVE_LABEL, message);
