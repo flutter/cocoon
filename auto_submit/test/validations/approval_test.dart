@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:convert';
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
@@ -27,7 +31,6 @@ void main() {
   });
 
   group('Approval group tests', () {
-
     Future<ValidationResult> computeValidationResult(String review) async {
       final Map<String, dynamic> queryResultJsonDecode = jsonDecode(review) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
@@ -55,7 +58,7 @@ void main() {
         reviewerAuthorAssociation: 'MEMBER',
         reviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -70,7 +73,7 @@ void main() {
         reviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -85,7 +88,7 @@ void main() {
         reviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -102,7 +105,7 @@ void main() {
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
@@ -118,7 +121,7 @@ void main() {
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -135,13 +138,14 @@ void main() {
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
       expect(result.message.contains('need 1 more review'), isTrue);
+      print(result.message);
     });
 
     test('Author is NON member and reviewers are NON members, need 2 reviews', () async {
@@ -152,7 +156,7 @@ void main() {
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -171,7 +175,7 @@ void main() {
         secondReviewState: 'APPROVED',
         thirdReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -190,7 +194,7 @@ void main() {
         secondReviewState: 'APPROVED',
         thirdReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
@@ -204,7 +208,7 @@ void main() {
         reviewerAuthorAssociation: 'MEMBER',
         reviewState: 'CHANGE_REQUESTED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isFalse);
@@ -221,7 +225,7 @@ void main() {
         reviewState: 'CHANGE_REQUESTED',
         secondReviewState: 'APPROVED',
       );
-      
+
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
