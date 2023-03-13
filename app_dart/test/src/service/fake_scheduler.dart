@@ -152,6 +152,9 @@ final CiYaml batchPolicyConfig = CiYaml(
       pb.Target(
         name: 'Linux_android B',
       ),
+      pb.Target(
+        name: 'Linux_android C',
+      ),
     ],
   ),
 );

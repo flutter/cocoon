@@ -35,7 +35,7 @@ void main() {
   group('BatchBackfiller', () {
     setUp(() async {
       db = FakeDatastoreDB()..addOnQuery<Commit>((Iterable<Commit> results) => commits);
-      final Config config = FakeConfig(dbValue: db);
+      final Config config = FakeConfig(dbValue: db, backfillerTargetLimitValue: 2);
       pubsub = FakePubSub();
       mockGithubChecksUtil = MockGithubChecksUtil();
       when(
@@ -180,6 +180,20 @@ void main() {
         generateTask(1, name: 'Linux_android B', status: Task.statusSucceeded),
         generateTask(2, name: 'Linux_android B', status: Task.statusSucceeded),
         generateTask(3, name: 'Linux_android B', status: Task.statusNew),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 2);
+    });
+
+    test('backfills limited targets when number of available targets exceeds backfillerTargetLimit ', () async {
+      final List<Task> scheduleA = <Task>[
+        // Linux_android A
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        // Linux_android B
+        generateTask(1, name: 'Linux_android B', status: Task.statusNew),
+        // Linux_android C
+        generateTask(1, name: 'Linux_android C', status: Task.statusNew),
       ];
       db.addOnQuery<Task>((Iterable<Task> results) => scheduleA);
       await tester.get(handler);

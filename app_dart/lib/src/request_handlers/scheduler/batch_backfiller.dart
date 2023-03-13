@@ -62,7 +62,7 @@ class BatchBackfiller extends RequestHandler {
     }
 
     // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
-    final List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[];
+    List<Tuple<Target, FullTask, int>> backfill = <Tuple<Target, FullTask, int>>[];
     for (List<FullTask> taskColumn in taskMap.values) {
       final FullTask task = taskColumn.first;
       final CiYaml ciYaml = await scheduler.getCiYaml(task.commit);
@@ -75,6 +75,11 @@ class BatchBackfiller extends RequestHandler {
       if (backfillTask != null) {
         backfill.add(Tuple<Target, FullTask, int>(target, backfillTask, priority));
       }
+    }
+
+    // Limits the number of targets to be backfilled in each cycle.
+    if (backfill.length > config.backfillerTargetLimit) {
+      backfill = backfill.sublist(0, config.backfillerTargetLimit);
     }
 
     log.fine('Backfilling ${backfill.length} builds');
