@@ -151,6 +151,9 @@ class Config {
   /// Batch size of builds to schedule in each swarming request.
   int get batchSize => 5;
 
+  /// Upper limit of targets to be backfilled in API call.
+  int get backfillerTargetLimit => 50;
+
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 
