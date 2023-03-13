@@ -38,10 +38,11 @@ class Config {
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
-  
+
   /// Labels autosubmit looks for on pull requests
   static const String kAutosubmitLabel = 'autosubmit';
   static const String kRevertLabel = 'revert';
+
   /// The label which shows the overrideTree    Status.
   String get overrideTreeStatusLabel => 'warning: land on red to fix tree breakage';
 
@@ -59,14 +60,14 @@ class Config {
   /// These accounts should not need reviews before merging. See
   /// https://github.com/flutter/flutter/wiki/Autorollers
   Set<String> get rollerAccounts => const <String>{
-    'skia-flutter-autoroll',
-    'engine-flutter-autoroll',
-    // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
-    // both as we use graphQL to merge the PR and REST API to approve the PR.
-    'dependabot[bot]',
-    'dependabot',
-    'DartDevtoolWorkflowBot',
-  };
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
+        // both as we use graphQL to merge the PR and REST API to approve the PR.
+        'dependabot[bot]',
+        'dependabot',
+        'DartDevtoolWorkflowBot',
+      };
 
   /// Number of Pub/Sub pull calls in each cron job run.
   ///
@@ -88,13 +89,12 @@ class Config {
   );
 
   /// Pull request approval message
-  static const String pullRequestApprovalRequirementsMessage = 
-    '- Merge guidelines: You need at least one approved review if you are already '
-    'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
-    'autosubmit label. __Reviewers__: If you left a comment approving, please use '
-    'the "approve" review action instead.'; 
+  static const String pullRequestApprovalRequirementsMessage =
+      '- Merge guidelines: You need at least one approved review if you are already '
+      'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
+      'autosubmit label. __Reviewers__: If you left a comment approving, please use '
+      'the "approve" review action instead.';
 
-  
   /// Config object members
   final CacheProvider cacheProvider;
   final HttpProvider httpProvider;

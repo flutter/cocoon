@@ -35,15 +35,26 @@ class Approval extends Validation {
       final Approver approver = Approver(author, authorAssociation, reviews);
       approver.computeApproval();
       approved = approver.approved;
-      log.info(
-          'PR approved $approved, approvers: ${approver.approvers}, remaining approvals: ${approver.remainingReviews}, request authors: ${approver.changeRequestAuthors}');
-      final String approvedMessage = approved
-          ? 'This PR has met approval requirements for merging.\n'
-          : 'This PR has not met approval requirements for merging. You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
 
-      message = approved
-          ? approvedMessage
-          : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
+      log.info(
+        'PR approved $approved, approvers: ${approver.approvers}, remaining approvals: ${approver.remainingReviews}, request authors: ${approver.changeRequestAuthors}',
+      );
+
+      String approvedMessage;
+
+      // Changes were requested, review count does not matter.
+      if (approver.changeRequestAuthors.isNotEmpty) {
+        approvedMessage =
+            'This PR has not met approval requirements for merging. Changes were requested by ${approver.changeRequestAuthors}, please make the needed changes and resubmit this PR.\n'
+            'You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+      } else {
+        // No changes were requested.
+        approvedMessage = approved
+            ? 'This PR has met approval requirements for merging.\n'
+            : 'This PR has not met approval requirements for merging. You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+      }
+
+      message = approved ? approvedMessage : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
     }
 
     return ValidationResult(approved, Action.REMOVE_LABEL, message);
@@ -83,11 +94,16 @@ class Approver {
   /// not automatically dismiss the previous one.
   void computeApproval() {
     const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
+    final bool authorIsMember = allowedReviewers.contains(authorAssociation);
+    
     // Author counts as 1 review so we need only 1 more.
-    if (allowedReviewers.contains(authorAssociation)) {
+    if (authorIsMember) {
       _remainingReviews--;
       _approvers.add(author);
     }
+
+    final int targetReviewCount = _remainingReviews;
+
     for (ReviewNode review in reviews) {
       // Ignore reviews from non-members/owners.
       if (!allowedReviewers.contains(review.authorAssociation)) {
@@ -104,6 +120,9 @@ class Approver {
         }
         _changeRequestAuthors.remove(authorLogin);
       } else if (state == CHANGES_REQUESTED_STATE) {
+        if (_remainingReviews < targetReviewCount) {
+          _remainingReviews++;
+        }
         _changeRequestAuthors.add(authorLogin);
       }
     }
