@@ -95,7 +95,7 @@ class Approver {
   void computeApproval() {
     const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
     final bool authorIsMember = allowedReviewers.contains(authorAssociation);
-    
+
     // Author counts as 1 review so we need only 1 more.
     if (authorIsMember) {
       _remainingReviews--;
