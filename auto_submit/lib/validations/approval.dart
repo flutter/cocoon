@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
@@ -23,19 +24,62 @@ class Approval extends Validation {
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
     final List<ReviewNode> reviews = pullRequest.reviews!.nodes!;
-    final bool approved = config.rollerAccounts.contains(author) ||
-        _checkApproval(
-          author,
-          authorAssociation,
-          reviews,
-        );
 
-    const String message = '- Please get at least one approved review if you are already '
-        'a member or two member reviews if you are not a member before re-applying this '
-        'label. __Reviewers__: If you left a comment approving, please use '
-        'the "approve" review action instead.';
+    bool approved = false;
+    String message = '';
+    if (config.rollerAccounts.contains(author)) {
+      approved = true;
+      log.info('PR approved by roller account: $author');
+      return ValidationResult(approved, Action.REMOVE_LABEL, '');
+    } else {
+      final Approver approver = Approver(author, authorAssociation, reviews);
+      approver.computeApproval();
+      approved = approver.approved;
+
+      log.info(
+        'PR approved $approved, approvers: ${approver.approvers}, remaining approvals: ${approver.remainingReviews}, request authors: ${approver.changeRequestAuthors}',
+      );
+
+      String approvedMessage;
+
+      // Changes were requested, review count does not matter.
+      if (approver.changeRequestAuthors.isNotEmpty) {
+        approvedMessage =
+            'This PR has not met approval requirements for merging. Changes were requested by ${approver.changeRequestAuthors}, please make the needed changes and resubmit this PR.\n'
+            'You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+      } else {
+        // No changes were requested.
+        approvedMessage = approved
+            ? 'This PR has met approval requirements for merging.\n'
+            : 'This PR has not met approval requirements for merging. You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
+      }
+
+      message = approved ? approvedMessage : '$approvedMessage\n${Config.pullRequestApprovalRequirementsMessage}';
+    }
+
     return ValidationResult(approved, Action.REMOVE_LABEL, message);
   }
+}
+
+class Approver {
+  Approver(this.author, this.authorAssociation, this.reviews);
+
+  final String? author;
+  final String? authorAssociation;
+  final List<ReviewNode> reviews;
+
+  bool _approved = false;
+  int _remainingReviews = 2;
+  final Set<String?> _approvers = <String?>{};
+  final Set<String?> _changeRequestAuthors = <String?>{};
+
+  bool get approved => _approved;
+
+  int get remainingReviews => _remainingReviews;
+
+  Set<String?> get approvers => _approvers;
+
+  Set<String?> get changeRequestAuthors => _changeRequestAuthors;
 
   /// Parses the restApi response reviews.
   ///
@@ -48,41 +92,41 @@ class Approval extends Validation {
   /// show up in this list since it will have a status of DISMISSED and we only
   /// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
   /// not automatically dismiss the previous one.
-  ///
-  ///
-  /// Returns false if no approved reviews or any oustanding change request
-  /// reviews.
-  ///
-  /// Returns true if at least one approved review and no outstanding change
-  /// request reviews.
-  bool _checkApproval(
-    String? author,
-    String? authorAssociation,
-    List<ReviewNode> reviewNodes,
-  ) {
-    final Set<String?> changeRequestAuthors = <String?>{};
+  void computeApproval() {
     const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
-    final Set<String?> approvers = <String?>{};
-    if (allowedReviewers.contains(authorAssociation)) {
-      approvers.add(author);
+    final bool authorIsMember = allowedReviewers.contains(authorAssociation);
+
+    // Author counts as 1 review so we need only 1 more.
+    if (authorIsMember) {
+      _remainingReviews--;
+      _approvers.add(author);
     }
-    for (ReviewNode review in reviewNodes) {
+
+    final int targetReviewCount = _remainingReviews;
+
+    for (ReviewNode review in reviews) {
       // Ignore reviews from non-members/owners.
       if (!allowedReviewers.contains(review.authorAssociation)) {
         continue;
       }
+
       // Reviews come back in order of creation.
       final String? state = review.state;
       final String? authorLogin = review.author!.login;
       if (state == APPROVED_STATE) {
-        approvers.add(authorLogin);
-        changeRequestAuthors.remove(authorLogin);
+        _approvers.add(authorLogin);
+        if (_remainingReviews > 0) {
+          _remainingReviews--;
+        }
+        _changeRequestAuthors.remove(authorLogin);
       } else if (state == CHANGES_REQUESTED_STATE) {
-        changeRequestAuthors.add(authorLogin);
+        if (_remainingReviews < targetReviewCount) {
+          _remainingReviews++;
+        }
+        _changeRequestAuthors.add(authorLogin);
       }
     }
-    final bool approved = (approvers.length > 1) && changeRequestAuthors.isEmpty;
-    log.info('PR approved $approved, approvers: $approvers, change request authors: $changeRequestAuthors');
-    return (approvers.length > 1) && changeRequestAuthors.isEmpty;
+
+    _approved = (_approvers.length > 1) && _changeRequestAuthors.isEmpty;
   }
 }
