@@ -79,6 +79,7 @@ class BatchBackfiller extends RequestHandler {
 
     // Limits the number of targets to be backfilled in each cycle.
     if (backfill.length > config.backfillerTargetLimit) {
+      backfill.shuffle();
       backfill = backfill.sublist(0, config.backfillerTargetLimit);
     }
 
