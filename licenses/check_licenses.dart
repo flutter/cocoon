@@ -13,20 +13,21 @@ final String red = hasColor ? '\x1B[31m' : ''; // used for errors
 final String reset = hasColor ? '\x1B[0m' : '';
 final String reverse = hasColor ? '\x1B[7m' : ''; // used for clocks
 
-Future<void> main(List<String> arguments) async {
+Future<void> main() async {
   print('$clock STARTING ANALYSIS');
   try {
-    await run(arguments);
+    await run();
   } on ExitException catch (error) {
     error.apply();
   }
   print('$clock ${bold}Analysis successful.$reset');
 }
 
-Future<void> run(List<String> arguments) async {
+Future<void> run() async {
   final String cocoonPath = path.join(path.dirname(Platform.script.path), '..');
   print('$clock Root path: $cocoonPath');
   print('$clock Licenses...');
+  await verifyConsistentLicenses(cocoonPath);
   await verifyNoMissingLicense(cocoonPath);
 }
 
@@ -35,6 +36,39 @@ String _generateLicense(String prefix) {
   return '${prefix}Copyright (2014|2015|2016|2017|2018|2019|2020|2021|2022|2023) The Flutter Authors. All rights reserved.\n'
       '${prefix}Use of this source code is governed by a BSD-style license that can be\n'
       '${prefix}found in the LICENSE file.';
+}
+
+/// Ensure that LICENSES in Cocoon and its packages are consistent with each other.
+///
+/// Verifies that every LICENSE file in Cocoon matches cocoon/LICENSE.
+Future<void> verifyConsistentLicenses(String workingDirectory) async {
+  final String goldenLicensePath = '$workingDirectory/LICENSE';
+  final String goldenLicense = File(goldenLicensePath).readAsStringSync();
+  if (goldenLicense.isEmpty) {
+    throw Exception('No LICENSE was found at the root of Cocoon');
+  }
+
+  final List<String> badLicenses = <String>[];
+  for (final FileSystemEntity entity in Directory(workingDirectory).listSync(recursive: true)) {
+    final String cocoonPath = entity.path.split('/../').last;
+    if (cocoonPath.contains(RegExp('(\.git)|(\.dart_tool)|(\.plugin_symlinks)'))) {
+      continue;
+    }
+
+    if (path.basename(entity.path) == 'LICENSE') {
+      final String license = File(entity.path).readAsStringSync();
+      if (license != goldenLicense) {
+        badLicenses.add(cocoonPath);
+      }
+    }
+  }
+
+  if (badLicenses.isNotEmpty) {
+    exitWithError(
+      <String>['The following LICENSE files do not match the golden LICENSE at root:']
+        ..insertAll(1, badLicenses),
+    );
+  }
 }
 
 Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums = true}) async {
