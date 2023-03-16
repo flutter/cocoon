@@ -35,6 +35,7 @@ class FakeGithubService implements GithubService {
   String? pullRequestMergeMock;
   String? pullRequestFilesJsonMock;
   Issue? githubIssueMock;
+  String? githubFileContents;
 
   bool useMergeRequestMockList = false;
   bool trackMergeRequestCalls = false;
@@ -312,5 +313,11 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+  }
+
+  @override
+  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) {
+    // TODO: implement getFileContents
+    throw UnimplementedError();
   }
 }

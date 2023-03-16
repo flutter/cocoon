@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 
@@ -158,6 +159,17 @@ class GithubService {
       final String headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
+  }
+
+  /// Get contents from a repository at the supplied path.
+  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
+    final RepositoryContents repositoryContents = await github.repositories.getContents(slug, path, ref: ref);
+    if (!repositoryContents.isFile) {
+      throw 'Contents do not point to a file.';
+    }
+    final String content = utf8.decode(base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')));
+    log.info('githubService: $content');
+    return content;
   }
 
   /// Compare the filesets of the current pull request and the original pull

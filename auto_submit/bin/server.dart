@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:auto_submit/helpers.dart';
 import 'package:auto_submit/request_handling/authentication.dart';
 import 'package:auto_submit/requests/check_pull_request.dart';

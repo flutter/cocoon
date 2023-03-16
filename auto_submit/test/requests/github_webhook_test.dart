@@ -12,6 +12,7 @@ import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
+import '../src/configuration/fake_repository_configuration_manager.dart';
 import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';
@@ -32,15 +33,29 @@ void main() {
     }
 
     setUp(() {
-      githubWebhook = GithubWebhook(config: config, pubsub: pubsub);
+      githubWebhook = GithubWebhook(
+        config: config,
+        pubsub: pubsub,
+      );
     });
 
     test('call handler to handle the post request', () async {
       final Uint8List body = utf8.encode(generateWebhookEvent()) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
-      final String hmac = getHmac(body, key);
-      validHeader = <String, String>{'X-Hub-Signature': 'sha1=$hmac', 'X-GitHub-Event': 'yes'};
-      req = Request('POST', Uri.parse('http://localhost/'), body: generateWebhookEvent(), headers: validHeader);
+      final String hmac = getHmac(
+        body,
+        key,
+      );
+      validHeader = <String, String>{
+        'X-Hub-Signature': 'sha1=$hmac',
+        'X-GitHub-Event': 'yes',
+      };
+      req = Request(
+        'POST',
+        Uri.parse('http://localhost/'),
+        body: generateWebhookEvent(),
+        headers: validHeader,
+      );
       final Response response = await githubWebhook.post(req);
       final String resBody = await response.readAsString();
       final reqBody = json.decode(resBody) as Map<String, dynamic>;
@@ -50,8 +65,16 @@ void main() {
     });
 
     test('Rejects invalid hmac', () async {
-      inValidHeader = <String, String>{'X-GitHub-Event': 'pull_request', 'X-Hub-Signature': 'bar'};
-      req = Request('POST', Uri.parse('http://localhost/'), body: 'Hello, World!', headers: inValidHeader);
+      inValidHeader = <String, String>{
+        'X-GitHub-Event': 'pull_request',
+        'X-Hub-Signature': 'bar',
+      };
+      req = Request(
+        'POST',
+        Uri.parse('http://localhost/'),
+        body: 'Hello, World!',
+        headers: inValidHeader,
+      );
       await expectLater(githubWebhook.post(req), throwsA(isA<Forbidden>()));
     });
 

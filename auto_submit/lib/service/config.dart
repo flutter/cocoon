@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -31,7 +33,7 @@ class Config {
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
-  static const String flutterGcpProjectId = 'flutter-dashboard';
+  static const String flutterGcpProjectId = 'flutter-dashboard-dev';
 
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
@@ -101,6 +103,11 @@ class Config {
   final SecretManager secretManager;
 
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
+
+  Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
+    final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(cache);
+    return await repositoryConfigurationManager.readRepositoryConfiguration(await createGithubService(slug), slug);
+  }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGithubClient(slug);
