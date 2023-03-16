@@ -30,7 +30,6 @@ import 'utils/output.dart';
 import 'utils/task_icons.dart';
 
 void main() {
-  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
   late MockGoogleSignInService fakeAuthService;
 
   final Type dropdownButtonType = DropdownButton<String>(
@@ -38,13 +37,17 @@ void main() {
     items: const <DropdownMenuItem<String>>[],
   ).runtimeType;
 
-  setUp(() {
-    binding.window.devicePixelRatioTestValue = 1.0;
-    binding.window.physicalSizeTestValue = const Size(1080, 2280);
+  void configureView(TestFlutterView view) {
     // device pixel ratio of 1.0 works well on web app and emulator
     // If not set, flutter test uses a Pixel 4 device pixel ratio of roughly 2.75, which doesn't quite work
     // I am using the default settings of Pixel 4 in this test, as referenced in the link below
     // https://android.googlesource.com/platform/external/qemu/+/b5b78438ae9ff3b90aafdab0f4f25585affc22fb/android/avd/hardware-properties.ini
+    view.devicePixelRatio = 1.0;
+    view.physicalSize = const Size(1080, 2280);
+    addTearDown(view.reset);
+  }
+
+  setUp(() {
     fakeAuthService = MockGoogleSignInService();
     when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
     when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
@@ -53,6 +56,7 @@ void main() {
   });
 
   testWidgets('shows sign in button', (WidgetTester tester) async {
+    configureView(tester.view);
     final MockCocoonService fakeCocoonService = MockCocoonService();
     throwOnMissingStub(fakeCocoonService);
     when(fakeCocoonService.fetchFlutterBranches()).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
@@ -93,6 +97,7 @@ void main() {
   });
 
   testWidgets('shows settings button', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -111,6 +116,7 @@ void main() {
   });
 
   testWidgets('shows file a bug button', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -129,6 +135,7 @@ void main() {
   });
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -156,6 +163,7 @@ void main() {
   });
 
   testWidgets('shows branch and repo dropdown button when screen is decently large', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -180,6 +188,7 @@ void main() {
   });
 
   testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(
@@ -203,6 +212,7 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = null
       ..authService = fakeAuthService;
@@ -227,6 +237,7 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = null
       ..authService = fakeAuthService;
@@ -252,6 +263,7 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = false
       ..authService = fakeAuthService;
@@ -280,6 +292,7 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = false
       ..authService = fakeAuthService;
@@ -309,6 +322,7 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = true
       ..authService = fakeAuthService;
@@ -333,6 +347,7 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()
       ..isTreeBuilding = true
       ..authService = fakeAuthService;
@@ -358,6 +373,7 @@ void main() {
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
+    configureView(tester.view);
     String? lastError;
     final FakeBuildState buildState = FakeBuildState()
       ..errors.addListener((String message) => lastError = message)
@@ -401,6 +417,7 @@ void main() {
   });
 
   testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
+    configureView(tester.view);
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
@@ -432,6 +449,7 @@ void main() {
   });
 
   testWidgets('TaskGridContainer with default Settings property sheet, dark mode', (WidgetTester tester) async {
+    configureView(tester.view);
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
@@ -464,6 +482,7 @@ void main() {
   });
 
   testWidgets('ensure smooth transition between invalid states', (WidgetTester tester) async {
+    configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
     BuildDashboardPage controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {
@@ -507,8 +526,9 @@ void main() {
   });
 
   testWidgets('shows branch and repo dropdown button in settings when screen is small', (WidgetTester tester) async {
-    binding.window.physicalSizeTestValue = const Size(500, 500);
-    binding.window.devicePixelRatioTestValue = 1.0;
+    tester.view.physicalSize = const Size(500, 500);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
     await tester.pumpWidget(

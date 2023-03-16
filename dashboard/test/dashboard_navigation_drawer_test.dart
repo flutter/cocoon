@@ -13,18 +13,22 @@ import 'utils/fake_url_launcher.dart';
 import 'utils/wrapper.dart';
 
 void main() {
-  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
+  void configureView(TestFlutterView view) {
+    view.devicePixelRatio = 1.0;
+    view.physicalSize = const Size(1080, 2280);
+    addTearDown(view.reset);
+  }
+
   group('DashboardNavigationDrawer', () {
     late FakeUrlLauncher urlLauncher;
 
     setUp(() {
-      binding.window.devicePixelRatioTestValue = 1.0;
-      binding.window.physicalSizeTestValue = const Size(1080, 2280);
       urlLauncher = FakeUrlLauncher();
       UrlLauncherPlatform.instance = urlLauncher;
     });
 
     testWidgets('lists all pages', (WidgetTester tester) async {
+      configureView(tester.view);
       await tester.pumpWidget(
         const MaterialApp(
           title: 'Test',
@@ -43,6 +47,7 @@ void main() {
     });
 
     testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
+      configureView(tester.view);
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
         MaterialApp(
@@ -67,6 +72,7 @@ void main() {
     });
 
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
+      configureView(tester.view);
       await tester.pumpWidget(
         const MaterialApp(
           home: DashboardNavigationDrawer(),
@@ -83,6 +89,7 @@ void main() {
     });
 
     testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
+      configureView(tester.view);
       await tester.pumpWidget(
         const MaterialApp(
           home: DashboardNavigationDrawer(),
@@ -98,6 +105,7 @@ void main() {
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
+      configureView(tester.view);
       await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
       void test({required bool isHome}) {
