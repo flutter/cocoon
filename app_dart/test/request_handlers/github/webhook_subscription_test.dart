@@ -1552,7 +1552,6 @@ void foo() {
       );
     });
 
-
     test('Framework labels PRs, apply label but no comment when rolling engine version', () async {
       const int issueNumber = 123;
 
