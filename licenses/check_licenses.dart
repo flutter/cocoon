@@ -65,8 +65,7 @@ Future<void> verifyConsistentLicenses(String workingDirectory) async {
 
   if (badLicenses.isNotEmpty) {
     exitWithError(
-      <String>['The following LICENSE files do not match the golden LICENSE at root:']
-        ..insertAll(1, badLicenses),
+      <String>['The following LICENSE files do not match the golden LICENSE at root:']..insertAll(1, badLicenses),
     );
   }
 }
