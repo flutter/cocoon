@@ -94,7 +94,8 @@ class Approver {
   /// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
   /// not automatically dismiss the previous one.
   void computeApproval() {
-    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
+    //TODO remove the COLLABORATOR config from here when done testing.
+    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER, ORG_COLLABORATOR};
     final bool authorIsMember = allowedReviewers.contains(authorAssociation);
 
     // Author counts as 1 review so we need only 1 more.

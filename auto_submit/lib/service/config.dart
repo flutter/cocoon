@@ -77,6 +77,12 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
+  /// PubSub configs
+  static const String pubsubTopicsPrefix = 'projects/flutter-dashboard-dev/topics';
+  static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard-dev/subscriptions';
+  static const String pubsubPullRequestTopic = 'auto-submit-queue';
+  static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
+
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),

@@ -54,12 +54,13 @@ class GithubWebhook extends RequestHandler {
       return Response.ok(jsonEncode(<String, String>{}));
     }
 
+    // Show that we can get the configuraiton from the repository. We don't
+    // actually need it here yet.
     final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // prove that we have the configuration in the cache.
-    log.info('default branch: ${repositoryConfiguration.defaultBranch}');
-    log.info('issues repository: ${repositoryConfiguration.issuesRepository!.fullName}');
+    log.info(repositoryConfiguration.toString());
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
@@ -67,7 +68,7 @@ class GithubWebhook extends RequestHandler {
 
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
+      await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
     }
 
     return Response.ok(rawBody);

@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:auto_submit/service/config.dart';
 import 'package:appengine/appengine.dart';
 import 'package:googleapis/secretmanager/v1.dart';
 
@@ -23,7 +24,7 @@ abstract class SecretManager {
 class CloudSecretManager implements SecretManager {
   CloudSecretManager();
 
-  final String projectId = Platform.environment['APPLICATION_ID'] ?? 'flutter-dashboard-dev';
+  final String projectId = Platform.environment['APPLICATION_ID'] ?? Config.flutterGcpProjectId;
 
   @override
   Future<String> get(

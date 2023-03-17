@@ -21,4 +21,16 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
     // TODO: implement getConfiguration
     throw UnimplementedError();
   }
+
+  @override
+  RepositoryConfiguration fromYaml(String fileContents) {
+    // TODO: implement fromYaml
+    throw UnimplementedError();
+  }
+
+  @override
+  String toYaml(RepositoryConfiguration repositoryConfiguration) {
+    // TODO: implement toYaml
+    throw UnimplementedError();
+  }
 }

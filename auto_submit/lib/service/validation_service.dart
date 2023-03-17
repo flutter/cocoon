@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
@@ -69,7 +72,15 @@ class ValidationService {
 
   /// Processes a pub/sub message associated with PullRequest event.
   Future<void> processMessage(github.PullRequest messagePullRequest, String ackId, PubSub pubsub) async {
-    final ProcessMethod processMethod = await processPullRequestMethod(messagePullRequest);
+    final RepositoryConfiguration repositoryConfiguration =
+        await config.getRepositoryConfiguration(messagePullRequest.base!.repo!.slug());
+
+    ProcessMethod processMethod;
+    if (!repositoryConfiguration.supportNoReviewReverts) {
+      processMethod = ProcessMethod.processAutosubmit;
+    } else {
+      processMethod = await processPullRequestMethod(messagePullRequest);
+    }
 
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
@@ -139,13 +150,23 @@ class ValidationService {
     required PubSub pubsub,
   }) async {
     final List<ValidationResult> results = <ValidationResult>[];
+    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     /// Runs all the validation defined in the service.
+    /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
+      if (validation is CiSuccessful && !repositoryConfiguration.runCi) {
+        log.info('Skipping ci checks.');
+        continue;
+      } else if (validation is EmptyChecks && !repositoryConfiguration.runCi) {
+        log.info('Skipping empty checks.');
+        continue;
+      }
       final ValidationResult validationResult = await validation.validate(result, messagePullRequest);
       results.add(validationResult);
     }
-    final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+
     final GithubService githubService = await config.createGithubService(slug);
 
     /// If there is at least one action that requires to remove label do so and add comments for all the failures.

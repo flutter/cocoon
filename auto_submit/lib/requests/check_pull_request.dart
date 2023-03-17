@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:auto_submit/service/approver_service.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/pubsub/v1.dart' as pub;
 import 'package:shelf/shelf.dart';
@@ -37,7 +38,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   @override
   Future<Response> get() async {
     final Set<int> processingLog = <int>{};
-    final ApproverService approver = approverProvider(config);
     final List<pub.ReceivedMessage> messageList = await pullMessages();
     if (messageList.isEmpty) {
       log.info('No messages are pulled.');
@@ -51,15 +51,21 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       final String messageData = message.message!.data!;
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
+
+      // This pulls the configuration if we did not already have it and stores
+      // it in the config. Approver service will need this
+      // await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.head!.repo!.fullName));
+
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
       log.info('Processing PR: $rawBody');
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
-        await pubsub.acknowledge('auto-submit-queue-sub', message.ackId!);
+        await pubsub.acknowledge(Config.pubsubPullRequestSubscription, message.ackId!);
         continue;
       } else {
+        final ApproverService approver = approverProvider(config);
         await approver.autoApproval(pullRequest);
         log.info('Approved pull request: $rawBody');
         processingLog.add(pullRequest.number!);
@@ -77,7 +83,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   Future<List<pub.ReceivedMessage>> pullMessages() async {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < kPubsubPullNumber; i++) {
-      final pub.PullResponse pullResponse = await pubsub.pull('auto-submit-queue-sub', kPullMesssageBatchSize);
+      final pub.PullResponse pullResponse = await pubsub.pull(Config.pubsubPullRequestSubscription, kPullMesssageBatchSize);
       final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;

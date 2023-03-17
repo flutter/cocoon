@@ -5,7 +5,9 @@
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as gh;
+import 'package:github/github.dart';
 
+import '../configuration/repository_configuration.dart';
 import '../service/config.dart';
 
 /// Function signature for a [ApproverService] provider.
@@ -22,12 +24,26 @@ class ApproverService {
     return ApproverService(config);
   }
 
+  /// Get the auto approval accounts from the configuration is any are supplied.
+  Future<List<String>> getAutoApprovalAccounts(RepositorySlug slug) async {
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final List<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts;
+    return approvalAccounts;
+  }
+
   Future<void> autoApproval(gh.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
+    final List<String> approvalAccounts =
+        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
 
-    if (!config.rollerAccounts.contains(author)) {
+    log.info('Determine auto approval of $author.');
+    log.info('Accounts with auto approval: $approvalAccounts');
+
+    // If there are auto_approvers let them approve the pull request.
+    if (!approvalAccounts.contains(author)) {
       log.info('Auto-review ignored for $author');
     } else {
+      log.info('Auto approval detected.');
       await _approve(pullRequest, author);
     }
   }
@@ -47,8 +63,11 @@ class ApproverService {
 
     log.info('Found labels $labelNames on this pullRequest.');
 
+    final List<String> approvalAccounts =
+        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
+
     if (labelNames.contains(Config.kRevertLabel) &&
-        (config.rollerAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
+        (approvalAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
       log.info(
         'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
       );

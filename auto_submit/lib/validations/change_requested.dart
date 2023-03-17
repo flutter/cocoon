@@ -8,6 +8,7 @@ import 'package:github/github.dart' as github;
 
 import '../service/log.dart';
 
+// TODO I don't think this is needed any longer.
 /// Validates the PR does not have any pending change requests.
 class ChangeRequested extends Validation {
   ChangeRequested({
@@ -15,14 +16,14 @@ class ChangeRequested extends Validation {
   });
 
   @override
-
   /// Implements the change request validation.
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
     final List<ReviewNode> reviews = pullRequest.reviews!.nodes!;
-    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER};
+    //TODO remove the COLLABORATOR config after testing.
+    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER, ORG_COLLABORATOR};
     final Set<String?> approvers = <String?>{};
     final Set<String?> changeRequestAuthors = <String?>{};
 

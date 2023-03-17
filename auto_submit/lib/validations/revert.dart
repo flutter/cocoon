@@ -74,11 +74,10 @@ class Revert extends Validation {
     final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     githubService = await config.createGithubService(repositorySlug);
 
-    final bool requiredChecksCompleted = await waitForRequiredChecks(
-      githubService: githubService,
+    final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
+    final bool requiredChecksCompleted = await requiredCheckRuns.waitForRequiredChecks(
       slug: repositorySlug,
       sha: sha!,
-      checkNames: requiredCheckRunsMapping[repositorySlug.name]!,
     );
 
     if (!requiredChecksCompleted) {
@@ -146,66 +145,68 @@ class Revert extends Validation {
     final List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
   }
-
-  /// Wait for the required checks to complete, and if repository has no checks
-  /// true is returned.
-  Future<bool> waitForRequiredChecks({
-    required GithubService githubService,
-    required github.RepositorySlug slug,
-    required String sha,
-    required List<String> checkNames,
-  }) async {
-    final List<github.CheckRun> targetCheckRuns = [];
-    for (var element in checkNames) {
-      targetCheckRuns.addAll(
-        await githubService.getCheckRunsFiltered(
-          slug: slug,
-          ref: sha,
-          checkName: element,
-        ),
-      );
-    }
-
-    bool checksCompleted = true;
-
-    try {
-      for (github.CheckRun checkRun in targetCheckRuns) {
-        await retryOptions.retry(
-          () async {
-            await _verifyCheckRunCompleted(
-              slug,
-              githubService,
-              checkRun,
-            );
-          },
-          retryIf: (Exception e) => e is RetryableException,
-        );
-      }
-    } catch (e) {
-      log.warning('Required check has not completed in time. ${e.toString()}');
-      checksCompleted = false;
-    }
-
-    return checksCompleted;
-  }
 }
 
-/// Function signature that will be executed with retries.
-typedef RetryHandler = Function();
+/// Wait for the required checks to complete, and if repository has no checks
+/// true is returned.
+///TODO put this into its own class.
+//   Future<bool> waitForRequiredChecks({
+//     required GithubService githubService,
+//     required github.RepositorySlug slug,
+//     required String sha,
+//     required List<String> checkNames,
+//   }) async {
+//     final List<github.CheckRun> targetCheckRuns = [];
+//     for (var element in checkNames) {
+//       targetCheckRuns.addAll(
+//         await githubService.getCheckRunsFiltered(
+//           slug: slug,
+//           ref: sha,
+//           checkName: element,
+//         ),
+//       );
+//     }
 
-/// Simple function to wait on completed checkRuns with retries.
-Future<void> _verifyCheckRunCompleted(
-  github.RepositorySlug slug,
-  GithubService githubService,
-  github.CheckRun targetCheckRun,
-) async {
-  final List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
-    slug: slug,
-    ref: targetCheckRun.headSha!,
-    checkName: targetCheckRun.name,
-  );
+//     bool checksCompleted = true;
 
-  if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
-    throw RetryableException('${targetCheckRun.name} has not yet completed.');
-  }
-}
+//     try {
+//       for (github.CheckRun checkRun in targetCheckRuns) {
+//         await retryOptions.retry(
+//           () async {
+//             await _verifyCheckRunCompleted(
+//               slug,
+//               githubService,
+//               checkRun,
+//             );
+//           },
+//           retryIf: (Exception e) => e is RetryableException,
+//         );
+//       }
+//     } catch (e) {
+//       log.warning('Required check has not completed in time. ${e.toString()}');
+//       checksCompleted = false;
+//     }
+
+//     return checksCompleted;
+//   }
+// }
+
+// /// Function signature that will be executed with retries.
+// typedef RetryHandler = Function();
+
+// /// Simple function to wait on completed checkRuns with retries.
+// Future<void> _verifyCheckRunCompleted(
+//   github.RepositorySlug slug,
+//   GithubService githubService,
+//   github.CheckRun targetCheckRun,
+// ) async {
+//   final List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
+//     slug: slug,
+//     ref: targetCheckRun.headSha!,
+//     checkName: targetCheckRun.name,
+//   );
+
+//   if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
+//     throw RetryableException('${targetCheckRun.name} has not yet completed.');
+//   }
+// }

@@ -14,6 +14,7 @@ const CHANGES_REQUESTED_STATE = 'CHANGES_REQUESTED';
 /// GitHub ORG membership constants.
 const ORG_MEMBER = 'MEMBER';
 const ORG_OWNER = 'OWNER';
+const ORG_COLLABORATOR = 'COLLABORATOR';
 
 /// GitHub status state.
 const STATUS_SUCCESS = 'SUCCESS';
