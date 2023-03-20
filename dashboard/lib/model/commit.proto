@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package dashboard;
+
 import "lib/model/key.proto";
 
 message Commit {

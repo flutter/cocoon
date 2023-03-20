@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package dashboard;
+
 message Key {
     optional string type = 1;
 
