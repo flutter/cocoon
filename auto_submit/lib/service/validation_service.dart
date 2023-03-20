@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/exception/bigquery_exception.dart';
 import 'package:auto_submit/model/big_query_pull_request_record.dart';
@@ -17,6 +15,7 @@ import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/process_method.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:github/github.dart' as github;
@@ -27,7 +26,6 @@ import '../exception/retryable_exception.dart';
 import '../model/auto_submit_query_result.dart';
 import '../request_handling/pubsub.dart';
 import '../validations/approval.dart';
-import '../validations/change_requested.dart';
 import '../validations/conflicting.dart';
 import '../validations/empty_checks.dart';
 import '../validations/validation.dart';
@@ -42,32 +40,12 @@ class ValidationService {
     /// Validates a PR marked with the reverts label.
     revertValidation = Revert(config: config);
     approverService = ApproverService(config);
-
-    validations.addAll({
-      /// Validates the PR has been approved following the codereview guidelines.
-      Approval(config: config),
-
-      /// Validates all the tests ran and where successful.
-      CiSuccessful(config: config),
-
-      /// Validates there are no pending change requests.
-      ChangeRequested(config: config),
-
-      /// Validates that the list of checks is not empty.
-      EmptyChecks(config: config),
-
-      /// Validates the PR state is in a well known state.
-      UnknownMergeable(config: config),
-
-      /// Validates the PR is conflict free.
-      Conflicting(config: config),
-    });
   }
 
   Revert? revertValidation;
   ApproverService? approverService;
   final Config config;
-  final Set<Validation> validations = <Validation>{};
+  // final Set<Validation> validations = <Validation>{};
   final RetryOptions retryOptions;
 
   /// Processes a pub/sub message associated with PullRequest event.
@@ -140,6 +118,32 @@ class ValidationService {
     }
   }
 
+  //TODO switch on revert.
+  // add another parameter and a switch statement for reverts and regular pull 
+  // requests.
+  Set<Validation> _determineValidations(RepositoryConfiguration repositoryConfiguration) {
+    final Set<Validation> validationsToRun = {};
+
+    validationsToRun.add(Approval(config: config));
+
+    // If we are running ci then we need to check the checkRuns and make sure
+    // there are check runs created.
+    if (repositoryConfiguration.runCi) {
+      validationsToRun.add(CiSuccessful(config: config));
+      validationsToRun.add(EmptyChecks(config: config));
+    }
+
+    // Validate required check runs if they are requested.
+    if (repositoryConfiguration.requiredCheckRuns.isNotEmpty) {
+      validationsToRun.add(RequiredCheckRuns(config: config));
+    }
+
+    validationsToRun.add(UnknownMergeable(config: config));
+    validationsToRun.add(Conflicting(config: config));
+
+    return validationsToRun;
+  }
+
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest({
@@ -153,16 +157,12 @@ class ValidationService {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
+    // filter out validations here
+    final Set<Validation> validations = _determineValidations(repositoryConfiguration);
+
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      if (validation is CiSuccessful && !repositoryConfiguration.runCi) {
-        log.info('Skipping ci checks.');
-        continue;
-      } else if (validation is EmptyChecks && !repositoryConfiguration.runCi) {
-        log.info('Skipping empty checks.');
-        continue;
-      }
       final ValidationResult validationResult = await validation.validate(result, messagePullRequest);
       results.add(validationResult);
     }

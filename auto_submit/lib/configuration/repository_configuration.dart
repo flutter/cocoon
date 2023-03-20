@@ -11,6 +11,7 @@ class RepositoryConfigurationBuilder {
   RepositorySlug? _issuesRepository;
   List<String>? _autoApprovalAccounts = [];
   int? _approvingReviews = 2;
+  String? _approvalGroup;
   bool? _runCi = true;
   bool? _supportNoReviewReverts = true;
   List<String>? _requiredCheckRuns = [];
@@ -30,6 +31,8 @@ class RepositoryConfigurationBuilder {
       _approvingReviews = value;
     }
   }
+
+  set approvalGroup(String? value) => _approvalGroup = value;
 
   set runCi(bool? value) {
     if (value != null) {
@@ -58,6 +61,7 @@ class RepositoryConfiguration {
   static const String REPO_NAME_KEY = 'repo';
   static const String AUTO_APPROVAL_ACCOUNTS_KEY = 'auto_approval_accounts';
   static const String APPROVING_REVIEWS_KEY = 'approving_reviews';
+  static const String APPROVAL_GROUP_KEY = 'approval_group';
   static const String RUN_CI_KEY = 'run_ci';
   static const String SUPPORT_NO_REVIEW_REVERT_KEY = 'support_no_review_revert';
   static const String REQUIRED_CHECK_RUNS_KEY = 'required_checkruns';
@@ -67,6 +71,7 @@ class RepositoryConfiguration {
         _issuesRepository = builder._issuesRepository!,
         _autoApprovalAccounts = builder._autoApprovalAccounts!,
         _approvingReviews = builder._approvingReviews!,
+        _approvalGroup = builder._approvalGroup!,
         _runCi = builder._runCi!,
         _supportNoReviewReverts = builder._supportNoReviewReverts!,
         _requiredCheckRuns = builder._requiredCheckRuns!;
@@ -75,6 +80,7 @@ class RepositoryConfiguration {
   final RepositorySlug _issuesRepository;
   final List<String> _autoApprovalAccounts;
   final int _approvingReviews;
+  final String _approvalGroup;
   final bool _runCi;
   final bool _supportNoReviewReverts;
   final List<String> _requiredCheckRuns;
@@ -86,6 +92,8 @@ class RepositoryConfiguration {
   List<String> get autoApprovalAccounts => _autoApprovalAccounts;
 
   int get approvingReviews => _approvingReviews;
+
+  String get approvalGroup => _approvalGroup;
 
   bool get runCi => _runCi;
 
@@ -148,6 +156,12 @@ class RepositoryConfiguration {
     builder.autoApprovalAccounts = autoApprovalAccounts;
 
     builder.approvingReviews = yamlDoc[APPROVING_REVIEWS_KEY];
+
+    if (yamlDoc[APPROVAL_GROUP_KEY] != null) {
+      builder.approvalGroup = yamlDoc[APPROVAL_GROUP_KEY];
+    } else {
+      throw ConfigurationException('The approval group is a required field.');
+    }
 
     builder.runCi = yamlDoc[RUN_CI_KEY];
 

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:auto_submit/exception/configuration_exception.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:shelf/src/response.dart';
@@ -315,9 +316,35 @@ class FakeGithubService implements GithubService {
     });
   }
 
+  bool throwExceptionFileContents = false;
+  String? fileContentsMock = '';
+
   @override
-  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) {
-    // TODO: implement getFileContents
-    throw UnimplementedError();
+  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
+    if (throwExceptionFileContents) {
+      throw 'Contents do not point to a file.';
+    }
+    return fileContentsMock!;
+  }
+
+  TeamMembershipState? teamMembershipStateMock = TeamMembershipState('active');
+
+  @override
+  Future<TeamMembershipState> getTeamMembership(String team, String user, {String? org}) async {
+    return teamMembershipStateMock!;
+  }
+
+  List<Team> teamsListMock = [];
+
+  @override
+  Future<List<Team>> getTeams({String? org = 'flutter'}) async {
+    return teamsListMock;
+  }
+
+  bool isMemberMock = false;
+
+  @override
+  Future<bool> isMember(String team, String user) async {
+    return isMemberMock;
   }
 }

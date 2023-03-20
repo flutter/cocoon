@@ -56,9 +56,9 @@ class GithubWebhook extends RequestHandler {
 
     // Show that we can get the configuraiton from the repository. We don't
     // actually need it here yet.
+    // TODO remove after testing.
     final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
     // prove that we have the configuration in the cache.
     log.info(repositoryConfiguration.toString());
 

@@ -62,15 +62,22 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       if (processingLog.contains(pullRequest.number)) {
         // Ack duplicate.
         log.info('Ack the duplicated message : ${message.ackId!}.');
-        await pubsub.acknowledge(Config.pubsubPullRequestSubscription, message.ackId!);
+        await pubsub.acknowledge(
+          Config.pubsubPullRequestSubscription,
+          message.ackId!,
+        );
         continue;
       } else {
         final ApproverService approver = approverProvider(config);
+        log.info('Checking auto approval of pull request: $rawBody');
         await approver.autoApproval(pullRequest);
-        log.info('Approved pull request: $rawBody');
         processingLog.add(pullRequest.number!);
       }
-      futures.add(validationService.processMessage(pullRequest, message.ackId!, pubsub));
+      futures.add(validationService.processMessage(
+        pullRequest,
+        message.ackId!,
+        pubsub,
+      ));
     }
     await Future.wait(futures);
     return Response.ok('Finished processing changes');
@@ -83,7 +90,10 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
   Future<List<pub.ReceivedMessage>> pullMessages() async {
     final Map<String, pub.ReceivedMessage> messageMap = <String, pub.ReceivedMessage>{};
     for (int i = 0; i < kPubsubPullNumber; i++) {
-      final pub.PullResponse pullResponse = await pubsub.pull(Config.pubsubPullRequestSubscription, kPullMesssageBatchSize);
+      final pub.PullResponse pullResponse = await pubsub.pull(
+        Config.pubsubPullRequestSubscription,
+        kPullMesssageBatchSize,
+      );
       final List<pub.ReceivedMessage>? receivedMessages = pullResponse.receivedMessages;
       if (receivedMessages == null) {
         continue;

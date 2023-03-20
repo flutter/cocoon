@@ -51,8 +51,8 @@ class PubSub {
     );
     final pubsub.PubsubApi pubsubApi = pubsub.PubsubApi(httpClient);
     final pubsub.PullRequest pullRequest = pubsub.PullRequest(maxMessages: maxMessages);
-    final pubsub.PullResponse pullResponse = await pubsubApi.projects.subscriptions
-        .pull(pullRequest, '${Config.pubsubSubscriptionsPrefix}/$subscription');
+    final pubsub.PullResponse pullResponse =
+        await pubsubApi.projects.subscriptions.pull(pullRequest, '${Config.pubsubSubscriptionsPrefix}/$subscription');
     return pullResponse;
   }
 

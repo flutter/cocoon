@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 
@@ -16,24 +18,31 @@ class Approval extends Validation {
     required super.config,
   });
 
-  @override
-
   /// Implements the code review approval logic.
+  @override
   Future<ValidationResult> validate(QueryResult result, github.PullRequest messagePullRequest) async {
     final PullRequest pullRequest = result.repository!.pullRequest!;
     final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
     final List<ReviewNode> reviews = pullRequest.reviews!.nodes!;
+    final github.RepositorySlug slug = github.RepositorySlug.full(messagePullRequest.base!.repo!.fullName);
+
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     bool approved = false;
     String message = '';
-    if (config.rollerAccounts.contains(author)) {
+    if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
       approved = true;
       log.info('PR approved by roller account: $author');
       return ValidationResult(approved, Action.REMOVE_LABEL, '');
     } else {
-      final Approver approver = Approver(author, authorAssociation, reviews);
-      approver.computeApproval();
+      final Approver approver = Approver(
+        repositoryConfiguration,
+        await config.createGithubService(slug),
+        author,
+        reviews,
+      );
+      await approver.computeApproval();
       approved = approver.approved;
 
       log.info(
@@ -44,6 +53,7 @@ class Approval extends Validation {
 
       // Changes were requested, review count does not matter.
       if (approver.changeRequestAuthors.isNotEmpty) {
+        approved = false;
         approvedMessage =
             'This PR has not met approval requirements for merging. Changes were requested by ${approver.changeRequestAuthors}, please make the needed changes and resubmit this PR.\n'
             'You have project association $authorAssociation and need ${approver.remainingReviews} more review(s) in order to merge this PR.\n';
@@ -62,10 +72,16 @@ class Approval extends Validation {
 }
 
 class Approver {
-  Approver(this.author, this.authorAssociation, this.reviews);
+  Approver(
+    this.repositoryConfiguration,
+    this.githubService,
+    this.author,
+    this.reviews,
+  );
 
+  final RepositoryConfiguration repositoryConfiguration;
+  final GithubService githubService;
   final String? author;
-  final String? authorAssociation;
   final List<ReviewNode> reviews;
 
   bool _approved = false;
@@ -93,10 +109,13 @@ class Approver {
   /// show up in this list since it will have a status of DISMISSED and we only
   /// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
   /// not automatically dismiss the previous one.
-  void computeApproval() {
+  Future<void> computeApproval() async {
     //TODO remove the COLLABORATOR config from here when done testing.
-    const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER, ORG_COLLABORATOR};
-    final bool authorIsMember = allowedReviewers.contains(authorAssociation);
+    // const Set<String> allowedReviewers = <String>{ORG_MEMBER, ORG_OWNER, ORG_COLLABORATOR};
+    // final bool authorIsMember = allowedReviewers.contains(authorAssociation);
+
+    // team might be more than one in the future.
+    final bool authorIsMember = await githubService.isMember(repositoryConfiguration.approvalGroup, author!);
 
     // Author counts as 1 review so we need only 1 more.
     if (authorIsMember) {
@@ -113,7 +132,10 @@ class Approver {
       }
 
       // Ignore reviews from non-members/owners.
-      if (!allowedReviewers.contains(review.authorAssociation)) {
+      if (!await githubService.isMember(
+        repositoryConfiguration.approvalGroup,
+        review.author!.login!,
+      )) {
         continue;
       }
 

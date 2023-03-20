@@ -172,6 +172,37 @@ class GithubService {
     return content;
   }
 
+  /// Determine if a user (via user login) is a member of the supplied team.
+  Future<bool> isMember(String team, String user) async {
+    log.info('checking if $user is a member of $team');
+    final TeamMembershipState teamMembershipState = await getTeamMembership(team, user);
+    return teamMembershipState.isActive;
+  }
+
+  /// Get the team membership for the supplied user.
+  Future<TeamMembershipState> getTeamMembership(String team, String user, {String org = 'flutter'}) async {
+    log.info('Getting team membership for team $team, user $user, org $org');
+    final List<Team> teamList = await getTeams(org: org);
+    final Team teamFound = teamList.firstWhere(
+      (element) => (element.name! == team),
+      orElse: () => Team(),
+    );
+    if (teamFound.id == null) {
+      return TeamMembershipState(null);
+    }
+    return await github.organizations.getTeamMembership(teamFound.id!, user);
+  }
+
+  /// Get a list of teams in the supplied org.
+  Future<List<Team>> getTeams({String org = 'flutter'}) async {
+    final List<Team> teamsList = await github.organizations.listTeams(org).toList();
+    log.info('Found teams using org $org:');
+    for (Team team in teamsList) {
+      log.info('${team.toJson()}');
+    }
+    return teamsList;
+  }
+
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {

@@ -3,8 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:github/github.dart' as gh;
+import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 
 import '../configuration/repository_configuration.dart';
@@ -31,7 +32,7 @@ class ApproverService {
     return approvalAccounts;
   }
 
-  Future<void> autoApproval(gh.PullRequest pullRequest) async {
+  Future<void> autoApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
     final List<String> approvalAccounts =
         await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
@@ -48,26 +49,31 @@ class ApproverService {
     }
   }
 
+  //TODO fix this for reverts with the new repository configuration.
   /// Auto approves a pull request when the revert label is present.
-  Future<void> revertApproval(QueryResult queryResult, gh.PullRequest pullRequest) async {
-    final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
+  Future<void> revertApproval(QueryResult queryResult, github.PullRequest pullRequest) async {
+    // final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
 
     final String? author = pullRequest.user!.login;
     // Use the QueryResult for this field
     final String? authorAssociation = queryResult.repository!.pullRequest!.authorAssociation;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     log.info('Attempting to approve revert request by author $author, authorAssociation $authorAssociation.');
 
     final List<String> labelNames =
-        (pullRequest.labels as List<gh.IssueLabel>).map<String>((gh.IssueLabel labelMap) => labelMap.name).toList();
+        (pullRequest.labels as List<github.IssueLabel>).map<String>((github.IssueLabel labelMap) => labelMap.name).toList();
 
     log.info('Found labels $labelNames on this pullRequest.');
 
     final List<String> approvalAccounts =
         await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
 
+    final GithubService githubService = await config.createGithubService(slug);
+
     if (labelNames.contains(Config.kRevertLabel) &&
-        (approvalAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
+        (approvalAccounts.contains(author) || await githubService.isMember(repositoryConfiguration.approvalGroup, author!))) {
       log.info(
         'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
       );
@@ -77,20 +83,20 @@ class ApproverService {
     }
   }
 
-  Future<void> _approve(gh.PullRequest pullRequest, String? author) async {
-    final gh.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final gh.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
+  Future<void> _approve(github.PullRequest pullRequest, String? author) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final github.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 
-    final Stream<gh.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
-    await for (gh.PullRequestReview review in reviews) {
+    final Stream<github.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
+    await for (github.PullRequestReview review in reviews) {
       if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
         // Already approved.
         return;
       }
     }
 
-    final gh.CreatePullRequestReview review =
-        gh.CreatePullRequestReview(slug.owner, slug.name, pullRequest.number!, 'APPROVE');
+    final github.CreatePullRequestReview review =
+        github.CreatePullRequestReview(slug.owner, slug.name, pullRequest.number!, 'APPROVE');
     await botClient.pullRequests.createReview(slug, review);
     log.info('Review for $author complete');
   }

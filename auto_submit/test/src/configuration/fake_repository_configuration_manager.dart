@@ -7,30 +7,15 @@ import 'package:neat_cache/neat_cache.dart';
 class FakeRepositoryConfigurationManager implements RepositoryConfigurationManager {
   FakeRepositoryConfigurationManager(this.cache);
 
+  String? yamlConfig;
+
   @override
   final Cache cache;
 
-  @override
-  Future<RepositoryConfiguration> readRepositoryConfiguration(GithubService githubService, RepositorySlug slug) {
-    // TODO: implement readRepositoryConfiguration
-    throw UnimplementedError();
-  }
+  late RepositoryConfiguration? repositoryConfigurationMock;
 
   @override
-  Future<List<int>> getConfiguration(GithubService githubService, RepositorySlug slug) {
-    // TODO: implement getConfiguration
-    throw UnimplementedError();
-  }
-
-  @override
-  RepositoryConfiguration fromYaml(String fileContents) {
-    // TODO: implement fromYaml
-    throw UnimplementedError();
-  }
-
-  @override
-  String toYaml(RepositoryConfiguration repositoryConfiguration) {
-    // TODO: implement toYaml
-    throw UnimplementedError();
+  Future<RepositoryConfiguration> readRepositoryConfiguration(GithubService githubService, RepositorySlug slug) async {
+    return repositoryConfigurationMock!;
   }
 }
