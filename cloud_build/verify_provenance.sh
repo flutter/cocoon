@@ -14,8 +14,10 @@ echo "Installing jq using apt..."
 apt update && apt install jq=1.5+dfsg-1.3 -y
 
 # Download slsa-verifier in order to validate the docker image provenance.
+# This takes the version of slsa-verifier defined in tooling/go.mod.
 echo "Installing slsa-verifier using go..."
-go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@a43888265e1f6aae98c924538298944f2721dcf0 #v2.0.1: https://github.com/slsa-framework/slsa-verifier/releases/tag/v2.0.1
+cd ../tooling
+grep _ tooling_test.go | cut -f2 -d '"' | xargs -n1 -t go install
 
 # This command uses slsa-verifier to ensure the provenance has the correct
 # source location and builder.
