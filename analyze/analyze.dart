@@ -37,6 +37,9 @@ Future<void> run(List<String> arguments) async {
 
   print('Executable allowlist...');
   await _checkForNewExecutables();
+
+  print('Proto analysis...');
+  await verifyProtos(cocoonRoot);
 }
 
 // TESTS
@@ -71,6 +74,24 @@ Future<void> verifyNoTrailingSpaces(
     if (lines.isNotEmpty && lines.last == '') problems.add('${file.path}:${lines.length}: trailing blank line');
   }
   if (problems.isNotEmpty) exitWithError(problems);
+}
+
+Future<void> verifyProtos(Directory workingDirectory) async {
+  final List<String> errors = <String>[];
+  final List<File> protos = await _allFiles(workingDirectory.path, 'proto', minimumMatches: 1).toList();
+  for (final File proto in protos) {
+    final String content = proto.readAsStringSync();
+    if (!content.contains(RegExp(r'package\ \w+;'))) {
+      errors.add('${proto.path} requires a package (https://protobuf.dev/programming-guides/proto2/#packages)');
+    }
+  }
+
+  if (errors.isNotEmpty) {
+    exitWithError(<String>[
+      'The following files are missing package declarations:',
+      ...errors,
+    ]);
+  }
 }
 
 // UTILITY FUNCTIONS

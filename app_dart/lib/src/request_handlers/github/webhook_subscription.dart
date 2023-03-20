@@ -289,6 +289,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return filename.endsWith('_test.dart') ||
         filename.endsWith('.expect') ||
         filename.contains('test_fixes') ||
+        // Include updates to test utilities or test data
+        filename.contains('packages/flutter_tools/test/') ||
         filename.startsWith('dev/bots/analyze.dart') ||
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||

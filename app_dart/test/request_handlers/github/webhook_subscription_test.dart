@@ -1526,6 +1526,32 @@ void foo() {
       );
     });
 
+    test('Framework labels PRs, no comment if tests (flutter_tools/test/helper.dart)', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/test/helper.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Framework labels PRs, apply label but no comment when rolling engine version', () async {
       const int issueNumber = 123;
 

@@ -4,6 +4,8 @@
 
 syntax = "proto3";
 
+package dashboard;
+
 message Branch {
     optional string branch = 1;
     optional string repository = 2;

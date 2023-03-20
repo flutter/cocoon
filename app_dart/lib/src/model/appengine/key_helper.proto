@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package cocoon;
+
 // Message used in the serialization of [Key] objects.
 //
 // These are serialized to protocol buffers to match the behavior of the Go

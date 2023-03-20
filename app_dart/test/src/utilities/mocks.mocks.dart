@@ -1832,17 +1832,21 @@ class MockIssuesService extends _i1.Mock implements _i10.IssuesService {
   @override
   _i17.Future<_i10.IssueLabel> createLabel(
     _i10.RepositorySlug? slug,
-    String? name,
+    String? name, {
     String? color,
-  ) =>
+    String? description,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #createLabel,
           [
             slug,
             name,
-            color,
           ],
+          {
+            #color: color,
+            #description: description,
+          },
         ),
         returnValue: _i17.Future<_i10.IssueLabel>.value(_FakeIssueLabel_15(
           this,
@@ -1851,8 +1855,11 @@ class MockIssuesService extends _i1.Mock implements _i10.IssuesService {
             [
               slug,
               name,
-              color,
             ],
+            {
+              #color: color,
+              #description: description,
+            },
           ),
         )),
       ) as _i17.Future<_i10.IssueLabel>);
@@ -1880,6 +1887,43 @@ class MockIssuesService extends _i1.Mock implements _i10.IssuesService {
               name,
               color,
             ],
+          ),
+        )),
+      ) as _i17.Future<_i10.IssueLabel>);
+  @override
+  _i17.Future<_i10.IssueLabel> updateLabel(
+    _i10.RepositorySlug? slug,
+    String? name, {
+    String? newName,
+    String? color,
+    String? description,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateLabel,
+          [
+            slug,
+            name,
+          ],
+          {
+            #newName: newName,
+            #color: color,
+            #description: description,
+          },
+        ),
+        returnValue: _i17.Future<_i10.IssueLabel>.value(_FakeIssueLabel_15(
+          this,
+          Invocation.method(
+            #updateLabel,
+            [
+              slug,
+              name,
+            ],
+            {
+              #newName: newName,
+              #color: color,
+              #description: description,
+            },
           ),
         )),
       ) as _i17.Future<_i10.IssueLabel>);
