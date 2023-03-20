@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package cocoon;
+
 enum EnumBuildStatus {
   success = 1;
   failure = 2;

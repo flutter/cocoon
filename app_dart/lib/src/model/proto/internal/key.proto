@@ -4,6 +4,8 @@
 
 syntax = "proto2";
 
+package cocoon;
+
 message Key {
     optional string type = 1;
 

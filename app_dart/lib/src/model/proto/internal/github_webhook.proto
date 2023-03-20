@@ -4,9 +4,12 @@
 
 syntax = "proto2";
 
-// TODO(chillers): Use this for the generated models.
+package cocoon;
+
+// For full spec, see:
+//   * https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads
 message GithubWebhookMessage {
-    // TODO(chillers)
+    // X-GitHub-Event HTTP Header indicating the webhook action.
     optional string event = 1;
     // JSON encoded webhook payload from GitHub.
     optional string payload = 2;
