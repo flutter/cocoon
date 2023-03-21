@@ -18,6 +18,7 @@ apt update && apt install jq=1.5+dfsg-1.3 -y
 echo "Installing slsa-verifier using go..."
 cd tooling
 grep _ tooling_test.go | cut -f2 -d '"' | xargs -n1 -t go install
+cd ..
 
 # This command uses slsa-verifier to ensure the provenance has the correct
 # source location and builder.
