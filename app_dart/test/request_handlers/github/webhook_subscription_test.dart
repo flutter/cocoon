@@ -64,6 +64,7 @@ void main() {
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot',
+        'dependabot[bot]',
       },
       tabledataResource: tabledataResource,
       wrongHeadBranchPullRequestMessageValue: 'wrongHeadBranchPullRequestMessage',
@@ -1644,6 +1645,7 @@ void foo() {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',
+        'dependabot[bot]',
       };
 
       for (String element in inputs) {
