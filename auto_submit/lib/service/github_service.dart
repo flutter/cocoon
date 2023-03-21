@@ -173,8 +173,9 @@ class GithubService {
   }
 
   /// Determine if a user (via user login) is a member of the supplied team.
-  Future<bool> isMember(String team, String user) async {
+  Future<bool> isMember(String team, String user, {String org = 'flutter'}) async {
     log.info('checking if $user is a member of $team');
+    // await github.organizations.get
     final TeamMembershipState teamMembershipState = await getTeamMembership(team, user);
     return teamMembershipState.isActive;
   }
@@ -202,6 +203,18 @@ class GithubService {
     }
     return teamsList;
   }
+
+  // Future<bool> isMember2(String login, String teamName) async {
+  //   final List<Organization> organizations = await github.organizations.list(login).toList();
+  //   // list teams per org.
+  //   Team? team;
+  //   for (Organization org in organizations) {
+  //     final List<Team> teamsList = await github.organizations.listTeams(org.name!).toList();
+  //     team = teamsList.firstWhere((element) => element.name == teamName);
+  //   }
+
+  //   return (team != null);
+  // }
 
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.

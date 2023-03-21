@@ -16,7 +16,7 @@ class RepositoryConfigurationManager {
 
   static const String fileSeparator = '/';
   static const String rootDir = '.github';
-  static const String fileName = 'autosubmit.yaml';
+  static const String fileName = 'autosubmit.yml';
 
   final Cache cache;
 
