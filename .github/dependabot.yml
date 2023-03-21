@@ -92,3 +92,11 @@ updates:
       - "team"
       - "team: infra"
       - "autosubmit"
+  - package-ecosystem: "gomod"
+    directory: "/tooling"
+    schedule:
+      interval: "daily"
+    labels:
+      - "team"
+      - "team: infra"
+      - "autosubmit"
