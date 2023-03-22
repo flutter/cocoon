@@ -317,6 +317,7 @@ class Config {
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot',
+        'dependabot[bot]',
       };
 
   Future<String> generateJsonWebToken() async {
