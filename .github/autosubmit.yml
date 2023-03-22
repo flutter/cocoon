@@ -3,5 +3,5 @@
 # found in the LICENSE file.
 
 # This file will be added to flutter's internal repository.
-# TODO: publish design doc and link here. 
+# TODO: publish design doc and link here.
 config_path: 'autosubmit/flutter/autosubmit_main.yml'
