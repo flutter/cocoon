@@ -6,6 +6,9 @@ import 'package:auto_submit/exception/configuration_exception.dart';
 import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
 
+/// RepositoryConfigurationBuilder is used to build the RepositoryConfiguration
+/// object. It allows the default values or missing values to be configured for
+/// the configuration before sending it on for use.
 class RepositoryConfigurationBuilder {
   String? _defaultBranch;
   RepositorySlug? _issuesRepository;
@@ -53,6 +56,9 @@ class RepositoryConfigurationBuilder {
   }
 }
 
+/// The RepositoryConfiguration stores the pertinent information that autosubmit
+/// will use when submiting and validating pull requests for a particular 
+/// repository.
 class RepositoryConfiguration {
   // Autosubmit configuration keys
   static const String DEFAULT_BRANCH_KEY = 'default_branch';
@@ -122,10 +128,10 @@ class RepositoryConfiguration {
     return stringBuffer.toString();
   }
 
-  static RepositoryConfiguration fromYaml(String fileContents) {
+  static RepositoryConfiguration fromYaml(String yaml) {
     final RepositoryConfigurationBuilder builder = RepositoryConfigurationBuilder();
 
-    final dynamic yamlDoc = loadYaml(fileContents);
+    final dynamic yamlDoc = loadYaml(yaml);
 
     // Default branch is required.
     if (yamlDoc[DEFAULT_BRANCH_KEY] != null) {

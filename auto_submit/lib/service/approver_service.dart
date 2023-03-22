@@ -62,8 +62,9 @@ class ApproverService {
 
     log.info('Attempting to approve revert request by author $author, authorAssociation $authorAssociation.');
 
-    final List<String> labelNames =
-        (pullRequest.labels as List<github.IssueLabel>).map<String>((github.IssueLabel labelMap) => labelMap.name).toList();
+    final List<String> labelNames = (pullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
 
     log.info('Found labels $labelNames on this pullRequest.');
 
@@ -73,7 +74,8 @@ class ApproverService {
     final GithubService githubService = await config.createGithubService(slug);
 
     if (labelNames.contains(Config.kRevertLabel) &&
-        (approvalAccounts.contains(author) || await githubService.isMember(repositoryConfiguration.approvalGroup, author!))) {
+        (approvalAccounts.contains(author) ||
+            await githubService.isMember(repositoryConfiguration.approvalGroup, author!))) {
       log.info(
         'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
       );

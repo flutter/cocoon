@@ -119,7 +119,7 @@ class ValidationService {
   }
 
   //TODO switch on revert.
-  // add another parameter and a switch statement for reverts and regular pull 
+  // add another parameter and a switch statement for reverts and regular pull
   // requests.
   Set<Validation> _determineValidations(RepositoryConfiguration repositoryConfiguration) {
     final Set<Validation> validationsToRun = {};

@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:github/github.dart';
@@ -22,6 +26,10 @@ void main() {
   });
 
   test('Verify cache storage', () async {
+    const String filePointerConfig = '''
+      config_path: 'autosubmit/flutter/autosubmit_main.yml'
+    ''';
+
     const String sampleConfig = '''
       default_branch: main
       issues_repository:
@@ -38,9 +46,10 @@ void main() {
       required_checkruns:
         - “ci.yaml validation”
         - “Google-testing”
-        ''';
+    ''';
 
-    githubService.fileContentsMock = sampleConfig;
+    githubService.fileContentsMockList.add(filePointerConfig);
+    githubService.fileContentsMockList.add(sampleConfig);
     final RepositoryConfiguration repositoryConfiguration =
         await repositoryConfigurationManager.readRepositoryConfiguration(
       githubService,
