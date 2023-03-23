@@ -183,6 +183,9 @@ class XCDevice {
   });
 
   static const String _debugSymbolDescriptionPattern = r' is busy: Fetching debug symbols for ';
+  static final RegExp _preparingPhoneForDevelopmentPattern = RegExp(
+    r'Preparing .* for development\. Xcode will continue when .* is finished\.',
+  );
 
   /// Parse subset of JSON from `parseJson` associated with a particular XCDevice.
   factory XCDevice.fromMap(Map<String, Object?> map) {
@@ -192,8 +195,11 @@ class XCDevice {
     bool validError = false;
     if (error != null) {
       final String description = error['description'] as String;
-      if (description.contains(_debugSymbolDescriptionPattern)) {
+      if (description.contains(_debugSymbolDescriptionPattern) ||
+          _preparingPhoneForDevelopmentPattern.hasMatch(description)) {
         validError = true;
+      } else {
+        print('not matching pattern: $description');
       }
     }
     return XCDevice._(

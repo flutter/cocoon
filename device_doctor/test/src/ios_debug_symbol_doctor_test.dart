@@ -18,7 +18,7 @@ import 'utils.dart';
 
 Future<void> main() async {
   for (final String deviceName in const <String>['iPhone', 'iPhone 11', "Flutter's iOS Phone"]) {
-    test('XCDevice surfaces "Fetching debug symbols" error messages for "$deviceName"', () {
+    test('ios_debug_symbol_doctor surfaces "Fetching debug symbols" error messages for "$deviceName"', () {
       final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithErrors(deviceName));
       final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
         return device.hasError;
@@ -28,7 +28,22 @@ Future<void> main() async {
       expect(erroredDevice.error!['code'], -10);
       expect(erroredDevice.error!['failureReason'], isEmpty);
       expect(erroredDevice.error!['description'], '$deviceName is busy: Fetching debug symbols for $deviceName');
-      expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when iPhone is finished.');
+      expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when $deviceName is finished.');
+      expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
+    });
+
+    test('ios_debug_symbol_doctor surfaces "Preparing $deviceName for development" error message', () {
+      final Iterable<XCDevice> devices = XCDevice.parseJson(_jsonWithPreparingErrors(deviceName));
+      final Iterable<XCDevice> erroredDevices = devices.where((XCDevice device) {
+        return device.hasError;
+      });
+      expect(erroredDevices, hasLength(1), reason: devices.toString());
+      final XCDevice erroredDevice = erroredDevices.single;
+      expect(erroredDevice.error!['code'], -10);
+      expect(erroredDevice.error!['failureReason'], isEmpty);
+      expect(
+          erroredDevice.error!['description'], contains('$deviceName is busy: Preparing $deviceName for development'));
+      expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when $deviceName is finished.');
       expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
     });
   }
@@ -172,7 +187,7 @@ String _jsonWithErrors(String name) => '''
       "code" : -10,
       "failureReason" : "",
       "description" : "$name is busy: Fetching debug symbols for $name",
-      "recoverySuggestion" : "Xcode will continue when iPhone is finished.",
+      "recoverySuggestion" : "Xcode will continue when $name is finished.",
       "domain" : "com.apple.platform.iphoneos"
     },
     "operatingSystemVersion" : "15.1 (19B74)",
@@ -181,7 +196,32 @@ String _jsonWithErrors(String name) => '''
     "architecture" : "arm64",
     "interface" : "usb",
     "available" : false,
-    "name" : "iPhone",
+    "name" : "$name",
+    "modelUTI" : "com.apple.iphone-6s-e1ccb7"
+  }
+]
+''';
+
+String _jsonWithPreparingErrors(String name) => '''
+[
+  {
+    "modelCode" : "iPhone8,1",
+    "simulator" : false,
+    "modelName" : "iPhone 6s",
+    "error" : {
+      "code" : -10,
+      "failureReason" : "",
+      "description" : "$name is busy: Preparing $name for development. Xcode will continue when $name is finished. (code -10)",
+      "recoverySuggestion" : "Xcode will continue when $name is finished.",
+      "domain" : "com.apple.platform.iphoneos"
+    },
+    "operatingSystemVersion" : "15.1 (19B74)",
+    "identifier" : "e3f3a0cf8005b8b34f14d16fa224b19017648353",
+    "platform" : "com.apple.platform.iphoneos",
+    "architecture" : "arm64",
+    "interface" : "usb",
+    "available" : false,
+    "name" : "$name",
     "modelUTI" : "com.apple.iphone-6s-e1ccb7"
   }
 ]
