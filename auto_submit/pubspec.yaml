@@ -32,7 +32,7 @@ dev_dependencies:
   build_runner: ^2.3.3
   json_serializable: ^6.6.1
   flutter_lints: ^2.0.1
-  mockito: ^5.3.2
+  mockito: ^5.4.0
   test: ^1.23.1
 
 builders:
