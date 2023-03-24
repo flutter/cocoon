@@ -154,6 +154,9 @@ class Config {
   /// Upper limit of targets to be backfilled in API call.
   int get backfillerTargetLimit => 50;
 
+  /// Upper limit of commit rows to be backfilled in API call.
+  int get backfillerCommitLimit => 50;
+
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
 

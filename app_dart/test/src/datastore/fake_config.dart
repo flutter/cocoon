@@ -58,6 +58,7 @@ class FakeConfig implements Config {
     this.supportedReposValue,
     this.batchSizeValue,
     this.backfillerTargetLimitValue,
+    this.backfillerCommitLimitValue,
     this.githubRequestDelayValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
@@ -89,6 +90,7 @@ class FakeConfig implements Config {
   Set<String>? rollerAccountsValue;
   int? maxRecordsValue;
   int? backfillerTargetLimitValue;
+  int? backfillerCommitLimitValue;
   String? flutterGoldPendingValue;
   String? flutterGoldSuccessValue;
   String? flutterGoldChangesValue;
@@ -142,6 +144,9 @@ class FakeConfig implements Config {
 
   @override
   int get backfillerTargetLimit => backfillerTargetLimitValue ?? 50;
+
+  @override
+  int get backfillerCommitLimit => backfillerCommitLimitValue ?? 50;
 
   @override
   int get batchSize => batchSizeValue ?? 5;
