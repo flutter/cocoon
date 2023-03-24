@@ -152,7 +152,17 @@ class Config {
   int get batchSize => 5;
 
   /// Upper limit of targets to be backfilled in API call.
+  ///
+  /// For example, if we have 200 available targets found to be backfilled,
+  /// only `backfillerTargetLimit` will be scheduled whereas others wait for
+  /// the next API call.
   int get backfillerTargetLimit => 50;
+
+  /// Upper limit of commit rows to be backfilled in API call.
+  ///
+  /// This limits the number of commits to be checked to backfill. When bots
+  /// are idle, we hope to scan as many commit rows as possible.
+  int get backfillerCommitLimit => 50;
 
   /// Max retries when scheduling builds.
   static const RetryOptions schedulerRetry = RetryOptions(maxAttempts: 3);
