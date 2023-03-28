@@ -363,6 +363,7 @@ class Config {
       throw Exception('generateGitHubToken failed to get token from Github for repo=${slug.fullName}');
     }
     final String token = jsonBody['token'] as String;
+    log.fine("Generated a new GitHub token for ${slug.fullName}");
     return Uint8List.fromList(token.codeUnits);
   }
 
