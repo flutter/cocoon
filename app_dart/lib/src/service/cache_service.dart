@@ -11,6 +11,8 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:mutex/mutex.dart';
 import 'package:retry/retry.dart';
 
+import 'logging.dart';
+
 /// Service for reading and writing values to a cache for quick access of data.
 ///
 /// If [inMemory] is true, a cache with [inMemoryMaxNumberEntries] number
@@ -124,6 +126,7 @@ class CacheService {
     } catch (e) {
       // If the last retry is unsuccessful on an exception we do not want to die
       // here.
+      log.warning('Unable to retrieve value for $key from cache.');
       value = null;
     }
 
