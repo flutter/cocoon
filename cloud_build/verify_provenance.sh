@@ -34,11 +34,7 @@ FULLY_QUALIFIED_DIGEST=$(cat $PROVENANCE_PATH |
 # Note: jq is used in order to obtain the full artifact registry url from
 # the provenance metadata.
 echo "Verifying the provenance is valid and correct..."
-<<<<<<< HEAD
 echo "Checking for source-uri of $SOURCE_URI"
-=======
-echo "Checking for source-uri of https://github.com/flutter/cocoon"
->>>>>>> a5952fd0c5bdf2a1226143da6e2c38f49107c6b4
 slsa-verifier verify-image $FULLY_QUALIFIED_DIGEST \
   --source-uri $SOURCE_URI \
   --builder-id=$BUILDER_ID \
@@ -53,11 +49,7 @@ if [[ $COMMAND_RESULT -eq 0 ]]; then
 fi
 
 echo "Verifying the provenance is valid and correct..."
-<<<<<<< HEAD
 echo "Checking for source-uri of git+$SOURCE_URI"
-=======
-echo "Checking for source-uri of git+https://github.com/flutter/cocoon"
->>>>>>> a5952fd0c5bdf2a1226143da6e2c38f49107c6b4
 slsa-verifier verify-image $FULLY_QUALIFIED_DIGEST \
   --source-uri git+$SOURCE_URI \
   --builder-id=$BUILDER_ID \
