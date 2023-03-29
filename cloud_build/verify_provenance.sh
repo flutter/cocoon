@@ -43,6 +43,8 @@ slsa-verifier verify-image $FULLY_QUALIFIED_DIGEST \
 # If the provenance failed, try again, but check for 'git+' in the source-uri
 # Context: Cloud Build is sometimes generating provenance with 'git+', but it
 # will eventually be generated for all builds.
+# TODO(drewroengoogle): Once the cloud build change is completely rolled out,
+# remove this logic and only check for 'git+'.
 COMMAND_RESULT=$?
 if [[ $COMMAND_RESULT -eq 0 ]]; then
   echo "Provenance verified!" && exit $COMMAND_RESULT
