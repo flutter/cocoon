@@ -49,7 +49,8 @@ class BranchService {
       return;
     }
     final String repository = createEvent.repository!.slug().fullName;
-    final int lastActivity = createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
+    final int lastActivity =
+        createEvent.repository!.pushedAt!.millisecondsSinceEpoch;
     final bool forked = createEvent.repository!.isFork;
 
     if (forked) {
@@ -59,8 +60,10 @@ class BranchService {
 
     final String id = '$repository/$branch';
     log.info('the id used to create branch key was $id');
-    final DatastoreService datastore = DatastoreService.defaultProvider(config.db);
-    final Key<String> key = datastore.db.emptyKey.append<String>(Branch, id: id);
+    final DatastoreService datastore =
+        DatastoreService.defaultProvider(config.db);
+    final Key<String> key =
+        datastore.db.emptyKey.append<String>(Branch, id: id);
     final Branch currentBranch = Branch(key: key, lastActivity: lastActivity);
     try {
       await datastore.lookupByValue<Branch>(currentBranch.key);
@@ -68,7 +71,8 @@ class BranchService {
       log.info('create branch event was successful since the key is unique');
       await datastore.insert(<Branch>[currentBranch]);
     } catch (e) {
-      log.severe('Unexpected exception was encountered while inserting branch into database: $e');
+      log.severe(
+          'Unexpected exception was encountered while inserting branch into database: $e');
     }
   }
 
@@ -87,7 +91,8 @@ class BranchService {
   /// Generally, this should work. However, some edge cases may require CPs. Such as when commits land in a
   /// short timespan, and require the release manager to CP onto the recipes branch (in the case of reverts).
   Future<void> branchFlutterRecipes(String branch) async {
-    final gh.RepositorySlug recipesSlug = gh.RepositorySlug('flutter', 'recipes');
+    final gh.RepositorySlug recipesSlug =
+        gh.RepositorySlug('flutter', 'recipes');
     if ((await gerritService.branches(
       '${recipesSlug.owner}-review.googlesource.com',
       recipesSlug.name,
@@ -98,27 +103,32 @@ class BranchService {
       log.warning('$branch already exists for $recipesSlug');
       throw BadRequestException('$branch already exists');
     }
-    final Iterable<GerritCommit> recipeCommits =
-        await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
+    final Iterable<GerritCommit> recipeCommits = await gerritService.commits(
+        recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
     final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
       () async {
         final GithubService githubService =
             await config.createDefaultGitHubService();
         return await githubService.listCommits(
-            Config.flutterSlug, branch, null,);
+          Config.flutterSlug,
+          branch,
+          null,
+        );
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
     log.info('${Config.flutterSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
-      if (recipeCommit.author!.time!.isBefore(githubCommits.first.commit!.committer!.date!)) {
+      if (recipeCommit.author!.time!
+          .isBefore(githubCommits.first.commit!.committer!.date!)) {
         final String revision = recipeCommit.commit!;
         return await gerritService.createBranch(recipesSlug, branch, revision);
       }
     }
 
-    throw InternalServerError('Failed to find a revision to branch Flutter recipes for $branch');
+    throw InternalServerError(
+        'Failed to find a revision to branch Flutter recipes for $branch');
   }
 
   /// Returns a Map that contains the latest google3 roll, beta, and stable branches.
@@ -129,7 +139,8 @@ class BranchService {
     required GithubService githubService,
     required gh.RepositorySlug slug,
   }) async {
-    final List<gh.Branch> branches = await githubService.github.repositories.listBranches(slug).toList();
+    final List<gh.Branch> branches =
+        await githubService.github.repositories.listBranches(slug).toList();
     final String latestCandidateBranch = await _getLatestCandidateBranch(
       github: githubService.github,
       slug: slug,
@@ -181,16 +192,22 @@ class BranchService {
     required gh.RepositorySlug slug,
     required List<gh.Branch> branches,
   }) async {
-    final RegExp candidateBranchName = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    final List<gh.Branch> devBranches = branches.where((gh.Branch b) => candidateBranchName.hasMatch(b.name!)).toList();
-    devBranches.sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
+    final RegExp candidateBranchName =
+        RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    final List<gh.Branch> devBranches = branches
+        .where((gh.Branch b) => candidateBranchName.hasMatch(b.name!))
+        .toList();
+    devBranches
+        .sort((b, a) => (_versionSum(a.name!)).compareTo(_versionSum(b.name!)));
     final String devBranchName = devBranches.take(1).single.name!;
     return devBranchName;
   }
 
   /// Helper function to convert candidate branch versions to numbers for comparison.
   int _versionSum(String tagOrBranchName) {
-    final List<String> digits = tagOrBranchName.replaceAll(r'flutter|candidate', '0').split(RegExp(r'\.|\-'));
+    final List<String> digits = tagOrBranchName
+        .replaceAll(r'flutter|candidate', '0')
+        .split(RegExp(r'\.|\-'));
     int versionSum = 0;
     for (String digit in digits) {
       final int? d = int.tryParse(digit);
