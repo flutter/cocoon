@@ -138,8 +138,9 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     await runZoned<Future<void>>(
       () async => await super.service(
         request,
-        onError: (_) async {
-          log.warning('Failed to process $message');
+        onError: (exception) async {
+          log.warning(
+              'Failed to process $message. (${exception.statusCode}) ${exception.message}');
           await cache.purge(subscriptionName, messageId);
           log.info('Purged write lock from cache');
         },
