@@ -189,8 +189,22 @@ void main() {
         throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
       };
       await branchService.branchFlutterRecipes(branch);
+    });
 
-      verify(config.createDefaultGitHubService()).called(3);
+    test('ensure createDefaultGithubService is called once for each retry', () async {
+      int attempts = 0;
+      githubService.listCommitsBranch = (String branch, int ts) {
+        attempts++;
+
+        if (attempts == 3) {
+          return <gh.RepositoryCommit>[generateGitCommit(5)];
+        }
+
+        throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
+      };
+      await branchService.branchFlutterRecipes(branch);
+
+      verify(config.createDefaultGitHubService()).called(attempts);
     });
 
     test('creates branch when there is a similar branch', () async {
