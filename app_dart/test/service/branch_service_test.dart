@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
+import 'package:gql/document.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -189,6 +190,8 @@ void main() {
         throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
       };
       await branchService.branchFlutterRecipes(branch);
+
+      verify(config.createDefaultGitHubService()).called(3);
     });
 
     test('creates branch when there is a similar branch', () async {
