@@ -47,8 +47,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
   /// This is guaranteed to be non-null. If the request was unauthenticated,
   /// the request will be denied.
   @protected
-  AuthenticatedContext get authContext =>
-      getValue<AuthenticatedContext>(ApiKey.authContext)!;
+  AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
   /// The [PushMessage] from this [HttpRequest].
   @protected
@@ -60,8 +59,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
-    final AuthenticationProvider auth =
-        authProvider ?? PubsubAuthenticationProvider(config: config);
+    final AuthenticationProvider auth = authProvider ?? PubsubAuthenticationProvider(config: config);
     try {
       authContext = await auth.authenticate(request);
     } on Unauthenticated catch (error) {
@@ -91,8 +89,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     PushMessageEnvelope? envelope;
     if (body.isNotEmpty) {
       try {
-        final Map<String, dynamic> json =
-            jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+        final Map<String, dynamic> json = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
         envelope = PushMessageEnvelope.fromJson(json);
       } catch (error) {
         final HttpResponse response = request.response;
@@ -142,8 +139,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
       () async => await super.service(
         request,
         onError: (exception) async {
-          log.warning(
-              'Failed to process $message. (${exception.statusCode}) ${exception.message}');
+          log.warning('Failed to process $message. (${exception.statusCode}) ${exception.message}');
           await cache.purge(subscriptionName, messageId);
           log.info('Purged write lock from cache');
         },
@@ -160,6 +156,5 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 class PubSubKey<T> extends RequestKey<T> {
   const PubSubKey._(super.name);
 
-  static const PubSubKey<PushMessage> message =
-      PubSubKey<PushMessage>._('message');
+  static const PubSubKey<PushMessage> message = PubSubKey<PushMessage>._('message');
 }
