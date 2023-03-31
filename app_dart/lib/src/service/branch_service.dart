@@ -101,9 +101,17 @@ class BranchService {
     final Iterable<GerritCommit> recipeCommits =
         await gerritService.commits(recipesSlug, Config.defaultBranch(recipesSlug));
     log.info('$recipesSlug commits: $recipeCommits');
-    final GithubService githubService = await config.createDefaultGitHubService();
     final List<gh.RepositoryCommit> githubCommits = await retryOptions.retry(
-      () async => await githubService.listCommits(Config.flutterSlug, branch, null),
+      () async {
+        // TODO(drewroengoogle): createDefaultGitHubService should instead be
+        // handled within the GithubService.
+        final GithubService githubService = await config.createDefaultGitHubService();
+        return await githubService.listCommits(
+          Config.flutterSlug,
+          branch,
+          null,
+        );
+      },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
     log.info('${Config.flutterSlug} branch commits: $githubCommits');
