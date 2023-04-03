@@ -7,15 +7,16 @@ import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart';
+import 'package:gql/document.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
@@ -25,7 +26,7 @@ import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
-  late FakeConfig config;
+  late MockConfig config;
   late FakeDatastoreDB db;
   late BranchService branchService;
   late FakeGerritService gerritService;
@@ -34,16 +35,16 @@ void main() {
   setUp(() {
     db = FakeDatastoreDB();
     githubService = FakeGithubService();
-    config = FakeConfig(
-      dbValue: db,
-      githubService: githubService,
-    );
+    config = MockConfig();
     gerritService = FakeGerritService();
     branchService = BranchService(
       config: config,
       gerritService: gerritService,
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
     );
+
+    when(config.createDefaultGitHubService()).thenAnswer((_) => Future<GithubService>.value(githubService));
+    when(config.db).thenReturn(db);
   });
 
   group('handleCreateRequest', () {
@@ -188,6 +189,22 @@ void main() {
         throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
       };
       await branchService.branchFlutterRecipes(branch);
+    });
+
+    test('ensure createDefaultGithubService is called once for each retry', () async {
+      int attempts = 0;
+      githubService.listCommitsBranch = (String branch, int ts) {
+        attempts++;
+
+        if (attempts == 3) {
+          return <gh.RepositoryCommit>[generateGitCommit(5)];
+        }
+
+        throw gh.GitHubError(MockGitHub(), 'Failed to list commits');
+      };
+      await branchService.branchFlutterRecipes(branch);
+
+      verify(config.createDefaultGitHubService()).called(attempts);
     });
 
     test('creates branch when there is a similar branch', () async {

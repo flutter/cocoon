@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -62,6 +63,7 @@ Future<AutoRefreshingAuthClient> authClientProviderShim({
     BigqueryService,
     BranchService,
     BuildBucketClient,
+    Config,
     FakeEntry,
     IssuesService,
     GithubChecksService,

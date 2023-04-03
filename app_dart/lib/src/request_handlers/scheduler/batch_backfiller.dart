@@ -49,7 +49,8 @@ class BatchBackfiller extends RequestHandler {
 
   Future<void> backfillRepository(RepositorySlug slug) async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final List<FullTask> tasks = await (datastore.queryRecentTasks(slug: slug)).toList();
+    final List<FullTask> tasks =
+        await (datastore.queryRecentTasks(slug: slug, commitLimit: config.backfillerCommitLimit)).toList();
 
     // Construct Task columns to scan for backfilling
     final Map<String, List<FullTask>> taskMap = <String, List<FullTask>>{};
