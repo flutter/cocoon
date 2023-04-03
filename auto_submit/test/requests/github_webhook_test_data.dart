@@ -398,6 +398,35 @@ const String repositoryStatusesMock = '''{
   ]
 }''';
 
+const String repositoryStatusesWithGoldMock = '''{
+  "state": "success",
+  "statuses": [
+    {
+      "state": "success",
+      "context": "luci-engine"
+    },
+    {
+      "state": "PENDING",
+      "context": "flutter-gold"
+    }
+  ]
+}''';
+
+const String repositoryStatusesWithFailedGoldMock = '''{
+  "state": "success",
+  "statuses": [
+    {
+      "state": "success",
+      "context": "luci-engine"
+    },
+    {
+      "state": "failure",
+      "context": "flutter-gold",
+      "targetUrl": "https://ci.example.com/1000/output"
+    }
+  ]
+}''';
+
 const String repositoryStatusesNonLuciFlutterMock = '''{
   "state": "success",
   "statuses": [
