@@ -155,49 +155,53 @@ void main() {
     test('Validate successful statuses show as successful.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesMock);
       const bool allSuccess = true;
+      final Author author = Author(login: 'ricardoamador');
 
       /// The status must be uppercase as the original code is expecting this.
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, [], contextNodeList, failures, allSuccess), isTrue);
+      expect(ciSuccessful.validateStatuses(slug, author, [], contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
     test('Validate statuses that are not successful but do not cause failure.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
       const bool allSuccess = true;
+      final Author author = Author(login: 'ricardoamador');
 
       final List<String> labelNames = [];
       labelNames.add('warning: land on red to fix tree breakage');
       labelNames.add('Other label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
       expect(failures, isEmpty);
     });
 
     test('Validate failure statuses do not cause failure with not in authors control.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedAuthorsStatusesMock);
       const bool allSuccess = true;
+      final Author author = Author(login: 'ricardoamador');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isEmpty);
     });
 
     test('Validate failure statuses cause failures with not in authors control.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       const bool allSuccess = true;
+      final Author author = Author(login: 'ricardoamador');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
     });
@@ -205,15 +209,64 @@ void main() {
     test('Validate failure statuses cause failures and preserves false allSuccess.', () {
       final List<ContextNode> contextNodeList = getContextNodeListFromJson(failedNonAuthorsStatusesMock);
       const bool allSuccess = false;
+      final Author author = Author(login: 'ricardoamador');
 
       final List<String> labelNames = [];
       labelNames.add('Compelling label');
       labelNames.add('Another Compelling label');
 
       convertContextNodeStatuses(contextNodeList);
-      expect(ciSuccessful.validateStatuses(slug, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
       expect(failures, isNotEmpty);
       expect(failures.length, 2);
+    });
+
+    test('Validate flutter-gold is not checked for engine auto roller pull requests.', () {
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithGoldMock);
+      const bool allSuccess = true;
+      final Author author = Author(login: 'skia-flutter-autoroll');
+      slug = github.RepositorySlug('flutter', 'engine');
+
+      final List<String> labelNames = [];
+      labelNames.add('Compelling label');
+      labelNames.add('Another Compelling label');
+
+      convertContextNodeStatuses(contextNodeList);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(failures, isEmpty);
+      expect(failures.length, 0);
+    });
+
+    test('Validate flutter-gold is not checked even if failing for engine auto roller pull requests.', () {
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
+      const bool allSuccess = true;
+      final Author author = Author(login: 'skia-flutter-autoroll');
+      slug = github.RepositorySlug('flutter', 'engine');
+
+      final List<String> labelNames = [];
+      labelNames.add('Compelling label');
+      labelNames.add('Another Compelling label');
+
+      convertContextNodeStatuses(contextNodeList);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isTrue);
+      expect(failures, isEmpty);
+      expect(failures.length, 0);
+    });
+
+    test('Validate flutter-gold is checked for non engine auto roller pull requests.', () {
+      final List<ContextNode> contextNodeList = getContextNodeListFromJson(repositoryStatusesWithFailedGoldMock);
+      const bool allSuccess = true;
+      final Author author = Author(login: 'ricardoamador');
+      slug = github.RepositorySlug('flutter', 'engine');
+
+      final List<String> labelNames = [];
+      labelNames.add('Compelling label');
+      labelNames.add('Another Compelling label');
+
+      convertContextNodeStatuses(contextNodeList);
+      expect(ciSuccessful.validateStatuses(slug, author, labelNames, contextNodeList, failures, allSuccess), isFalse);
+      expect(failures, isNotEmpty);
+      expect(failures.length, 1);
     });
   });
 

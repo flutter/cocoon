@@ -34,6 +34,7 @@ class CiSuccessful extends Validation {
 
     final List<ContextNode> statuses = <ContextNode>[];
     final Commit commit = pullRequest.commits!.nodes!.single.commit!;
+    final Author author = result.repository!.pullRequest!.author!;
 
     // Recently most of the repositories have migrated away of using the status
     // APIs and for those repos commit.status is null.
@@ -55,7 +56,7 @@ class CiSuccessful extends Validation {
         .toList();
 
     /// Validate if all statuses have been successful.
-    allSuccess = validateStatuses(slug, labelNames, statuses, failures, allSuccess);
+    allSuccess = validateStatuses(slug, author, labelNames, statuses, failures, allSuccess);
 
     final GithubService gitHubService = await config.createGithubService(slug);
     final String? sha = commit.oid;
@@ -117,6 +118,7 @@ class CiSuccessful extends Validation {
   /// Returns allSuccess unmodified if there were no failures, false otherwise.
   bool validateStatuses(
     github.RepositorySlug slug,
+    Author author,
     List<String> labelNames,
     List<ContextNode> statuses,
     Set<FailureDetail> failures,
@@ -128,6 +130,13 @@ class CiSuccessful extends Validation {
     for (ContextNode status in statuses) {
       // How can name be null but presumed to not be null below when added to failure?
       final String? name = status.context;
+
+      // If the account author is a roller account do not block merge on flutter-gold check.
+      if (config.rollerAccounts.contains(author.login!) && slug == Config.engineSlug && name == 'flutter-gold') {
+        log.info('Skipping status check for flutter-gold, pr author: $author, slug: ${slug.fullName}.');
+        continue;
+      }
+
       if (status.state != STATUS_SUCCESS) {
         if (notInAuthorsControl.contains(name) && labelNames.contains(overrideTreeStatusLabel)) {
           continue;
