@@ -113,7 +113,11 @@ class Approver {
       // Reviews come back in order of creation.
       final String? state = review.state;
       final String? authorLogin = review.author!.login;
-      if (state == APPROVED_STATE) {
+      // For some reason github will allow a reviewer to provide multiple
+      // reviews and will keep them all so the same person can provide two
+      // reviews and bypass the two review rule. We make an _approvers
+      // contains check to make sure this does not happen.
+      if (state == APPROVED_STATE && !_approvers.contains(authorLogin)) {
         _approvers.add(authorLogin);
         if (_remainingReviews > 0) {
           _remainingReviews--;
