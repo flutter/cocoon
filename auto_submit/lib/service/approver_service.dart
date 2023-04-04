@@ -35,7 +35,7 @@ class ApproverService {
   Future<void> autoApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
     final List<String> approvalAccounts =
-        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
+        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     log.info('Determine auto approval of $author.');
     log.info('Accounts with auto approval: $approvalAccounts');
@@ -69,7 +69,7 @@ class ApproverService {
     log.info('Found labels $labelNames on this pullRequest.');
 
     final List<String> approvalAccounts =
-        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.head!.repo!.fullName));
+        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     final GithubService githubService = await config.createGithubService(slug);
 

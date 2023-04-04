@@ -44,20 +44,23 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
       log.info('No messages are pulled.');
       return Response.ok('No messages are pulled.');
     }
+
     log.info('Processing ${messageList.length} messages');
     final ValidationService validationService = ValidationService(config);
     final List<Future<void>> futures = <Future<void>>[];
 
     for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
+      
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
 
       // This pulls the configuration if we did not already have it and stores
       // it in the config. Approver service will need this
-      // final RepositoryConfiguration repositoryConfiguration =
-      //     await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.head!.repo!.fullName));
-      // log.info('RepositoryConfiguration = ${repositoryConfiguration.toString()}');
+      //TODO something is getting an incorrect full repo name.
+      final RepositoryConfiguration repositoryConfiguration =
+          await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.base!.repo!.fullName));
+      log.info('RepositoryConfiguration = ${repositoryConfiguration.toString()}');
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
@@ -69,6 +72,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
           Config.pubsubPullRequestSubscription,
           message.ackId!,
         );
+
         continue;
       } else {
         final ApproverService approver = approverProvider(config);
@@ -76,6 +80,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         await approver.autoApproval(pullRequest);
         processingLog.add(pullRequest.number!);
       }
+
       futures.add(validationService.processMessage(
         pullRequest,
         message.ackId!,

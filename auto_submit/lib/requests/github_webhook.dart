@@ -41,6 +41,7 @@ class GithubWebhook extends RequestHandler {
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers['X-Hub-Signature'];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
+      log.info('User is forbidden');
       throw const Forbidden();
     }
 

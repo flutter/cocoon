@@ -199,10 +199,6 @@ class GithubService {
   Future<List<Team>> getTeams({String org = 'flutter'}) async {
     // TODO once the github.dart package is release replace this legacy method.
     final List<Team> teamsList = await github.organizations.listTeams(org).toList();
-    log.info('Found teams using org $org:');
-    for (Team team in teamsList) {
-      log.info('${team.toJson()}');
-    }
     return teamsList;
   }
 
