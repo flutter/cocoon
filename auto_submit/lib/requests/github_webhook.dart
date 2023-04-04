@@ -57,10 +57,10 @@ class GithubWebhook extends RequestHandler {
     // Show that we can get the configuraiton from the repository. We don't
     // actually need it here yet.
     // TODO remove after testing.
-    final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
-    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    // prove that we have the configuration in the cache.
-    log.info('Repository configuration: ${repositoryConfiguration.toString()}');
+    // final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
+    // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    // // prove that we have the configuration in the cache.
+    // log.info('Repository configuration: ${repositoryConfiguration.toString()}');
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
@@ -78,6 +78,7 @@ class GithubWebhook extends RequestHandler {
     String? signature,
     List<int> requestBody,
   ) async {
+    log.info('Validating request...');
     final String rawKey = await config.getWebhookKey();
     final List<int> key = utf8.encode(rawKey);
     final Hmac hmac = Hmac(sha1, key);
