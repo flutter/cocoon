@@ -406,7 +406,9 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
-  /// Get builder list whose config is pre-defined in LUCI.
+  /// Gets builder list whose config is pre-defined in LUCI.
+  ///
+  /// Returns cache if existing. Otherwise make the RPC call to fetch list.
   Future<Set<String>> getAvailableBuilderSet({
     String project = 'flutter',
     String bucket = 'prod',
@@ -423,6 +425,9 @@ class LuciBuildService {
     return Set.from(String.fromCharCodes(cacheValue!).split(','));
   }
 
+  /// Returns cache if existing, otherwise makes the RPC call to fetch list.
+  ///
+  /// Use [token] to make sure obtain all the list by calling RPC multiple times.
   Future<Uint8List> _getAvailableBuilderSet({
     String project = 'flutter',
     String bucket = 'prod',
@@ -440,7 +445,7 @@ class LuciBuildService {
   }
 
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
-  /// 
+  ///
   /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
   /// returns the original list.
   Future<List<Tuple<Target, Task, int>>> schedulePostsubmitBuilds({

@@ -108,6 +108,7 @@ class BatchBackfiller extends RequestHandler {
     }
   }
 
+  /// Schedules tasks with retry when hitting pub/sub server errors.
   Future<void> _scheduleWithRetries(List<Tuple<Target, FullTask, int>> backfill) async {
     const RetryOptions retryOptions = Config.schedulerRetry;
     try {
@@ -127,6 +128,11 @@ class BatchBackfiller extends RequestHandler {
     }
   }
 
+  /// Updates the [backfill] list with those that fail to get scheduled.
+  ///
+  /// [tupleLists] maintains the same tuple order as those in [backfill].
+  /// Each element from [backfill] is encapsulated as a list in [tupleLists] to prepare for
+  /// [scheduler.luciBuildService.schedulePostsubmitBuilds].
   _updateBackfill(List<Tuple<Target, FullTask, int>> backfill, List<List<Tuple<Target, Task, int>>> tupleLists) {
     final List<Tuple<Target, FullTask, int>> updatedBackfill = <Tuple<Target, FullTask, int>>[];
     for (int i = 0; i < tupleLists.length; i++) {
