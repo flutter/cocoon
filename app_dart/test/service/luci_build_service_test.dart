@@ -606,8 +606,11 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest, 'new builds');
-      // why is this getting called twice in this test?
-      verify(mockBuildBucketClient.batch(any)).called(1);
+      // This is okay, it is getting called twice when it runs cancel builds
+      // because the call is no longer being short-circuited. It calls batch in 
+      // tryBuildsForPullRequest and it calls in the top level cancelBuilds
+      // function.
+      verify(mockBuildBucketClient.batch(any)).called(2);
     });
 
     test('Cancel builds that are scheduled', () async {

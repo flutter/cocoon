@@ -257,13 +257,14 @@ class LuciBuildService {
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
     log.info(
-        'Attempting to cancel builds... for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}');
+        'Attempting to cancel builds... for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',);
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
-
+    log.info('Found ${builds.length} builds.');
     final List<Request> requests = <Request>[];
     for (Build? build in builds.values) {
       // Scheduled status includes scheduled and pending tasks.
       if (build!.status == Status.scheduled || build.status == Status.started) {
+        log.info('Build with id ${build.id} will be cancelled.');
         requests.add(
           Request(
             cancelBuild: CancelBuildRequest(
