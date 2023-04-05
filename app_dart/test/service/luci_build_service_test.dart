@@ -606,6 +606,7 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest, 'new builds');
+      // why is this getting called twice in this test?
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
 
