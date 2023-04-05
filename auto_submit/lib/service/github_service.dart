@@ -202,6 +202,16 @@ class GithubService {
     return teamsList;
   }
 
+  /// Get the definition of a single repository
+  Future<Repository> getRepository(RepositorySlug slug) async {
+    return await github.repositories.getRepository(slug);
+  }
+
+  Future<String> getDefaultBranch(RepositorySlug slug) async {
+    final Repository repository = await getRepository(slug);
+    return repository.defaultBranch;
+  }
+ 
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {
