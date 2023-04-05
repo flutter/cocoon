@@ -248,7 +248,8 @@ class LuciBuildService {
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
-    log.info('Attempting to cancel builds... for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}');
+    log.info(
+        'Attempting to cancel builds... for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}');
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
 
     final List<Request> requests = <Request>[];
