@@ -713,6 +713,7 @@ void main() {
     late DatastoreService datastore;
     late MockGithubChecksUtil mockGithubChecksUtil;
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
