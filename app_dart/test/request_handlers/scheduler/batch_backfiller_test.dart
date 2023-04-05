@@ -114,6 +114,35 @@ void main() {
       expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
     });
 
+    test('backfills task successfully with retry', () async {
+      pubsub.exceptionFlag = true;
+      pubsub.exceptionRepetition = 1;
+      final List<Task> allGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(3, name: 'Linux_android A', status: Task.statusFailed),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => allGray);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 1);
+      final ScheduleBuildRequest scheduleBuildRequest =
+          (pubsub.messages.single as BatchRequest).requests!.single.scheduleBuild!;
+      expect(scheduleBuildRequest.priority, LuciBuildService.kRerunPriority);
+    });
+
+    test('fails to backfill tasks when retry limit is hit', () async {
+      pubsub.exceptionFlag = true;
+      pubsub.exceptionRepetition = 3;
+      final List<Task> allGray = <Task>[
+        generateTask(1, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(2, name: 'Linux_android A', status: Task.statusNew),
+        generateTask(3, name: 'Linux_android A', status: Task.statusFailed),
+      ];
+      db.addOnQuery<Task>((Iterable<Task> results) => allGray);
+      await tester.get(handler);
+      expect(pubsub.messages.length, 0);
+    });
+
     test('backfills older task', () async {
       final List<Task> oldestGray = <Task>[
         generateTask(1, name: 'Linux_android A', status: Task.statusSucceeded),

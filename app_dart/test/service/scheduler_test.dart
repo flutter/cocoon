@@ -237,7 +237,7 @@ void main() {
             commit: anyNamed('commit'),
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
-        ).thenAnswer((_) => Future<void>.value());
+        ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(

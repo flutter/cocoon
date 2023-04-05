@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
+import 'package:googleapis/pubsub/v1.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -22,6 +24,7 @@ import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'buildbucket.dart';
+import 'cache_service.dart';
 import 'config.dart';
 import 'gerrit_service.dart';
 
@@ -33,6 +36,7 @@ const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.sta
 class LuciBuildService {
   LuciBuildService({
     required this.config,
+    required this.cache,
     required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
@@ -41,6 +45,7 @@ class LuciBuildService {
         gerritService = gerritService ?? GerritService();
 
   BuildBucketClient buildBucketClient;
+  final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;
   GerritService gerritService;
@@ -52,6 +57,9 @@ class LuciBuildService {
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
+
+  /// Name of the subcache to store luci build related values in redis.
+  static const String subCacheName = 'luci';
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
@@ -403,6 +411,22 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
+    final Uint8List? cacheValue = await cache.getOrCreate(
+      subCacheName,
+      'builderlist',
+      createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
+      // New commit triggering tasks should be finished within 5 mins.
+      // The batch backfiller's execution frequency is also 5 mins.
+      ttl: const Duration(minutes: 5),
+    );
+
+    return Set.from(String.fromCharCodes(cacheValue!).split(','));
+  }
+
+  Future<Uint8List> _getAvailableBuilderSet({
+    String project = 'flutter',
+    String bucket = 'prod',
+  }) async {
     final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
@@ -412,17 +436,20 @@ class LuciBuildService {
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       token = listBuildersResponse.nextPageToken;
     } while (token != null);
-    return availableBuilderSet;
+    return Uint8List.fromList(availableBuilderSet.toList().join(',').codeUnits);
   }
 
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
-  Future<void> schedulePostsubmitBuilds({
+  /// 
+  /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
+  /// returns the original list.
+  Future<List<Tuple<Target, Task, int>>> schedulePostsubmitBuilds({
     required Commit commit,
     required List<Tuple<Target, Task, int>> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
       log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
-      return;
+      return toBeScheduled;
     }
     final List<Request> buildRequests = <Request>[];
     final Set<String> availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
@@ -445,8 +472,16 @@ class LuciBuildService {
     }
     final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
     log.fine(batchRequest);
-    await pubsub.publish('scheduler-requests', batchRequest);
+    List<String> messageIds;
+    try {
+      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
+      log.info('Published $messageIds for commit ${commit.sha}');
+    } on DetailedApiRequestError catch (error) {
+      log.severe(error.toString());
+      return toBeScheduled;
+    }
     log.info('Published a request with ${buildRequests.length} builds');
+    return <Tuple<Target, Task, int>>[];
   }
 
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
