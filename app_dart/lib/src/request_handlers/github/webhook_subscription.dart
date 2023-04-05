@@ -307,6 +307,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||
+        filename.contains('TESTOWNERS') ||
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
         filename.contains('.github/') ||

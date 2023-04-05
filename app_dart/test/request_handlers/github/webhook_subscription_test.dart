@@ -1405,7 +1405,7 @@ void main() {
       );
     });
 
-    test('Framework no comment if only CODEOWNERS changed', () async {
+    test('Framework no comment if only CODEOWNERS or TESTOWNERS changed', () async {
       const int issueNumber = 123;
       tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -1413,6 +1413,7 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'CODEOWNERS',
+          PullRequestFile()..filename = 'TESTOWNERS',
         ]),
       );
 
