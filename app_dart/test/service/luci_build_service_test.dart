@@ -607,7 +607,7 @@ void main() {
       });
       await service.cancelBuilds(pullRequest, 'new builds');
       // This is okay, it is getting called twice when it runs cancel builds
-      // because the call is no longer being short-circuited. It calls batch in 
+      // because the call is no longer being short-circuited. It calls batch in
       // tryBuildsForPullRequest and it calls in the top level cancelBuilds
       // function.
       verify(mockBuildBucketClient.batch(any)).called(2);
