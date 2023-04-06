@@ -631,6 +631,7 @@ void main() {
 
   group('failedBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
@@ -674,6 +675,7 @@ void main() {
     late push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
