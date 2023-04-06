@@ -64,6 +64,7 @@ class FileCodesignVisitor {
 
   Set<String> fileWithEntitlements = <String>{};
   Set<String> fileWithoutEntitlements = <String>{};
+  Set<String> fileWhitelist = <String>{};
   Set<String> fileConsumed = <String>{};
   Set<String> directoriesVisited = <String>{};
   Map<String, String> availablePasswords = {
@@ -167,11 +168,22 @@ update these file paths accordingly.
       processManager: processManager,
     );
 
-    //extract entitlements file.
-    fileWithEntitlements = await parseEntitlements(parentDirectory, true);
-    fileWithoutEntitlements = await parseEntitlements(parentDirectory, false);
+    // Extract entitlements file.
+    fileWithEntitlements = await parseMetadata(parentDirectory, 'entitlements.txt');
+    fileWithoutEntitlements = await parseMetadata(parentDirectory, 'without_entitlements.txt');
     log.info('parsed binaries with entitlements are $fileWithEntitlements');
-    log.info('parsed binaries without entitlements are $fileWithEntitlements');
+    log.info('parsed binaries without entitlements are $fileWithoutEntitlements');
+
+    // Extract whitelist file.
+    //
+    // The entire zip will be exempted from codesign as long as there is a
+    // non empty whitelist.txt file embedded.
+    fileWhitelist = await parseMetadata(parentDirectory, 'whitelist.txt');
+    if (fileWhitelist.isNotEmpty) {
+      log.info('the binary ${originalFile.basename} is not going to be codesigned '
+          'because it embeds a whitelist file. A whitelist file indicates that this'
+          'artifact likely contains debug symbols and not executables');
+    }
 
     // recursively visit extracted files
     await visitDirectory(directory: parentDirectory, parentVirtualPath: "");
@@ -308,25 +320,26 @@ update these file paths accordingly.
     }
   }
 
-  /// Extract entitlements configurations from downloaded zip files.
+  /// Extract codesign metadata from downloaded zip files.
   ///
   /// Parse and store codesign configurations detailed in configuration files.
   /// File paths of entilement files and non entitlement files will be parsed and stored in [fileWithEntitlements].
-  Future<Set<String>> parseEntitlements(Directory parent, bool entitlements) async {
-    final String entitlementFilePath = entitlements
-        ? fileSystem.path.join(parent.path, 'entitlements.txt')
-        : fileSystem.path.join(parent.path, 'without_entitlements.txt');
-    if (!(await fileSystem.file(entitlementFilePath).exists())) {
-      log.warning('$entitlementFilePath not found. '
-          'by default, system will assume there is no ${entitlements ? '' : 'without_'}entitlements file. '
-          'As a result, no binary will be codesigned.'
-          'if this is not intended, please provide them along with the engine artifacts.');
+  /// If the zip file is exempted from codesign, white list file is extracted and stored in [fileWhitelist].
+  Future<Set<String>> parseMetadata(Directory parent, String metadataFilename) async {
+    final String metadataFilePath = fileSystem.path.join(parent.path, metadataFilename);
+    if (!(await fileSystem.file(metadataFilePath).exists())) {
+      if (metadataFilename != "whitelist.txt") {
+        log.warning('$metadataFilePath not found. '
+            'by default, system will assume there is no $metadataFilename file. '
+            'As a result, no binary will be codesigned.'
+            'if this is not intended, please provide them along with the engine artifacts.');
+      }
       return <String>{};
     }
 
-    final Set<String> fileWithEntitlements = <String>{};
-    fileWithEntitlements.addAll(await fileSystem.file(entitlementFilePath).readAsLines());
-    return fileWithEntitlements;
+    final Set<String> filepathSet = <String>{};
+    filepathSet.addAll(await fileSystem.file(metadataFilePath).readAsLines());
+    return filepathSet;
   }
 
   /// Upload a zip archive to the notary service and verify the build succeeded.
