@@ -20,7 +20,7 @@ class PubSub {
 
   final HttpClientProvider httpClientProvider;
 
-  Future<void> publish(String topic, dynamic json) async {
+  Future<List<String>> publish(String topic, dynamic json) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
       scopes: <String>[
         PubsubApi.pubsubScope,
@@ -38,5 +38,6 @@ class PubSub {
     final String fullTopicName = 'projects/flutter-dashboard/topics/$topic';
     final PublishResponse response = await pubsubApi.projects.topics.publish(request, fullTopicName);
     log.info('pubsub response messageId=${response.messageIds}');
+    return response.messageIds!;
   }
 }

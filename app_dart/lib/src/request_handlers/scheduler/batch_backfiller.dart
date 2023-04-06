@@ -10,10 +10,13 @@ import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/ci_yaml/target.dart';
+import '../../request_handling/exceptions.dart';
 import '../../request_handling/request_handler.dart';
+import '../../service/config.dart';
 import '../../service/logging.dart';
 import '../../service/luci_build_service.dart';
 import '../../service/scheduler.dart';
@@ -99,15 +102,51 @@ class BatchBackfiller extends RequestHandler {
       });
       // Schedule all builds asynchronously.
       // Schedule after db updates to avoid duplicate scheduling when db update fails.
-      await Future.wait<void>(backfillRequestList(backfill));
+      await _scheduleWithRetries(backfill);
     } catch (error) {
       log.severe('Failed to update tasks when backfilling: $error');
     }
   }
 
+  /// Schedules tasks with retry when hitting pub/sub server errors.
+  Future<void> _scheduleWithRetries(List<Tuple<Target, FullTask, int>> backfill) async {
+    const RetryOptions retryOptions = Config.schedulerRetry;
+    try {
+      await retryOptions.retry(
+        () async {
+          final List<List<Tuple<Target, Task, int>>> tupleLists =
+              await Future.wait<List<Tuple<Target, Task, int>>>(backfillRequestList(backfill));
+          if (tupleLists.any((List<Tuple<Target, Task, int>> tupleList) => tupleList.isNotEmpty)) {
+            backfill = _updateBackfill(backfill, tupleLists);
+            throw InternalServerError('Failed to backfill ${backfill.length} targets.');
+          }
+        },
+        retryIf: (Exception e) => e is InternalServerError,
+      );
+    } catch (e) {
+      log.severe('Failed to backfill ${backfill.length} targets.');
+    }
+  }
+
+  /// Updates the [backfill] list with those that fail to get scheduled.
+  ///
+  /// [tupleLists] maintains the same tuple order as those in [backfill].
+  /// Each element from [backfill] is encapsulated as a list in [tupleLists] to prepare for
+  /// [scheduler.luciBuildService.schedulePostsubmitBuilds].
+  List<Tuple<Target, FullTask, int>> _updateBackfill(
+      List<Tuple<Target, FullTask, int>> backfill, List<List<Tuple<Target, Task, int>>> tupleLists) {
+    final List<Tuple<Target, FullTask, int>> updatedBackfill = <Tuple<Target, FullTask, int>>[];
+    for (int i = 0; i < tupleLists.length; i++) {
+      if (tupleLists[i].isNotEmpty) {
+        updatedBackfill.add(backfill[i]);
+      }
+    }
+    return updatedBackfill;
+  }
+
   /// Creates a list of backfill requests.
-  List<Future<void>> backfillRequestList(List<Tuple<Target, FullTask, int>> backfill) {
-    final List<Future<void>> futures = <Future<void>>[];
+  List<Future<List<Tuple<Target, Task, int>>>> backfillRequestList(List<Tuple<Target, FullTask, int>> backfill) {
+    final List<Future<List<Tuple<Target, Task, int>>>> futures = <Future<List<Tuple<Target, Task, int>>>>[];
     for (Tuple<Target, FullTask, int> tuple in backfill) {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
       final Tuple<Target, Task, int> toBeScheduled = Tuple(

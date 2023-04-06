@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -30,6 +31,7 @@ import '../src/utilities/push_message.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
+  late CacheService cache;
   late FakeConfig config;
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
@@ -48,12 +50,14 @@ void main() {
     final Build linuxBuild = generateBuild(998, name: 'Linux', bucket: 'try', status: Status.started);
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
@@ -124,12 +128,14 @@ void main() {
 
   group('getBuilders', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
@@ -185,12 +191,14 @@ void main() {
     final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.started);
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -237,6 +245,7 @@ void main() {
 
   group('scheduleBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
@@ -244,6 +253,7 @@ void main() {
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
@@ -317,10 +327,12 @@ void main() {
 
   group('schedulePostsubmitBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
@@ -574,11 +586,13 @@ void main() {
 
   group('cancelBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -617,12 +631,14 @@ void main() {
 
   group('failedBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -659,11 +675,13 @@ void main() {
     late push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -697,6 +715,7 @@ void main() {
     late DatastoreService datastore;
     late MockGithubChecksUtil mockGithubChecksUtil;
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
@@ -705,6 +724,7 @@ void main() {
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,

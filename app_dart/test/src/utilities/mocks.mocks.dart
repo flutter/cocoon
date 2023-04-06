@@ -4731,13 +4731,14 @@ class MockHttpClientResponse extends _i1.Mock implements _i18.HttpClientResponse
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
   @override
-  _i20.Future<dynamic> forEach(void Function(List<int>)? action) => (super.noSuchMethod(
+  _i20.Future<void> forEach(void Function(List<int>)? action) => (super.noSuchMethod(
         Invocation.method(
           #forEach,
           [action],
         ),
-        returnValue: _i20.Future<dynamic>.value(),
-      ) as _i20.Future<dynamic>);
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
   @override
   _i20.Future<bool> every(bool Function(List<int>)? test) => (super.noSuchMethod(
         Invocation.method(
@@ -5475,7 +5476,7 @@ class MockLuciBuildService extends _i1.Mock implements _i21.LuciBuildService {
         returnValue: _i20.Future<Set<String>>.value(<String>{}),
       ) as _i20.Future<Set<String>>);
   @override
-  _i20.Future<void> schedulePostsubmitBuilds({
+  _i20.Future<List<_i21.Tuple<_i29.Target, _i32.Task, int>>> schedulePostsubmitBuilds({
     required _i31.Commit? commit,
     required List<_i21.Tuple<_i29.Target, _i32.Task, int>>? toBeScheduled,
   }) =>
@@ -5488,9 +5489,9 @@ class MockLuciBuildService extends _i1.Mock implements _i21.LuciBuildService {
             #toBeScheduled: toBeScheduled,
           },
         ),
-        returnValue: _i20.Future<void>.value(),
-        returnValueForMissingStub: _i20.Future<void>.value(),
-      ) as _i20.Future<void>);
+        returnValue: _i20.Future<List<_i21.Tuple<_i29.Target, _i32.Task, int>>>.value(
+            <_i21.Tuple<_i29.Target, _i32.Task, int>>[]),
+      ) as _i20.Future<List<_i21.Tuple<_i29.Target, _i32.Task, int>>>);
   @override
   _i20.Future<void> createPostsubmitCheckRun(
     _i31.Commit? commit,

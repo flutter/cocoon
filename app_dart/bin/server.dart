@@ -29,6 +29,7 @@ Future<void> main() async {
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
       config: config,
+      cache: cache,
       buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
     );
