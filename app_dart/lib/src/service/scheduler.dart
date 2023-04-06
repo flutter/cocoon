@@ -279,13 +279,6 @@ class Scheduler {
     String reason = 'Newer commit available',
     List<String>? builderTriggerList,
   }) async {
-    // Always cancel running builds so we don't ever schedule duplicates.
-    log.fine('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
-    await cancelPreSubmitTargets(
-      pullRequest: pullRequest,
-      reason: reason,
-    );
-
     log.info('Creating ciYaml validation check run for ${pullRequest.number}');
     final github.CheckRun ciValidationCheckRun = await githubChecksService.githubChecksUtil.createCheckRun(
       config,

@@ -113,10 +113,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
         if (!pr.merged!) {
-          await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
+          await scheduler.cancelPreSubmitTargets(
+            pullRequest: pr,
+            reason: 'Pull request closed',
+          );
         } else {
           // Forcefully merged pull requests should have targets cancelled.
-          await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request merged');
+          await scheduler.cancelPreSubmitTargets(
+            pullRequest: pr,
+            reason: 'Pull request merged',
+          );
           // Merged pull requests can be added to CI.
           await scheduler.addPullRequest(pr);
         }
@@ -128,7 +134,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'opened':
       case 'reopened':
-        // These cases should trigger LUCI jobs.
+        // These cases should trigger LUCI jobs. The closed event should happen
+        // before these which should cancel all in progress checks.
         await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
@@ -138,6 +145,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
+        await scheduler.cancelPreSubmitTargets(
+          pullRequest: pr,
+          reason: 'Newer commits available.',
+        );
         await _scheduleIfMergeable(pullRequestEvent);
         break;
       // Ignore the rest of the events.
@@ -171,8 +182,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final RepositorySlug slug = pullRequestEvent.repository!.slug();
       final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
       final String body = config.mergeConflictPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, body)) {
-        await gitHubClient.issues.createComment(slug, pr.number!, body);
+      if (!await _alreadyCommented(gitHubClient, pr, body,)) {
+        await gitHubClient.issues.createComment(slug, pr.number!, body,);
       }
 
       return;
@@ -202,7 +213,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final GitHub gitHubClient = config.createGitHubClientWithToken(await config.githubOAuthToken);
-    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE');
+    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE',);
     await gitHubClient.pullRequests.createReview(slug, review);
   }
 

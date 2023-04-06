@@ -360,7 +360,8 @@ void main() {
 
       await tester.post(webhook);
 
-      expect(batchRequestCalled, isTrue);
+      expect(batchRequestCalled, isFalse);
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 0);
     });
 
     test('Does nothing against cherry pick PR', () async {
