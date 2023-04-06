@@ -584,7 +584,6 @@ void main() {
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
-
     test('Cancel builds when build list is empty', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -592,13 +591,8 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest, 'new builds');
-      // This is okay, it is getting called twice when it runs cancel builds
-      // because the call is no longer being short-circuited. It calls batch in
-      // tryBuildsForPullRequest and it calls in the top level cancelBuilds
-      // function.
-      verify(mockBuildBucketClient.batch(any)).called(2);
+      verify(mockBuildBucketClient.batch(any)).called(1);
     });
-
     test('Cancel builds that are scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -634,7 +628,6 @@ void main() {
       );
       slug = RepositorySlug('flutter', 'flutter');
     });
-
     test('Failed builds from an empty list', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -644,7 +637,6 @@ void main() {
       final List<Build?> result = await service.failedBuilds(pullRequest, <Target>[]);
       expect(result, isEmpty);
     });
-
     test('Failed builds from a list of builds with failures', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -663,7 +655,6 @@ void main() {
       expect(result, hasLength(1));
     });
   });
-
   group('rescheduleBuild', () {
     late push_message.BuildPushMessage buildPushMessage;
 
