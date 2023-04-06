@@ -156,7 +156,7 @@ class Config {
       headers: headers,
     );
     final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
-    
+
     late String installationId;
     log.info('lookinf for install data for slug = ${slug.fullName}');
     for (Map<String, dynamic> installData in list) {

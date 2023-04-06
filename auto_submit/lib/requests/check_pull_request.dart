@@ -51,7 +51,7 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
     for (pub.ReceivedMessage message in messageList) {
       final String messageData = message.message!.data!;
-      
+
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
 
@@ -81,11 +81,13 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
         processingLog.add(pullRequest.number!);
       }
 
-      futures.add(validationService.processMessage(
-        pullRequest,
-        message.ackId!,
-        pubsub,
-      ),);
+      futures.add(
+        validationService.processMessage(
+          pullRequest,
+          message.ackId!,
+          pubsub,
+        ),
+      );
     }
     await Future.wait(futures);
     return Response.ok('Finished processing changes');

@@ -346,8 +346,27 @@ class FakeGithubService implements GithubService {
   bool isMemberMock = false;
 
   @override
-  Future<bool> isMember(String team, String user, {String org = 'flutter'}) {
-    // TODO: implement isMember
-    throw UnimplementedError();
+  Future<bool> isMember(String team, String user, {String org = 'flutter'}) async {
+    return isMemberMock;
+  }
+
+  String defaultBranch = 'main';
+  bool throwOnDefaultBranch = false;
+  Exception exception = Exception('Generic exception.');
+
+  @override
+  Future<String> getDefaultBranch(RepositorySlug slug) async {
+    if (throwOnDefaultBranch) {
+      throw exception;
+    } else {
+      return defaultBranch;
+    }
+  }
+
+  Repository repositoryMock = Repository();
+
+  @override
+  Future<Repository> getRepository(RepositorySlug slug) async {
+    return repositoryMock;
   }
 }

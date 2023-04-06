@@ -211,7 +211,7 @@ class GithubService {
     final Repository repository = await getRepository(slug);
     return repository.defaultBranch;
   }
- 
+
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
   Future<bool> comparePullRequests(RepositorySlug repositorySlug, PullRequest revert, PullRequest current) async {

@@ -79,7 +79,7 @@ class RequiredCheckRuns extends Validation {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
 
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    final List<String> requiredCheckRuns = repositoryConfiguration.requiredCheckRuns;
+    final List<String> requiredCheckRuns = repositoryConfiguration.requiredCheckRunsOnRevert!;
 
     final bool success = await waitForRequiredChecks(slug: slug, sha: sha!, checkNames: requiredCheckRuns);
 

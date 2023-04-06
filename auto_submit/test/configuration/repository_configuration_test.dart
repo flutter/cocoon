@@ -29,11 +29,11 @@ void main() {
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
-    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
   });
 
   test('Parse config from yaml excluding auto approval accounts', () {
@@ -54,16 +54,15 @@ void main() {
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
-    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
   });
 
   test('Parse config from yaml with empty auto_approval_accounts field', () {
     const String sampleConfig = '''
-      default_branch: main
       issues_repository:
         owner: flutter
         repo: flutter
@@ -78,18 +77,21 @@ void main() {
     ''';
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
+    // We will get the default branch later as it does not need to be added to
+    // the initial configuration.
+    repositoryConfiguration.defaultBranch = 'main';
+
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
-    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
   });
 
   test('Parse minimal configuration', () {
     const String sampleConfig = '''
-      default_branch: main
       approval_group: flutter-hackers
       issues_repository:
         owner: flutter
@@ -97,12 +99,14 @@ void main() {
     ''';
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
-    expect(repositoryConfiguration.defaultBranch, 'main');
+    repositoryConfiguration.defaultBranch = 'master';
+
+    expect(repositoryConfiguration.defaultBranch, 'master');
     expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
-    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.isEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isEmpty, isTrue);
   });
 }

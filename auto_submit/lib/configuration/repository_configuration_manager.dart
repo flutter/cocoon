@@ -12,24 +12,15 @@ import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-/// The RepositoryConfigurationManager class is responsible for collecting and
-/// storing the repository configurationf or autosubmit. It will first collect
-/// the local repository file pointer then get the configuration from the
-/// flutter .github repository.
 class RepositoryConfigurationManager {
   final Mutex _mutex = Mutex();
-  // repository manager needs a cache and a github service in order to provide the configuration
-  // It only provides the configuration read from either the cache or github.
 
-  // This is the location to the pointer file in the local repository that then
-  // gives the full path to the main configuration file in the .github repository.
-  // TODO: possibly make the global configuration values overrideable.
   static const String fileSeparator = '/';
+  // This is the well named organization level repository and configuration file
+  // we will read before looking to see if there is a local file with
+  // overwrites.
   static const String rootDir = '.github';
   static const String fileName = 'autosubmit.yml';
-
-  // The target repo where the actual configurations live.
-  final RepositorySlug githubRepo = RepositorySlug('flutter', '.github');
 
   final Cache cache;
 
@@ -69,6 +60,20 @@ class RepositoryConfigurationManager {
     GithubService githubService,
     RepositorySlug slug,
   ) async {
+    // Read the org level configuraiton file first.
+    log.info('Getting org level configuration.');
+    // This looks like org/.github, ex flutter/.github
+    // RepositorySlug orgSlug = RepositorySlug(slug.owner, rootDir);
+    // final String orgLevelConfig = await githubService.getFileContents(slug, path)
+
+
+
+
+
+
+
+
+
     // Read the local config file for the pointer
     log.info('Getting local file contents from $slug.');
     final String localPointerFileContents = await githubService.getFileContents(

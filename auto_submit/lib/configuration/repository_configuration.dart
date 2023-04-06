@@ -10,6 +10,7 @@ import 'package:yaml/yaml.dart';
 /// object. It allows the default values or missing values to be configured for
 /// the configuration before sending it on for use.
 class RepositoryConfigurationBuilder {
+  bool? _allowConfigOverride = false;
   String? _defaultBranch;
   RepositorySlug? _issuesRepository;
   List<String>? _autoApprovalAccounts = [];
@@ -17,7 +18,9 @@ class RepositoryConfigurationBuilder {
   String? _approvalGroup;
   bool? _runCi = true;
   bool? _supportNoReviewReverts = true;
-  List<String>? _requiredCheckRuns = [];
+  List<String>? _requiredCheckRunsOnRevert = [];
+
+  set allowConfigOverride(bool value) => _allowConfigOverride = value;
 
   set defaultBranch(String value) => _defaultBranch = value;
 
@@ -49,9 +52,9 @@ class RepositoryConfigurationBuilder {
     }
   }
 
-  set requiredCheckRuns(List<String>? value) {
+  set requiredCheckRunsOnRevert(List<String>? value) {
     if (value != null && value.isNotEmpty) {
-      _requiredCheckRuns = value;
+      _requiredCheckRunsOnRevert = value;
     }
   }
 }
@@ -61,6 +64,7 @@ class RepositoryConfigurationBuilder {
 /// repository.
 class RepositoryConfiguration {
   // Autosubmit configuration keys
+  static const String ALLOW_CONFIG_OVERRIDE_KEY = 'allow_config_override';
   static const String DEFAULT_BRANCH_KEY = 'default_branch';
   static const String ISSUES_REPOSITORY_KEY = 'issues_repository';
   static const String REPO_OWNER_KEY = 'owner';
@@ -72,57 +76,45 @@ class RepositoryConfiguration {
   static const String SUPPORT_NO_REVIEW_REVERT_KEY = 'support_no_review_revert';
   static const String REQUIRED_CHECK_RUNS_KEY = 'required_checkruns';
 
-  RepositoryConfiguration(RepositoryConfigurationBuilder builder)
-      : _defaultBranch = builder._defaultBranch!,
-        _issuesRepository = builder._issuesRepository!,
-        _autoApprovalAccounts = builder._autoApprovalAccounts!,
-        _approvingReviews = builder._approvingReviews!,
-        _approvalGroup = builder._approvalGroup!,
-        _runCi = builder._runCi!,
-        _supportNoReviewReverts = builder._supportNoReviewReverts!,
-        _requiredCheckRuns = builder._requiredCheckRuns!;
+  RepositoryConfiguration({
+    this.allowConfigOverride,
+    this.defaultBranch,
+    this.issuesRepository,
+    this.autoApprovalAccounts,
+    this.approvingReviews,
+    this.approvalGroup,
+    this.runCi,
+    this.supportNoReviewReverts,
+    this.requiredCheckRunsOnRevert,
+  });
 
-  final String _defaultBranch;
-  final RepositorySlug _issuesRepository;
-  final List<String> _autoApprovalAccounts;
-  final int _approvingReviews;
-  final String _approvalGroup;
-  final bool _runCi;
-  final bool _supportNoReviewReverts;
-  final List<String> _requiredCheckRuns;
-
-  String get defaultBranch => _defaultBranch;
-
-  RepositorySlug get issuesRepository => _issuesRepository;
-
-  List<String> get autoApprovalAccounts => _autoApprovalAccounts;
-
-  int get approvingReviews => _approvingReviews;
-
-  String get approvalGroup => _approvalGroup;
-
-  bool get runCi => _runCi;
-
-  bool get supportNoReviewReverts => _supportNoReviewReverts;
-
-  List<String> get requiredCheckRuns => _requiredCheckRuns;
+  bool? allowConfigOverride = false;
+  String? defaultBranch = 'main';
+  RepositorySlug? issuesRepository = RepositorySlug('owner', 'name');
+  List<String>? autoApprovalAccounts = [];
+  int? approvingReviews = 2;
+  String? approvalGroup = '';
+  bool? runCi = true;
+  bool? supportNoReviewReverts = false;
+  List<String>? requiredCheckRunsOnRevert = [];
 
   @override
   String toString() {
     final StringBuffer stringBuffer = StringBuffer();
-    stringBuffer.writeln('$DEFAULT_BRANCH_KEY: $_defaultBranch');
+    stringBuffer.writeln('$ALLOW_CONFIG_OVERRIDE_KEY: $allowConfigOverride');
+    stringBuffer.writeln('$DEFAULT_BRANCH_KEY: $defaultBranch');
     stringBuffer.writeln('$ISSUES_REPOSITORY_KEY:');
-    stringBuffer.writeln('  $REPO_OWNER_KEY: ${_issuesRepository.owner}');
-    stringBuffer.writeln('  $REPO_NAME_KEY: ${_issuesRepository.name}');
+    stringBuffer.writeln('  $REPO_OWNER_KEY: ${issuesRepository!.owner}');
+    stringBuffer.writeln('  $REPO_NAME_KEY: ${issuesRepository!.name}');
     stringBuffer.writeln('$AUTO_APPROVAL_ACCOUNTS_KEY:');
-    for (String account in _autoApprovalAccounts) {
+    for (String account in autoApprovalAccounts!) {
       stringBuffer.writeln('  - $account');
     }
-    stringBuffer.writeln('$APPROVING_REVIEWS_KEY: $_approvingReviews');
-    stringBuffer.writeln('$RUN_CI_KEY: $_runCi');
-    stringBuffer.writeln('$SUPPORT_NO_REVIEW_REVERT_KEY: $_supportNoReviewReverts');
+    stringBuffer.writeln('$APPROVING_REVIEWS_KEY: $approvingReviews');
+    stringBuffer.writeln('$RUN_CI_KEY: $runCi');
+    stringBuffer.writeln('$SUPPORT_NO_REVIEW_REVERT_KEY: $supportNoReviewReverts');
     stringBuffer.writeln('$REQUIRED_CHECK_RUNS_KEY:');
-    for (String checkrun in _requiredCheckRuns) {
+    for (String checkrun in requiredCheckRunsOnRevert!) {
       stringBuffer.writeln('  - $checkrun');
     }
     return stringBuffer.toString();
@@ -133,11 +125,13 @@ class RepositoryConfiguration {
 
     final dynamic yamlDoc = loadYaml(yaml);
 
+    if (yamlDoc[ALLOW_CONFIG_OVERRIDE_KEY] != null) {
+      builder.allowConfigOverride = yamlDoc[ALLOW_CONFIG_OVERRIDE_KEY];
+    }
+
     // Default branch is required.
     if (yamlDoc[DEFAULT_BRANCH_KEY] != null) {
       builder.defaultBranch = yamlDoc[DEFAULT_BRANCH_KEY];
-    } else {
-      throw ConfigurationException('The default branch is a required field.');
     }
 
     // Issues RepositorySlug is required.
@@ -173,15 +167,25 @@ class RepositoryConfiguration {
 
     builder.supportNoReviewReverts = yamlDoc[SUPPORT_NO_REVIEW_REVERT_KEY];
 
-    final List<String> requiredCheckRuns = [];
+    final List<String> requiredCheckRunsOnRevert = [];
     final YamlList? yamlRequiredCheckRuns = yamlDoc[REQUIRED_CHECK_RUNS_KEY];
     if (yamlRequiredCheckRuns != null) {
       for (var element in yamlRequiredCheckRuns) {
-        requiredCheckRuns.add(element as String);
+        requiredCheckRunsOnRevert.add(element as String);
       }
     }
-    builder.requiredCheckRuns = requiredCheckRuns;
+    builder.requiredCheckRunsOnRevert = requiredCheckRunsOnRevert;
 
-    return RepositoryConfiguration(builder);
+    return RepositoryConfiguration(
+      allowConfigOverride: builder._allowConfigOverride,
+      defaultBranch: builder._defaultBranch,
+      issuesRepository: builder._issuesRepository,
+      autoApprovalAccounts: builder._autoApprovalAccounts,
+      approvingReviews: builder._approvingReviews,
+      approvalGroup: builder._approvalGroup,
+      runCi: builder._runCi,
+      supportNoReviewReverts: builder._supportNoReviewReverts,
+      requiredCheckRunsOnRevert: builder._requiredCheckRunsOnRevert,
+    );
   }
 }

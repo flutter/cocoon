@@ -31,7 +31,7 @@ class Approval extends Validation {
 
     bool approved = false;
     String message = '';
-    if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
+    if (repositoryConfiguration.autoApprovalAccounts!.contains(author)) {
       approved = true;
       log.info('PR approved by roller account: $author');
       return ValidationResult(approved, Action.REMOVE_LABEL, '');
@@ -115,7 +115,7 @@ class Approver {
     // final bool authorIsMember = allowedReviewers.contains(authorAssociation);
 
     // team might be more than one in the future.
-    final bool authorIsMember = await githubService.isMember(repositoryConfiguration.approvalGroup, author!);
+    final bool authorIsMember = await githubService.isMember(repositoryConfiguration.approvalGroup!, author!);
 
     // Author counts as 1 review so we need only 1 more.
     if (authorIsMember) {
@@ -133,7 +133,7 @@ class Approver {
 
       // Ignore reviews from non-members/owners.
       if (!await githubService.isMember(
-        repositoryConfiguration.approvalGroup,
+        repositoryConfiguration.approvalGroup!,
         review.author!.login!,
       )) {
         continue;

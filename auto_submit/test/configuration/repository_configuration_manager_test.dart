@@ -60,14 +60,14 @@ void main() {
     );
 
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository.fullName, 'flutter/flutter');
-    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+    expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/flutter');
+    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.requiredCheckRuns.length, 2);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
   });
 }

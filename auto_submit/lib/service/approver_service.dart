@@ -28,7 +28,7 @@ class ApproverService {
   /// Get the auto approval accounts from the configuration is any are supplied.
   Future<List<String>> getAutoApprovalAccounts(RepositorySlug slug) async {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    final List<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts;
+    final List<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts!;
     return approvalAccounts;
   }
 
@@ -75,7 +75,7 @@ class ApproverService {
 
     if (labelNames.contains(Config.kRevertLabel) &&
         (approvalAccounts.contains(author) ||
-            await githubService.isMember(repositoryConfiguration.approvalGroup, author!))) {
+            await githubService.isMember(repositoryConfiguration.approvalGroup!, author!))) {
       log.info(
         'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
       );

@@ -52,14 +52,9 @@ class PullRequestValidationFilter implements ValidationFilter {
 
     // If we are running ci then we need to check the checkRuns and make sure
     // there are check runs created.
-    if (repositoryConfiguration.runCi) {
+    if (repositoryConfiguration.runCi!) {
       validationsToRun.add(CiSuccessful(config: config));
       validationsToRun.add(EmptyChecks(config: config));
-    }
-
-    // Validate required check runs if they are requested.
-    if (repositoryConfiguration.requiredCheckRuns.isNotEmpty) {
-      validationsToRun.add(RequiredCheckRuns(config: config));
     }
 
     validationsToRun.add(UnknownMergeable(config: config));
@@ -81,7 +76,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
 
     validationsToRun.add(Revert(config: config));
     // Validate required check runs if they are requested.
-    if (repositoryConfiguration.requiredCheckRuns.isNotEmpty) {
+    if (repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty) {
       validationsToRun.add(RequiredCheckRuns(config: config));
     }
 
