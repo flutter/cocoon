@@ -128,56 +128,6 @@ class LuciBuildService {
     return builds;
   }
 
-  /// Returns a map of the BuildBucket builds for a given Github [PullRequest]
-  /// using the [builderName] as key and [Build] as value.
-  Future<Map<String?, Build?>> tryBuildsForPullRequest(
-    github.PullRequest pullRequest,
-  ) async {
-    final BatchResponse batch = await buildBucketClient.batch(
-      BatchRequest(
-        requests: <Request>[
-          // Builds created by Cocoon
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: const BuilderId(
-                  project: 'flutter',
-                  bucket: 'try',
-                ),
-                tags: <String, List<String>>{
-                  'buildset': <String>['pr/git/${pullRequest.number}'],
-                  'github_link': <String>[
-                    'https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'
-                  ],
-                  'user_agent': const <String>['flutter-cocoon'],
-                },
-              ),
-            ),
-          ),
-          // Builds created by recipe (via swarming create task)
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: const BuilderId(
-                  project: 'flutter',
-                  bucket: 'try',
-                ),
-                tags: <String, List<String>>{
-                  'buildset': <String>['pr/git/${pullRequest.number}'],
-                  'user_agent': const <String>['recipe'],
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    final Iterable<Build> builds = batch.responses!
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
-    return {for (Build b in builds) b.builderId.builder: b};
-  }
-
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
@@ -242,7 +192,10 @@ class LuciBuildService {
       );
     }
 
-    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
+    final Iterable<List<Request>> requestPartitions = await shard(
+      requests,
+      config.schedulingShardSize,
+    );
     for (List<Request> requestPartition in requestPartitions) {
       final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
       await pubsub.publish('scheduler-requests', batchRequest);
@@ -256,20 +209,28 @@ class LuciBuildService {
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
     log.info(
-      'Attempting to cancel builds... for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
+      'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
-    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
+
+    // final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
+    final Iterable<Build> builds = await getTryBuilds(
+      github.RepositorySlug.full(pullRequest.base!.repo!.fullName),
+      pullRequest.head!.sha!,
+      null,
+    );
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
+      log.info('No in-progress or scheduled builds to cancel.');
       return;
     }
 
     final List<Request> requests = <Request>[];
-    for (Build? build in builds.values) {
-      // Scheduled status includes scheduled and pending tasks.
-      if (build!.status == Status.scheduled || build.status == Status.started) {
-        log.info('Build with id ${build.id} will be cancelled.');
+    // for (Build? build in builds.values) {
+    for (Build build in builds) {
+      if (build.status == Status.scheduled || build.status == Status.started) {
+        // Scheduled status includes scheduled and pending tasks.
+        log.info('Cancelling build with build id ${build.id}.');
         requests.add(
           Request(
             cancelBuild: CancelBuildRequest(
@@ -289,10 +250,14 @@ class LuciBuildService {
     github.PullRequest pullRequest,
     List<Target> targets,
   ) async {
-    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
+    final Iterable<Build> builds = await getTryBuilds(
+      github.RepositorySlug.full(pullRequest.base!.repo!.fullName),
+      pullRequest.head!.sha!,
+      null,
+    );
     final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
-    final Iterable<Build?> failedBuilds = builds.values.where((Build? build) => failStatusSet.contains(build!.status));
+    final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
     final Iterable<Build?> expectedFailedBuilds =
         failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
     return expectedFailedBuilds.toList();
@@ -446,8 +411,11 @@ class LuciBuildService {
     final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
-      final ListBuildersResponse listBuildersResponse =
-          await buildBucketClient.listBuilders(ListBuildersRequest(project: project, bucket: bucket, pageToken: token));
+      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(ListBuildersRequest(
+        project: project,
+        bucket: bucket,
+        pageToken: token,
+      ));
       final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       token = listBuildersResponse.nextPageToken;
