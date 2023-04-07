@@ -90,7 +90,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(SignInButton), findsOneWidget);
+    expect(find.byType(UserSignIn), findsOneWidget);
 
     await tester.pumpWidget(Container());
     buildState.dispose();

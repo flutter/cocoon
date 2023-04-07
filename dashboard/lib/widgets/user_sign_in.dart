@@ -17,8 +17,8 @@ enum _SignInButtonAction { logout }
 ///
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
-class SignInButton extends StatelessWidget {
-  const SignInButton({
+class UserSignIn extends StatelessWidget {
+  const UserSignIn({
     super.key,
     this.colorBrightness,
   });

@@ -24,7 +24,7 @@ void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
-    expect(find.byType(SignInButton), findsOneWidget);
+    expect(find.byType(UserSignIn), findsOneWidget);
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {

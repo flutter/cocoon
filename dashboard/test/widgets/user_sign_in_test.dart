@@ -18,7 +18,7 @@ final Widget testApp = MaterialApp(
   home: Scaffold(
     appBar: AppBar(
       actions: const <Widget>[
-        SignInButton(),
+        UserSignIn(),
       ],
     ),
   ),
@@ -107,7 +107,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byType(SignInButton));
+    await tester.tap(find.byType(UserSignIn));
     await tester.pumpAndSettle();
 
     verifyNever(mockAuthService.signOut());
