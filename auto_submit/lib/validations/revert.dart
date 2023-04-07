@@ -13,6 +13,8 @@ import 'package:retry/retry.dart';
 import '../exception/retryable_exception.dart';
 import '../service/log.dart';
 
+// Revert validation handles reverted pull requests and required the dev to have
+// opened a pull request previously then adding a label.
 class Revert extends Validation {
   Revert({
     required super.config,
