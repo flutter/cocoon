@@ -29,7 +29,7 @@ class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: <Widget>[
         ...?actions,
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          padding: EdgeInsets.only(right: 8.0),
           child: UserSignIn(),
         ),
       ],
