@@ -261,6 +261,11 @@ class LuciBuildService {
     );
     final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     log.info('Found ${builds.length} builds.');
+
+    if (builds.isEmpty) {
+      return;
+    }
+
     final List<Request> requests = <Request>[];
     for (Build? build in builds.values) {
       // Scheduled status includes scheduled and pending tasks.
