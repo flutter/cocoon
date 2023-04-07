@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'sign_in_button.dart';
+import 'user_sign_in.dart';
 
 /// Cocoon-specific variant of the [AppBar] widget.
 ///
@@ -23,15 +23,14 @@ class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     return AppBar(
       title: title,
       backgroundColor: backgroundColor,
       actions: <Widget>[
         ...?actions,
-        if (actions != null && actions!.isNotEmpty) const SizedBox(width: 8),
-        UserSignIn(
-          colorBrightness: theme.brightness == Brightness.light ? Brightness.dark : Brightness.light,
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          child: UserSignIn(),
         ),
       ],
     );
