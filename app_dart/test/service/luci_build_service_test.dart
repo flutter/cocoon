@@ -217,8 +217,12 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
-      expect(builds.keys, isEmpty);
+      final Iterable<Build> builds = await service.getTryBuilds(
+        RepositorySlug.full(pullRequest.base!.repo!.fullName),
+        pullRequest.head!.sha!,
+        null,
+      );
+      expect(builds, isEmpty);
     });
 
     test('Response returning a couple of builds', () async {
@@ -238,8 +242,12 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
-      expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
+      final Iterable<Build> builds = await service.getTryBuilds(
+        RepositorySlug.full(pullRequest.base!.repo!.fullName),
+        pullRequest.head!.sha!,
+        null,
+      );
+      expect(builds, equals(<Build>{macBuild, linuxBuild}));
     });
   });
 
@@ -610,7 +618,7 @@ void main() {
       // because the call is no longer being short-circuited. It calls batch in
       // tryBuildsForPullRequest and it calls in the top level cancelBuilds
       // function.
-      verify(mockBuildBucketClient.batch(any)).called(2);
+      verify(mockBuildBucketClient.batch(any)).called(1);
     });
 
     test('Cancel builds that are scheduled', () async {
