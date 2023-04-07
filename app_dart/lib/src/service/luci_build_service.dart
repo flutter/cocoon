@@ -136,7 +136,6 @@ class LuciBuildService {
                   project: 'flutter',
                   bucket: 'try',
                 ),
-                createdBy: 'cocoon',
                 tags: <String, List<String>>{
                   'buildset': <String>['pr/git/${pullRequest.number}'],
                   'github_link': <String>[
