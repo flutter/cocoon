@@ -112,18 +112,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        if (!pr.merged!) {
-          await scheduler.cancelPreSubmitTargets(
-            pullRequest: pr,
-            reason: 'Pull request closed',
-          );
-        } else {
-          // Forcefully merged pull requests should have targets cancelled.
-          await scheduler.cancelPreSubmitTargets(
-            pullRequest: pr,
-            reason: 'Pull request merged',
-          );
-          // Merged pull requests can be added to CI.
+        await scheduler.cancelPreSubmitTargets(
+          pullRequest: pr,
+          reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
+        );
+
+        if (pr.merged!) {
           await scheduler.addPullRequest(pr);
         }
         break;
@@ -145,10 +139,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await scheduler.cancelPreSubmitTargets(
-          pullRequest: pr,
-          reason: 'Newer commits available.',
-        );
         await _scheduleIfMergeable(pullRequestEvent);
         break;
       // Ignore the rest of the events.

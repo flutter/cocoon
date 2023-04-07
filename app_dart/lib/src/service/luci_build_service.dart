@@ -212,9 +212,8 @@ class LuciBuildService {
       'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    // final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
     final Iterable<Build> builds = await getTryBuilds(
-      github.RepositorySlug.full(pullRequest.base!.repo!.fullName),
+      pullRequest.base!.repo!.slug(),
       pullRequest.head!.sha!,
       null,
     );
@@ -251,7 +250,7 @@ class LuciBuildService {
     List<Target> targets,
   ) async {
     final Iterable<Build> builds = await getTryBuilds(
-      github.RepositorySlug.full(pullRequest.base!.repo!.fullName),
+      pullRequest.base!.repo!.slug(),
       pullRequest.head!.sha!,
       null,
     );
