@@ -27,11 +27,11 @@ class UserSignIn extends StatelessWidget {
   Widget build(BuildContext context) {
     final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
 
-    return FutureBuilder<bool>(
-      future: authService.isAuthenticated,
-      builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
-        /// On sign out, there's a second where the user is null before isAuthenticated catches up.
-        if (isAuthenticated.data == true && authService.user != null) {
+    // Listen to the changes of `authService` to re-render.
+    return AnimatedBuilder(
+      animation: authService,
+      builder: (BuildContext context, _) {
+        if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
