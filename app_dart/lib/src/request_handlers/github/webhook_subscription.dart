@@ -182,8 +182,16 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       final RepositorySlug slug = pullRequestEvent.repository!.slug();
       final GitHub gitHubClient = await config.createGitHubClient(pullRequest: pr);
       final String body = config.mergeConflictPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, body,)) {
-        await gitHubClient.issues.createComment(slug, pr.number!, body,);
+      if (!await _alreadyCommented(
+        gitHubClient,
+        pr,
+        body,
+      )) {
+        await gitHubClient.issues.createComment(
+          slug,
+          pr.number!,
+          body,
+        );
       }
 
       return;
@@ -213,7 +221,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final GitHub gitHubClient = config.createGitHubClientWithToken(await config.githubOAuthToken);
-    final CreatePullRequestReview review = CreatePullRequestReview(slug.owner, slug.name, pr.number!, 'APPROVE',);
+    final CreatePullRequestReview review = CreatePullRequestReview(
+      slug.owner,
+      slug.name,
+      pr.number!,
+      'APPROVE',
+    );
     await gitHubClient.pullRequests.createReview(slug, review);
   }
 
