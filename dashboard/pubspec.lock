@@ -273,7 +273,7 @@ packages:
     source: hosted
     version: "5.6.1"
   google_sign_in_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_sign_in_platform_interface
       sha256: "95a9e0a8701b5485f2ca330fd1fc6f918f5ce088042ce1019c5e389d8574ae4c"
@@ -281,7 +281,7 @@ packages:
     source: hosted
     version: "2.4.0"
   google_sign_in_web:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_sign_in_web
       sha256: "7e0ec507f4752383a6daa67d0cc775253cfc3b1d87907e7004e2c1b99c0a723f"

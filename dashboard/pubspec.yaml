@@ -27,6 +27,8 @@ dependencies:
   flutter:
     sdk: flutter
   google_sign_in: ^6.1.0
+  google_sign_in_platform_interface: any # Match google_sign_in
+  google_sign_in_web: any # Match google_sign_in
   http: ^0.13.5
   protobuf: ^2.1.0
   provider: ^6.0.5
