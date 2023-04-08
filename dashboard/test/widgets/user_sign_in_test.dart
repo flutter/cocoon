@@ -37,6 +37,7 @@ void main() {
 
   testWidgets('SignInButton shows sign in when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+    when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService?>(
@@ -54,6 +55,7 @@ void main() {
 
   testWidgets('SignInButton calls sign in on tap when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+    when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService?>(

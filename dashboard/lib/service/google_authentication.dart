@@ -45,7 +45,13 @@ class GoogleSignInService extends ChangeNotifier {
   ///
   /// If the plugin fails, default to unauthenticated.
   Future<bool> get isAuthenticated async {
-    return user != null;
+    try {
+      return _googleSignIn.isSignedIn();
+    } on PlatformException catch (error) {
+      debugPrint('GoogleSignIn error code: ${error.code}');
+      debugPrint(error.message);
+    }
+    return Future<bool>.value(false);
   }
 
   /// The Google Account for the signed in user, null if no user is signed in.
