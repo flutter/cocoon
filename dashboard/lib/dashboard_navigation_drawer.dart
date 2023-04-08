@@ -35,7 +35,6 @@ class DashboardNavigationDrawer extends StatelessWidget {
           ),
           const AboutListTile(
             icon: FlutterLogo(),
-            child: Text('About Cocoon'),
           ),
         ],
       ),
