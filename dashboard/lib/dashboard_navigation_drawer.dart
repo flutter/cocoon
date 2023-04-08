@@ -23,18 +23,19 @@ class DashboardNavigationDrawer extends StatelessWidget {
             ),
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: Text('Flutter Dashboard'),
+              child: Text('Flutter Build Dashboard — Cocoon'),
             ),
           ),
-          for (CocoonLink link in cocoonLinks)
-            ListTile(
+          ...cocoonLinks.map((CocoonLink link) => ListTile(
               leading: link.icon,
               title: Text(link.name!),
               onTap: link.action,
               selected: currentRoute == link.route,
             ),
+          ),
           const AboutListTile(
             icon: FlutterLogo(),
+            child: Text('About Cocoon'),
           ),
         ],
       ),
