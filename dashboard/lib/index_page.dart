@@ -56,13 +56,15 @@ class IndexPage extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: cocoonLinks.map<Widget>(
-                          (CocoonLink link) => ElevatedButton.icon(
-                            icon: link.icon!,
-                            label: Text(link.name!.toUpperCase()),
-                            onPressed: link.action,
-                          ),
-                        ).toList(),
+                        children: cocoonLinks
+                            .map<Widget>(
+                              (CocoonLink link) => ElevatedButton.icon(
+                                icon: link.icon!,
+                                label: Text(link.name!.toUpperCase()),
+                                onPressed: link.action,
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
                   ),

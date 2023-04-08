@@ -26,7 +26,8 @@ class DashboardNavigationDrawer extends StatelessWidget {
               child: Text('Flutter Build Dashboard — Cocoon'),
             ),
           ),
-          ...cocoonLinks.map((CocoonLink link) => ListTile(
+          ...cocoonLinks.map(
+            (CocoonLink link) => ListTile(
               leading: link.icon,
               title: Text(link.name!),
               onTap: link.action,
