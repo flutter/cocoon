@@ -218,7 +218,6 @@ class LuciBuildService {
     }
 
     final List<Request> requests = <Request>[];
-    // for (Build? build in builds.values) {
     for (Build build in builds) {
       if (build.status == Status.scheduled || build.status == Status.started) {
         // Scheduled status includes scheduled and pending tasks.
