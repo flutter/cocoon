@@ -217,7 +217,8 @@ void main() {
           ],
         );
       });
-      final Iterable<Build> builds = await service.getTryBuilds(RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+      final Iterable<Build> builds = await service.getTryBuilds(
+          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
       expect(builds, isEmpty);
     });
 
@@ -238,7 +239,8 @@ void main() {
           ],
         );
       });
-      final Iterable<Build> builds = await service.getTryBuilds(RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+      final Iterable<Build> builds = await service.getTryBuilds(
+          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
       expect(builds, equals(<Build>{macBuild, linuxBuild}));
     });
   });
