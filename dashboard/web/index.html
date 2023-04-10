@@ -27,16 +27,13 @@ found in the LICENSE file. -->
 <body>
 <script>
   window.addEventListener('load', function() {
-    window.flutterConfiguration = {
-      // Use the local build of CanvasKit rather than the CDN.
-      canvasKitBaseUrl: "/canvaskit/"
-    };
     _flutter.loader.loadEntrypoint({
       onEntrypointLoaded: async function(engineInitializer) {
-        engineInitializer.initializeEngine(
-        ).then(function (appRunner) {
-          appRunner.runApp();
+        let appRunner = await engineInitializer.initializeEngine({
+          // Use the local build of CanvasKit rather than the CDN.
+          canvasKitBaseUrl: "/canvaskit/"
         });
+        appRunner.runApp();
       }
     })
   });
