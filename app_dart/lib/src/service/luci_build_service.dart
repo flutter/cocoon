@@ -192,10 +192,7 @@ class LuciBuildService {
       );
     }
 
-    final Iterable<List<Request>> requestPartitions = await shard(
-      requests,
-      config.schedulingShardSize,
-    );
+    final Iterable<List<Request>> requestPartitions = await shard(requests, config.schedulingShardSize);
     for (List<Request> requestPartition in requestPartitions) {
       final BatchRequest batchRequest = BatchRequest(requests: requestPartition);
       await pubsub.publish('scheduler-requests', batchRequest);
@@ -212,11 +209,7 @@ class LuciBuildService {
       'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    final Iterable<Build> builds = await getTryBuilds(
-      pullRequest.base!.repo!.slug(),
-      pullRequest.head!.sha!,
-      null,
-    );
+    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
@@ -249,11 +242,7 @@ class LuciBuildService {
     github.PullRequest pullRequest,
     List<Target> targets,
   ) async {
-    final Iterable<Build> builds = await getTryBuilds(
-      pullRequest.base!.repo!.slug(),
-      pullRequest.head!.sha!,
-      null,
-    );
+    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
     final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
     final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
@@ -308,12 +297,7 @@ class LuciBuildService {
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      sha,
-      checkName,
-    );
+    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(config, slug, sha, checkName);
 
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
     if (builds.isEmpty) {
