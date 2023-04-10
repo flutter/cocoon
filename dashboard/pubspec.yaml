@@ -27,6 +27,8 @@ dependencies:
   flutter:
     sdk: flutter
   google_sign_in: ^6.1.0
+  google_sign_in_platform_interface: any # Match google_sign_in
+  google_sign_in_web: any # Match google_sign_in
   http: ^0.13.5
   protobuf: ^2.1.0
   provider: ^6.0.5
@@ -39,7 +41,7 @@ dev_dependencies:
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
-  mockito: ^5.4.0
+  mockito: ^5.4.0 # Remember to run ./regen_mocks.sh!
   path: ^1.8.2
   url_launcher_platform_interface: ^2.1.2
 

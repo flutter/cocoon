@@ -10,6 +10,7 @@ import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
+import 'sign_in_button/sign_in_button.dart';
 
 enum _SignInButtonAction { logout }
 
@@ -17,25 +18,20 @@ enum _SignInButtonAction { logout }
 ///
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
-class SignInButton extends StatelessWidget {
-  const SignInButton({
+class UserSignIn extends StatelessWidget {
+  const UserSignIn({
     super.key,
-    this.colorBrightness,
   });
-
-  final Brightness? colorBrightness;
 
   @override
   Widget build(BuildContext context) {
     final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
-    final Color textButtonForeground =
-        (colorBrightness ?? Theme.of(context).brightness) == Brightness.dark ? Colors.white : Colors.black87;
 
-    return FutureBuilder<bool>(
-      future: authService.isAuthenticated,
-      builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
-        /// On sign out, there's a second where the user is null before isAuthenticated catches up.
-        if (isAuthenticated.data == true && authService.user != null) {
+    // Listen to the changes of `authService` to re-render.
+    return AnimatedBuilder(
+      animation: authService,
+      builder: (BuildContext context, _) {
+        if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
@@ -67,11 +63,7 @@ class SignInButton extends StatelessWidget {
             ),
           );
         }
-        return TextButton(
-          style: TextButton.styleFrom(foregroundColor: textButtonForeground),
-          onPressed: authService.signIn,
-          child: const Text('SIGN IN'),
-        );
+        return const SignInButton();
       },
     );
   }

@@ -22,38 +22,53 @@ class IndexPage extends StatelessWidget {
 
   static const String routeName = '/';
 
-  static const Widget separator = SizedBox(height: 24.0);
-
   @override
   Widget build(BuildContext context) {
     final IndexState indexState = Provider.of<IndexState>(context);
     final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
+    final ScrollController scrollController = ScrollController();
+    final double maxHeight = cocoonLinks.length * 65;
     return AnimatedBuilder(
       animation: indexState,
       builder: (BuildContext context, Widget? child) => Scaffold(
         appBar: const CocoonAppBar(
-          title: Text('Cocoon'),
+          title: Text('Flutter Build Dashboard — Cocoon'),
         ),
         body: ErrorBrookWatcher(
           errors: indexState.errors,
-          child: Center(
-            child: ListView(
-              children: <Widget>[
-                const HeaderText('Select a dashboard'),
-                for (CocoonLink link in cocoonLinks)
-                  Column(
-                    children: <Widget>[
-                      IntrinsicWidth(
-                        stepWidth: 80.0,
-                        child: ElevatedButton.icon(
-                          icon: link.icon!,
-                          label: Text(link.name!.toUpperCase()),
-                          onPressed: link.action,
-                        ),
+          child: Scrollbar(
+            controller: scrollController,
+            interactive: true,
+            child: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 25),
+                    child: HeaderText('Select a dashboard'),
+                  ),
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: maxHeight),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: cocoonLinks
+                            .map<Widget>(
+                              (CocoonLink link) => ElevatedButton.icon(
+                                icon: link.icon!,
+                                label: Text(link.name!.toUpperCase()),
+                                onPressed: link.action,
+                              ),
+                            )
+                            .toList(),
                       ),
-                      separator,
-                    ],
-                  )
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

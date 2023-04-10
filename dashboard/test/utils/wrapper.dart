@@ -24,11 +24,11 @@ class FakeInserter extends StatelessWidget {
     final MockGoogleSignInService fakeAuthService = MockGoogleSignInService();
     if (signedIn) {
       when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
+      when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
     } else {
       when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(false));
+      when(fakeAuthService.user).thenReturn(null);
     }
-
-    when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
 
     return StateProvider(
       signInService: fakeAuthService,
