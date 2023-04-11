@@ -36,11 +36,7 @@ class GoogleSignInService extends ChangeNotifier {
   /// when logged in.
   ///
   /// See https://developers.google.com/identity/protocols/googlescopes
-  static const List<String> _googleScopes = <String>[
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'openid',
-  ];
+  static const List<String> _googleScopes = <String>[];
 
   /// The instance of the GoogleSignIn plugin to use.
   final GoogleSignIn _googleSignIn;
@@ -48,7 +44,7 @@ class GoogleSignInService extends ChangeNotifier {
   /// Whether or not the application has been signed in to.
   ///
   /// If the plugin fails, default to unauthenticated.
-  Future<bool> get isAuthenticated {
+  Future<bool> get isAuthenticated async {
     try {
       return _googleSignIn.isSignedIn();
     } on PlatformException catch (error) {
@@ -69,6 +65,7 @@ class GoogleSignInService extends ChangeNotifier {
   /// process before attempting to return an id token.
   Future<String> get idToken async {
     if (!await isAuthenticated) {
+      // This won't work unless it's triggered from an user onclick!
       await signIn();
     }
 

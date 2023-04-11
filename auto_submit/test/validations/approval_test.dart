@@ -216,7 +216,7 @@ void main() {
       expect(result.message.contains('Changes were requested by'), isTrue);
     });
 
-    test('Author is member and two member reviews, 1 change request, review is approved', () async {
+    test('Author is member and two member reviews, 1 change request, review is not approved', () async {
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -231,6 +231,27 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(result.message.contains('This PR has not met approval requirements for merging.'), isTrue);
       expect(result.message.contains('Changes were requested by'), isTrue);
+    });
+
+    test('Multiple approving reviews from the same author are counted only 1 time.', () async {
+      final String review = constructTwoReviewerReview(
+        authorAuthorAssociation: 'CONTRIBUTOR',
+        reviewerAuthorAssociation: 'MEMBER',
+        secondReviewerAuthorAssociation: 'MEMBER',
+        reviewState: 'APPROVED',
+        secondReviewState: 'APPROVED',
+        author: 'ricardoamador',
+        secondAuthor: 'ricardoamador',
+      );
+
+      final ValidationResult result = await computeValidationResult(review);
+
+      expect(result.result, isFalse);
+      expect(result.action, Action.REMOVE_LABEL);
+      expect(
+          result.message.contains(
+              'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.'),
+          isTrue);
     });
   });
 }

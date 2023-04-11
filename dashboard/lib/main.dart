@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Build Dashboard',
+      title: 'Flutter Build Dashboard — Cocoon',
       theme: ThemeData(
         primaryTextTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.black87),

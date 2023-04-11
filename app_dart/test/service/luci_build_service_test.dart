@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -30,6 +31,7 @@ import '../src/utilities/push_message.dart';
 import '../src/utilities/webhook_generators.dart';
 
 void main() {
+  late CacheService cache;
   late FakeConfig config;
   FakeGithubService githubService;
   late MockBuildBucketClient mockBuildBucketClient;
@@ -48,12 +50,14 @@ void main() {
     final Build linuxBuild = generateBuild(998, name: 'Linux', bucket: 'try', status: Status.started);
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
@@ -124,12 +128,14 @@ void main() {
 
   group('getBuilders', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
@@ -185,12 +191,14 @@ void main() {
     final Build linuxBuild = generateBuild(998, name: 'Linux', status: Status.started);
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -209,8 +217,9 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
-      expect(builds.keys, isEmpty);
+      final Iterable<Build> builds = await service.getTryBuilds(
+          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+      expect(builds, isEmpty);
     });
 
     test('Response returning a couple of builds', () async {
@@ -230,13 +239,15 @@ void main() {
           ],
         );
       });
-      final Map<String?, Build?> builds = await service.tryBuildsForPullRequest(pullRequest);
-      expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
+      final Iterable<Build> builds = await service.getTryBuilds(
+          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+      expect(builds, equals(<Build>{macBuild, linuxBuild}));
     });
   });
 
   group('scheduleBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
@@ -244,6 +255,7 @@ void main() {
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         gerritService: FakeGerritService(branchesValue: <String>['master']),
@@ -317,10 +329,12 @@ void main() {
 
   group('schedulePostsubmitBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: FakeConfig(),
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
@@ -574,16 +588,19 @@ void main() {
 
   group('cancelBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'cocoon');
     });
+
     test('Cancel builds when build list is empty', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -591,8 +608,13 @@ void main() {
         );
       });
       await service.cancelBuilds(pullRequest, 'new builds');
+      // This is okay, it is getting called twice when it runs cancel builds
+      // because the call is no longer being short-circuited. It calls batch in
+      // tryBuildsForPullRequest and it calls in the top level cancelBuilds
+      // function.
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
+
     test('Cancel builds that are scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -617,17 +639,20 @@ void main() {
 
   group('failedBuilds', () {
     setUp(() {
+      cache = CacheService(inMemory: true);
       githubService = FakeGithubService();
       config = FakeConfig(githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
       slug = RepositorySlug('flutter', 'flutter');
     });
+
     test('Failed builds from an empty list', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -637,6 +662,7 @@ void main() {
       final List<Build?> result = await service.failedBuilds(pullRequest, <Target>[]);
       expect(result, isEmpty);
     });
+
     test('Failed builds from a list of builds with failures', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return BatchResponse(
@@ -655,15 +681,18 @@ void main() {
       expect(result, hasLength(1));
     });
   });
+
   group('rescheduleBuild', () {
     late push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
       );
@@ -697,6 +726,7 @@ void main() {
     late DatastoreService datastore;
     late MockGithubChecksUtil mockGithubChecksUtil;
     setUp(() {
+      cache = CacheService(inMemory: true);
       config = FakeConfig();
       mockBuildBucketClient = MockBuildBucketClient();
       mockGithubChecksUtil = MockGithubChecksUtil();
@@ -705,6 +735,7 @@ void main() {
       pubsub = FakePubSub();
       service = LuciBuildService(
         config: config,
+        cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,

@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/index_page.dart';
-import 'package:flutter_dashboard/widgets/sign_in_button.dart';
+import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'utils/wrapper.dart';
@@ -24,7 +24,7 @@ void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
-    expect(find.byType(SignInButton), findsOneWidget);
+    expect(find.byType(UserSignIn), findsOneWidget);
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {

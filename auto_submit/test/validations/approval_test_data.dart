@@ -61,6 +61,8 @@ String constructTwoReviewerReview({
   required String secondReviewerAuthorAssociation,
   required String reviewState,
   required String secondReviewState,
+  String author = 'author1',
+  String secondAuthor = 'author2',
 }) {
   return '''
   {
@@ -97,14 +99,14 @@ String constructTwoReviewerReview({
           "nodes": [
             {
               "author": {
-                "login": "keyonghan"
+                "login": "$author"
               },
               "authorAssociation": "$reviewerAuthorAssociation",
               "state": "$reviewState"
             },
             {
               "author": {
-                "login": "ricardoamador"
+                "login": "$secondAuthor"
               },
               "authorAssociation": "$secondReviewerAuthorAssociation",
               "state": "$secondReviewState"

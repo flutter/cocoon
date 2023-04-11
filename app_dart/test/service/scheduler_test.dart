@@ -237,7 +237,7 @@ void main() {
             commit: anyNamed('commit'),
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
-        ).thenAnswer((_) => Future<void>.value());
+        ).thenAnswer((_) => Future<List<Tuple<Target, Task, int>>>.value(<Tuple<Target, Task, int>>[]));
         buildStatusService =
             FakeBuildStatusService(commitStatuses: <CommitStatus>[CommitStatus(generateCommit(1), const <Stage>[])]);
         scheduler = Scheduler(
@@ -330,7 +330,7 @@ void main() {
         expect(db.values.values.whereType<Task>().length, 3);
       });
 
-      test('gurantees scheduling of tasks against merged release branch PR', () async {
+      test('guarantees scheduling of tasks against merged release branch PR', () async {
         final PullRequest mergedPr = generatePullRequest(branch: 'flutter-3.2-candidate.5');
         await scheduler.addPullRequest(mergedPr);
 
@@ -340,7 +340,7 @@ void main() {
         expect(db.values.values.whereType<Task>().where((Task task) => task.status == Task.statusNew), isEmpty);
       });
 
-      test('gurantees scheduling of tasks against merged engine PR', () async {
+      test('guarantees scheduling of tasks against merged engine PR', () async {
         final PullRequest mergedPr = generatePullRequest(
           repo: Config.engineSlug.name,
           branch: Config.defaultBranch(Config.engineSlug),

@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
-import 'package:flutter_dashboard/widgets/sign_in_button.dart';
+import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -18,7 +18,7 @@ final Widget testApp = MaterialApp(
   home: Scaffold(
     appBar: AppBar(
       actions: const <Widget>[
-        SignInButton(),
+        UserSignIn(),
       ],
     ),
   ),
@@ -37,6 +37,7 @@ void main() {
 
   testWidgets('SignInButton shows sign in when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+    when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService?>(
@@ -54,6 +55,7 @@ void main() {
 
   testWidgets('SignInButton calls sign in on tap when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+    when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService?>(
@@ -107,7 +109,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byType(SignInButton));
+    await tester.tap(find.byType(UserSignIn));
     await tester.pumpAndSettle();
 
     verifyNever(mockAuthService.signOut());
