@@ -3,9 +3,11 @@
 # To manually deploy this config, run:
 #   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
-- description: retrieve missing commits
-  url: /api/vacuum-github-commits
-  schedule: every 10 minutes
+# Disabled for https://github.com/flutter/flutter/issues/124603
+# TODO(keyonghan): will delete if the API is not useful at all.
+# - description: retrieve missing commits
+#   url: /api/vacuum-github-commits
+#   schedule: every 10 minutes
 
 # Disabled for https://github.com/flutter/flutter/issues/121989
 # TODO(keyonghan): will delete if `In Progress` hanging issue is resolved:
