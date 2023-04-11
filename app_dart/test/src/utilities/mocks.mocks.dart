@@ -5309,14 +5309,6 @@ class MockLuciBuildService extends _i1.Mock implements _i21.LuciBuildService {
         returnValue: _i20.Future<Iterable<_i9.Build>>.value(<_i9.Build>[]),
       ) as _i20.Future<Iterable<_i9.Build>>);
   @override
-  _i20.Future<Map<String?, _i9.Build?>> tryBuildsForPullRequest(_i13.PullRequest? pullRequest) => (super.noSuchMethod(
-        Invocation.method(
-          #tryBuildsForPullRequest,
-          [pullRequest],
-        ),
-        returnValue: _i20.Future<Map<String?, _i9.Build?>>.value(<String?, _i9.Build?>{}),
-      ) as _i20.Future<Map<String?, _i9.Build?>>);
-  @override
   _i20.Future<List<_i29.Target>> scheduleTryBuilds({
     required List<_i29.Target>? targets,
     required _i13.PullRequest? pullRequest,

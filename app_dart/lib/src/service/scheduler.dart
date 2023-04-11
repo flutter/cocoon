@@ -280,7 +280,7 @@ class Scheduler {
     List<String>? builderTriggerList,
   }) async {
     // Always cancel running builds so we don't ever schedule duplicates.
-    log.fine('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
+    log.info('Attempting to cancel existing presubmit targets for ${pullRequest.number}');
     await cancelPreSubmitTargets(
       pullRequest: pullRequest,
       reason: reason,
