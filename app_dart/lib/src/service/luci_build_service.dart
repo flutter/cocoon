@@ -136,7 +136,7 @@ class LuciBuildService {
                   project: 'flutter',
                   bucket: 'try',
                 ),
-                // cocoon is incorrect.
+                // cocoon is incorrect. This was removed.
                 createdBy: 'cocoon',
                 tags: <String, List<String>>{
                   'buildset': <String>['pr/git/${pullRequest.number}'],
