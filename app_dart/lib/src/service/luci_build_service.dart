@@ -233,7 +233,9 @@ class LuciBuildService {
       }
     }
 
-    await buildBucketClient.batch(BatchRequest(requests: requests));
+    if (requests.isNotEmpty) {
+      await buildBucketClient.batch(BatchRequest(requests: requests));
+    }
   }
 
   /// Filters [builders] to only those that failed on [pullRequest].
