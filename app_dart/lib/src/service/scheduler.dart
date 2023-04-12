@@ -425,6 +425,8 @@ class Scheduler {
       (Target target) =>
           target.value.scheduler == pb.SchedulerSystem.luci || target.value.scheduler == pb.SchedulerSystem.cocoon,
     );
+
+    log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
     if (pullRequest.base!.ref != Config.defaultBranch(pullRequest.base!.repo!.slug())) {
       log.info('Release branch found, scheduling all targets for ${pullRequest.number}');
