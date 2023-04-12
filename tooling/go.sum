@@ -743,8 +743,8 @@ github.com/sigstore/cosign/v2 v2.0.0-rc.2 h1:LDSSQYzThg7uKHJqFBp03kaObTDuWfifJqB
 github.com/sigstore/cosign/v2 v2.0.0-rc.2/go.mod h1:oKIsv9cCwtfakSd64Rzief3Izk/cPSkougoWU/F3OBI=
 github.com/sigstore/fulcio v1.0.0 h1:hBZW6qg9GXTtCX8jOg1hmyjYLrmsEKZGeMwAbW3XNEg=
 github.com/sigstore/fulcio v1.0.0/go.mod h1:j4MzLxX/Be0rHYh3JF2dgMorkWGzEMHBqIHwFU8I/Rw=
-github.com/sigstore/protobuf-specs v0.1.1-0.20230221191911-44103a52d43e h1:epMcE4KGg+CNU7fIr8geRrJ60Aiz6KxzzUa99VhrwLI=
-github.com/sigstore/protobuf-specs v0.1.1-0.20230221191911-44103a52d43e/go.mod h1:5shUCxf82hGnjUEFVWiktcxwzdtn6EfeeJssxZ5Q5HE=
+github.com/sigstore/protobuf-specs v0.1.1-0.20230403130340-4dbf10bc287d h1:rtnPsoFTvJJni31iFyDnZt1gHSPc4FrAw1Uw+5O1z+4=
+github.com/sigstore/protobuf-specs v0.1.1-0.20230403130340-4dbf10bc287d/go.mod h1:5shUCxf82hGnjUEFVWiktcxwzdtn6EfeeJssxZ5Q5HE=
 github.com/sigstore/rekor v1.0.1 h1:rcESXSNkAPRWFYZel9rarspdvneET60F2ngNkadi89c=
 github.com/sigstore/rekor v1.0.1/go.mod h1:ecTKdZWGWqE1pl3U1m1JebQJLU/hSjD9vYHOmHQ7w4g=
 github.com/sigstore/sigstore v1.5.1 h1:iUou0QJW8eQKMUkTXbFyof9ZOblDtfaW2Sn2+QI8Tcs=
@@ -762,8 +762,8 @@ github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 h1:JIAuq3EE
 github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966/go.mod h1:sUM3LWHvSMaG192sy56D9F7CNvL7jUJVXoqM1QKLnog=
 github.com/slsa-framework/slsa-github-generator v1.4.0 h1:WiD4MDsSvVE2S8frGNBgb7Suy1wdIVFgY329LlvkXKo=
 github.com/slsa-framework/slsa-github-generator v1.4.0/go.mod h1:JVYHnGjS/RMuw3FCqB6U/N+yg80H6aWiKD5yaSGm1no=
-github.com/slsa-framework/slsa-verifier/v2 v2.1.0 h1:F9xgTSJk4ZrcWqM268KLRk7hzuXRb3itDxzYkOP/Jdg=
-github.com/slsa-framework/slsa-verifier/v2 v2.1.0/go.mod h1:LeFjiIE/7/jN872mdUR2ZPl7EjYKn+IIRvKHs38lK58=
+github.com/slsa-framework/slsa-verifier/v2 v2.2.0 h1:7ro3FqD6eOqaBAMxk7QXFQO5Od2wZJK7aM7Aq+2ytwI=
+github.com/slsa-framework/slsa-verifier/v2 v2.2.0/go.mod h1:PAkN3yHh4kRf430yCKo3vTTALiJyG+UfJrp2p1nwZbk=
 github.com/smallstep/assert v0.0.0-20200723003110-82e2b9b3b262 h1:unQFBIznI+VYD1/1fApl1A+9VcBk+9dcqGfnePY87LY=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/assertions v1.1.0/go.mod h1:tcbTF8ujkAEcZ8TElKY+i30BzYlVhC/LOxJk7iOWnoo=
