@@ -66,6 +66,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Get a Uint8List that contains the bytes of the response from [delegate]
   /// so it can be stored in [cache].
   Future<Uint8List> getBodyBytesFromDelegate(RequestHandler<T> delegate) async {
+    // Call here awaits
     final Body body = await delegate.get();
 
     // Body only offers getting a Stream<Uint8List> since it just sends

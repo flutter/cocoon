@@ -62,7 +62,7 @@ class CacheService {
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
-      // Try creating the value
+      // Try creating the value does the higher level await affect this?
       value = await createFn();
       await set(
         subcacheName,
