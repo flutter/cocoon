@@ -56,7 +56,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     final Uint8List? cachedResponse = await cache.getOrCreate(
       responseSubcacheName,
       responseKey,
-      createFn: () => getBodyBytesFromDelegate(delegate),
+      createFn: () async { return await getBodyBytesFromDelegate(delegate); },
       ttl: ttl,
     );
 
