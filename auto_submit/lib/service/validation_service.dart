@@ -335,7 +335,8 @@ Exception: ${exception.message}
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
-    final String prTitle = messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
+    final String prTitle =
+        messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
     final String commitMessage = ('''
 $prTitle
 
