@@ -691,7 +691,33 @@ void main() {
         messagePullRequest: pullRequest,
       );
 
-      expect(result.message, 'Reland "My first PR!"');
+      expect(result.message, contains('Reland "My first PR!"'));
+    });
+
+    test('Includes PR description', () async {
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: 'PR title',
+        // This will be interpolated into JSON, so escape newlines
+        body: r'PR description\nwhich\nis multiline.',
+      );
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+      final ProcessMergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.message, '''
+PR title
+
+PR description
+which
+is multiline.
+''');
     });
   });
 }
