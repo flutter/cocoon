@@ -258,6 +258,70 @@ void main() {
         expect(result, targets);
       });
 
+      test('returns builders when run_if matches files with * and ** that contains digits', () async {
+        targets = <Target>[
+          generateTarget(
+            1,
+            runIf: <String>[
+              'dev/**',
+              'packages/flutter/**',
+              'packages/flutter_driver/**',
+              'packages/integration_test/**',
+              'packages/flutter_localizations/**/l10n/cupertino*.arb',
+              'packages/fuchsia_remote_debug_protocol/**',
+              'packages/flutter_test/**',
+              'packages/flutter_goldens/**',
+              'packages/flutter_tools/**',
+              'bin/**',
+              '.ci.yaml'
+            ],
+          ),
+        ];
+        files = <String>[
+          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+        ];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
+      });
+
+      test('returns builders when run_if matches files with * trailing glob', () async {
+        targets = <Target>[
+          generateTarget(
+            1,
+            runIf: <String>[
+              'packages/flutter_localizations/**/l10n/*',
+            ],
+          ),
+        ];
+        files = <String>[
+          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+        ];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
+      });
+
+      test('returns builders when run_if matches files with * trailing glob 2', () async {
+        targets = <Target>[
+          generateTarget(
+            1,
+            runIf: <String>[
+              'packages/flutter_localizations/**/l10n/cupertino*',
+            ],
+          ),
+        ];
+        files = <String>[
+          'packages/flutter_localizations/lib/src/l10n/material_es.arb',
+          'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
+          'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
+        ];
+        final List<Target> result = await getTargetsToRun(targets, files);
+        expect(result, targets);
+      });
+
       test('returns builders when run_if matches files with ** in the middle', () async {
         targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**/hj.dart']),

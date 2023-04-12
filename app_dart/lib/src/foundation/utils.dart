@@ -129,7 +129,7 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
 
     for (String glob in globs) {
       glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
-      glob = glob.replaceAll('*', '[A-Za-z0-9_]+');
+      glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
       final RegExp regExp = RegExp('^$glob\$');
       if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
