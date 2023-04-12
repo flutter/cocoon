@@ -699,7 +699,9 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         title: 'PR title',
-        // This will be interpolated into JSON, so escape newlines
+        // The test-only helper function `generatePullRequest` will interpolate
+        // this string into a JSON string which will then be decoded--thus, this string must be
+        // a valid JSON substring, with escaped newlines.
         body: r'PR description\nwhich\nis multiline.',
       );
       githubService.mergeRequestMock = PullRequestMerge(
