@@ -194,28 +194,25 @@ void main() {
     });
 
     group('getFilteredBuilders', () {
-      List<String> files;
-      List<Target> targets;
-
       test('does not return builders when run_if does not match any file', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['cde/']),
         ];
-        files = <String>['abc/cde.py', 'cde/fgh.dart'];
+        final List<String> files = <String>['abc/cde.py', 'cde/fgh.dart'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result.isEmpty, isTrue);
       });
 
       test('returns builders when run_if is null', () async {
-        files = <String>['abc/def.py', 'cde/dgh.dart'];
-        targets = <Target>[generateTarget(1)];
+        final List<String> files = <String>['abc/def.py', 'cde/dgh.dart'];
+        final List<Target> targets = <Target>[generateTarget(1)];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
       });
 
       test('returns builders when run_if matches files using full path', () async {
-        files = <String>['abc/cde.py', 'cgh/dhj.dart'];
-        targets = <Target>[
+        final List<String> files = <String>['abc/cde.py', 'cgh/dhj.dart'];
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/cde.py'])
         ];
         final List<Target> result = await getTargetsToRun(targets, files);
@@ -223,16 +220,16 @@ void main() {
       });
 
       test('returns builders when run_if matches files with **', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**']),
         ];
-        files = <String>['abc/cdf/hj.dart', 'abc/dej.dart'];
+        final List<String> files = <String>['abc/cdf/hj.dart', 'abc/dej.dart'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
       });
 
       test('returns builders when run_if matches files with ** that contain digits', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(
             1,
             runIf: <String>[
@@ -250,7 +247,7 @@ void main() {
             ],
           ),
         ];
-        files = <String>[
+        final List<String> files = <String>[
           'packages/flutter_localizations/lib/src/l10n/material_es.arb',
           'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb'
         ];
@@ -259,7 +256,7 @@ void main() {
       });
 
       test('returns builders when run_if matches files with * and ** that contains digits', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(
             1,
             runIf: <String>[
@@ -277,7 +274,7 @@ void main() {
             ],
           ),
         ];
-        files = <String>[
+        final List<String> files = <String>[
           'packages/flutter_localizations/lib/src/l10n/material_es.arb',
           'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
           'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
@@ -287,7 +284,7 @@ void main() {
       });
 
       test('returns builders when run_if matches files with * trailing glob', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(
             1,
             runIf: <String>[
@@ -295,7 +292,7 @@ void main() {
             ],
           ),
         ];
-        files = <String>[
+        final List<String> files = <String>[
           'packages/flutter_localizations/lib/src/l10n/material_es.arb',
           'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
           'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
@@ -305,7 +302,7 @@ void main() {
       });
 
       test('returns builders when run_if matches files with * trailing glob 2', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(
             1,
             runIf: <String>[
@@ -313,7 +310,7 @@ void main() {
             ],
           ),
         ];
-        files = <String>[
+        final List<String> files = <String>[
           'packages/flutter_localizations/lib/src/l10n/material_es.arb',
           'packages/flutter_localizations/lib/src/l10n/material_en_ZA.arb',
           'packages/flutter_localizations/lib/src/l10n/cupertino_cy.arb',
@@ -323,29 +320,29 @@ void main() {
       });
 
       test('returns builders when run_if matches files with ** in the middle', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['abc/**/hj.dart']),
         ];
-        files = <String>['abc/cdf/efg/hj.dart', 'abc/dej.dart'];
+        final List<String> files = <String>['abc/cdf/efg/hj.dart', 'abc/dej.dart'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, [targets[0]]);
       });
 
       test('returns builders when run_if matches files with both * and **', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['a/b*c/**']),
         ];
-        files = <String>['a/baddsc/defg.zz', 'c/d'];
+        final List<String> files = <String>['a/baddsc/defg.zz', 'c/d'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result, targets);
       });
 
       test('returns correct builders when file and folder share the same name', () async {
-        targets = <Target>[
+        final List<Target> targets = <Target>[
           generateTarget(1, runIf: <String>['a/b/']),
           generateTarget(2, runIf: <String>['a']),
         ];
-        files = <String>['a'];
+        final List<String> files = <String>['a'];
         final List<Target> result = await getTargetsToRun(targets, files);
         expect(result.length, 1);
         expect(result.single, targets[1]);

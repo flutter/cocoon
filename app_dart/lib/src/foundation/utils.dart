@@ -140,8 +140,8 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
   }
 
   log.info('Collected the following targets to run:');
-  for (var element in targetsToRun) {
-    log.info(element.value.name);
+  for (var target in targetsToRun) {
+    log.info(target.value.name);
   }
 
   return targetsToRun;
