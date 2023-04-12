@@ -62,6 +62,10 @@ Future<void> main() async {
         config: config,
         authenticationProvider: authProvider,
       ),
+      '/api/dart-internal-subscription': DartInternalSubscription(
+        cache: cache,
+        config: config,
+      ),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
         config: config,
         authenticationProvider: authProvider,
