@@ -118,6 +118,7 @@ FutureOr<String> getUrl(
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> files) async {
+  log.info('Getting targets to run from diff.');
   final List<Target> targetsToRun = <Target>[];
   for (Target target in targets) {
     final List<String> globs = target.value.runIf;
@@ -125,9 +126,10 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
     if (globs.isEmpty) {
       targetsToRun.add(target);
     }
+
     for (String glob in globs) {
-      glob = glob.replaceAll('**', '[a-zA-Z_/.]+');
-      glob = glob.replaceAll('*', '[a-zA-Z_]+');
+      glob = glob.replaceAll('**', '[A-Za-z0-9_/.]+');
+      glob = glob.replaceAll('*', '[A-Za-z0-9_.]+');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
       final RegExp regExp = RegExp('^$glob\$');
       if (glob.isEmpty || files.any((String? file) => regExp.hasMatch(file!))) {
@@ -136,6 +138,12 @@ Future<List<Target>> getTargetsToRun(Iterable<Target> targets, List<String?> fil
       }
     }
   }
+
+  log.info('Collected the following targets to run:');
+  for (var target in targetsToRun) {
+    log.info(target.value.name);
+  }
+
   return targetsToRun;
 }
 
