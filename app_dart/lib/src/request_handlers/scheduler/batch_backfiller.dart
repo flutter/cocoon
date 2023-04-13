@@ -117,14 +117,16 @@ class BatchBackfiller extends RequestHandler {
           final List<List<Tuple<Target, Task, int>>> tupleLists =
               await Future.wait<List<Tuple<Target, Task, int>>>(backfillRequestList(backfill));
           if (tupleLists.any((List<Tuple<Target, Task, int>> tupleList) => tupleList.isNotEmpty)) {
+            final int nonEmptyListLenght = tupleLists.where((element) => element.isNotEmpty).toList().length;
+            log.info('Backfill fails and retry backfilling $nonEmptyListLenght targets.');
             backfill = _updateBackfill(backfill, tupleLists);
             throw InternalServerError('Failed to backfill ${backfill.length} targets.');
           }
         },
         retryIf: (Exception e) => e is InternalServerError,
       );
-    } catch (e) {
-      log.severe('Failed to backfill ${backfill.length} targets.');
+    } catch (error) {
+      log.severe('Failed to backfill ${backfill.length} targets due to error: $error');
     }
   }
 

@@ -392,19 +392,24 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
+    log.info('No cached value for builderList, start fetching via the rpc call.');
     final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
-      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(ListBuildersRequest(
-        project: project,
-        bucket: bucket,
-        pageToken: token,
-      ));
+      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(
+        ListBuildersRequest(
+          project: project,
+          bucket: bucket,
+          pageToken: token,
+        ),
+      );
       final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       token = listBuildersResponse.nextPageToken;
     } while (token != null);
-    return Uint8List.fromList(availableBuilderSet.toList().join(',').codeUnits);
+    final String joinedBuilderSet = availableBuilderSet.toList().join(',');
+    log.info('successfully fetched the builderSet: $joinedBuilderSet');
+    return Uint8List.fromList(joinedBuilderSet.codeUnits);
   }
 
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
@@ -445,7 +450,7 @@ class LuciBuildService {
       messageIds = await pubsub.publish('scheduler-requests', batchRequest);
       log.info('Published $messageIds for commit ${commit.sha}');
     } on DetailedApiRequestError catch (error) {
-      log.severe(error.toString());
+      log.severe('Failed to publish message to pub/sub due to $error');
       return toBeScheduled;
     }
     log.info('Published a request with ${buildRequests.length} builds');
