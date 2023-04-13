@@ -32,12 +32,12 @@ enum FileType {
 
 // Return the symlink path if the input path is a symlink, and return the same
 // file path if the input path is not a symlink.
-Future<String> symlink(String folderPath, ProcessManager processManager) async {
+Future<String> symlink(String filePath, ProcessManager processManager) async {
   final ProcessResult result = processManager.runSync(
     <String>[
       'readlink',
       '-f',
-      folderPath,
+      filePath,
     ],
   );
 
