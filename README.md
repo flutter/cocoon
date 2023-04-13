@@ -101,7 +101,7 @@ You can test the new version by accessing
 `{VERSION}-dot-flutter-dashboard.appspot.com` in your browser. If the
 result is satisfactory, the new version can be activated by using the
 Cloud Console UI:
-<https://pantheon.corp.google.com/appengine/versions?project=flutter-dashboard&serviceId=default>
+<https://console.cloud.google.com/appengine/versions?project=flutter-dashboard&serviceId=default>
 
 #### Optional flags
 

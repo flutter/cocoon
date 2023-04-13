@@ -12,8 +12,8 @@ import '../service/logging.dart';
 /// An endpoint for listening to build updates for dart-internal builds and
 /// saving the results to the datastore.
 ///
-/// The PubSub subscription is available here:
-/// https://pantheon.corp.google.com/cloudpubsub/subscription/detail/dart-internal-build-results-sub?project=flutter-dashboard
+/// The PubSub subscription is set up here:
+/// https://console.cloud.google.com/cloudpubsub/subscription/detail/dart-internal-build-results-sub?project=flutter-dashboard
 @immutable
 class DartInternalSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to dart-internal build results.
