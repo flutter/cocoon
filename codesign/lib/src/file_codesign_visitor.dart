@@ -199,6 +199,12 @@ update these file paths accordingly.
     required String parentVirtualPath,
   }) async {
     log.info('Visiting directory ${directory.absolute.path}');
+    final String symlinkOrFilename = await symlink(directory.absolute.path, processManager);
+    if (symlinkOrFilename != directory.absolute.path) {
+      log.info("current direcotry is a symlink to $symlinkOrFilename, "
+          "codesign is therefore skipped for the current directory");
+      return;
+    }
     if (directoriesVisited.contains(directory.absolute.path)) {
       log.warning(
         'Warning! You are visiting a directory that has been visited before, the directory is ${directory.absolute.path}',

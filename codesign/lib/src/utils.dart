@@ -30,6 +30,18 @@ enum FileType {
   }
 }
 
+Future<String> symlink(String folderPath, ProcessManager processManager) async {
+  final ProcessResult result = processManager.runSync(
+    <String>[
+      'readlink',
+      '-f',
+      folderPath,
+    ],
+  );
+
+  return result.stdout as String;
+}
+
 Future<void> unzip({
   required FileSystemEntity inputZip,
   required Directory outDir,
