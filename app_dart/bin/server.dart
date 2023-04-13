@@ -29,6 +29,7 @@ Future<void> main() async {
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
       config: config,
+      cache: cache,
       buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
     );
@@ -63,6 +64,10 @@ Future<void> main() async {
         branchService: branchService,
         config: config,
         authenticationProvider: authProvider,
+      ),
+      '/api/dart-internal-subscription': DartInternalSubscription(
+        cache: cache,
+        config: config,
       ),
       '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
         config: config,

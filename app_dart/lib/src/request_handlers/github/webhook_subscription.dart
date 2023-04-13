@@ -40,7 +40,7 @@ final List<String> kNeedsTestsLabels = <String>['needs tests'];
 /// Subscription for processing GitHub webhooks.
 ///
 /// The PubSub subscription is set up here:
-/// https://cloud.google.com/cloudpubsub/subscription/detail/github-webhooks-sub?project=flutter-dashboard&tab=overview
+/// https://console.cloud.google.com/cloudpubsub/subscription/detail/github-webhooks-sub?project=flutter-dashboard&tab=overview
 ///
 /// This endpoint enables Cocoon to recover from outages.
 ///
@@ -127,19 +127,18 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        if (!pr.merged!) {
-          await scheduler.cancelPreSubmitTargets(pullRequest: pr, reason: 'Pull request closed');
-        } else {
-          // Merged pull requests can be added to CI.
+        await scheduler.cancelPreSubmitTargets(
+          pullRequest: pr,
+          reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
+        );
+
+        if (pr.merged!) {
           log.fine('Pull request ${pr.number} was closed and merged.');
-          final RepositorySlug slug = pr.base!.repo!.slug();
-          final String sha = pr.base!.sha!;
-          final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
-          if (gobCommit != null) {
+          if (await _commitExistsInGob(pr)) {
             log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
-            return scheduler.addPullRequest(pr);
+            return await scheduler.addPullRequest(pr);
           }
-          throw InternalServerError('$sha was not found on GoB. Failing so this event can be retried...');
+          throw InternalServerError('${pr.base!.sha!} was not found on GoB. Failing so this event can be retried...');
         }
         break;
       case 'edited':
@@ -149,7 +148,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'opened':
       case 'reopened':
-        // These cases should trigger LUCI jobs.
+        // These cases should trigger LUCI jobs. The closed event should happen
+        // before these which should cancel all in progress checks.
         await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
@@ -174,6 +174,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
+  Future<bool> _commitExistsInGob(PullRequest pr) async {
+    final RepositorySlug slug = pr.base!.repo!.slug();
+    final String sha = pr.base!.sha!;
+    final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    return gobCommit != null;
+  }
+
   /// This method assumes that jobs should be cancelled if they are already
   /// runnning.
   Future<void> _scheduleIfMergeable(
@@ -195,7 +202,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
       }
-
       return;
     }
 
@@ -310,6 +316,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return filename.endsWith('_test.dart') ||
         filename.endsWith('.expect') ||
         filename.contains('test_fixes') ||
+        // Include updates to test utilities or test data
+        filename.contains('packages/flutter_tools/test/') ||
         filename.startsWith('dev/bots/analyze.dart') ||
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
@@ -326,6 +334,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('analysis_options.yaml') ||
         filename.contains('AUTHORS') ||
         filename.contains('CODEOWNERS') ||
+        filename.contains('TESTOWNERS') ||
         filename.contains('pubspec.yaml') ||
         // Exempt categories.
         filename.contains('.github/') ||

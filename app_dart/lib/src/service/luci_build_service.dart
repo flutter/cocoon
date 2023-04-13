@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
+import 'package:googleapis/pubsub/v1.dart';
 
 import '../foundation/github_checks_util.dart';
 import '../foundation/utils.dart';
@@ -22,6 +24,7 @@ import '../request_handling/pubsub.dart';
 import '../service/datastore.dart';
 import '../service/logging.dart';
 import 'buildbucket.dart';
+import 'cache_service.dart';
 import 'config.dart';
 import 'gerrit_service.dart';
 
@@ -33,6 +36,7 @@ const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.sta
 class LuciBuildService {
   LuciBuildService({
     required this.config,
+    required this.cache,
     required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
@@ -41,6 +45,7 @@ class LuciBuildService {
         gerritService = gerritService ?? GerritService(config: config);
 
   BuildBucketClient buildBucketClient;
+  final CacheService cache;
   Config config;
   GithubChecksUtil githubChecksUtil;
   GerritService gerritService;
@@ -52,6 +57,9 @@ class LuciBuildService {
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
+
+  /// Name of the subcache to store luci build related values in redis.
+  static const String subCacheName = 'luci';
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
   Future<List<List<Request>>> shard(List<Request> requests, int max) async {
@@ -118,57 +126,6 @@ class LuciBuildService {
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
     return builds;
-  }
-
-  /// Returns a map of the BuildBucket builds for a given Github [PullRequest]
-  /// using the [builderName] as key and [Build] as value.
-  Future<Map<String?, Build?>> tryBuildsForPullRequest(
-    github.PullRequest pullRequest,
-  ) async {
-    final BatchResponse batch = await buildBucketClient.batch(
-      BatchRequest(
-        requests: <Request>[
-          // Builds created by Cocoon
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: const BuilderId(
-                  project: 'flutter',
-                  bucket: 'try',
-                ),
-                createdBy: 'cocoon',
-                tags: <String, List<String>>{
-                  'buildset': <String>['pr/git/${pullRequest.number}'],
-                  'github_link': <String>[
-                    'https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'
-                  ],
-                  'user_agent': const <String>['flutter-cocoon'],
-                },
-              ),
-            ),
-          ),
-          // Builds created by recipe (via swarming create task)
-          Request(
-            searchBuilds: SearchBuildsRequest(
-              predicate: BuildPredicate(
-                builderId: const BuilderId(
-                  project: 'flutter',
-                  bucket: 'try',
-                ),
-                tags: <String, List<String>>{
-                  'buildset': <String>['pr/git/${pullRequest.number}'],
-                  'user_agent': const <String>['recipe'],
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    final Iterable<Build> builds = batch.responses!
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse? response) => response?.builds ?? <Build>[]);
-    return {for (Build b in builds) b.builderId.builder: b};
   }
 
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
@@ -248,21 +205,37 @@ class LuciBuildService {
   ///
   /// Builds are queried based on the [RepositorySlug] and pull request number.
   Future<void> cancelBuilds(github.PullRequest pullRequest, String reason) async {
-    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
-    if (!builds.values.any((Build? build) {
-      return build!.status == Status.scheduled || build.status == Status.started;
-    })) {
+    log.info(
+      'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
+    );
+
+    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
+    log.info('Found ${builds.length} builds.');
+
+    if (builds.isEmpty) {
+      log.info('No in-progress or scheduled builds to cancel.');
       return;
     }
+
     final List<Request> requests = <Request>[];
-    for (Build? build in builds.values) {
-      requests.add(
-        Request(
-          cancelBuild: CancelBuildRequest(id: build!.id, summaryMarkdown: reason),
-        ),
-      );
+    for (Build build in builds) {
+      if (build.status == Status.scheduled || build.status == Status.started) {
+        // Scheduled status includes scheduled and pending tasks.
+        log.info('Cancelling build with build id ${build.id}.');
+        requests.add(
+          Request(
+            cancelBuild: CancelBuildRequest(
+              id: build.id,
+              summaryMarkdown: reason,
+            ),
+          ),
+        );
+      }
     }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
+
+    if (requests.isNotEmpty) {
+      await buildBucketClient.batch(BatchRequest(requests: requests));
+    }
   }
 
   /// Filters [builders] to only those that failed on [pullRequest].
@@ -270,10 +243,10 @@ class LuciBuildService {
     github.PullRequest pullRequest,
     List<Target> targets,
   ) async {
-    final Map<String?, Build?> builds = await tryBuildsForPullRequest(pullRequest);
+    final Iterable<Build> builds = await getTryBuilds(pullRequest.base!.repo!.slug(), pullRequest.head!.sha!, null);
     final Iterable<String> builderNames = targets.map((Target target) => target.value.name);
     // Return only builds that exist in the configuration file.
-    final Iterable<Build?> failedBuilds = builds.values.where((Build? build) => failStatusSet.contains(build!.status));
+    final Iterable<Build?> failedBuilds = builds.where((Build? build) => failStatusSet.contains(build!.status));
     final Iterable<Build?> expectedFailedBuilds =
         failedBuilds.where((Build? build) => builderNames.contains(build!.builderId.builder));
     return expectedFailedBuilds.toList();
@@ -325,12 +298,7 @@ class LuciBuildService {
     final String sha = checkRunEvent.checkRun!.headSha!;
     final String checkName = checkRunEvent.checkRun!.name!;
 
-    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      config,
-      slug,
-      sha,
-      checkName,
-    );
+    final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(config, slug, sha, checkName);
 
     final Iterable<Build> builds = await getTryBuilds(slug, sha, checkName);
     if (builds.isEmpty) {
@@ -398,31 +366,63 @@ class LuciBuildService {
     return buildBucketClient.getBuild(request);
   }
 
-  /// Get builder list whose config is pre-defined in LUCI.
+  /// Gets builder list whose config is pre-defined in LUCI.
+  ///
+  /// Returns cache if existing. Otherwise make the RPC call to fetch list.
   Future<Set<String>> getAvailableBuilderSet({
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
+    final Uint8List? cacheValue = await cache.getOrCreate(
+      subCacheName,
+      'builderlist',
+      createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
+      // New commit triggering tasks should be finished within 5 mins.
+      // The batch backfiller's execution frequency is also 5 mins.
+      ttl: const Duration(minutes: 5),
+    );
+
+    return Set.from(String.fromCharCodes(cacheValue!).split(','));
+  }
+
+  /// Returns cache if existing, otherwise makes the RPC call to fetch list.
+  ///
+  /// Use [token] to make sure obtain all the list by calling RPC multiple times.
+  Future<Uint8List> _getAvailableBuilderSet({
+    String project = 'flutter',
+    String bucket = 'prod',
+  }) async {
+    log.info('No cached value for builderList, start fetching via the rpc call.');
     final Set<String> availableBuilderSet = <String>{};
     String? token;
     do {
-      final ListBuildersResponse listBuildersResponse =
-          await buildBucketClient.listBuilders(ListBuildersRequest(project: project, bucket: bucket, pageToken: token));
+      final ListBuildersResponse listBuildersResponse = await buildBucketClient.listBuilders(
+        ListBuildersRequest(
+          project: project,
+          bucket: bucket,
+          pageToken: token,
+        ),
+      );
       final List<String> availableBuilderList = listBuildersResponse.builders!.map((e) => e.id!.builder!).toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       token = listBuildersResponse.nextPageToken;
     } while (token != null);
-    return availableBuilderSet;
+    final String joinedBuilderSet = availableBuilderSet.toList().join(',');
+    log.info('successfully fetched the builderSet: $joinedBuilderSet');
+    return Uint8List.fromList(joinedBuilderSet.codeUnits);
   }
 
   /// Schedules list of post-submit builds deferring work to [schedulePostsubmitBuild].
-  Future<void> schedulePostsubmitBuilds({
+  ///
+  /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
+  /// returns the original list.
+  Future<List<Tuple<Target, Task, int>>> schedulePostsubmitBuilds({
     required Commit commit,
     required List<Tuple<Target, Task, int>> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
       log.fine('Skipping schedulePostsubmitBuilds as there are no targets to be scheduled by Cocoon');
-      return;
+      return toBeScheduled;
     }
     final List<Request> buildRequests = <Request>[];
     final Set<String> availableBuilderSet = await getAvailableBuilderSet(project: 'flutter', bucket: 'prod');
@@ -430,8 +430,10 @@ class LuciBuildService {
     for (Tuple<Target, Task, int> tuple in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(tuple.first.value.name)) {
+        log.warning('Found no available builder for ${tuple.first.value.name}, commit ${commit.sha}');
         continue;
       }
+      log.info('create postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
       final ScheduleBuildRequest scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: tuple.first,
@@ -439,11 +441,20 @@ class LuciBuildService {
         priority: tuple.third,
       );
       buildRequests.add(Request(scheduleBuild: scheduleBuildRequest));
+      log.info('created postsubmit schedule request for target: ${tuple.first.value} in commit ${commit.sha}');
     }
     final BatchRequest batchRequest = BatchRequest(requests: buildRequests);
     log.fine(batchRequest);
-    await pubsub.publish('scheduler-requests', batchRequest);
+    List<String> messageIds;
+    try {
+      messageIds = await pubsub.publish('scheduler-requests', batchRequest);
+      log.info('Published $messageIds for commit ${commit.sha}');
+    } on DetailedApiRequestError catch (error) {
+      log.severe('Failed to publish message to pub/sub due to $error');
+      return toBeScheduled;
+    }
     log.info('Published a request with ${buildRequests.length} builds');
+    return <Tuple<Target, Task, int>>[];
   }
 
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
@@ -521,7 +532,7 @@ class LuciBuildService {
 
     final String commitKey = task.parentKey!.id.toString();
     final String taskKey = task.key.id.toString();
-    log.info('Scheduling builder: ${target.value.name}');
+    log.info('Scheduling builder: ${target.value.name} for commit ${commit.sha}');
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
@@ -530,7 +541,8 @@ class LuciBuildService {
       'task_key': taskKey,
     };
 
-    if (target.value.bringup == false) {
+    // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
+    if (!target.value.bringup && config.postsubmitSupportedRepos.contains(target.slug)) {
       await createPostsubmitCheckRun(commit, target, rawUserData);
     }
 

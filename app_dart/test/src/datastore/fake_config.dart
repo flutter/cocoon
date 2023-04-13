@@ -57,6 +57,8 @@ class FakeConfig implements Config {
     this.supportedBranchesValue,
     this.supportedReposValue,
     this.batchSizeValue,
+    this.backfillerTargetLimitValue,
+    this.backfillerCommitLimitValue,
     this.githubRequestDelayValue,
     FakeDatastoreDB? dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
@@ -87,6 +89,8 @@ class FakeConfig implements Config {
   String? waitingForTreeToGoGreenLabelNameValue;
   Set<String>? rollerAccountsValue;
   int? maxRecordsValue;
+  int? backfillerTargetLimitValue;
+  int? backfillerCommitLimitValue;
   String? flutterGoldPendingValue;
   String? flutterGoldSuccessValue;
   String? flutterGoldChangesValue;
@@ -137,6 +141,12 @@ class FakeConfig implements Config {
   /// Size of the shards to send to buildBucket when scheduling builds.
   @override
   int get schedulingShardSize => 5;
+
+  @override
+  int get backfillerTargetLimit => backfillerTargetLimitValue ?? 50;
+
+  @override
+  int get backfillerCommitLimit => backfillerCommitLimitValue ?? 50;
 
   @override
   int get batchSize => batchSizeValue ?? 5;
@@ -221,21 +231,6 @@ class FakeConfig implements Config {
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
-
-  @override
-  bool githubPresubmitSupportedRepo(gh.RepositorySlug slug) {
-    return supportedRepos.contains(slug);
-  }
-
-  @override
-  bool githubPostsubmitSupportedRepo(gh.RepositorySlug slug) {
-    return postsubmitSupportedRepos.contains(slug);
-  }
-
-  @override
-  bool isGithubRepoMirroredToGob(gh.RepositorySlug slug) {
-    return githubPresubmitSupportedRepo(slug) || githubPostsubmitSupportedRepo(slug);
-  }
 
   @override
   Future<String> generateGithubToken(gh.RepositorySlug slug) {

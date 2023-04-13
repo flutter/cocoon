@@ -19,8 +19,8 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_buildbucket.dart';
-import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
@@ -66,6 +66,7 @@ void main() {
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot',
+        'dependabot[bot]',
       },
       tabledataResource: tabledataResource,
       wrongHeadBranchPullRequestMessageValue: 'wrongHeadBranchPullRequestMessage',
@@ -231,6 +232,39 @@ void main() {
       ).called(1);
     });
 
+    test('Acts on closed, cancels presubmit targets', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: false,
+      );
+
+      await tester.post(webhook);
+
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(scheduler.addPullRequestCallCnt, 0);
+    });
+
+    test('Acts on closed, cancels presubmit targets, add pr for postsubmit target create', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        baseRef: 'dev',
+        merged: true,
+        baseSha: 'sha1',
+      );
+
+      await tester.post(webhook);
+
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(scheduler.addPullRequestCallCnt, 1);
+    });
+
     test('Acts on opened against master when default is main', () async {
       const int issueNumber = 123;
 
@@ -332,6 +366,7 @@ void main() {
       await tester.post(webhook);
 
       expect(batchRequestCalled, isTrue);
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
     });
 
     test('Does nothing against cherry pick PR', () async {
@@ -1376,7 +1411,7 @@ void main() {
       );
     });
 
-    test('Framework no comment if only CODEOWNERS changed', () async {
+    test('Framework no comment if only CODEOWNERS or TESTOWNERS changed', () async {
       const int issueNumber = 123;
       tester.message = generateGithubWebhookMessage(action: 'opened', number: issueNumber);
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -1384,6 +1419,7 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'CODEOWNERS',
+          PullRequestFile()..filename = 'TESTOWNERS',
         ]),
       );
 
@@ -1498,6 +1534,32 @@ void foo() {
       );
     });
 
+    test('Framework labels PRs, no comment if tests (flutter_tools/test/helper.dart)', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+
+      when(pullRequestsService.listFiles(Config.flutterSlug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/test/helper.dart',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Framework labels PRs, apply label but no comment when rolling engine version', () async {
       const int issueNumber = 123;
 
@@ -1590,6 +1652,7 @@ void foo() {
       final Set<String> inputs = {
         'engine-flutter-autoroll',
         'dependabot',
+        'dependabot[bot]',
       };
 
       for (String element in inputs) {
