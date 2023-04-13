@@ -105,7 +105,7 @@ Codesign test failed.
 
 We compared binary files in engine artifacts with those listed in
 entitlement.txt and withoutEntitlements.txt, and the binary files do not match.
-*entitlements.txt is the configuartion file encoded in engine artifact zip,
+*entitlements.txt is the configuration file encoded in engine artifact zip,
 built by BUILD.gn and Ninja, to detail the list of entitlement files.
 Either an expected file was not found in *entitlements.txt, or an unexpected
 file was found in entitlements.txt.
@@ -280,7 +280,7 @@ update these file paths accordingly.
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
       log.severe('The system has detected a binary file at $entitlementCurrentPath.'
-          'but it is not in the entitlements configuartion files you provided.'
+          'but it is not in the entitlements configuration files you provided.'
           'if this is a new engine artifact, please add it to one of the entitlements.txt files');
       throw CodesignException(fixItInstructions);
     }
