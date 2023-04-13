@@ -2,7 +2,7 @@ module cocoon-tooling
 
 go 1.18
 
-require github.com/slsa-framework/slsa-verifier/v2 v2.1.0
+require github.com/slsa-framework/slsa-verifier/v2 v2.2.0
 
 require (
 	cloud.google.com/go/compute v1.15.1 // indirect
@@ -128,7 +128,7 @@ require (
 	github.com/sigstore/cosign v1.13.1 // indirect
 	github.com/sigstore/cosign/v2 v2.0.0-rc.2 // indirect
 	github.com/sigstore/fulcio v1.0.0 // indirect
-	github.com/sigstore/protobuf-specs v0.1.1-0.20230221191911-44103a52d43e // indirect
+	github.com/sigstore/protobuf-specs v0.1.1-0.20230403130340-4dbf10bc287d // indirect
 	github.com/sigstore/rekor v1.0.1 // indirect
 	github.com/sigstore/sigstore v1.5.1 // indirect
 	github.com/sigstore/timestamp-authority v0.2.1 // indirect
