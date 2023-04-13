@@ -131,10 +131,6 @@ void main() {
             ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
         ),
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/single_artifact'],
-          stdout: '${rootDirectory.absolute.path}/single_artifact',
-        ),
-        FakeCommand(
           command: <String>[
             'zip',
             '--symlinks',
@@ -250,10 +246,6 @@ void main() {
         ..file('${rootDirectory.path}/remote_zip_0/file_c').createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_0'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_0',
-        ),
-        FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
@@ -296,58 +288,12 @@ void main() {
       expect(messages, contains('Child file of directory remote_zip_0 is file_c'));
     });
 
-    test('visitDirectory skips symlink', () async {
-      fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_5/file_b').createSync(recursive: true);
-      processManager.addCommands(<FakeCommand>[
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5/symlink_dir'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5',
-        ),
-        FakeCommand(
-          command: <String>[
-            'file',
-            '--mime-type',
-            '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/file_b',
-          ],
-          stdout: 'other_files',
-        ),
-      ]);
-      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
-      await codesignVisitor.visitDirectory(
-        directory: testDirectory,
-        parentVirtualPath: 'a.zip',
-      );
-      final List<String> messages = records
-          .where((LogRecord record) => record.level == Level.INFO)
-          .map((LogRecord record) => record.message)
-          .toList();
-      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5'));
-      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
-      expect(messages, isNot(contains('Child file of directory remote_zip_5/symlink_dir is file_a')));
-      expect(
-          messages,
-          contains(
-              'current direcotry is a symlink to ${rootDirectory.path}/remote_zip_5, codesign is therefore skipped for the current directory'));
-      expect(messages, contains('Child file of directory remote_zip_5 is file_b'));
-    });
-
     test('visitDirectory recursively visits directory', () async {
       fileSystem
         ..file('${rootDirectory.path}/remote_zip_1/file_a').createSync(recursive: true)
         ..file('${rootDirectory.path}/remote_zip_1/folder_a/file_b').createSync(recursive: true);
       final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_1');
       processManager.addCommands(<FakeCommand>[
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_1'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_1',
-        ),
         FakeCommand(
           command: <String>[
             'file',
@@ -356,10 +302,6 @@ void main() {
             '${rootDirectory.absolute.path}/remote_zip_1/file_a',
           ],
           stdout: 'other_files',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_1/folder_a'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_1/folder_a',
         ),
         FakeCommand(
           command: <String>[
@@ -399,10 +341,6 @@ void main() {
           onRun: () => fileSystem
             ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1').createSync(recursive: true)
             ..file('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2').createSync(recursive: true),
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}'],
-          stdout: '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
         ),
         FakeCommand(
           command: <String>[
@@ -460,14 +398,6 @@ void main() {
       fileSystem.file(zipFileName).createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_4'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_4',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_4/folder_1'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_4/folder_1',
-        ),
-        FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
@@ -486,10 +416,6 @@ void main() {
           onRun: () => fileSystem
               .directory('${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}')
               .createSync(recursive: true),
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}'],
-          stdout: '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
         ),
         FakeCommand(
           command: <String>[
@@ -530,10 +456,6 @@ void main() {
       fileSystem.file('${rootDirectory.path}/parent_1/child_1/file_1').createSync(recursive: true);
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/parent_1/child_1'],
-          stdout: '${rootDirectory.absolute.path}/parent_1/child_1',
-        ),
-        FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
@@ -541,14 +463,6 @@ void main() {
             '${rootDirectory.absolute.path}/parent_1/child_1/file_1',
           ],
           stdout: 'other_files',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/parent_1'],
-          stdout: '${rootDirectory.absolute.path}/parent_1',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/parent_1/child_1'],
-          stdout: '${rootDirectory.absolute.path}/parent_1/child_1',
         ),
         FakeCommand(
           command: <String>[
@@ -587,6 +501,54 @@ void main() {
       );
     });
 
+    test('visitBinary skips file that is a symlink', () async {
+      fileSystem
+        ..file('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_5/file_b').createSync(recursive: true);
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_5/symlink_dir/file_a',
+          ],
+          stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5/symlink_dir/file_a'],
+          stdout: '${rootDirectory.absolute.path}/remote_zip_5/file_b',
+        ),
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_5/file_b',
+          ],
+          stdout: 'other_files',
+        ),
+      ]);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        parentVirtualPath: 'a.zip',
+      );
+      final List<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5'));
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
+      expect(
+        messages,
+        contains("current file ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a"
+            " is a symlink to ${rootDirectory.path}/remote_zip_5/file_b, "
+            "codesign is therefore skipped for the current file"),
+      );
+      expect(messages, contains('Child file of directory remote_zip_5 is file_b'));
+    });
+
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -607,26 +569,22 @@ void main() {
       codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
       codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/folder_a/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_5/folder_b/file_b').createSync(recursive: true);
-      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
+        ..file('${rootDirectory.path}/remote_zip_6/folder_a/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b').createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
       processManager.addCommands(<FakeCommand>[
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5/folder_a'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5/folder_a',
-        ),
         FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
           ],
           stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'],
+          stdout: '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
         ),
         FakeCommand(
           command: <String>[
@@ -634,7 +592,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
             '--timestamp',
             '--options=runtime',
             '--entitlements',
@@ -642,17 +600,17 @@ void main() {
           ],
         ),
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5/folder_b'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5/folder_b',
-        ),
-        FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
           ],
           stdout: 'application/x-mach-binary',
+        ),
+        FakeCommand(
+          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'],
+          stdout: '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
         ),
         FakeCommand(
           command: <String>[
@@ -660,7 +618,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
             '--timestamp',
             '--options=runtime',
           ],
@@ -674,11 +632,11 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'));
       expect(messages, contains('the virtual entitlement path associated with file is root/folder_a/file_a'));
       expect(messages, contains('the decision to sign with entitlement is true'));
 
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'));
       expect(messages, contains('the virtual entitlement path associated with file is root/folder_b/file_b'));
       expect(messages, contains('the decision to sign with entitlement is false'));
     });
@@ -1147,10 +1105,6 @@ status: Invalid''',
             ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
         ),
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/single_artifact'],
-          stdout: '${rootDirectory.absolute.path}/single_artifact',
-        ),
-        FakeCommand(
           command: <String>[
             'zip',
             '--symlinks',
@@ -1216,10 +1170,6 @@ status: Invalid''',
           onRun: () => fileSystem
             ..file('${rootDirectory.path}/single_artifact/entitlements.txt').createSync(recursive: true)
             ..file('${rootDirectory.path}/single_artifact/without_entitlements.txt').createSync(recursive: true),
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/single_artifact'],
-          stdout: '${rootDirectory.absolute.path}/single_artifact',
         ),
         FakeCommand(
           command: <String>[
