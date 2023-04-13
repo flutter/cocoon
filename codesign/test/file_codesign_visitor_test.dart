@@ -501,6 +501,54 @@ void main() {
       );
     });
 
+    test('visitDirectory skips file or directory that is a symlink', () async {
+      fileSystem
+        ..file('${rootDirectory.path}/remote_zip_5/target_dir/file_b').createSync(recursive: true)
+        ..directory('${rootDirectory.path}/remote_zip_5/symlink_dir').createSync(recursive: true)
+        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a')
+            .createSync('${rootDirectory.path}/remote_zip_5/target_dir/file_b')
+        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir_2')
+            .createSync('${rootDirectory.path}/remote_zip_5/target_dir');
+      processManager.addCommands(<FakeCommand>[
+        FakeCommand(
+          command: <String>[
+            'file',
+            '--mime-type',
+            '-b',
+            '${rootDirectory.absolute.path}/remote_zip_5/target_dir/file_b',
+          ],
+          stdout: 'other_files',
+        ),
+      ]);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
+      await codesignVisitor.visitDirectory(
+        directory: testDirectory,
+        parentVirtualPath: 'a.zip',
+      );
+      final Set<String> messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/target_dir'));
+      expect(messages, contains('Child file of directory target_dir is file_b'));
+
+      // Skip code signing a file that is a symlink.
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
+      expect(
+        messages,
+        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to "
+            "${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory."),
+      );
+      expect(messages, isNot(contains('Child file of directory symlink_dir is file_a')));
+
+      // Skip code signing a directory that is a symlink.
+      expect(
+        messages,
+        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to "
+            "${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory."),
+      );
+    });
+
     test('visitBinary codesigns binary with / without entitlement', () async {
       codesignVisitor = cs.FileCodesignVisitor(
         codesignCertName: randomString,
@@ -521,16 +569,16 @@ void main() {
       codesignVisitor.fileWithEntitlements = <String>{'root/folder_a/file_a'};
       codesignVisitor.fileWithoutEntitlements = <String>{'root/folder_b/file_b'};
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/folder_a/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_5/folder_b/file_b').createSync(recursive: true);
-      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_5');
+        ..file('${rootDirectory.path}/remote_zip_6/folder_a/file_a').createSync(recursive: true)
+        ..file('${rootDirectory.path}/remote_zip_6/folder_b/file_b').createSync(recursive: true);
+      final Directory testDirectory = fileSystem.directory('${rootDirectory.path}/remote_zip_6');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
           ],
           stdout: 'application/x-mach-binary',
         ),
@@ -540,7 +588,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
             '--timestamp',
             '--options=runtime',
             '--entitlements',
@@ -552,7 +600,7 @@ void main() {
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
           ],
           stdout: 'application/x-mach-binary',
         ),
@@ -562,7 +610,7 @@ void main() {
             '-f',
             '-s',
             randomString,
-            '${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
             '--timestamp',
             '--options=runtime',
           ],
@@ -576,11 +624,11 @@ void main() {
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
           .toList();
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_a/file_a'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'));
       expect(messages, contains('the virtual entitlement path associated with file is root/folder_a/file_a'));
       expect(messages, contains('the decision to sign with entitlement is true'));
 
-      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_5/folder_b/file_b'));
+      expect(messages, contains('signing file at path ${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'));
       expect(messages, contains('the virtual entitlement path associated with file is root/folder_b/file_b'));
       expect(messages, contains('the decision to sign with entitlement is false'));
     });
