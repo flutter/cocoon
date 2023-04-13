@@ -107,14 +107,14 @@ class BranchService {
         // handled within the GithubService.
         final GithubService githubService = await config.createDefaultGitHubService();
         return await githubService.listCommits(
-          Config.flutterSlug,
+          Config.engineSlug,
           branch,
           null,
         );
       },
       retryIf: (Exception e) => e is gh.GitHubError,
     );
-    log.info('${Config.flutterSlug} branch commits: $githubCommits');
+    log.info('${Config.engineSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
       if (recipeCommit.author!.time!.isBefore(githubCommits.first.commit!.committer!.date!)) {
         final String revision = recipeCommit.commit!;
