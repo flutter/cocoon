@@ -116,8 +116,8 @@ void main() {
         repos.add('${k['branch']['repository']}/${k['branch']['branch']}');
       }
       expect(repos, contains('flutter/flutter/main')); //flutter/flutter/main is updated
-      expect(result.length, 1);
-      expect(db.values.values.whereType<Branch>().length, 1);
+      expect(result.length, config.supportedRepos.length);
+      expect(db.values.values.whereType<Branch>().length, config.supportedRepos.length);
     });
 
     test('should not retrieve branch if updated commit acitivities happened long ago', () async {

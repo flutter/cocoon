@@ -39,6 +39,9 @@ Future<void> main() async {
       config,
     );
 
+    // Gerrit service class to communicate with GoB.
+    final GerritService gerritService = GerritService(config: config);
+
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final Scheduler scheduler = Scheduler(
       cache: cache,
@@ -49,7 +52,7 @@ Future<void> main() async {
 
     final BranchService branchService = BranchService(
       config: config,
-      gerritService: GerritService(),
+      gerritService: gerritService,
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
@@ -91,6 +94,7 @@ Future<void> main() async {
       '/api/github/webhook-subscription': GithubWebhookSubscription(
         config: config,
         cache: cache,
+        gerritService: gerritService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),

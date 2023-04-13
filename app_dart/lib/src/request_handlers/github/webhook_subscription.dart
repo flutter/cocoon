@@ -9,12 +9,14 @@ import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
 import '../../../protos.dart' as pb;
+import '../../model/gerrit/commit.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../request_handling/body.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/config.dart';
 import '../../service/datastore.dart';
+import '../../service/gerrit_service.dart';
 import '../../service/github_checks_service.dart';
 import '../../service/logging.dart';
 import '../../service/scheduler.dart';
@@ -53,6 +55,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     required this.scheduler,
+    required this.gerritService,
     this.githubChecksService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     super.authProvider,
@@ -60,6 +63,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
+
+  /// To verify whether a commit was mirrored to GoB.
+  final GerritService gerritService;
 
   /// To provide build status updates to GitHub pull requests.
   final GithubChecksService? githubChecksService;
@@ -85,7 +91,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final Map<String, dynamic> event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         if (await scheduler.processCheckRun(checkRunEvent) == false) {
-          throw InternalServerError('Failed to process $checkRunEvent');
+          throw InternalServerError('Failed to process check_run event. checkRunEvent: $checkRunEvent');
         }
         break;
     }
@@ -93,6 +99,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     return Body.empty;
   }
 
+  /// Handles a GitHub webhook with the event type "pull_request".
+  ///
+  /// Regarding merged pull request events: the commit must be mirrored to GoB
+  /// before we can trigger postsubmit tasks. If the commit is not found, the
+  /// event will be failed so it can be retried. As of Jan 26, 2023, the
+  /// retention policy for Pub/Sub messages is 7 days. This event will be
+  /// retried with exponential backoff within that time period. The GoB mirror
+  /// should be caught up within that time frame via either the internal
+  /// mirroring service or [VacuumGithubCommits].
   Future<void> _handlePullRequest(
     String rawRequest,
   ) async {
@@ -118,7 +133,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         );
 
         if (pr.merged!) {
-          await scheduler.addPullRequest(pr);
+          log.fine('Pull request ${pr.number} was closed and merged.');
+          if (await _commitExistsInGob(pr)) {
+            log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
+            return await scheduler.addPullRequest(pr);
+          }
+          throw InternalServerError('${pr.base!.sha!} was not found on GoB. Failing so this event can be retried...');
         }
         break;
       case 'edited':
@@ -152,6 +172,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
+  }
+
+  Future<bool> _commitExistsInGob(PullRequest pr) async {
+    final RepositorySlug slug = pr.base!.repo!.slug();
+    final String sha = pr.base!.sha!;
+    final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    return gobCommit != null;
   }
 
   /// This method assumes that jobs should be cancelled if they are already
