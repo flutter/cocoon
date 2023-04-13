@@ -208,7 +208,7 @@ update these file paths accordingly.
     final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
       if (entity is io.Link) {
-        log.info("current file or direcotry ${entity.path} is a symlink to ${await (entity as io.Link).target()}, "
+        log.info("current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, "
             "codesign is therefore skipped for the current file or directory.");
         continue;
       }
@@ -278,7 +278,8 @@ update these file paths accordingly.
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
-      log.severe('the binary file $currentFileName is causing an issue');
+      log.severe('the binary file $currentFileName is causing an issue. \n'
+          'This file is located at $entitlementCurrentPath in the flutter engine artifact.');
       log.severe('The system has detected a binary file at $entitlementCurrentPath. '
           'But it is not in the entitlements configuration files you provided. '
           'If this is a new engine artifact, please add it to one of the entitlements.txt files.');
