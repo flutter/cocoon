@@ -694,7 +694,7 @@ void main() {
       expect(result.message, contains('Reland "My first PR!"'));
     });
 
-    test('Includes PR description', () async {
+    test('includes PR description in commit message', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
@@ -720,6 +720,67 @@ PR description
 which
 is multiline.
 ''');
+    });
+
+    test('commit message filters out markdown checkboxes', () async {
+      const String prTitle = 'Important update #4';
+      const String prBody = '''
+Various bugfixes and performance improvements.
+
+Fixes #12345 and #3.
+This is the second line in a paragraph.
+
+## Pre-launch Checklist
+
+- [ ] I read the [Contributor Guide] and followed the process outlined there for submitting PRs.
+- [ ] I read the [Tree Hygiene] wiki page, which explains my responsibilities.
+- [ ] I read and followed the [Flutter Style Guide], including [Features we expect every widget to implement].
+- [x] I signed the [CLA].
+- [ ] I listed at least one issue that this PR fixes in the description above.
+- [ ] I updated/added relevant documentation (doc comments with `///`).
+- [X] I added new tests to check the change I am making, or this PR is [test-exempt].
+- [ ] All existing and new tests are passing.
+
+If you need help, consider asking for advice on the #hackers-new channel on [Discord].
+
+<!-- Links -->
+[Contributor Guide]: https://github.com/flutter/flutter/wiki/Tree-hygiene#overview
+[Tree Hygiene]: https://github.com/flutter/flutter/wiki/Tree-hygiene
+[test-exempt]: https://github.com/flutter/flutter/wiki/Tree-hygiene#tests
+[Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo
+[Features we expect every widget to implement]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#features-we-expect-every-widget-to-implement
+[CLA]: https://cla.developers.google.com/
+[flutter/tests]: https://github.com/flutter/tests
+[breaking change policy]: https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes
+[Discord]: https://github.com/flutter/flutter/wiki/Chat''';
+
+      final PullRequest pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        title: prTitle,
+        // The test-only helper function `generatePullRequest` will interpolate
+        // this string into a JSON string which will then be decoded--thus, this string must be
+        // a valid JSON substring, with escaped newlines.
+        body: prBody.replaceAll('\n', r'\n'),
+      );
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+      final ProcessMergeResult result = await validationService.processMerge(
+        config: config,
+        messagePullRequest: pullRequest,
+      );
+
+      expect(result.result, isTrue);
+      expect(result.message, isNot(contains('I read the [Contributor Guide]')));
+      expect(result.message, '''
+$prTitle
+
+Various bugfixes and performance improvements.
+
+Fixes #12345 and #3.
+This is the second line in a paragraph.''');
     });
   });
 }

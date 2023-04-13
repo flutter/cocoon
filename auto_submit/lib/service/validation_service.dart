@@ -337,7 +337,7 @@ Exception: ${exception.message}
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     final String prTitle =
         messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
-    final String commitMessage = ('''
+    final String commitMessage = _sanitizePrBody('''
 $prTitle
 
 ${messagePullRequest.body ?? ''}
@@ -511,4 +511,35 @@ Future<github.PullRequestMerge> _processMergeInternal({
   }
 
   return pullRequestMerge;
+}
+
+final RegExp _kCheckboxPattern = RegExp(r'^\s*-[ ]?\[( |x|X)\]');
+final RegExp _kCommentPattern = RegExp(r'<!--.*-->');
+final RegExp _kMarkdownLinkRefDef = RegExp(r'^\[[\w\/ -]+\]:');
+final RegExp _kPreLaunchHeader = RegExp(r'## Pre-launch Checklist');
+final RegExp _kDiscordPattern = RegExp(r'#hackers-new');
+
+String _sanitizePrBody(String rawPrBody) {
+  final buffer = StringBuffer();
+  bool lastLineWasEmpty = false;
+  for (final line in rawPrBody.split('\n')) {
+    if (_kCheckboxPattern.hasMatch(line) ||
+        _kCommentPattern.hasMatch(line) ||
+        _kMarkdownLinkRefDef.hasMatch(line) ||
+        _kPreLaunchHeader.hasMatch(line) ||
+        _kDiscordPattern.hasMatch(line)) {
+      continue;
+    }
+    if (line.trim().isEmpty) {
+      // we don't need to include multiple empty lines
+      if (lastLineWasEmpty) {
+        continue;
+      }
+      lastLineWasEmpty = true;
+    } else {
+      lastLineWasEmpty = false;
+    }
+    buffer.writeln(line);
+  }
+  return buffer.toString().trim();
 }
