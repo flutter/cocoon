@@ -93,6 +93,39 @@ Future<void> main() async {
       expect(logger.logs[Level.INFO], contains(_jsonWithNonFatalErrors));
     });
 
+    test('foo', () async {
+      when(
+        processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
+      ).thenAnswer((_) async {
+        return ProcessResult(
+          0,
+          1,
+          '',
+          'xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun',
+        );
+      });
+
+      when( // TODO delete
+        processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
+      ).thenAnswer((_) async {
+        return ProcessResult(1, 0, '', '');
+      });
+
+      fakeAsync<void>((FakeAsync time) {
+        final CommandRunner<bool> runner = _createTestRunner();
+        final command = RecoverCommand(
+          processManager: processManager,
+          loggerOverride: logger,
+          fs: fs,
+        );
+        runner.addCommand(command);
+        bool? result;
+        runner.run(<String>['recover', '--cocoon-root=$cocoonPath']).then((bool? value) => result = value);
+        time.elapse(const Duration(microseconds: 1));
+        expect(result, isNotNull);
+      });
+    });
+
     test('recover opens Xcode, waits, then kills it', () async {
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
