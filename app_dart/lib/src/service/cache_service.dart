@@ -62,6 +62,7 @@ class CacheService {
 
     // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
+      // Try creating the value
       value = await createFn();
       await set(
         subcacheName,
