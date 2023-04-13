@@ -83,13 +83,14 @@ class LuciBuildService {
     return getBuilds(slug, sha, builderName, 'try', tags);
   }
 
+  /// Returns an Iterable of try Buildbucket [Build]s for a given [PullRequest].
   Future<Iterable<Build>> getTryBuildsByPullRequest(
-    github.RepositorySlug slug,
     github.PullRequest pullRequest,
   ) {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final Map<String, List<String>> tags = <String, List<String>>{
       'buildset': <String>['pr/git/${pullRequest.number}'],
-      'github_link': <String>['https://github.com/${pullRequest.base!.repo!.fullName}/pull/${pullRequest.number}'],
+      'github_link': <String>['https://github.com/${slug.fullName}/pull/${pullRequest.number}'],
       'user_agent': const <String>['flutter-cocoon'],
     };
     return getBuilds(slug, null, null, 'try', tags);
@@ -221,7 +222,7 @@ class LuciBuildService {
       'Attempting to cancel builds for pullrequest ${pullRequest.base!.repo!.fullName}/${pullRequest.number}',
     );
 
-    final Iterable<Build> builds = await getTryBuildsByPullRequest(pullRequest.base!.repo!.slug(), pullRequest);
+    final Iterable<Build> builds = await getTryBuildsByPullRequest(pullRequest);
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
