@@ -501,30 +501,21 @@ void main() {
       );
     });
 
-    test('visitBinary skips file that is a symlink', () async {
+    test('visitDirectory skips file or directory that is a symlink', () async {
       fileSystem
-        ..file('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a').createSync(recursive: true)
-        ..file('${rootDirectory.path}/remote_zip_5/file_b').createSync(recursive: true);
+        ..file('${rootDirectory.path}/remote_zip_5/target_dir/file_b').createSync(recursive: true)
+        ..directory('${rootDirectory.path}/remote_zip_5/symlink_dir').createSync(recursive: true)
+        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir/file_a')
+            .createSync('${rootDirectory.path}/remote_zip_5/target_dir/file_b')
+        ..link('${rootDirectory.path}/remote_zip_5/symlink_dir_2')
+            .createSync('${rootDirectory.path}/remote_zip_5/target_dir');
       processManager.addCommands(<FakeCommand>[
         FakeCommand(
           command: <String>[
             'file',
             '--mime-type',
             '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/symlink_dir/file_a',
-          ],
-          stdout: 'application/x-mach-binary',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_5/symlink_dir/file_a'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_5/file_b',
-        ),
-        FakeCommand(
-          command: <String>[
-            'file',
-            '--mime-type',
-            '-b',
-            '${rootDirectory.absolute.path}/remote_zip_5/file_b',
+            '${rootDirectory.absolute.path}/remote_zip_5/target_dir/file_b',
           ],
           stdout: 'other_files',
         ),
@@ -534,19 +525,28 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: 'a.zip',
       );
-      final List<String> messages = records
+      final Set<String> messages = records
           .where((LogRecord record) => record.level == Level.INFO)
           .map((LogRecord record) => record.message)
-          .toList();
-      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5'));
+          .toSet();
+      expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/target_dir'));
+      expect(messages, contains('Child file of directory target_dir is file_b'));
+
+      // Skip code signing a file that is a symlink.
       expect(messages, contains('Visiting directory ${rootDirectory.path}/remote_zip_5/symlink_dir'));
       expect(
         messages,
-        contains("current file ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a"
-            " is a symlink to ${rootDirectory.path}/remote_zip_5/file_b, "
-            "codesign is therefore skipped for the current file"),
+        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir/file_a is a symlink to "
+            "${rootDirectory.path}/remote_zip_5/target_dir/file_b, codesign is therefore skipped for the current file or directory."),
       );
-      expect(messages, contains('Child file of directory remote_zip_5 is file_b'));
+      expect(messages, isNot(contains('Child file of directory symlink_dir is file_a')));
+
+      // Skip code signing a directory that is a symlink.
+      expect(
+        messages,
+        contains("current file or direcotry ${rootDirectory.path}/remote_zip_5/symlink_dir_2 is a symlink to "
+            "${rootDirectory.path}/remote_zip_5/target_dir, codesign is therefore skipped for the current file or directory."),
+      );
     });
 
     test('visitBinary codesigns binary with / without entitlement', () async {
@@ -583,10 +583,6 @@ void main() {
           stdout: 'application/x-mach-binary',
         ),
         FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_6/folder_a/file_a',
-        ),
-        FakeCommand(
           command: <String>[
             '/usr/bin/codesign',
             '-f',
@@ -607,10 +603,6 @@ void main() {
             '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
           ],
           stdout: 'application/x-mach-binary',
-        ),
-        FakeCommand(
-          command: <String>['readlink', '-f', '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b'],
-          stdout: '${rootDirectory.absolute.path}/remote_zip_6/folder_b/file_b',
         ),
         FakeCommand(
           command: <String>[

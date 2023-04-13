@@ -205,8 +205,13 @@ update these file paths accordingly.
       );
     }
     directoriesVisited.add(directory.absolute.path);
-    final List<FileSystemEntity> entities = await directory.list().toList();
+    final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
+      if (entity is io.Link) {
+        log.info("current file or direcotry ${entity.path} is a symlink to ${await (entity as io.Link).target()}, "
+            "codesign is therefore skipped for the current file or directory.");
+        continue;
+      }
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
@@ -270,13 +275,6 @@ update these file paths accordingly.
   Future<void> visitBinaryFile({required File binaryFile, required String parentVirtualPath}) async {
     final String currentFileName = binaryFile.basename;
     final String entitlementCurrentPath = joinEntitlementPaths(parentVirtualPath, currentFileName);
-
-    final String symlinkOrFilename = await symlink(binaryFile.path, processManager);
-    if (symlinkOrFilename != binaryFile.path) {
-      log.info("current file ${binaryFile.path} is a symlink to $symlinkOrFilename, "
-          "codesign is therefore skipped for the current file");
-      return;
-    }
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
