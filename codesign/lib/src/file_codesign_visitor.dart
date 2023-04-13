@@ -280,9 +280,10 @@ update these file paths accordingly.
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
-      log.severe('The system has detected a binary file at $entitlementCurrentPath.'
-          'but it is not in the entitlements configuration files you provided.'
-          'if this is a new engine artifact, please add it to one of the entitlements.txt files');
+      log.severe('the binary file $currentFileName is causing an issue');
+      log.severe('The system has detected a binary file at $entitlementCurrentPath. '
+          'But it is not in the entitlements configuration files you provided. '
+          'If this is a new engine artifact, please add it to one of the entitlements.txt files.');
       throw CodesignException(fixItInstructions);
     }
     log.info('signing file at path ${binaryFile.absolute.path}');
