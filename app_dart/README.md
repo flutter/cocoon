@@ -144,7 +144,7 @@ daily on Workdays.
 
 This is easy to deploy if you simply want a new version based on
 the latest commit. Open
-[Cloud Build dashboard](https://pantheon.corp.google.com/cloud-build/triggers?project=flutter-dashboard)
+[Cloud Build dashboard](https://console.cloud.google.com/cloud-build/triggers?project=flutter-dashboard)
 and click run in the push-master trigger ([example](https://screenshot.googleplex.com/4DDy4XdVQxMKqCd))
 
 * Using a cocoon checkout
