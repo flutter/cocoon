@@ -93,7 +93,7 @@ Future<void> main() async {
       expect(logger.logs[Level.INFO], contains(_jsonWithNonFatalErrors));
     });
 
-    test('foo', () async {
+    test('recover returns early if xcodebuild -runFirstLaunch exits non-zero', () async {
       when(
         processManager.run(<String>['xcrun', 'xcodebuild', '-runFirstLaunch']),
       ).thenAnswer((_) async {
@@ -103,12 +103,6 @@ Future<void> main() async {
           '',
           'xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun',
         );
-      });
-
-      when( // TODO delete
-        processManager.run(<String>['open', '-n', '-F', '-W', xcworkspacePath]),
-      ).thenAnswer((_) async {
-        return ProcessResult(1, 0, '', '');
       });
 
       fakeAsync<void>((FakeAsync time) {

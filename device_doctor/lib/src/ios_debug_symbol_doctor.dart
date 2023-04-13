@@ -129,7 +129,7 @@ class RecoverCommand extends Command<bool> {
     final int runFirstLaunchCode = runFirstLaunchResult.exitCode;
     if (runFirstLaunchCode != 0) {
       logger.info('Failed running `xcodebuild -runFirstLaunch` with code $runFirstLaunchCode!');
-      //return false;
+      return false;
     }
 
     final Duration timeout = Duration(seconds: timeoutSeconds);
