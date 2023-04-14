@@ -718,8 +718,7 @@ PR title
 
 PR description
 which
-is multiline.
-''');
+is multiline.''');
     });
 
     test('commit message filters out markdown checkboxes', () async {
@@ -773,7 +772,6 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
       );
 
       expect(result.result, isTrue);
-      expect(result.message, isNot(contains('I read the [Contributor Guide]')));
       expect(result.message, '''
 $prTitle
 
