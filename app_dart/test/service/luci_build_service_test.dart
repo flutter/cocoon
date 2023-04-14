@@ -124,6 +124,24 @@ void main() {
       );
       expect(builds.first, linuxBuild);
     });
+
+    test('Existing try build', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[linuxBuild],
+              ),
+            ),
+          ],
+        );
+      });
+      final Iterable<Build> builds = await service.getTryBuildsByPullRequest(
+        PullRequest(id: 998, base: PullRequestHead(repo: Repository(fullName: 'flutter/cocoon'))),
+      );
+      expect(builds.first, linuxBuild);
+    });
   });
 
   group('getBuilders', () {
