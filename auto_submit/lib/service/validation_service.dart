@@ -334,7 +334,17 @@ Exception: ${exception.message}
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
-    final String commitMessage = _sanitizePrBody(messagePullRequest.body ?? '');
+    const String revertPattern = 'Revert "Revert';
+    String messagePrefix = '';
+    if (messagePullRequest.title!.contains(revertPattern)) {
+      // Cleanup auto-generated revert messages.
+      messagePrefix = '''
+${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
+
+''';
+    }
+    final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
+    final String commitMessage = '$messagePrefix$prBody';
 
     try {
       github.PullRequestMerge? result;
