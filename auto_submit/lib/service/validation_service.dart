@@ -334,8 +334,17 @@ Exception: ${exception.message}
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
-    String commitMessage = messagePullRequest.title!;
-    commitMessage = commitMessage.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
+    const String revertPattern = 'Revert "Revert';
+    String messagePrefix = '';
+    if (messagePullRequest.title!.contains(revertPattern)) {
+      // Cleanup auto-generated revert messages.
+      messagePrefix = '''
+${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
+
+''';
+    }
+    final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
+    final String commitMessage = '$messagePrefix$prBody';
 
     try {
       github.PullRequestMerge? result;
@@ -505,4 +514,35 @@ Future<github.PullRequestMerge> _processMergeInternal({
   }
 
   return pullRequestMerge;
+}
+
+final RegExp _kCheckboxPattern = RegExp(r'^\s*-[ ]?\[( |x|X)\]');
+final RegExp _kCommentPattern = RegExp(r'<!--.*-->');
+final RegExp _kMarkdownLinkRefDef = RegExp(r'^\[[\w\/ -]+\]:');
+final RegExp _kPreLaunchHeader = RegExp(r'## Pre-launch Checklist');
+final RegExp _kDiscordPattern = RegExp(r'#hackers-new');
+
+String _sanitizePrBody(String rawPrBody) {
+  final buffer = StringBuffer();
+  bool lastLineWasEmpty = false;
+  for (final line in rawPrBody.split('\n')) {
+    if (_kCheckboxPattern.hasMatch(line) ||
+        _kCommentPattern.hasMatch(line) ||
+        _kMarkdownLinkRefDef.hasMatch(line) ||
+        _kPreLaunchHeader.hasMatch(line) ||
+        _kDiscordPattern.hasMatch(line)) {
+      continue;
+    }
+    if (line.trim().isEmpty) {
+      // we don't need to include multiple empty lines
+      if (lastLineWasEmpty) {
+        continue;
+      }
+      lastLineWasEmpty = true;
+    } else {
+      lastLineWasEmpty = false;
+    }
+    buffer.writeln(line);
+  }
+  return buffer.toString().trim();
 }

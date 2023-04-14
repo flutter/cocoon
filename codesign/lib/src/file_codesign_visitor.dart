@@ -105,7 +105,7 @@ Codesign test failed.
 
 We compared binary files in engine artifacts with those listed in
 entitlement.txt and withoutEntitlements.txt, and the binary files do not match.
-*entitlements.txt is the configuartion file encoded in engine artifact zip,
+*entitlements.txt is the configuration file encoded in engine artifact zip,
 built by BUILD.gn and Ninja, to detail the list of entitlement files.
 Either an expected file was not found in *entitlements.txt, or an unexpected
 file was found in entitlements.txt.
@@ -205,8 +205,13 @@ update these file paths accordingly.
       );
     }
     directoriesVisited.add(directory.absolute.path);
-    final List<FileSystemEntity> entities = await directory.list().toList();
+    final List<FileSystemEntity> entities = await directory.list(followLinks: false).toList();
     for (FileSystemEntity entity in entities) {
+      if (entity is io.Link) {
+        log.info("current file or direcotry ${entity.path} is a symlink to ${(entity as io.Link).targetSync()}, "
+            "codesign is therefore skipped for the current file or directory.");
+        continue;
+      }
       if (entity is io.Directory) {
         await visitDirectory(
           directory: directory.childDirectory(entity.basename),
@@ -273,9 +278,11 @@ update these file paths accordingly.
 
     if (!fileWithEntitlements.contains(entitlementCurrentPath) &&
         !fileWithoutEntitlements.contains(entitlementCurrentPath)) {
-      log.severe('The system has detected a binary file at $entitlementCurrentPath.'
-          'but it is not in the entitlements configuartion files you provided.'
-          'if this is a new engine artifact, please add it to one of the entitlements.txt files');
+      log.severe('the binary file $currentFileName is causing an issue. \n'
+          'This file is located at $entitlementCurrentPath in the flutter engine artifact.');
+      log.severe('The system has detected a binary file at $entitlementCurrentPath. '
+          'But it is not in the entitlements configuration files you provided. '
+          'If this is a new engine artifact, please add it to one of the entitlements.txt files.');
       throw CodesignException(fixItInstructions);
     }
     log.info('signing file at path ${binaryFile.absolute.path}');
