@@ -7,7 +7,6 @@ import 'package:auto_submit/model/big_query_pull_request_record.dart';
 import 'package:auto_submit/model/big_query_revert_request_record.dart';
 import 'package:auto_submit/model/pull_request_change_type.dart';
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
@@ -335,13 +334,7 @@ Exception: ${exception.message}
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
-    final String prTitle =
-        messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland'); // Cleanup auto-generated revert messages.
-    final String commitMessage = _sanitizePrBody('''
-$prTitle
-
-${messagePullRequest.body ?? ''}
-''');
+    final String commitMessage = _sanitizePrBody(messagePullRequest.body ?? '');
 
     try {
       github.PullRequestMerge? result;
