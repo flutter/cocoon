@@ -52,12 +52,15 @@ class GetBranches extends RequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final List<Branch> branches = await datastore
+    List<Branch> branches = await datastore
         .queryBranches()
         .where(
           (Branch b) => DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds,
         )
         .toList();
+    // From the dashboard point of view we only care about beta, stable, main, master and flutter-*.
+    final RegExp branchRegex = RegExp(r'beta|stable|main|master|flutter-.+');
+    branches = branches.where((branch) => branch.name.contains(branchRegex)).toList();
     return Body.forJson(branches);
   }
 }
