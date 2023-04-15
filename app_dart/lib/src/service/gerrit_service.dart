@@ -93,6 +93,7 @@ class GerritService {
     final Uri url = Uri.https('${slug.owner}-review.googlesource.com', 'projects/$projectName/commits/$commitId');
 
     final http.Response response = await _get(url);
+    log.info('Gob commit response for commit $commitId: ${response.body}');
     if (!_responseIsAcceptable(response)) return null;
 
     final String jsonBody = _stripXssToken(response.body);

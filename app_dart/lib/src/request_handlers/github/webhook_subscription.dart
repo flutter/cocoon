@@ -138,7 +138,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
             return await scheduler.addPullRequest(pr);
           }
-          throw InternalServerError('${pr.base!.sha!} was not found on GoB. Failing so this event can be retried...');
+          throw InternalServerError('${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...');
         }
         break;
       case 'edited':
@@ -176,7 +176,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   Future<bool> _commitExistsInGob(PullRequest pr) async {
     final RepositorySlug slug = pr.base!.repo!.slug();
-    final String sha = pr.base!.sha!;
+    final String sha = pr.mergeCommitSha!;
     final GerritCommit? gobCommit = await gerritService.findMirroredCommit(slug, sha);
     return gobCommit != null;
   }
