@@ -67,7 +67,7 @@ void main() {
     test('should retrieve branches with commit acitivities in the past week', () async {
       expect(db.values.values.whereType<Branch>().length, 1);
 
-      const String id = 'flutter/flutter/branch-created-now';
+      const String id = 'flutter/flutter/flutter-branch-created-now';
       final int lastActivity = DateTime.now().millisecondsSinceEpoch;
       final Key<String> branchKey = db.emptyKey.append<String>(Branch, id: id);
       final Branch currentBranch = Branch(
@@ -79,7 +79,7 @@ void main() {
       expect(db.values.values.whereType<Branch>().length, 2);
 
       final List<dynamic> result = (await decodeHandlerBody())!;
-      expect((result.single)['branch']['branch'], 'branch-created-now');
+      expect((result.single)['branch']['branch'], 'flutter-branch-created-now');
       expect((result.single)['id'].runtimeType, String);
     });
   });
