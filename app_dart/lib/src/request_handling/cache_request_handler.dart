@@ -53,7 +53,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       await cache.purge(responseSubcacheName, responseKey);
     }
 
-    final Uint8List? cachedResponse = await cache.getOrCreate(
+    final Uint8List? cachedResponse = await cache.getOrCreateWithLocking(
       responseSubcacheName,
       responseKey,
       createFn: () => getBodyBytesFromDelegate(delegate),
