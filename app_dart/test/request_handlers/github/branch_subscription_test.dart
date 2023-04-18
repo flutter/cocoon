@@ -38,14 +38,14 @@ void main() {
       );
     });
     test('process create branch event', () async {
-      tester.message = generateCreateBranchMessage(kReleaseBaseRef, Config.flutterSlug.fullName);
+      tester.message = generateCreateBranchMessage(kReleaseBaseRef, Config.engineSlug.fullName);
       await tester.post(webhook);
 
       verify(branchService.branchFlutterRecipes(kReleaseBaseRef));
     });
 
-    test('do not create recipe branches on non-flutter/flutter branches', () async {
-      tester.message = generateCreateBranchMessage(kReleaseBaseRef, Config.engineSlug.fullName);
+    test('do not create recipe branches on non-flutter/engine branches', () async {
+      tester.message = generateCreateBranchMessage(kReleaseBaseRef, Config.flutterSlug.fullName);
       await tester.post(webhook);
 
       verifyNever(branchService.branchFlutterRecipes(any));
