@@ -294,6 +294,8 @@ update these file paths accordingly.
     }
     final List<String> args = <String>[
       '/usr/bin/codesign',
+      '--keychain',
+      'build.keychain', // specify the keychain to look for cert
       '-f', // force
       '-s', // use the cert provided by next argument
       codesignCertName,

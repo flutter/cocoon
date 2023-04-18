@@ -585,6 +585,8 @@ void main() {
         FakeCommand(
           command: <String>[
             '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain', 
             '-f',
             '-s',
             randomString,
@@ -607,6 +609,8 @@ void main() {
         FakeCommand(
           command: <String>[
             '/usr/bin/codesign',
+            '--keychain',
+            'build.keychain', 
             '-f',
             '-s',
             randomString,
