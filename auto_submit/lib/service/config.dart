@@ -111,8 +111,8 @@ class Config {
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
   Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
-    final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(cache);
-    return await repositoryConfigurationManager.readRepositoryConfiguration(await createGithubService(slug), slug);
+    final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
+    return await repositoryConfigurationManager.readRepositoryConfiguration(slug);
   }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
@@ -157,10 +157,12 @@ class Config {
     );
     final List<Map<String, dynamic>> list = (json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>();
 
+    // When we get this installation id it seems that there are all kinds of
+    // other information included from repositories that are not associated with
+    // flutter.
     late String installationId;
     log.info('lookinf for install data for slug = ${slug.fullName}');
     for (Map<String, dynamic> installData in list) {
-      log.info('installData = $installData');
       if (installData['account']!['login']!.toString() == slug.owner) {
         installationId = installData['id']!.toString();
       }

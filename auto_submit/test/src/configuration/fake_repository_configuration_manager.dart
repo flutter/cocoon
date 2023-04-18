@@ -1,21 +1,24 @@
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
-import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/service/config.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 class FakeRepositoryConfigurationManager implements RepositoryConfigurationManager {
-  FakeRepositoryConfigurationManager(this.cache);
+  FakeRepositoryConfigurationManager(this.config, this.cache);
 
   String? yamlConfig;
 
   @override
   final Cache cache;
 
+  @override
+  final Config config;
+
   late RepositoryConfiguration? repositoryConfigurationMock;
 
   @override
-  Future<RepositoryConfiguration> readRepositoryConfiguration(GithubService githubService, RepositorySlug slug) async {
+  Future<RepositoryConfiguration> readRepositoryConfiguration(RepositorySlug slug) async {
     return repositoryConfigurationMock!;
   }
 }

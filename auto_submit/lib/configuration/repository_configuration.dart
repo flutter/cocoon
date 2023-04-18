@@ -143,8 +143,6 @@ class RepositoryConfiguration {
         yamlDoc[ISSUES_REPOSITORY_KEY][REPO_OWNER_KEY],
         yamlDoc[ISSUES_REPOSITORY_KEY][REPO_NAME_KEY],
       );
-    } else {
-      throw ConfigurationException('The Issues Repository Slug is a required field.');
     }
 
     final List<String> autoApprovalAccounts = [];
