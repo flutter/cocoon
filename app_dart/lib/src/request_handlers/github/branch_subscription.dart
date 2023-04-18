@@ -45,7 +45,7 @@ class GithubBranchWebhookSubscription extends SubscriptionHandler {
     log.fine('Processing ${webhook.event}');
     final CreateEvent createEvent = CreateEvent.fromJson(json.decode(webhook.payload) as Map<String, dynamic>);
     await branchService.handleCreateRequest(createEvent);
-    if (createEvent.repository?.slug() == Config.flutterSlug) {
+    if (createEvent.repository?.slug() == Config.engineSlug) {
       await branchService.branchFlutterRecipes(createEvent.ref!);
       log.fine('Created flutter/recipes branch for ${createEvent.ref!}');
     }
