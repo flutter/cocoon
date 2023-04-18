@@ -58,8 +58,8 @@ class GetBranches extends RequestHandler<Body> {
           (Branch b) => DateTime.now().millisecondsSinceEpoch - b.lastActivity! < kActiveBranchActivity.inMilliseconds,
         )
         .toList();
-    // From the dashboard point of view we only care about beta, stable, main, master and flutter-*.
-    final RegExp branchRegex = RegExp(r'beta|stable|main|master|flutter-.+');
+    // From the dashboard point of view, these are the subset of branches we care about.
+    final RegExp branchRegex = RegExp(r'beta|stable|main|master|flutter-.+|fuchsia.+');
     branches = branches.where((branch) => branch.name.contains(branchRegex)).toList();
     return Body.forJson(branches);
   }
