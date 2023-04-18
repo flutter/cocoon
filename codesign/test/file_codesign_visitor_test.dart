@@ -586,7 +586,7 @@ void main() {
           command: <String>[
             '/usr/bin/codesign',
             '--keychain',
-            'build.keychain', 
+            'build.keychain',
             '-f',
             '-s',
             randomString,
@@ -610,7 +610,7 @@ void main() {
           command: <String>[
             '/usr/bin/codesign',
             '--keychain',
-            'build.keychain', 
+            'build.keychain',
             '-f',
             '-s',
             randomString,
