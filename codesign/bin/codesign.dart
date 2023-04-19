@@ -53,6 +53,11 @@ const String kCodesignTeamIDOption = 'codesign-team-id-file-path';
 /// [kCodesignCertNameOption] is public information. For codesigning flutter artifacts,
 /// a user can provide values for this variable as shown in the example below.
 ///
+/// Note: this tool uses Apple developer identity from keychain named build.keychain.
+/// You can create/delete build.keychain by following the steps below:
+/// /usr/bin/security create-keychain -p '' build.keychain         # for create
+/// /usr/bin/security delete-keychain build.keychain               # for delete
+///
 /// Usage:
 /// ```shell
 /// dart run bin/codesign.dart --[no-]dryrun

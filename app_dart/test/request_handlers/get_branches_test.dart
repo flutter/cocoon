@@ -64,6 +64,46 @@ void main() {
       expect(result, isEmpty);
     });
 
+    test('should filter out branches not in the interest subset', () async {
+      // main
+      const String mainId = 'flutter/flutter/main';
+      final int lastActivity = DateTime.now().millisecondsSinceEpoch;
+      final Key<String> mainBranchKey = db.emptyKey.append<String>(Branch, id: mainId);
+      final Branch mainBranch = Branch(
+        key: mainBranchKey,
+        lastActivity: lastActivity,
+      );
+      db.values[mainBranch.key] = mainBranch;
+      // release candidate branch
+      const String releaseId = 'flutter/flutter/flutter-3.10-candidate.1';
+      final Key<String> releaseBranchKey = db.emptyKey.append<String>(Branch, id: releaseId);
+      final Branch releaseBranch = Branch(
+        key: releaseBranchKey,
+        lastActivity: lastActivity,
+      );
+      db.values[releaseBranch.key] = releaseBranch;
+      // other
+      const String otherId = 'flutter/flutter/other-flutter-3.10-candidate.1';
+      final Key<String> otherBranchKey = db.emptyKey.append<String>(Branch, id: otherId);
+      final Branch otherBranch = Branch(
+        key: otherBranchKey,
+        lastActivity: lastActivity,
+      );
+      db.values[otherBranch.key] = otherBranch;
+      final List<dynamic> result = (await decodeHandlerBody())!;
+      final List<dynamic> expected = [
+        {
+          'id': 'flutter/flutter/main',
+          'branch': <String, String>{'branch': 'main', 'repository': 'flutter/flutter'}
+        },
+        {
+          'id': 'flutter/flutter/flutter-3.10-candidate.1',
+          'branch': <String, String>{'branch': 'flutter-3.10-candidate.1', 'repository': 'flutter/flutter'}
+        }
+      ];
+      expect(result, expected);
+    });
+
     test('should retrieve branches with commit acitivities in the past week', () async {
       expect(db.values.values.whereType<Branch>().length, 1);
 
