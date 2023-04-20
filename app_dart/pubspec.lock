@@ -281,7 +281,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.12.0"
-    version: "9.12.0"
   glob:
     dependency: transitive
     description:
@@ -570,7 +569,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.3"
-    version: "3.7.3"
   pool:
     dependency: transitive
     description:
@@ -714,7 +712,6 @@ packages:
       sha256: "53e943d4206a5e30df338fd4c6e7a077e02254531b138a15aec3bd143c1a8b3c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.0"
     version: "1.10.0"
   stack_trace:
     dependency: transitive

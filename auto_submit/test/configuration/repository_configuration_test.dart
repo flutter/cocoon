@@ -21,9 +21,9 @@ void main() {
       approval_group: flutter-hackers
       run_ci: true
       support_no_review_revert: true
-      required_checkruns:
-        - “ci.yaml validation”
-        - “Google-testing”
+      required_checkruns_on_revert:
+        - ci.yaml validation
+        - Google-testing
     ''';
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
@@ -46,7 +46,7 @@ void main() {
       approval_group: flutter-hackers
       run_ci: true
       support_no_review_revert: true
-      required_checkruns:
+      required_checkruns_on_revert:
         - “ci.yaml validation”
         - “Google-testing”
     ''';

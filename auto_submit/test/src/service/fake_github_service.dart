@@ -351,10 +351,10 @@ class FakeGithubService implements GithubService {
     return repositoryMock;
   }
   
-  bool isTeamMemberMock = false;
+  List<bool> isTeamMemberMockList = [];
 
   @override
   Future<bool> isTeamMember(String team, String user, String org) async {
-    return isTeamMemberMock;
+    return isTeamMemberMockList.removeAt(0);
   }
 }

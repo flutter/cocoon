@@ -17,7 +17,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "58.0.0"
-    version: "58.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -25,7 +24,6 @@ packages:
       sha256: cc4242565347e98424ce9945c819c192ec0838cb9d1f6aa4a97cc96becbc5b27
       url: "https://pub.dev"
     source: hosted
-    version: "5.10.0"
     version: "5.10.0"
   appengine:
     dependency: "direct main"
@@ -42,7 +40,6 @@ packages:
       sha256: "0c8368c9b3f0abbc193b9d6133649a614204b528982bebc7026372d61677ce3a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.7"
     version: "3.3.7"
   args:
     dependency: transitive
@@ -251,7 +248,6 @@ packages:
       sha256: "5c68254fc292aa9ba79fd5be0f53a40dabeeaf5b7551801f15bbe4ab6e0d2264"
       url: "https://pub.dev"
     source: hosted
-    version: "9.12.0"
     version: "9.12.0"
   glob:
     dependency: transitive
@@ -541,7 +537,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.3"
-    version: "3.7.3"
   pool:
     dependency: transitive
     description:
@@ -678,7 +673,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
-    version: "1.10.0"
   stack_trace:
     dependency: transitive
     description:
@@ -808,4 +802,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=3.0.0-134.0.dev <4.0.0"

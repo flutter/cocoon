@@ -11,6 +11,6 @@ const String sampleConfig = '''
   approval_group: flutter-hackers
   run_ci: true
   support_no_review_revert: true
-  required_checkruns:
-    - “ci.yaml validation”
+  required_checkruns_on_revert:
+    - ci.yaml validation
 ''';

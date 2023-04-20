@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/approver_service.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:github/github.dart';
@@ -54,13 +53,6 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
       final rawBody = json.decode(String.fromCharCodes(base64.decode(messageData))) as Map<String, dynamic>;
       final PullRequest pullRequest = PullRequest.fromJson(rawBody);
-
-      // This pulls the configuration if we did not already have it and stores
-      // it in the config. Approver service will need this
-      final RepositoryConfiguration repositoryConfiguration =
-          await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.base!.repo!.fullName));
-          
-      log.info('RepositoryConfiguration = ${repositoryConfiguration.toString()}');
 
       log.info('Processing message ackId: ${message.ackId}');
       log.info('Processing mesageId: ${message.message!.messageId}');
