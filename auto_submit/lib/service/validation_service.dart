@@ -14,8 +14,6 @@ import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/graphql_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:auto_submit/service/process_method.dart';
-import 'package:auto_submit/validations/ci_successful.dart';
-import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;

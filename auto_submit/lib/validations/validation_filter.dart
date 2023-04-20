@@ -5,7 +5,6 @@ import 'package:auto_submit/validations/approval.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/conflicting.dart';
 import 'package:auto_submit/validations/empty_checks.dart';
-import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
