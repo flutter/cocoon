@@ -70,17 +70,19 @@ class RepositoryConfigurationManager {
     RepositorySlug slug,
   ) async {
     // Read the local config file for the pointer
+    log.info('Getting local file contents from $slug.');
     final String localPointerFileContents = await githubService.getFileContents(
       slug,
       '$rootDir$fileSeparator$fileName',
     );
+    log.info('local pointer file contents: $localPointerFileContents');
     final RepositoryConfigurationPointer configPointer =
         RepositoryConfigurationPointer.fromYaml(localPointerFileContents);
 
-    log.info('Getting config from github for ${slug.fullName}');
+    log.info('Getting config from github for: ${slug.fullName}');
     final String fileContents = await githubService.getFileContents(
       githubRepo,
-      '.github/${configPointer.filePath}',
+      configPointer.filePath,
     );
     return fileContents.codeUnits;
   }

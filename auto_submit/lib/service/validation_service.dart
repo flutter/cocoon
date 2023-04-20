@@ -18,6 +18,7 @@ import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
+import 'package:auto_submit/validations/validation_filter.dart';
 import 'package:github/github.dart' as github;
 import 'package:graphql/client.dart' as graphql;
 import 'package:retry/retry.dart';
@@ -118,32 +119,6 @@ class ValidationService {
     }
   }
 
-  //TODO switch on revert.
-  // add another parameter and a switch statement for reverts and regular pull
-  // requests.
-  Set<Validation> _determineValidations(RepositoryConfiguration repositoryConfiguration) {
-    final Set<Validation> validationsToRun = {};
-
-    validationsToRun.add(Approval(config: config));
-
-    // If we are running ci then we need to check the checkRuns and make sure
-    // there are check runs created.
-    if (repositoryConfiguration.runCi) {
-      validationsToRun.add(CiSuccessful(config: config));
-      validationsToRun.add(EmptyChecks(config: config));
-    }
-
-    // Validate required check runs if they are requested.
-    if (repositoryConfiguration.requiredCheckRuns.isNotEmpty) {
-      validationsToRun.add(RequiredCheckRuns(config: config));
-    }
-
-    validationsToRun.add(UnknownMergeable(config: config));
-    validationsToRun.add(Conflicting(config: config));
-
-    return validationsToRun;
-  }
-
   /// Processes a PullRequest running several validations to decide whether to
   /// land the commit or remove the autosubmit label.
   Future<void> processPullRequest({
@@ -158,12 +133,14 @@ class ValidationService {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
-    final Set<Validation> validations = _determineValidations(repositoryConfiguration);
+    // final Set<Validation> validations = _determineValidations(repositoryConfiguration);
+    final ValidationFilter validationFilter = ValidationFilter(config, ProcessMethod.processAutosubmit, repositoryConfiguration,);
+    final Set<Validation> validations = validationFilter.getValidations();
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      final ValidationResult validationResult = await validation.validate(result, messagePullRequest);
+      final ValidationResult validationResult = await validation.validate(result, messagePullRequest,);
       results.add(validationResult);
     }
 
@@ -248,7 +225,8 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    final ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest);
+    // get validations to be run here. 
+    final ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest,);
 
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;

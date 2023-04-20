@@ -191,11 +191,13 @@ class GithubService {
     if (teamFound.id == null) {
       return TeamMembershipState(null);
     }
+    // TODO once the github.dart package is release replace this legacy method.
     return await github.organizations.getTeamMembership(teamFound.id!, user);
   }
-
+ 
   /// Get a list of teams in the supplied org.
   Future<List<Team>> getTeams({String org = 'flutter'}) async {
+    // TODO once the github.dart package is release replace this legacy method.
     final List<Team> teamsList = await github.organizations.listTeams(org).toList();
     log.info('Found teams using org $org:');
     for (Team team in teamsList) {
@@ -203,18 +205,6 @@ class GithubService {
     }
     return teamsList;
   }
-
-  // Future<bool> isMember2(String login, String teamName) async {
-  //   final List<Organization> organizations = await github.organizations.list(login).toList();
-  //   // list teams per org.
-  //   Team? team;
-  //   for (Organization org in organizations) {
-  //     final List<Team> teamsList = await github.organizations.listTeams(org.name!).toList();
-  //     team = teamsList.firstWhere((element) => element.name == teamName);
-  //   }
-
-  //   return (team != null);
-  // }
 
   /// Compare the filesets of the current pull request and the original pull
   /// request that is being reverted.
