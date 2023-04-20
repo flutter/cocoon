@@ -331,25 +331,6 @@ class FakeGithubService implements GithubService {
 
   TeamMembershipState? teamMembershipStateMock = TeamMembershipState('active');
 
-  @override
-  Future<TeamMembershipState> getTeamMembership(String team, String user, {String? org}) async {
-    return teamMembershipStateMock!;
-  }
-
-  List<Team> teamsListMock = [];
-
-  @override
-  Future<List<Team>> getTeams({String? org = 'flutter'}) async {
-    return teamsListMock;
-  }
-
-  bool isMemberMock = false;
-
-  @override
-  Future<bool> isMember(String team, String user, {String org = 'flutter'}) async {
-    return isMemberMock;
-  }
-
   String defaultBranch = 'main';
   bool throwOnDefaultBranch = false;
   Exception exception = Exception('Generic exception.');
@@ -368,5 +349,12 @@ class FakeGithubService implements GithubService {
   @override
   Future<Repository> getRepository(RepositorySlug slug) async {
     return repositoryMock;
+  }
+  
+  bool isTeamMemberMock = false;
+
+  @override
+  Future<bool> isTeamMember(String team, String user, String org) async {
+    return isTeamMemberMock;
   }
 }

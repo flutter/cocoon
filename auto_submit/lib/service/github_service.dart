@@ -173,33 +173,38 @@ class GithubService {
   }
 
   /// Determine if a user (via user login) is a member of the supplied team.
-  Future<bool> isMember(String team, String user, {String org = 'flutter'}) async {
-    log.info('checking if $user is a member of $team');
-    // await github.organizations.get
-    final TeamMembershipState teamMembershipState = await getTeamMembership(team, user);
+  // Future<bool> isMember(String team, String user, {String org = 'flutter'}) async {
+  //   log.info('checking if $user is a member of $team');
+  //   // await github.organizations.get
+  //   final TeamMembershipState teamMembershipState = await getTeamMembership(team, user);
+  //   return teamMembershipState.isActive;
+  // }
+
+  // /// Get the team membership for the supplied user.
+  // Future<TeamMembershipState> getTeamMembership(String team, String user, {String org = 'flutter'}) async {
+  //   log.info('Getting team membership for team $team, user $user, org $org');
+  //   final List<Team> teamList = await getTeams(org: org);
+  //   final Team teamFound = teamList.firstWhere(
+  //     (element) => (element.name! == team),
+  //     orElse: () => Team(),
+  //   );
+  //   if (teamFound.id == null) {
+  //     return TeamMembershipState(null);
+  //   }
+  //   // TODO once the github.dart package is release replace this legacy method.
+  //   return await github.organizations.getTeamMembership(teamFound.id!, user);
+  // }
+
+  // /// Get a list of teams in the supplied org.
+  // Future<List<Team>> getTeams({String org = 'flutter'}) async {
+  //   // TODO once the github.dart package is release replace this legacy method.
+  //   final List<Team> teamsList = await github.organizations.listTeams(org).toList();
+  //   return teamsList;
+  // }
+
+  Future<bool> isTeamMember(String team, String user, String org) async {
+    final TeamMembershipState teamMembershipState = await github.organizations.getTeamMembershipByName(org, team, user);
     return teamMembershipState.isActive;
-  }
-
-  /// Get the team membership for the supplied user.
-  Future<TeamMembershipState> getTeamMembership(String team, String user, {String org = 'flutter'}) async {
-    log.info('Getting team membership for team $team, user $user, org $org');
-    final List<Team> teamList = await getTeams(org: org);
-    final Team teamFound = teamList.firstWhere(
-      (element) => (element.name! == team),
-      orElse: () => Team(),
-    );
-    if (teamFound.id == null) {
-      return TeamMembershipState(null);
-    }
-    // TODO once the github.dart package is release replace this legacy method.
-    return await github.organizations.getTeamMembership(teamFound.id!, user);
-  }
-
-  /// Get a list of teams in the supplied org.
-  Future<List<Team>> getTeams({String org = 'flutter'}) async {
-    // TODO once the github.dart package is release replace this legacy method.
-    final List<Team> teamsList = await github.organizations.listTeams(org).toList();
-    return teamsList;
   }
 
   /// Get the definition of a single repository

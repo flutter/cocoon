@@ -5,7 +5,6 @@
 // import 'dart:typed_data';
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:auto_submit/configuration/repository_configuration_pointer.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
@@ -19,7 +18,8 @@ class RepositoryConfigurationManager {
   // This is the well named organization level repository and configuration file
   // we will read before looking to see if there is a local file with
   // overwrites.
-  static const String rootDir = '.github';
+  static const String orgRepository = '.github';
+  static const String dirName = 'autosubmit';
   static const String fileName = 'autosubmit.yml';
 
   final Cache cache;
@@ -62,34 +62,37 @@ class RepositoryConfigurationManager {
   ) async {
     // Read the org level configuraiton file first.
     log.info('Getting org level configuration.');
-    // This looks like org/.github, ex flutter/.github
-    // RepositorySlug orgSlug = RepositorySlug(slug.owner, rootDir);
-    // final String orgLevelConfig = await githubService.getFileContents(slug, path)
+    
+    // 1. We need to get the org level configuration
+    final RepositorySlug orgSlug = RepositorySlug(slug.owner, orgRepository);
+    //autosubmit/autosubmit.yml
+    final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
+    final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
+    
+    // TODO: ignore this for now
+    // 2. if it has the override configuration flag and it is true we need to
+    // read the local configuraiton file.
+    
+    // This comparision needs to be made since the config override is nullable.
+    if (repositoryConfiguration.allowConfigOverride == true) {
+      log.info('Override is set, collecting and merging local repository configuration.');
+    } else {
+      // TODO remove after testing.
+      log.info('Overrid is not allowed for this configuration, skipping local configuration.');
+    }
 
-
-
-
-
-
-
-
-
-    // Read the local config file for the pointer
-    log.info('Getting local file contents from $slug.');
-    final String localPointerFileContents = await githubService.getFileContents(
-      slug,
-      '$rootDir$fileSeparator$fileName',
-    );
-    log.info('local pointer file contents: $localPointerFileContents');
-    final RepositoryConfigurationPointer configPointer =
-        RepositoryConfigurationPointer.fromYaml(localPointerFileContents);
-
-    log.info('Getting config from github for: ${slug.fullName}');
-    final String fileContents = await githubService.getFileContents(
-      githubRepo,
-      configPointer.filePath,
-    );
-    log.info('.github file contents: $fileContents');
-    return fileContents.codeUnits;
+    // 3. Read the default branch of the repository slug that was passed in.
+    log.info('Collecting default branch.');
+    final String defaultBranch = await githubService.getDefaultBranch(slug);
+    log.info('Default branch was found to be $defaultBranch');
+    repositoryConfiguration.defaultBranch = defaultBranch;
+    return repositoryConfiguration.toString().codeUnits;
   }
+
+  // TODO: will need to add a merge configurations, need to determine how the
+  // override will happen.
+
+  // The override configuration will allow override of certain non array values.
+  // Array values will be additive in that any value supplied in an overridden 
+  // configuration will added to the main org config.
 }

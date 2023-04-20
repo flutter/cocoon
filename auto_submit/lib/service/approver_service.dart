@@ -75,7 +75,7 @@ class ApproverService {
 
     if (labelNames.contains(Config.kRevertLabel) &&
         (approvalAccounts.contains(author) ||
-            await githubService.isMember(repositoryConfiguration.approvalGroup!, author!))) {
+            await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner))) {
       log.info(
         'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
       );

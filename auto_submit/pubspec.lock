@@ -17,6 +17,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "58.0.0"
+    version: "58.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -24,6 +25,7 @@ packages:
       sha256: cc4242565347e98424ce9945c819c192ec0838cb9d1f6aa4a97cc96becbc5b27
       url: "https://pub.dev"
     source: hosted
+    version: "5.10.0"
     version: "5.10.0"
   appengine:
     dependency: "direct main"
@@ -40,6 +42,7 @@ packages:
       sha256: "0c8368c9b3f0abbc193b9d6133649a614204b528982bebc7026372d61677ce3a"
       url: "https://pub.dev"
     source: hosted
+    version: "3.3.7"
     version: "3.3.7"
   args:
     dependency: transitive
@@ -93,10 +96,10 @@ packages:
     dependency: transitive
     description:
       name: build_daemon
-      sha256: "757153e5d9cd88253cb13f28c2fb55a537dc31fefd98137549895b5beb7c6169"
+      sha256: "5f02d73eb2ba16483e693f80bee4f088563a820e47d1027d4cdfe62b5bb43e65"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "4.0.0"
   build_resolvers:
     dependency: transitive
     description:
@@ -109,10 +112,10 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: b0a8a7b8a76c493e85f1b84bffa0588859a06197863dba8c9036b15581fd9727
+      sha256: "7b25ba738bc74c94187cebeb9cc29d38a32e8279ce950eabd821d3b454a5f03d"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "2.4.1"
   build_runner_core:
     dependency: transitive
     description:
@@ -248,6 +251,7 @@ packages:
       sha256: "5c68254fc292aa9ba79fd5be0f53a40dabeeaf5b7551801f15bbe4ab6e0d2264"
       url: "https://pub.dev"
     source: hosted
+    version: "9.12.0"
     version: "9.12.0"
   glob:
     dependency: transitive
@@ -537,6 +541,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.3"
+    version: "3.7.3"
   pool:
     dependency: transitive
     description:
@@ -672,6 +677,7 @@ packages:
       sha256: "53e943d4206a5e30df338fd4c6e7a077e02254531b138a15aec3bd143c1a8b3c"
       url: "https://pub.dev"
     source: hosted
+    version: "1.10.0"
     version: "1.10.0"
   stack_trace:
     dependency: transitive

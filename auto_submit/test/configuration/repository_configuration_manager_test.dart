@@ -26,10 +26,6 @@ void main() {
   });
 
   test('Verify cache storage', () async {
-    const String filePointerConfig = '''
-      config_path: 'autosubmit/flutter/autosubmit_main.yml'
-    ''';
-
     const String sampleConfig = '''
       default_branch: main
       issues_repository:
@@ -43,12 +39,11 @@ void main() {
       approval_group: flutter-hackers
       run_ci: true
       support_no_review_revert: true
-      required_checkruns:
+      required_checkruns_on_revert:
         - “ci.yaml validation”
         - “Google-testing”
     ''';
 
-    githubService.fileContentsMockList.add(filePointerConfig);
     githubService.fileContentsMockList.add(sampleConfig);
     final RepositoryConfiguration repositoryConfiguration =
         await repositoryConfigurationManager.readRepositoryConfiguration(
@@ -59,6 +54,7 @@ void main() {
       ),
     );
 
+    expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/flutter');
     expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);

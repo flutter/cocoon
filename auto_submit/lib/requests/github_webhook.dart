@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';

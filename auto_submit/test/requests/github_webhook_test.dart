@@ -12,7 +12,6 @@ import 'package:github/github.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-import '../src/configuration/fake_repository_configuration_manager.dart';
 import './github_webhook_test_data.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_config.dart';

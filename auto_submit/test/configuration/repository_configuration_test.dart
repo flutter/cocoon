@@ -71,7 +71,7 @@ void main() {
       approval_group: flutter-hackers
       run_ci: true
       support_no_review_revert: true
-      required_checkruns:
+      required_checkruns_on_revert:
         - “ci.yaml validation”
         - “Google-testing”
     ''';
@@ -80,7 +80,8 @@ void main() {
     // We will get the default branch later as it does not need to be added to
     // the initial configuration.
     repositoryConfiguration.defaultBranch = 'main';
-
+    
+    expect(repositoryConfiguration.allowConfigOverride, false);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
     expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);

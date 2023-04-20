@@ -37,6 +37,7 @@ class Approval extends Validation {
       return ValidationResult(approved, Action.REMOVE_LABEL, '');
     } else {
       final Approver approver = Approver(
+        slug,
         repositoryConfiguration,
         await config.createGithubService(slug),
         author,
@@ -73,12 +74,14 @@ class Approval extends Validation {
 
 class Approver {
   Approver(
+    this.slug,
     this.repositoryConfiguration,
     this.githubService,
     this.author,
     this.reviews,
   );
 
+  final github.RepositorySlug slug;
   final RepositoryConfiguration repositoryConfiguration;
   final GithubService githubService;
   final String? author;
@@ -115,7 +118,7 @@ class Approver {
     // final bool authorIsMember = allowedReviewers.contains(authorAssociation);
 
     // team might be more than one in the future.
-    final bool authorIsMember = await githubService.isMember(repositoryConfiguration.approvalGroup!, author!);
+    final bool authorIsMember = await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner);
 
     // Author counts as 1 review so we need only 1 more.
     if (authorIsMember) {
@@ -132,9 +135,10 @@ class Approver {
       }
 
       // Ignore reviews from non-members/owners.
-      if (!await githubService.isMember(
+      if (!await githubService.isTeamMember(
         repositoryConfiguration.approvalGroup!,
         review.author!.login!,
+        slug.owner,
       )) {
         continue;
       }

@@ -74,7 +74,7 @@ class RepositoryConfiguration {
   static const String APPROVAL_GROUP_KEY = 'approval_group';
   static const String RUN_CI_KEY = 'run_ci';
   static const String SUPPORT_NO_REVIEW_REVERT_KEY = 'support_no_review_revert';
-  static const String REQUIRED_CHECK_RUNS_KEY = 'required_checkruns';
+  static const String REQUIRED_CHECK_RUNS_KEY = 'required_checkruns_on_revert';
 
   RepositoryConfiguration({
     this.allowConfigOverride,
@@ -111,6 +111,7 @@ class RepositoryConfiguration {
       stringBuffer.writeln('  - $account');
     }
     stringBuffer.writeln('$APPROVING_REVIEWS_KEY: $approvingReviews');
+    stringBuffer.writeln('$APPROVAL_GROUP_KEY: $approvalGroup');
     stringBuffer.writeln('$RUN_CI_KEY: $runCi');
     stringBuffer.writeln('$SUPPORT_NO_REVIEW_REVERT_KEY: $supportNoReviewReverts');
     stringBuffer.writeln('$REQUIRED_CHECK_RUNS_KEY:');

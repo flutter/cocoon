@@ -18,7 +18,4 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
   Future<RepositoryConfiguration> readRepositoryConfiguration(GithubService githubService, RepositorySlug slug) async {
     return repositoryConfigurationMock!;
   }
-
-  @override
-  RepositorySlug get githubRepo => RepositorySlug('flutter', '.github');
 }
