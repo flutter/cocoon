@@ -54,8 +54,3 @@ cron:
   url: /check-pull-request
   target: auto-submit
   schedule: every 1 minutes
-
-- description: check revert review issues for closed issues to update in our database
-  url: '/api/update-revert-issues'
-  target: auto-submit
-  schedule: every 24 hours
