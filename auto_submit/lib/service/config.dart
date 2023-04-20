@@ -33,7 +33,7 @@ class Config {
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
-  static const String flutterGcpProjectId = 'flutter-dashboard-dev';
+  static const String flutterGcpProjectId = 'flutter-dashboard';
 
   // List of environment variable keys related to the Github app authentication.
   static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
@@ -78,8 +78,8 @@ class Config {
   int get kPubsubPullNumber => 5;
 
   /// PubSub configs
-  static const String pubsubTopicsPrefix = 'projects/flutter-dashboard-dev/topics';
-  static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard-dev/subscriptions';
+  static const String pubsubTopicsPrefix = 'projects/flutter-dashboard/topics';
+  static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard/subscriptions';
   static const String pubsubPullRequestTopic = 'auto-submit-queue';
   static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
 

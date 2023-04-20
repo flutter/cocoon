@@ -84,6 +84,7 @@ class RepositoryConfigurationManager {
       githubRepo,
       configPointer.filePath,
     );
+    log.info('.github file contents: $fileContents');
     return fileContents.codeUnits;
   }
 }

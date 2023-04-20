@@ -60,7 +60,7 @@ class GithubWebhook extends RequestHandler {
     final RepositorySlug slug = RepositorySlug.full(body['repository']['full_name']);
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
     // prove that we have the configuration in the cache.
-    log.info(repositoryConfiguration.toString());
+    log.info('Repository configuration: ${repositoryConfiguration.toString()}');
 
     final PullRequest pullRequest = PullRequest.fromJson(body['pull_request'] as Map<String, dynamic>);
     hasAutosubmit = pullRequest.labels!.any((label) => label.name == Config.kAutosubmitLabel);
