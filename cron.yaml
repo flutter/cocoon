@@ -54,4 +54,3 @@ cron:
   url: /check-pull-request
   target: auto-submit
   schedule: every 1 minutes
-  
