@@ -65,13 +65,6 @@ class RepositoryConfigurationManager {
     //autosubmit/autosubmit.yml
     final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
-    
-    // If the issues repo is not provided it is assumed that issues will
-    // be created in the repository the pull request came from. This applies
-    // only to reverted issues that are created for a follow up review.
-    if (repositoryConfiguration.issuesRepository == RepositorySlug('owner', 'name')) {
-      repositoryConfiguration.issuesRepository = slug;
-    }
 
     // TODO: ignore this for now
     // 2. if it has the override configuration flag and it is true we need to

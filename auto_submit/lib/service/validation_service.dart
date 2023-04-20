@@ -127,7 +127,6 @@ class ValidationService {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
     // filter out validations here
-    // final Set<Validation> validations = _determineValidations(repositoryConfiguration);
     final ValidationFilter validationFilter = ValidationFilter(
       config,
       ProcessMethod.processAutosubmit,

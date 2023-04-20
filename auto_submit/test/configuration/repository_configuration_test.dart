@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/configuration/repository_configuration.dart';
-import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -28,7 +27,6 @@ void main() {
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
     expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
@@ -53,7 +51,6 @@ void main() {
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
     expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
@@ -83,7 +80,6 @@ void main() {
     
     expect(repositoryConfiguration.allowConfigOverride, false);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
     expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
@@ -103,7 +99,6 @@ void main() {
     repositoryConfiguration.defaultBranch = 'master';
 
     expect(repositoryConfiguration.defaultBranch, 'master');
-    expect(repositoryConfiguration.issuesRepository, RepositorySlug('flutter', 'flutter'));
     expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);

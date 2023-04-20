@@ -31,9 +31,6 @@ void main() {
   test('Verify cache storage', () async {
     const String sampleConfig = '''
       default_branch: main
-      issues_repository:
-        owner: flutter
-        repo: flutter
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
@@ -55,7 +52,6 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/flutter');
     expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
     expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
@@ -90,7 +86,6 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/cocoon');
     expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
     expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
@@ -125,7 +120,6 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/cocoon');
     expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
     expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);

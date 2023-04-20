@@ -52,8 +52,6 @@ class ApproverService {
   //TODO fix this for reverts with the new repository configuration.
   /// Auto approves a pull request when the revert label is present.
   Future<void> revertApproval(QueryResult queryResult, github.PullRequest pullRequest) async {
-    // final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
-
     final String? author = pullRequest.user!.login;
     // Use the QueryResult for this field
     final String? authorAssociation = queryResult.repository!.pullRequest!.authorAssociation;

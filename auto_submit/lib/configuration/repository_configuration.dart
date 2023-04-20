@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/exception/configuration_exception.dart';
-import 'package:github/github.dart';
 import 'package:yaml/yaml.dart';
 
 /// RepositoryConfigurationBuilder is used to build the RepositoryConfiguration
@@ -12,7 +11,6 @@ import 'package:yaml/yaml.dart';
 class RepositoryConfigurationBuilder {
   bool? _allowConfigOverride = false;
   String? _defaultBranch = '';
-  RepositorySlug? _issuesRepository = RepositorySlug('owner', 'name');
   List<String>? _autoApprovalAccounts = [];
   int? _approvingReviews = 2;
   String? _approvalGroup = '';
@@ -23,8 +21,6 @@ class RepositoryConfigurationBuilder {
   set allowConfigOverride(bool value) => _allowConfigOverride = value;
 
   set defaultBranch(String value) => _defaultBranch = value;
-
-  set issuesRepository(RepositorySlug value) => _issuesRepository = value;
 
   set autoApprovalAccounts(List<String>? value) {
     if (value != null && value.isNotEmpty) {
@@ -66,9 +62,6 @@ class RepositoryConfiguration {
   // Autosubmit configuration keys
   static const String ALLOW_CONFIG_OVERRIDE_KEY = 'allow_config_override';
   static const String DEFAULT_BRANCH_KEY = 'default_branch';
-  static const String ISSUES_REPOSITORY_KEY = 'issues_repository';
-  static const String REPO_OWNER_KEY = 'owner';
-  static const String REPO_NAME_KEY = 'repo';
   static const String AUTO_APPROVAL_ACCOUNTS_KEY = 'auto_approval_accounts';
   static const String APPROVING_REVIEWS_KEY = 'approving_reviews';
   static const String APPROVAL_GROUP_KEY = 'approval_group';
@@ -79,7 +72,6 @@ class RepositoryConfiguration {
   RepositoryConfiguration({
     this.allowConfigOverride,
     this.defaultBranch,
-    this.issuesRepository,
     this.autoApprovalAccounts,
     this.approvingReviews,
     this.approvalGroup,
@@ -90,7 +82,6 @@ class RepositoryConfiguration {
 
   bool? allowConfigOverride = false;
   String? defaultBranch = '';
-  RepositorySlug? issuesRepository = RepositorySlug('owner', 'name');
   List<String>? autoApprovalAccounts = [];
   int? approvingReviews = 2;
   String? approvalGroup = '';
@@ -103,9 +94,6 @@ class RepositoryConfiguration {
     final StringBuffer stringBuffer = StringBuffer();
     stringBuffer.writeln('$ALLOW_CONFIG_OVERRIDE_KEY: $allowConfigOverride');
     stringBuffer.writeln('$DEFAULT_BRANCH_KEY: $defaultBranch');
-    stringBuffer.writeln('$ISSUES_REPOSITORY_KEY:');
-    stringBuffer.writeln('  $REPO_OWNER_KEY: ${issuesRepository!.owner}');
-    stringBuffer.writeln('  $REPO_NAME_KEY: ${issuesRepository!.name}');
     stringBuffer.writeln('$AUTO_APPROVAL_ACCOUNTS_KEY:');
     for (String account in autoApprovalAccounts!) {
       stringBuffer.writeln('  - $account');
@@ -133,16 +121,6 @@ class RepositoryConfiguration {
     // Default branch is required.
     if (yamlDoc[DEFAULT_BRANCH_KEY] != null) {
       builder.defaultBranch = yamlDoc[DEFAULT_BRANCH_KEY];
-    }
-
-    // Issues RepositorySlug is required.
-    if (yamlDoc[ISSUES_REPOSITORY_KEY] != null &&
-        yamlDoc[ISSUES_REPOSITORY_KEY][REPO_OWNER_KEY] != null &&
-        yamlDoc[ISSUES_REPOSITORY_KEY][REPO_NAME_KEY] != null) {
-      builder.issuesRepository = RepositorySlug(
-        yamlDoc[ISSUES_REPOSITORY_KEY][REPO_OWNER_KEY],
-        yamlDoc[ISSUES_REPOSITORY_KEY][REPO_NAME_KEY],
-      );
     }
 
     final List<String> autoApprovalAccounts = [];
@@ -178,7 +156,6 @@ class RepositoryConfiguration {
     return RepositoryConfiguration(
       allowConfigOverride: builder._allowConfigOverride,
       defaultBranch: builder._defaultBranch,
-      issuesRepository: builder._issuesRepository,
       autoApprovalAccounts: builder._autoApprovalAccounts,
       approvingReviews: builder._approvingReviews,
       approvalGroup: builder._approvalGroup,
