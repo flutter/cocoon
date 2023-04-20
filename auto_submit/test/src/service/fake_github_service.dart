@@ -344,7 +344,7 @@ class FakeGithubService implements GithubService {
   }
 
   bool isMemberMock = false;
-  
+
   @override
   Future<bool> isMember(String team, String user, {String org = 'flutter'}) {
     // TODO: implement isMember

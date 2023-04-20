@@ -130,13 +130,20 @@ class ValidationService {
 
     // filter out validations here
     // final Set<Validation> validations = _determineValidations(repositoryConfiguration);
-    final ValidationFilter validationFilter = ValidationFilter(config, ProcessMethod.processAutosubmit, repositoryConfiguration,);
+    final ValidationFilter validationFilter = ValidationFilter(
+      config,
+      ProcessMethod.processAutosubmit,
+      repositoryConfiguration,
+    );
     final Set<Validation> validations = validationFilter.getValidations();
 
     /// Runs all the validation defined in the service.
     /// If the runCi flag is false then we need a way to not run the ciSuccessful validation.
     for (Validation validation in validations) {
-      final ValidationResult validationResult = await validation.validate(result, messagePullRequest,);
+      final ValidationResult validationResult = await validation.validate(
+        result,
+        messagePullRequest,
+      );
       results.add(validationResult);
     }
 
@@ -221,8 +228,25 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    // get validations to be run here. 
-    final ValidationResult revertValidationResult = await revertValidation!.validate(result, messagePullRequest,);
+    // TODO rework this part as the validations should just be iterated through
+    // like when a pull request is processed.
+
+    // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
+    // // filter out validations here
+    // // final Set<Validation> validations = _determineValidations(repositoryConfiguration);
+    // final ValidationFilter validationFilter = ValidationFilter(
+    //   config,
+    //   ProcessMethod.processAutosubmit,
+    //   repositoryConfiguration,
+    // );
+    // final Set<Validation> validations = validationFilter.getValidations();
+
+    // get validations to be run here.
+    final ValidationResult revertValidationResult = await revertValidation!.validate(
+      result,
+      messagePullRequest,
+    );
 
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int prNumber = messagePullRequest.number!;

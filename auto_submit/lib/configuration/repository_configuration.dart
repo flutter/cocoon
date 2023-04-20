@@ -57,7 +57,7 @@ class RepositoryConfigurationBuilder {
 }
 
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
-/// will use when submiting and validating pull requests for a particular 
+/// will use when submiting and validating pull requests for a particular
 /// repository.
 class RepositoryConfiguration {
   // Autosubmit configuration keys

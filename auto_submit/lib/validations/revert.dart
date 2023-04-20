@@ -5,6 +5,7 @@
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
+import 'package:auto_submit/validations/required_check_runs.dart';
 // import 'package:auto_submit/validations/required_check_runs.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
@@ -74,19 +75,19 @@ class Revert extends Validation {
     githubService = await config.createGithubService(repositorySlug);
 
     ///TODO this should be moved out to the main validations class as a separate check.
-    // final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
-    // final ValidationResult validationResult = await requiredCheckRuns.validate(
-    //   result,
-    //   updatedPullRequest,
-    // );
+    final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
+    final ValidationResult validationResult = await requiredCheckRuns.validate(
+      result,
+      updatedPullRequest,
+    );
 
-    // if (!validationResult.result) {
-    //   return ValidationResult(
-    //     false,
-    //     Action.IGNORE_TEMPORARILY,
-    //     'Some of the required checks did not complete in time.',
-    //   );
-    // }
+    if (!validationResult.result) {
+      return ValidationResult(
+        false,
+        Action.IGNORE_TEMPORARILY,
+        'Some of the required checks did not complete in time.',
+      );
+    }
 
     final int pullRequestId = _getPullRequestNumberFromLink(revertLink);
     final github.PullRequest requestToRevert = await githubService.getPullRequest(repositorySlug, pullRequestId);

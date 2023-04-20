@@ -194,7 +194,7 @@ class GithubService {
     // TODO once the github.dart package is release replace this legacy method.
     return await github.organizations.getTeamMembership(teamFound.id!, user);
   }
- 
+
   /// Get a list of teams in the supplied org.
   Future<List<Team>> getTeams({String org = 'flutter'}) async {
     // TODO once the github.dart package is release replace this legacy method.

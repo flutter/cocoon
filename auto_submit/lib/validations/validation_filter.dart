@@ -11,8 +11,8 @@ import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
 
 abstract class ValidationFilter {
-
-  factory ValidationFilter(Config config, ProcessMethod processMethod, RepositoryConfiguration repositoryConfiguration) {
+  factory ValidationFilter(
+      Config config, ProcessMethod processMethod, RepositoryConfiguration repositoryConfiguration) {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);

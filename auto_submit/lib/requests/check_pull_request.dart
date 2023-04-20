@@ -55,7 +55,8 @@ class CheckPullRequest extends AuthenticatedRequestHandler {
 
       // This pulls the configuration if we did not already have it and stores
       // it in the config. Approver service will need this
-      final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.head!.repo!.fullName));
+      final RepositoryConfiguration repositoryConfiguration =
+          await config.getRepositoryConfiguration(RepositorySlug.full(pullRequest.head!.repo!.fullName));
       log.info('RepositoryConfiguration = ${repositoryConfiguration.toString()}');
 
       log.info('Processing message ackId: ${message.ackId}');
