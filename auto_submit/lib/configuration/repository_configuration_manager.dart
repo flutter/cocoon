@@ -66,9 +66,12 @@ class RepositoryConfigurationManager {
     final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
     
-    // TODO: if the issues repo is not provide it is assumed that issues will
-    // be created in the repository the pull request came from.
-    repositoryConfiguration.issuesRepository ??= slug;
+    // If the issues repo is not provided it is assumed that issues will
+    // be created in the repository the pull request came from. This applies
+    // only to reverted issues that are created for a follow up review.
+    if (repositoryConfiguration.issuesRepository == RepositorySlug('owner', 'name')) {
+      repositoryConfiguration.issuesRepository = slug;
+    }
 
     // TODO: ignore this for now
     // 2. if it has the override configuration flag and it is true we need to
@@ -87,9 +90,11 @@ class RepositoryConfigurationManager {
 
     // 3. Read the default branch of the repository slug that was passed in.
     log.info('Collecting default branch.');
-    final String defaultBranch = await githubService.getDefaultBranch(slug);
-    log.info('Default branch was found to be $defaultBranch');
-    repositoryConfiguration.defaultBranch = defaultBranch;
+    if (repositoryConfiguration.defaultBranch!.isEmpty) { 
+      repositoryConfiguration.defaultBranch = await githubService.getDefaultBranch(slug);
+    }
+    
+    log.info('Default branch was found to be ${repositoryConfiguration.defaultBranch}');
     return repositoryConfiguration.toString().codeUnits;
   }
 

@@ -50,7 +50,7 @@ void main() {
     githubService.fileContentsMockList.add(sampleConfig);
     final RepositoryConfiguration repositoryConfiguration =
         await repositoryConfigurationManager.readRepositoryConfiguration(
-      RepositorySlug('flutter', 'flutter'),
+      RepositorySlug('flutter', 'cocoon'),
     );
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
@@ -83,6 +83,41 @@ void main() {
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
+    final RepositoryConfiguration repositoryConfiguration =
+        await repositoryConfigurationManager.readRepositoryConfiguration(
+      RepositorySlug('flutter', 'cocoon'),
+    );
+
+    expect(repositoryConfiguration.allowConfigOverride, isFalse);
+    expect(repositoryConfiguration.defaultBranch, 'main');
+    expect(repositoryConfiguration.issuesRepository!.fullName, 'flutter/cocoon');
+    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
+    expect(repositoryConfiguration.approvingReviews, 2);
+    expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
+    expect(repositoryConfiguration.runCi, isTrue);
+    expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
+  });
+
+  test('Default branch collected if omitted', () async {
+    const String sampleConfig = '''
+      auto_approval_accounts:
+        - dependabot[bot]
+        - dependabot
+        - DartDevtoolWorkflowBot
+      approving_reviews: 2
+      approval_group: flutter-hackers
+      run_ci: true
+      support_no_review_revert: true
+      required_checkruns_on_revert:
+        - “ci.yaml validation”
+        - “Google-testing”
+    ''';
+
+    githubService.fileContentsMockList.add(sampleConfig);
+    githubService.defaultBranch = 'main';
     final RepositoryConfiguration repositoryConfiguration =
         await repositoryConfigurationManager.readRepositoryConfiguration(
       RepositorySlug('flutter', 'cocoon'),

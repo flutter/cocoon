@@ -161,7 +161,7 @@ class Config {
     // other information included from repositories that are not associated with
     // flutter.
     late String installationId;
-    log.info('lookinf for install data for slug = ${slug.fullName}');
+    log.info('looking for install data for slug = ${slug.fullName}');
     for (Map<String, dynamic> installData in list) {
       if (installData['account']!['login']!.toString() == slug.owner) {
         installationId = installData['id']!.toString();

@@ -11,11 +11,11 @@ import 'package:yaml/yaml.dart';
 /// the configuration before sending it on for use.
 class RepositoryConfigurationBuilder {
   bool? _allowConfigOverride = false;
-  String? _defaultBranch;
-  RepositorySlug? _issuesRepository;
+  String? _defaultBranch = '';
+  RepositorySlug? _issuesRepository = RepositorySlug('owner', 'name');
   List<String>? _autoApprovalAccounts = [];
   int? _approvingReviews = 2;
-  String? _approvalGroup;
+  String? _approvalGroup = '';
   bool? _runCi = true;
   bool? _supportNoReviewReverts = true;
   List<String>? _requiredCheckRunsOnRevert = [];
@@ -89,7 +89,7 @@ class RepositoryConfiguration {
   });
 
   bool? allowConfigOverride = false;
-  String? defaultBranch = 'main';
+  String? defaultBranch = '';
   RepositorySlug? issuesRepository = RepositorySlug('owner', 'name');
   List<String>? autoApprovalAccounts = [];
   int? approvingReviews = 2;

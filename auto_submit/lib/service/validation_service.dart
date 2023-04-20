@@ -263,7 +263,7 @@ class ValidationService {
 
       if (processed.result) {
         log.info('Revert request ${slug.fullName}#$prNumber was merged successfully.');
-        log.info('Attempting to insert a revert pull request record into the database for pr# $prNumber');
+        log.info('Insert a revert pull request record into the database for pr# $prNumber');
         await insertPullRequestRecord(
           config: config,
           pullRequest: messagePullRequest,
