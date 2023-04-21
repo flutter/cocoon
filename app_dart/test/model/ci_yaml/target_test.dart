@@ -382,8 +382,10 @@ void main() {
       });
 
       test('packages targets use guaranteed policy', () {
-        expect(generateTarget(1, platform: 'Mac', slug: github.RepositorySlug('flutter', 'packages')).schedulerPolicy,
-            isA<GuaranteedPolicy>());
+        expect(
+          generateTarget(1, platform: 'Mac', slug: github.RepositorySlug('flutter', 'packages')).schedulerPolicy,
+          isA<GuaranteedPolicy>(),
+        );
       });
     });
   });

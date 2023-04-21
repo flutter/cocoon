@@ -5,7 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
+import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:gcloud/db.dart';
@@ -444,7 +444,7 @@ class Scheduler {
       log.warning('Running all targets');
       return presubmitTargets.toList();
     }
-    return await getTargetsToRun(presubmitTargets, files);
+    return getTargetsToRun(presubmitTargets, files);
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is

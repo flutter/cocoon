@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:googleapis/pubsub/v1.dart';
@@ -26,6 +25,7 @@ import '../service/logging.dart';
 import 'buildbucket.dart';
 import 'cache_service.dart';
 import 'config.dart';
+import 'exceptions.dart';
 import 'gerrit_service.dart';
 
 const Set<String> taskFailStatusSet = <String>{Task.statusInfraFailure, Task.statusFailed};
@@ -86,7 +86,7 @@ class LuciBuildService {
   /// Returns an Iterable of try Buildbucket [Build]s for a given [PullRequest].
   Future<Iterable<Build>> getTryBuildsByPullRequest(
     github.PullRequest pullRequest,
-  ) {
+  ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final Map<String, List<String>> tags = <String, List<String>>{
       'buildset': <String>['pr/git/${pullRequest.number}'],
@@ -280,7 +280,7 @@ class LuciBuildService {
     // V1 bucket name  is "luci.flutter.prod" while the api
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build!.bucket!.split('.').last;
-    return await buildBucketClient.scheduleBuild(
+    return buildBucketClient.scheduleBuild(
       ScheduleBuildRequest(
         builderId: BuilderId(
           project: buildPushMessage.build!.project,

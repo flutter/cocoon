@@ -21,6 +21,7 @@ PUSHD %1
 CALL flutter packages get
 CALL flutter analyze
 CALL flutter format --line-length=120 --set-exit-if-changed lib/ test/
+CALL flutter analyze --fatal-infos
 CALL flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 POPD

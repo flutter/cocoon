@@ -55,7 +55,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
     if (swarmingToken != null) {
       log.fine('Authenticating as swarming task');
-      return await authenticateAccessToken(swarmingToken, clientContext: clientContext);
+      return authenticateAccessToken(swarmingToken, clientContext: clientContext);
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI');

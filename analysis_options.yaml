@@ -45,3 +45,4 @@ linter:
     prefer_final_locals: true
     require_trailing_commas: true
     unawaited_futures: true
+    unnecessary_await_in_return: true

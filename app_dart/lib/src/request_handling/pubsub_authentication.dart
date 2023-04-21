@@ -50,7 +50,7 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
     final ClientContext clientContext = clientContextProvider();
 
     log.fine('Authenticating as pubsub message');
-    return await authenticateIdToken(idToken, clientContext: clientContext);
+    return authenticateIdToken(idToken, clientContext: clientContext);
   }
 
   /// Authenticate [idToken] against Google OAuth 2 API.

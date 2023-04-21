@@ -110,7 +110,7 @@ class GithubChecksUtil {
     return r.retry(
       () async {
         final github.GitHub gitHubClient = await config.createGitHubClient(slug: slug);
-        return await gitHubClient.checks.checkRuns.getCheckRun(
+        return gitHubClient.checks.checkRuns.getCheckRun(
           slug,
           checkRunId: id!,
         );
