@@ -35,8 +35,13 @@ fi
 mkdir -p build
 pwd
 ls tool
-tool/bin/dart pub get
-tool/bin/dart compile exe bin/main.dart -o build/device_doctor
+if [[ $OS == "Darwin" ]]; then
+  tool/dart-sdk/bin/dart pub get
+  tool/dart-sdk/bin/dart compile exe bin/main.dart -o build/device_doctor
+else
+  tool/bin/dart pub get
+  tool/bin/dart compile exe bin/main.dart -o build/device_doctor
+fi
 
 cp -f LICENSE build/
 
