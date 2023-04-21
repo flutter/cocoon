@@ -86,7 +86,7 @@ class LuciBuildService {
   /// Returns an Iterable of try Buildbucket [Build]s for a given [PullRequest].
   Future<Iterable<Build>> getTryBuildsByPullRequest(
     github.PullRequest pullRequest,
-  ) {
+  ) async {
     final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
     final Map<String, List<String>> tags = <String, List<String>>{
       'buildset': <String>['pr/git/${pullRequest.number}'],
@@ -135,6 +135,12 @@ class LuciBuildService {
         ],
       ),
     );
+
+    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
+    for (Response response in batch.responses!) {
+      log.info('Found a response: ${response.toString()}');
+    }
+
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
@@ -226,7 +232,7 @@ class LuciBuildService {
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
-      log.info('No in-progress or scheduled builds to cancel.');
+      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
       return;
     }
 
