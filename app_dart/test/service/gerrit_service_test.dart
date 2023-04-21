@@ -75,12 +75,12 @@ void main() {
       final GerritCommit commit = commits.single;
       expect(commit.author?.email, 'dash@flutter.dev');
       expect(commit.author?.name, 'Dash');
-      expect(commit.author?.time, isNotNull);
+      expect(commit.author?.date, isNotNull);
       expect(commit.committer?.email, 'flutter-scoped@luci-project-accounts.iam.gserviceaccount.com');
       expect(commit.committer?.name, 'CQ Bot Account');
-      expect(commit.committer?.time, isNotNull);
-      final DateTime time = commit.author!.time!;
-      final DateTime expectedTime = DateTime.utc(2022, 7, 12, 17, 21, 25);
+      expect(commit.committer?.date, isNotNull);
+      final DateTime time = commit.author!.date!;
+      final DateTime expectedTime = DateTime(2023, 4, 20, 18, 00, 14);
       expect(time, expectedTime);
     });
   });
@@ -96,15 +96,15 @@ void main() {
       expect(commit, isNotNull);
       expect(commit!.author?.email, 'dash@flutter.dev');
       expect(commit.author?.name, 'Dash');
-      expect(commit.author?.time, isNotNull);
-      final DateTime time = commit.author!.time!;
-      final DateTime expectedTime = DateTime.utc(2022, 7, 12, 17, 21, 25);
+      expect(commit.author?.date, isNotNull);
+      final DateTime time = commit.author!.date!;
+      final DateTime expectedTime = DateTime(2023, 4, 20, 18, 0, 14);
       expect(time, expectedTime);
     });
 
     test('Uses percent-encoding for project name', () async {
       mockHttpClient = MockClient((request) async {
-        expect(request.url.path, startsWith("/projects/mirrors%252Fflutter/"));
+        expect(request.url.path, startsWith("/projects/mirrors%2Fflutter"));
         return http.Response(getCommitJson, HttpStatus.ok);
       });
       gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
@@ -119,7 +119,7 @@ void main() {
   group('findMirroredCommit', () {
     test('Uses matching slug for GoB mirror', () async {
       mockHttpClient = MockClient((request) async {
-        expect(request.url.path, startsWith("/projects/mirrors%252Fpackages/"));
+        expect(request.url.path, startsWith("/projects/mirrors%2Fpackages"));
         return http.Response(getCommitJson, HttpStatus.ok);
       });
       gerritService = GerritService(config: FakeConfig(), httpClient: mockHttpClient);
@@ -212,12 +212,12 @@ const String commitsListJson = ''')]}'
       "author": {
         "name": "Dash",
         "email": "dash@flutter.dev",
-        "time": "Tue Jul 12 17:21:25 2022 +0000"
+        "date": "2023-04-20 18:00:14.000000000"
       },
       "committer": {
         "name": "CQ Bot Account",
         "email": "flutter-scoped@luci-project-accounts.iam.gserviceaccount.com",
-        "time": "Tue Jul 12 17:21:25 2022 +0000"
+        "date": "2023-04-20 18:00:14.000000000"
       },
       "message": "My first recipe change\\n\\ntested through `led get-builder"
     }
@@ -244,12 +244,12 @@ const String getCommitJson = ''')]}'
   "author": {
     "name": "Dash",
     "email": "dash@flutter.dev",
-    "time": "Tue Jul 12 17:21:25 2022 +0000"
+    "date": "2023-04-20 18:00:14.000000000"
   },
   "committer": {
     "name": "CQ Bot Account",
     "email": "flutter-scoped@luci-project-accounts.iam.gserviceaccount.com",
-    "time": "Tue Jul 12 17:21:25 2022 +0000"
+    "date": "2023-04-20 18:00:14.000000000"
   },
   "subject": "Use an EventBus to manage star icons",
   "message": "Use an EventBus to manage star icons\\n\\nImage widgets that need to ..."
