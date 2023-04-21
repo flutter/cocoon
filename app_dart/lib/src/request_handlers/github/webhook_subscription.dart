@@ -138,7 +138,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             log.fine('Merged commit was found on GoB mirror. Scheduling postsubmit tasks...');
             return await scheduler.addPullRequest(pr);
           }
-          throw InternalServerError('${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...');
+          throw InternalServerError(
+              '${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...');
         }
         break;
       case 'edited':
