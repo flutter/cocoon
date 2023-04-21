@@ -267,7 +267,15 @@ class FakeConfig implements Config {
   Future<List<String>> get releaseAccounts async => <String>['dart-flutter-releaser'];
 
   @override
-  Set<gh.RepositorySlug> get supportedRepos => supportedReposValue ?? <gh.RepositorySlug>{Config.flutterSlug};
+  Set<gh.RepositorySlug> get supportedRepos =>
+      supportedReposValue ??
+      <gh.RepositorySlug>{
+        Config.flutterSlug,
+        Config.engineSlug,
+        Config.cocoonSlug,
+        Config.packagesSlug,
+        Config.pluginsSlug,
+      };
 
   @override
   Set<gh.RepositorySlug> get postsubmitSupportedRepos =>

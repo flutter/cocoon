@@ -14,17 +14,20 @@ import 'package:http/retry.dart';
 import 'package:meta/meta.dart';
 
 import '../model/gerrit/commit.dart';
+import 'config.dart';
 import 'logging.dart';
 
 /// Communicates with gerrit APIs https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html
 /// to get information about projects hosted in Git on Borg.
 class GerritService {
   GerritService({
+    required this.config,
     http.Client? httpClient,
     @visibleForTesting this.authClientProvider = clientViaApplicationDefaultCredentials,
     @visibleForTesting this.retryDelay,
   }) : httpClient = httpClient ?? http.Client();
 
+  final Config config;
   final http.Client httpClient;
 
   final Duration? retryDelay;
@@ -47,7 +50,7 @@ class GerritService {
       if (filterRegex != null && filterRegex.isNotEmpty) 'r': filterRegex,
     };
     final Uri url = Uri.https(repo, 'projects/$project/branches', queryParameters);
-    final List<dynamic> response = await _get(url) as List<dynamic>;
+    final List<dynamic> response = await _getJson(url) as List<dynamic>;
 
     final List<String> branches = <String>[];
 
@@ -65,10 +68,55 @@ class GerritService {
         Uri.https('${slug.owner}.googlesource.com', '${slug.name}/+log/refs/heads/$branch', <String, String>{
       'format': 'json',
     });
-    final Map<String, dynamic> response = await _get(url) as Map<String, dynamic>;
+    final Map<String, dynamic> response = await _getJson(url) as Map<String, dynamic>;
     final List<dynamic> commitsJson = response['log'] as List<dynamic>;
 
     return commitsJson.map((dynamic part) => GerritCommit.fromJson(part as Map<String, dynamic>));
+  }
+
+  /// Finds a commit on a GoB mirror using the GitHub [slug] and commit [sha].
+  ///
+  /// The [slug] will be validated by checking if it represents a presubmit or postsubmit supported repo.
+  Future<GerritCommit?> findMirroredCommit(RepositorySlug slug, String sha) async {
+    if (!config.supportedRepos.contains(slug)) return null;
+    final gobMirrorName = 'mirrors/${slug.name}';
+    return getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
+  }
+
+  /// Gets the commit info from Gob.
+  ///
+  /// See more:
+  ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html#get-commit
+  Future<GerritCommit?> getCommit(RepositorySlug slug, String commitId) async {
+    // URL encode because "mirrors/flutter" should be "mirrors%2Fflutter".
+    final String projectName = Uri.encodeComponent(slug.name);
+    // Uses [Uri] constructor instead of [Uri.https], where the latter uses [unencodedPath].
+    // Our mirror repo, say [mirrors/cocoon], will not be encoded
+    // as [mirrors%2Fcocoon] if injected directly. On the other hand, if we inject an encoded
+    // version [mirrors%2Fcocoon], [Uri.https] will translate that to [mirrors%252Fcocoon].
+    // Neither works with [Uri.https].
+    final Uri url = Uri(
+      scheme: 'https',
+      host: '${slug.owner}-review.googlesource.com',
+      path: 'projects/$projectName/commits/$commitId',
+    );
+    log.info('Gerrit get-commit url: $url');
+
+    final http.Response response = await _get(url);
+    log.info('Gob commit response for commit $commitId: ${response.body}');
+    if (!_responseIsAcceptable(response)) return null;
+
+    final String jsonBody = _stripXssToken(response.body);
+    final Map<String, dynamic> json = jsonDecode(jsonBody) as Map<String, dynamic>;
+    return GerritCommit.fromJson(json);
+  }
+
+  /// Strips magic prefix from response body.
+  ///
+  /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
+  /// must be stripped before feeding the rest of the response body to a JSON parser. The magic prefix is ")]}'".
+  String _stripXssToken(String body) {
+    return body.replaceRange(0, 4, '');
   }
 
   /// Creates a new branch.
@@ -89,14 +137,16 @@ class GerritService {
     log.info('Created branch $branchName');
   }
 
-  Future<dynamic> _get(Uri url) async {
+  Future<dynamic> _getJson(Uri url) async {
     final RetryClient client = RetryClient(httpClient);
     final http.Response response = await client.get(url);
-
-    /// To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON response body starts with a magic prefix line that
-    /// must be stripped before feeding the rest of the response body to a JSON parser. The magic prefix is ")]}'".
-    final String jsonBody = response.body.replaceRange(0, 4, '');
+    final String jsonBody = _stripXssToken(response.body);
     return jsonDecode(jsonBody) as dynamic;
+  }
+
+  Future<http.Response> _get(Uri url) async {
+    final RetryClient client = RetryClient(httpClient);
+    return await client.get(url);
   }
 
   Future<dynamic> _put(
@@ -120,7 +170,7 @@ class GerritService {
     log.info('Sent PUT to $url');
     log.info(response.body);
     // Remove XSS token
-    final String jsonBody = response.body.replaceRange(0, 4, '');
+    final String jsonBody = _stripXssToken(response.body);
     log.info(jsonBody);
     return jsonDecode(jsonBody);
   }

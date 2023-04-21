@@ -15,11 +15,13 @@ PushMessage generateGithubWebhookMessage({
   String action = 'merged',
   int number = 123,
   String baseRef = kDefaultBranchName,
+  String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
   String login = 'dash',
   String headRef = 'abc',
   bool isDraft = false,
   bool merged = false,
   bool mergeable = true,
+  String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   RepositorySlug? slug,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
@@ -28,12 +30,14 @@ PushMessage generateGithubWebhookMessage({
           action,
           number,
           baseRef,
+          baseSha: baseSha,
           login: login,
           headRef: headRef,
           isDraft: isDraft,
           merged: merged,
           isMergeable: mergeable,
           slug: slug,
+          mergeCommitSha: mergeCommitSha,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -45,11 +49,13 @@ String _generatePullRequestEvent(
   String baseRef, {
   RepositorySlug? slug,
   String login = 'flutter',
+  String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
   String headRef = 'wait_for_reassemble',
   bool includeCqLabel = false,
   bool isDraft = false,
   bool merged = false,
   bool isMergeable = true,
+  String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
 }) {
   slug ??= Config.flutterSlug;
   return '''{
@@ -93,7 +99,7 @@ String _generatePullRequestEvent(
     "updated_at": "2019-07-03T16:34:53Z",
     "closed_at": null,
     "merged_at": "2019-07-03T16:34:53Z",
-    "merge_commit_sha": "d22ab7ced21d3b2a5be00cf576d383eb5ffddb8a",
+    "merge_commit_sha": "$mergeCommitSha",
     "assignee": null,
     "assignees": [],
     "requested_reviewers": [],
@@ -266,7 +272,7 @@ String _generatePullRequestEvent(
     "base": {
       "label": "flutter:$baseRef",
       "ref": "$baseRef",
-      "sha": "4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890",
+      "sha": "$baseSha",
       "user": {
         "login": "flutter",
         "id": 14101776,
