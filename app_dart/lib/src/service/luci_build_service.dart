@@ -135,6 +135,12 @@ class LuciBuildService {
         ],
       ),
     );
+
+    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
+    for (Response response in batch.responses!) {
+      log.info('Found a response: ${response.toString()}');
+    }
+
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
@@ -226,7 +232,7 @@ class LuciBuildService {
     log.info('Found ${builds.length} builds.');
 
     if (builds.isEmpty) {
-      log.info('No in-progress or scheduled builds to cancel.');
+      log.warning('No builds were found for pull request ${pullRequest.base!.repo!.fullName}.');
       return;
     }
 
