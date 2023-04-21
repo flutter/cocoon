@@ -21,6 +21,7 @@ PushMessage generateGithubWebhookMessage({
   bool isDraft = false,
   bool merged = false,
   bool mergeable = true,
+  String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   RepositorySlug? slug,
 }) {
   final String data = (pb.GithubWebhookMessage.create()
@@ -36,6 +37,7 @@ PushMessage generateGithubWebhookMessage({
           merged: merged,
           isMergeable: mergeable,
           slug: slug,
+          mergeCommitSha: mergeCommitSha,
         ))
       .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -53,6 +55,7 @@ String _generatePullRequestEvent(
   bool isDraft = false,
   bool merged = false,
   bool isMergeable = true,
+  String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
 }) {
   slug ??= Config.flutterSlug;
   return '''{
@@ -96,7 +99,7 @@ String _generatePullRequestEvent(
     "updated_at": "2019-07-03T16:34:53Z",
     "closed_at": null,
     "merged_at": "2019-07-03T16:34:53Z",
-    "merge_commit_sha": "d22ab7ced21d3b2a5be00cf576d383eb5ffddb8a",
+    "merge_commit_sha": "$mergeCommitSha",
     "assignee": null,
     "assignees": [],
     "requested_reviewers": [],

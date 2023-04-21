@@ -257,6 +257,7 @@ void main() {
         baseRef: 'dev',
         merged: true,
         baseSha: 'sha1',
+        mergeCommitSha: 'sha2',
       );
 
       await tester.post(webhook);
@@ -2713,6 +2714,7 @@ void foo() {
         number: issueNumber,
         merged: true,
         baseSha: 'sha1', // Found in pre-populated commits in FakeGerritService.
+        mergeCommitSha: 'sha2',
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
