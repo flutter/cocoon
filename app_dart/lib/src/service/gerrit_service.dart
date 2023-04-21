@@ -90,14 +90,24 @@ class GerritService {
   Future<GerritCommit?> getCommit(RepositorySlug slug, String commitId) async {
     // URL encode because "mirrors/flutter" should be "mirrors%2Fflutter".
     final String projectName = Uri.encodeComponent(slug.name);
-    final Uri url = Uri.https('${slug.owner}-review.googlesource.com', 'projects/$projectName/commits/$commitId');
+    // Uses [Uri] constructor instead of [Uri.https], where the latter uses [unencodedPath].
+    // Our mirror repo, say [mirrors/cocoon], will not be encoded
+    // as [mirrors%2Fcocoon] if injected directly. On the other hand, if we inject an encoded
+    // version [mirrors%2Fcocoon], [Uri.https] will translate that to [mirrors%252Fcocoon].
+    // Neither works with [Uri.https].
+    final Uri url = Uri(
+      scheme: 'https',
+      host: '${slug.owner}-review.googlesource.com',
+      path: 'projects/$projectName/commits/$commitId',
+    );
+    log.info('Gerrit get-commit url: $url');
 
     final http.Response response = await _get(url);
     log.info('Gob commit response for commit $commitId: ${response.body}');
     if (!_responseIsAcceptable(response)) return null;
 
     final String jsonBody = _stripXssToken(response.body);
-    final json = jsonDecode(jsonBody) as Map<String, dynamic>;
+    final Map<String, dynamic> json = jsonDecode(jsonBody) as Map<String, dynamic>;
     return GerritCommit.fromJson(json);
   }
 

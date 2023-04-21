@@ -116,7 +116,7 @@ class BranchService {
     );
     log.info('${Config.engineSlug} branch commits: $githubCommits');
     for (GerritCommit recipeCommit in recipeCommits) {
-      if (recipeCommit.author!.time!.isBefore(githubCommits.first.commit!.committer!.date!)) {
+      if (recipeCommit.author!.date!.isBefore(githubCommits.first.commit!.committer!.date!)) {
         final String revision = recipeCommit.commit!;
         return await gerritService.createBranch(recipesSlug, branch, revision);
       }
