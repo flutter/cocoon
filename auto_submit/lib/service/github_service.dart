@@ -21,7 +21,7 @@ class GithubService {
     RepositorySlug slug,
     String ref,
   ) async {
-    return await github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
+    return github.checks.checkRuns.listCheckRunsForRef(slug, ref: ref).toList();
   }
 
   Future<List<CheckRun>> getCheckRunsFiltered({
@@ -31,7 +31,7 @@ class GithubService {
     CheckRunStatus? status,
     CheckRunFilter? filter,
   }) async {
-    return await github.checks.checkRuns
+    return github.checks.checkRuns
         .listCheckRunsForRef(
           slug,
           ref: ref,
@@ -44,7 +44,7 @@ class GithubService {
 
   /// Fetches the specified commit.
   Future<RepositoryCommit> getCommit(RepositorySlug slug, String sha) async {
-    return await github.repositories.getCommit(slug, sha);
+    return github.repositories.getCommit(slug, sha);
   }
 
   Future<List<PullRequestFile>> getPullRequestFiles(RepositorySlug slug, PullRequest pullRequest) async {
@@ -82,19 +82,19 @@ class GithubService {
       assignees: assignees,
       state: state,
     );
-    return await github.issues.create(slug, issueRequest);
+    return github.issues.create(slug, issueRequest);
   }
 
   Future<Issue> getIssue({
     required RepositorySlug slug,
     required int issueNumber,
   }) async {
-    return await github.issues.get(slug, issueNumber);
+    return github.issues.get(slug, issueNumber);
   }
 
   /// Fetches the specified pull request.
   Future<PullRequest> getPullRequest(RepositorySlug slug, int pullRequestNumber) async {
-    return await github.pullRequests.get(slug, pullRequestNumber);
+    return github.pullRequests.get(slug, pullRequestNumber);
   }
 
   /// Compares two commits to fetch diff.
@@ -102,12 +102,12 @@ class GithubService {
   /// The response will include details on the files that were changed between the two commits.
   /// Relevant APIs: https://docs.github.com/en/rest/reference/commits#compare-two-commits
   Future<GitHubComparison> compareTwoCommits(RepositorySlug slug, String refBase, String refHead) async {
-    return await github.repositories.compareCommits(slug, refBase, refHead);
+    return github.repositories.compareCommits(slug, refBase, refHead);
   }
 
   /// Removes a lable for a pull request.
   Future<bool> removeLabel(RepositorySlug slug, int issueNumber, String label) async {
-    return await github.issues.removeLabelForIssue(slug, issueNumber, label);
+    return github.issues.removeLabelForIssue(slug, issueNumber, label);
   }
 
   /// Create a comment for a pull request.
@@ -116,7 +116,7 @@ class GithubService {
     int issueNumber,
     String body,
   ) async {
-    return await github.issues.createComment(slug, issueNumber, body);
+    return github.issues.createComment(slug, issueNumber, body);
   }
 
   /// Update a pull request branch
@@ -138,7 +138,7 @@ class GithubService {
     MergeMethod mergeMethod = MergeMethod.merge,
     String? requestSha,
   }) async {
-    return await github.pullRequests.merge(
+    return github.pullRequests.merge(
       slug,
       number,
       message: commitMessage,

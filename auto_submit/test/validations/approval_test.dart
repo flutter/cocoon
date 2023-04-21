@@ -35,7 +35,7 @@ void main() {
       final Map<String, dynamic> queryResultJsonDecode = jsonDecode(review) as Map<String, dynamic>;
       final QueryResult queryResult = QueryResult.fromJson(queryResultJsonDecode);
       final gh.PullRequest pullRequest = generatePullRequest();
-      return await approval.validate(queryResult, pullRequest);
+      return approval.validate(queryResult, pullRequest);
     }
 
     test('Author is member and reviewer is a member, pr approved', () async {
@@ -250,8 +250,8 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(
           result.message.contains(
-              'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.'),
-          isTrue);
+              'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.',),
+          isTrue,);
     });
   });
 }
