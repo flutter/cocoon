@@ -27,11 +27,11 @@ Map<String, dynamic> _$GerritCommitToJson(GerritCommit instance) => <String, dyn
 GerritUser _$GerritUserFromJson(Map<String, dynamic> json) => GerritUser(
       name: json['name'] as String?,
       email: json['email'] as String?,
-      time: GerritUser._dateTimeFromGerritTime(json['time'] as String),
+      date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
     );
 
 Map<String, dynamic> _$GerritUserToJson(GerritUser instance) => <String, dynamic>{
       'name': instance.name,
       'email': instance.email,
-      'time': instance.time?.toIso8601String(),
+      'date': instance.date?.toIso8601String(),
     };

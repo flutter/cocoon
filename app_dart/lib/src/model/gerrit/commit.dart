@@ -48,48 +48,14 @@ class GerritUser extends JsonBody {
   const GerritUser({
     this.name,
     this.email,
-    this.time,
+    this.date,
   });
 
   static GerritUser fromJson(Map<String, dynamic> json) => _$GerritUserFromJson(json);
 
   final String? name;
   final String? email;
-
-  @JsonKey(fromJson: _dateTimeFromGerritTime)
-  final DateTime? time;
-
-  /// Gerrit uses a non ISO-8601 time format, which requires manual translation.
-  ///
-  /// Example: `Tue Jul 12 17:21:25 2022 +0000`
-  static DateTime _dateTimeFromGerritTime(String date) {
-    final List<String> parts = date.split(' ');
-    final int day = int.parse(parts[2]);
-    final int year = int.parse(parts[4]);
-    final String monthStr = parts[1].toLowerCase();
-    final Map<String, int> monthLookup = <String, int>{
-      'jan': 1,
-      'feb': 2,
-      'mar': 3,
-      'apr': 4,
-      'may': 5,
-      'jun': 6,
-      'jul': 7,
-      'aug': 8,
-      'sep': 9,
-      'oct': 10,
-      'nov': 11,
-      'dec': 12,
-    };
-    final int month = monthLookup[monthStr]!;
-    final List<String> timeParts = parts[3].split(':');
-    final int hours = int.parse(timeParts[0]);
-    final int minutes = int.parse(timeParts[1]);
-    final int seconds = int.parse(timeParts[2]);
-
-    // Gerrit timezones are in +0000 which is UTC time.
-    return DateTime.utc(year, month, day, hours, minutes, seconds);
-  }
+  final DateTime? date;
 
   @override
   Map<String, dynamic> toJson() => _$GerritUserToJson(this);

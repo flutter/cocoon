@@ -20,6 +20,7 @@ import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_buildbucket.dart';
 import '../../src/service/fake_github_service.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_scheduler.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
@@ -33,6 +34,7 @@ void main() {
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
+  late FakeGerritService gerritService;
   late MockGitHub gitHubClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockGithubChecksService mockGithubChecksService;
@@ -100,10 +102,12 @@ void main() {
       });
     });
 
+    gerritService = FakeGerritService();
     webhook = GithubWebhookSubscription(
       config: config,
       cache: CacheService(inMemory: true),
       datastoreProvider: (_) => DatastoreService(config.db, 5),
+      gerritService: gerritService,
       githubChecksService: mockGithubChecksService,
       scheduler: scheduler,
     );
@@ -252,6 +256,8 @@ void main() {
         number: issueNumber,
         baseRef: 'dev',
         merged: true,
+        baseSha: 'sha1',
+        mergeCommitSha: 'sha2',
       );
 
       await tester.post(webhook);
@@ -2707,11 +2713,37 @@ void foo() {
         action: 'closed',
         number: issueNumber,
         merged: true,
+        baseSha: 'sha1', // Found in pre-populated commits in FakeGerritService.
+        mergeCommitSha: 'sha2',
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.post(webhook);
       expect(db.values.values.whereType<Commit>().length, 1);
+    });
+
+    test('Fail when pull request is closed and merged, but merged commit is not found on GoB', () async {
+      const int issueNumber = 123;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'closed',
+        number: issueNumber,
+        merged: true,
+        baseSha: 'unknown_sha',
+      );
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      try {
+        await tester.post(webhook);
+      } catch (e) {
+        expect(
+          e.toString(),
+          matches(
+            r'HTTP 500: (.+) was not found on GoB\. Failing so this event can be retried\.\.\.',
+          ),
+        );
+      }
+      expect(db.values.values.whereType<Commit>().length, 0);
     });
 
     test('Does not comment about needing tests on draft pull requests.', () async {
