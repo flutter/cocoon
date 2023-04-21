@@ -135,6 +135,12 @@ class LuciBuildService {
         ],
       ),
     );
+
+    log.info('Reponses from get builds batch request = ${batch.responses!.length}');
+    for (Response response in batch.responses!) {
+      log.info('Found a response: ${response.toString()}');
+    }
+
     final Iterable<Build> builds = batch.responses!
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse? response) => response!.builds ?? <Build>[]);
