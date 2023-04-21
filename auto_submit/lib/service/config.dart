@@ -110,9 +110,11 @@ class Config {
 
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
 
+  // TODO this might be an issue and why the cache is going out and calling 
+  // github each time.
   Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
     final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
-    return await repositoryConfigurationManager.readRepositoryConfiguration(slug);
+    return repositoryConfigurationManager.readRepositoryConfiguration(slug);
   }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {

@@ -9,9 +9,6 @@ void main() {
   test('Parse config from yaml', () {
     const String sampleConfig = '''
       default_branch: main
-      issues_repository:
-        owner: flutter
-        repo: flutter
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
@@ -37,9 +34,6 @@ void main() {
   test('Parse config from yaml excluding auto approval accounts', () {
     const String sampleConfig = '''
       default_branch: main
-      issues_repository:
-        owner: flutter
-        repo: flutter
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -60,9 +54,6 @@ void main() {
 
   test('Parse config from yaml with empty auto_approval_accounts field', () {
     const String sampleConfig = '''
-      issues_repository:
-        owner: flutter
-        repo: flutter
       auto_approval_accounts:
       approving_reviews: 2
       approval_group: flutter-hackers

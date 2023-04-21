@@ -1,8 +1,5 @@
 const String sampleConfig = '''
   default_branch: main
-  issues_repository:
-    owner: flutter
-    repo: flutter
   auto_approval_accounts:
     - dependabot[bot]
     - dependabot

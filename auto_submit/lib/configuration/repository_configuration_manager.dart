@@ -9,11 +9,11 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
-import 'package:mutex/mutex.dart';
+// import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 class RepositoryConfigurationManager {
-  final Mutex _mutex = Mutex();
+  // final Mutex _mutex = Mutex();
 
   static const String fileSeparator = '/';
   // This is the well named organization level repository and configuration file
@@ -36,20 +36,15 @@ class RepositoryConfigurationManager {
   Future<RepositoryConfiguration> readRepositoryConfiguration(
     RepositorySlug slug,
   ) async {
-    await _mutex.acquire();
-    try {
-      // Get the contents from the cache or go to github.
-      final cacheValue = await cache['${slug.fullName}$fileSeparator$fileName'].get(
-        () async => _getConfiguration(slug),
-        const Duration(minutes: 10),
-      );
-      // final String yamlContents = String.fromCharCodes(cacheValue!);
-      final String cacheYaml = String.fromCharCodes(cacheValue);
-      log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
-      return RepositoryConfiguration.fromYaml(cacheYaml);
-    } finally {
-      _mutex.release();
-    }
+    // Get the contents from the cache or go to github.
+    final cacheValue = await cache['${slug.fullName}$fileSeparator$fileName'].get(
+      () async => _getConfiguration(slug),
+      const Duration(minutes: 10),
+    );
+    // final String yamlContents = String.fromCharCodes(cacheValue!);
+    final String cacheYaml = String.fromCharCodes(cacheValue);
+    log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
+    return RepositoryConfiguration.fromYaml(cacheYaml);
   }
 
   /// Collect the configuration from github and handle the cache conversion to
