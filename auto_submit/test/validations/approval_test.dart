@@ -249,9 +249,11 @@ void main() {
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
       expect(
-          result.message.contains(
-              'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.',),
-          isTrue,);
+        result.message.contains(
+          'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.',
+        ),
+        isTrue,
+      );
     });
   });
 }
