@@ -34,7 +34,7 @@ fi
 
 mkdir -p build
 pwd
-ls
+ls tool
 tool/dart-sdk/bin/dart pub get
 tool/dart-sdk/bin/dart compile exe bin/main.dart -o build/device_doctor
 
