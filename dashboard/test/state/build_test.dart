@@ -10,6 +10,7 @@ import 'package:flutter_dashboard/model/build_status_response.pb.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/commit_status.pb.dart';
 import 'package:flutter_dashboard/model/key.pb.dart';
+import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -324,6 +325,124 @@ void main() {
       expect(buildState.moreStatusesExist, true);
 
       buildState.dispose();
+    });
+  });
+
+  group('refreshGitHubCommits', () {
+    late MockCocoonService cocoonService;
+    late MockGoogleSignInService authService;
+
+    setUp(() {
+      cocoonService = MockCocoonService();
+      authService = MockGoogleSignInService();
+    });
+
+    testWidgets('fails fast when !isAuthenticated', (_) async {
+      when(authService.isAuthenticated).thenReturn(false);
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.refreshGitHubCommits();
+
+      expect(result, isFalse);
+      verifyNever(cocoonService.vacuumGitHubCommits(any));
+    });
+
+    testWidgets('clears user when vacuumGitHubCommits fails', (_) async {
+      const String idToken = 'id_token';
+      when(authService.isAuthenticated).thenReturn(true);
+      when(authService.idToken).thenAnswer((_) async => idToken);
+      when(cocoonService.vacuumGitHubCommits(idToken)).thenAnswer((_) async => false);
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.refreshGitHubCommits();
+
+      expect(result, isFalse);
+      verify(authService.clearUser()).called(1);
+    });
+
+    testWidgets('returns true when vacuumGitHubCommits succeeds', (_) async {
+      const String idToken = 'id_token';
+      when(authService.isAuthenticated).thenReturn(true);
+      when(authService.idToken).thenAnswer((_) async => idToken);
+      when(cocoonService.vacuumGitHubCommits(idToken)).thenAnswer((_) async => true);
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.refreshGitHubCommits();
+
+      expect(result, isTrue);
+      verifyNever(authService.clearUser());
+    });
+  });
+
+  group('rerunTask', () {
+    late MockCocoonService cocoonService;
+    late MockGoogleSignInService authService;
+    final Task task = Task();
+
+    setUp(() {
+      cocoonService = MockCocoonService();
+      authService = MockGoogleSignInService();
+    });
+
+    testWidgets('fails fast when !isAuthenticated', (_) async {
+      when(authService.isAuthenticated).thenReturn(false);
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.rerunTask(task);
+
+      expect(result, isFalse);
+      verifyNever(cocoonService.rerunTask(any, any, any));
+    });
+
+    testWidgets('clears user when rerunTask fails', (_) async {
+      const String idToken = 'id_token';
+      when(authService.isAuthenticated).thenReturn(true);
+      when(authService.idToken).thenAnswer((_) async => idToken);
+      when(cocoonService.rerunTask(task, idToken, any))
+          .thenAnswer((_) async => const CocoonResponse<bool>.error('failed!'));
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.rerunTask(task);
+
+      expect(result, isFalse);
+      verify(authService.clearUser()).called(1);
+    });
+
+    testWidgets('returns true when rerunTask succeeds', (_) async {
+      const String idToken = 'id_token';
+      when(authService.isAuthenticated).thenReturn(true);
+      when(authService.idToken).thenAnswer((_) async => idToken);
+      when(cocoonService.rerunTask(task, idToken, any)).thenAnswer((_) async => const CocoonResponse<bool>.data(true));
+
+      final BuildState buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      final bool result = await buildState.rerunTask(task);
+
+      expect(result, isTrue);
+      verifyNever(authService.clearUser());
     });
   });
 

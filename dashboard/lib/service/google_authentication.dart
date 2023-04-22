@@ -18,6 +18,10 @@ class GoogleSignInService extends ChangeNotifier {
               scopes: _googleScopes,
             ) {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? accountValue) {
+      // We could decode the idToken here and look at its TTL, but it can be
+      // revoked (from another website) at any time, so the only reliable way of
+      // knowing that we're still authenticated is... to monitor the statuses of
+      // the requests to the server (if they return an error, clear user/log out!)
       user = accountValue;
       notifyListeners();
     });
@@ -44,14 +48,8 @@ class GoogleSignInService extends ChangeNotifier {
   /// Whether or not the application has been signed in to.
   ///
   /// If the plugin fails, default to unauthenticated.
-  Future<bool> get isAuthenticated async {
-    try {
-      return _googleSignIn.isSignedIn();
-    } on PlatformException catch (error) {
-      debugPrint('GoogleSignIn error code: ${error.code}');
-      debugPrint(error.message);
-    }
-    return Future<bool>.value(false);
+  bool get isAuthenticated {
+    return user != null;
   }
 
   /// The Google Account for the signed in user, null if no user is signed in.
@@ -60,19 +58,14 @@ class GoogleSignInService extends ChangeNotifier {
   GoogleSignInAccount? user;
 
   /// Authentication token to be sent to Cocoon Backend to verify API calls.
-  ///
-  /// If there is no currently signed in user, it will prompt the sign in
-  /// process before attempting to return an id token.
   Future<String> get idToken async {
-    if (!await isAuthenticated) {
-      // This won't work unless it's triggered from an user onclick!
-      await signIn();
-    }
+    assert(isAuthenticated, 'Ensure user isAuthenticated before requesting an idToken.');
 
-    final String idToken = (await user?.authentication.then((GoogleSignInAuthentication key) => key.idToken!))!;
-    assert(idToken.isNotEmpty);
+    final GoogleSignInAuthentication? key = await user?.authentication;
+    final String? idToken = key?.idToken;
+    assert(idToken != null && idToken.isNotEmpty);
 
-    return idToken;
+    return idToken!;
   }
 
   /// Initiate the Google Sign In process.
@@ -94,5 +87,13 @@ class GoogleSignInService extends ChangeNotifier {
       debugPrint('GoogleSignIn error code: ${error.code}');
       debugPrint(error.message);
     }
+  }
+
+  /// Clears the active user from the service, without calling signOut on the plugin.
+  ///
+  /// This refreshes the UI of the app, while making it easy for users to re-login.
+  Future<void> clearUser() async {
+    user = null;
+    notifyListeners();
   }
 }
