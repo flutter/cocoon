@@ -17,7 +17,7 @@ steps:
           unverified_provenance.json
 
   # Verify provenance is valid before proceeding with deployment.
-  - name: 'golang:stretch'
+  - name: 'golang:latest'
     entrypoint: '/bin/bash'
     args:
       - '-c'
