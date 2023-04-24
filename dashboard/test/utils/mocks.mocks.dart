@@ -717,10 +717,10 @@ class MockGoogleSignInService extends _i1.Mock implements _i4.GoogleSignInServic
         returnValueForMissingStub: null,
       );
   @override
-  _i6.Future<bool> get isAuthenticated => (super.noSuchMethod(
+  bool get isAuthenticated => (super.noSuchMethod(
         Invocation.getter(#isAuthenticated),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+        returnValue: false,
+      ) as bool);
   @override
   _i6.Future<String> get idToken => (super.noSuchMethod(
         Invocation.getter(#idToken),
@@ -744,6 +744,15 @@ class MockGoogleSignInService extends _i1.Mock implements _i4.GoogleSignInServic
   _i6.Future<void> signOut() => (super.noSuchMethod(
         Invocation.method(
           #signOut,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  _i6.Future<void> clearUser() => (super.noSuchMethod(
+        Invocation.method(
+          #clearUser,
           [],
         ),
         returnValue: _i6.Future<void>.value(),
