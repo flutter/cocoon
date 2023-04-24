@@ -22,9 +22,8 @@ echo "Running flutter tests from $1"
 pushd "$1" > /dev/null
 
 flutter packages get
-flutter analyze
-dart format --set-exit-if-changed --line-length=120 . lib/ test/
 flutter analyze --fatal-infos
+dart format --set-exit-if-changed --line-length=120 . lib/ test/
 flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 popd > /dev/null
