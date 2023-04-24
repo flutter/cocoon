@@ -132,7 +132,7 @@ class Approver {
         //TODO this does not work since we are tracking two different sets.
         // probably need to track one set.
       } else if (state == CHANGES_REQUESTED_STATE && !_reviewAuthors.contains(authorLogin)) {
-         _changeRequestAuthors.add(authorLogin);
+        _changeRequestAuthors.add(authorLogin);
         if (_remainingReviews < targetReviewCount) {
           _remainingReviews++;
         }
