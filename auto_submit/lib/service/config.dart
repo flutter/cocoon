@@ -25,11 +25,15 @@ import 'log.dart';
 
 /// Configuration for the autosubmit engine.
 class Config {
-  const Config({
+  Config({
     required this.cacheProvider,
     this.httpProvider = Providers.freshHttpClient,
     required this.secretManager,
-  });
+  }) {
+    repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
+  }
+
+  late RepositoryConfigurationManager repositoryConfigurationManager;
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
@@ -113,7 +117,7 @@ class Config {
   // TODO this might be an issue and why the cache is going out and calling 
   // github each time.
   Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
-    final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
+    // final RepositoryConfigurationManager repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
     return repositoryConfigurationManager.readRepositoryConfiguration(slug);
   }
 
