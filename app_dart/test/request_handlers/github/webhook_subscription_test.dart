@@ -931,6 +931,7 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/devicelab/lib/versions/gallery.dart',
+          PullRequestFile()..filename = 'dev/integration_tests/some_package/android/build.gradle',
           PullRequestFile()..filename = 'shell/platform/embedder/tests/embedder_test_context.cc',
           PullRequestFile()..filename = 'shell/platform/embedder/fixtures/main.dart',
         ]),

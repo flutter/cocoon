@@ -27,7 +27,7 @@ Future<Null> main(List<String> rawArgs) async {
   });
 }
 
-void runShellCommand(List<String> args, String taskName) async {
+Future<void> runShellCommand(List<String> args, String taskName) async {
   unawaited(
     Process.run('sh', args).then((result) {
       stdout.writeln('.. stdout ..');
