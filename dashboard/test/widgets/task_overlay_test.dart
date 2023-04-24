@@ -61,12 +61,15 @@ void main() {
 
   Int64 int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
 
-  final FakeBuildState buildState = FakeBuildState();
+  late FakeBuildState buildState;
+
+  setUp(() {
+    buildState = FakeBuildState();
+    when(buildState.authService.isAuthenticated).thenReturn(true);
+  });
 
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
-
-    when(buildState.authService.isAuthenticated).thenReturn(true);
 
     final Task expectedTask = Task()
       ..attempts = 3
