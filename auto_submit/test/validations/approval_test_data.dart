@@ -61,8 +61,8 @@ String constructTwoReviewerReview({
   required String secondReviewerAuthorAssociation,
   required String reviewState,
   required String secondReviewState,
-  String author = 'author1',
-  String secondAuthor = 'author2',
+  String author = 'author2',
+  String secondAuthor = 'author3',
 }) {
   return '''
   {
@@ -189,3 +189,79 @@ String constructMultipleReviewerReview({
   }
   ''';
 }
+
+const String multipleReviewsSameAuthor = '''
+
+{
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "login": "author1"
+        },
+        "authorAssociation": "MEMBER",
+        "id": "PR_kwDOA8VHis43rs4_",
+        "title": "[dependabot] Remove human reviewers",
+        "commits": {
+          "nodes":[
+            {
+              "commit": {
+                "abbreviatedOid": "4009ecc",
+                "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
+                "committedDate": "2022-05-11T22:35:02Z",
+                "pushedDate": "2022-05-11T22:35:03Z",
+                "status": {
+                  "contexts":[
+                    {
+                      "context":"luci-flutter",
+                      "state":"SUCCESS",
+                      "targetUrl":"https://ci.example.com/1000/output"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "reviews": {
+          "nodes": [
+            {
+              "author": {
+                "login": "jmagman"
+              },
+              "state": "COMMENTED",
+              "authorAssociation": "MEMBER"
+            },
+            {
+              "author": {
+                "login": "keyonghan"
+              },
+              "state": "COMMENTED",
+              "authorAssociation": "MEMBER"
+            },
+            {
+              "author": {
+                "login": "jmagman"
+              },
+              "state": "APPROVED",
+              "authorAssociation": "MEMBER"
+            },
+            {
+              "author": {
+                "login": "jmagman"
+              },
+              "state": "CHANGES_REQUESTED",
+              "authorAssociation": "MEMBER"
+            },
+            {
+              "author": {
+                "login": "jmagman"
+              },
+              "state": "APPROVED",
+              "authorAssociation": "MEMBER"
+            }
+          ]
+        }
+      }
+    }
+  }
+''';

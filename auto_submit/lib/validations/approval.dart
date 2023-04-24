@@ -72,6 +72,7 @@ class Approver {
   int _remainingReviews = 2;
   final Set<String?> _approvers = <String?>{};
   final Set<String?> _changeRequestAuthors = <String?>{};
+  final Set<String?> _reviewAuthors = <String?>{};
 
   bool get approved => _approved;
 
@@ -104,7 +105,12 @@ class Approver {
 
     final int targetReviewCount = _remainingReviews;
 
-    for (ReviewNode review in reviews) {
+    for (ReviewNode review in reviews.reversed) {
+      if (review.author!.login == author) {
+        log.info('Author cannot review own pull request.');
+        continue;
+      }
+
       // Ignore reviews from non-members/owners.
       if (!allowedReviewers.contains(review.authorAssociation)) {
         continue;
@@ -117,18 +123,22 @@ class Approver {
       // reviews and will keep them all so the same person can provide two
       // reviews and bypass the two review rule. We make an _approvers
       // contains check to make sure this does not happen.
-      if (state == APPROVED_STATE && !_approvers.contains(authorLogin)) {
+      if (state == APPROVED_STATE && !_reviewAuthors.contains(authorLogin)) {
         _approvers.add(authorLogin);
         if (_remainingReviews > 0) {
           _remainingReviews--;
         }
-        _changeRequestAuthors.remove(authorLogin);
-      } else if (state == CHANGES_REQUESTED_STATE) {
+        //_changeRequestAuthors.remove(authorLogin);
+        //TODO this does not work since we are tracking two different sets.
+        // probably need to track one set.
+      } else if (state == CHANGES_REQUESTED_STATE && !_reviewAuthors.contains(authorLogin)) {
+         _changeRequestAuthors.add(authorLogin);
         if (_remainingReviews < targetReviewCount) {
           _remainingReviews++;
         }
-        _changeRequestAuthors.add(authorLogin);
       }
+
+      _reviewAuthors.add(authorLogin);
     }
 
     _approved = (_approvers.length > 1) && _changeRequestAuthors.isEmpty;
