@@ -11,18 +11,18 @@ import 'package:yaml/yaml.dart';
 class RepositoryConfigurationBuilder {
   bool? _allowConfigOverride = false;
   String? _defaultBranch = '';
-  List<String>? _autoApprovalAccounts = [];
+  Set<String>? _autoApprovalAccounts = {};
   int? _approvingReviews = 2;
   String? _approvalGroup = '';
   bool? _runCi = true;
   bool? _supportNoReviewReverts = true;
-  List<String>? _requiredCheckRunsOnRevert = [];
+  Set<String>? _requiredCheckRunsOnRevert = {};
 
   set allowConfigOverride(bool value) => _allowConfigOverride = value;
 
   set defaultBranch(String value) => _defaultBranch = value;
 
-  set autoApprovalAccounts(List<String>? value) {
+  set autoApprovalAccounts(Set<String>? value) {
     if (value != null && value.isNotEmpty) {
       _autoApprovalAccounts = value;
     }
@@ -48,7 +48,7 @@ class RepositoryConfigurationBuilder {
     }
   }
 
-  set requiredCheckRunsOnRevert(List<String>? value) {
+  set requiredCheckRunsOnRevert(Set<String>? value) {
     if (value != null && value.isNotEmpty) {
       _requiredCheckRunsOnRevert = value;
     }
@@ -82,12 +82,12 @@ class RepositoryConfiguration {
 
   bool? allowConfigOverride = false;
   String? defaultBranch = '';
-  List<String>? autoApprovalAccounts = [];
+  Set<String>? autoApprovalAccounts = {};
   int? approvingReviews = 2;
   String? approvalGroup = '';
   bool? runCi = true;
   bool? supportNoReviewReverts = false;
-  List<String>? requiredCheckRunsOnRevert = [];
+  Set<String>? requiredCheckRunsOnRevert = {};
 
   @override
   String toString() {
@@ -123,7 +123,7 @@ class RepositoryConfiguration {
       builder.defaultBranch = yamlDoc[DEFAULT_BRANCH_KEY];
     }
 
-    final List<String> autoApprovalAccounts = [];
+    final Set<String> autoApprovalAccounts = {};
     final YamlList? yamlAutoApprovalAccounts = yamlDoc[AUTO_APPROVAL_ACCOUNTS_KEY];
     if (yamlAutoApprovalAccounts != null) {
       for (var element in yamlAutoApprovalAccounts) {
@@ -144,7 +144,7 @@ class RepositoryConfiguration {
 
     builder.supportNoReviewReverts = yamlDoc[SUPPORT_NO_REVIEW_REVERT_KEY];
 
-    final List<String> requiredCheckRunsOnRevert = [];
+    final Set<String> requiredCheckRunsOnRevert = {};
     final YamlList? yamlRequiredCheckRuns = yamlDoc[REQUIRED_CHECK_RUNS_KEY];
     if (yamlRequiredCheckRuns != null) {
       for (var element in yamlRequiredCheckRuns) {

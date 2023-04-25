@@ -76,9 +76,13 @@ class RepositoryConfigurationManager {
     // This comparision needs to be made since the config override is nullable.
     if (repositoryConfiguration.allowConfigOverride == true) {
       log.info('Override is set, collecting and merging local repository configuration.');
+      // final GithubService localGithubService = await config.createGithubService(slug);
+      // final String localRepositoryConfigurationStr = await localGithubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
+      // final RepositoryConfiguration localRepositoryConfiguration = RepositoryConfiguration.fromYaml(localRepositoryConfigurationStr);
+      // final RepositoryConfiguration mergedRepositoryConfiguration = mergeConfigurations(repositoryConfiguration, localRepositoryConfiguration,);
     } else {
       // TODO remove after testing.
-      log.info('Overrid is not allowed for this configuration, skipping local configuration.');
+      log.info('Override is not allowed for this configuration, skipping local configuration.');
     }
 
     // 3. Read the default branch of the repository slug that was passed in.
@@ -97,4 +101,37 @@ class RepositoryConfigurationManager {
   // The override configuration will allow override of certain non array values.
   // Array values will be additive in that any value supplied in an overridden 
   // configuration will added to the main org config.
+
+  RepositoryConfiguration mergeConfigurations(RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration,) {
+    final RepositoryConfiguration mergedRepositoryConfiguration = globalConfiguration;
+
+    // default branch name
+    mergedRepositoryConfiguration.defaultBranch = localConfiguration.defaultBranch ?? globalConfiguration.defaultBranch;
+
+    // auto approval accounts
+    mergedRepositoryConfiguration.autoApprovalAccounts = globalConfiguration.autoApprovalAccounts;
+    mergedRepositoryConfiguration.autoApprovalAccounts!.addAll(localConfiguration.autoApprovalAccounts!);
+
+    // approving reviews
+    // this may not be set lower than the global configuration value
+    mergedRepositoryConfiguration.approvingReviews = (localConfiguration.approvingReviews! < globalConfiguration.approvingReviews!) ? globalConfiguration.approvingReviews : localConfiguration.approvingReviews;
+
+    // approval group
+    mergedRepositoryConfiguration.approvalGroup = (globalConfiguration.approvalGroup != localConfiguration.approvalGroup) ? localConfiguration.approvalGroup : globalConfiguration.approvalGroup;
+
+    // run ci
+    // validates the checks runs
+    mergedRepositoryConfiguration.runCi = (globalConfiguration.runCi != localConfiguration.runCi) ? localConfiguration.runCi : globalConfiguration.runCi;
+
+    // support no revert reviews - this will be a moot point after revert is updated
+    mergedRepositoryConfiguration.supportNoReviewReverts = (globalConfiguration.supportNoReviewReverts != localConfiguration.supportNoReviewReverts) ? localConfiguration.supportNoReviewReverts : globalConfiguration.supportNoReviewReverts;
+
+    // required checkruns on revert
+    mergedRepositoryConfiguration.requiredCheckRunsOnRevert = globalConfiguration.requiredCheckRunsOnRevert;
+    mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.addAll(localConfiguration.requiredCheckRunsOnRevert!);
+
+    return mergedRepositoryConfiguration;
+  }
+
+
 }

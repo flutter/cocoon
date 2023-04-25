@@ -26,15 +26,15 @@ class ApproverService {
   }
 
   /// Get the auto approval accounts from the configuration is any are supplied.
-  Future<List<String>> getAutoApprovalAccounts(RepositorySlug slug) async {
+  Future<Set<String>> getAutoApprovalAccounts(RepositorySlug slug) async {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    final List<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts!;
+    final Set<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts!;
     return approvalAccounts;
   }
 
   Future<void> autoApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
-    final List<String> approvalAccounts =
+    final Set<String> approvalAccounts =
         await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     log.info('Determine auto approval of $author.');
@@ -66,7 +66,7 @@ class ApproverService {
 
     log.info('Found labels $labelNames on this pullRequest.');
 
-    final List<String> approvalAccounts =
+    final Set<String> approvalAccounts =
         await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     final GithubService githubService = await config.createGithubService(slug);

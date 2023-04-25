@@ -33,7 +33,7 @@ class RequiredCheckRuns extends Validation {
     // required GithubService githubService,
     required github.RepositorySlug slug,
     required String sha,
-    required List<String> checkNames,
+    required Set<String> checkNames,
   }) async {
     final GithubService githubService = await config.createGithubService(slug);
     final List<github.CheckRun> targetCheckRuns = [];
@@ -79,7 +79,7 @@ class RequiredCheckRuns extends Validation {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
 
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-    final List<String> requiredCheckRuns = repositoryConfiguration.requiredCheckRunsOnRevert!;
+    final Set<String> requiredCheckRuns = repositoryConfiguration.requiredCheckRunsOnRevert!;
 
     final bool success = await waitForRequiredChecks(slug: slug, sha: sha!, checkNames: requiredCheckRuns);
 
