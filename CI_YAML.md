@@ -182,9 +182,15 @@ to be landed first to wait for changes propagated in infrastructure.
 
 #### Update target platform
 
+Target depends on the prefix platform in its `name` to decide which platform to run on. This should match
+to an existing platform under `platform_properties`.
+
 If one target needs to switch running platforms, e.g. from a devicelab bot to a host only bot:
 1. Keep the old target entry
-2. Add a new entry under the new platform as `bringup: true` with necessary dependencies
+2. Add a new entry under the new platform with
+  1. `bringup: true`
+  2. necessary dependencies
+  3. corresponding tags (tags will only be used for infra metrics analysis)
 3. Land the change with the new entry
 4. If the new target under the new platform passes in postsubmit
   1. Remove the old target entry and mark the new target as `bringup: false`
@@ -194,6 +200,9 @@ Example: say one wants to switch `Linux_android web_size__compile_test` to a vm.
 Existing config:
 ```yaml
 - name: Linux_android web_size__compile_test
+  properties:
+    tags: >
+        ["devicelab", "android", "linux"]
 ```
 
 Add a new config:
@@ -205,6 +214,8 @@ Add a new config:
       [
         {"dependency": "new-dependency", "version": "new-dependency-version"}
       ]
+    tags: >
+      ["devicelab", "hostonly", "linux"]
 ```
 
 After validating the new target passes, lands the clean up change by removing the config of old target
