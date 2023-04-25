@@ -146,7 +146,7 @@ class GerritService {
 
   Future<http.Response> _get(Uri url) async {
     final RetryClient client = RetryClient(httpClient);
-    return await client.get(url);
+    return client.get(url);
   }
 
   Future<dynamic> _put(

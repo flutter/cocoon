@@ -20,6 +20,11 @@ echo "############# files that require formatting ###########"
 dart format --set-exit-if-changed --line-length=120 .
 echo "#######################################################"
 
+echo "############# analyze ###########"
+dart analyze --fatal-infos
+echo "#######################################################"
+
+
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
   echo "############# build ###########"

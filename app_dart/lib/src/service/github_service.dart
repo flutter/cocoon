@@ -195,7 +195,7 @@ class GithubService {
     String? assignee,
   }) async {
     ArgumentError.checkNotNull(slug);
-    return await github.issues.create(
+    return github.issues.create(
       slug,
       IssueRequest(title: title, body: body, labels: labels, assignee: assignee),
     );
@@ -208,7 +208,7 @@ class GithubService {
   }) async {
     ArgumentError.checkNotNull(slug);
     ArgumentError.checkNotNull(issueNumber);
-    return await github.issues.createComment(slug, issueNumber, body);
+    return github.issues.createComment(slug, issueNumber, body);
   }
 
   Future<List<IssueLabel>> replaceLabelsForIssue(
@@ -312,6 +312,6 @@ class GithubService {
   /// Reference:
   ///   * https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
   Future<PullRequest> getPullRequest(RepositorySlug slug, int number) async {
-    return await github.pullRequests.get(slug, number);
+    return github.pullRequests.get(slug, number);
   }
 }

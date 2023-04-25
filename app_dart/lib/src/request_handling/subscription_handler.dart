@@ -136,7 +136,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
     log.info('Processing message $messageId');
     await runZoned<Future<void>>(
-      () async => await super.service(
+      () async => super.service(
         request,
         onError: (HttpStatusException exception) async {
           log.warning('Failed to process $message. (${exception.statusCode}) ${exception.message}');
