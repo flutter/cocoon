@@ -343,6 +343,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.endsWith('.md') ||
         // Exempt paths.
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
+        filename.startsWith('dev/integration_tests') ||
         filename.startsWith('shell/platform/embedder/tests') ||
         filename.startsWith('shell/platform/embedder/fixtures');
   }

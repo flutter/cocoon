@@ -255,5 +255,30 @@ void main() {
         isTrue,
       );
     });
+
+    test('Successful review overwrites previous changes requested.', () async {
+      final ValidationResult result = await computeValidationResult(multipleReviewsSameAuthor);
+
+      expect(result.result, isTrue);
+      expect(result.action, Action.REMOVE_LABEL);
+      expect(result.message.contains('This PR has met approval requirements for merging.'), isTrue);
+    });
+
+    test('Author cannot review own pr', () async {
+      final String review = constructTwoReviewerReview(
+        authorAuthorAssociation: 'MEMBER',
+        reviewerAuthorAssociation: 'MEMBER',
+        secondReviewerAuthorAssociation: 'NON_MEMBER',
+        reviewState: 'APPROVED',
+        secondReviewState: 'APPROVED',
+        author: 'author1',
+      );
+
+      final ValidationResult result = await computeValidationResult(review);
+
+      expect(result.result, isFalse);
+      expect(result.action, Action.REMOVE_LABEL);
+      expect(result.message.contains('This PR has not met approval requirements for merging. You have'), isTrue);
+    });
   });
 }

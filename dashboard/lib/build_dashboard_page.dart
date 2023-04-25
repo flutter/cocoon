@@ -133,9 +133,16 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               child: ListView(
                 children: <Widget>[
                   if (_smallScreen) ..._buildRepositorySelectionWidgets(context, buildState),
-                  TextButton(
-                    onPressed: buildState.refreshGitHubCommits,
-                    child: const Text('Vacuum GitHub Commits'),
+                  AnimatedBuilder(
+                    animation: buildState,
+                    builder: (context, child) {
+                      final bool isAuthenticated = buildState.authService.isAuthenticated;
+                      return TextButton(
+                        onPressed: isAuthenticated ? buildState.refreshGitHubCommits : null,
+                        child: child!,
+                      );
+                    },
+                    child: const Text('Refresh GitHub Commits'),
                   ),
                   Row(
                     children: [
