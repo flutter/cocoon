@@ -28,8 +28,8 @@ if [[ -d "build" ]]; then
 fi
 
 mkdir -p build
-tool/dart-sdk/bin/dart pub get
-tool/dart-sdk/bin/dart compile exe bin/codesign.dart -o build/codesign
+tool/bin/dart pub get
+tool/bin/dart compile exe bin/codesign.dart -o build/codesign
 
 cp -f LICENSE build/
 
