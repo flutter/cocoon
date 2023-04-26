@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:auto_submit/service/config.dart';
@@ -26,7 +30,9 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
 
   @override
   RepositoryConfiguration mergeConfigurations(
-      RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration,) {
+    RepositoryConfiguration globalConfiguration,
+    RepositoryConfiguration localConfiguration,
+  ) {
     return mergedRepositoryConfigurationMock!;
   }
 }

@@ -15,7 +15,7 @@ import 'package:neat_cache/neat_cache.dart';
 /// The [RepositoryConfigurationManager] is responsible for fetching and merging
 /// the autosubmit configuration from the Org level repository and if needed
 /// fetching the override configuration from the pull request repository.
-/// 
+///
 /// It will attempt to access the cache first before repulling the configuraiton
 /// from the repositories. This is currently set at a 10 minute TTL.
 class RepositoryConfigurationManager {
@@ -70,7 +70,7 @@ class RepositoryConfigurationManager {
     final GithubService githubService = await config.createGithubService(orgSlug);
     final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
     final RepositoryConfiguration globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
-    
+
     // Collect the default branch if it was not supplied.
     if (globalRepositoryConfiguration.defaultBranch!.isEmpty) {
       globalRepositoryConfiguration.defaultBranch = await githubService.getDefaultBranch(slug);
@@ -85,12 +85,18 @@ class RepositoryConfigurationManager {
 
       String? localRepositoryConfigurationYaml;
       try {
-        localRepositoryConfigurationYaml = await localGithubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
-        final RepositoryConfiguration localRepositoryConfiguration = RepositoryConfiguration.fromYaml(localRepositoryConfigurationYaml);
-        final RepositoryConfiguration mergedRepositoryConfiguration = mergeConfigurations(globalRepositoryConfiguration, localRepositoryConfiguration,);
+        localRepositoryConfigurationYaml =
+            await localGithubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
+        final RepositoryConfiguration localRepositoryConfiguration =
+            RepositoryConfiguration.fromYaml(localRepositoryConfigurationYaml);
+        final RepositoryConfiguration mergedRepositoryConfiguration = mergeConfigurations(
+          globalRepositoryConfiguration,
+          localRepositoryConfiguration,
+        );
         return mergedRepositoryConfiguration.toString().codeUnits;
       } on Exception {
-        log.warning('Configuration override was set but no local repository configuration file was found in ${slug.fullName}, using global configuration.');
+        log.warning(
+            'Configuration override was set but no local repository configuration file was found in ${slug.fullName}, using global configuration.');
       }
     }
 
@@ -99,13 +105,13 @@ class RepositoryConfigurationManager {
 
   /// Merge the local [RepositoryConfiguration] with the global
   /// [RepositoryConfiguration].
-  /// 
+  ///
   /// Values that are lists are additive. Values that are not lists overwrite
   /// the value in the global configuration.
-  /// 
+  ///
   /// The number of approving reviews in the local configuration cannot override
   /// the global configuration if it is a lower value.
-  /// 
+  ///
   /// We also do not need to allow the default branch override as it is
   /// collected from the repository directly.
   RepositoryConfiguration mergeConfigurations(

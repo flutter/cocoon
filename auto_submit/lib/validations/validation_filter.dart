@@ -1,3 +1,7 @@
+// Copyright 2023 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/process_method.dart';
@@ -13,7 +17,10 @@ import 'package:auto_submit/validations/validation.dart';
 /// run on a particular type of pull request.
 abstract class ValidationFilter {
   factory ValidationFilter(
-      Config config, ProcessMethod processMethod, RepositoryConfiguration repositoryConfiguration,) {
+    Config config,
+    ProcessMethod processMethod,
+    RepositoryConfiguration repositoryConfiguration,
+  ) {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);

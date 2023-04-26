@@ -103,11 +103,11 @@ class Approver {
 
   /// Parses the restApi response reviews.
   ///
-  /// If author is a of the defined approval group then it only requires a 
+  /// If author is a of the defined approval group then it only requires a
   /// single review from another approval group member. If the author is not a
   /// member of the approval group then it will require two reviews from members
   /// of the approval group.
-  /// 
+  ///
   /// Changes requested will supercede any approvals and the autosubmit bot will
   /// not make any merges until the change requests are fixed.
   Future<void> computeApproval() async {
