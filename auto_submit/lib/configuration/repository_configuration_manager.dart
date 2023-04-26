@@ -4,6 +4,8 @@
 
 // import 'dart:typed_data';
 
+import 'dart:io';
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -11,6 +13,7 @@ import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:io/io.dart';
 
 /// The [RepositoryConfigurationManager] is responsible for fetching and merging
 /// the autosubmit configuration from the Org level repository and if needed
@@ -21,7 +24,7 @@ import 'package:neat_cache/neat_cache.dart';
 class RepositoryConfigurationManager {
   final Mutex _mutex = Mutex();
 
-  static const String fileSeparator = '/';
+  static String fileSeparator = Platform.pathSeparator;
   // This is the well named organization level repository and configuration file
   // we will read before looking to see if there is a local file with
   // overwrites.
@@ -49,7 +52,6 @@ class RepositoryConfigurationManager {
         () async => _getConfiguration(slug),
         const Duration(minutes: 10),
       );
-      // final String yamlContents = String.fromCharCodes(cacheValue!);
       final String cacheYaml = String.fromCharCodes(cacheValue);
       log.info('Converting yaml to RepositoryConfiguration: $cacheYaml');
       return RepositoryConfiguration.fromYaml(cacheYaml);

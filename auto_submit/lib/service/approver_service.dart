@@ -6,7 +6,6 @@ import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/github.dart';
 
 import '../configuration/repository_configuration.dart';
 import '../service/config.dart';
@@ -26,7 +25,7 @@ class ApproverService {
   }
 
   /// Get the auto approval accounts from the configuration is any are supplied.
-  Future<Set<String>> getAutoApprovalAccounts(RepositorySlug slug) async {
+  Future<Set<String>> getAutoApprovalAccounts(github.RepositorySlug slug) async {
     final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
     final Set<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts!;
     return approvalAccounts;
@@ -35,7 +34,7 @@ class ApproverService {
   Future<void> autoApproval(github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
     final Set<String> approvalAccounts =
-        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
+        await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     log.info('Determine auto approval of $author.');
     log.info('Accounts with auto approval: $approvalAccounts');
@@ -66,7 +65,7 @@ class ApproverService {
     log.info('Found labels $labelNames on this pullRequest.');
 
     final Set<String> approvalAccounts =
-        await getAutoApprovalAccounts(RepositorySlug.full(pullRequest.base!.repo!.fullName));
+        await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
 
     final GithubService githubService = await config.createGithubService(slug);
 

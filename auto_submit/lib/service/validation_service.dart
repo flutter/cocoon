@@ -225,20 +225,6 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    // TODO(ricardoamador) rework this part as the validations should just be iterated through
-    // like when a pull request is processed.
-
-    // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
-
-    // // filter out validations here
-    // // final Set<Validation> validations = _determineValidations(repositoryConfiguration);
-    // final ValidationFilter validationFilter = ValidationFilter(
-    //   config,
-    //   ProcessMethod.processAutosubmit,
-    //   repositoryConfiguration,
-    // );
-    // final Set<Validation> validations = validationFilter.getValidations();
-
     // get validations to be run here.
     final ValidationResult revertValidationResult = await revertValidation!.validate(
       result,

@@ -89,12 +89,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
     final Set<Validation> validationsToRun = {};
 
     validationsToRun.add(Revert(config: config));
-    // TODO(ricardoamador) add this back when validations for revert have been refactored.
-    // Validate required check runs if they are requested.
-    // if (repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty) {
-    //   validationsToRun.add(RequiredCheckRuns(config: config));
-    // }
-
+    
     return validationsToRun;
   }
 }
