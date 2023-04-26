@@ -179,7 +179,7 @@ class GithubService {
 
   /// Get the definition of a single repository
   Future<Repository> getRepository(RepositorySlug slug) async {
-    return await github.repositories.getRepository(slug);
+    return github.repositories.getRepository(slug);
   }
 
   Future<String> getDefaultBranch(RepositorySlug slug) async {

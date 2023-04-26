@@ -163,7 +163,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.defaultBranch, 'main');
       expect(mergedRepositoryConfiguration.allowConfigOverride, isTrue);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 3);
@@ -185,7 +185,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 4);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot[bot]'), isTrue);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot'), isTrue);
@@ -201,7 +201,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 3);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot[bot]'), isTrue);
       expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot'), isTrue);
@@ -215,7 +215,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(globalRepositoryConfiguration.approvingReviews != mergedRepositoryConfiguration.approvingReviews, isTrue);
       expect(mergedRepositoryConfiguration.approvingReviews, expectedApprovingReviews);
     });
@@ -226,7 +226,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(globalRepositoryConfiguration.approvingReviews == mergedRepositoryConfiguration.approvingReviews, isTrue);
       expect(mergedRepositoryConfiguration.approvingReviews, expectedApprovingReviews);
     });
@@ -238,7 +238,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.approvalGroup, expectedApprovalGroup);
     });
 
@@ -248,7 +248,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(globalRepositoryConfiguration.runCi != mergedRepositoryConfiguration.runCi, isTrue);
       expect(mergedRepositoryConfiguration.runCi, expectedRunCi);
     });
@@ -260,7 +260,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(
           globalRepositoryConfiguration.supportNoReviewReverts != mergedRepositoryConfiguration.supportNoReviewReverts,
           isTrue);
@@ -275,7 +275,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
       expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains('ci.yaml validation'), isTrue);
       expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains(expectedRequiredCheckRun), isTrue);
@@ -289,7 +289,7 @@ void main() {
       final RepositoryConfiguration globalRepositoryConfiguration =
           RepositoryConfiguration.fromYaml(sampleConfigWithOverride);
       final RepositoryConfiguration mergedRepositoryConfiguration = repositoryConfigurationManager.mergeConfigurations(
-          globalRepositoryConfiguration, localRepositoryConfiguration);
+          globalRepositoryConfiguration, localRepositoryConfiguration,);
       expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.length, 1);
       expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains(expectedRequiredCheckRun), isTrue);
     });
