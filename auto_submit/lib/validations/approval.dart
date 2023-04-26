@@ -111,10 +111,11 @@ class Approver {
   /// Changes requested will supercede any approvals and the autosubmit bot will
   /// not make any merges until the change requests are fixed.
   Future<void> computeApproval() async {
+    _remainingReviews = repositoryConfiguration.approvingReviews!;
     // team might be more than one in the future.
     final bool authorIsMember =
         await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner);
-
+    
     // The author counts as 1 review if they are a member of the approval group
     // so we need only 1 more review from a member of the approval group.
     if (authorIsMember) {
@@ -162,6 +163,6 @@ class Approver {
       _reviewAuthors.add(authorLogin);
     }
 
-    _approved = (_approvers.length > 1) && _changeRequestAuthors.isEmpty;
+    _approved = (_approvers.length > repositoryConfiguration.approvingReviews! - 1) && _changeRequestAuthors.isEmpty;
   }
 }
