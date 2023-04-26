@@ -115,7 +115,7 @@ class Approver {
     // team might be more than one in the future.
     final bool authorIsMember =
         await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner);
-    
+
     // The author counts as 1 review if they are a member of the approval group
     // so we need only 1 more review from a member of the approval group.
     if (authorIsMember) {
