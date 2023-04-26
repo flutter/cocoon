@@ -12,6 +12,12 @@ import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
 
+/// The [RepositoryConfigurationManager] is responsible for fetching and merging
+/// the autosubmit configuration from the Org level repository and if needed
+/// fetching the override configuration from the pull request repository.
+/// 
+/// It will attempt to access the cache first before repulling the configuraiton
+/// from the repositories. This is currently set at a 10 minute TTL.
 class RepositoryConfigurationManager {
   final Mutex _mutex = Mutex();
 
@@ -59,20 +65,20 @@ class RepositoryConfigurationManager {
   ) async {
     // Read the org level configuraiton file first.
     log.info('Getting org level configuration.');
-    // 1. We need to get the org level configuration
+    // Get the Org level configuration.
     final RepositorySlug orgSlug = RepositorySlug(slug.owner, orgRepository);
     final GithubService githubService = await config.createGithubService(orgSlug);
-    //autosubmit/autosubmit.yml
     final String orgLevelConfig = await githubService.getFileContents(orgSlug, '$dirName$fileSeparator$fileName');
     final RepositoryConfiguration globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(orgLevelConfig);
     
-    log.info('Collecting default branch.');
+    // Collect the default branch if it was not supplied.
     if (globalRepositoryConfiguration.defaultBranch!.isEmpty) {
       globalRepositoryConfiguration.defaultBranch = await githubService.getDefaultBranch(slug);
     }
-    log.info('Default branch was found to be ${globalRepositoryConfiguration.defaultBranch}');
+    log.info('Default branch was found to be ${globalRepositoryConfiguration.defaultBranch} for ${slug.fullName}.');
 
-    // This comparision needs to be made since the config override is nullable.
+    // If the override flag is set to true we check the pull request's
+    // repository to collect any values that will override the global config.
     if (globalRepositoryConfiguration.allowConfigOverride == true) {
       log.info('Override is set, collecting and merging local repository configuration.');
       final GithubService localGithubService = await config.createGithubService(slug);
@@ -86,28 +92,26 @@ class RepositoryConfigurationManager {
       } on Exception {
         log.warning('Configuration override was set but no local repository configuration file was found in ${slug.fullName}, using global configuration.');
       }
-    } else {
-      // TODO remove after testing.
-      log.info('Override is not allowed for this configuration, skipping local configuration.');
     }
 
-    // 3. Read the default branch of the repository slug that was passed in.
-    // TODO: Need to move this above the configuration merge.
     return globalRepositoryConfiguration.toString().codeUnits;
   }
 
-  // TODO: will need to add a merge configurations, need to determine how the
-  // override will happen.
-
-  // The override configuration will allow override of certain non array values.
-  // Array values will be additive in that any value supplied in an overridden
-  // configuration will added to the main org config.
-
+  /// Merge the local [RepositoryConfiguration] with the global
+  /// [RepositoryConfiguration].
+  /// 
+  /// Values that are lists are additive. Values that are not lists overwrite
+  /// the value in the global configuration.
+  /// 
+  /// The number of approving reviews in the local configuration cannot override
+  /// the global configuration if it is a lower value.
+  /// 
+  /// We also do not need to allow the default branch override as it is
+  /// collected from the repository directly.
   RepositoryConfiguration mergeConfigurations(
     RepositoryConfiguration globalConfiguration,
     RepositoryConfiguration localConfiguration,
   ) {
-    // TODO migth be worth while to make a copy constructor for this.
     final RepositoryConfiguration mergedRepositoryConfiguration = RepositoryConfiguration(
       allowConfigOverride: globalConfiguration.allowConfigOverride,
       defaultBranch: globalConfiguration.defaultBranch,

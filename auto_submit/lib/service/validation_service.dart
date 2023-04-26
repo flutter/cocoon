@@ -225,7 +225,7 @@ class ValidationService {
     required String ackId,
     required PubSub pubsub,
   }) async {
-    // TODO rework this part as the validations should just be iterated through
+    // TODO(ricardoamador) rework this part as the validations should just be iterated through
     // like when a pull request is processed.
 
     // final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);

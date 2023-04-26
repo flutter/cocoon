@@ -17,6 +17,8 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
 
   late RepositoryConfiguration? repositoryConfigurationMock;
 
+  late RepositoryConfiguration? mergedRepositoryConfigurationMock;
+
   @override
   Future<RepositoryConfiguration> readRepositoryConfiguration(RepositorySlug slug) async {
     return repositoryConfigurationMock!;
@@ -24,8 +26,7 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
 
   @override
   RepositoryConfiguration mergeConfigurations(
-      RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration) {
-    // TODO: implement mergeConfigurations
-    throw UnimplementedError();
+      RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration,) {
+    return mergedRepositoryConfigurationMock!;
   }
 }

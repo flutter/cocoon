@@ -74,7 +74,7 @@ class Revert extends Validation {
     final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     githubService = await config.createGithubService(repositorySlug);
 
-    ///TODO this should be moved out to the main validations class as a separate check.
+    ///TODO(ricardoamador) this should be moved out to the main validations class as a separate check.
     final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
     final ValidationResult validationResult = await requiredCheckRuns.validate(
       result,

@@ -49,7 +49,6 @@ class ApproverService {
     }
   }
 
-  //TODO fix this for reverts with the new repository configuration.
   /// Auto approves a pull request when the revert label is present.
   Future<void> revertApproval(QueryResult queryResult, github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
@@ -75,7 +74,7 @@ class ApproverService {
         (approvalAccounts.contains(author) ||
             await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner))) {
       log.info(
-        'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
+        'Revert label and author has been validated. Attempting to approve the pull request. ${slug.fullName} by $author',
       );
       await _approve(pullRequest, author);
     } else {
@@ -88,8 +87,8 @@ class ApproverService {
     final github.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 
     final Stream<github.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
-    // TODO this will need to be refactored to make this code much more general
-    // and not applicable to only flutter.
+    // TODO this will need to be refactored to make this code more general and 
+    // not applicable to only flutter.
     await for (github.PullRequestReview review in reviews) {
       if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
         // Already approved.

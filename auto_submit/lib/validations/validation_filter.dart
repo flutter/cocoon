@@ -9,9 +9,11 @@ import 'package:auto_submit/validations/revert.dart';
 import 'package:auto_submit/validations/unknown_mergeable.dart';
 import 'package:auto_submit/validations/validation.dart';
 
+/// The [ValidationFilter] allows us to pick and choose and the validations to
+/// run on a particular type of pull request.
 abstract class ValidationFilter {
   factory ValidationFilter(
-      Config config, ProcessMethod processMethod, RepositoryConfiguration repositoryConfiguration) {
+      Config config, ProcessMethod processMethod, RepositoryConfiguration repositoryConfiguration,) {
     switch (processMethod) {
       case ProcessMethod.processAutosubmit:
         return PullRequestValidationFilter(config, repositoryConfiguration);
@@ -25,6 +27,8 @@ abstract class ValidationFilter {
   Set<Validation> getValidations();
 }
 
+/// The [NoOpValidationFilter] allows us to return a set of validations without
+/// exploding in the event something goes wrong.
 class NoOpValidationFilter implements ValidationFilter {
   NoOpValidationFilter(this.config, this.repositoryConfiguration);
 
@@ -37,6 +41,8 @@ class NoOpValidationFilter implements ValidationFilter {
   }
 }
 
+/// [PullRequestValidationFilter] returns a Set of validations that we run on
+/// all non revert pull requests that will be merged into the mainline branch.
 class PullRequestValidationFilter implements ValidationFilter {
   PullRequestValidationFilter(this.config, this.repositoryConfiguration);
 
@@ -63,6 +69,8 @@ class PullRequestValidationFilter implements ValidationFilter {
   }
 }
 
+/// [RevertRequestValidationFilter] returns a Set of validations that we run on
+/// all revert pull requests.
 class RevertRequestValidationFilter implements ValidationFilter {
   RevertRequestValidationFilter(this.config, this.repositoryConfiguration);
 
@@ -74,7 +82,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
     final Set<Validation> validationsToRun = {};
 
     validationsToRun.add(Revert(config: config));
-    // TODO add this back when validations for revert have been refactored.
+    // TODO(ricardoamador) add this back when validations for revert have been refactored.
     // Validate required check runs if they are requested.
     // if (repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty) {
     //   validationsToRun.add(RequiredCheckRuns(config: config));

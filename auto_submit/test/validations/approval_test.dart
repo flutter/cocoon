@@ -43,7 +43,7 @@ void main() {
     }
 
     test('Author and reviewer in flutter-hackers, pr approved', () async {
-      // TODO this does not matter much now that we check group membership,
+      // TODO(ricardoamador) this does not matter much now that we check group membership,
       // remove and refactor.
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',

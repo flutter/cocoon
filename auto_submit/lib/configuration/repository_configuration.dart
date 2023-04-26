@@ -56,10 +56,10 @@ class RepositoryConfigurationBuilder {
 }
 
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
-/// will use when submiting and validating pull requests for a particular
+/// will need when submiting and validating pull requests for a particular
 /// repository.
 class RepositoryConfiguration {
-  // Autosubmit configuration keys
+  // Autosubmit configuration keys as found in the yaml configuraiton file.
   static const String ALLOW_CONFIG_OVERRIDE_KEY = 'allow_config_override';
   static const String DEFAULT_BRANCH_KEY = 'default_branch';
   static const String AUTO_APPROVAL_ACCOUNTS_KEY = 'auto_approval_accounts';
@@ -80,13 +80,33 @@ class RepositoryConfiguration {
     this.requiredCheckRunsOnRevert,
   });
 
+  /// This flag allows the repository to override the org level configuration.
   bool? allowConfigOverride;
+
+  /// The default branch that pull requests will be merged into.
   String? defaultBranch;
+
+  /// The accounts that have auto approval on their pull requests.
   Set<String>? autoApprovalAccounts;
+
+  /// The number of reviews needed for a pull request. If the reviewer is part
+  /// of the approval group they will need (approvingReviews - 1) number of
+  /// reviews in order to merge the pull request, if they are not part of the
+  /// approval group the will need approvingReviews number of reviews.
   int? approvingReviews;
+
+  /// The group that the pull request author will need pull requests from.
   String? approvalGroup;
+
+  /// Flag to determine whether or not to wait for all the ci checks to finish
+  /// before allowing a merge of the pull request.
   bool? runCi;
+
+  /// Flag that determines if reverts are allowed without a review.
   bool? supportNoReviewReverts;
+
+  /// Set of checkruns that must complete before a revert pull request can be
+  /// merged.
   Set<String>? requiredCheckRunsOnRevert;
 
   @override
