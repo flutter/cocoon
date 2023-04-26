@@ -24,7 +24,7 @@ void main() {
   setUp(() {
     github = MockGitHub();
     config = FakeConfig(githubClient: github);
-    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfig);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     service = ApproverService(config);
     pullRequests = MockPullRequestsService();
     when(github.pullRequests).thenReturn(pullRequests);

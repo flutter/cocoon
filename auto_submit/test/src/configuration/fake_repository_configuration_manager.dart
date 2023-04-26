@@ -21,9 +21,10 @@ class FakeRepositoryConfigurationManager implements RepositoryConfigurationManag
   Future<RepositoryConfiguration> readRepositoryConfiguration(RepositorySlug slug) async {
     return repositoryConfigurationMock!;
   }
-  
+
   @override
-  RepositoryConfiguration mergeConfigurations(RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration) {
+  RepositoryConfiguration mergeConfigurations(
+      RepositoryConfiguration globalConfiguration, RepositoryConfiguration localConfiguration) {
     // TODO: implement mergeConfigurations
     throw UnimplementedError();
   }

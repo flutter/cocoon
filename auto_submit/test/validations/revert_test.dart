@@ -33,7 +33,7 @@ void main() {
     githubService = FakeGithubService();
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
-    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfig);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     revert = Revert(
       config: config,
       retryOptions: const RetryOptions(delayFactor: Duration.zero, maxDelay: Duration.zero, maxAttempts: 1),
@@ -121,8 +121,8 @@ void main() {
 
   group('Validate Pull Requests.', () {
     test('Validation fails on author validation, returns error.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ false ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [false];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.authorAssociation = 'CONTRIBUTOR';
@@ -137,8 +137,8 @@ void main() {
     });
 
     test('Validation fails on merge conflict flag.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = false;
@@ -156,8 +156,8 @@ void main() {
     });
 
     test('Validation is postponed on null mergeable value', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = null;
@@ -172,8 +172,8 @@ void main() {
     });
 
     test('Validation fails on malformed reverts link in the pr body.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.body = 'Reverting flutter/cocoon#1234';
@@ -190,11 +190,11 @@ void main() {
       );
     });
 
-    // TODO this is not using a shortened version of retry options and takes 
+    // TODO this is not using a shortened version of retry options and takes
     // about 5 seconds to complete.
     test('Validation returns on checkRun that has not completed.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -230,8 +230,8 @@ void main() {
     });
 
     test('Validation fails on pull request file lists not matching.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -263,8 +263,8 @@ void main() {
     });
 
     test('Validation is successful.', () async {
-      githubService.fileContentsMockList = [ sampleConfig, sampleConfig ];
-      githubService.isTeamMemberMockList = [ true ];
+      githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
+      githubService.isTeamMemberMockList = [true];
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =

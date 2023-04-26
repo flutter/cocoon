@@ -30,7 +30,7 @@ void main() {
     // githubService.fileContentsMockList = [ sampleConfig ];
     githubGraphQLClient = FakeGraphQLClient();
     config = FakeConfig(githubService: githubService, githubGraphQLClient: githubGraphQLClient, githubClient: gitHub);
-    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfig);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
     approval = Approval(config: config);
   });
 
@@ -43,7 +43,7 @@ void main() {
     }
 
     test('Author and reviewer in flutter-hackers, pr approved', () async {
-      // TODO this does not matter much now that we check group membership, 
+      // TODO this does not matter much now that we check group membership,
       // remove and refactor.
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
@@ -51,7 +51,7 @@ void main() {
         reviewState: 'APPROVED',
       );
 
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
@@ -60,7 +60,7 @@ void main() {
     });
 
     test('Author is a NON member and reviewer is a member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [ false, true ];
+      githubService.isTeamMemberMockList = [false, true];
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('Author is a NON member and reviewer is a NON member, need 2 more reviews', () async {
-      githubService.isTeamMemberMockList = [ false, false ];
+      githubService.isTeamMemberMockList = [false, false];
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('Author is a member and reviewer is NON member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [ true, false ];
+      githubService.isTeamMemberMockList = [true, false];
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -108,7 +108,7 @@ void main() {
     });
 
     test('Author is NON member and reviewers are members, pr approved', () async {
-      githubService.isTeamMemberMockList = [ false, true, true ];
+      githubService.isTeamMemberMockList = [false, true, true];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('Author is NON member and one reviewer is a NON member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [ false, true, false ];
+      githubService.isTeamMemberMockList = [false, true, false];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -143,7 +143,7 @@ void main() {
     });
 
     test('Author is member and reviewers are NON members, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [ true, false, false ];
+      githubService.isTeamMemberMockList = [true, false, false];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -161,7 +161,7 @@ void main() {
     });
 
     test('Author is NON member and reviewers are NON members, need 2 reviews', () async {
-      githubService.isTeamMemberMockList = [ false, false, false ];
+      githubService.isTeamMemberMockList = [false, false, false];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -179,7 +179,7 @@ void main() {
     });
 
     test('Verify author review count does not go negative', () async {
-      githubService.isTeamMemberMockList = [ false, false, false, false ];
+      githubService.isTeamMemberMockList = [false, false, false, false];
       final String review = constructMultipleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -199,7 +199,7 @@ void main() {
     });
 
     test('Verify author review count does not go negative', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final String review = constructMultipleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -218,7 +218,7 @@ void main() {
     });
 
     test('Author is member and member requests changes, 1 review is needed', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -234,7 +234,7 @@ void main() {
     });
 
     test('Author is member and two member reviews, 1 change request, review is not approved', () async {
-      githubService.isTeamMemberMockList = [ true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -252,7 +252,7 @@ void main() {
     });
 
     test('Multiple approving reviews from the same author are counted only 1 time.', () async {
-      githubService.isTeamMemberMockList = [ false, true, true ];
+      githubService.isTeamMemberMockList = [false, true, true];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'CONTRIBUTOR',
         reviewerAuthorAssociation: 'MEMBER',

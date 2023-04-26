@@ -80,14 +80,14 @@ class RepositoryConfiguration {
     this.requiredCheckRunsOnRevert,
   });
 
-  bool? allowConfigOverride = false;
-  String? defaultBranch = '';
-  Set<String>? autoApprovalAccounts = {};
-  int? approvingReviews = 2;
-  String? approvalGroup = '';
-  bool? runCi = true;
-  bool? supportNoReviewReverts = false;
-  Set<String>? requiredCheckRunsOnRevert = {};
+  bool? allowConfigOverride;
+  String? defaultBranch;
+  Set<String>? autoApprovalAccounts;
+  int? approvingReviews;
+  String? approvalGroup;
+  bool? runCi;
+  bool? supportNoReviewReverts;
+  Set<String>? requiredCheckRunsOnRevert;
 
   @override
   String toString() {

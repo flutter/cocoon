@@ -68,7 +68,7 @@ void main() {
     // We will get the default branch later as it does not need to be added to
     // the initial configuration.
     repositoryConfiguration.defaultBranch = 'main';
-    
+
     expect(repositoryConfiguration.allowConfigOverride, false);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);

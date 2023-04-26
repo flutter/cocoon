@@ -350,7 +350,7 @@ class FakeGithubService implements GithubService {
   Future<Repository> getRepository(RepositorySlug slug) async {
     return repositoryMock;
   }
-  
+
   List<bool> isTeamMemberMockList = [];
 
   @override

@@ -53,7 +53,7 @@ void main() {
     jobsResource = MockJobsResource();
     bigqueryService = FakeBigqueryService(jobsResource);
     config.bigqueryService = bigqueryService;
-    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfig);
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
 
     when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
       return Future<QueryResponse>.value(

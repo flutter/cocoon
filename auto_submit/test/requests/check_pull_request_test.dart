@@ -110,7 +110,7 @@ void main() {
         githubClient: gitHub,
       );
       config.bigqueryService = bigqueryService;
-      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfig);
+      config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
       pullRequests = MockPullRequestsService();
       when(gitHub.pullRequests).thenReturn(pullRequests);
       when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(
@@ -190,7 +190,7 @@ void main() {
     });
 
     test('Merge exception is handled correctly', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -256,7 +256,7 @@ void main() {
     });
 
     test('Merges PR with successful status and checks', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -358,7 +358,7 @@ void main() {
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         labelName: labelName,
@@ -405,7 +405,7 @@ void main() {
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
@@ -446,7 +446,7 @@ void main() {
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
@@ -487,7 +487,7 @@ void main() {
     });
 
     test('Merges PR with neutral status checkrun', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -521,7 +521,7 @@ void main() {
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -555,7 +555,7 @@ void main() {
     });
 
     test('Removes the label for the PR with failed status', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
@@ -581,7 +581,7 @@ void main() {
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         authorAssociation: '',
@@ -610,7 +610,7 @@ void main() {
     });
 
     test('Removes the label for the PR with null checks and statuses', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
       unawaited(pubsub.publish(testTopic, pullRequest));
@@ -634,7 +634,7 @@ void main() {
     });
 
     test('Does not merge PR with in progress checks', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -688,7 +688,7 @@ void main() {
     });
 
     test('Self review is disallowed', () async {
-      githubService.isTeamMemberMockList = [ true, true ];
+      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         author: 'some_rando',
