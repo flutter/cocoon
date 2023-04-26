@@ -74,7 +74,6 @@ class Revert extends Validation {
     final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     githubService = await config.createGithubService(repositorySlug);
 
-    // TODO separate to top level.
     final bool requiredChecksCompleted = await waitForRequiredChecks(
       githubService: githubService,
       slug: repositorySlug,
