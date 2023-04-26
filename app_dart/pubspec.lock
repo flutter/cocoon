@@ -21,10 +21,10 @@ packages:
     dependency: "direct dev"
     description:
       name: analyzer
-      sha256: fad0be66319d3b503a5afe3dd74c4d4524c3b4fad3df59c0b10cdd661833ceb1
+      sha256: a89627f49b0e70e068130a36571409726b04dab12da7e5625941d2c8ec278b96
       url: "https://pub.dev"
     source: hosted
-    version: "5.11.0"
+    version: "5.11.1"
   appengine:
     dependency: "direct main"
     description:
@@ -453,10 +453,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "5e4a9cd06d447758280a8ac2405101e0e2094d2a1dbdd3756aec3fe7775ba593"
+      sha256: "6b0206b0bf4f04961fc5438198ccb3a885685cd67d4d4a32cc20ad7f8adbe015"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "2.1.0"
   logging:
     dependency: "direct main"
     description:
@@ -842,4 +842,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=3.0.0-134.0.dev <4.0.0"
+  dart: ">=3.0.0-417 <4.0.0"
