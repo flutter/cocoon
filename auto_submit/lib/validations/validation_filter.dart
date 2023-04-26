@@ -89,7 +89,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
     final Set<Validation> validationsToRun = {};
 
     validationsToRun.add(Revert(config: config));
-    
+
     return validationsToRun;
   }
 }
