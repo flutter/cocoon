@@ -725,4 +725,42 @@ Fixes #12345 and #3.
 This is the second line in a paragraph.''');
     });
   });
+
+  group('isMergeable tests', () {
+    test('Pull request is mergeable', () async {
+      const String org = 'flutter';
+      const String repo = 'flutter';
+
+      final PullRequest pullRequest = generatePullRequest(mergeable: true, login: org, repoName: repo,);
+      githubService.pullRequestData = pullRequest;
+
+      final ProcessMergeResult processMergeResult = await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      expect(processMergeResult.result, isTrue);
+      expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is mergeable');
+    });
+
+    test('Pull request mergeability has not been determined', () async {
+      const String org = 'flutter';
+      const String repo = 'flutter';
+
+      final PullRequest pullRequest = generatePullRequest(mergeable: null, login: org, repoName: repo,);
+      githubService.pullRequestData = pullRequest;
+
+      final ProcessMergeResult processMergeResult = await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      expect(processMergeResult.result, isFalse);
+      expect(processMergeResult.message, 'Mergeability of pull request flutter/flutter/1347 could not be determined at time of merge.');
+    });
+
+    test('Pull request cannot be merged', () async {
+      const String org = 'flutter';
+      const String repo = 'flutter';
+
+      final PullRequest pullRequest = generatePullRequest(mergeable: false, login: org, repoName: repo,);
+      githubService.pullRequestData = pullRequest;
+
+      final ProcessMergeResult processMergeResult = await validationService.isMergeable(RepositorySlug(org, repo), 1347);
+      expect(processMergeResult.result, isFalse);
+      expect(processMergeResult.message, 'Pull request flutter/flutter/1347 is not in a mergeable state.');
+    });
+  });
 }
