@@ -228,7 +228,9 @@ void main() {
         repoName: slug.name,
         authorAssociation: 'OWNER',
         labelName: 'revert',
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -332,6 +334,7 @@ void main() {
         authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
+        mergeable: true,
       );
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
@@ -339,6 +342,7 @@ void main() {
       validationService.revertValidation = fakeRevert;
       final FakeApproverService fakeApproverService = FakeApproverService(config);
       validationService.approverService = fakeApproverService;
+      githubService.pullRequestData = pullRequest;
 
       final Issue issue = Issue(
         id: 1234,
@@ -389,7 +393,9 @@ void main() {
         authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -451,7 +457,9 @@ void main() {
         authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
 
       final FakeRevert fakeRevert = FakeRevert(config: config);
       fakeRevert.validationResult = ValidationResult(true, Action.REMOVE_LABEL, '');
@@ -629,7 +637,9 @@ void main() {
         prNumber: 0,
         repoName: slug.name,
         title: 'Revert "Revert "My first PR!"',
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
         sha: pullRequest.mergeCommitSha,
@@ -651,7 +661,9 @@ void main() {
         // this string into a JSON string which will then be decoded--thus, this string must be
         // a valid JSON substring, with escaped newlines.
         body: r'PR description\nwhich\nis multiline.',
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
         sha: pullRequest.mergeCommitSha,
@@ -707,7 +719,9 @@ If you need help, consider asking for advice on the #hackers-new channel on [Dis
         // this string into a JSON string which will then be decoded--thus, this string must be
         // a valid JSON substring, with escaped newlines.
         body: prBody.replaceAll('\n', r'\n'),
+        mergeable: true,
       );
+      githubService.pullRequestData = pullRequest;
       githubService.mergeRequestMock = PullRequestMerge(
         merged: true,
         sha: pullRequest.mergeCommitSha,
