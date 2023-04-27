@@ -758,8 +758,10 @@ This is the second line in a paragraph.''');
       final ProcessMergeResult processMergeResult =
           await validationService.isMergeable(RepositorySlug(org, repo), 1347);
       expect(processMergeResult.result, isFalse);
-      expect(processMergeResult.message,
-          'Mergeability of pull request flutter/flutter/1347 could not be determined at time of merge.',);
+      expect(
+        processMergeResult.message,
+        'Mergeability of pull request flutter/flutter/1347 could not be determined at time of merge.',
+      );
     });
 
     test('Pull request cannot be merged', () async {
