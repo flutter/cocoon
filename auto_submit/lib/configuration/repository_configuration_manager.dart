@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// import 'dart:typed_data';
-
-import 'dart:io';
-
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -23,7 +19,7 @@ import 'package:neat_cache/neat_cache.dart';
 class RepositoryConfigurationManager {
   final Mutex _mutex = Mutex();
 
-  static String fileSeparator = Platform.pathSeparator;
+  static String fileSeparator = '/';
   // This is the well named organization level repository and configuration file
   // we will read before looking to see if there is a local file with
   // overwrites.
