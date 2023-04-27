@@ -278,8 +278,9 @@ void main() {
         localRepositoryConfiguration,
       );
       expect(
-          globalRepositoryConfiguration.supportNoReviewReverts != mergedRepositoryConfiguration.supportNoReviewReverts,
-          isTrue,);
+        globalRepositoryConfiguration.supportNoReviewReverts != mergedRepositoryConfiguration.supportNoReviewReverts,
+        isTrue,
+      );
       expect(mergedRepositoryConfiguration.supportNoReviewReverts, expectedSupportNoReviewReverts);
     });
 
