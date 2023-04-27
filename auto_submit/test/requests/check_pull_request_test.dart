@@ -113,10 +113,12 @@ void main() {
       config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(sampleConfigNoOverride);
       pullRequests = MockPullRequestsService();
       when(gitHub.pullRequests).thenReturn(pullRequests);
-      when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(
-            number: 123,
-            state: 'open',
-          ),);
+      when(pullRequests.get(any, any)).thenAnswer(
+        (_) async => PullRequest(
+          number: 123,
+          state: 'open',
+        ),
+      );
 
       when(jobsResource.query(captureAny, any)).thenAnswer((Invocation invocation) {
         return Future<QueryResponse>.value(
@@ -164,10 +166,12 @@ void main() {
         state: 'close',
       );
       githubService.pullRequestData = pullRequest1;
-      when(pullRequests.get(any, any)).thenAnswer((_) async => PullRequest(
-            number: 0,
-            state: 'close',
-          ),);
+      when(pullRequests.get(any, any)).thenAnswer(
+        (_) async => PullRequest(
+          number: 0,
+          state: 'close',
+        ),
+      );
       for (int i = 0; i < 2; i++) {
         unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
       }
@@ -364,10 +368,12 @@ void main() {
         labelName: labelName,
       );
       githubService.pullRequestData = pullRequest;
-      unawaited(pubsub.publish(
-        testTopic,
-        pullRequest,
-      ),);
+      unawaited(
+        pubsub.publish(
+          testTopic,
+          pullRequest,
+        ),
+      );
 
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -727,10 +733,12 @@ void main() {
           prNumber: i,
           repoName: cocoonRepo,
         );
-        unawaited(pubsub.publish(
-          'auto-submit-queue-sub',
-          pullRequest,
-        ),);
+        unawaited(
+          pubsub.publish(
+            'auto-submit-queue-sub',
+            pullRequest,
+          ),
+        );
       }
 
       checkPullRequest = CheckPullRequest(

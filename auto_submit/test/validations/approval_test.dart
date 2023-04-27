@@ -276,7 +276,7 @@ void main() {
     });
 
     test('Successful review overwrites previous changes requested.', () async {
-      githubService.isTeamMemberMockList = [ true, true, true, true, true, true ];
+      githubService.isTeamMemberMockList = [true, true, true, true, true, true];
       final ValidationResult result = await computeValidationResult(multipleReviewsSameAuthor);
 
       expect(result.result, isTrue);
@@ -285,7 +285,7 @@ void main() {
     });
 
     test('Author cannot review own pr', () async {
-      githubService.isTeamMemberMockList = [ true, false, true ];
+      githubService.isTeamMemberMockList = [true, false, true];
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
