@@ -21,6 +21,6 @@ class ReadinessCheck extends RequestHandler {
 
   @override
   Future<Response> run(Request request) async {
-    return await super.run(request);
+    return super.run(request);
   }
 }

@@ -165,7 +165,7 @@ void main() {
         retryDelay: Duration.zero,
       );
       expect(
-        () async => await gerritService.createBranch(Config.recipesSlug, 'flutter-2.13-candidate.0', 'abc'),
+        () async => gerritService.createBranch(Config.recipesSlug, 'flutter-2.13-candidate.0', 'abc'),
         throwsExceptionWith<InternalServerError>('Failed to create branch'),
       );
     });

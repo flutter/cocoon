@@ -285,7 +285,7 @@ Future<Issue> fileFlakyIssue({
     threshold: kDefaultFlakyRatioThreshold,
     bringup: bringup,
   );
-  return await gitHub.createIssue(
+  return gitHub.createIssue(
     slug,
     title: issueBuilder.issueTitle,
     body: issueBuilder.issueBody,

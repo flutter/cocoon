@@ -33,8 +33,10 @@ if [[ -d "build" ]]; then
 fi
 
 mkdir -p build
-tool/dart-sdk/bin/dart pub get
-tool/dart-sdk/bin/dart compile exe bin/main.dart -o build/device_doctor
+pwd
+ls tool
+tool/bin/dart pub get
+tool/bin/dart compile exe bin/main.dart -o build/device_doctor
 
 cp -f LICENSE build/
 

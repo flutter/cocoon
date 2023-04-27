@@ -12,11 +12,13 @@ import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/now.dart';
+import 'package:flutter_dashboard/widgets/progress_button.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_build.dart';
@@ -25,16 +27,20 @@ import '../utils/golden.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {
-  const TestGrid({this.buildState, required this.task, super.key});
+  const TestGrid({
+    required this.buildState,
+    required this.task,
+    super.key,
+  });
 
-  final BuildState? buildState;
+  final BuildState buildState;
   final Task task;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: TaskGrid(
-        buildState: buildState ?? FakeBuildState(),
+        buildState: buildState,
         commitStatuses: <CommitStatus>[
           CommitStatus()
             ..commit = (Commit()
@@ -54,6 +60,13 @@ void main() {
   final DateTime finishTime = nowTime.subtract(const Duration(minutes: 10));
 
   Int64 int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
+
+  late FakeBuildState buildState;
+
+  setUp(() {
+    buildState = FakeBuildState();
+    when(buildState.authService.isAuthenticated).thenReturn(true);
+  });
 
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
@@ -79,6 +92,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: expectedTask,
             ),
           ),
@@ -136,6 +150,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: flakyTask,
             ),
           ),
@@ -184,6 +199,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: timeTask,
             ),
           ),
@@ -224,6 +240,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: timeTask,
             ),
           ),
@@ -261,6 +278,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: timeTask,
             ),
           ),
@@ -285,6 +303,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: Task()
                 ..stageName = 'cirrus'
                 ..status = TaskBox.statusSucceeded,
@@ -310,6 +329,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: Task()
                 ..stageName = 'chromebot'
                 ..status = TaskBox.statusSucceeded
@@ -328,6 +348,41 @@ void main() {
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
+  testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (WidgetTester tester) async {
+    final Task expectedTask = Task()
+      ..attempts = 3
+      ..stageName = StageName.luci
+      ..name = 'Tasky McTaskFace'
+      ..reservedForAgentId = 'Agenty McAgentFace'
+      ..isFlaky = false;
+
+    final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
+    when(buildState.authService.isAuthenticated).thenReturn(false);
+
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Open the overlay
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    final ProgressButton? rerun = tester.element(find.text('RERUN')).findAncestorWidgetOfExactType<ProgressButton>();
+
+    expect(rerun, isNotNull, reason: 'The rerun button should exist.');
+    expect(rerun!.onPressed, isNull, reason: 'The rerun button should be disabled.');
+  });
+
   testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
@@ -336,13 +391,16 @@ void main() {
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false;
 
+    final FakeBuildState buildState = FakeBuildState(rerunTaskResult: true);
+    when(buildState.authService.isAuthenticated).thenReturn(true);
+
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
-              buildState: FakeBuildState(rerunTaskResult: true),
+              buildState: buildState,
               task: expectedTask,
             ),
           ),
@@ -383,6 +441,7 @@ void main() {
       ..status = TaskBox.statusNew;
 
     final FakeBuildState buildState = FakeBuildState(rerunTaskResult: false);
+    when(buildState.authService.isAuthenticated).thenReturn(true);
 
     await tester.pumpWidget(
       Now.fixed(
@@ -437,6 +496,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: TestGrid(
+              buildState: buildState,
               task: publicTask,
             ),
           ),

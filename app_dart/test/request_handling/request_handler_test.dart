@@ -47,7 +47,7 @@ void main() {
       final HttpClient client = HttpClient();
       final Uri url = Uri(scheme: 'http', host: 'localhost', port: server.port, path: '/path');
       final HttpClientRequest request = await client.openUrl(method, url);
-      return await request.close();
+      return request.close();
     }
 
     Future<HttpClientResponse> issueGet() => issueRequest('get');

@@ -106,7 +106,7 @@ class BranchService {
         // TODO(drewroengoogle): createDefaultGitHubService should instead be
         // handled within the GithubService.
         final GithubService githubService = await config.createDefaultGitHubService();
-        return await githubService.listCommits(
+        return githubService.listCommits(
           Config.engineSlug,
           branch,
           null,
@@ -118,7 +118,7 @@ class BranchService {
     for (GerritCommit recipeCommit in recipeCommits) {
       if (recipeCommit.author!.date!.isBefore(githubCommits.first.commit!.committer!.date!)) {
         final String revision = recipeCommit.commit!;
-        return await gerritService.createBranch(recipesSlug, branch, revision);
+        return gerritService.createBranch(recipesSlug, branch, revision);
       }
     }
 

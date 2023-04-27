@@ -36,6 +36,7 @@ analyzer:
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
     - "**/*.pbenum.dart"
+    - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"
 
 linter:
@@ -45,3 +46,4 @@ linter:
     prefer_final_locals: true
     require_trailing_commas: true
     unawaited_futures: true
+    unnecessary_await_in_return: true

@@ -49,7 +49,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       maxAttempts: 3,
       delayFactor: retryDuration,
     );
-    return await r.retry(
+    return r.retry(
       () async {
         final String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
         return result.trim().split('\n');

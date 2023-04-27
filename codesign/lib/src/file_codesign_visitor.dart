@@ -128,7 +128,7 @@ update these file paths accordingly.
       throw CodesignException('$passwordFilePath not found \n'
           'make sure you have provided codesign credentials in a file \n');
     }
-    return (await fileSystem.file(passwordFilePath).readAsString());
+    return fileSystem.file(passwordFilePath).readAsString();
   }
 
   /// The entrance point of examining and code signing an engine artifact.

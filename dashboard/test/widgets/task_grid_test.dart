@@ -850,7 +850,7 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final RenderRepaintBoundary? renderObject =
       tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary?;
   final ByteData? pixels = await tester.runAsync<ByteData?>(() async {
-    return await (await renderObject!.toImage()).toByteData();
+    return (await renderObject!.toImage()).toByteData();
   });
   assert(pixels!.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
   const double padding = 4.0;

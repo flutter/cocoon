@@ -32,6 +32,6 @@ abstract class AuthenticatedRequestHandler extends RequestHandler {
       log.info('Authenticate error: $error');
       return Response.forbidden(error.toString());
     }
-    return await super.run(request);
+    return super.run(request);
   }
 }

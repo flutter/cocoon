@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter_dashboard/service/google_authentication.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +31,7 @@ void main() {
     });
 
     test('not authenticated', () async {
-      expect(await authService.isAuthenticated, false);
+      expect(authService.isAuthenticated, false);
     });
 
     test('no user information', () {
@@ -39,49 +41,46 @@ void main() {
     test('sign in silently called', () async {
       verify(mockSignIn!.signInSilently()).called(1);
     });
-
-    test('id token will prompt sign in', () async {
-      final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
-        ..authentication = Future<GoogleSignInAuthentication>.value(FakeGoogleSignInAuthentication());
-      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
-
-      verifyNever(mockSignIn!.isSignedIn());
-      verifyNever(mockSignIn!.signIn());
-
-      expect(await authService.idToken, 'id123');
-
-      verify(mockSignIn!.isSignedIn()).called(1);
-      verify(mockSignIn!.signIn()).called(1);
-    });
   });
 
   group('GoogleSignInService sign in', () {
     late GoogleSignInService authService;
-    GoogleSignIn? mockSignIn;
+    late GoogleSignIn mockSignIn;
+    late StreamController<GoogleSignInAccount> userChanged;
 
     final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
 
+    // Pushes a change to the userChanged Stream controller that we can await for it to propagate.
+    Future<void> pushUserChanged(GoogleSignInAccount? account) {
+      userChanged.add(testAccount);
+      // Let the change to the stream propagate to the object...
+      return Future<void>.delayed(Duration.zero);
+    }
+
     setUp(() {
+      userChanged = StreamController<GoogleSignInAccount>.broadcast();
+
       mockSignIn = MockGoogleSignIn();
-      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
-      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
-      when(mockSignIn!.currentUser).thenReturn(testAccount);
-      when(mockSignIn!.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
-      when(mockSignIn!.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn.currentUser).thenReturn(testAccount);
+      when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
+      when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => userChanged.stream);
 
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
-    test('is authenticated after successful sign in', () async {
-      await authService.signIn();
+    test('is authenticated after sign in from Google Sign In button', () async {
+      await pushUserChanged(testAccount);
 
-      expect(await authService.isAuthenticated, true);
+      expect(authService.isAuthenticated, isTrue);
       expect(authService.user, testAccount);
     });
 
     test('there is user information after successful sign in', () async {
-      await authService.signIn();
+      await pushUserChanged(testAccount);
 
+      expect(authService.user, isNotNull);
       expect(authService.user!.displayName, 'Dr. Test');
       expect(authService.user!.email, 'test@flutter.dev');
       expect(authService.user!.id, 'test123');
@@ -89,6 +88,13 @@ void main() {
         authService.user!.photoUrl,
         'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID',
       );
+    });
+
+    test('signIn method also works, but should be deprecated!', () async {
+      await authService.signIn();
+
+      expect(authService.isAuthenticated, true);
+      expect(authService.user, testAccount);
     });
 
     test('id token available with logged in user', () async {
@@ -100,12 +106,25 @@ void main() {
     });
 
     test('is not authenticated after failure in sign in', () async {
-      when(mockSignIn!.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-      when(mockSignIn!.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+      when(mockSignIn.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
 
       await authService.signIn();
 
       expect(authService.user, null);
+    });
+
+    test('clearUser removes the user without calling signOut', () async {
+      await pushUserChanged(testAccount);
+
+      expect(authService.isAuthenticated, isTrue);
+      expect(authService.user, testAccount);
+
+      await authService.clearUser();
+
+      expect(authService.isAuthenticated, isFalse);
+      expect(authService.user, isNull);
+      verifyNever(mockSignIn.signOut());
     });
   });
 }

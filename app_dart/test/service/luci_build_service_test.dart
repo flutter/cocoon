@@ -11,7 +11,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
-import 'package:cocoon_service/src/service/NoBuildFoundException.dart';
+import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -236,7 +236,10 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+        RepositorySlug.full(pullRequest.base!.repo!.fullName),
+        pullRequest.head!.sha!,
+        null,
+      );
       expect(builds, isEmpty);
     });
 
@@ -258,7 +261,10 @@ void main() {
         );
       });
       final Iterable<Build> builds = await service.getTryBuilds(
-          RepositorySlug.full(pullRequest.base!.repo!.fullName), pullRequest.head!.sha!, null);
+        RepositorySlug.full(pullRequest.base!.repo!.fullName),
+        pullRequest.head!.sha!,
+        null,
+      );
       expect(builds, equals(<Build>{macBuild, linuxBuild}));
     });
   });
@@ -497,7 +503,7 @@ void main() {
       final cocoon_checks.CheckRunEvent checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(jsonSubMap);
 
       expect(
-        () async => await service.reschedulePostsubmitBuildUsingCheckRunEvent(
+        () async => service.reschedulePostsubmitBuildUsingCheckRunEvent(
           checkRunEvent,
           commit: generateCommit(0),
           task: generateTask(0),

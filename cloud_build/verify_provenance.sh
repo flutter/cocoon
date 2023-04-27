@@ -13,7 +13,7 @@ SOURCE_URI=https://github.com/flutter/cocoon
 # Download the jq binary in order to obtain the artifact registry url from the
 # docker image provenance.
 echo "Installing jq using apt..."
-apt update && apt install jq=1.5+dfsg-1.3 -y
+apt update && apt install jq -y
 
 # Download slsa-verifier in order to validate the docker image provenance.
 # This takes the version of slsa-verifier defined in tooling/go.mod.
