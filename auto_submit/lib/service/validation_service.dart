@@ -297,7 +297,10 @@ class ValidationService {
     final int number = messagePullRequest.number!;
 
     // Determine if the pull request is mergeable before we attempt to merge it.
-    final ProcessMergeResult mergeResult = await isMergeable(slug, number,);
+    final ProcessMergeResult mergeResult = await isMergeable(
+      slug,
+      number,
+    );
     if (!mergeResult.result) {
       return mergeResult;
     }
@@ -354,11 +357,12 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
     final GithubService githubService = await config.createGithubService(slug);
     final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
-    
+
     bool result = true;
     String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
     if (pullRequest.mergeable == null) {
-      message = 'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
+      message =
+          'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
       result = false;
     } else if (pullRequest.mergeable == false) {
       result = false;
