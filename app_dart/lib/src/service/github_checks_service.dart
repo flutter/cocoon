@@ -54,7 +54,7 @@ class GithubChecksService {
       case 'rerequested':
         log.info('Check suite re-request for pull request ${pullRequest.number}, ${pullRequest.title}');
         pullRequest.head = github.PullRequestHead(sha: checkSuiteEvent.checkSuite?.headSha);
-        return await scheduler.retryPresubmitTargets(
+        return scheduler.retryPresubmitTargets(
           pullRequest: pullRequest,
           checkSuiteEvent: checkSuiteEvent,
         );

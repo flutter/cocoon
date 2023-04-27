@@ -42,7 +42,9 @@ Future<void> main() async {
       expect(erroredDevice.error!['code'], -10);
       expect(erroredDevice.error!['failureReason'], isEmpty);
       expect(
-          erroredDevice.error!['description'], contains('$deviceName is busy: Preparing $deviceName for development'));
+        erroredDevice.error!['description'],
+        contains('$deviceName is busy: Preparing $deviceName for development'),
+      );
       expect(erroredDevice.error!['recoverySuggestion'], 'Xcode will continue when $deviceName is finished.');
       expect(erroredDevice.error!['domain'], 'com.apple.platform.iphoneos');
     });

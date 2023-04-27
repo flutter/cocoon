@@ -136,7 +136,9 @@ class BatchBackfiller extends RequestHandler {
   /// Each element from [backfill] is encapsulated as a list in [tupleLists] to prepare for
   /// [scheduler.luciBuildService.schedulePostsubmitBuilds].
   List<Tuple<Target, FullTask, int>> _updateBackfill(
-      List<Tuple<Target, FullTask, int>> backfill, List<List<Tuple<Target, Task, int>>> tupleLists) {
+    List<Tuple<Target, FullTask, int>> backfill,
+    List<List<Tuple<Target, Task, int>>> tupleLists,
+  ) {
     final List<Tuple<Target, FullTask, int>> updatedBackfill = <Tuple<Target, FullTask, int>>[];
     for (int i = 0; i < tupleLists.length; i++) {
       if (tupleLists[i].isNotEmpty) {

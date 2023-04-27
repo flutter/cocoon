@@ -57,7 +57,7 @@ void main() {
         request.write(body);
         await request.flush();
       }
-      return await request.close();
+      return request.close();
     }
 
     test('failed authentication yields HTTP unauthorized', () async {

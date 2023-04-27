@@ -49,7 +49,7 @@ void main() {
 
   setUp(() {
     fakeAuthService = MockGoogleSignInService();
-    when(fakeAuthService.isAuthenticated).thenAnswer((_) => Future<bool>.value(true));
+    when(fakeAuthService.isAuthenticated).thenReturn(true);
     when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
 
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
@@ -187,7 +187,7 @@ void main() {
     expect((tester.widget(find.byKey(const Key('branch dropdown'))) as DropdownButton).value, equals('master'));
   });
 
-  testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
+  testWidgets('shows enabled Refresh GitHub Commits button when isAuthenticated', (WidgetTester tester) async {
     configureView(tester.view);
     final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
 
@@ -208,7 +208,41 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1)); // Finish the menu animation.
 
-    expect(find.text('Vacuum GitHub Commits'), findsOneWidget);
+    final Finder labelFinder = find.text('Refresh GitHub Commits');
+
+    expect(labelFinder, findsOneWidget);
+
+    final TextButton button = tester.element(labelFinder).findAncestorWidgetOfExactType<TextButton>()!;
+
+    expect(button.onPressed, isNotNull, reason: 'The button should have a non-null onPressed attribute.');
+  });
+
+  testWidgets('shows disabled Refresh GitHub Commits button when !isAuthenticated', (WidgetTester tester) async {
+    configureView(tester.view);
+    final BuildState fakeBuildState = FakeBuildState()..authService = fakeAuthService;
+    when(fakeAuthService.isAuthenticated).thenReturn(false);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    // Open settings overlay
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // Finish the menu animation.
+
+    final Finder labelFinder = find.text('Refresh GitHub Commits');
+    final TextButton button = tester.element(labelFinder).findAncestorWidgetOfExactType<TextButton>()!;
+
+    expect(button.onPressed, isNull, reason: 'The button should have a null onPressed attribute.');
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {

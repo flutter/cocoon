@@ -36,6 +36,7 @@ analyzer:
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
     - "**/*.pbenum.dart"
+    - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"
 
 linter:

@@ -95,6 +95,9 @@ class BuildState extends ChangeNotifier {
   @visibleForTesting
   static const String errorMessageFetchingRepos = 'An error occurred fetching repos from flutter/flutter on Cocoon.';
 
+  @visibleForTesting
+  static const String errorMessageRefreshGitHubCommits = 'An error occurred refreshing GitHub commits.';
+
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
   final Duration? refreshRate = const Duration(seconds: 30);
@@ -359,12 +362,26 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
-  Future<bool> refreshGitHubCommits() async => cocoonService.vacuumGitHubCommits(await authService.idToken);
+  Future<bool> refreshGitHubCommits() async {
+    if (!authService.isAuthenticated) {
+      return false;
+    }
+    final bool successful = await cocoonService.vacuumGitHubCommits(await authService.idToken);
+    if (!successful) {
+      _errors.send(errorMessageRefreshGitHubCommits);
+      await authService.clearUser();
+    }
+    return successful;
+  }
 
   Future<bool> rerunTask(Task task) async {
+    if (!authService.isAuthenticated) {
+      return false;
+    }
     final CocoonResponse<bool> response = await cocoonService.rerunTask(task, await authService.idToken, _currentRepo);
     if (response.error != null) {
       _errors.send('$errorMessageRerunTasks: ${response.error}');
+      await authService.clearUser();
       return false;
     }
     return true;

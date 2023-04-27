@@ -290,7 +290,7 @@ Future<void> main() async {
       '/readiness_check': ReadinessCheck(config: config),
     };
 
-    return await runAppEngine(
+    return runAppEngine(
       (HttpRequest request) async {
         if (handlers.containsKey(request.uri.path)) {
           final RequestHandler<dynamic> handler = handlers[request.uri.path]!;
@@ -312,7 +312,7 @@ Future<void> main() async {
           };
           if (redirects.containsKey(filePath)) {
             request.response.statusCode = HttpStatus.permanentRedirect;
-            return await request.response.redirect(Uri.parse(redirects[filePath]!));
+            return request.response.redirect(Uri.parse(redirects[filePath]!));
           }
 
           await StaticFileHandler(filePath, config: config).service(request);

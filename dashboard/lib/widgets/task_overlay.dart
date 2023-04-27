@@ -291,8 +291,20 @@ class TaskOverlayContents extends StatelessWidget {
                   if (qualifiedTask.isLuci)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
-                      child: ProgressButton(
-                        onPressed: _rerunTask,
+                      // The RERUN button is only enabled if the user is authenticated.
+                      child: AnimatedBuilder(
+                        animation: buildState,
+                        builder: (context, child) {
+                          final bool isAuthenticated = buildState.authService.isAuthenticated;
+                          return ProgressButton(
+                            onPressed: isAuthenticated
+                                ? () {
+                                    return _rerunTask(task);
+                                  }
+                                : null,
+                            child: child,
+                          );
+                        },
                         child: const Text('RERUN'),
                       ),
                     ),
@@ -305,7 +317,7 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
-  Future<void> _rerunTask() async {
+  Future<void> _rerunTask(Task task) async {
     final bool rerunResponse = await buildState.rerunTask(task);
     if (rerunResponse) {
       showSnackBarCallback(

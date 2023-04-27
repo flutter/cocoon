@@ -19,7 +19,7 @@ ECHO Running flutter tests from %1
 PUSHD %1
 
 CALL flutter packages get
-CALL flutter analyze
+CALL flutter analyze --fatal-infos
 CALL flutter format --line-length=120 --set-exit-if-changed lib/ test/
 CALL flutter test --test-randomize-ordering-seed=random --reporter expanded
 
