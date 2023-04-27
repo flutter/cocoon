@@ -66,3 +66,15 @@ directories.
 Imports in Dart files in this project should follow the rules
 enforced by the `directives_ordering` lint described
 [here](https://dart-lang.github.io/linter/lints/directives_ordering.html).
+
+## Tests
+
+### Updating Goldens
+
+The build dashboard has a few custom render objects to optimize rendering of a large 2D array of rects.
+
+The tests require a linux host to be updated:
+
+```sh
+flutter test --update-goldens
+```
