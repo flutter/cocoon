@@ -13,7 +13,6 @@ import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 import 'package:mutex/mutex.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:io/io.dart';
 
 /// The [RepositoryConfigurationManager] is responsible for fetching and merging
 /// the autosubmit configuration from the Org level repository and if needed

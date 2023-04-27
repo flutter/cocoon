@@ -279,7 +279,7 @@ void main() {
       );
       expect(
           globalRepositoryConfiguration.supportNoReviewReverts != mergedRepositoryConfiguration.supportNoReviewReverts,
-          isTrue);
+          isTrue,);
       expect(mergedRepositoryConfiguration.supportNoReviewReverts, expectedSupportNoReviewReverts);
     });
 
