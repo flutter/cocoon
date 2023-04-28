@@ -168,13 +168,20 @@ class GithubService {
       throw 'Contents do not point to a file.';
     }
     final String content = utf8.decode(base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')));
-    log.info('githubService: $content');
     return content;
   }
 
+  /// Check to see if user is a member of team in org.
+  /// 
+  /// Note that we catch here as the api returns a 404 if the user has no
+  /// membership in general or is not a member of the team.
   Future<bool> isTeamMember(String team, String user, String org) async {
-    final TeamMembershipState teamMembershipState = await github.organizations.getTeamMembershipByName(org, team, user);
-    return teamMembershipState.isActive;
+    try {
+      final TeamMembershipState teamMembershipState = await github.organizations.getTeamMembershipByName(org, team, user);
+      return teamMembershipState.isActive;
+    } on GitHubError {
+      return false;
+    }
   }
 
   /// Get the definition of a single repository
