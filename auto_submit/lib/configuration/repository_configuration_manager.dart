@@ -92,7 +92,7 @@ class RepositoryConfigurationManager {
           localRepositoryConfiguration,
         );
         return mergedRepositoryConfiguration.toString().codeUnits;
-      } on Exception {
+      } on GitHubError {
         log.warning(
           'Configuration override was set but no local repository configuration file was found in ${slug.fullName}, using global configuration.',
         );
