@@ -20,15 +20,22 @@ class RepositoryConfiguration {
   static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
 
   RepositoryConfiguration({
-    this.allowConfigOverride,
-    this.defaultBranch,
-    this.autoApprovalAccounts,
-    this.approvingReviews,
-    this.approvalGroup,
-    this.runCi,
-    this.supportNoReviewReverts,
-    this.requiredCheckRunsOnRevert,
-  });
+    allowConfigOverride,
+    defaultBranch,
+    autoApprovalAccounts,
+    approvingReviews,
+    approvalGroup,
+    runCi,
+    supportNoReviewReverts,
+    requiredCheckRunsOnRevert,
+  })  : allowConfigOverride = allowConfigOverride ?? false,
+        defaultBranch = defaultBranch ?? 'main',
+        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
+        approvingReviews = approvingReviews ?? 2,
+        approvalGroup = approvalGroup ?? 'flutter-hackers',
+        runCi = runCi ?? true,
+        supportNoReviewReverts = supportNoReviewReverts ?? true,
+        requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
 
   /// This flag allows the repository to override the org level configuration.
   bool? allowConfigOverride;
@@ -89,7 +96,7 @@ class RepositoryConfiguration {
         autoApprovalAccounts.add(element as String);
       }
     }
-    
+
     if (yamlDoc[approvalGroupKey] == null) {
       throw ConfigurationException('The approval group is a required field.');
     }
@@ -103,13 +110,13 @@ class RepositoryConfiguration {
     }
 
     return RepositoryConfiguration(
-      allowConfigOverride: yamlDoc[allowConfigOverrideKey] ?? false,
-      defaultBranch: yamlDoc[defaultBranchKey] ?? 'main',
+      allowConfigOverride: yamlDoc[allowConfigOverrideKey],
+      defaultBranch: yamlDoc[defaultBranchKey],
       autoApprovalAccounts: autoApprovalAccounts,
-      approvingReviews: yamlDoc[approvingReviewsKey] ?? 2,
+      approvingReviews: yamlDoc[approvingReviewsKey],
       approvalGroup: yamlDoc[approvalGroupKey],
-      runCi: yamlDoc[runCiKey] ?? true,
-      supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] ?? true,
+      runCi: yamlDoc[runCiKey],
+      supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey],
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
     );
   }

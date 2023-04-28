@@ -172,12 +172,13 @@ class GithubService {
   }
 
   /// Check to see if user is a member of team in org.
-  /// 
+  ///
   /// Note that we catch here as the api returns a 404 if the user has no
   /// membership in general or is not a member of the team.
   Future<bool> isTeamMember(String team, String user, String org) async {
     try {
-      final TeamMembershipState teamMembershipState = await github.organizations.getTeamMembershipByName(org, team, user);
+      final TeamMembershipState teamMembershipState =
+          await github.organizations.getTeamMembershipByName(org, team, user);
       return teamMembershipState.isActive;
     } on GitHubError {
       return false;
