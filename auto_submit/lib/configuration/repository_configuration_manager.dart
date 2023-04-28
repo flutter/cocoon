@@ -17,7 +17,6 @@ import 'package:neat_cache/neat_cache.dart';
 /// It will attempt to access the cache first before repulling the configuraiton
 /// from the repositories. This is currently set at a 10 minute TTL.
 class RepositoryConfigurationManager {
-
   RepositoryConfigurationManager(this.config, this.cache);
 
   // Mutex protects the calls to cache while the [RepositoryConfiguration] is
@@ -83,8 +82,7 @@ class RepositoryConfigurationManager {
 
       String? localRepositoryConfigurationYaml;
       try {
-        localRepositoryConfigurationYaml =
-            await githubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
+        localRepositoryConfigurationYaml = await githubService.getFileContents(slug, '$dirName$fileSeparator$fileName');
         final RepositoryConfiguration localRepositoryConfiguration =
             RepositoryConfiguration.fromYaml(localRepositoryConfigurationYaml);
         final RepositoryConfiguration mergedRepositoryConfiguration = mergeConfigurations(
