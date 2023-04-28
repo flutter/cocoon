@@ -38,33 +38,33 @@ class RepositoryConfiguration {
         requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
 
   /// This flag allows the repository to override the org level configuration.
-  bool? allowConfigOverride;
+  bool allowConfigOverride;
 
   /// The default branch that pull requests will be merged into.
-  String? defaultBranch;
+  String defaultBranch;
 
   /// The accounts that have auto approval on their pull requests.
-  Set<String>? autoApprovalAccounts;
+  Set<String> autoApprovalAccounts;
 
   /// The number of reviews needed for a pull request. If the reviewer is part
   /// of the approval group they will need ([approvingReviews] - 1) number of
   /// reviews in order to merge the pull request, if they are not part of the
   /// approval group the will need [approvingReviews] number of reviews.
-  int? approvingReviews;
+  int approvingReviews;
 
   /// The group that the pull request author will need pull requests from.
-  String? approvalGroup;
+  String approvalGroup;
 
   /// Flag to determine whether or not to wait for all the ci checks to finish
   /// before allowing a merge of the pull request.
-  bool? runCi;
+  bool runCi;
 
   /// Flag that determines if reverts are allowed without a review.
-  bool? supportNoReviewReverts;
+  bool supportNoReviewReverts;
 
   /// Set of checkruns that must complete before a revert pull request can be
   /// merged.
-  Set<String>? requiredCheckRunsOnRevert;
+  Set<String> requiredCheckRunsOnRevert;
 
   @override
   String toString() {
@@ -72,7 +72,7 @@ class RepositoryConfiguration {
     stringBuffer.writeln('$allowConfigOverrideKey: $allowConfigOverride');
     stringBuffer.writeln('$defaultBranchKey: $defaultBranch');
     stringBuffer.writeln('$autoApprovalAccountsKey:');
-    for (String account in autoApprovalAccounts!) {
+    for (String account in autoApprovalAccounts) {
       stringBuffer.writeln('  - $account');
     }
     stringBuffer.writeln('$approvingReviewsKey: $approvingReviews');
@@ -80,7 +80,7 @@ class RepositoryConfiguration {
     stringBuffer.writeln('$runCiKey: $runCi');
     stringBuffer.writeln('$supportNoReviewRevertKey: $supportNoReviewReverts');
     stringBuffer.writeln('$requiredCheckRunsOnRevertKey:');
-    for (String checkrun in requiredCheckRunsOnRevert!) {
+    for (String checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
     return stringBuffer.toString();

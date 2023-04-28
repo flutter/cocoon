@@ -55,18 +55,18 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.length, 4);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("Google-testing"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("test (ubuntu-latest, 2.18.0)"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("cla/google"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 4);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("test (ubuntu-latest, 2.18.0)"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("cla/google"), isTrue);
   });
 
   test('Omitted issues_repository assumes provided slug is for issues', () async {
@@ -93,16 +93,16 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("Google-testing"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
   });
 
   test('Default branch collected if omitted', () async {
@@ -129,16 +129,16 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts!.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("ci.yaml validation"), isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.contains("Google-testing"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("ci.yaml validation"), isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.contains("Google-testing"), isTrue);
   });
 
   group('Merging configurations tests', () {
@@ -168,15 +168,15 @@ void main() {
       );
       expect(mergedRepositoryConfiguration.defaultBranch, 'main');
       expect(mergedRepositoryConfiguration.allowConfigOverride, isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 3);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot[bot]'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('DartDevtoolWorkflowBot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 3);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot[bot]'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('DartDevtoolWorkflowBot'), isTrue);
       expect(mergedRepositoryConfiguration.approvingReviews, 2);
       expect(mergedRepositoryConfiguration.runCi, isTrue);
       expect(mergedRepositoryConfiguration.supportNoReviewReverts, isTrue);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.length, 1);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains('ci.yaml validation'), isTrue);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length, 1);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
     });
 
     test('Auto approval accounts is additive, they cannot be removed', () {
@@ -190,11 +190,11 @@ void main() {
         globalRepositoryConfiguration,
         localRepositoryConfiguration,
       );
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 4);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot[bot]'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('DartDevtoolWorkflowBot'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains(expectedAddedApprovalAccount), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 4);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot[bot]'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('DartDevtoolWorkflowBot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains(expectedAddedApprovalAccount), isTrue);
     });
 
     test('Duplicate auto approval account is not added', () {
@@ -208,10 +208,10 @@ void main() {
         globalRepositoryConfiguration,
         localRepositoryConfiguration,
       );
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.length, 3);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot[bot]'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('dependabot'), isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts!.contains('DartDevtoolWorkflowBot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 3);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot[bot]'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('dependabot'), isTrue);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.contains('DartDevtoolWorkflowBot'), isTrue);
     });
 
     test('Approving reviews is overridden by local config', () {
@@ -295,9 +295,9 @@ void main() {
         globalRepositoryConfiguration,
         localRepositoryConfiguration,
       );
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.length, 2);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains('ci.yaml validation'), isTrue);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains(expectedRequiredCheckRun), isTrue);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains('ci.yaml validation'), isTrue);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(expectedRequiredCheckRun), isTrue);
     });
 
     test('Duplicate required check run on revert is not added', () {
@@ -311,8 +311,8 @@ void main() {
         globalRepositoryConfiguration,
         localRepositoryConfiguration,
       );
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.length, 1);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert!.contains(expectedRequiredCheckRun), isTrue);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length, 1);
+      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(expectedRequiredCheckRun), isTrue);
     });
   });
 }

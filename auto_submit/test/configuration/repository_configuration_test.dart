@@ -24,11 +24,11 @@ void main() {
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
   });
 
   test('Parse config from yaml excluding auto approval accounts', () {
@@ -45,11 +45,11 @@ void main() {
 
     final RepositoryConfiguration repositoryConfiguration = RepositoryConfiguration.fromYaml(sampleConfig);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
   });
 
   test('Parse config from yaml with empty auto_approval_accounts field', () {
@@ -71,11 +71,11 @@ void main() {
 
     expect(repositoryConfiguration.allowConfigOverride, false);
     expect(repositoryConfiguration.defaultBranch, 'main');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isNotEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty, isTrue);
   });
 
   test('Parse minimal configuration', () {
@@ -90,10 +90,10 @@ void main() {
     repositoryConfiguration.defaultBranch = 'master';
 
     expect(repositoryConfiguration.defaultBranch, 'master');
-    expect(repositoryConfiguration.autoApprovalAccounts!.isEmpty, isTrue);
+    expect(repositoryConfiguration.autoApprovalAccounts.isEmpty, isTrue);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.runCi, isTrue);
     expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert!.isEmpty, isTrue);
+    expect(repositoryConfiguration.requiredCheckRunsOnRevert.isEmpty, isTrue);
   });
 }

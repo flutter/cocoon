@@ -81,6 +81,9 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
+  /// Repository configuration variables
+  Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
+
   /// PubSub configs
   static const String pubsubTopicsPrefix = 'projects/flutter-dashboard/topics';
   static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard/subscriptions';
@@ -103,9 +106,9 @@ class Config {
   /// Pull request approval message
   static const String pullRequestApprovalRequirementsMessage =
       '- Merge guidelines: You need at least one approved review if you are already '
-      'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
-      'autosubmit label. __Reviewers__: If you left a comment approving, please use '
-      'the "approve" review action instead.';
+      'part of flutter-hackers or two member reviews if you are not a flutter-hacker '
+      'before re-applying the autosubmit label. __Reviewers__: If you left a comment '
+      'approving, please use the "approve" review action instead.';
 
   /// Config object members
   final CacheProvider cacheProvider;
