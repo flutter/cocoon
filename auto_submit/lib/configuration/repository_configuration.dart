@@ -23,7 +23,7 @@ class RepositoryConfigurationBuilder {
   set defaultBranch(String value) => _defaultBranch = value;
 
   set autoApprovalAccounts(Set<String>? value) {
-    if (value != null && value.isNotEmpty) {
+    if (value != null) {
       _autoApprovalAccounts = value;
     }
   }
@@ -60,14 +60,14 @@ class RepositoryConfigurationBuilder {
 /// repository.
 class RepositoryConfiguration {
   // Autosubmit configuration keys as found in the yaml configuraiton file.
-  static const String ALLOW_CONFIG_OVERRIDE_KEY = 'allow_config_override';
-  static const String DEFAULT_BRANCH_KEY = 'default_branch';
-  static const String AUTO_APPROVAL_ACCOUNTS_KEY = 'auto_approval_accounts';
-  static const String APPROVING_REVIEWS_KEY = 'approving_reviews';
-  static const String APPROVAL_GROUP_KEY = 'approval_group';
-  static const String RUN_CI_KEY = 'run_ci';
-  static const String SUPPORT_NO_REVIEW_REVERT_KEY = 'support_no_review_revert';
-  static const String REQUIRED_CHECK_RUNS_KEY = 'required_checkruns_on_revert';
+  static const String allowConfigOverrideKey = 'allow_config_override';
+  static const String defaultBranchKey = 'default_branch';
+  static const String autoApprovalAccountsKey = 'auto_approval_accounts';
+  static const String approvingReviewsKey = 'approving_reviews';
+  static const String approvalGroupKey = 'approval_group';
+  static const String runCiKey = 'run_ci';
+  static const String supportNoReviewRevertKey = 'support_no_review_revert';
+  static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
 
   RepositoryConfiguration({
     this.allowConfigOverride,
@@ -90,9 +90,9 @@ class RepositoryConfiguration {
   Set<String>? autoApprovalAccounts;
 
   /// The number of reviews needed for a pull request. If the reviewer is part
-  /// of the approval group they will need (approvingReviews - 1) number of
+  /// of the approval group they will need ([approvingReviews] - 1) number of
   /// reviews in order to merge the pull request, if they are not part of the
-  /// approval group the will need approvingReviews number of reviews.
+  /// approval group the will need [approvingReviews] number of reviews.
   int? approvingReviews;
 
   /// The group that the pull request author will need pull requests from.
@@ -112,17 +112,17 @@ class RepositoryConfiguration {
   @override
   String toString() {
     final StringBuffer stringBuffer = StringBuffer();
-    stringBuffer.writeln('$ALLOW_CONFIG_OVERRIDE_KEY: $allowConfigOverride');
-    stringBuffer.writeln('$DEFAULT_BRANCH_KEY: $defaultBranch');
-    stringBuffer.writeln('$AUTO_APPROVAL_ACCOUNTS_KEY:');
+    stringBuffer.writeln('$allowConfigOverrideKey: $allowConfigOverride');
+    stringBuffer.writeln('$defaultBranchKey: $defaultBranch');
+    stringBuffer.writeln('$autoApprovalAccountsKey:');
     for (String account in autoApprovalAccounts!) {
       stringBuffer.writeln('  - $account');
     }
-    stringBuffer.writeln('$APPROVING_REVIEWS_KEY: $approvingReviews');
-    stringBuffer.writeln('$APPROVAL_GROUP_KEY: $approvalGroup');
-    stringBuffer.writeln('$RUN_CI_KEY: $runCi');
-    stringBuffer.writeln('$SUPPORT_NO_REVIEW_REVERT_KEY: $supportNoReviewReverts');
-    stringBuffer.writeln('$REQUIRED_CHECK_RUNS_KEY:');
+    stringBuffer.writeln('$approvingReviewsKey: $approvingReviews');
+    stringBuffer.writeln('$approvalGroupKey: $approvalGroup');
+    stringBuffer.writeln('$runCiKey: $runCi');
+    stringBuffer.writeln('$supportNoReviewRevertKey: $supportNoReviewReverts');
+    stringBuffer.writeln('$requiredCheckRunsOnRevertKey:');
     for (String checkrun in requiredCheckRunsOnRevert!) {
       stringBuffer.writeln('  - $checkrun');
     }
@@ -134,17 +134,17 @@ class RepositoryConfiguration {
 
     final dynamic yamlDoc = loadYaml(yaml);
 
-    if (yamlDoc[ALLOW_CONFIG_OVERRIDE_KEY] != null) {
-      builder.allowConfigOverride = yamlDoc[ALLOW_CONFIG_OVERRIDE_KEY];
+    if (yamlDoc[allowConfigOverrideKey] != null) {
+      builder.allowConfigOverride = yamlDoc[allowConfigOverrideKey];
     }
 
     // Default branch is required.
-    if (yamlDoc[DEFAULT_BRANCH_KEY] != null) {
-      builder.defaultBranch = yamlDoc[DEFAULT_BRANCH_KEY];
+    if (yamlDoc[defaultBranchKey] != null) {
+      builder.defaultBranch = yamlDoc[defaultBranchKey];
     }
 
     final Set<String> autoApprovalAccounts = {};
-    final YamlList? yamlAutoApprovalAccounts = yamlDoc[AUTO_APPROVAL_ACCOUNTS_KEY];
+    final YamlList? yamlAutoApprovalAccounts = yamlDoc[autoApprovalAccountsKey];
     if (yamlAutoApprovalAccounts != null) {
       for (var element in yamlAutoApprovalAccounts) {
         autoApprovalAccounts.add(element as String);
@@ -152,20 +152,20 @@ class RepositoryConfiguration {
     }
     builder.autoApprovalAccounts = autoApprovalAccounts;
 
-    builder.approvingReviews = yamlDoc[APPROVING_REVIEWS_KEY];
+    builder.approvingReviews = yamlDoc[approvingReviewsKey];
 
-    if (yamlDoc[APPROVAL_GROUP_KEY] != null) {
-      builder.approvalGroup = yamlDoc[APPROVAL_GROUP_KEY];
+    if (yamlDoc[approvalGroupKey] != null) {
+      builder.approvalGroup = yamlDoc[approvalGroupKey];
     } else {
       throw ConfigurationException('The approval group is a required field.');
     }
 
-    builder.runCi = yamlDoc[RUN_CI_KEY];
+    builder.runCi = yamlDoc[runCiKey];
 
-    builder.supportNoReviewReverts = yamlDoc[SUPPORT_NO_REVIEW_REVERT_KEY];
+    builder.supportNoReviewReverts = yamlDoc[supportNoReviewRevertKey];
 
     final Set<String> requiredCheckRunsOnRevert = {};
-    final YamlList? yamlRequiredCheckRuns = yamlDoc[REQUIRED_CHECK_RUNS_KEY];
+    final YamlList? yamlRequiredCheckRuns = yamlDoc[requiredCheckRunsOnRevertKey];
     if (yamlRequiredCheckRuns != null) {
       for (var element in yamlRequiredCheckRuns) {
         requiredCheckRunsOnRevert.add(element as String);

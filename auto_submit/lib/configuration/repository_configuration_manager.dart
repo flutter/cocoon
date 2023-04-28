@@ -19,7 +19,7 @@ import 'package:neat_cache/neat_cache.dart';
 class RepositoryConfigurationManager {
   final Mutex _mutex = Mutex();
 
-  static String fileSeparator = '/';
+  static const String fileSeparator = '/';
   // This is the well named organization level repository and configuration file
   // we will read before looking to see if there is a local file with
   // overwrites.
