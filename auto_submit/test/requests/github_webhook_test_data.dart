@@ -86,6 +86,7 @@ PullRequest generatePullRequest({
   String state = 'open',
   String? body = 'Please pull these awesome changes in!',
   String title = 'Amazing new feature',
+  bool? mergeable = true,
 }) {
   return PullRequest.fromJson(
     json.decode('''{
@@ -144,7 +145,7 @@ PullRequest generatePullRequest({
         }
       },
       "author_association": "$authorAssociation",
-      "mergeable": true,
+      "mergeable": $mergeable,
       "mergeable_state": "clean"
   }''') as Map<String, dynamic>,
   );
