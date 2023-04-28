@@ -129,7 +129,6 @@ class RepositoryConfigurationManager {
     );
 
     // auto approval accounts, they should be empty if nothing was defined
-    mergedRepositoryConfiguration.autoApprovalAccounts = globalConfiguration.autoApprovalAccounts;
     if (localConfiguration.autoApprovalAccounts.isNotEmpty) {
       mergedRepositoryConfiguration.autoApprovalAccounts.addAll(localConfiguration.autoApprovalAccounts);
     }
@@ -161,7 +160,6 @@ class RepositoryConfigurationManager {
     }
 
     // required checkruns on revert, they should be empty if nothing was defined
-    mergedRepositoryConfiguration.requiredCheckRunsOnRevert = globalConfiguration.requiredCheckRunsOnRevert;
     if (localConfiguration.requiredCheckRunsOnRevert.isNotEmpty) {
       mergedRepositoryConfiguration.requiredCheckRunsOnRevert.addAll(localConfiguration.requiredCheckRunsOnRevert);
     }
