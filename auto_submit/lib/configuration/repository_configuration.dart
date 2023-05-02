@@ -9,7 +9,8 @@ import 'package:yaml/yaml.dart';
 /// will need when submiting and validating pull requests for a particular
 /// repository.
 class RepositoryConfiguration {
-  // Autosubmit configuration keys as found in the yaml configuraiton file.
+  // Autosubmit configuration keys as found in the both the global and local
+  // yaml configuraiton files.
   static const String allowConfigOverrideKey = 'allow_config_override';
   static const String defaultBranchKey = 'default_branch';
   static const String autoApprovalAccountsKey = 'auto_approval_accounts';
@@ -18,6 +19,16 @@ class RepositoryConfiguration {
   static const String runCiKey = 'run_ci';
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey = 'required_checkruns_on_revert';
+
+  // Default values
+  static const bool allowConfigOverrideDefault = false;
+  static const String defaultBranchDefault = 'main';
+  static const Set<String> autoApprovalAccountsDefault = <String>{};
+  static const int approvingReviewsDefault = 2;
+  static const String approvalGroupDefault = 'flutter-hackers';
+  static const bool runCiDefault = true;
+  static const bool supportNoReviewRevertsDefault = true;
+  static const Set<String> requiredCheckRunsOnRevertDefault = <String>{};
 
   RepositoryConfiguration({
     allowConfigOverride,
@@ -89,11 +100,11 @@ class RepositoryConfiguration {
   static RepositoryConfiguration fromYaml(String yaml) {
     final dynamic yamlDoc = loadYaml(yaml);
 
-    final Set<String> autoApprovalAccounts = {};
+    final Set<String> autoApprovalAccounts = <String>{};
     final YamlList? yamlAutoApprovalAccounts = yamlDoc[autoApprovalAccountsKey];
     if (yamlAutoApprovalAccounts != null) {
-      for (var element in yamlAutoApprovalAccounts) {
-        autoApprovalAccounts.add(element as String);
+      for (YamlNode element in yamlAutoApprovalAccounts.nodes) {
+        autoApprovalAccounts.add(element.value as String);
       }
     }
 
@@ -101,11 +112,11 @@ class RepositoryConfiguration {
       throw ConfigurationException('The approval group is a required field.');
     }
 
-    final Set<String> requiredCheckRunsOnRevert = {};
+    final Set<String> requiredCheckRunsOnRevert = <String>{};
     final YamlList? yamlRequiredCheckRuns = yamlDoc[requiredCheckRunsOnRevertKey];
     if (yamlRequiredCheckRuns != null) {
-      for (var element in yamlRequiredCheckRuns) {
-        requiredCheckRunsOnRevert.add(element as String);
+      for (YamlNode element in yamlRequiredCheckRuns.nodes) {
+        requiredCheckRunsOnRevert.add(element.value as String);
       }
     }
 
