@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/bigquery.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -38,6 +39,7 @@ class FakeConfig extends Config {
   String? webhookKey;
   int? kPubsubPullNumberValue;
   BigqueryService? bigqueryService;
+  RepositoryConfiguration? repositoryConfigurationMock;
 
   @override
   int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;
@@ -53,6 +55,7 @@ class FakeConfig extends Config {
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient(RepositorySlug slug) async => githubGraphQLClient!;
+
   @override
   Set<String> get rollerAccounts =>
       rollerAccountsValue ??
@@ -78,4 +81,7 @@ class FakeConfig extends Config {
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
+
+  @override
+  Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async => repositoryConfigurationMock!;
 }

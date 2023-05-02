@@ -26,13 +26,13 @@ dependencies:
   gql: ^0.14.0
   graphql: ^5.1.3
   grpc: ^3.1.0
-  http: ^0.13.5
+  http: ^0.13.6
   json_annotation: ^4.7.0
   logging: ^1.1.0
   meta: ^1.8.0
   mime: ^1.0.2
   mutex: ^3.0.1
-  neat_cache: ^2.0.2
+  neat_cache: ^2.0.3
   path: ^1.8.2
   process: ^4.2.4
   process_runner: ^4.1.2

@@ -295,9 +295,20 @@ class ValidationService {
   }) async {
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
     final int number = messagePullRequest.number!;
+
+    // Determine if the pull request is mergeable before we attempt to merge it.
+    final ProcessMergeResult mergeResult = await isMergeable(
+      slug,
+      number,
+    );
+    if (!mergeResult.result) {
+      return mergeResult;
+    }
+
     // Pass an explicit commit message from the PR title otherwise the GitHub API will use the first commit message.
     const String revertPattern = 'Revert "Revert';
     String messagePrefix = '';
+
     if (messagePullRequest.title!.contains(revertPattern)) {
       // Cleanup auto-generated revert messages.
       messagePrefix = '''
@@ -305,6 +316,7 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 ''';
     }
+
     final String prBody = _sanitizePrBody(messagePullRequest.body ?? '');
     final String commitMessage = '$messagePrefix$prBody';
 
@@ -339,6 +351,25 @@ ${messagePullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     }
 
     return ProcessMergeResult(true, commitMessage);
+  }
+
+  /// Determine if a pull request is mergeable at this time.
+  Future<ProcessMergeResult> isMergeable(github.RepositorySlug slug, int pullRequestNumber) async {
+    final GithubService githubService = await config.createGithubService(slug);
+    final github.PullRequest pullRequest = await githubService.getPullRequest(slug, pullRequestNumber);
+
+    bool result = true;
+    String message = 'Pull request ${slug.fullName}/$pullRequestNumber is mergeable';
+    if (pullRequest.mergeable == null) {
+      message =
+          'Mergeability of pull request ${slug.fullName}/$pullRequestNumber could not be determined at time of merge.';
+      result = false;
+    } else if (pullRequest.mergeable == false) {
+      result = false;
+      message = 'Pull request ${slug.fullName}/$pullRequestNumber is not in a mergeable state.';
+    }
+    log.info(message);
+    return ProcessMergeResult(result, message);
   }
 
   /// Remove a pull request label and add a comment to the pull request.
