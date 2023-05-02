@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:auto_submit/model/auto_submit_query_result.dart';
+import 'package:auto_submit/service/github_service.dart';
 import 'package:auto_submit/service/log.dart';
-import 'package:github/github.dart' as gh;
+import 'package:github/github.dart' as github;
 
+import '../configuration/repository_configuration.dart';
 import '../service/config.dart';
 
 /// Function signature for a [ApproverService] provider.
@@ -22,35 +24,54 @@ class ApproverService {
     return ApproverService(config);
   }
 
-  Future<void> autoApproval(gh.PullRequest pullRequest) async {
-    final String? author = pullRequest.user!.login;
+  /// Get the auto approval accounts from the configuration is any are supplied.
+  Future<Set<String>> getAutoApprovalAccounts(github.RepositorySlug slug) async {
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+    final Set<String> approvalAccounts = repositoryConfiguration.autoApprovalAccounts!;
+    return approvalAccounts;
+  }
 
-    if (!config.rollerAccounts.contains(author)) {
+  Future<void> autoApproval(github.PullRequest pullRequest) async {
+    final String? author = pullRequest.user!.login;
+    final Set<String> approvalAccounts =
+        await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
+
+    log.info('Determining auto approval of $author.');
+
+    // If there are auto_approvers let them approve the pull request.
+    if (!approvalAccounts.contains(author)) {
       log.info('Auto-review ignored for $author');
     } else {
+      log.info('Auto approval detected.');
       await _approve(pullRequest, author);
     }
   }
 
   /// Auto approves a pull request when the revert label is present.
-  Future<void> revertApproval(QueryResult queryResult, gh.PullRequest pullRequest) async {
-    final Set<String> approvedAuthorAssociations = <String>{'MEMBER', 'OWNER'};
-
+  Future<void> revertApproval(QueryResult queryResult, github.PullRequest pullRequest) async {
     final String? author = pullRequest.user!.login;
     // Use the QueryResult for this field
-    final String? authorAssociation = queryResult.repository!.pullRequest!.authorAssociation;
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
 
-    log.info('Attempting to approve revert request by author $author, authorAssociation $authorAssociation.');
+    log.info('Attempting to approve revert request ${slug.fullName}/${pullRequest.number} by author $author.');
 
-    final List<String> labelNames =
-        (pullRequest.labels as List<gh.IssueLabel>).map<String>((gh.IssueLabel labelMap) => labelMap.name).toList();
+    final List<String> labelNames = (pullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
 
-    log.info('Found labels $labelNames on this pullRequest.');
+    log.info('Found labels $labelNames on this pull request ${slug.fullName}/${pullRequest.number}.');
+
+    final Set<String> approvalAccounts =
+        await getAutoApprovalAccounts(github.RepositorySlug.full(pullRequest.base!.repo!.fullName));
+
+    final GithubService githubService = await config.createGithubService(slug);
 
     if (labelNames.contains(Config.kRevertLabel) &&
-        (config.rollerAccounts.contains(author) || approvedAuthorAssociations.contains(authorAssociation))) {
+        (approvalAccounts.contains(author) ||
+            await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner))) {
       log.info(
-        'Revert label and author has been validated. Attempting to approve the pull request. ${pullRequest.repo} by $author',
+        'Revert label and author has been validated. Attempting to approve the pull request ${slug.fullName}/${pullRequest.number} by $author',
       );
       await _approve(pullRequest, author);
     } else {
@@ -58,21 +79,23 @@ class ApproverService {
     }
   }
 
-  Future<void> _approve(gh.PullRequest pullRequest, String? author) async {
-    final gh.RepositorySlug slug = pullRequest.base!.repo!.slug();
-    final gh.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
+  Future<void> _approve(github.PullRequest pullRequest, String? author) async {
+    final github.RepositorySlug slug = pullRequest.base!.repo!.slug();
+    final github.GitHub botClient = await config.createFlutterGitHubBotClient(slug);
 
-    final Stream<gh.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
-    await for (gh.PullRequestReview review in reviews) {
+    final Stream<github.PullRequestReview> reviews = botClient.pullRequests.listReviews(slug, pullRequest.number!);
+    // TODO(ricardoamador) this will need to be refactored to make this code more general and
+    // not applicable to only flutter.
+    await for (github.PullRequestReview review in reviews) {
       if (review.user.login == 'fluttergithubbot' && review.state == 'APPROVED') {
         // Already approved.
         return;
       }
     }
 
-    final gh.CreatePullRequestReview review =
-        gh.CreatePullRequestReview(slug.owner, slug.name, pullRequest.number!, 'APPROVE');
+    final github.CreatePullRequestReview review =
+        github.CreatePullRequestReview(slug.owner, slug.name, pullRequest.number!, 'APPROVE');
     await botClient.pullRequests.createReview(slug, review);
-    log.info('Review for $author complete');
+    log.info('Review for ${slug.fullName}/${pullRequest.number} complete');
   }
 }

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart' as auto;
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -10,7 +11,6 @@ import 'package:auto_submit/validations/validation.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
-import '../exception/retryable_exception.dart';
 import '../service/log.dart';
 
 class Revert extends Validation {
@@ -25,19 +25,19 @@ class Revert extends Validation {
   @override
   Future<ValidationResult> validate(auto.QueryResult result, github.PullRequest messagePullRequest) async {
     final auto.PullRequest pullRequest = result.repository!.pullRequest!;
-    final String authorAssociation = pullRequest.authorAssociation!;
     final String? author = pullRequest.author!.login;
-    final auto.Commit commit = pullRequest.commits!.nodes!.single.commit!;
-    final String? sha = commit.oid;
 
     final github.RepositorySlug slug = messagePullRequest.base!.repo!.slug();
+
+    final RepositoryConfiguration repositoryConfiguration = await config.getRepositoryConfiguration(slug);
+
     GithubService githubService = await config.createGithubService(slug);
     final github.PullRequest updatedPullRequest = await githubService.getPullRequest(
       slug,
       messagePullRequest.number!,
     );
 
-    if (!isValidAuthor(author, authorAssociation)) {
+    if (!await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner)) {
       final String message = 'The author $author does not have permissions to make this request.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);
@@ -74,14 +74,14 @@ class Revert extends Validation {
     final github.RepositorySlug repositorySlug = _getSlugFromLink(revertLink);
     githubService = await config.createGithubService(repositorySlug);
 
-    final bool requiredChecksCompleted = await waitForRequiredChecks(
-      githubService: githubService,
-      slug: repositorySlug,
-      sha: sha!,
-      checkNames: requiredCheckRunsMapping[repositorySlug.name]!,
+    ///TODO(ricardoamador) this should be moved out to the main validations class as a separate check.
+    final RequiredCheckRuns requiredCheckRuns = RequiredCheckRuns(config: config);
+    final ValidationResult validationResult = await requiredCheckRuns.validate(
+      result,
+      updatedPullRequest,
     );
 
-    if (!requiredChecksCompleted) {
+    if (!validationResult.result) {
       return ValidationResult(
         false,
         Action.IGNORE_TEMPORARILY,
@@ -145,67 +145,5 @@ class Revert extends Validation {
   int _getPullRequestNumberFromLink(String link) {
     final List<String> linkSplit = link.split('#');
     return int.parse(linkSplit.elementAt(1));
-  }
-
-  /// Wait for the required checks to complete, and if repository has no checks
-  /// true is returned.
-  Future<bool> waitForRequiredChecks({
-    required GithubService githubService,
-    required github.RepositorySlug slug,
-    required String sha,
-    required List<String> checkNames,
-  }) async {
-    final List<github.CheckRun> targetCheckRuns = [];
-    for (var element in checkNames) {
-      targetCheckRuns.addAll(
-        await githubService.getCheckRunsFiltered(
-          slug: slug,
-          ref: sha,
-          checkName: element,
-        ),
-      );
-    }
-
-    bool checksCompleted = true;
-
-    try {
-      for (github.CheckRun checkRun in targetCheckRuns) {
-        await retryOptions.retry(
-          () async {
-            await _verifyCheckRunCompleted(
-              slug,
-              githubService,
-              checkRun,
-            );
-          },
-          retryIf: (Exception e) => e is RetryableException,
-        );
-      }
-    } catch (e) {
-      log.warning('Required check has not completed in time. ${e.toString()}');
-      checksCompleted = false;
-    }
-
-    return checksCompleted;
-  }
-}
-
-/// Function signature that will be executed with retries.
-typedef RetryHandler = Function();
-
-/// Simple function to wait on completed checkRuns with retries.
-Future<void> _verifyCheckRunCompleted(
-  github.RepositorySlug slug,
-  GithubService githubService,
-  github.CheckRun targetCheckRun,
-) async {
-  final List<github.CheckRun> checkRuns = await githubService.getCheckRunsFiltered(
-    slug: slug,
-    ref: targetCheckRun.headSha!,
-    checkName: targetCheckRun.name,
-  );
-
-  if (checkRuns.first.name != targetCheckRun.name || checkRuns.first.conclusion != github.CheckRunConclusion.success) {
-    throw RetryableException('${targetCheckRun.name} has not yet completed.');
   }
 }
