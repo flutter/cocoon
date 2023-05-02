@@ -48,7 +48,7 @@ class ValidationService {
         await config.getRepositoryConfiguration(messagePullRequest.base!.repo!.slug());
 
     ProcessMethod processMethod;
-    if (!repositoryConfiguration.supportNoReviewReverts!) {
+    if (!repositoryConfiguration.supportNoReviewReverts) {
       processMethod = ProcessMethod.processAutosubmit;
     } else {
       processMethod = await processPullRequestMethod(messagePullRequest);

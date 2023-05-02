@@ -37,7 +37,7 @@ class Revert extends Validation {
       messagePullRequest.number!,
     );
 
-    if (!await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner)) {
+    if (!await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner)) {
       final String message = 'The author $author does not have permissions to make this request.';
       log.info(message);
       return ValidationResult(false, Action.REMOVE_LABEL, message);

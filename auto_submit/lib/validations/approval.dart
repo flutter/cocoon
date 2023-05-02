@@ -31,7 +31,7 @@ class Approval extends Validation {
 
     bool approved = false;
     String message = '';
-    if (repositoryConfiguration.autoApprovalAccounts!.contains(author)) {
+    if (repositoryConfiguration.autoApprovalAccounts.contains(author)) {
       approved = true;
       log.info('PR ${slug.fullName}/${messagePullRequest.number} approved by roller account: $author');
       return ValidationResult(approved, Action.REMOVE_LABEL, '');
@@ -111,11 +111,11 @@ class Approver {
   /// Changes requested will supercede any approvals and the autosubmit bot will
   /// not make any merges until the change requests are fixed.
   Future<void> computeApproval() async {
-    _remainingReviews = repositoryConfiguration.approvingReviews!;
+    _remainingReviews = repositoryConfiguration.approvingReviews;
     // team might be more than one in the future.
     // TODO this might be failing if the member is not a team member with exception.
     final bool authorIsMember =
-        await githubService.isTeamMember(repositoryConfiguration.approvalGroup!, author!, slug.owner);
+        await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
 
     // The author counts as 1 review if they are a member of the approval group
     // so we need only 1 more review from a member of the approval group.
@@ -137,7 +137,7 @@ class Approver {
 
       // Ignore reviews from non-members/owners.
       if (!await githubService.isTeamMember(
-        repositoryConfiguration.approvalGroup!,
+        repositoryConfiguration.approvalGroup,
         review.author!.login!,
         slug.owner,
       )) {
@@ -164,6 +164,6 @@ class Approver {
       _reviewAuthors.add(authorLogin);
     }
 
-    _approved = (_approvers.length > repositoryConfiguration.approvingReviews! - 1) && _changeRequestAuthors.isEmpty;
+    _approved = (_approvers.length > repositoryConfiguration.approvingReviews - 1) && _changeRequestAuthors.isEmpty;
   }
 }
