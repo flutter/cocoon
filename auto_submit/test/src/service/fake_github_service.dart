@@ -35,6 +35,7 @@ class FakeGithubService implements GithubService {
   String? pullRequestMergeMock;
   String? pullRequestFilesJsonMock;
   Issue? githubIssueMock;
+  String? githubFileContents;
 
   bool useMergeRequestMockList = false;
   bool trackMergeRequestCalls = false;
@@ -312,5 +313,48 @@ class FakeGithubService implements GithubService {
       assert(expected.containsKey(key));
       assert(expected[key] == value);
     });
+  }
+
+  bool throwExceptionFileContents = false;
+
+  List<String> fileContentsMockList = [];
+
+  @override
+  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
+    if (throwExceptionFileContents) {
+      throw 'Contents do not point to a file.';
+    }
+
+    // Assume that the list is not empty.
+    return fileContentsMockList.removeAt(0);
+  }
+
+  TeamMembershipState? teamMembershipStateMock = TeamMembershipState('active');
+
+  String defaultBranch = 'main';
+  bool throwOnDefaultBranch = false;
+  Exception exception = Exception('Generic exception.');
+
+  @override
+  Future<String> getDefaultBranch(RepositorySlug slug) async {
+    if (throwOnDefaultBranch) {
+      throw exception;
+    } else {
+      return defaultBranch;
+    }
+  }
+
+  Repository repositoryMock = Repository();
+
+  @override
+  Future<Repository> getRepository(RepositorySlug slug) async {
+    return repositoryMock;
+  }
+
+  List<bool> isTeamMemberMockList = [];
+
+  @override
+  Future<bool> isTeamMember(String team, String user, String org) async {
+    return isTeamMemberMockList.removeAt(0);
   }
 }

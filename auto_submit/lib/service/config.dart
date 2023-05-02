@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:auto_submit/configuration/repository_configuration.dart';
+import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -23,11 +25,15 @@ import 'log.dart';
 
 /// Configuration for the autosubmit engine.
 class Config {
-  const Config({
+  Config({
     required this.cacheProvider,
     this.httpProvider = Providers.freshHttpClient,
     required this.secretManager,
-  });
+  }) {
+    repositoryConfigurationManager = RepositoryConfigurationManager(this, cache);
+  }
+
+  late RepositoryConfigurationManager repositoryConfigurationManager;
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
@@ -75,6 +81,15 @@ class Config {
   /// https://github.com/flutter/cocoon/pull/2035/files#r938143840.
   int get kPubsubPullNumber => 5;
 
+  /// Repository configuration variables
+  Duration get repositoryConfigurationTtl => const Duration(minutes: 10);
+
+  /// PubSub configs
+  static const String pubsubTopicsPrefix = 'projects/flutter-dashboard/topics';
+  static const String pubsubSubscriptionsPrefix = 'projects/flutter-dashboard/subscriptions';
+  static const String pubsubPullRequestTopic = 'auto-submit-queue';
+  static const String pubsubPullRequestSubscription = 'auto-submit-queue-sub';
+
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(
     delayFactor: Duration(milliseconds: 200),
@@ -91,9 +106,9 @@ class Config {
   /// Pull request approval message
   static const String pullRequestApprovalRequirementsMessage =
       '- Merge guidelines: You need at least one approved review if you are already '
-      'a MEMBER or two member reviews if you are not a MEMBER before re-applying the '
-      'autosubmit label. __Reviewers__: If you left a comment approving, please use '
-      'the "approve" review action instead.';
+      'part of flutter-hackers or two member reviews if you are not a flutter-hacker '
+      'before re-applying the autosubmit label. __Reviewers__: If you left a comment '
+      'approving, please use the "approve" review action instead.';
 
   /// Config object members
   final CacheProvider cacheProvider;
@@ -101,6 +116,10 @@ class Config {
   final SecretManager secretManager;
 
   Cache get cache => Cache<dynamic>(cacheProvider).withPrefix('config');
+
+  Future<RepositoryConfiguration> getRepositoryConfiguration(RepositorySlug slug) async {
+    return repositoryConfigurationManager.readRepositoryConfiguration(slug);
+  }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
     final GitHub github = await createGithubClient(slug);

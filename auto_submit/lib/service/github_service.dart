@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:auto_submit/service/log.dart';
 import 'package:github/github.dart';
 
@@ -158,6 +159,40 @@ class GithubService {
       final String headSha = pullRequest.head!.sha!;
       await updateBranch(slug, prNumber, headSha);
     }
+  }
+
+  /// Get contents from a repository at the supplied path.
+  Future<String> getFileContents(RepositorySlug slug, String path, {String? ref}) async {
+    final RepositoryContents repositoryContents = await github.repositories.getContents(slug, path, ref: ref);
+    if (!repositoryContents.isFile) {
+      throw 'Contents do not point to a file.';
+    }
+    final String content = utf8.decode(base64.decode(repositoryContents.file!.content!.replaceAll('\n', '')));
+    return content;
+  }
+
+  /// Check to see if user is a member of team in org.
+  ///
+  /// Note that we catch here as the api returns a 404 if the user has no
+  /// membership in general or is not a member of the team.
+  Future<bool> isTeamMember(String team, String user, String org) async {
+    try {
+      final TeamMembershipState teamMembershipState =
+          await github.organizations.getTeamMembershipByName(org, team, user);
+      return teamMembershipState.isActive;
+    } on GitHubError {
+      return false;
+    }
+  }
+
+  /// Get the definition of a single repository
+  Future<Repository> getRepository(RepositorySlug slug) async {
+    return github.repositories.getRepository(slug);
+  }
+
+  Future<String> getDefaultBranch(RepositorySlug slug) async {
+    final Repository repository = await getRepository(slug);
+    return repository.defaultBranch;
   }
 
   /// Compare the filesets of the current pull request and the original pull
