@@ -102,7 +102,7 @@ void main() {
   });
 
   test('Revert request is not auto approved on bad author association.', () async {
-    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user', authorAssociation: 'CONTRIBUTOR');
+    final gh.PullRequest pr = generatePullRequest(author: 'not_a_user');
 
     final PullRequestHelper flutterRequest = PullRequestHelper(
       prNumber: 0,

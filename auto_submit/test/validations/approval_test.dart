@@ -42,19 +42,13 @@ void main() {
     }
 
     test('Author and reviewer in flutter-hackers, pr approved', () async {
-      // TODO(ricardoamador) this does not matter much now that we check group membership,
-      // remove and refactor.
       final String review = constructSingleReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
         reviewState: 'APPROVED',
       );
 
       // githubService.isTeamMemberMockList = [true, true];
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['keyonghan'] = true;
-      // author1
-      // keyonghan
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
@@ -67,8 +61,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['keyonghan'] = true;
       final String review = constructSingleReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
         reviewState: 'APPROVED',
       );
 
@@ -85,8 +77,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['keyonghan'] = false;
       final String review = constructSingleReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
       );
 
@@ -103,8 +93,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['keyonghan'] = false;
       final String review = constructSingleReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
       );
 
@@ -121,9 +109,6 @@ void main() {
       githubService.isTeamMemberMockMap['author2'] = true;
       githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'OWNER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
@@ -140,9 +125,6 @@ void main() {
       githubService.isTeamMemberMockMap['author2'] = true;
       githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
@@ -160,9 +142,6 @@ void main() {
       githubService.isTeamMemberMockMap['author2'] = false;
       githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'NONMEMBER',
-        secondReviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
@@ -180,9 +159,6 @@ void main() {
       githubService.isTeamMemberMockMap['author2'] = false;
       githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'NONMEMBER',
-        secondReviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
       );
@@ -201,10 +177,6 @@ void main() {
       githubService.isTeamMemberMockMap['keyonghan'] = false;
       githubService.isTeamMemberMockMap['nehalvpatel'] = false;
       final String review = constructMultipleReviewerReview(
-        authorAuthorAssociation: 'NONMEMBER',
-        reviewerAuthorAssociation: 'NONMEMBER',
-        secondReviewerAuthorAssociation: 'NONMEMBER',
-        thirdReviewerAuthorAssociation: 'NONMEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
         thirdReviewState: 'APPROVED',
@@ -224,10 +196,6 @@ void main() {
       githubService.isTeamMemberMockMap['keyonghan'] = true;
       githubService.isTeamMemberMockMap['nehalvpatel'] = true;
       final String review = constructMultipleReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'MEMBER',
-        thirdReviewerAuthorAssociation: 'MEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
         thirdReviewState: 'APPROVED',
@@ -244,8 +212,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = true;
       githubService.isTeamMemberMockMap['keyonghan'] = true;
       final String review = constructSingleReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
         reviewState: 'CHANGES_REQUESTED',
       );
 
@@ -262,9 +228,6 @@ void main() {
       githubService.isTeamMemberMockMap['author2'] = true;
       githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'MEMBER',
         reviewState: 'CHANGES_REQUESTED',
         secondReviewState: 'APPROVED',
       );
@@ -281,9 +244,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['ricardoamador'] = true;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'CONTRIBUTOR',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'MEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
         author: 'ricardoamador',
@@ -317,9 +277,6 @@ void main() {
       githubService.isTeamMemberMockMap['author1'] = false;
       githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
-        authorAuthorAssociation: 'MEMBER',
-        reviewerAuthorAssociation: 'MEMBER',
-        secondReviewerAuthorAssociation: 'NON_MEMBER',
         reviewState: 'APPROVED',
         secondReviewState: 'APPROVED',
         author: 'author1',

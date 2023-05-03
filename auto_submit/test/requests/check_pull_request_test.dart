@@ -607,7 +607,6 @@ void main() {
     test('Removes the label if non member does not have at least 2 member reviews', () async {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
-        authorAssociation: '',
       );
       githubService.pullRequestData = pullRequest;
       // 'octocat' is the pr author from generatePullRequest calls.

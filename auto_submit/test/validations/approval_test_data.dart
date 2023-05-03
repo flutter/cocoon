@@ -3,8 +3,6 @@
 // found in the LICENSE file.
 
 String constructSingleReviewerReview({
-  required String authorAuthorAssociation,
-  required String reviewerAuthorAssociation,
   required String reviewState,
 }) {
   return '''
@@ -14,7 +12,6 @@ String constructSingleReviewerReview({
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "$authorAuthorAssociation",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "[dependabot] Remove human reviewers",
         "commits": {
@@ -44,7 +41,6 @@ String constructSingleReviewerReview({
               "author": {
                 "login": "keyonghan"
               },
-              "authorAssociation": "$reviewerAuthorAssociation",
               "state": "$reviewState"
             }
           ]
@@ -56,9 +52,6 @@ String constructSingleReviewerReview({
 }
 
 String constructTwoReviewerReview({
-  required String authorAuthorAssociation,
-  required String reviewerAuthorAssociation,
-  required String secondReviewerAuthorAssociation,
   required String reviewState,
   required String secondReviewState,
   String author = 'author2',
@@ -71,7 +64,6 @@ String constructTwoReviewerReview({
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "$authorAuthorAssociation",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "[dependabot] Remove human reviewers",
         "commits": {
@@ -101,14 +93,12 @@ String constructTwoReviewerReview({
               "author": {
                 "login": "$author"
               },
-              "authorAssociation": "$reviewerAuthorAssociation",
               "state": "$reviewState"
             },
             {
               "author": {
                 "login": "$secondAuthor"
               },
-              "authorAssociation": "$secondReviewerAuthorAssociation",
               "state": "$secondReviewState"
             }
           ]
@@ -120,10 +110,6 @@ String constructTwoReviewerReview({
 }
 
 String constructMultipleReviewerReview({
-  required String authorAuthorAssociation,
-  required String reviewerAuthorAssociation,
-  required String secondReviewerAuthorAssociation,
-  required String thirdReviewerAuthorAssociation,
   required String reviewState,
   required String secondReviewState,
   required String thirdReviewState,
@@ -135,7 +121,6 @@ String constructMultipleReviewerReview({
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "$authorAuthorAssociation",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "[dependabot] Remove human reviewers",
         "commits": {
@@ -165,21 +150,18 @@ String constructMultipleReviewerReview({
               "author": {
                 "login": "keyonghan"
               },
-              "authorAssociation": "$reviewerAuthorAssociation",
               "state": "$reviewState"
             },
             {
               "author": {
                 "login": "ricardoamador"
               },
-              "authorAssociation": "$secondReviewerAuthorAssociation",
               "state": "$secondReviewState"
             },
             {
               "author": {
                 "login": "nehalvpatel"
               },
-              "authorAssociation": "$thirdReviewerAuthorAssociation",
               "state": "$thirdReviewState"
             }
           ]
@@ -198,7 +180,6 @@ const String multipleReviewsSameAuthor = '''
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "MEMBER",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "[dependabot] Remove human reviewers",
         "commits": {
@@ -229,35 +210,30 @@ const String multipleReviewsSameAuthor = '''
                 "login": "jmagman"
               },
               "state": "COMMENTED",
-              "authorAssociation": "MEMBER"
             },
             {
               "author": {
                 "login": "keyonghan"
               },
               "state": "COMMENTED",
-              "authorAssociation": "MEMBER"
             },
             {
               "author": {
                 "login": "jmagman"
               },
               "state": "APPROVED",
-              "authorAssociation": "MEMBER"
             },
             {
               "author": {
                 "login": "jmagman"
               },
               "state": "CHANGES_REQUESTED",
-              "authorAssociation": "MEMBER"
             },
             {
               "author": {
                 "login": "jmagman"
               },
               "state": "APPROVED",
-              "authorAssociation": "MEMBER"
             }
           ]
         }

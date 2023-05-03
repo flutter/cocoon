@@ -40,30 +40,6 @@ void main() {
     );
   });
 
-  group('Author validation tests.', () {
-    test('Validate author association member is valid.', () {
-      const String authorAssociation = 'MEMBER';
-      assert(revert.isValidAuthor('octocat', authorAssociation));
-    });
-
-    test('Validate author association owner is valid.', () {
-      const String authorAssociation = 'OWNER';
-      assert(revert.isValidAuthor('octocat', authorAssociation));
-    });
-
-    test('Validate author dependabot is valid.', () {
-      const String author = 'dependabot';
-      const String authorAssociation = 'NON_MEMBER';
-      assert(revert.isValidAuthor(author, authorAssociation));
-    });
-
-    test('Validate autoroller account is valid.', () {
-      const String author = 'engine-flutter-autoroll';
-      const String authorAssociation = 'CONTRIBUTOR';
-      assert(revert.isValidAuthor(author, authorAssociation));
-    });
-  });
-
   group('Pattern matching for revert text link', () {
     test('Link extraction from description is successful.', () {
       // input, expected
@@ -190,8 +166,6 @@ void main() {
       );
     });
 
-    // TODO this is not using a shortened version of retry options and takes
-    // about 5 seconds to complete.
     test('Validation returns on checkRun that has not completed.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
       githubService.isTeamMemberMockMap['author1'] = true;

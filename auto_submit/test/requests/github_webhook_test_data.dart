@@ -12,7 +12,6 @@ String generateWebhookEvent({
   String? autosubmitLabel,
   String? repoName,
   String? login,
-  String? authorAssociation,
 }) {
   return '''{
       "action": "open",
@@ -68,7 +67,6 @@ String generateWebhookEvent({
               }
             }
           },
-          "author_association": "${authorAssociation ?? "OWNER"}",
           "mergeable": true,
           "mergeable_state": "clean"
       }
@@ -80,7 +78,6 @@ PullRequest generatePullRequest({
   String? autosubmitLabel = Config.kAutosubmitLabel,
   String repoName = 'flutter',
   String login = 'flutter',
-  String authorAssociation = 'OWNER',
   String author = 'octocat',
   int prNumber = 1347,
   String state = 'open',
@@ -144,7 +141,6 @@ PullRequest generatePullRequest({
           }
         }
       },
-      "author_association": "$authorAssociation",
       "mergeable": $mergeable,
       "mergeable_state": "clean"
   }''') as Map<String, dynamic>,
@@ -160,7 +156,6 @@ const String reviewsMock = '''[
     },
     "body": "Here is the body for the review.",
     "state": "APPROVED",
-    "author_association": "OWNER"
   }
 ]''';
 
@@ -173,7 +168,6 @@ const String unApprovedReviewsMock = '''[
     },
     "body": "Here is the body for the review.",
     "state": "CHANGES_REQUESTED",
-    "author_association": "OWNER"
   }
 ]''';
 

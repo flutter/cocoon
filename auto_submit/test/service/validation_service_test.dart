@@ -141,7 +141,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -192,7 +191,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -233,7 +231,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         mergeable: true,
       );
@@ -277,7 +274,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
@@ -338,7 +334,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -397,7 +392,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -461,7 +455,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
         mergeable: true,
@@ -541,7 +534,6 @@ void main() {
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         repoName: slug.name,
-        authorAssociation: 'OWNER',
         labelName: 'revert',
         body: 'Reverts flutter/flutter#1234',
       );
