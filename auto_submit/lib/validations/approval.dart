@@ -36,7 +36,8 @@ class Approval extends Validation {
       return ValidationResult(approved, Action.REMOVE_LABEL, '');
     } else {
       final GithubService githubService = await config.createGithubService(slug);
-      final bool authorIsFlutterHacker = await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
+      final bool authorIsFlutterHacker =
+          await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
       final Approver approver = Approver(
         slug,
         repositoryConfiguration,
@@ -52,7 +53,9 @@ class Approval extends Validation {
       );
 
       String approvedMessage;
-      final String flutterHackerMessage = (authorIsFlutterHacker) ? 'You are a member of ${repositoryConfiguration.approvalGroup}' : 'You are not a member of ${repositoryConfiguration.approvalGroup}';
+      final String flutterHackerMessage = (authorIsFlutterHacker)
+          ? 'You are a member of ${repositoryConfiguration.approvalGroup}'
+          : 'You are not a member of ${repositoryConfiguration.approvalGroup}';
       // Changes were requested, review count does not matter.
       if (approver.changeRequestAuthors.isNotEmpty) {
         approved = false;

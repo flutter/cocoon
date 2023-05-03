@@ -286,7 +286,10 @@ void main() {
 
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
-      expect(result.message.contains('This PR has not met approval requirements for merging. You are not a member of flutter-hackers'), isTrue);
+      expect(
+          result.message.contains(
+              'This PR has not met approval requirements for merging. You are not a member of flutter-hackers'),
+          isTrue);
     });
   });
 }
