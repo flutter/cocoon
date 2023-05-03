@@ -132,11 +132,13 @@ void main() {
     }
 
     test('Multiple identical messages are processed once', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest1 = generatePullRequest(
         prNumber: 0,
         repoName: cocoonRepo,
       );
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       githubService.pullRequestData = pullRequest1;
       for (int i = 0; i < 2; i++) {
         unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest1));
@@ -194,7 +196,6 @@ void main() {
     });
 
     test('Merge exception is handled correctly', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
@@ -202,6 +203,9 @@ void main() {
       );
 
       githubService.pullRequestData = pullRequest1;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
 
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
@@ -260,14 +264,16 @@ void main() {
     });
 
     test('Merges PR with successful status and checks', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest1;
-
+      // 'octocat' is the pr author from generatePullRequest calls.
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -362,11 +368,13 @@ void main() {
     });
 
     test('Merges PR with failed tree status if override tree status label is provided', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         labelName: labelName,
       );
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       githubService.pullRequestData = pullRequest;
       unawaited(
         pubsub.publish(
@@ -411,9 +419,11 @@ void main() {
     });
 
     test('Merges a clean revert PR with in progress tests', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(
         config: config,
@@ -452,12 +462,14 @@ void main() {
     });
 
     test('Merges PR with successful checks on repo without tree status', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(
@@ -493,13 +505,15 @@ void main() {
     });
 
     test('Merges PR with neutral status checkrun', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest1;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -527,13 +541,15 @@ void main() {
     });
 
     test('Removes the label for the PR with failed tests', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest1;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -561,9 +577,11 @@ void main() {
     });
 
     test('Removes the label for the PR with failed status', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(
@@ -587,12 +605,13 @@ void main() {
     });
 
     test('Removes the label if non member does not have at least 2 member reviews', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         authorAssociation: '',
       );
       githubService.pullRequestData = pullRequest;
+      // 'octocat' is the pr author from generatePullRequest calls.
+      githubService.isTeamMemberMockMap['octocat'] = false;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
       checkPullRequest = CheckPullRequest(
@@ -616,9 +635,10 @@ void main() {
     });
 
     test('Removes the label for the PR with null checks and statuses', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(prNumber: 0);
       githubService.pullRequestData = pullRequest;
+      // 'octocat' is the pr author from generatePullRequest calls.
+      githubService.isTeamMemberMockMap['octocat'] = true;
       unawaited(pubsub.publish(testTopic, pullRequest));
 
       githubService.checkRunsData = emptyCheckRunsMock;
@@ -640,13 +660,15 @@ void main() {
     });
 
     test('Does not merge PR with in progress checks', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
       final PullRequest pullRequest1 = generatePullRequest(prNumber: 0);
       final PullRequest pullRequest2 = generatePullRequest(
         prNumber: 1,
         repoName: cocoonRepo,
       );
       githubService.pullRequestData = pullRequest1;
+      // 'member' is in the review nodes and 'author1' is the pr author.
+      githubService.isTeamMemberMockMap['member'] = true;
+      githubService.isTeamMemberMockMap['author1'] = true;
       final List<PullRequest> pullRequests = <PullRequest>[pullRequest1, pullRequest2];
       for (PullRequest pr in pullRequests) {
         unawaited(pubsub.publish(testTopic, pr));
@@ -694,12 +716,13 @@ void main() {
     });
 
     test('Self review is disallowed', () async {
-      githubService.isTeamMemberMockList = [true, true];
       final PullRequest pullRequest = generatePullRequest(
         prNumber: 0,
         author: 'some_rando',
       );
       githubService.pullRequestData = pullRequest;
+      // 'octocat' is the pr author from generatePullRequest calls.
+      githubService.isTeamMemberMockMap['some_rando'] = true;
       unawaited(pubsub.publish(testTopic, pullRequest));
       checkPullRequest = CheckPullRequest(
         config: config,

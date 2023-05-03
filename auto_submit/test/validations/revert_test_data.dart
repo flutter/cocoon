@@ -148,6 +148,7 @@ const String revertPullRequestJson = """
     }
   },
   "author_association": "MEMBER",
+  "author": "ricardoamador",
   "auto_merge": null,
   "active_lock_reason": null,
   "merged": false,

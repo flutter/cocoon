@@ -122,7 +122,7 @@ void main() {
   group('Validate Pull Requests.', () {
     test('Validation fails on author validation, returns error.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [false];
+      githubService.isTeamMemberMockMap['author1'] = false;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.authorAssociation = 'CONTRIBUTOR';
@@ -138,7 +138,7 @@ void main() {
 
     test('Validation fails on merge conflict flag.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = false;
@@ -157,7 +157,7 @@ void main() {
 
     test('Validation is postponed on null mergeable value', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.mergeable = null;
@@ -173,7 +173,7 @@ void main() {
 
     test('Validation fails on malformed reverts link in the pr body.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       revertPullRequest.body = 'Reverting flutter/cocoon#1234';
@@ -194,7 +194,7 @@ void main() {
     // about 5 seconds to complete.
     test('Validation returns on checkRun that has not completed.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -231,7 +231,7 @@ void main() {
 
     test('Validation fails on pull request file lists not matching.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =
@@ -264,7 +264,7 @@ void main() {
 
     test('Validation is successful.', () async {
       githubService.fileContentsMockList = [sampleConfigNoOverride, sampleConfigNoOverride];
-      githubService.isTeamMemberMockList = [true];
+      githubService.isTeamMemberMockMap['author1'] = true;
       final Map<String, dynamic> pullRequestJsonMap = jsonDecode(revertPullRequestJson) as Map<String, dynamic>;
       final github.PullRequest revertPullRequest = github.PullRequest.fromJson(pullRequestJsonMap);
       final Map<String, dynamic> queryResultJsonDecode =

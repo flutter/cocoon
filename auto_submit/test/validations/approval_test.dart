@@ -50,7 +50,11 @@ void main() {
         reviewState: 'APPROVED',
       );
 
-      githubService.isTeamMemberMockList = [true, true];
+      // githubService.isTeamMemberMockList = [true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['keyonghan'] = true;
+      // author1
+      // keyonghan
       final ValidationResult result = await computeValidationResult(review);
 
       expect(result.result, isTrue);
@@ -59,7 +63,9 @@ void main() {
     });
 
     test('Author is a NON member and reviewer is a member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [false, true];
+      // githubService.isTeamMemberMockList = [true, true];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['keyonghan'] = true;
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -75,7 +81,9 @@ void main() {
     });
 
     test('Author is a NON member and reviewer is a NON member, need 2 more reviews', () async {
-      githubService.isTeamMemberMockList = [false, false];
+      // githubService.isTeamMemberMockList = [true, true];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['keyonghan'] = false;
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -91,7 +99,9 @@ void main() {
     });
 
     test('Author is a member and reviewer is NON member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [true, false];
+      // githubService.isTeamMemberMockList = [true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['keyonghan'] = false;
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -107,7 +117,9 @@ void main() {
     });
 
     test('Author is NON member and reviewers are members, pr approved', () async {
-      githubService.isTeamMemberMockList = [false, true, true];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['author2'] = true;
+      githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -124,7 +136,9 @@ void main() {
     });
 
     test('Author is NON member and one reviewer is a NON member, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [false, true, false];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['author2'] = true;
+      githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -142,7 +156,9 @@ void main() {
     });
 
     test('Author is member and reviewers are NON members, need 1 more review', () async {
-      githubService.isTeamMemberMockList = [true, false, false];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['author2'] = false;
+      githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -160,7 +176,9 @@ void main() {
     });
 
     test('Author is NON member and reviewers are NON members, need 2 reviews', () async {
-      githubService.isTeamMemberMockList = [false, false, false];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['author2'] = false;
+      githubService.isTeamMemberMockMap['author3'] = false;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -178,7 +196,10 @@ void main() {
     });
 
     test('Verify author review count does not go negative', () async {
-      githubService.isTeamMemberMockList = [false, false, false, false];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['ricardoamador'] = false;
+      githubService.isTeamMemberMockMap['keyonghan'] = false;
+      githubService.isTeamMemberMockMap['nehalvpatel'] = false;
       final String review = constructMultipleReviewerReview(
         authorAuthorAssociation: 'NONMEMBER',
         reviewerAuthorAssociation: 'NONMEMBER',
@@ -198,7 +219,10 @@ void main() {
     });
 
     test('Verify author review count does not go negative', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['ricardoamador'] = true;
+      githubService.isTeamMemberMockMap['keyonghan'] = true;
+      githubService.isTeamMemberMockMap['nehalvpatel'] = true;
       final String review = constructMultipleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -217,7 +241,8 @@ void main() {
     });
 
     test('Author is member and member requests changes, 1 review is needed', () async {
-      githubService.isTeamMemberMockList = [true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['keyonghan'] = true;
       final String review = constructSingleReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -233,7 +258,9 @@ void main() {
     });
 
     test('Author is member and two member reviews, 1 change request, review is not approved', () async {
-      githubService.isTeamMemberMockList = [true, true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['author2'] = true;
+      githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',
@@ -251,7 +278,8 @@ void main() {
     });
 
     test('Multiple approving reviews from the same author are counted only 1 time.', () async {
-      githubService.isTeamMemberMockList = [false, true, true];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['ricardoamador'] = true;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'CONTRIBUTOR',
         reviewerAuthorAssociation: 'MEMBER',
@@ -275,7 +303,9 @@ void main() {
     });
 
     test('Successful review overwrites previous changes requested.', () async {
-      githubService.isTeamMemberMockList = [true, true, true, true, true, true];
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['keyonghan'] = true;
+      githubService.isTeamMemberMockMap['jmagman'] = true;
       final ValidationResult result = await computeValidationResult(multipleReviewsSameAuthor);
 
       expect(result.result, isTrue);
@@ -284,7 +314,8 @@ void main() {
     });
 
     test('Author cannot review own pr', () async {
-      githubService.isTeamMemberMockList = [true, false, true];
+      githubService.isTeamMemberMockMap['author1'] = false;
+      githubService.isTeamMemberMockMap['author3'] = true;
       final String review = constructTwoReviewerReview(
         authorAuthorAssociation: 'MEMBER',
         reviewerAuthorAssociation: 'MEMBER',

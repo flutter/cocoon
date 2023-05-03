@@ -70,7 +70,8 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockList = [true, true];
+    githubService.isTeamMemberMockMap['author1'] = true;
+    githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(prNumber: 0, repoName: slug.name);
     unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
@@ -97,7 +98,8 @@ void main() {
     );
     githubService.checkRunsData = checkRunsMock;
     githubService.createCommentData = createCommentMock;
-    githubService.isTeamMemberMockList = [true, true];
+    githubService.isTeamMemberMockMap['author1'] = true;
+    githubService.isTeamMemberMockMap['member'] = true;
     final FakePubSub pubsub = FakePubSub();
     final PullRequest pullRequest = generatePullRequest(
       prNumber: 0,
