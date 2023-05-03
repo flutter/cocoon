@@ -256,7 +256,7 @@ void main() {
       expect(result.action, Action.REMOVE_LABEL);
       expect(
         result.message.contains(
-          'This PR has not met approval requirements for merging. You have project association CONTRIBUTOR and need 1 more review(s) in order to merge this PR.',
+          'This PR has not met approval requirements for merging. You are not a member of flutter-hackers and need 1 more review(s) in order to merge this PR.',
         ),
         isTrue,
       );
@@ -286,7 +286,7 @@ void main() {
 
       expect(result.result, isFalse);
       expect(result.action, Action.REMOVE_LABEL);
-      expect(result.message.contains('This PR has not met approval requirements for merging. You have'), isTrue);
+      expect(result.message.contains('This PR has not met approval requirements for merging. You are not a member of flutter-hackers'), isTrue);
     });
   });
 }

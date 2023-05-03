@@ -173,7 +173,6 @@ String constructMultipleReviewerReview({
 }
 
 const String multipleReviewsSameAuthor = '''
-
 {
     "repository": {
       "pullRequest": {
@@ -209,31 +208,31 @@ const String multipleReviewsSameAuthor = '''
               "author": {
                 "login": "jmagman"
               },
-              "state": "COMMENTED",
+              "state": "COMMENTED"
             },
             {
               "author": {
                 "login": "keyonghan"
               },
-              "state": "COMMENTED",
+              "state": "COMMENTED"
             },
             {
               "author": {
                 "login": "jmagman"
               },
-              "state": "APPROVED",
+              "state": "APPROVED"
             },
             {
               "author": {
                 "login": "jmagman"
               },
-              "state": "CHANGES_REQUESTED",
+              "state": "CHANGES_REQUESTED"
             },
             {
               "author": {
                 "login": "jmagman"
               },
-              "state": "APPROVED",
+              "state": "APPROVED"
             }
           ]
         }
