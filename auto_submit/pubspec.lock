@@ -371,7 +371,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.8.0"
+    version: "4.8.1"
   json_serializable:
     dependency: "direct dev"
     description:
@@ -425,8 +425,7 @@ packages:
     dependency: "direct main"
     description:
       name: mutex
-      sha256: "03116a4e46282a671b46c12de649d72c0ed18188ffe12a8d0fc63e83f4ad88f4"
-      url: "https://pub.dev"
+      url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
   neat_cache:
