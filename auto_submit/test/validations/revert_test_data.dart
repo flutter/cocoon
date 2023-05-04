@@ -9,7 +9,6 @@ const String queryResultRepositoryOwnerJson = """
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "OWNER",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "Revert Trailing comma analysis",
         "commits": {
@@ -44,7 +43,6 @@ const String queryResultRepositoryContributorJson = """
         "author": {
           "login": "author1"
         },
-        "authorAssociation": "CONTRIBUTOR",
         "id": "PR_kwDOA8VHis43rs4_",
         "title": "Revert Trailing comma analysis",
         "commits": {
@@ -147,7 +145,7 @@ const String revertPullRequestJson = """
       "default_branch": "main"
     }
   },
-  "author_association": "MEMBER",
+  "author": "ricardoamador",
   "auto_merge": null,
   "active_lock_reason": null,
   "merged": false,
@@ -404,7 +402,6 @@ const String originalPullRequestJson = """
       "default_branch": "main"
     }
   },
-  "author_association": "MEMBER",
   "auto_merge": null,
   "active_lock_reason": null,
   "merged": true,

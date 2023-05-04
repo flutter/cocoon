@@ -40,6 +40,7 @@ class GithubWebhook extends RequestHandler {
     final List<int> requestBytes = await request.read().expand((_) => _).toList();
     final String? hmacSignature = request.headers['X-Hub-Signature'];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
+      log.info('User is forbidden');
       throw const Forbidden();
     }
 
@@ -59,7 +60,7 @@ class GithubWebhook extends RequestHandler {
 
     if (hasAutosubmit || hasRevertLabel) {
       log.info('Found pull request with auto submit and/or revert label.');
-      await pubsub.publish('auto-submit-queue', pullRequest);
+      await pubsub.publish(Config.pubsubPullRequestTopic, pullRequest);
     }
 
     return Response.ok(rawBody);
