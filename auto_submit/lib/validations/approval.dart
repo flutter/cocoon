@@ -116,8 +116,7 @@ class Approver {
   /// not make any merges until the change requests are fixed.
   Future<void> computeApproval() async {
     _remainingReviews = repositoryConfiguration.approvingReviews;
-    // team might be more than one in the future.
-    // TODO this might be failing if the member is not a team member with exception.
+    // TODO (ricardoamador) team might be more than one in the future.
     final bool authorIsMember =
         await githubService.isTeamMember(repositoryConfiguration.approvalGroup, author!, slug.owner);
 
