@@ -30,7 +30,6 @@ class RequiredCheckRuns extends Validation {
   final RetryOptions retryOptions;
 
   Future<bool> waitForRequiredChecks({
-    // required GithubService githubService,
     required github.RepositorySlug slug,
     required String sha,
     required Set<String> checkNames,
