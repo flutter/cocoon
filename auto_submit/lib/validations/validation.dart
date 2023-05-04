@@ -11,10 +11,6 @@ import 'package:github/github.dart' as github;
 const APPROVED_STATE = 'APPROVED';
 const CHANGES_REQUESTED_STATE = 'CHANGES_REQUESTED';
 
-/// GitHub ORG membership constants.
-const ORG_MEMBER = 'MEMBER';
-const ORG_OWNER = 'OWNER';
-
 /// GitHub status state.
 const STATUS_SUCCESS = 'SUCCESS';
 const STATUS_FAILURE = 'FAILURE';
